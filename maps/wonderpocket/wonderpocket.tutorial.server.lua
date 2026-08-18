@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
 remotes.Name = "WONDERPOCKET_Remotes"
@@ -8,6 +9,8 @@ remotes.Parent = ReplicatedStorage
 local Tutorial = remotes:FindFirstChild("Tutorial") or Instance.new("RemoteEvent")
 Tutorial.Name = "Tutorial"
 Tutorial.Parent = remotes
+
+local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
 
 local STEPS = {
     {id="MeetWondi", text="Walk to Bubbi and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
@@ -54,6 +57,7 @@ local function evaluate(player)
     player:SetAttribute("WP_TutorialStepId", "COMPLETE")
     player:SetAttribute("WP_TutorialObjective", "Pocket ready!")
     player:SetAttribute("WP_OnboardingComplete", true)
+    if CriticalSave then CriticalSave:Fire(player) end
     Tutorial:FireClient(player, "COMPLETE", #STEPS, #STEPS, "COMPLETE", "Your Pocket journey has begun!")
 end
 
