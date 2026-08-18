@@ -6,89 +6,75 @@ const injected = process.argv.includes('--injected');
 if (mapId !== 'a-club') process.exit(0);
 
 const root = process.cwd();
-const read = p => fs.readFileSync(path.join(root, p), 'utf8');
-const exists = p => fs.existsSync(path.join(root, p));
-let failed = false;
-const fail = m => { failed = true; console.error('[BBYA VALIDATE] FAIL:', m); };
-const pass = m => console.log('[BBYA VALIDATE] PASS:', m);
+const read = p => fs.readFileSync(path.join(root,p),'utf8');
+const exists = p => fs.existsSync(path.join(root,p));
+let failed=false;
+const fail=m=>{failed=true;console.error('[BBYA VALIDATE] FAIL:',m)};
+const pass=m=>console.log('[BBYA VALIDATE] PASS:',m);
 
-const registry = JSON.parse(read('maps/registry.json'));
-const target = registry.maps?.[mapId];
-if (!target || !target.enabled) fail('a-club registry target missing/disabled');
+const registry=JSON.parse(read('maps/registry.json'));
+const target=registry.maps?.[mapId];
+if(!target||!target.enabled) fail('a-club registry target missing/disabled');
 else {
-  if (!/^\d+$/.test(String(target.universeId)) || !/^\d+$/.test(String(target.placeId))) fail('invalid Roblox IDs');
-  if (!exists(target.file)) fail(`place file missing: ${target.file}`);
-  else pass(`registry/place valid: ${target.file}`);
+  if(!/^\d+$/.test(String(target.universeId))||!/^\d+$/.test(String(target.placeId))) fail('invalid Roblox IDs');
+  if(!exists(target.file)) fail(`place file missing: ${target.file}`); else pass(`registry/place valid: ${target.file}`);
 }
 
-for (const p of ['maps/a-club/bbya.v5-layout.server.lua','scripts/inject-bbya.js','scripts/publish-map.js']) {
-  if (!exists(p)) fail(`required V5.1 file missing: ${p}`);
-}
-if (!failed) pass('V5.1 architectural source files present');
+const zoneFiles=[
+  'maps/a-club/v5/00-core.lua',
+  'maps/a-club/v5/A1-exterior-spawn.lua','maps/a-club/v5/A2-entrance-facade.lua','maps/a-club/v5/A3-lobby.lua',
+  'maps/a-club/v5/A4-main-club.lua','maps/a-club/v5/A5-bar.lua','maps/a-club/v5/A6-chill.lua',
+  'maps/a-club/v5/B1-west-stair.lua','maps/a-club/v5/B2-east-stair.lua','maps/a-club/v5/B3-lift.lua',
+  'maps/a-club/v5/C1-vip-west.lua','maps/a-club/v5/C2-vip-east.lua','maps/a-club/v5/C3-queen-bridges.lua',
+  'maps/a-club/v5/D1-rooftop-arrival.lua','maps/a-club/v5/D2-rooftop-water-zone.lua','maps/a-club/v5/D3-skybar.lua',
+  'maps/a-club/v5/D4-rooftop-chill.lua','maps/a-club/v5/D5-cabana-zones.lua','maps/a-club/v5/D6-photo-view.lua',
+  'maps/a-club/v5/S1-service.lua','maps/a-club/v5/99-finalize.lua'
+];
+for(const p of [...zoneFiles,'scripts/inject-bbya.js','scripts/publish-map.js']) if(!exists(p)) fail(`required modular V5 file missing: ${p}`);
+if(!failed) pass(`${zoneFiles.length} modular architecture files present`);
 
-const layout = exists('maps/a-club/bbya.v5-layout.server.lua') ? read('maps/a-club/bbya.v5-layout.server.lua') : '';
-for (const marker of [
-  'V5.1 ARCHITECTURAL GREYBOX MASTERPLAN',
-  'Ground = Y 0, VIP = Y 18, Rooftop = Y 36',
-  'EXTERIOR BBYA IDENTITY',
-  'LOBBY',
-  'MAIN CLUB / DANCE',
-  'BAR PROGRAM',
-  'CHILL PROGRAM',
-  'LIFT CORE',
-  'WEST STAIR G-VIP',
-  'EAST STAIR G-VIP',
-  'VIP WEST MEZZANINE',
-  'POOL PROGRAM ZONE',
-  'SKY BAR PROGRAM ZONE',
-  'ROOFTOP CHILL PROGRAM ZONE',
-  'PHOTO / VIEW DECK',
-  'BBYAV5ArchitecturePhase'
-]) {
-  if (!layout.includes(marker)) fail(`V5.1 layout missing architectural marker: ${marker}`);
+const combined=zoneFiles.filter(exists).map(read).join('\n');
+for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
+  if(!combined.includes(`registerZone("${code}"`)) fail(`zone registration missing: ${code}`);
+}
+for(const marker of ['BBYAV5ZoneSchema','BBYAV5InspectionReady','BBYAV5Layout","5.2-modular-greybox','INSPECTION TAG']) {
+  if(!combined.includes(marker)) fail(`modular architecture marker missing: ${marker}`);
+}
+for(const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'MarketplaceService', 'RemoteEvent', 'TextButton']) {
+  if(combined.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.2: ${forbidden}`);
 }
 
-// Program-zone labels such as CABANA are permitted; actual decoration builders are not.
-for (const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'Beam', 'Trail', 'MarketplaceService', 'RemoteEvent']) {
-  if (layout.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.1 source: ${forbidden}`);
-}
-
-const injector = exists('scripts/inject-bbya.js') ? read('scripts/inject-bbya.js') : '';
-if (!injector.includes('bbya.v5-layout.server.lua')) fail('injector missing V5.1 layout source');
-if (!injector.includes('BBYA_V5_ARCHITECTURAL_GREYBOX')) fail('injector missing V5 runtime name');
-for (const retired of [
-  'bbya.visual-rebuild-v4.server.lua','bbya.visual-polish-v4.server.lua','bbya.phase3-premium.server.lua',
-  'bbya.phase4-experience.server.lua','bbya.phase5-finish.server.lua','bbya.phase6-wayfinding.server.lua',
-  'bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua','bbya.remove-trees.server.lua',
+const injector=exists('scripts/inject-bbya.js')?read('scripts/inject-bbya.js'):'';
+for(const p of zoneFiles) if(!injector.includes(p)) fail(`injector missing modular source: ${p}`);
+if(!injector.includes('BBYA_V5_2_MODULAR_ARCHITECTURE')) fail('injector missing V5.2 runtime name');
+for(const retired of [
+  'bbya.v5-layout.server.lua','bbya.visual-rebuild-v4.server.lua','bbya.visual-polish-v4.server.lua',
+  'bbya.phase3-premium.server.lua','bbya.phase4-experience.server.lua','bbya.phase5-finish.server.lua',
+  'bbya.phase6-wayfinding.server.lua','bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua',
   'bbya.client.lua','bbya.music.client.lua','bbya.monetization.client.lua','bbya.ui-coordinator.client.lua'
-]) {
-  if (injector.includes(retired)) fail(`old runtime still in V5.1 injector: ${retired}`);
-}
-if (!failed) pass('injector is architecture-only V5.1');
+]) if(injector.includes(retired)) fail(`retired runtime still referenced: ${retired}`);
+if(!failed) pass('injector assembles modular zones into one runtime script');
 
-if (target && exists(target.file)) {
-  const xml = read(target.file);
-  if (!xml.includes('</roblox>')) fail('RBXLX missing closing tag');
-  if (injected) {
-    const begin='<!-- BBYA_RUNTIME_BEGIN -->', end='<!-- BBYA_RUNTIME_END -->';
-    const bc=xml.split(begin).length-1, ec=xml.split(end).length-1;
-    if (bc!==1 || ec!==1) fail(`runtime markers invalid begin=${bc} end=${ec}`);
-    const runtime = bc===1 && ec===1 ? xml.slice(xml.indexOf(begin), xml.indexOf(end)+end.length) : '';
-    if (!runtime.includes('<string name="Name">BBYA_V5_ARCHITECTURAL_GREYBOX</string>')) fail('V5.1 architectural script missing after injection');
-    const scripts = (runtime.match(/<Item class="Script"/g) || []).length;
-    const locals = (runtime.match(/<Item class="LocalScript"/g) || []).length;
-    if (scripts !== 1) fail(`expected exactly 1 server script for architecture review; found ${scripts}`);
-    if (locals !== 0) fail(`expected 0 LocalScripts for architecture review; found ${locals}`);
-    for (const oldName of ['BBYA_Premium_Visual_Rebuild_v4','BBYA_Front_Lobby_Final_v4_9','BBYA_Dance_Studio_Client','BBYA_Music_Client','BBYA_Monetization_Client']) {
-      if (runtime.includes(oldName)) fail(`legacy runtime leaked into V5.1: ${oldName}`);
+if(target&&exists(target.file)) {
+  const xml=read(target.file);
+  if(!xml.includes('</roblox>')) fail('RBXLX missing closing tag');
+  if(injected) {
+    const begin='<!-- BBYA_RUNTIME_BEGIN -->',end='<!-- BBYA_RUNTIME_END -->';
+    const bc=xml.split(begin).length-1,ec=xml.split(end).length-1;
+    if(bc!==1||ec!==1) fail(`runtime markers invalid begin=${bc} end=${ec}`);
+    const runtime=bc===1&&ec===1?xml.slice(xml.indexOf(begin),xml.indexOf(end)+end.length):'';
+    if(!runtime.includes('<string name="Name">BBYA_V5_2_MODULAR_ARCHITECTURE</string>')) fail('V5.2 modular runtime missing after injection');
+    const scripts=(runtime.match(/<Item class="Script"/g)||[]).length;
+    const locals=(runtime.match(/<Item class="LocalScript"/g)||[]).length;
+    if(scripts!==1) fail(`expected exactly 1 architecture runtime script; found ${scripts}`);
+    if(locals!==0) fail(`expected 0 LocalScripts during architecture review; found ${locals}`);
+    for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
+      if(!runtime.includes(`registerZone("${code}"`)) fail(`injected runtime missing zone ${code}`);
     }
-    if (!runtime.includes('5.1-architectural-masterplan')) fail('V5.1 masterplan attribute missing after injection');
-    if (!failed) pass('post-injection V5.1 architecture-only runtime valid');
+    if(!runtime.includes('5.2-modular-greybox')) fail('V5.2 status marker missing after injection');
+    if(!failed) pass('post-injection modular architecture runtime valid');
   }
 }
 
-if (failed) {
-  console.error(`[BBYA VALIDATE] ${injected ? 'POST-INJECTION' : 'SOURCE'} BUILD REJECTED`);
-  process.exit(1);
-}
-console.log(`[BBYA VALIDATE] ${injected ? 'POST-INJECTION' : 'SOURCE'} CHECKS PASSED • V5.1 ARCHITECTURAL MASTERPLAN`);
+if(failed){console.error(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} BUILD REJECTED`);process.exit(1)}
+console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR ZONE ARCHITECTURE`);
