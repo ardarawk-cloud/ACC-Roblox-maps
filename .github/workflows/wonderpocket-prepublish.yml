@@ -1,0 +1,45 @@
+name: WONDERPOCKET Pre-Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish WONDERPOCKET after build + QC
+        required: true
+        default: false
+        type: boolean
+  push:
+    branches: [agent/wonderpocket-target]
+    paths:
+      - 'maps/wonderpocket/**'
+      - 'scripts/build-wonderpocket.js'
+      - 'scripts/qc-wonderpocket.js'
+      - '.github/workflows/wonderpocket-prepublish.yml'
+
+jobs:
+  build-qc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build WONDERPOCKET place
+        run: node scripts/build-wonderpocket.js
+      - name: Run WONDERPOCKET QC
+        run: node scripts/qc-wonderpocket.js
+      - name: Upload closed-test place artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wonderpocket-closed-test-place
+          path: maps/wonderpocket/place.rbxlx
+          retention-days: 7
+      - name: Publish WONDERPOCKET
+        if: github.event_name == 'workflow_dispatch' && inputs.publish == true
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          node -e "const fs=require('fs');const p='maps/registry.json';const r=JSON.parse(fs.readFileSync(p));r.maps.wonderpocket.enabled=true;fs.writeFileSync(p,JSON.stringify(r,null,2)+'\n');"
+          node scripts/publish-map.js wonderpocket
