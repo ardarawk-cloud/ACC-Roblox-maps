@@ -70,6 +70,7 @@ jobs:
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
             echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
             node scripts/validate-bbya-build.js "$MAP_ID"
+            node scripts/validate-bbya-runtime-roots.js "$MAP_ID"
 
             echo "=== INJECT RUNTIME: $MAP_ID ==="
             node scripts/inject-bbya.js "$MAP_ID"
