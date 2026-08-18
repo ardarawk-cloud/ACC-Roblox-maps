@@ -37,12 +37,18 @@ local function waitForPlot(player)
     return false
 end
 
-local function insideOwnPlot(player, position)
+local function plotInfo(player)
     local cx = tonumber(player:GetAttribute("WP_PlotCenterX"))
     local cz = tonumber(player:GetAttribute("WP_PlotCenterZ"))
     local hx = tonumber(player:GetAttribute("WP_PlotHalfX"))
     local hz = tonumber(player:GetAttribute("WP_PlotHalfZ"))
-    if not (cx and cz and hx and hz) then return false end
+    if not (cx and cz and hx and hz) then return nil end
+    return cx, cz, hx, hz
+end
+
+local function insideOwnPlot(player, position)
+    local cx, cz, hx, hz = plotInfo(player)
+    if not cx then return false end
     return math.abs(position.X-cx) <= hx and math.abs(position.Z-cz) <= hz
 end
 
@@ -63,14 +69,22 @@ local function makeFurniture(player,itemId,cf)
 end
 
 local function serialize(player)
-    local out={}
+    local cx, cz = plotInfo(player)
+    if not cx then return {schemaVersion=2, items={}} end
+    local items={}
     for _,obj in ipairs(getPlacedFolder(player):GetChildren()) do
         if obj:IsA("BasePart") then
             local _,yaw,_=obj.CFrame:ToOrientation()
-            table.insert(out,{id=obj:GetAttribute("WP_ItemId") or obj.Name,x=obj.Position.X,y=obj.Position.Y,z=obj.Position.Z,yaw=math.deg(yaw)})
+            table.insert(items,{
+                id=obj:GetAttribute("WP_ItemId") or obj.Name,
+                relX=obj.Position.X-cx,
+                y=obj.Position.Y,
+                relZ=obj.Position.Z-cz,
+                yaw=math.deg(yaw),
+            })
         end
     end
-    return out
+    return {schemaVersion=2,items=items}
 end
 
 local function save(player)
@@ -78,6 +92,22 @@ local function save(player)
     local ok, err = pcall(function() Store:SetAsync("u_"..player.UserId,data) end)
     player:SetAttribute("WP_FurnitureSaveHealthy", ok)
     if not ok then warn("[WONDERPOCKET] Furniture save failed", player.UserId, err) end
+end
+
+local function resolveSavedPosition(player, entry)
+    local cx, cz = plotInfo(player)
+    if not cx then return nil end
+
+    if entry.relX ~= nil and entry.relZ ~= nil then
+        return Vector3.new(cx + (tonumber(entry.relX) or 0), tonumber(entry.y) or 6, cz + (tonumber(entry.relZ) or 0))
+    end
+
+    -- v1 legacy absolute-position fallback: only restore if it still belongs to the assigned plot.
+    if entry.x ~= nil and entry.z ~= nil then
+        local pos=Vector3.new(tonumber(entry.x) or 0,tonumber(entry.y) or 6,tonumber(entry.z) or 0)
+        if insideOwnPlot(player,pos) then return pos end
+    end
+    return nil
 end
 
 local function load(player)
@@ -88,10 +118,12 @@ local function load(player)
     local ok,data=pcall(function() return Store:GetAsync("u_"..player.UserId) end)
     player:SetAttribute("WP_FurnitureSaveHealthy", ok)
     if not ok or type(data)~="table" then return end
-    for _,entry in ipairs(data) do
-        if templates[entry.id] then
-            local pos=Vector3.new(tonumber(entry.x) or 0,tonumber(entry.y) or 1,tonumber(entry.z) or 0)
-            if insideOwnPlot(player,pos) then
+
+    local items = type(data.items)=="table" and data.items or data
+    for _,entry in ipairs(items) do
+        if type(entry)=="table" and templates[entry.id] then
+            local pos=resolveSavedPosition(player,entry)
+            if pos and insideOwnPlot(player,pos) then
                 makeFurniture(player,entry.id,CFrame.new(pos)*CFrame.Angles(0,math.rad(tonumber(entry.yaw) or 0),0))
             end
         end
@@ -104,7 +136,7 @@ PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
         return
     end
     if action~="PLACE" or typeof(cf)~="CFrame" then return end
-    if player:GetAttribute("WP_DataLoaded") ~= true then
+    if player:GetAttribute("WP_DataLoaded") ~= true or player:GetAttribute("WP_InventoryLoaded") ~= true then
         PlacementRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY")
         return
     end
@@ -134,7 +166,7 @@ PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
     local _,yaw,_=cf:ToOrientation()
     local q=math.pi/2
     local snappedYaw=math.floor((yaw/q)+0.5)*q
-    local snapped=CFrame.new(snap(p.X),math.max(1,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
+    local snapped=CFrame.new(snap(p.X),math.max(5.6,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
     if not insideOwnPlot(player,snapped.Position) then
         PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
         return
@@ -162,4 +194,4 @@ game:BindToClose(function()
     for _,player in ipairs(Players:GetPlayers()) do save(player) end
 end)
 
-print("[WONDERPOCKET] Hardened persistent furniture placement loaded")
+print("[WONDERPOCKET] Plot-relative persistent furniture placement loaded")
