@@ -22,7 +22,7 @@ Instance.new("UICorner",button).CornerRadius = UDim.new(0,10)
 local panel = Instance.new("TextLabel")
 panel.AnchorPoint = Vector2.new(1,0)
 panel.Position = UDim2.new(1,-10,0,112)
-panel.Size = UDim2.fromOffset(310,310)
+panel.Size = UDim2.fromOffset(320,340)
 panel.BackgroundColor3 = Color3.fromRGB(20,25,45)
 panel.BackgroundTransparency = .08
 panel.TextColor3 = Color3.fromRGB(235,242,255)
@@ -44,18 +44,26 @@ local function refresh()
     local stars=tonumber(player:GetAttribute("Stars")) or 0
     local deadline=tonumber(player:GetAttribute("WP_AdventureDeadline")) or 0
     local secondsLeft=deadline>0 and math.max(0,deadline-os.time()) or 0
+    local dexFound=0
+    for _,attr in ipairs({
+        "WP_DEX_Wondies_Bubbi","WP_DEX_Wondies_Flamo","WP_DEX_Wondies_Mossy","WP_DEX_Wondies_Lumi","WP_DEX_Wondies_Zappy","WP_DEX_Wondies_Puffy",
+        "WP_DEX_Plants_Carrot","WP_DEX_Plants_Strawberry","WP_DEX_Plants_Sunflower",
+        "WP_DEX_Furniture_CloudBed","WP_DEX_Furniture_StarLamp","WP_DEX_Furniture_RainbowSofa","WP_DEX_Furniture_BunnyChair","WP_DEX_Furniture_ToyChest","WP_DEX_Furniture_MiniAquarium",
+        "WP_DEX_Badges_TreasureIsland",
+        "WP_DEX_Biomes_MeadowPocket","WP_DEX_Biomes_BeachIsland","WP_DEX_Biomes_SnowWorld","WP_DEX_Biomes_CandyWorld","WP_DEX_Biomes_SpaceWorld",
+    }) do if player:GetAttribute(attr)==true then dexFound+=1 end end
 
     panel.Text=string.format(
-        " WONDERPOCKET v1.1 RC\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Garden Save: %s\n Remotes: %s\n Plot/Home: %s / %s\n Garden Ready: %s\n Economy: %sC / %sS\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.1 RC\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Garden Save: %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n Garden Ready: %s\n Economy: %sC / %sS\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
         yes(player:GetAttribute("WP_DataLoaded")==true),
         yes(player:GetAttribute("WP_DataSaveHealthy")~=false),
         yes(player:GetAttribute("WP_InventoryLoaded")==true),
         yes(player:GetAttribute("WP_InventorySaveHealthy")~=false),
         yes(player:GetAttribute("WP_FurnitureSaveHealthy")~=false),
         yes(player:GetAttribute("WP_GardenSaveHealthy")~=false),
+        yes(player:GetAttribute("WP_DexLoaded")==true),yes(player:GetAttribute("WP_DexSaveHealthy")~=false),tostring(dexFound),
         yes(remotes~=nil),
-        plotId>0 and tostring(plotId) or "WAIT",
-        yes(player:GetAttribute("WP_HomeReady")==true),
+        plotId>0 and tostring(plotId) or "WAIT",yes(player:GetAttribute("WP_HomeReady")==true),
         yes(player:GetAttribute("WP_GardenReady")==true),
         tostring(coins),tostring(stars),
         tostring(tonumber(player:GetAttribute("WP_HarvestCount")) or 0),
@@ -77,4 +85,4 @@ task.spawn(function()
     while task.wait(2) do if panel.Visible then refresh() end end
 end)
 
-print("[WONDERPOCKET] v1.1 release-candidate health UI ready")
+print("[WONDERPOCKET] v1.1 release-candidate health UI with WonderDex status ready")
