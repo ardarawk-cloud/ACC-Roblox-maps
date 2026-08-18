@@ -11,6 +11,16 @@ on:
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/validate-bbya-clean-rebuild.js'
       - '.github/workflows/bbya-clean-rebuild-preview.yml'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'maps/a-club/place.rbxlx'
+      - 'maps/a-club/rebuild/**'
+      - 'scripts/assemble-bbya-v6-preview.js'
+      - 'scripts/validate-bbya-clean-rebuild.js'
+      - '.github/workflows/bbya-clean-rebuild-preview.yml'
 
 jobs:
   validate-preview:
