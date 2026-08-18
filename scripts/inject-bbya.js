@@ -12,8 +12,8 @@ if (!target) throw new Error(`Unknown map id: ${mapId}`);
 const placePath = path.join(root, target.file);
 const readLua = file => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 
-// IMPORTANT: source is modular for maintenance, but concatenated into ONE Roblox Script.
-// This keeps zone fixes isolated in GitHub without reintroducing parallel runtime builders.
+// Architecture source stays modular in GitHub but is concatenated into ONE Roblox Script.
+// UI is ONE independent LocalScript shell so legacy panel stacks cannot overlap again.
 const zoneFiles = [
   'maps/a-club/v5/00-core.lua',
   'maps/a-club/v5/A1-exterior-spawn.lua',
@@ -39,6 +39,7 @@ const zoneFiles = [
 ];
 
 const combinedLua = zoneFiles.map(file => `\n-- SOURCE FILE: ${file}\n${readLua(file)}`).join('\n');
+const uiLua = readLua('maps/a-club/v5/ui-shell.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
 const begin = '<!-- BBYA_RUNTIME_BEGIN -->';
@@ -56,9 +57,22 @@ const runtime = `${begin}
     </Properties>
   </Item>
 </Item>
+<Item class="StarterPlayer" referent="RBXBBYAV52STARTERPLAYER">
+  <Properties><string name="Name">StarterPlayer</string></Properties>
+  <Item class="StarterPlayerScripts" referent="RBXBBYAV52STARTERPLAYERSCRIPTS">
+    <Properties><string name="Name">StarterPlayerScripts</string></Properties>
+    <Item class="LocalScript" referent="RBXBBYAV52UISHELL">
+      <Properties>
+        <bool name="Disabled">false</bool>
+        <string name="Name">BBYA_V5_Mobile_Safe_UI_Shell</string>
+        <ProtectedString name="Source"><![CDATA[${uiLua}]]></ProtectedString>
+      </Properties>
+    </Item>
+  </Item>
+</Item>
 ${end}`;
 
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log(`[BBYA] V5.2 modular architecture injected from ${zoneFiles.length} source files into one runtime Script.`);
+console.log(`[BBYA] V5.2 modular architecture + mobile-safe UI shell injected. Architecture=${zoneFiles.length} modules -> 1 Script; UI=1 LocalScript.`);
