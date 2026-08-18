@@ -1,42 +1,49 @@
--- [A3] PREMIUM LOBBY / ORIENTATION
--- Main axis x=-12..12 stays furniture-free from entrance to Main Club.
+-- [A3] PREMIUM LOBBY / SOCIAL LIVING ROOM
+-- Modern social-hub entrance: hospitality, outfit visibility, hangout first; club second.
+-- Center x=-13..13 remains clear from A2 entrance through the 52-stud Main Club opening.
 
-finish(A3,"LOBBY FLOOR FINISH",Vector3.new(116,.16,38),CFrame.new(0,.6,107),Color3.fromRGB(50,47,53),Enum.Material.Marble,0,false)
-finish(A3,"CENTER WAYFINDING STRIP",Vector3.new(16,.12,36),CFrame.new(0,.72,107),P.charcoal,Enum.Material.SmoothPlastic,0,false)
-glow(A3,"CENTER STRIP LEFT",Vector3.new(.18,.14,34),CFrame.new(-8.2,.82,107),P.pink,.2,6)
-glow(A3,"CENTER STRIP RIGHT",Vector3.new(.18,.14,34),CFrame.new(8.2,.82,107),P.cyan,.2,6)
+finish(A3,"LOBBY FLOOR FINISH",Vector3.new(116,.16,38),CFrame.new(0,.6,107),Color3.fromRGB(57,50,54),Enum.Material.Marble,0,false)
+finish(A3,"CENTER SOCIAL WALK",Vector3.new(18,.12,36),CFrame.new(0,.72,107),Color3.fromRGB(71,58,64),Enum.Material.SmoothPlastic,0,false)
+glow(A3,"CENTER WALK LEFT",Vector3.new(.16,.12,34),CFrame.new(-9.2,.82,107),P.pink,.14,5)
+glow(A3,"CENTER WALK RIGHT",Vector3.new(.16,.12,34),CFrame.new(9.2,.82,107),P.cyan,.14,5)
 
--- Reception islands sit outside the centerline.
-barCounter(A3,"WEST RECEPTION",Vector3.new(-35,2.15,111),Vector3.new(18,3.4,4),0)
-zoneSign(A3,"WEST RECEPTION SIGN","RECEPTION",CFrame.new(-35,5.5,113.15),Vector3.new(15,2.2,.25),P.gold,Enum.NormalId.Front)
-barCounter(A3,"EAST HOST DESK",Vector3.new(35,2.15,111),Vector3.new(18,3.4,4),0)
-zoneSign(A3,"EAST HOST SIGN","HOST / INFO",CFrame.new(35,5.5,113.15),Vector3.new(15,2.2,.25),P.cyan,Enum.NormalId.Front)
+-- One hospitality island instead of two formal reception desks.
+barCounter(A3,"WELCOME BAR HOST",Vector3.new(35,2.15,111),Vector3.new(23,3.4,5),0)
+zoneSign(A3,"WELCOME BAR SIGN","WELCOME BAR • HOST",CFrame.new(35,5.5,113.65),Vector3.new(20,2.2,.25),P.warm,Enum.NormalId.Front)
+for _,x in ipairs({27,33,39,45}) do stool(A3,"WELCOME STOOL "..x,Vector3.new(x,2.1,107.8),P.graphite) end
 
--- Photo/look alcoves at the sides; no object protrudes into the 40-stud club doorway.
-finish(A3,"WEST PHOTO BACKDROP",Vector3.new(24,9,.45),CFrame.new(-45,6.2,123.2),P.black,Enum.Material.Slate,0,false)
-glow(A3,"WEST PHOTO FRAME TOP",Vector3.new(22,.25,.25),CFrame.new(-45,10.3,122.9),P.pink,.32,7)
-glow(A3,"WEST PHOTO FRAME L",Vector3.new(.25,7.8,.25),CFrame.new(-55.7,6.3,122.9),P.pink,.22,6)
-glow(A3,"WEST PHOTO FRAME R",Vector3.new(.25,7.8,.25),CFrame.new(-34.3,6.3,122.9),P.cyan,.22,6)
-zoneSign(A3,"WEST PHOTO COPY","BBYA PHOTO / SELFIE",CFrame.new(-45,7.2,122.65),Vector3.new(19,3,.25),P.pink,Enum.NormalId.Front)
+-- Social living room visible directly from the entrance.
+sofa(A3,"WEST SOCIAL SOFA A",Vector3.new(-42,1.4,109),15,90,P.graphite)
+sofa(A3,"WEST SOCIAL SOFA B",Vector3.new(-42,1.4,96),15,90,P.charcoal)
+lowTable(A3,"WEST SOCIAL TABLE",Vector3.new(-33,1.3,102.5),Vector3.new(7,.7,5),P.black)
+planter(A3,"WEST SOCIAL PLANTER",Vector3.new(-53,1.6,116),Vector3.new(6,2.4,6))
+palm(A3,"WEST SOCIAL PALM",Vector3.new(-53,2.9,116),8)
+zoneSign(A3,"SOCIAL LOUNGE SIGN","SOCIAL LOUNGE",CFrame.new(-45,7.1,123.1),Vector3.new(20,2.4,.25),P.pink,Enum.NormalId.Front)
 
-finish(A3,"EAST LOOK BACKDROP",Vector3.new(24,9,.45),CFrame.new(45,6.2,123.2),P.black,Enum.Material.Slate,0,false)
-glow(A3,"EAST LOOK FRAME TOP",Vector3.new(22,.25,.25),CFrame.new(45,10.3,122.9),P.cyan,.32,7)
-zoneSign(A3,"EAST LOOK COPY","LOOK STUDIO",CFrame.new(45,7.2,122.65),Vector3.new(18,3,.25),P.cyan,Enum.NormalId.Front)
+-- Outfit / photo corner stays open and bright; this is part of the entrance experience.
+finish(A3,"LOOK WALL",Vector3.new(24,9,.45),CFrame.new(45,6.2,123.2),P.black,Enum.Material.Slate,0,false)
+glow(A3,"LOOK FRAME TOP",Vector3.new(22,.25,.25),CFrame.new(45,10.3,122.9),P.cyan,.25,6)
+glow(A3,"LOOK FRAME L",Vector3.new(.25,7.8,.25),CFrame.new(34.3,6.3,122.9),P.pink,.18,5)
+glow(A3,"LOOK FRAME R",Vector3.new(.25,7.8,.25),CFrame.new(55.7,6.3,122.9),P.cyan,.18,5)
+zoneSign(A3,"LOOK COPY","OUTFIT • SELFIE",CFrame.new(45,7.2,122.65),Vector3.new(19,3,.25),P.white,Enum.NormalId.Front)
 
--- Lobby waiting pockets.
-sofa(A3,"WEST LOBBY SOFA",Vector3.new(-43,1.4,94),13,180,P.graphite)
-lowTable(A3,"WEST LOBBY TABLE",Vector3.new(-43,1.3,100),Vector3.new(6,.7,4),P.black)
-sofa(A3,"EAST LOBBY SOFA",Vector3.new(43,1.4,94),13,180,P.graphite)
-lowTable(A3,"EAST LOBBY TABLE",Vector3.new(43,1.3,100),Vector3.new(6,.7,4),P.black)
+-- Warm ceiling pools keep avatars readable before they reach the neon-heavy club.
+for _,x in ipairs({-44,-22,0,22,44}) do
+ local lamp=glow(A3,"SOCIAL CEILING LIGHT "..x,Vector3.new(3,.18,3),CFrame.new(x,12.5,107),P.warm,.42,11)
+ lamp:SetAttribute("BBYACriticalFill",true)
+end
+for _,x in ipairs({-33,33}) do
+ local fill=glow(A3,"OUTFIT FILL "..x,Vector3.new(2.6,.18,2.6),CFrame.new(x,11.8,117),P.white,.34,9)
+ fill:SetAttribute("BBYACriticalFill",true)
+end
 
--- One physical boundary board. The two copies face away from each other instead of stacking two sign parts.
--- Front (-Z / club side): returning toward lobby. Back (+Z / lobby side): entering the club.
+-- One physical boundary board, readable correctly from both directions.
 zoneSignPair(
  A3,
  "LOBBY CLUB SHARED WAYFINDING",
- "LOBBY ↑     CHILL ←     BAR →     VIP / ROOF STAIRS",
- "MAIN CLUB ↑     BAR ←     CHILL →",
+ "SOCIAL LOUNGE ↑     EXIT / LOBBY ↑     BAR →",
+ "MAIN CLUB ↑     SOCIAL LOUNGE ←     WELCOME BAR →",
  CFrame.new(0,12.1,83.9),
- Vector3.new(46,3,.25),
+ Vector3.new(50,3,.25),
  P.white
 )
