@@ -9,6 +9,7 @@ on:
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/validate-bbya-v6.js'
       - 'scripts/validate-bbya-v6-client.js'
+      - 'scripts/validate-bbya-v6-ui-recovery.js'
       - 'scripts/validate-bbya-v6-preview-gate.js'
       - '.github/workflows/bbya-v6-ci.yml'
   workflow_dispatch:
@@ -37,6 +38,9 @@ jobs:
       - name: Validate V6 client safety and performance
         run: node scripts/validate-bbya-v6-client.js
 
+      - name: Validate V6 UI recovery
+        run: node scripts/validate-bbya-v6-ui-recovery.js
+
       - name: Validate V6 preview isolation
         run: node scripts/validate-bbya-v6-preview-gate.js
 
@@ -48,6 +52,9 @@ jobs:
 
       - name: Re-check client contract after assembly source update
         run: node scripts/validate-bbya-v6-client.js
+
+      - name: Re-check UI recovery
+        run: node scripts/validate-bbya-v6-ui-recovery.js
 
       - name: Re-check preview isolation
         run: node scripts/validate-bbya-v6-preview-gate.js
