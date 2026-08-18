@@ -10,6 +10,8 @@ local function reward(player)
         player:SetAttribute("WP_Quest_Starter", "COMPLETE")
         return
     end
+    if player:GetAttribute("WP_DataLoaded") ~= true or player:GetAttribute("WP_DataReadOnly") == true then return end
+
     player:SetAttribute("WP_QuestStarterRewarded", true)
     player:SetAttribute("WP_Quest_Starter", "COMPLETE")
     player:SetAttribute("WP_QuestRewardReady", false)
@@ -20,7 +22,7 @@ local function reward(player)
 end
 
 local function evaluate(player)
-    if player:GetAttribute("WP_DataLoaded") ~= true then return end
+    if player:GetAttribute("WP_DataLoaded") ~= true or player:GetAttribute("WP_DataReadOnly") == true then return end
     if player:GetAttribute("WP_QuestStarterRewarded") == true then
         player:SetAttribute("WP_Quest_Starter", "COMPLETE")
         player:SetAttribute("WP_QuestRewardReady", false)
@@ -34,14 +36,20 @@ local function evaluate(player)
 end
 
 local function watch(player)
-    local deadline = os.clock() + 20
-    while player.Parent and os.clock() < deadline and player:GetAttribute("WP_DataLoaded") ~= true do task.wait(.25) end
-    if not player.Parent then return end
+    while player.Parent and player:GetAttribute("WP_DataLoaded") ~= true do
+        if player:GetAttribute("WP_DataLoadFailed") == true then return end
+        task.wait(.25)
+    end
+    if not player.Parent or player:GetAttribute("WP_DataLoaded") ~= true then return end
+
     player:GetAttributeChangedSignal("WP_HarvestCount"):Connect(function() evaluate(player) end)
+    player:GetAttributeChangedSignal("WP_DataReadOnly"):Connect(function()
+        if player:GetAttribute("WP_DataReadOnly") ~= true then evaluate(player) end
+    end)
     evaluate(player)
 end
 
 Players.PlayerAdded:Connect(function(player) task.spawn(watch, player) end)
 for _, player in Players:GetPlayers() do task.spawn(watch, player) end
 
-print("[WONDERPOCKET] Audited persistent idempotent starter quest loaded")
+print("[WONDERPOCKET] State-driven persistent idempotent starter quest loaded")
