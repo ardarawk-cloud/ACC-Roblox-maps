@@ -14,7 +14,8 @@ const required = [
   'wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
   'wonderpocket.tutorial.server.lua','wonderpocket.tutorial.client.lua',
   'wonderpocket.adventure.server.lua','wonderpocket.adventure-gate.server.lua',
-  'wonderpocket.treasure-island.server.lua','wonderpocket.health.client.lua'
+  'wonderpocket.treasure-island.server.lua','wonderpocket.health.client.lua',
+  'wonderpocket.quests.server.lua','wonderpocket.retention.server.lua'
 ];
 for (const f of required) if (!fs.existsSync(path.join(dir,f))) errors.push(`Missing required file: ${f}`);
 
@@ -32,20 +33,50 @@ const read = f => fs.readFileSync(path.join(dir,f),'utf8');
 const configSrc = read('GameConfig.lua');
 const bootstrapSrc = read('wonderpocket.bootstrap.server.lua');
 const placementSrc = read('wonderpocket.placement.server.lua');
+const previewSrc = read('wonderpocket.buildpreview.client.lua');
 const plotsSrc = read('wonderpocket.plots.server.lua');
+const gardenSrc = read('wonderpocket.gardening.server.lua');
+const questSrc = read('wonderpocket.quests.server.lua');
+const retentionSrc = read('wonderpocket.retention.server.lua');
+const inventorySrc = read('wonderpocket.furniture-inventory.server.lua');
 const adventureSrc = read('wonderpocket.adventure.server.lua');
+const treasureSrc = read('wonderpocket.treasure-island.server.lua');
 
-if (!configSrc.includes('1.0.0-closed-test-build-candidate')) warnings.push('GameConfig is not marked as the v1.0 closed-test build candidate.');
-if (!configSrc.includes('PublishAllowed = false')) errors.push('Closed-test candidate must keep PublishAllowed = false.');
-if (!configSrc.includes('PlotRelativePersistence = true')) errors.push('Plot-relative furniture persistence is not locked in GameConfig.');
-if (!configSrc.includes('PersonalStarterCottage = true')) errors.push('Personal Starter Cottage is not locked in GameConfig.');
-if (!configSrc.includes('ServerAuthoritativeAdventureRewards = true')) errors.push('Server-authoritative adventure rewards are not locked in GameConfig.');
+if (!configSrc.includes('1.1.0-release-candidate-hardening')) errors.push('GameConfig is not marked v1.1 release-candidate hardening.');
+if (!configSrc.includes('PublishAllowed = false')) errors.push('Release candidate must keep PublishAllowed = false.');
+for (const marker of [
+  'DataSchemaVersion = 3','RevisionSafeSaves = true','CriticalSaveBus = true',
+  'PersistentPlotState = true','FullFootprintPlotValidation = true',
+  'ServerAuthoritativeAdventureRewards = true','AdventureDeadlineSeconds = 240'
+]) if (!configSrc.includes(marker)) errors.push(`GameConfig missing hardening marker: ${marker}`);
 
-if (bootstrapSrc.includes('OnboardingRemote.OnServerEvent')) errors.push('Legacy client-authoritative onboarding completion handler detected.');
-if (!placementSrc.includes('relX=') || !placementSrc.includes('relZ=')) errors.push('Furniture persistence is not plot-relative.');
+if (!bootstrapSrc.includes('DATA_SCHEMA = 3')) errors.push('Main player data schema is not v3.');
+if (!bootstrapSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Critical save bus missing from bootstrap.');
+if (!bootstrapSrc.includes('revision[player]')) errors.push('Revision-safe main save guard missing.');
+if (!bootstrapSrc.includes('WP_QuestStarterRewarded')) errors.push('Starter quest reward state is not persisted in main data.');
+if (!bootstrapSrc.includes('WP_OfflineSeconds')) errors.push('Offline retention handoff missing from main data.');
+
+if (!placementSrc.includes('footprintInsideOwnPlot')) errors.push('Server furniture validation does not check full footprint.');
+if (!placementSrc.includes('relX=') || !placementSrc.includes('relY=') || !placementSrc.includes('relZ=')) errors.push('Furniture persistence is not fully plot-relative.');
+if (!placementSrc.includes('revision[player]')) errors.push('Furniture placement persistence is not revision-safe.');
+if (!previewSrc.includes('footprintValid')) errors.push('Client ghost preview does not mirror full-footprint validation.');
+if (!plotsSrc.includes('WP_PlotCenterY')) errors.push('Stable plot Y coordinate is missing.');
 if (!plotsSrc.includes('WONDERPOCKET_PlotHomes')) errors.push('Personal plot home runtime is missing.');
+
+if (!gardenSrc.includes('WONDERPOCKET_Garden_v1')) errors.push('Persistent garden DataStore is missing.');
+if (!gardenSrc.includes('readyAt')) errors.push('Garden does not persist absolute growth deadlines.');
+if (!gardenSrc.includes('WP_GardenSaveHealthy')) errors.push('Garden save health signal missing.');
+
+if (!questSrc.includes('WP_QuestStarterRewarded')) errors.push('Starter quest lacks idempotent persistent reward flag.');
+if (!questSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Starter quest does not flush critical rewards.');
+if (retentionSrc.includes('DataStoreService')) errors.push('Retention still uses a separate DataStore instead of canonical player data.');
+if (!retentionSrc.includes('WP_OfflineSeconds')) errors.push('Retention does not consume canonical offline elapsed time.');
+if (!inventorySrc.includes('revision[player]')) errors.push('Furniture inventory persistence is not revision-safe.');
+
 if (!adventureSrc.includes('SERVER_AUTHORITATIVE')) errors.push('Adventure API does not explicitly reject client-authoritative progress.');
 if (/run\.treasure\s*\+=/.test(adventureSrc)) errors.push('Adventure remote still increments treasure progress from client events.');
+if (!treasureSrc.includes('DURATION_SECONDS = 240')) errors.push('Treasure Island server deadline is not enforced at 240 seconds.');
+if (!treasureSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Adventure completion does not flush critical reward data.');
 
 const registry = JSON.parse(fs.readFileSync(path.join(root,'maps/registry.json'),'utf8'));
 const wp = registry.maps?.wonderpocket;
@@ -63,12 +94,12 @@ else {
   if (!xml.includes('</roblox>')) errors.push('place.rbxlx invalid: missing </roblox>.');
   if (xml.includes('BBYA') || xml.includes('a-club')) errors.push('place.rbxlx contains foreign-map token.');
   if (!xml.includes('WONDERPOCKET_Remotes')) errors.push('Canonical WONDERPOCKET_Remotes string missing from assembled place.');
-  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory']) {
+  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory','wonderpocket.gardening']) {
     if (!xml.includes(marker)) errors.push(`Assembled place missing runtime marker: ${marker}`);
   }
 }
 
-console.log('[WONDERPOCKET QC v1.0]');
+console.log('[WONDERPOCKET QC v1.1]');
 for (const w of warnings) console.log('WARN:', w);
 if (errors.length) {
   for (const e of errors) console.error('ERROR:', e);
