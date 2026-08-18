@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.6.0-closed-test-candidate",
+    Version = "0.7.0-prepublish-hardening",
 
     Economy = {
         StartingCoins = 250,
@@ -132,6 +132,9 @@ return {
 
     QA = {
         ClosedTestCandidate = true,
+        PrePublishHardening = true,
+        IsolatedBuildPipeline = true,
+        ForeignMapTokenGuard = true,
         PublishAllowed = false,
         RequiresLiveDataStoreTest = true,
         RequiresMultiplayerPlotTest = true,
