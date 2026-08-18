@@ -55,7 +55,7 @@ jobs:
       - name: Publish changed maps
         if: steps.targets.outputs.maps != ''
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         shell: bash
         run: |
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
