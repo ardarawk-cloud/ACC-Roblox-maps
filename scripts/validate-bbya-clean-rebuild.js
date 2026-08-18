@@ -31,7 +31,7 @@ const qc=read(files[8]);
 const assembler=read(files[9]);
 
 if(!place.includes('RBXBBYABLANKWORKSPACE')||!place.includes('RBXBBYABLANKSSS')) bad('base place is not the known blank BBYA file'); else ok('blank base place locked');
-if(!core.includes('BBYA CLEAN REBUILD')||!core.includes('BBYAReferenceImage1')) bad('fresh clean rebuild core/reference lock missing'); else ok('fresh core and owner reference lock present');
+if(!core.includes('BBYA CLEAN REBUILD')||!core.includes('BBYAReferenceImage1')||!core.includes('PHASE_2_PREMIUM_BUILD')) bad('fresh clean rebuild phase 2 core/reference lock missing'); else ok('fresh phase 2 core and owner reference lock present');
 
 for(const token of ['CLUB GROUND SLAB','MEZZ LEVEL 1','MEZZ LEVEL 2','DANCE FLOOR','DJ BOOTH','VIP FLOOR','ROOFTOP DECK','POOL BASIN','POOL WATER','STAIR G TO MID','STAIR MID TO ROOF','MAIN BBYA WORDMARK']) if(!architecture.includes(token)) bad(`architecture token missing: ${token}`);
 if(!fail) ok('reference-shaped physical architecture present');
