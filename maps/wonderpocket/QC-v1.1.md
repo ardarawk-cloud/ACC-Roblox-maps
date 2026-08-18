@@ -15,9 +15,17 @@
 - [x] full furniture footprint validated inside owner plot
 - [x] mobile ghost preview mirrors full-footprint validation
 - [x] personal Starter Cottage follows player plot assignment
+- [x] WonderDex is persistent and server-authoritative
+- [x] WonderDex client `DISCOVER` path cannot unlock entries
+- [x] WonderDex follows verified Wondi/biome/harvest/furniture/adventure state
 - [x] Treasure Island progress/reward remains server-authoritative
 - [x] Treasure Island hard deadline = 240 seconds
 - [x] critical adventure rewards request immediate save
+- [x] dedicated WONDERPOCKET closed-test publisher locks Universe `8805231520` / Place `124843214013484`
+- [x] closed-test publish requires exact confirmation `WONDERPOCKET:8805231520:124843214013484`
+- [x] closed-test publisher requires branch `agent/wonderpocket-target`
+- [x] closed-test publishing does not temporarily enable the registry
+- [x] automatic branch pushes build/QC only and never publish
 - [x] WONDERPOCKET remains isolated from BBYA/a-club tokens
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
@@ -41,10 +49,19 @@
 - [ ] Wondi Say Hi works after spawn and character reset
 - [ ] first-session tutorial completes all six real objectives
 - [ ] onboarding does not return after completed rejoin
+- [ ] WonderDex starts with Bubbi + Meadow Pocket only on a fresh account
+- [ ] harvesting first carrot permanently discovers Carrot
+- [ ] buying/placing furniture permanently discovers the correct furniture ID
+- [ ] Treasure Island completion permanently discovers its badge
+- [ ] forged client `WonderDex DISCOVER` event does not unlock anything
+- [ ] WonderDex discoveries survive leave/rejoin
 - [ ] Treasure Island chest progress is independent for simultaneous players
 - [ ] Treasure Island second run starts at 0/5
 - [ ] Treasure Island stops accepting treasure after 240 seconds
 - [ ] Treasure Island completion gives exactly 120 Coins + 1 Star per completed run
+- [ ] manual closed-test publish refuses any confirmation string except the locked target string
+- [ ] closed-test publish updates only Universe `8805231520` / Place `124843214013484`
+- [ ] closed-test publish does not change Roblox public/private access settings
 - [ ] 20-minute 12-player server produces no red runtime errors
 
 ## Release rule
