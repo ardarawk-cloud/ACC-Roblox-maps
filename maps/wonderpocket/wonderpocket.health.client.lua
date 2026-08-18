@@ -22,14 +22,14 @@ Instance.new("UICorner",button).CornerRadius = UDim.new(0,10)
 local panel = Instance.new("TextLabel")
 panel.AnchorPoint = Vector2.new(1,0)
 panel.Position = UDim2.new(1,-10,0,112)
-panel.Size = UDim2.fromOffset(250,150)
+panel.Size = UDim2.fromOffset(280,230)
 panel.BackgroundColor3 = Color3.fromRGB(20,25,45)
 panel.BackgroundTransparency = .08
 panel.TextColor3 = Color3.fromRGB(235,242,255)
 panel.TextXAlignment = Enum.TextXAlignment.Left
 panel.TextYAlignment = Enum.TextYAlignment.Top
 panel.Font = Enum.Font.Code
-panel.TextSize = 14
+panel.TextSize = 13
 panel.TextWrapped = true
 panel.Visible = false
 panel.Parent = gui
@@ -38,14 +38,22 @@ Instance.new("UICorner",panel).CornerRadius = UDim.new(0,12)
 local function yes(v) return v and "OK" or "WAIT" end
 local function refresh()
     local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes")
-    local plotId = player:GetAttribute("WP_PlotId") or "-"
+    local plotId = tonumber(player:GetAttribute("WP_PlotIndex")) or 0
+    local tutorialStep = tonumber(player:GetAttribute("WP_TutorialStep")) or 0
+    local coins = tonumber(player:GetAttribute("Coins")) or 0
+    local stars = tonumber(player:GetAttribute("Stars")) or 0
     panel.Text = string.format(
-        " WONDERPOCKET CLOSED TEST\n\n Data Load: %s\n Save: %s\n Remotes: %s\n Plot: %s\n Onboarding: %s\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.0 CLOSED TEST\n\n Data Load: %s\n Player Save: %s\n Furniture Save: %s\n Remotes: %s\n Plot: %s\n Garden: %s\n Economy: %sC / %sS\n Tutorial Step: %s\n Onboarding: %s\n Adventure Gate: %s\n Players: %s / Peak %s",
         yes(player:GetAttribute("WP_DataLoaded") == true),
         yes(player:GetAttribute("WP_DataSaveHealthy") ~= false),
+        yes(player:GetAttribute("WP_FurnitureSaveHealthy") ~= false),
         yes(remotes ~= nil),
-        tostring(plotId),
+        plotId > 0 and tostring(plotId) or "WAIT",
+        yes(player:GetAttribute("WP_GardenReady") == true),
+        tostring(coins), tostring(stars),
+        tostring(tutorialStep),
         yes(player:GetAttribute("WP_OnboardingComplete") == true),
+        yes(workspace:FindFirstChild("WonderSquare_Premium") ~= nil),
         tostring(workspace:GetAttribute("WP_CurrentPlayers") or 0),
         tostring(workspace:GetAttribute("WP_PeakPlayers") or 0)
     )
@@ -62,4 +70,4 @@ task.spawn(function()
     end
 end)
 
-print("[WONDERPOCKET] Closed-test health UI ready")
+print("[WONDERPOCKET] v1.0 closed-test health UI ready")
