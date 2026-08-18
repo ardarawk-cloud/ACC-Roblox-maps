@@ -1,10 +1,10 @@
--- BBYA V5.2 MODULAR ARCHITECTURE FINALIZE
--- No geometry here. Runtime status + zone count only.
-local zoneCount = #zoneIndex:GetChildren()
-workspace:SetAttribute("BBYAV5Layout","5.2-modular-greybox")
-workspace:SetAttribute("BBYAV5Decor",false)
+-- BBYA V5.3 MASTER PLAN FINALIZE
+local zoneCount=#zoneIndex:GetChildren()
+workspace:SetAttribute("BBYAV5Layout","5.3-master-plan")
+workspace:SetAttribute("BBYAV5Decor",true)
 workspace:SetAttribute("BBYAV5Levels","0/18/36")
 workspace:SetAttribute("BBYAV5MainCorridorWidth",14)
 workspace:SetAttribute("BBYAV5ZoneCount",zoneCount)
 workspace:SetAttribute("BBYAV5InspectionReady",true)
-print(string.format("[BBYA] V5.2 modular architecture loaded — %d coded zones, decor OFF",zoneCount))
+workspace:SetAttribute("BBYAV5FounderReviewMode","ONE_PASS_AFTER_MASTER_BUILD")
+print(string.format("[BBYA] V5.3 MASTER PLAN loaded — %d coded zones • premium finish ON • founder review after full build",zoneCount))
