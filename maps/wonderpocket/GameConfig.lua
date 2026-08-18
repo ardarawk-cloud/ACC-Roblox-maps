@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.3.0-premium-pass",
+    Version = "0.4.0-premium-ux-social",
 
     Economy = {
         StartingCoins = 250,
@@ -78,7 +78,13 @@ return {
     Social = {
         HubName = "Wonder Square",
         MaxPlayersSuggested = 16,
-        Gifts = {"Balloon", "IceCream", "Flower", "Fireworks"},
+        VisitEnabled = true,
+        Gifts = {
+            {Id="Balloon", PriceRobux=3},
+            {Id="IceCream", PriceRobux=3},
+            {Id="Flower", PriceRobux=5},
+            {Id="Fireworks", PriceRobux=7},
+        },
     },
 
     MiniAdventures = {
@@ -95,6 +101,8 @@ return {
         AmbientParticles = true,
         MobileFirstUI = true,
         SoftCameraMoments = true,
+        FurnitureGhostPreview = true,
+        PremiumPanels = true,
     },
 
     LiveOps = {
