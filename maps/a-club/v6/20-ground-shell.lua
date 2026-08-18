@@ -39,12 +39,10 @@ wallZ(A3,"A3 EAST WALL",72,15,64,9,18,2,P.charcoal,nil)
 -- A3 front wall has huge 92-stud open storefront, only side returns.
 wallX(A3,"A3 FRONT RETURN W",15,-72,-46,9,18,2,P.charcoal,nil)
 wallX(A3,"A3 FRONT RETURN E",15,46,72,9,18,2,P.charcoal,nil)
--- Rear boundary has four parallel destinations, not one club-only door.
+-- Rear boundary has parallel destinations, not one club-only door.
 doorwayWallX(A3,"A3 REAR WEST",64,-72,-30,-51,16,9,18,2,P.charcoal,nil) -- chill
--- center social-to-club opening 38 stud
-doorwayWallX(A3,"A3 REAR CENTER",64,-30,30,0,38,9,18,2,P.charcoal,nil)
--- east bar opening 18 stud
-doorwayWallX(A3,"A3 REAR EAST",64,30,72,55,18,9,18,2,P.charcoal,nil)
+doorwayWallX(A3,"A3 REAR CENTER",64,-30,30,0,38,9,18,2,P.charcoal,nil) -- club
+doorwayWallX(A3,"A3 REAR EAST",64,30,72,55,18,9,18,2,P.charcoal,nil) -- bar
 
 -- Real LOOK / OUTFIT STUDIO room (A3/04): 34x18, enclosed on 3 sides, open doorway, not just text.
 local studioX1,studioX2=-64,-30
@@ -83,6 +81,22 @@ neon(A3,"A3 SELFIE FRAME L",Vector3.new(.18,8,.18),CFrame.new(-58,5.5,35.5),P.cy
 neon(A3,"A3 SELFIE FRAME R",Vector3.new(.18,8,.18),CFrame.new(-40,5.5,35.5),P.pink,"03")
 for _,x in ipairs({-55,-43}) do light(A3,"A3 SELFIE FILL "..x,Vector3.new(x,10,29),P.white,1.4,13,"03") end
 
+-- A3 social commons must contain real hangout pockets, while keeping x=-10..10 as a clear circulation spine.
+for _,cfg in ipairs({
+    {x=-21,z=46,yaw=90,color=P.cream,name="WEST"},
+    {x=21,z=49,yaw=-90,color=P.graphite,name="EAST"},
+}) do
+    sofa(A3,"A3 SOCIAL ISLAND "..cfg.name,Vector3.new(cfg.x,1.3,cfg.z),11,cfg.yaw,cfg.color,nil)
+    local tx=cfg.x<0 and -15 or 15
+    tableLow(A3,"A3 SOCIAL TABLE "..cfg.name,Vector3.new(tx,1.1,cfg.z),Vector3.new(5,.6,4),P.black,nil)
+end
+for _,p in ipairs({Vector3.new(-22,1.3,22),Vector3.new(22,1.3,22)}) do
+    planter(A3,"A3 COMMONS PLANTER "..tostring(p.X),p,Vector3.new(5,2,5),nil)
+end
+for _,p in ipairs({Vector3.new(-20,12,42),Vector3.new(20,12,42),Vector3.new(-20,12,56),Vector3.new(20,12,56)}) do
+    light(A3,"A3 AVATAR SOCIAL FILL",p,P.warm,1.05,15,nil)
+end
+
 -- A4 CLUB shell: central facility only.
 floor(A4,"A4 CLUB FLOOR",Vector3.new(92,1,68),Vector3.new(0,0,98),Color3.fromRGB(29,27,34),Enum.Material.Slate,"05")
 part(A4,"A4 CLUB CEILING",Vector3.new(92,1,68),CFrame.new(0,18,98),P.black,Enum.Material.Concrete,0,true,nil)
@@ -99,6 +113,13 @@ for _,z in ipairs({73,115}) do neon(A4,"A4 DANCE EDGE Z "..z,Vector3.new(58,.12,
 part(A4,"A4 STAGE",Vector3.new(50,2,14),CFrame.new(0,1.5,121),P.graphite,Enum.Material.Slate,0,true,"07")
 part(A4,"A4 DJ BOOTH",Vector3.new(24,3.2,5),CFrame.new(0,4.1,121),P.black,Enum.Material.Metal,0,true,"06")
 part(A4,"A4 LED WALL",Vector3.new(44,10,.7),CFrame.new(0,8.5,130.8),P.black,Enum.Material.SmoothPlastic,0,true,"07")
+-- side social pockets let users watch/show outfits without standing on the dance floor.
+for _,cfg in ipairs({
+    {x=-38,z=84,yaw=90,name="WL1"},{x=-38,z=105,yaw=90,name="WL2"},
+    {x=38,z=84,yaw=-90,name="ER1"},{x=38,z=105,yaw=-90,name="ER2"},
+}) do
+    sofa(A4,"A4 SOCIAL SIDE "..cfg.name,Vector3.new(cfg.x,1.3,cfg.z),10,cfg.yaw,P.graphite,"05")
+end
 -- bright critical outfit fill, not a dark void.
 for _,pos in ipairs({Vector3.new(-28,14,78),Vector3.new(0,14,78),Vector3.new(28,14,78),Vector3.new(-28,14,100),Vector3.new(0,14,100),Vector3.new(28,14,100),Vector3.new(-20,14,118),Vector3.new(20,14,118)}) do
     local l=light(A4,"A4 OUTFIT FILL",pos,P.white,1.5,22,"05");l.Parent:SetAttribute("BBYACriticalFill",true)
@@ -106,6 +127,7 @@ end
 
 -- A5 SOCIAL BAR: actual room with open frontage to commons/club corridor.
 floor(A5,"A5 BAR FLOOR",Vector3.new(26,1,64),Vector3.new(59,0,96),Color3.fromRGB(52,45,45),Enum.Material.WoodPlanks,"08")
+part(A5,"A5 BAR CEILING",Vector3.new(26,1,64),CFrame.new(59,18,96),P.charcoal,Enum.Material.Concrete,0,true,"08")
 wallZ(A5,"A5 BAR EAST WALL",72,64,128,9,18,2,P.charcoal,"08")
 wallX(A5,"A5 BAR BACK",128,46,72,9,18,2,P.charcoal,"08")
 -- open west side to club corridor with columns, not sealed.
@@ -116,6 +138,7 @@ for _,z in ipairs({76,88,100,112}) do light(A5,"A5 WARM BAR LIGHT "..z,Vector3.n
 
 -- A6 CHILL: conversation room, warm and quiet, actual pockets.
 floor(A6,"A6 CHILL FLOOR",Vector3.new(26,1,64),Vector3.new(-59,0,96),Color3.fromRGB(61,56,54),Enum.Material.WoodPlanks,nil)
+part(A6,"A6 CHILL CEILING",Vector3.new(26,1,64),CFrame.new(-59,18,96),P.charcoal,Enum.Material.Concrete,0,true,nil)
 wallZ(A6,"A6 CHILL WEST WALL",-72,64,128,9,18,2,P.charcoal,nil)
 wallX(A6,"A6 CHILL BACK",128,-72,-46,9,18,2,P.charcoal,nil)
 for _,z in ipairs({72,96,120}) do part(A6,"A6 CHILL COLUMN "..z,Vector3.new(2,18,2),CFrame.new(-47,9,z),P.graphite,Enum.Material.Concrete,0,true,nil) end
@@ -143,34 +166,41 @@ wallX(B2,"B2 BACK CORE",150,19,47,9,18,2,P.charcoal,nil)
 stairFlight(B2,"B2 FLIGHT",CFrame.new(33,1,146),24,12,.78,1.15,nil)
 part(B2,"B2 VIP LANDING",Vector3.new(18,1,10),CFrame.new(33,19.7,118),P.stone2,Enum.Material.Concrete,0,true,nil)
 
--- B3 LIFT CORE: FULL SHAFT + DOORS + WALLS. No exposed platform in empty space.
-floor(B3,"B3 GROUND LIFT LOBBY",Vector3.new(22,1,20),Vector3.new(59,0,140),P.stone2,Enum.Material.Marble,nil)
--- continuous shaft walls from ground to roof.
-wallZ(B3,"B3 SHAFT WEST",50,119,149,20.5,41,2,P.charcoal,nil)
-wallZ(B3,"B3 SHAFT EAST",68,119,149,20.5,41,2,P.charcoal,nil)
-wallX(B3,"B3 SHAFT BACK",149,50,68,20.5,41,2,P.charcoal,nil)
--- Front wall split around 10-stud elevator door on all three levels using stacked wall sections.
--- Ground front wall
+-- B3 LIFT CORE: sealed shaft + three real landing doors + cab aligned directly behind doors.
+-- Landing/approach is outside the shaft; the shaft itself begins at z=119.
+part(B3,"B3 GROUND LIFT LANDING",Vector3.new(22,.35,14),CFrame.new(59,.68,112),P.stone2,Enum.Material.Marble,0,true,nil)
+-- Continuous side/back shaft walls from ground through rooftop door height.
+wallZ(B3,"B3 SHAFT WEST",50,119,132,26,52,2,P.charcoal,nil)
+wallZ(B3,"B3 SHAFT EAST",68,119,132,26,52,2,P.charcoal,nil)
+wallX(B3,"B3 SHAFT BACK",132,50,68,26,52,2,P.charcoal,nil)
+-- Front wall around each landing opening.
 wallX(B3,"B3 G FRONT LEFT",119,50,54,5,10,2,P.charcoal,nil)
 wallX(B3,"B3 G FRONT RIGHT",119,64,68,5,10,2,P.charcoal,nil)
 part(B3,"B3 G FRONT LINTEL",Vector3.new(10,3,2),CFrame.new(59,8.5,119),P.charcoal,Enum.Material.Concrete,0,true,nil)
--- VIP front wall segment
 wallX(B3,"B3 V FRONT LEFT",119,50,54,25,10,2,P.charcoal,nil)
 wallX(B3,"B3 V FRONT RIGHT",119,64,68,25,10,2,P.charcoal,nil)
 part(B3,"B3 V FRONT LINTEL",Vector3.new(10,3,2),CFrame.new(59,28.5,119),P.charcoal,Enum.Material.Concrete,0,true,nil)
--- Rooftop front wall segment
 wallX(B3,"B3 R FRONT LEFT",119,50,54,45,10,2,P.charcoal,nil)
 wallX(B3,"B3 R FRONT RIGHT",119,64,68,45,10,2,P.charcoal,nil)
 part(B3,"B3 R FRONT LINTEL",Vector3.new(10,3,2),CFrame.new(59,48.5,119),P.charcoal,Enum.Material.Concrete,0,true,nil)
--- elevator cab/doors at ground; system will animate later.
-part(B3,"B3 LIFT CAB FLOOR",Vector3.new(12,.6,11),CFrame.new(59,.8,134),P.graphite,Enum.Material.Metal,0,true,nil)
-part(B3,"B3 LIFT CAB BACK",Vector3.new(12,9,.5),CFrame.new(59,5.2,139.3),P.graphite,Enum.Material.Metal,0,true,nil)
-part(B3,"B3 LIFT CAB WEST",Vector3.new(.5,9,11),CFrame.new(53.2,5.2,134),P.graphite,Enum.Material.Metal,0,true,nil)
-part(B3,"B3 LIFT CAB EAST",Vector3.new(.5,9,11),CFrame.new(64.8,5.2,134),P.graphite,Enum.Material.Metal,0,true,nil)
-part(B3,"B3 G DOOR L",Vector3.new(5,9,.5),CFrame.new(56.5,5.2,128.6),P.black,Enum.Material.Metal,0,true,nil)
-part(B3,"B3 G DOOR R",Vector3.new(5,9,.5),CFrame.new(61.5,5.2,128.6),P.black,Enum.Material.Metal,0,true,nil)
+-- Seal the shaft front between floor openings: no open vertical void visible to players.
+part(B3,"B3 G-V FRONT INFILL",Vector3.new(18,10,2),CFrame.new(59,15,119),P.charcoal,Enum.Material.Concrete,0,true,nil)
+part(B3,"B3 V-R FRONT INFILL",Vector3.new(18,10,2),CFrame.new(59,35,119),P.charcoal,Enum.Material.Concrete,0,true,nil)
+-- Landing doors are physical architecture; systems only animate these existing parts.
+for _,lv in ipairs({{code="G",y=5.2},{code="VIP",y=25.2},{code="ROOF",y=45.2}}) do
+    part(B3,"B3 "..lv.code.." LANDING DOOR L",Vector3.new(5,9,.5),CFrame.new(56.5,lv.y,119.15),P.black,Enum.Material.Metal,0,true,nil)
+    part(B3,"B3 "..lv.code.." LANDING DOOR R",Vector3.new(5,9,.5),CFrame.new(61.5,lv.y,119.15),P.black,Enum.Material.Metal,0,true,nil)
+end
+-- Cab is directly behind the landing opening (front face ~119.2), not floating deep inside the shaft.
+part(B3,"B3 LIFT CAB FLOOR",Vector3.new(12,.6,11),CFrame.new(59,.8,124.8),P.graphite,Enum.Material.Metal,0,true,nil)
+part(B3,"B3 LIFT CAB BACK",Vector3.new(12,9,.5),CFrame.new(59,5.2,130.05),P.graphite,Enum.Material.Metal,0,true,nil)
+part(B3,"B3 LIFT CAB WEST",Vector3.new(.5,9,11),CFrame.new(53.2,5.2,124.8),P.graphite,Enum.Material.Metal,0,true,nil)
+part(B3,"B3 LIFT CAB EAST",Vector3.new(.5,9,11),CFrame.new(64.8,5.2,124.8),P.graphite,Enum.Material.Metal,0,true,nil)
+part(B3,"B3 LIFT CAB DOOR L",Vector3.new(5,9,.45),CFrame.new(56.5,5.2,119.28),P.black,Enum.Material.Metal,0,true,nil)
+part(B3,"B3 LIFT CAB DOOR R",Vector3.new(5,9,.45),CFrame.new(61.5,5.2,119.28),P.black,Enum.Material.Metal,0,true,nil)
 -- small signage only
 sign(B3,"B3 LIFT PLAQUE","LIFT",CFrame.new(59,10.5,118.85),Vector3.new(8,1.5,.25),P.white,Enum.NormalId.Front,nil)
-clearPad(B3,"B3 G CLEAR LANDING",Vector3.new(59,.62,112),Vector3.new(12,.12,10),nil)
+clearPad(B3,"B3 G CLEAR LANDING",Vector3.new(59,.82,112),Vector3.new(12,.12,10),nil)
 
 workspace:SetAttribute("BBYAV6GroundShell","COMPLETE")
+workspace:SetAttribute("BBYAV6LiftShell","SEALED_3_LEVEL")
