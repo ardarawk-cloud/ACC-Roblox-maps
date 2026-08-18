@@ -1,0 +1,16 @@
+{
+  "name": "acc-roblox-map-builder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobile-first ACC Roblox Map Builder with Roblox Open Cloud publishing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

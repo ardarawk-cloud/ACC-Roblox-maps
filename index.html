@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#08101f">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>ACC Roblox Map Builder</title>
+<style>
+:root{--bg:#07101d;--panel:#0d1728;--panel2:#111f34;--line:#22324c;--txt:#edf5ff;--muted:#89a0bc;--accent:#5aa7ff;--ok:#4fd29a;--warn:#ffca62;--danger:#ff6e7c}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+button,input,textarea,select{font:inherit}.app{min-height:100%;padding:14px 14px 92px;max-width:980px;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 14px}.brand b{display:block;font-size:19px}.brand span{font-size:12px;color:var(--muted)}
+.badge{border:1px solid var(--line);background:var(--panel);padding:8px 10px;border-radius:999px;font-size:12px;color:var(--muted)}
+.card{background:linear-gradient(180deg,var(--panel),#0a1423);border:1px solid var(--line);border-radius:18px;padding:14px;margin:0 0 12px;box-shadow:0 14px 34px #0004}
+.row{display:flex;gap:10px}.row>*{flex:1}.label{font-size:12px;color:var(--muted);margin:0 0 6px}
+input,textarea,select{width:100%;background:#07111f;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:11px;outline:none}
+textarea{min-height:210px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.5}
+button{border:0;border-radius:12px;padding:11px 13px;background:#172944;color:var(--txt);font-weight:700}
+button.primary{background:linear-gradient(135deg,#2380ef,#6ab7ff);color:#03101f}
+button.ok{background:#173b31;color:#8ff3c6;border:1px solid #245946}
+button.danger{background:#3b1820;color:#ff9cab;border:1px solid #642631}
+button:disabled{opacity:.45}.toolbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.toolbar button{font-size:12px;padding:10px 5px}.title{font-size:14px;font-weight:800;margin-bottom:10px}
+.canvasWrap{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#06101c;position:relative}
+canvas{display:block;width:100%;height:360px;touch-action:none}.hint{position:absolute;left:10px;bottom:8px;background:#050b14cc;border:1px solid #1c2b42;border-radius:8px;padding:6px 8px;color:#9eb2cb;font-size:10px}
+.objList{display:flex;gap:7px;overflow:auto;padding-bottom:4px}.chip{white-space:nowrap;font-size:11px;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#0b1626}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#081321;border:1px solid var(--line);border-radius:12px;padding:10px}.stat b{display:block;font-size:17px}.stat span{font-size:10px;color:var(--muted)}
+.status{font-size:12px;line-height:1.5;color:var(--muted)}.status.good{color:var(--ok)}.status.bad{color:#ff9cab}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#08111ee8;backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:9px max(12px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:flex;gap:8px;z-index:10}
+.bottom button{flex:1}.hidden{display:none}
+@media(min-width:760px){canvas{height:500px}.app{padding-bottom:100px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><b>ACC Roblox Map Builder</b><span>Mobile Studio • v1.0</span></div>
+    <div id="serverBadge" class="badge">server...</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Project</div>
+    <div class="row">
+      <div><div class="label">Nama project</div><input id="projectName" value="Mountain Social Adventure"></div>
+      <div><div class="label">Template</div>
+        <select id="template">
+          <option value="mountain">Mountain</option>
+          <option value="nightlife">Nightlife</option>
+          <option value="obby">Obby</option>
+          <option value="blank">Blank</option>
+        </select>
+      </div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="stats">
+      <div class="stat"><b id="objectCount">0</b><span>OBJECT</span></div>
+      <div class="stat"><b id="checkpointCount">0</b><span>CHECKPOINT</span></div>
+      <div class="stat"><b id="spawnCount">0</b><span>SPAWN</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">ACC MAP CODE</div>
+    <textarea id="mapCode">MAP: MOUNTAIN_SOCIAL
+SIZE: LARGE
+GROUND: 520,12,520
+PEAK_HEIGHT: 150
+CHECKPOINTS: 8
+CAMPS: 3
+TREES: 28
+ROCKS: 18
+SECRET_CAVES: 2
+SPAWN: 0,10,210
+DAY_NIGHT: ON
+WEATHER: FOG
+SUMMIT: TEMPLE</textarea>
+    <div style="height:10px"></div>
+    <div class="row">
+      <button id="loadTemplate">Preset</button>
+      <button id="generate" class="primary">Generate Map</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">Mobile Editor</div>
+    <div class="objList">
+      <button class="chip add" data-type="Part">+ Part</button>
+      <button class="chip add" data-type="Tree">+ Tree</button>
+      <button class="chip add" data-type="Rock">+ Rock</button>
+      <button class="chip add" data-type="Checkpoint">+ Checkpoint</button>
+      <button class="chip add" data-type="Spawn">+ Spawn</button>
+      <button class="chip add" data-type="Camp">+ Camp</button>
+    </div>
+    <div style="height:10px"></div>
+    <div class="canvasWrap">
+      <canvas id="view"></canvas>
+      <div class="hint">Tap object • drag untuk pindah • pinch/scroll zoom</div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="toolbar">
+      <button id="smaller">− Size</button>
+      <button id="bigger">+ Size</button>
+      <button id="duplicate">Duplicate</button>
+      <button id="delete" class="danger">Delete</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">Roblox Publish</div>
+    <div class="row">
+      <div><div class="label">Universe ID</div><input id="universeId" inputmode="numeric" placeholder="123456789"></div>
+      <div><div class="label">Place ID</div><input id="placeId" inputmode="numeric" placeholder="987654321"></div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="row">
+      <button id="downloadRbxlx">Export .rbxlx</button>
+      <button id="publish" class="ok">Publish Roblox</button>
+    </div>
+    <p id="status" class="status">API key tidak disimpan di browser. Pasang ROBLOX_API_KEY sebagai secret di server.</p>
+  </div>
+</div>
+
+<div class="bottom">
+  <button id="save">Save</button>
+  <button id="restore">Load</button>
+  <button id="quickBuild" class="primary">Build</button>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const canvas = $("#view"), ctx = canvas.getContext("2d");
+let scene = [], selected = -1, zoom = 1, drag = null;
+
+function uid(){return Math.random().toString(36).slice(2,9)}
+function obj(type,x=0,z=0,y=5,sx=10,sy=10,sz=10,name=type){
+  return {id:uid(),type,name,x,y,z,sx,sy,sz};
+}
+function n(v,d=0){ const x=Number(v); return Number.isFinite(x)?x:d }
+function parseVec(v, fallback=[0,0,0]) {
+  const p=String(v||"").split(",").map(x=>Number(x.trim()));
+  return p.length>=3 && p.every(Number.isFinite) ? p.slice(0,3) : fallback;
+}
+function parseCode(text){
+  const cfg={};
+  text.split(/\n+/).forEach(line=>{
+    const i=line.indexOf(":"); if(i<0)return;
+    cfg[line.slice(0,i).trim().toUpperCase()]=line.slice(i+1).trim();
+  });
+  return cfg;
+}
+function rand(min,max){return min+Math.random()*(max-min)}
+function generateFromCode(){
+  const c=parseCode($("#mapCode").value);
+  scene=[];
+  const ground=parseVec(c.GROUND,[520,12,520]);
+  scene.push(obj("Ground",0,0,-ground[1]/2,ground[0],ground[1],ground[2],"Ground"));
+  const peak=n(c.PEAK_HEIGHT,130);
+  const layers=8;
+  for(let i=0;i<layers;i++){
+    const t=i/(layers-1);
+    const size=330-(t*275);
+    scene.push(obj("Mountain",0,-45+(t*35),10+t*peak,size,18+peak/layers,size,`Mountain ${i+1}`));
+  }
+  const cps=Math.max(0,Math.floor(n(c.CHECKPOINTS,8)));
+  for(let i=0;i<cps;i++){
+    const a=(i/cps)*Math.PI*2;
+    const r=190-(i*140/Math.max(1,cps-1));
+    scene.push(obj("Checkpoint",Math.cos(a)*r,Math.sin(a)*r,8+(i*peak/Math.max(1,cps)),12,2,12,`Checkpoint ${i+1}`));
+  }
+  const camps=Math.max(0,Math.floor(n(c.CAMPS,2)));
+  for(let i=0;i<camps;i++){
+    scene.push(obj("Camp",-120+i*95,105-i*55,12+i*22,26,2,22,`Camp ${i+1}`));
+  }
+  const trees=Math.min(120,Math.max(0,Math.floor(n(c.TREES,20))));
+  for(let i=0;i<trees;i++){
+    const a=Math.random()*Math.PI*2,r=rand(85,235);
+    scene.push(obj("Tree",Math.cos(a)*r,Math.sin(a)*r,9,6,22,6,`Tree ${i+1}`));
+  }
+  const rocks=Math.min(100,Math.max(0,Math.floor(n(c.ROCKS,12))));
+  for(let i=0;i<rocks;i++){
+    const a=Math.random()*Math.PI*2,r=rand(70,230);
+    scene.push(obj("Rock",Math.cos(a)*r,Math.sin(a)*r,7,rand(5,13),rand(5,12),rand(5,13),`Rock ${i+1}`));
+  }
+  const sp=parseVec(c.SPAWN,[0,10,210]);
+  scene.push(obj("Spawn",sp[0],sp[2],sp[1],16,1,16,"Spawn"));
+  if(String(c.SUMMIT||"").toUpperCase()==="TEMPLE"){
+    scene.push(obj("Temple",0,-18,peak+48,48,18,38,"Summit Temple"));
+  }
+  selected=scene.length-1;
+  refresh();
+}
+function worldToScreen(x,z){
+  return [canvas.width/2+x*zoom, canvas.height/2+z*zoom];
+}
+function screenToWorld(x,y){
+  return [(x-canvas.width/2)/zoom,(y-canvas.height/2)/zoom];
+}
+function color(type){
+  return ({Ground:"#26384b",Mountain:"#53677d",Tree:"#3f8d68",Rock:"#7f8791",Checkpoint:"#ffc85e",Spawn:"#54b7ff",Camp:"#f08b5a",Temple:"#c8a56b",Part:"#91a7c4"})[type]||"#8aa1be";
+}
+function resize(){
+  const r=canvas.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1);
+  canvas.width=Math.max(1,Math.floor(r.width*d));
+  canvas.height=Math.max(1,Math.floor(r.height*d));
+  ctx.setTransform(d,0,0,d,0,0);
+  canvas._cssW=r.width; canvas._cssH=r.height;
+  draw();
+}
+function draw(){
+  const w=canvas._cssW||canvas.clientWidth,h=canvas._cssH||canvas.clientHeight;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="#07101b";ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle="#102238";ctx.lineWidth=1;
+  const grid=25*zoom;
+  if(grid>8){
+    for(let x=w/2%grid;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+    for(let y=h/2%grid;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  }
+  const ordered=scene.map((o,i)=>({o,i})).sort((a,b)=>a.o.y-b.o.y);
+  ordered.forEach(({o,i})=>{
+    const [x,z]=[w/2+o.x*zoom,h/2+o.z*zoom];
+    const rw=Math.max(5,o.sx*zoom),rh=Math.max(5,o.sz*zoom);
+    ctx.globalAlpha=o.type==="Ground"?.5:.9;
+    ctx.fillStyle=color(o.type);
+    ctx.fillRect(x-rw/2,z-rh/2,rw,rh);
+    ctx.globalAlpha=1;
+    if(i===selected){
+      ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.strokeRect(x-rw/2-3,z-rh/2-3,rw+6,rh+6);
+      ctx.fillStyle="#fff";ctx.font="11px system-ui";ctx.fillText(o.name,x-rw/2,z-rh/2-7);
+    }
+  });
+}
+function hitTest(sx,sy){
+  const w=canvas._cssW||canvas.clientWidth,h=canvas._cssH||canvas.clientHeight;
+  for(let i=scene.length-1;i>=0;i--){
+    const o=scene[i],x=w/2+o.x*zoom,z=h/2+o.z*zoom;
+    if(Math.abs(sx-x)<=Math.max(8,o.sx*zoom/2) && Math.abs(sy-z)<=Math.max(8,o.sz*zoom/2)) return i;
+  } return -1;
+}
+function counts(){
+  $("#objectCount").textContent=scene.length;
+  $("#checkpointCount").textContent=scene.filter(x=>x.type==="Checkpoint").length;
+  $("#spawnCount").textContent=scene.filter(x=>x.type==="Spawn").length;
+}
+function refresh(){counts();draw()}
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  selected=hitTest(x,y);
+  if(selected>=0){drag={id:e.pointerId,x,y};canvas.setPointerCapture(e.pointerId)}
+  refresh();
+});
+canvas.addEventListener("pointermove",e=>{
+  if(!drag||drag.id!==e.pointerId||selected<0)return;
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const dx=(x-drag.x)/zoom,dz=(y-drag.y)/zoom;
+  scene[selected].x+=dx;scene[selected].z+=dz;drag.x=x;drag.y=y;draw();
+});
+canvas.addEventListener("pointerup",()=>drag=null);
+canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=Math.max(.35,Math.min(2.5,zoom*(e.deltaY>0?.9:1.1)));draw()},{passive:false});
+
+document.querySelectorAll(".add").forEach(b=>b.onclick=()=>{
+  const t=b.dataset.type;scene.push(obj(t,rand(-80,80),rand(-80,80),8,12,8,12,t));selected=scene.length-1;refresh();
+});
+$("#delete").onclick=()=>{if(selected>=0){scene.splice(selected,1);selected=Math.min(selected,scene.length-1);refresh()}};
+$("#duplicate").onclick=()=>{if(selected>=0){const c=structuredClone(scene[selected]);c.id=uid();c.x+=15;c.z+=15;c.name+=" Copy";scene.push(c);selected=scene.length-1;refresh()}};
+$("#bigger").onclick=()=>{if(selected>=0){let o=scene[selected];o.sx*=1.2;o.sy*=1.2;o.sz*=1.2;refresh()}};
+$("#smaller").onclick=()=>{if(selected>=0){let o=scene[selected];o.sx*=.84;o.sy*=.84;o.sz*=.84;refresh()}};
+$("#generate").onclick=generateFromCode;
+$("#quickBuild").onclick=generateFromCode;
+
+const presets={
+mountain:`MAP: MOUNTAIN_SOCIAL
+SIZE: LARGE
+GROUND: 520,12,520
+PEAK_HEIGHT: 150
+CHECKPOINTS: 8
+CAMPS: 3
+TREES: 28
+ROCKS: 18
+SECRET_CAVES: 2
+SPAWN: 0,10,210
+DAY_NIGHT: ON
+WEATHER: FOG
+SUMMIT: TEMPLE`,
+nightlife:`MAP: BALI_NIGHTLIFE
+GROUND: 420,10,420
+PEAK_HEIGHT: 35
+CHECKPOINTS: 0
+CAMPS: 0
+TREES: 18
+ROCKS: 8
+SPAWN: 0,8,160
+DAY_NIGHT: ON
+WEATHER: CLEAR
+SUMMIT: NONE`,
+obby:`MAP: SKY_OBBY
+GROUND: 240,8,240
+PEAK_HEIGHT: 80
+CHECKPOINTS: 12
+CAMPS: 0
+TREES: 0
+ROCKS: 8
+SPAWN: 0,8,95
+DAY_NIGHT: ON
+WEATHER: CLEAR
+SUMMIT: TEMPLE`,
+blank:`MAP: BLANK
+GROUND: 300,8,300
+PEAK_HEIGHT: 0
+CHECKPOINTS: 0
+CAMPS: 0
+TREES: 0
+ROCKS: 0
+SPAWN: 0,8,100
+DAY_NIGHT: ON
+WEATHER: CLEAR
+SUMMIT: NONE`
+};
+$("#loadTemplate").onclick=()=>{$("#mapCode").value=presets[$("#template").value];generateFromCode()};
+$("#save").onclick=()=>{
+  localStorage.setItem("acc-map",JSON.stringify({scene,code:$("#mapCode").value,name:$("#projectName").value,universeId:$("#universeId").value,placeId:$("#placeId").value}));
+  setStatus("Project tersimpan di HP.",true);
+};
+$("#restore").onclick=()=>{
+  const d=JSON.parse(localStorage.getItem("acc-map")||"null");if(!d)return setStatus("Belum ada save.",false);
+  scene=d.scene||[];$("#mapCode").value=d.code||"";$("#projectName").value=d.name||"";$("#universeId").value=d.universeId||"";$("#placeId").value=d.placeId||"";selected=-1;refresh();setStatus("Project dimuat.",true);
+};
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function f(v){return Number(v||0).toFixed(3)}
+function itemPart(o,ref){
+  const isSpawn=o.type==="Spawn";
+  const cls=isSpawn?"SpawnLocation":"Part";
+  const transparency=(o.type==="Checkpoint"||o.type==="Camp")?".15":"0";
+  return `<Item class="${cls}" referent="RBX${ref}">
+<Properties>
+<bool name="Anchored">true</bool>
+<bool name="CanCollide">${o.type==="Tree"?"false":"true"}</bool>
+<CoordinateFrame name="CFrame"><X>${f(o.x)}</X><Y>${f(o.y)}</Y><Z>${f(o.z)}</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+<Vector3 name="Size"><X>${f(o.sx)}</X><Y>${f(o.sy)}</Y><Z>${f(o.sz)}</Z></Vector3>
+<float name="Transparency">${transparency}</float>
+<string name="Name">${esc(o.name)}</string>
+<int name="BrickColor">${o.type==="Tree"?37:o.type==="Checkpoint"?24:o.type==="Spawn"?23:o.type==="Camp"?21:o.type==="Rock"?194:199}</int>
+</Properties>
+</Item>`;
+}
+function makeRbxlx(){
+  const parts=scene.filter(o=>o.type!=="Ground" || true).map((o,i)=>itemPart(o,i+10)).join("\n");
+  return `<?xml version="1.0" encoding="utf-8"?>
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="4">
+<External>null</External><External>nil</External>
+<Item class="Workspace" referent="RBX1">
+<Properties><string name="Name">Workspace</string></Properties>
+${parts}
+</Item>
+<Item class="Lighting" referent="RBX2">
+<Properties>
+<float name="Brightness">2</float>
+<double name="ClockTime">16</double>
+<Color3 name="Ambient"><R>0.4</R><G>0.4</G><B>0.45</B></Color3>
+<string name="Name">Lighting</string>
+</Properties>
+</Item>
+</roblox>`;
+}
+$("#downloadRbxlx").onclick=()=>{
+  const blob=new Blob([makeRbxlx()],{type:"application/xml"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=($("#projectName").value||"ACC-Map").replace(/[^\w-]+/g,"-")+".rbxlx";a.click();URL.revokeObjectURL(a.href);
+};
+function setStatus(t,good){const e=$("#status");e.textContent=t;e.className="status "+(good?"good":"bad")}
+$("#publish").onclick=async()=>{
+  const universeId=$("#universeId").value.trim(),placeId=$("#placeId").value.trim();
+  if(!/^\d+$/.test(universeId)||!/^\d+$/.test(placeId))return setStatus("Isi Universe ID dan Place ID dengan benar.",false);
+  $("#publish").disabled=true;setStatus("Mengirim build ke Roblox...",true);
+  try{
+    const r=await fetch("/api/publish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({universeId,placeId,rbxlx:makeRbxlx()})});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error+(d.status?` (${d.status})`:""));
+    setStatus(`Publish berhasil. Roblox place version: ${d.versionNumber??"OK"}`,true);
+  }catch(e){setStatus(e.message||"Publish gagal.",false)}
+  finally{$("#publish").disabled=false}
+};
+async function health(){
+  try{const d=await (await fetch("/api/health")).json();$("#serverBadge").textContent=d.robloxKeyConfigured?"Roblox ready":"Key belum ada";$("#serverBadge").style.color=d.robloxKeyConfigured?"#4fd29a":"#ffca62"}catch{$("#serverBadge").textContent="offline"}
+}
+window.addEventListener("resize",resize);
+if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
+generateFromCode();health();setTimeout(resize,30);
+</script>
+</body>
+</html>

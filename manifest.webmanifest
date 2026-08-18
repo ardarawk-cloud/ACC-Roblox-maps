@@ -1,0 +1,9 @@
+{
+  "name": "ACC Roblox Map Builder",
+  "short_name": "ACC Map",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07101d",
+  "theme_color": "#08101f",
+  "icons": []
+}
