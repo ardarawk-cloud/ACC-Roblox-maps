@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — BUILD VALIDATION v1.4
--- Runtime health check for live playtest fix build 4.7.
+-- BBYA SOCIAL HUB — BUILD VALIDATION v1.5
+-- Runtime health check for front-lobby build 4.8 + live playtest fix 4.7.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -15,6 +15,9 @@ local checks = {
  {label="Phase 5", instance=workspace:FindFirstChild("BBYA Premium Phase 5 v4.5")},
  {label="Phase 6", instance=workspace:FindFirstChild("BBYA Premium Phase 6 v4.6")},
  {label="Live Fix 4.7", instance=workspace:GetAttribute("BBYALiveFix")=="4.7" and workspace or nil},
+ {label="Front Lobby 4.8", instance=workspace:GetAttribute("BBYAFrontLobby")=="4.8" and workspace or nil},
+ {label="Lobby Hero", instance=workspace:FindFirstChild("BBYA Hero Wordmark",true)},
+ {label="Crown Neon", instance=workspace:FindFirstChild("Crown Base",true)},
  {label="Main Floor", instance=workspace:FindFirstChild("Main Floor",true)},
  {label="Dance Floor", instance=workspace:FindFirstChild("Dance Floor",true)},
  {label="DJ Booth", instance=workspace:FindFirstChild("DJ Booth",true)},
@@ -46,7 +49,7 @@ for _,name in ipairs({
 end
 
 local status = (#missing == 0 and #legacy == 0) and "PASS" or "WARN"
-workspace:SetAttribute("BBYABuildVersion","4.7-livefix")
+workspace:SetAttribute("BBYABuildVersion","4.8-front-lobby")
 workspace:SetAttribute("BBYABuildValidation",status)
 workspace:SetAttribute("BBYABuildMissingCount",#missing)
 workspace:SetAttribute("BBYALegacyRegressionCount",#legacy)
@@ -54,4 +57,4 @@ workspace:SetAttribute("BBYABuildCheckedAt",os.time())
 
 if #missing > 0 then warn("[BBYA BUILD VALIDATION] Missing: "..table.concat(missing,", ")) end
 if #legacy > 0 then warn("[BBYA BUILD VALIDATION] Legacy regression: "..table.concat(legacy,", ")) end
-if status == "PASS" then print("[BBYA BUILD VALIDATION] PASS • premium live-fix build 4.7") end
+if status == "PASS" then print("[BBYA BUILD VALIDATION] PASS • front-lobby build 4.8") end
