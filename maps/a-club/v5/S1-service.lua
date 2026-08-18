@@ -1,0 +1,10 @@
+-- [S1] SERVICE / RESTROOM / BACKSTAGE
+local S1=registerZone("S1","SERVICE / RESTROOM / BACKSTAGE","G+VIP",Vector3.new(-75,9,109),Vector3.new(30,18,34))
+wallX(S1,"WEST SERVICE REAR WALL",94,-88,-62,7,14,3)
+wallZ(S1,"WEST SERVICE EAST WALL",-62,94,124,7,14,3)
+program(S1,"WEST SERVICE PROGRAM",Vector2.new(24,26),Vector3.new(-75,.62,109),C.service)
+program(S1,"BACKSTAGE WEST PROGRAM",Vector2.new(26,18),Vector3.new(-68,.62,-75),C.service)
+program(S1,"BACKSTAGE EAST PROGRAM",Vector2.new(26,18),Vector3.new(68,.62,-75),C.service)
+program(S1,"VIP SERVICE PROGRAM",Vector2.new(24,18),Vector3.new(-72,18.64,96),C.service)
+program(S1,"VIP LIFT FOYER",Vector2.new(24,18),Vector3.new(72,18.64,96),C.blue)
+zoneStamp(S1,CFrame.new(-75,8,94.1),Vector3.new(24,3,.25),C.service,Enum.NormalId.Front)
