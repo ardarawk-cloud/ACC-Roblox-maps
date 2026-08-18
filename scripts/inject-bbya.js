@@ -13,6 +13,7 @@ const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8'
 const mainLua = readLua('maps/a-club/bbya.server.lua');
 const architectureLua = readLua('maps/a-club/bbya.architecture.server.lua');
 const masterPlanLua = readLua('maps/a-club/bbya.master-plan-completion.server.lua');
+const masterPlanQCLua = readLua('maps/a-club/bbya.master-plan-qc.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const musicLua = readLua('maps/a-club/bbya.music.server.lua');
 const supportPanelLua = readLua('maps/a-club/bbya.support-panel.server.lua');
@@ -44,6 +45,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Main</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAARCHITECTURE000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Mega_Architecture_v2</string><ProtectedString name="Source"><![CDATA[${architectureLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMASTERPLAN00000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Plan_Completion_v3</string><ProtectedString name="Source"><![CDATA[${masterPlanLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAMASTERPLANQC000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Plan_QC_v3_0_1</string><ProtectedString name="Source"><![CDATA[${masterPlanQCLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASUPPORTDATA0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Top_Supporter_Data</string><ProtectedString name="Source"><![CDATA[${supportPanelLua}]]></ProtectedString></Properties></Item>
@@ -74,4 +76,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: architecture + master-plan completion + systems + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen/spawn-entry hotfixes + mobile panels into', target.file);
+console.log('[BBYA] Active build injected: architecture + master-plan completion/QC + systems + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen/spawn-entry hotfixes + mobile panels into', target.file);
