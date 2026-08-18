@@ -161,8 +161,8 @@ end
 local function setup(player)
     player:SetAttribute("WP_DexLoaded",false)
     player:SetAttribute("WP_DexLoadFailed",false)
-    local deadline=os.clock()+20
-    while player.Parent and os.clock()<deadline do
+
+    while player.Parent do
         if player:GetAttribute("WP_DataLoadFailed")==true then
             player:SetAttribute("WP_DexLoadFailed",true)
             player:SetAttribute("WP_DexSaveHealthy",false)
@@ -171,11 +171,7 @@ local function setup(player)
         if player:GetAttribute("WP_DataLoaded")==true then break end
         task.wait(.25)
     end
-    if not player.Parent or player:GetAttribute("WP_DataLoaded")~=true then
-        player:SetAttribute("WP_DexLoadFailed",true)
-        player:SetAttribute("WP_DexSaveHealthy",false)
-        return
-    end
+    if not player.Parent or player:GetAttribute("WP_DataLoaded")~=true then return end
 
     local ok,data=retry("WonderDex load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
     if not ok then
@@ -250,4 +246,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Fail-closed persistent server-authoritative WonderDex loaded")
+print("[WONDERPOCKET] State-driven fail-closed persistent server-authoritative WonderDex loaded")
