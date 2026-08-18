@@ -4,6 +4,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local DAILY_SECONDS = 86400
 local WEEK_SECONDS = 604800
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit", 20)
 
 local function utcDay(t) return math.floor(t / DAILY_SECONDS) end
 local function utcWeek(t) return math.floor(t / WEEK_SECONDS) end
@@ -34,6 +35,7 @@ local function load(player)
     if offlineCoins > 0 then
         addCoins(player, offlineCoins)
         player:SetAttribute("WP_OfflineReward", offlineCoins)
+        if EconomyAudit then EconomyAudit:Fire(player,"OFFLINE_REWARD","Offline",offlineCoins,0,0) end
     else
         player:SetAttribute("WP_OfflineReward", 0)
     end
@@ -45,6 +47,7 @@ local function load(player)
         addStars(player, 1)
         player:SetAttribute("WP_DailyRewardClaimed", true)
         player:SetAttribute("WP_DailyQuestProgress", 0)
+        if EconomyAudit then EconomyAudit:Fire(player,"DAILY_REWARD",tostring(day),50,1,0) end
     else
         player:SetAttribute("WP_DailyRewardClaimed", false)
     end
@@ -62,4 +65,4 @@ end
 Players.PlayerAdded:Connect(function(player) task.spawn(load, player) end)
 for _, player in Players:GetPlayers() do task.spawn(load, player) end
 
-print("[WONDERPOCKET] Canonical retention state loaded from main player data")
+print("[WONDERPOCKET] Audited canonical retention rewards loaded")
