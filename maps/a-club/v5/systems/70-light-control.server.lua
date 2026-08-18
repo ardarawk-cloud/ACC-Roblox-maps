@@ -1,6 +1,6 @@
 -- [SYS-LIGHTS] AUTOMATIC CLUB LIGHTING / CROWD RESPONSE
 local Lighting=game:GetService("Lighting")
-local mapRoot=workspace:FindFirstChild("BBYA V5.2 MODULAR GREYBOX")
+local mapRoot=workspace:FindFirstChild("BBYA V5.3 MASTER PLAN")
 local a4=mapRoot and mapRoot:FindFirstChild("[A4] MAIN CLUB / DANCE HALL")
 local clubLights={}
 if a4 then for _,d in ipairs(a4:GetDescendants()) do if d:IsA("PointLight") and d.Name=="BBYA Decorative Light" then table.insert(clubLights,d) end end end
@@ -14,4 +14,4 @@ end
 workspace:GetAttributeChangedSignal("BBYACrowdIntensity"):Connect(apply)
 workspace:GetAttributeChangedSignal("BBYAPartyMode"):Connect(apply)
 apply()
-workspace:SetAttribute("BBYASystemLights","5.0")
+workspace:SetAttribute("BBYASystemLights","5.1")
