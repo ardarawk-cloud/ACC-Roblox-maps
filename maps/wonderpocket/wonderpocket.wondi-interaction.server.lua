@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 
 local WondiAction = remotes:FindFirstChild("WondiAction") or Instance.new("RemoteEvent")
@@ -29,12 +29,13 @@ end
 
 WondiAction.OnServerEvent:Connect(function(player, action)
     if not canUse(player) then return end
-    local wondi=tostring(player:GetAttribute("WP_Wondi") or "Bubbi")
+    local wondi=tostring(player:GetAttribute("ActiveWondi") or "Bubbi")
     action=tostring(action or "")
     if not (allowed[wondi] and allowed[wondi][action]) then return end
     player:SetAttribute("WP_LastWondiEmote",action)
+    player:SetAttribute("WP_Tutorial_MetWondi",true)
     WondiAction:FireAllClients("EMOTE",player.UserId,wondi,action)
 end)
 
 Players.PlayerRemoving:Connect(function(player) cooldown[player.UserId]=nil end)
-print("[WONDERPOCKET] Wondi interaction/emote system loaded")
+print("[WONDERPOCKET] Canonical Wondi interaction system loaded")
