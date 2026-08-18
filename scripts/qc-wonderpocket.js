@@ -11,7 +11,7 @@ const required = [
   'wonderpocket.placement.server.lua','wonderpocket.buildpreview.client.lua',
   'wonderpocket.premium-ui.client.lua','wonderpocket.gardening.server.lua',
   'wonderpocket.inventory.server.lua','wonderpocket.furniture-inventory.server.lua',
-  'wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
+  'wonderpocket.wonderdex.server.lua','wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
   'wonderpocket.tutorial.server.lua','wonderpocket.tutorial.client.lua',
   'wonderpocket.adventure.server.lua','wonderpocket.adventure-gate.server.lua',
   'wonderpocket.treasure-island.server.lua','wonderpocket.health.client.lua',
@@ -39,6 +39,7 @@ const gardenSrc = read('wonderpocket.gardening.server.lua');
 const questSrc = read('wonderpocket.quests.server.lua');
 const retentionSrc = read('wonderpocket.retention.server.lua');
 const inventorySrc = read('wonderpocket.furniture-inventory.server.lua');
+const dexSrc = read('wonderpocket.wonderdex.server.lua');
 const adventureSrc = read('wonderpocket.adventure.server.lua');
 const treasureSrc = read('wonderpocket.treasure-island.server.lua');
 
@@ -72,6 +73,15 @@ if (!questSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Starter quest 
 if (retentionSrc.includes('DataStoreService')) errors.push('Retention still uses a separate DataStore instead of canonical player data.');
 if (!retentionSrc.includes('WP_OfflineSeconds')) errors.push('Retention does not consume canonical offline elapsed time.');
 if (!inventorySrc.includes('revision[player]')) errors.push('Furniture inventory persistence is not revision-safe.');
+
+if (!dexSrc.includes('WONDERPOCKET_WonderDex_v1')) errors.push('WonderDex persistence store is missing.');
+if (!dexSrc.includes('WONDERPOCKET_Discover')) errors.push('WonderDex server-only discovery bus is missing.');
+if (!dexSrc.includes('SERVER_AUTHORITATIVE')) errors.push('WonderDex does not explicitly reject client discovery.');
+if (!dexSrc.includes('WP_DexSaveHealthy')) errors.push('WonderDex save health signal is missing.');
+if (!dexSrc.includes('Badges = {"TreasureIsland"}')) errors.push('Treasure Island badge is missing from WonderDex.');
+if (!dexSrc.includes('scanFurniture')) errors.push('WonderDex is not wired to verified furniture state.');
+const discoverBranch = dexSrc.match(/elseif action==["']DISCOVER["'][\s\S]{0,250}/);
+if (discoverBranch && /discover\(player/.test(discoverBranch[0])) errors.push('WonderDex client DISCOVER path can still unlock collection entries.');
 
 if (!adventureSrc.includes('SERVER_AUTHORITATIVE')) errors.push('Adventure API does not explicitly reject client-authoritative progress.');
 if (/run\.treasure\s*\+=/.test(adventureSrc)) errors.push('Adventure remote still increments treasure progress from client events.');
@@ -125,7 +135,7 @@ else {
   if (!xml.includes('</roblox>')) errors.push('place.rbxlx invalid: missing </roblox>.');
   if (xml.includes('BBYA') || xml.includes('a-club')) errors.push('place.rbxlx contains foreign-map token.');
   if (!xml.includes('WONDERPOCKET_Remotes')) errors.push('Canonical WONDERPOCKET_Remotes string missing from assembled place.');
-  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory','wonderpocket.gardening']) {
+  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory','wonderpocket.gardening','wonderpocket.wonderdex']) {
     if (!xml.includes(marker)) errors.push(`Assembled place missing runtime marker: ${marker}`);
   }
 }
