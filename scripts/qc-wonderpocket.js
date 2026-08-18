@@ -84,7 +84,38 @@ if (!wp) errors.push('wonderpocket missing from registry.');
 else {
   if (String(wp.universeId) !== '8805231520') errors.push('Unexpected WONDERPOCKET universeId.');
   if (String(wp.placeId) !== '124843214013484') errors.push('Unexpected WONDERPOCKET placeId.');
-  if (wp.enabled !== false) errors.push('WONDERPOCKET registry must remain disabled before explicit publish approval.');
+  if (wp.file !== 'maps/wonderpocket/place.rbxlx') errors.push('Unexpected WONDERPOCKET place file.');
+  if (wp.enabled !== false) errors.push('WONDERPOCKET registry must remain disabled before explicit public release approval.');
+}
+
+const publisherPath = path.join(root,'scripts/publish-wonderpocket-closed-test.js');
+const workflowPath = path.join(root,'.github/workflows/wonderpocket-prepublish.yml');
+if (!fs.existsSync(publisherPath)) errors.push('Dedicated WONDERPOCKET closed-test publisher is missing.');
+if (!fs.existsSync(workflowPath)) errors.push('WONDERPOCKET closed-test workflow is missing.');
+if (fs.existsSync(publisherPath)) {
+  const publisher = fs.readFileSync(publisherPath,'utf8');
+  for (const marker of [
+    "universeId: '8805231520'",
+    "placeId: '124843214013484'",
+    "branch: 'agent/wonderpocket-target'",
+    "confirmation: 'WONDERPOCKET:8805231520:124843214013484'",
+    "target.enabled !== false",
+    "PublishAllowed = false"
+  ]) if (!publisher.includes(marker)) errors.push(`Closed-test publisher missing locked marker: ${marker}`);
+  if (publisher.includes('publish-map.js')) errors.push('Dedicated WONDERPOCKET publisher must not delegate to the global publisher.');
+  if (publisher.includes('8116636513') || publisher.includes('131894120482837')) errors.push('BBYA target ID detected in WONDERPOCKET closed-test publisher.');
+}
+if (fs.existsSync(workflowPath)) {
+  const workflow = fs.readFileSync(workflowPath,'utf8');
+  for (const marker of [
+    'publish_closed_test:',
+    'confirm_target:',
+    'WONDERPOCKET:8805231520:124843214013484',
+    'agent/wonderpocket-target',
+    'scripts/publish-wonderpocket-closed-test.js'
+  ]) if (!workflow.includes(marker)) errors.push(`Closed-test workflow missing guard: ${marker}`);
+  if (workflow.includes('r.maps.wonderpocket.enabled=true')) errors.push('Closed-test workflow must not temporarily enable WONDERPOCKET registry.');
+  if (workflow.includes('node scripts/publish-map.js wonderpocket')) errors.push('Closed-test workflow must use the dedicated WONDERPOCKET publisher.');
 }
 
 const place = path.join(dir,'place.rbxlx');
