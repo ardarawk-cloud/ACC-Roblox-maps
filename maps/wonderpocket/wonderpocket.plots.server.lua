@@ -62,7 +62,7 @@ local function buildHome(player, center)
     model:SetAttribute("WP_HomeType","Starter Cottage")
     model.Parent=homes
 
-    local homeCenter=Vector3.new(center.X,6,center.Z-8)
+    local homeCenter=Vector3.new(center.X,center.Y+1,center.Z-8)
     makePart(model,"Floor",Vector3.new(18,1,14),homeCenter,Color3.fromRGB(237,216,180),Enum.Material.WoodPlanks,true)
     makePart(model,"BackWall",Vector3.new(18,8,1),homeCenter+Vector3.new(0,4,-6.5),Color3.fromRGB(255,244,218),Enum.Material.SmoothPlastic,true)
     makePart(model,"LeftWall",Vector3.new(1,8,14),homeCenter+Vector3.new(-8.5,4,0),Color3.fromRGB(255,244,218),Enum.Material.SmoothPlastic,true)
@@ -88,6 +88,15 @@ end
 
 for i,center in ipairs(plotCenters) do buildPad(i,center) end
 
+local function clearPlotAttributes(player)
+    player:SetAttribute("WP_PlotIndex",0)
+    player:SetAttribute("WP_PlotCenterX",nil)
+    player:SetAttribute("WP_PlotCenterY",nil)
+    player:SetAttribute("WP_PlotCenterZ",nil)
+    player:SetAttribute("WP_PlotHalfX",nil)
+    player:SetAttribute("WP_PlotHalfZ",nil)
+end
+
 local function assign(player)
     for i,center in ipairs(plotCenters) do
         if not occupied[i] then
@@ -96,6 +105,7 @@ local function assign(player)
             if pad then pad:SetAttribute("WP_OwnerUserId", player.UserId) end
             player:SetAttribute("WP_PlotIndex", i)
             player:SetAttribute("WP_PlotCenterX", center.X)
+            player:SetAttribute("WP_PlotCenterY", center.Y)
             player:SetAttribute("WP_PlotCenterZ", center.Z)
             player:SetAttribute("WP_PlotHalfX", PLOT_SIZE.X/2 - 2)
             player:SetAttribute("WP_PlotHalfZ", PLOT_SIZE.Z/2 - 2)
@@ -103,7 +113,7 @@ local function assign(player)
             return
         end
     end
-    player:SetAttribute("WP_PlotIndex", 0)
+    clearPlotAttributes(player)
     player:SetAttribute("WP_HomeReady",false)
 end
 
@@ -115,10 +125,11 @@ local function release(player)
         if pad then pad:SetAttribute("WP_OwnerUserId", 0) end
     end
     destroyHome(player.UserId)
+    clearPlotAttributes(player)
 end
 
 Players.PlayerAdded:Connect(assign)
 Players.PlayerRemoving:Connect(release)
 for _,player in ipairs(Players:GetPlayers()) do assign(player) end
 
-print("[WONDERPOCKET] Player plot ownership + personal Starter Cottage loaded")
+print("[WONDERPOCKET] Player plot ownership + stable personal Pocket coordinates loaded")
