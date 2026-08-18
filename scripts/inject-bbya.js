@@ -21,6 +21,7 @@ const phase5Lua = readLua('maps/a-club/bbya.phase5-finish.server.lua');
 const phase6Lua = readLua('maps/a-club/bbya.phase6-wayfinding.server.lua');
 const productionQCLua = readLua('maps/a-club/bbya.production-qc-v4.server.lua');
 const buildValidationLua = readLua('maps/a-club/bbya.build-validation.server.lua');
+const playtestLua = readLua('maps/a-club/bbya.playtest.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const monetizationLua = readLua('maps/a-club/bbya.monetization.server.lua');
 const musicLua = readLua('maps/a-club/bbya.music.server.lua');
@@ -59,6 +60,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAPHASE6PREMIUMV460000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_6_v4_6</string><ProtectedString name="Source"><![CDATA[${phase6Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4300000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_3</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1_1</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAPLAYTESTSERVICE00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_System_Test_v1</string><ProtectedString name="Source"><![CDATA[${playtestLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems_v2</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMONETIZATION000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Backend</string><ProtectedString name="Source"><![CDATA[${monetizationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
@@ -80,7 +82,7 @@ const runtime = `${begin}
     <Item class="LocalScript" referent="RBXBBYASUPPORTCELEBRATION00000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Support_Celebration_Client</string><ProtectedString name="Source"><![CDATA[${supportCelebrationClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAPERFORMANCECLIENT0000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Adaptive_Performance_Client</string><ProtectedString name="Source"><![CDATA[${performanceClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAUICOORDINATOR0000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_UI_Coordinator_Client</string><ProtectedString name="Source"><![CDATA[${uiCoordinatorClientLua}]]></ProtectedString></Properties></Item>
-    <Item class="LocalScript" referent="RBXBBYAHEALTHCLIENT000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_Health_HUD</string><ProtectedString name="Source"><![CDATA[${healthClientLua}]]></ProtectedString></Properties></Item>
+    <Item class="LocalScript" referent="RBXBBYAHEALTHCLIENT000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_Health_HUD_v1_1</string><ProtectedString name="Source"><![CDATA[${healthClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAQUEENCLIENT0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Client</string><ProtectedString name="Source"><![CDATA[${queenClientLua}]]></ProtectedString></Properties></Item>
   </Item>
 </Item>
@@ -89,4 +91,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium 4.6 clean-core build + final wayfinding + QC + validation + Queen health HUD + adaptive performance + consolidated UI; legacy visual/QC/spawn hotfixes retired into', target.file);
+console.log('[BBYA] Active build injected: Premium 4.6 playtest-hardened build + Queen system test + final wayfinding + validation + adaptive performance + consolidated UI into', target.file);
