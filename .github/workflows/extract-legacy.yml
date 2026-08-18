@@ -1,0 +1,52 @@
+name: Extract Legacy UI Music Lighting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/extract-legacy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract UI music and lighting from legacy Roblox place
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_UNIVERSE_ID: '8805231520'
+          ROBLOX_PLACE_ID: '124843214013484'
+        run: python tools/legacy-extract/extract.py
+
+      - name: Commit backup package
+        if: success()
+        run: |
+          git config user.name "ACC Roblox Backup Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add exports/legacy
+          if git diff --cached --quiet; then
+            echo "No export changes to commit."
+          else
+            git commit -m "Backup legacy Roblox UI music lighting"
+            git push
+          fi
+
+      - name: Upload backup artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-ui-music-lighting
+          path: exports/legacy/legacy-ui-music-lighting-8805231520-124843214013484.zip
+          if-no-files-found: error
