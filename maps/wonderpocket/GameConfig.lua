@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.8.0-runtime-hardening",
+    Version = "0.9.0-closed-test-experience",
 
     Economy = {
         StartingCoins = 250,
@@ -125,6 +125,15 @@ return {
         WondiReconnectSafe = true,
         AdventureRewardDebounce = true,
         MultiplayerTreasureState = true,
+        OnboardingPersistence = true,
+        InternalSessionTelemetry = true,
+        ClosedTestHealthPanel = true,
+    },
+
+    Onboarding = {
+        Enabled = true,
+        PersistCompletion = true,
+        Steps = {"MeetWondi", "Garden", "Build", "WonderSquare"},
     },
 
     PremiumPresentation = {
@@ -143,6 +152,7 @@ return {
         ClosedTestCandidate = true,
         PrePublishHardening = true,
         RuntimeHardening = true,
+        ClosedTestExperiencePass = true,
         IsolatedBuildPipeline = true,
         ForeignMapTokenGuard = true,
         PublishAllowed = false,
