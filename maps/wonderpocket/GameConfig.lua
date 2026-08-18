@@ -2,13 +2,15 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.9.0-closed-test-experience",
+    Version = "1.0.0-closed-test-build-candidate",
 
     Economy = {
         StartingCoins = 250,
         StartingStars = 5,
         PremiumCurrency = "Robux",
         NoPayToWin = true,
+        CanonicalCoinAttribute = "Coins",
+        CanonicalStarAttribute = "Stars",
     },
 
     Starter = {
@@ -128,12 +130,22 @@ return {
         OnboardingPersistence = true,
         InternalSessionTelemetry = true,
         ClosedTestHealthPanel = true,
+        CanonicalEconomyAttributes = true,
+        FirstSessionObjectiveTracking = true,
     },
 
     Onboarding = {
         Enabled = true,
         PersistCompletion = true,
-        Steps = {"MeetWondi", "Garden", "Build", "WonderSquare"},
+        FirstSessionTargetMinutes = 10,
+        Steps = {
+            {Id="MeetWondi", Text="Say hi to your Wondi"},
+            {Id="PlantCarrot", Text="Plant your first carrot"},
+            {Id="BuyFurniture", Text="Buy one furniture item"},
+            {Id="PlaceFurniture", Text="Decorate your Pocket World"},
+            {Id="HarvestCarrot", Text="Harvest your carrot"},
+            {Id="Treasure", Text="Find one treasure on Treasure Island"},
+        },
     },
 
     PremiumPresentation = {
@@ -153,12 +165,15 @@ return {
         PrePublishHardening = true,
         RuntimeHardening = true,
         ClosedTestExperiencePass = true,
+        FirstTenMinuteLoopWired = true,
+        CanonicalEconomyAudit = true,
         IsolatedBuildPipeline = true,
         ForeignMapTokenGuard = true,
         PublishAllowed = false,
         RequiresLiveDataStoreTest = true,
         RequiresMultiplayerPlotTest = true,
         RequiresMobilePlacementTest = true,
+        RequiresTenMinuteLoopTest = true,
     },
 
     LiveOps = {
