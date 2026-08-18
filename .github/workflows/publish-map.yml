@@ -12,12 +12,13 @@ on:
     paths:
       - 'maps/**'
       - 'scripts/**'
+      - '.github/workflows/publish-map.yml'
 
 jobs:
   detect-and-publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +47,7 @@ jobs:
             fi
           done
 
-          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/'; then
+          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/\|^.github/workflows/publish-map.yml$'; then
             TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([,v])=>v.enabled).map(([k])=>k).join(' '))")
           fi
 
@@ -56,6 +57,7 @@ jobs:
         if: steps.targets.outputs.maps != ''
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
         shell: bash
         run: |
           set -euo pipefail
@@ -72,6 +74,39 @@ jobs:
             echo "=== PUBLISH: $MAP_ID ==="
             node scripts/publish-map.js "$MAP_ID"
           done
+
+      - name: Persist deploy receipts
+        if: steps.targets.outputs.maps != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d deploy-status ]; then
+            echo "No deploy receipts produced."
+            exit 1
+          fi
+
+          mkdir -p /tmp/bbya-deploy-status
+          cp -a deploy-status/. /tmp/bbya-deploy-status/
+
+          # Remove injected RBXLX working-tree changes before committing only receipts.
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+
+          mkdir -p deploy-status
+          cp -a /tmp/bbya-deploy-status/. deploy-status/
+
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status
+
+          if git diff --cached --quiet; then
+            echo "Deploy receipt already current."
+            exit 0
+          fi
+
+          git commit -m "Record Roblox deploy receipt [skip ci]"
+          git push origin HEAD:main
 
       - name: Nothing to publish
         if: steps.targets.outputs.maps == ''
