@@ -1,0 +1,10 @@
+-- [B2] EAST STAIR CORE
+local B2=registerZone("B2","EAST STAIR CORE","G→VIP→ROOF",Vector3.new(70,18,-24),Vector3.new(25,36,39))
+program(B2,"EAST STAIR FOYER",Vector2.new(28,24),Vector3.new(70,.62,-24),C.blue)
+label(B2,"EAST STAIR LABEL","STAIR\nVIP / ROOF",CFrame.new(55.3,7,-25),Vector3.new(.25,7,16),C.blue,Enum.NormalId.Right)
+uStair(B2,"EAST STAIR G-VIP",70,-24,0)
+uStair(B2,"EAST STAIR VIP-ROOF",70,-24,18)
+landing(B2,"EAST STAIR G LANDING",Vector3.new(70,.64,-17),C.blue)
+landing(B2,"EAST STAIR VIP LANDING",Vector3.new(70,18.64,-17),C.blue)
+landing(B2,"EAST STAIR ROOF LANDING",Vector3.new(70,36.64,-17),C.blue)
+zoneStamp(B2,CFrame.new(58,12,-24)*CFrame.Angles(0,math.rad(-90),0),Vector3.new(18,3,.25),C.blue,Enum.NormalId.Front)
