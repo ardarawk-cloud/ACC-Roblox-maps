@@ -16,13 +16,16 @@ const required = [
   'maps/a-club/v6/30-vip-level.lua',
   'maps/a-club/v6/31-vip-gates.lua',
   'maps/a-club/v6/40-rooftop.lua',
+  'maps/a-club/v6/42-social-seating.lua',
   'maps/a-club/v6/45-service.lua',
   'maps/a-club/v6/50-systems.server.lua',
   'maps/a-club/v6/55-monetization.server.lua',
+  'maps/a-club/v6/57-social-prompts.server.lua',
   'maps/a-club/v6/60-ui.client.lua',
   'maps/a-club/v6/61-zone-hud.client.lua',
   'maps/a-club/v6/62-dance-ui.client.lua',
   'maps/a-club/v6/63-commerce-ui.client.lua',
+  'maps/a-club/v6/64-physical-ui-bridge.client.lua',
   'maps/a-club/v6/70-runtime-qc.server.lua',
   'scripts/assemble-bbya-v6-preview.js',
 ];
@@ -45,15 +48,18 @@ const liftFinish = read('maps/a-club/v6/23-lift-finish.lua');
 const vip = read('maps/a-club/v6/30-vip-level.lua');
 const vipGates = read('maps/a-club/v6/31-vip-gates.lua');
 const roof = read('maps/a-club/v6/40-rooftop.lua');
+const socialSeats = read('maps/a-club/v6/42-social-seating.lua');
 const systems = read('maps/a-club/v6/50-systems.server.lua');
 const commerce = read('maps/a-club/v6/55-monetization.server.lua');
+const socialPrompts = read('maps/a-club/v6/57-social-prompts.server.lua');
 const ui = read('maps/a-club/v6/60-ui.client.lua');
 const zoneHud = read('maps/a-club/v6/61-zone-hud.client.lua');
 const danceUi = read('maps/a-club/v6/62-dance-ui.client.lua');
 const commerceUi = read('maps/a-club/v6/63-commerce-ui.client.lua');
+const physicalBridge = read('maps/a-club/v6/64-physical-ui-bridge.client.lua');
 const runtimeQc = read('maps/a-club/v6/70-runtime-qc.server.lua');
 const assembler = read('scripts/assemble-bbya-v6-preview.js');
-const sourceBundle = [core,layout,ground,circulation,facade,liftFinish,vip,vipGates,roof,systems,commerce,ui,zoneHud,danceUi,commerceUi,runtimeQc,assembler].join('\n');
+const sourceBundle = [core,layout,ground,circulation,facade,liftFinish,vip,vipGates,roof,socialSeats,systems,commerce,socialPrompts,ui,zoneHud,danceUi,commerceUi,physicalBridge,runtimeQc,assembler].join('\n');
 
 if (/maps\/a-club\/v5\//.test(sourceBundle)) fail('V5 source path leaked into V6 build'); else pass('no V5 source path in V6 assembly');
 if (!core.includes('BBYAV6CleanSlate') || !core.includes('removedLegacy')) fail('true clean-room Workspace cleanup missing'); else pass('legacy Workspace cleanup contract present');
@@ -92,6 +98,12 @@ for (const token of ['D2 POOL BASIN','D2 POOL WATER','D2 POOL DJ ISLAND','D3 SKY
 }
 if (!failed) pass('rooftop programmed as physical lifestyle deck');
 
+if (!socialSeats.includes('Instance.new("Seat")') || !socialSeats.includes('SIT PROMPT') || !socialSeats.includes('BBYAV6FunctionalSocialSeats')) fail('physical lounge furniture is decoration-only');
+for (const zoneToken of ['A1 SOCIAL SEAT','A3 SOCIAL SEAT','A4 SOCIAL WATCH SEAT','A5 BAR SOCIAL SEAT','A6 TALK SEAT','C1 VIP SOCIAL SEAT','D2 POOL DAYBED SEAT','D5 CABANA SOCIAL SEAT']) {
+  if (!socialSeats.includes(zoneToken)) fail(`functional social seating missing coverage: ${zoneToken}`);
+}
+if (!failed) pass('arrival/commons/club/bar/chill/VIP/rooftop furniture has functional social seating');
+
 if (/\bpart\s*\(/.test(systems) || /\bP\./.test(systems)) fail('systems runtime depends on architecture-local helper/P palette');
 else pass('systems runtime is self-contained');
 if (!systems.includes('local moveLift') || !systems.includes('CALL LIFT') || !systems.includes('insideCab') || !systems.includes('HumanoidRootPart')) fail('physical lift runtime contract incomplete');
@@ -101,6 +113,9 @@ if (!commerce.includes('VIP_GAMEPASS_ID=0') || !commerce.includes('[5]=0') || !c
 if (!commerce.includes('ProcessReceipt') || !commerce.includes('BBYA_Donations_v2') || !commerce.includes('SupportBoard')) fail('authoritative support backend incomplete');
 if (!commerce.includes('BBYA_VIP_GATE') || !commerce.includes('CollisionGroupSetCollidable')) fail('authoritative per-player VIP barrier logic missing');
 if (!failed) pass('VIP/support backend is authoritative and dormant with zero IDs');
+
+if (!socialPrompts.includes('OpenPanel') || !socialPrompts.includes('A3 LOOK PEDESTAL') || !socialPrompts.includes('A4 DJ BOOTH') || !socialPrompts.includes('D6 VIEW PLATFORM')) fail('physical facilities are not wired to matching social tools');
+else pass('Look Studio/photo/DJ/dance/view spaces expose in-world UI prompts');
 
 if (!ui.includes('ScrollingFrame')) fail('major panel body is not scrollable on mobile');
 if (!ui.includes('positionPull') || !ui.includes('side=="LEFT"') || !ui.includes('side=="RIGHT"') || !ui.includes('side=="TOP"')) fail('edge recovery grab-tab logic missing');
@@ -114,6 +129,8 @@ if (!danceUi.includes('DANCE STUDIO') || !danceUi.includes('SYNC NEARBY') || !da
 else pass('left rail parity restored to DANCE/VIP/PHOTO/TP with functional Dance Studio');
 if (!commerceUi.includes('PromptProductPurchase') || !commerceUi.includes('SupportBoard') || !commerceUi.includes('PENDING')) fail('Sawer UI is not bound to authoritative config/backend');
 else pass('Sawer UI auto-activates only from official product IDs and reads server leaderboard');
+if (!physicalBridge.includes('OpenPanel.OnClientEvent') || !physicalBridge.includes('show(photoPanel)') || !physicalBridge.includes('show(musicPanel)') || !physicalBridge.includes('show(dancePanel)')) fail('physical-to-UI client bridge incomplete');
+else pass('physical facility prompts open the same unified floating UI, not duplicate interfaces');
 
 for (const token of ['BBYAV6RuntimeQC','BBYAV6RuntimeIssueCount','blocked clear landing','legacy Workspace object survived','BBYAV6CriticalFillCount']) {
   if (!runtimeQc.includes(token)) fail(`runtime QC contract missing: ${token}`);
@@ -123,15 +140,15 @@ if (!failed) pass('runtime QC checks clean slate, physical features, avatar fill
 if (!assembler.includes('BBYA_V6_CLEANROOM_RUNTIME') || !assembler.includes('BBYA_V6_UNIFIED_UI')) fail('V6 deterministic preview runtime names missing');
 if (assembler.includes('BBYA_V6_CLEANROOM_ARCHITECTURE') || assembler.includes('BBYA_V6_CLEANROOM_SYSTEMS')) fail('assembler still creates parallel architecture/system scripts');
 if (/v5\//.test(assembler)) fail('V6 assembler references V5 source files');
-for (const module of ['23-lift-finish.lua','31-vip-gates.lua','55-monetization.server.lua','61-zone-hud.client.lua','62-dance-ui.client.lua','63-commerce-ui.client.lua','70-runtime-qc.server.lua']) {
-  if (!assembler.includes(module)) fail(`V6 assembler missing module ${module}`);
-}
-const architectureIndex=assembler.indexOf('maps/a-club/v6/31-vip-gates.lua');
+const mustAssemble=['23-lift-finish.lua','31-vip-gates.lua','42-social-seating.lua','55-monetization.server.lua','57-social-prompts.server.lua','61-zone-hud.client.lua','62-dance-ui.client.lua','63-commerce-ui.client.lua','64-physical-ui-bridge.client.lua','70-runtime-qc.server.lua'];
+for (const module of mustAssemble) if (!assembler.includes(module)) fail(`V6 assembler missing module ${module}`);
+const architectureIndex=assembler.indexOf('maps/a-club/v6/42-social-seating.lua');
 const systemsIndex=assembler.indexOf('maps/a-club/v6/50-systems.server.lua');
 const commerceIndex=assembler.indexOf('maps/a-club/v6/55-monetization.server.lua');
+const promptsIndex=assembler.indexOf('maps/a-club/v6/57-social-prompts.server.lua');
 const qcIndex=assembler.indexOf('maps/a-club/v6/70-runtime-qc.server.lua');
-if (!(architectureIndex>=0 && systemsIndex>architectureIndex && commerceIndex>systemsIndex && qcIndex>commerceIndex)) fail('server runtime source order is not architecture -> systems -> commerce -> QC');
-else pass('server runtime executes deterministic architecture -> systems -> commerce -> QC order');
+if (!(architectureIndex>=0 && systemsIndex>architectureIndex && commerceIndex>systemsIndex && promptsIndex>commerceIndex && qcIndex>promptsIndex)) fail('server runtime source order is not architecture -> systems -> commerce -> prompts -> QC');
+else pass('server runtime executes deterministic architecture -> systems -> commerce -> prompts -> QC order');
 
 if (assembledFlag) {
   if (!assembledPath || !fs.existsSync(assembledPath)) fail(`assembled preview not found: ${assembledPath || '(none)'}`);
@@ -142,14 +159,13 @@ if (assembledFlag) {
     if (!xml.includes('BBYA_V6_UNIFIED_UI')) fail('assembled preview missing V6 UI runtime');
     if (xml.includes('BBYA_V6_CLEANROOM_ARCHITECTURE') || xml.includes('BBYA_V6_CLEANROOM_SYSTEMS')) fail('assembled preview still contains parallel V6 server runtimes');
     if (xml.includes('BBYA_V5_3_MASTER_ARCHITECTURE')) fail('assembled preview contains active V5.3 injected runtime');
-    for (const module of ['23-lift-finish.lua','31-vip-gates.lua','55-monetization.server.lua','61-zone-hud.client.lua','62-dance-ui.client.lua','63-commerce-ui.client.lua','70-runtime-qc.server.lua']) {
-      if (!xml.includes(`SOURCE FILE: maps/a-club/v6/${module}`)) fail(`assembled preview missing source ${module}`);
-    }
-    const xmlGate=xml.indexOf('SOURCE FILE: maps/a-club/v6/31-vip-gates.lua');
+    for (const module of mustAssemble) if (!xml.includes(`SOURCE FILE: maps/a-club/v6/${module}`)) fail(`assembled preview missing source ${module}`);
+    const xmlSeats=xml.indexOf('SOURCE FILE: maps/a-club/v6/42-social-seating.lua');
     const xmlSystems=xml.indexOf('SOURCE FILE: maps/a-club/v6/50-systems.server.lua');
     const xmlCommerce=xml.indexOf('SOURCE FILE: maps/a-club/v6/55-monetization.server.lua');
+    const xmlPrompts=xml.indexOf('SOURCE FILE: maps/a-club/v6/57-social-prompts.server.lua');
     const xmlQc=xml.indexOf('SOURCE FILE: maps/a-club/v6/70-runtime-qc.server.lua');
-    if (!(xmlGate>=0 && xmlSystems>xmlGate && xmlCommerce>xmlSystems && xmlQc>xmlCommerce)) fail('assembled V6 server source order is wrong');
+    if (!(xmlSeats>=0 && xmlSystems>xmlSeats && xmlCommerce>xmlSystems && xmlPrompts>xmlCommerce && xmlQc>xmlPrompts)) fail('assembled V6 server source order is wrong');
     if (!failed) pass('assembled RBXLX contains one ordered V6 server runtime and current UI modules only');
   }
 }
