@@ -1,20 +1,29 @@
 -- BBYA SOCIAL HUB V6 — CLEAN-ROOM PHYSICAL CORE
--- No V5 geometry/runtime names. This file must run first in the V6 architecture assembly.
+-- V6 owns the venue Workspace. Legacy BBYA geometry is removed before any V6 room is built.
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 
 local ROOT_NAME = "BBYA V6 CLEANROOM"
 
--- V6 owns only its own root during development. Do not wipe unrelated live geometry here.
-local old = workspace:FindFirstChild(ROOT_NAME)
-if old then old:Destroy() end
+-- TRUE CLEAN ROOM:
+-- The repository place still contains old static BBYA geometry (Main Floor, DJ Stage, Dance Floor, etc.).
+-- V6 must never stack on top of it. Preserve only engine Terrain/Camera objects, then rebuild the venue from zero.
+local removedLegacy = 0
+for _,child in ipairs(workspace:GetChildren()) do
+    local keep = child:IsA("Terrain") or child:IsA("Camera")
+    if not keep then
+        child:Destroy()
+        removedLegacy += 1
+    end
+end
 
 local root = Instance.new("Folder")
 root.Name = ROOT_NAME
 root.Parent = workspace
 root:SetAttribute("BBYABuildFamily","V6")
 root:SetAttribute("BBYAProductIdentity","SOCIAL_HUB_FIRST")
+root:SetAttribute("BBYALegacyWorkspaceObjectsRemoved",removedLegacy)
 
 local zones = Instance.new("Folder")
 zones.Name = "ZONES"
@@ -208,3 +217,4 @@ Lighting.FogStart=2200;Lighting.FogEnd=5000
 
 workspace:SetAttribute("BBYAV6Status","CLEANROOM_DEVELOPMENT")
 workspace:SetAttribute("BBYAV6Root",ROOT_NAME)
+workspace:SetAttribute("BBYAV6CleanSlate",true)
