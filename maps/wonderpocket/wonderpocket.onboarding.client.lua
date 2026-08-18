@@ -36,12 +36,12 @@ shade.Parent = gui
 local card = Instance.new("Frame")
 card.AnchorPoint = Vector2.new(.5,.5)
 card.Position = UDim2.fromScale(.5,.5)
-card.Size = UDim2.new(1,-28,0,330)
+card.Size = UDim2.new(1,-28,0,380)
 card.BackgroundColor3 = Color3.fromRGB(248,250,255)
 card.Parent = gui
 local sizeConstraint = Instance.new("UISizeConstraint")
-sizeConstraint.MaxSize = Vector2.new(390,330)
-sizeConstraint.MinSize = Vector2.new(292,300)
+sizeConstraint.MaxSize = Vector2.new(390,380)
+sizeConstraint.MinSize = Vector2.new(292,340)
 sizeConstraint.Parent = card
 Instance.new("UICorner",card).CornerRadius = UDim.new(0,24)
 
@@ -52,8 +52,8 @@ stroke.Color = Color3.fromRGB(105,130,220)
 stroke.Parent = card
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-36,0,58)
-title.Position = UDim2.fromOffset(18,14)
+title.Size = UDim2.new(1,-36,0,54)
+title.Position = UDim2.fromOffset(18,12)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBlack
 title.TextSize = 24
@@ -62,9 +62,20 @@ title.TextColor3 = Color3.fromRGB(42,56,105)
 title.Text = "Welcome to WONDERPOCKET"
 title.Parent = card
 
+local dedication = Instance.new("TextLabel")
+dedication.Position = UDim2.fromOffset(24,64)
+dedication.Size = UDim2.new(1,-48,0,48)
+dedication.BackgroundTransparency = 1
+dedication.Font = Enum.Font.GothamMedium
+dedication.TextSize = 14
+dedication.TextWrapped = true
+dedication.TextColor3 = Color3.fromRGB(92,103,145)
+dedication.Text = "This game was made especially for\nPutu Azya Putri Bintang Hardajaya."
+dedication.Parent = card
+
 local body = Instance.new("TextLabel")
-body.Position = UDim2.fromOffset(24,78)
-body.Size = UDim2.new(1,-48,0,160)
+body.Position = UDim2.fromOffset(24,116)
+body.Size = UDim2.new(1,-48,0,170)
 body.BackgroundTransparency = 1
 body.Font = Enum.Font.GothamMedium
 body.TextSize = 16
@@ -100,4 +111,4 @@ start.Activated:Connect(function()
     end)
 end)
 
-print("[WONDERPOCKET] v1.2 responsive first-session onboarding ready")
+print("[WONDERPOCKET] v1.3 dedication onboarding ready")
