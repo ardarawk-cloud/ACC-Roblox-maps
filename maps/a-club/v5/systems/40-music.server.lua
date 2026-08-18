@@ -49,10 +49,15 @@ end
 sound.Ended:Connect(function() if occupied() then task.delay(.15,nextTrack) end end)
 local function canDJ(p)
  if p.UserId==QUEEN_ID or p:GetAttribute("BBYARole")=="DJ" or p:GetAttribute("BBYAAllAccess")==true then return true end
- local hrp=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local booth=workspace:FindFirstChild("A4 | DJ BOOTH BODY",true) or workspace:FindFirstChild("D2 | POOL DJ CONSOLE",true);return hrp and booth and (hrp.Position-booth.Position).Magnitude<=18
+ local hrp=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not hrp then return false end
+ local mainBooth=workspace:FindFirstChild("A4 | DJ BOOTH BODY",true)
+ local poolBooth=workspace:FindFirstChild("D2 | POOL DJ CONSOLE",true)
+ local nearMain=mainBooth and (hrp.Position-mainBooth.Position).Magnitude<=18
+ local nearPool=poolBooth and (hrp.Position-poolBooth.Position).Magnitude<=18
+ return nearMain or nearPool or false
 end
 MusicRemote.OnServerEvent:Connect(function(p,action,value)
- if not canDJ(p) then NoticeRemote:FireClient(p,"Stand at the DJ booth to take control");return end
+ if not canDJ(p) then NoticeRemote:FireClient(p,"Stand at the A4 or D2 DJ booth to take control");return end
  action=string.upper(tostring(action or ""));manualDJ=p.UserId
  if action=="NEXT" then token+=1;nextTrack()
  elseif action=="PAUSE" then sound:Pause();publish("")
@@ -64,4 +69,4 @@ end)
 Players.PlayerAdded:Connect(function() task.delay(1,function() if occupied() and not sound.Playing then manualDJ=nil;rebuild(mode);nextTrack() end end) end)
 Players.PlayerRemoving:Connect(function(p) if manualDJ==p.UserId then manualDJ=nil end end)
 rebuild("ALL");if occupied() then task.delay(1,nextTrack) else publish("WAITING FOR PLAYERS") end
-workspace:SetAttribute("BBYASystemMusic","5.0")
+workspace:SetAttribute("BBYASystemMusic","5.1")
