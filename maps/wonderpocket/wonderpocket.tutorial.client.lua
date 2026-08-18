@@ -82,6 +82,14 @@ local function applyVisibility(forceComplete)
     end
 end
 
+local function resolvedObjectiveText(text)
+    local stepId = tostring(player:GetAttribute("WP_TutorialStepId") or "")
+    if stepId == "PlaceFurniture" and player:GetAttribute("WP_BuildActive") == true then
+        return "Move furniture, ROTATE if needed, then tap PLACE."
+    end
+    return tostring(text or "Start your Pocket journey")
+end
+
 local function refresh()
     local complete = player:GetAttribute("WP_OnboardingComplete") == true
     if complete then
@@ -90,20 +98,20 @@ local function refresh()
     end
 
     local step = tonumber(player:GetAttribute("WP_TutorialStep")) or 1
-    local text = tostring(player:GetAttribute("WP_TutorialObjective") or "Start your Pocket journey")
+    local text = resolvedObjectiveText(player:GetAttribute("WP_TutorialObjective"))
     kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/6", math.clamp(step,1,6))
     objective.Text = text
     applyVisibility(false)
 end
 
-for _, attr in ipairs({"WP_OnboardingComplete","WP_TutorialStarted","WP_TutorialStep","WP_TutorialObjective"}) do
+for _, attr in ipairs({"WP_OnboardingComplete","WP_TutorialStarted","WP_TutorialStep","WP_TutorialStepId","WP_TutorialObjective","WP_BuildActive"}) do
     player:GetAttributeChangedSignal(attr):Connect(refresh)
 end
 
 Tutorial.OnClientEvent:Connect(function(action, step, total, _, text)
     if action == "STEP" then
         kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/%d", step, total)
-        objective.Text = text
+        objective.Text = resolvedObjectiveText(text)
         applyVisibility(false)
     elseif action == "COMPLETE" then
         kicker.Text = "FIRST POCKET JOURNEY  •  COMPLETE"
@@ -126,4 +134,4 @@ task.spawn(function()
 end)
 
 refresh()
-print("[WONDERPOCKET] tutorial tracker modal-overlap guard ready")
+print("[WONDERPOCKET] compact contextual tutorial tracker ready")
