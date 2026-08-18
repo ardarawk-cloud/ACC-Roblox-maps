@@ -38,6 +38,7 @@ const monetizationClientLua = readLua('maps/a-club/bbya.monetization.client.lua'
 const supportCelebrationClientLua = readLua('maps/a-club/bbya.support-celebration.client.lua');
 const performanceClientLua = readLua('maps/a-club/bbya.performance.client.lua');
 const uiCoordinatorClientLua = readLua('maps/a-club/bbya.ui-coordinator.client.lua');
+const healthClientLua = readLua('maps/a-club/bbya.health.client.lua');
 const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
@@ -79,6 +80,7 @@ const runtime = `${begin}
     <Item class="LocalScript" referent="RBXBBYASUPPORTCELEBRATION00000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Support_Celebration_Client</string><ProtectedString name="Source"><![CDATA[${supportCelebrationClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAPERFORMANCECLIENT0000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Adaptive_Performance_Client</string><ProtectedString name="Source"><![CDATA[${performanceClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAUICOORDINATOR0000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_UI_Coordinator_Client</string><ProtectedString name="Source"><![CDATA[${uiCoordinatorClientLua}]]></ProtectedString></Properties></Item>
+    <Item class="LocalScript" referent="RBXBBYAHEALTHCLIENT000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_Health_HUD</string><ProtectedString name="Source"><![CDATA[${healthClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAQUEENCLIENT0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Client</string><ProtectedString name="Source"><![CDATA[${queenClientLua}]]></ProtectedString></Properties></Item>
   </Item>
 </Item>
@@ -87,4 +89,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium 4.6 clean-core build + final wayfinding + QC + validation + anchor navigation + adaptive performance + consolidated UI; legacy visual/QC/spawn hotfixes retired into', target.file);
+console.log('[BBYA] Active build injected: Premium 4.6 clean-core build + final wayfinding + QC + validation + Queen health HUD + adaptive performance + consolidated UI; legacy visual/QC/spawn hotfixes retired into', target.file);
