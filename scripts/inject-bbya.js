@@ -15,6 +15,7 @@ const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
 const featuresLua = readLua('maps/a-club/bbya.features.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
+const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
 const begin = '<!-- BBYA_RUNTIME_BEGIN -->';
@@ -35,6 +36,7 @@ const runtime = `${begin}
   <Item class="StarterPlayerScripts" referent="RBXBBYASTARTERPLAYERSCRIPTS00000001">
     <Properties><string name="Name">StarterPlayerScripts</string></Properties>
     <Item class="LocalScript" referent="RBXBBYACLIENT000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Client</string><ProtectedString name="Source"><![CDATA[${clientLua}]]></ProtectedString></Properties></Item>
+    <Item class="LocalScript" referent="RBXBBYAQUEENCLIENT0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Client</string><ProtectedString name="Source"><![CDATA[${queenClientLua}]]></ProtectedString></Properties></Item>
   </Item>
 </Item>
 ${end}`;
@@ -42,4 +44,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Main + systems + DJ + feature stations + client UI injected into', target.file);
+console.log('[BBYA] Main + systems + DJ + feature stations + client + Queen UI injected into', target.file);
