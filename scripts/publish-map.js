@@ -1,3 +1,4 @@
+// ACC Roblox Open Cloud publish probe: V2 secret migration test
 const fs = require('fs');
 const path = require('path');
 
