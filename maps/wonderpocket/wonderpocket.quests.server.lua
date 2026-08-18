@@ -1,8 +1,9 @@
--- WONDERPOCKET Starter Quest Loop v1.1
+-- WONDERPOCKET Starter Quest Loop v1.2
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit", 20)
 
 local function reward(player)
     if player:GetAttribute("WP_QuestStarterRewarded") == true then
@@ -14,6 +15,7 @@ local function reward(player)
     player:SetAttribute("WP_QuestRewardReady", false)
     player:SetAttribute("Coins", (tonumber(player:GetAttribute("Coins")) or 0) + 75)
     player:SetAttribute("Stars", (tonumber(player:GetAttribute("Stars")) or 0) + 2)
+    if EconomyAudit then EconomyAudit:Fire(player,"STARTER_QUEST","HARVEST_3",75,2,0) end
     if CriticalSave then CriticalSave:Fire(player) end
 end
 
@@ -42,4 +44,4 @@ end
 Players.PlayerAdded:Connect(function(player) task.spawn(watch, player) end)
 for _, player in Players:GetPlayers() do task.spawn(watch, player) end
 
-print("[WONDERPOCKET] Persistent idempotent starter quest loaded")
+print("[WONDERPOCKET] Audited persistent idempotent starter quest loaded")
