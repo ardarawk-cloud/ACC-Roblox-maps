@@ -10,6 +10,7 @@ on:
       - 'maps/a-club/rebuild/**'
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/inspect-bbya-clean-preview.js'
       - '.github/workflows/bbya-clean-rebuild-preview.yml'
   pull_request:
     branches:
@@ -20,6 +21,7 @@ on:
       - 'maps/a-club/rebuild/**'
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/inspect-bbya-clean-preview.js'
       - '.github/workflows/bbya-clean-rebuild-preview.yml'
 
 jobs:
@@ -38,7 +40,9 @@ jobs:
         run: node scripts/validate-bbya-clean-rebuild.js
       - name: Assemble clean BBYA preview
         run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-clean-rebuild-preview.rbxlx
-      - name: Verify preview runtime and reference UI
+      - name: Inspect assembled preview
+        run: node scripts/inspect-bbya-clean-preview.js /tmp/bbya-clean-rebuild-preview.rbxlx
+      - name: Verify preview runtime, reference UI and release gate
         run: |
           test -s /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'BBYA_CLEAN_REBUILD_RUNTIME' /tmp/bbya-clean-rebuild-preview.rbxlx
@@ -47,6 +51,8 @@ jobs:
           grep -q 'BBYA SOCIAL UI' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'PHASE_5_REFERENCE_UI_QC' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'PHASE_5_REFERENCE_FIDELITY' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_6_PREVIEW_GATE' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYAReleaseGate' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'SUPPORT / SAWER' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'MUSIC CONTROLLER' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'MINI PLAYER' /tmp/bbya-clean-rebuild-preview.rbxlx
