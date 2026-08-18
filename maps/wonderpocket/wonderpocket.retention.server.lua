@@ -13,17 +13,29 @@ local function utcWeek(t)
     return math.floor(t / WEEK_SECONDS)
 end
 
+local function waitForData(player)
+    local deadline = os.clock() + 20
+    while player.Parent and os.clock() < deadline do
+        if player:GetAttribute("WP_DataLoaded") == true then return true end
+        task.wait(.25)
+    end
+    return false
+end
+
 local function addCoins(player, amount)
-    local coins = tonumber(player:GetAttribute("WP_Coins")) or 0
-    player:SetAttribute("WP_Coins", coins + math.max(0, math.floor(amount)))
+    player:SetAttribute("Coins", (tonumber(player:GetAttribute("Coins")) or 0) + math.max(0, math.floor(amount)))
 end
 
 local function addStars(player, amount)
-    local stars = tonumber(player:GetAttribute("WP_Stars")) or 0
-    player:SetAttribute("WP_Stars", stars + math.max(0, math.floor(amount)))
+    player:SetAttribute("Stars", (tonumber(player:GetAttribute("Stars")) or 0) + math.max(0, math.floor(amount)))
 end
 
 local function load(player)
+    if not waitForData(player) then
+        warn("[WONDERPOCKET] Retention skipped because player data was not ready", player.UserId)
+        return
+    end
+
     local now = os.time()
     local key = "u_" .. player.UserId
     local data = nil
@@ -54,11 +66,12 @@ local function load(player)
     end
 
     player:SetAttribute("WP_RetentionLoaded", true)
-    player:SetAttribute("WP_LastDailyDay", data.lastDailyDay)
-    player:SetAttribute("WP_LastWeeklyWeek", data.lastWeeklyWeek)
+    player:SetAttribute("WP_LastDailyDay", data.lastDailyDay or day)
+    player:SetAttribute("WP_LastWeeklyWeek", data.lastWeeklyWeek or week)
 end
 
 local function save(player)
+    if player:GetAttribute("WP_RetentionLoaded") ~= true then return end
     local now = os.time()
     local key = "u_" .. player.UserId
     local payload = {
@@ -72,11 +85,11 @@ local function save(player)
 end
 
 Players.PlayerAdded:Connect(function(player)
-    task.defer(load, player)
+    task.spawn(load, player)
 end)
 Players.PlayerRemoving:Connect(save)
 game:BindToClose(function()
     for _, player in Players:GetPlayers() do save(player) end
 end)
 
-print("[WONDERPOCKET] Retention + offline rewards loaded")
+print("[WONDERPOCKET] Canonical retention + offline rewards loaded")
