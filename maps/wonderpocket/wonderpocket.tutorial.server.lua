@@ -58,11 +58,13 @@ local function evaluate(player)
 end
 
 local function setup(player)
-    local deadline = os.clock() + 20
-    while player.Parent and os.clock() < deadline and player:GetAttribute("WP_DataLoaded") ~= true do
+    -- Resolve the authoritative main data state before initializing tutorial state.
+    -- A slow successful load must not be mistaken for a fresh/default tutorial session.
+    while player.Parent and player:GetAttribute("WP_DataLoaded") ~= true do
+        if player:GetAttribute("WP_DataLoadFailed") == true then return end
         task.wait(.25)
     end
-    if not player.Parent then return end
+    if not player.Parent or player:GetAttribute("WP_DataLoaded") ~= true then return end
 
     player:SetAttribute("WP_TutorialComplete", player:GetAttribute("WP_OnboardingComplete") == true)
     if player:GetAttribute("WP_TutorialStarted") == nil then
