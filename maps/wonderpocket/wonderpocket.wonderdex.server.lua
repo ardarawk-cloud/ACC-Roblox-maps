@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 
 local DexRemote = remotes:FindFirstChild("WonderDex") or Instance.new("RemoteEvent")
