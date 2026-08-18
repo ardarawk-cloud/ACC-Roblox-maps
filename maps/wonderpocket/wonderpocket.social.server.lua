@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 local Social = remotes:FindFirstChild("Social") or Instance.new("RemoteEvent")
 Social.Name = "Social"
@@ -79,7 +79,6 @@ Social.OnServerEvent:Connect(function(player, action, value)
             Social:FireClient(player,"NOTICE","No friend/player nearby")
             return
         end
-        -- Robux purchase plumbing is intentionally separate; this only performs the visual social moment.
         giftMoment(player,target,giftId)
     elseif action == "VISIT_NEAREST" then
         local target = nearestOther(player)
