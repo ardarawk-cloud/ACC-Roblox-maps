@@ -30,16 +30,20 @@ jobs:
           ROBLOX_PLACE_ID: '124843214013484'
         run: python tools/legacy-extract/extract.py
 
-      - name: Commit backup package
+      - name: Build BBYA legacy Asset ID library
+        if: success()
+        run: python tools/legacy-extract/apply-to-bbya.py
+
+      - name: Commit backup package and BBYA library
         if: success()
         run: |
           git config user.name "ACC Roblox Backup Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add exports/legacy
+          git add exports/legacy assets/bbya
           if git diff --cached --quiet; then
             echo "No export changes to commit."
           else
-            git commit -m "Backup legacy Roblox UI music lighting"
+            git commit -m "Backup legacy assets and transfer IDs to BBYA"
             git push
           fi
 
