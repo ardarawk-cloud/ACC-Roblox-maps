@@ -1,5 +1,13 @@
 # WONDERPOCKET QC — v1.3 Fail-Closed Data Safety
 
+## Current closed-test baseline
+- Place version: **31**
+- Target: Universe `8805231520` → Place `124843214013484`
+- Public release: **closed** (`PublishAllowed = false`)
+- Registry: **disabled**
+- v31 includes tutorial rejoin-resume inference, state-driven Bubbi/Say Hi startup, tutorial SHOP/BUILD/PLACE guidance, Android placement surface/height hardening, and mobile-fit onboarding.
+- Live/runtime gates below remain intentionally unchecked until observed in Roblox; code-side review is not treated as a runtime pass.
+
 ## Code-side gate
 - [x] main player DataStore fails closed after retry exhaustion
 - [x] failed main read sets `WP_DataLoadFailed` + `WP_DataReadOnly`
@@ -16,8 +24,30 @@
 - [x] responsive premium UI has no invalid `Frame.PaddingTop`
 - [x] responsive panel content is isolated from header/close layout
 - [x] core HUD remains mobile-safe and shows canonical CarrotSeed
+- [x] slow successful startup no longer times out onboarding/tutorial/inventory/furniture/garden into a false failure
+- [x] incomplete tutorial with persisted progress resumes after rejoin instead of replaying the Welcome card
+- [x] Bubbi Say Hi prompt waits for authoritative data state and critical-saves the milestone
+- [x] tutorial completion critical-saves `WP_OnboardingComplete`
+- [x] Android build preview uses own Pocket ground/cottage floor and mirrors server footprint validation
+- [x] server placement owns vertical placement height; client cannot place furniture at arbitrary Y
+- [x] tutorial guidance targets SHOP → Star Lamp → BUILD → owned furniture → PLACE
+- [x] Treasure tutorial waypoint switches from Adventure Gate to a Treasure chest after entering Treasure Island
+- [x] closed-test build includes health TEST panel; normal release build excludes it
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
+
+## v31 Android first-10-minutes live script — REQUIRED
+1. Fresh test account joins v31 and receives the Welcome card with fully visible `START MY POCKET`.
+2. Tap `START MY POCKET`; tracker shows step 1/6 and Bubbi gets `NEXT • SAY HI` guidance.
+3. Say Hi to Bubbi; exit/rejoin immediately. Welcome card must **not** return; tutorial resumes at the next unfinished objective.
+4. Plant one carrot. Verify CarrotSeed decreases by exactly 1 and garden remains planted after rejoin.
+5. Open SHOP from the tutorial pulse. Verify Star Lamp receives `BUY THIS`; buy once and verify Coins decrease exactly once.
+6. Exit/rejoin before placing. Purchased Star Lamp must remain owned and tutorial must resume at BUILD/PLACE.
+7. Open BUILD; owned furniture receives `SELECT`. Begin placement; `PLACE` pulses. Rotate/place on own Pocket ground and cottage floor. Preview/server must agree and furniture must not sink/float.
+8. Exit/rejoin. Placed furniture must reappear relative to the newly assigned plot position.
+9. Harvest when ready. Verify +12 Coins and +1 CarrotSeed exactly once.
+10. Follow Adventure Gate guidance, enter Treasure Island, then verify waypoint moves to a chest. Collect one treasure; tutorial completes and completion survives immediate rejoin.
+11. Open `TEST` during closed-test and confirm Data/Inventory/Furniture/Garden/WonderDex report healthy. No red runtime errors during the run.
 
 ## Live Roblox failure/recovery gate — REQUIRED
 - [ ] normal DataStore availability loads exact prior Coins / Stars / CarrotSeed
