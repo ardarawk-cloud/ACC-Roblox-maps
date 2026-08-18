@@ -38,14 +38,18 @@ jobs:
         run: node scripts/validate-bbya-clean-rebuild.js
       - name: Assemble clean BBYA preview
         run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-clean-rebuild-preview.rbxlx
-      - name: Verify preview runtime and UI
+      - name: Verify preview runtime and reference UI
         run: |
           test -s /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'BBYA_CLEAN_REBUILD_RUNTIME' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'BBYA CLEAN REBUILD' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'BBYA_CLEAN_SOCIAL_UI' /tmp/bbya-clean-rebuild-preview.rbxlx
           grep -q 'BBYA SOCIAL UI' /tmp/bbya-clean-rebuild-preview.rbxlx
-          grep -q 'PHASE_4_SOCIAL_SYSTEMS' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_5_REFERENCE_UI_QC' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_5_REFERENCE_FIDELITY' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'SUPPORT / SAWER' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'MUSIC CONTROLLER' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'MINI PLAYER' /tmp/bbya-clean-rebuild-preview.rbxlx
       - name: Upload preview artifact
         uses: actions/upload-artifact@v4
         with:
