@@ -25,12 +25,17 @@ local function inventoryKey(id) return "WP_INV_"..id end
 local function getCoins(player) return math.max(0, math.floor(tonumber(player:GetAttribute("Coins")) or 0)) end
 local function setCoins(player,value) player:SetAttribute("Coins",math.max(0,math.floor(value))) end
 
+local function saveHealthy(player)
+    return player:GetAttribute("WP_DataSaveHealthy") ~= false
+        and player:GetAttribute("WP_InventorySaveHealthy") ~= false
+end
+
 ShopRemote.OnServerEvent:Connect(function(player,action,itemId)
     if action=="GET_CATALOG" then
         ShopRemote:FireClient(player,"CATALOG",catalog)
         return
     end
-    if action~="BUY" and action~="BUY_COINS" then return end
+    if action~="BUY" then return end
 
     if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_DataLoadFailed")==true or player:GetAttribute("WP_InventoryLoadFailed")==true then
         ShopRemote:FireClient(player,"RESULT",false,"DATA_READ_ONLY",itemId)
@@ -38,6 +43,10 @@ ShopRemote.OnServerEvent:Connect(function(player,action,itemId)
     end
     if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true then
         ShopRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY",itemId)
+        return
+    end
+    if not saveHealthy(player) then
+        ShopRemote:FireClient(player,"RESULT",false,"SAVE_UNHEALTHY",itemId)
         return
     end
 
@@ -93,4 +102,4 @@ Players.PlayerRemoving:Connect(function(player)
     purchaseBusy[uid]=nil
 end)
 
-print("[WONDERPOCKET] Fail-closed audited shop transactions loaded")
+print("[WONDERPOCKET] Save-health guarded fail-closed shop transactions loaded")
