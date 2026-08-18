@@ -1,0 +1,11 @@
+-- [B3] LIFT CORE
+local B3=registerZone("B3","LIFT CORE","G→VIP→ROOF",Vector3.new(73,27,108),Vector3.new(24,54,34))
+part(B3,"LIFT SHAFT BACK",Vector3.new(16,54,2),CFrame.new(73,27,116),C.wall2,Enum.Material.Concrete,0,true)
+part(B3,"LIFT SHAFT WEST",Vector3.new(2,54,16),CFrame.new(65,27,108),C.wall2,Enum.Material.Concrete,0,true)
+part(B3,"LIFT SHAFT EAST",Vector3.new(2,54,16),CFrame.new(81,27,108),C.wall2,Enum.Material.Concrete,0,true)
+program(B3,"LIFT GROUND FOYER",Vector2.new(24,18),Vector3.new(72,.62,91),C.blue)
+landing(B3,"LIFT GROUND LANDING",Vector3.new(72,.64,96),C.blue)
+landing(B3,"LIFT VIP LANDING",Vector3.new(72,18.64,96),C.blue)
+landing(B3,"LIFT ROOF LANDING",Vector3.new(72,36.64,96),C.blue)
+label(B3,"LIFT GROUND LABEL","LIFT\nG / VIP / ROOF",CFrame.new(73,7,99.8),Vector3.new(13,7,.25),C.blue,Enum.NormalId.Front)
+zoneStamp(B3,CFrame.new(82.2,18,108)*CFrame.Angles(0,math.rad(-90),0),Vector3.new(16,3,.25),C.blue,Enum.NormalId.Front)
