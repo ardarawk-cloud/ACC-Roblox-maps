@@ -36,16 +36,38 @@ local function begin(itemId)
     ghost.Transparency=.48;ghost.Material=Enum.Material.ForceField
     ghost.Color=Color3.fromRGB(110,225,255)
     ghost.Parent=workspace
+    ghost:SetAttribute("WP_Valid",false)
     player:SetAttribute("WP_BuildActive",true)
 end
 
-local function raycastToWorld(screenPos)
+local function buildSurfaces()
+    local surfaces={}
+    local plotIndex=tonumber(player:GetAttribute("WP_PlotIndex")) or 0
+    local plots=workspace:FindFirstChild("WONDERPOCKET_PlayerPlots")
+    local plot=plots and plotIndex>0 and plots:FindFirstChild("Plot"..plotIndex)
+    if plot and plot:IsA("BasePart") then table.insert(surfaces,plot) end
+
+    local homes=workspace:FindFirstChild("WONDERPOCKET_PlotHomes")
+    local home=homes and homes:FindFirstChild(tostring(player.UserId))
+    local floor=home and home:FindFirstChild("Floor")
+    if floor and floor:IsA("BasePart") then table.insert(surfaces,floor) end
+    return surfaces
+end
+
+local function raycastToBuildSurface(screenPos)
     local camera=workspace.CurrentCamera;if not camera then return nil end
+    local surfaces=buildSurfaces()
+    if #surfaces==0 then return nil end
+
     local ray=camera:ViewportPointToRay(screenPos.X,screenPos.Y)
-    local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances={player.Character,ghost}
+    local params=RaycastParams.new()
+    params.FilterType=Enum.RaycastFilterType.Include
+    params.FilterDescendantsInstances=surfaces
     local result=workspace:Raycast(ray.Origin,ray.Direction*500,params)
-    return result and result.Position or nil
+    if not result or not result.Instance or not result.Instance:IsA("BasePart") then return nil end
+
+    local supportTop=result.Instance.Position.Y+(result.Instance.Size.Y*.5)
+    return Vector3.new(result.Position.X,supportTop,result.Position.Z)
 end
 
 local function footprintValid(position,size,degrees)
@@ -61,17 +83,26 @@ end
 RunService.RenderStepped:Connect(function()
     if not ghost or not activeItem then return end
     local camera=workspace.CurrentCamera;if not camera then return end
-    local pos
+    local support
     if UserInputService.TouchEnabled then
         local vp=camera.ViewportSize
-        pos=raycastToWorld(Vector2.new(vp.X*.5,vp.Y*.55))
+        support=raycastToBuildSurface(Vector2.new(vp.X*.5,vp.Y*.55))
     else
-        pos=raycastToWorld(UserInputService:GetMouseLocation())
+        support=raycastToBuildSurface(UserInputService:GetMouseLocation())
     end
-    if not pos then return end
 
-    local snapped=Vector3.new(math.floor(pos.X+.5),math.max(5.6,math.floor(pos.Y+.5)),math.floor(pos.Z+.5))
+    if not support then
+        ghost:SetAttribute("WP_Valid",false)
+        ghost.Color=Color3.fromRGB(255,105,115)
+        return
+    end
+
     local size=sizes[activeItem]
+    local snapped=Vector3.new(
+        math.floor(support.X+.5),
+        support.Y+(size.Y*.5),
+        math.floor(support.Z+.5)
+    )
     local valid=footprintValid(snapped,size,rotation)
     ghost.CFrame=CFrame.new(snapped)*CFrame.Angles(0,math.rad(rotation),0)
     ghost.Color=valid and Color3.fromRGB(110,225,255) or Color3.fromRGB(255,105,115)
@@ -104,4 +135,4 @@ Placement.OnClientEvent:Connect(function(action,ok,reason)
     end
 end)
 
-print("[WONDERPOCKET] Full-footprint mobile build preview loaded")
+print("[WONDERPOCKET] Own-surface mobile build preview loaded")
