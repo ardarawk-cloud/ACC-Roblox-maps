@@ -31,15 +31,20 @@ task.delay(5,function()
     if criticalFill<10 then table.insert(issues,"critical fill count below 10: "..criticalFill) end
     if palms<6 then table.insert(issues,"palm count below 6: "..palms) end
 
-    if workspace:GetAttribute("BBYAArchitecture")~="REFERENCE_MASSING_PHASE_1" then
-        table.insert(issues,"architecture phase marker missing")
+    if workspace:GetAttribute("BBYAArchitecture")~="REFERENCE_MASSING_PHASE_1" then table.insert(issues,"architecture phase marker missing") end
+    if workspace:GetAttribute("BBYAFurnishing")~="PREMIUM_SOCIAL_PASS_1" then table.insert(issues,"furnishing marker missing") end
+    if workspace:GetAttribute("BBYALighting")~="PREMIUM_NIGHT_PASS_1" then table.insert(issues,"lighting marker missing") end
+    if workspace:GetAttribute("BBYACleanRebuild")~=true then table.insert(issues,"clean rebuild marker missing") end
+
+    -- Runtime must contain exactly one BBYA build root. Any archived runtime geometry showing up is a hard warning.
+    local rebuildRoots=0
+    for _,o in ipairs(workspace:GetChildren()) do
+        if o.Name=="BBYA CLEAN REBUILD" then rebuildRoots+=1 end
+        if o.Name:find("V5") or o.Name:find("V6 CLEANROOM") or o.Name=="BBYA Mega Architecture v2" then
+            table.insert(issues,"archived runtime root survived: "..o.Name)
+        end
     end
-    if workspace:GetAttribute("BBYAFurnishing")~="PREMIUM_SOCIAL_PASS_1" then
-        table.insert(issues,"furnishing marker missing")
-    end
-    if workspace:GetAttribute("BBYALighting")~="PREMIUM_NIGHT_PASS_1" then
-        table.insert(issues,"lighting marker missing")
-    end
+    if rebuildRoots~=1 then table.insert(issues,"expected exactly one clean rebuild root, got "..rebuildRoots) end
 
     workspace:SetAttribute("BBYAPhase1IssueCount",#issues)
     workspace:SetAttribute("BBYAPhase1QC",#issues==0 and "PASS" or "WARN")
