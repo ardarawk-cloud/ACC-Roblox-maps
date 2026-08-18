@@ -38,13 +38,13 @@ shade.Parent = gui
 
 local card = Instance.new("Frame")
 card.AnchorPoint = Vector2.new(.5,.5)
-card.Position = UDim2.fromScale(.5,.5)
-card.Size = UDim2.new(1,-28,0,380)
+card.Position = UDim2.fromScale(.5,.48)
+card.Size = UDim2.new(1,-28,0,350)
 card.BackgroundColor3 = Color3.fromRGB(248,250,255)
 card.Parent = gui
 local sizeConstraint = Instance.new("UISizeConstraint")
-sizeConstraint.MaxSize = Vector2.new(390,380)
-sizeConstraint.MinSize = Vector2.new(292,340)
+sizeConstraint.MaxSize = Vector2.new(390,350)
+sizeConstraint.MinSize = Vector2.new(292,320)
 sizeConstraint.Parent = card
 Instance.new("UICorner",card).CornerRadius = UDim.new(0,24)
 
@@ -55,19 +55,19 @@ stroke.Color = Color3.fromRGB(105,130,220)
 stroke.Parent = card
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-36,0,54)
-title.Position = UDim2.fromOffset(18,12)
+title.Size = UDim2.new(1,-36,0,50)
+title.Position = UDim2.fromOffset(18,10)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBlack
-title.TextSize = 24
+title.TextSize = 23
 title.TextWrapped = true
 title.TextColor3 = Color3.fromRGB(42,56,105)
 title.Text = "Welcome to WONDERPOCKET"
 title.Parent = card
 
 local dedication = Instance.new("TextLabel")
-dedication.Position = UDim2.fromOffset(24,64)
-dedication.Size = UDim2.new(1,-48,0,48)
+dedication.Position = UDim2.fromOffset(24,58)
+dedication.Size = UDim2.new(1,-48,0,44)
 dedication.BackgroundTransparency = 1
 dedication.Font = Enum.Font.GothamMedium
 dedication.TextSize = 14
@@ -77,11 +77,11 @@ dedication.Text = "This game was made especially for\nPutu Azya Putri Bintang Ha
 dedication.Parent = card
 
 local body = Instance.new("TextLabel")
-body.Position = UDim2.fromOffset(24,116)
-body.Size = UDim2.new(1,-48,0,170)
+body.Position = UDim2.fromOffset(24,104)
+body.Size = UDim2.new(1,-48,0,142)
 body.BackgroundTransparency = 1
 body.Font = Enum.Font.GothamMedium
-body.TextSize = 16
+body.TextSize = 15
 body.TextWrapped = true
 body.TextColor3 = Color3.fromRGB(65,73,110)
 body.Text = "Your first Pocket journey:\n\n• Say hi to Bubbi\n• Plant a carrot\n• Buy & place furniture\n• Harvest your carrot\n• Find treasure on Treasure Island"
@@ -89,7 +89,7 @@ body.Parent = card
 
 local start = Instance.new("TextButton")
 start.AnchorPoint = Vector2.new(.5,1)
-start.Position = UDim2.new(.5,0,1,-20)
+start.Position = UDim2.new(.5,0,1,-14)
 start.Size = UDim2.new(1,-64,0,50)
 start.BackgroundColor3 = Color3.fromRGB(74,100,205)
 start.TextColor3 = Color3.new(1,1,1)
@@ -114,4 +114,4 @@ start.Activated:Connect(function()
     end)
 end)
 
-print("[WONDERPOCKET] v1.3 dedication onboarding ready")
+print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit ready")
