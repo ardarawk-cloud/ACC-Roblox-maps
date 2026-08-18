@@ -89,6 +89,7 @@ local function defaultData()
         pocketBiome = Config.Starter.Biome,
         house = Config.Starter.House,
         onboardingComplete = false,
+        tutorialStarted = false,
         tutorialMetWondi = false,
         plantedCount = 0,
         harvestCount = 0,
@@ -149,6 +150,7 @@ local function syncAttributesToData(player, data)
     data.activeWondi = player:GetAttribute("ActiveWondi") or data.activeWondi or Config.Starter.Wondi
     data.pocketBiome = player:GetAttribute("PocketBiome") or data.pocketBiome or Config.Starter.Biome
     data.onboardingComplete = player:GetAttribute("WP_OnboardingComplete") == true
+    data.tutorialStarted = player:GetAttribute("WP_TutorialStarted") == true
     data.tutorialMetWondi = player:GetAttribute("WP_Tutorial_MetWondi") == true
     data.plantedCount = math.max(0, math.floor(tonumber(player:GetAttribute("WP_PlantedCount")) or data.plantedCount or 0))
     data.harvestCount = math.max(0, math.floor(tonumber(player:GetAttribute("WP_HarvestCount")) or data.harvestCount or 0))
@@ -256,6 +258,7 @@ local function loadPlayer(player)
     player:SetAttribute("PocketBiome", data.pocketBiome or Config.Starter.Biome)
     player:SetAttribute("CarrotSeed", math.max(0, math.floor(tonumber(data.inventory and data.inventory[Config.Starter.Seed]) or Config.Starter.SeedCount)))
     player:SetAttribute("WP_OnboardingComplete", data.onboardingComplete == true)
+    player:SetAttribute("WP_TutorialStarted", data.tutorialStarted == true)
     player:SetAttribute("WP_Tutorial_MetWondi", data.tutorialMetWondi == true)
     player:SetAttribute("WP_PlantedCount", math.max(0, math.floor(tonumber(data.plantedCount) or 0)))
     player:SetAttribute("WP_HarvestCount", math.max(0, math.floor(tonumber(data.harvestCount) or 0)))
@@ -269,7 +272,7 @@ local function loadPlayer(player)
     player:SetAttribute("WP_WeeklyQuestProgress", math.max(0, math.floor(tonumber(data.weeklyQuestProgress) or 0)))
 
     for _, attribute in ipairs({
-        "Coins","Stars","ActiveWondi","PocketBiome","CarrotSeed","WP_OnboardingComplete",
+        "Coins","Stars","ActiveWondi","PocketBiome","CarrotSeed","WP_OnboardingComplete","WP_TutorialStarted",
         "WP_Tutorial_MetWondi","WP_PlantedCount","WP_HarvestCount","WP_PlacedCount",
         "WP_Quest_Starter","WP_QuestStarterRewarded","WP_LastDailyDay","WP_LastWeeklyWeek",
         "WP_DailyQuestProgress","WP_WeeklyQuestProgress",
