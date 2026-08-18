@@ -66,12 +66,19 @@ local function constrain(p)
  local v=viewport();local s=p.AbsoluteSize;local a=p.AbsolutePosition;local visible=44;local bottomSafe=92
  local x=math.clamp(a.X,-s.X+visible,v.X-visible);local y=math.clamp(a.Y,36-s.Y+visible,v.Y-bottomSafe-visible);p.Position=UDim2.fromOffset(x,y)
 end
+local function positionPull(p,pull,side)
+ if side=="LEFT" then pull.AnchorPoint=Vector2.new(1,.5);pull.Position=UDim2.new(1,-4,.5,0);pull.Text="›"
+ elseif side=="RIGHT" then pull.AnchorPoint=Vector2.new(0,.5);pull.Position=UDim2.new(0,4,.5,0);pull.Text="‹"
+ elseif side=="TOP" then pull.AnchorPoint=Vector2.new(.5,1);pull.Position=UDim2.new(.5,0,1,-4);pull.Text="⌄"
+ else pull.AnchorPoint=Vector2.new(0,0);pull.Position=UDim2.fromOffset(6,6);pull.Text="PULL" end
+end
 local function park(p,side)
  local v=viewport();local s=p.AbsoluteSize;local visible=38
  if side=="LEFT" then p.Position=UDim2.fromOffset(-s.X+visible,math.clamp(p.AbsolutePosition.Y,50,v.Y-120))
  elseif side=="RIGHT" then p.Position=UDim2.fromOffset(v.X-visible,math.clamp(p.AbsolutePosition.Y,50,v.Y-120))
  elseif side=="TOP" then p.Position=UDim2.fromOffset(math.clamp(p.AbsolutePosition.X,8,v.X-s.X-8),-s.Y+visible) end
  p:SetAttribute("Parked",side)
+ local pull=p:FindFirstChild("PULL");if pull then positionPull(p,pull,side);pull.Visible=true end
 end
 local function makePanel(name,titleValue)
  local p=Instance.new("Frame");p.Name=name;p.BackgroundColor3=C.panel;p.BackgroundTransparency=.02;p.Visible=false;p.Parent=panelLayer;corner(p,18);stroke(p,C.pink,1.2,.12);centerPanel(p)
@@ -79,17 +86,17 @@ local function makePanel(name,titleValue)
  local title=text(head,titleValue,21,UDim2.fromOffset(20,14),Enum.Font.GothamBlack,C.white);title.Size=UDim2.new(1,-156,0,28)
  local move=button(head,"MOVE",UDim2.fromOffset(72,32),UDim2.new(1,-124,0,12),C.panel2);move.TextColor3=C.pink
  local close=button(head,"×",UDim2.fromOffset(38,32),UDim2.new(1,-46,0,12),C.panel2)
- local pull=button(p,"PULL",UDim2.fromOffset(56,28),UDim2.fromOffset(6,6),C.panel2);pull.ZIndex=20;pull.Visible=false
- local body=Instance.new("Frame");body.Name="BODY";body.Position=UDim2.fromOffset(14,64);body.Size=UDim2.new(1,-28,1,-78);body.BackgroundTransparency=1;body.ClipsDescendants=true;body.Parent=p
+ local pull=button(p,"PULL",UDim2.fromOffset(56,28),UDim2.fromOffset(6,6),C.panel2);pull.Name="PULL";pull.ZIndex=20;pull.Visible=false
+ local body=Instance.new("ScrollingFrame");body.Name="BODY";body.Position=UDim2.fromOffset(14,64);body.Size=UDim2.new(1,-28,1,-78);body.BackgroundTransparency=1;body.BorderSizePixel=0;body.ScrollBarThickness=3;body.ScrollBarImageColor3=C.pink;body.ScrollingDirection=Enum.ScrollingDirection.Y;body.AutomaticCanvasSize=Enum.AutomaticSize.Y;body.CanvasSize=UDim2.new(0,0,0,0);body.Parent=p
  close.MouseButton1Click:Connect(function()p.Visible=false;if active==p then active=nil end end)
- pull.MouseButton1Click:Connect(function()centerPanel(p);pull.Visible=false end)
+ pull.MouseButton1Click:Connect(function()centerPanel(p);positionPull(p,pull,nil);pull.Visible=false end)
  local dragging=false;local startInput;local startPos
  move.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true;startInput=i.Position;startPos=p.Position;pull.Visible=false end end)
  UIS.InputChanged:Connect(function(i)if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then local d=i.Position-startInput;p.Position=UDim2.fromOffset(startPos.X.Offset+d.X,startPos.Y.Offset+d.Y);constrain(p) end end)
- UIS.InputEnded:Connect(function(i)if dragging and (i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch) then dragging=false;local v=viewport();local a=p.AbsolutePosition;local s=p.AbsoluteSize;local side=nil;if a.X<-s.X*.52 then side="LEFT" elseif a.X+s.X>v.X+s.X*.52 then side="RIGHT" elseif a.Y<-s.Y*.52 then side="TOP" end;if side then park(p,side);pull.Visible=true else constrain(p) end end end)
+ UIS.InputEnded:Connect(function(i)if dragging and (i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch) then dragging=false;local v=viewport();local a=p.AbsolutePosition;local s=p.AbsoluteSize;local side=nil;if a.X<-s.X*.52 then side="LEFT" elseif a.X+s.X>v.X+s.X*.52 then side="RIGHT" elseif a.Y<-s.Y*.52 then side="TOP" end;if side then park(p,side) else constrain(p) end end end)
  return p,body
 end
-local function show(p)if active and active~=p then active.Visible=false end;active=p;p.Visible=true;if p:GetAttribute("Parked")~="" then centerPanel(p);local pull=p:FindFirstChild("PULL");if pull then pull.Visible=false end end end
+local function show(p)if active and active~=p then active.Visible=false end;active=p;p.Visible=true;if p:GetAttribute("Parked")~="" then centerPanel(p);local pull=p:FindFirstChild("PULL");if pull then positionPull(p,pull,nil);pull.Visible=false end end end
 
 -- MUSIC
 local musicPanel,musicBody=makePanel("MUSIC_PANEL","MUSIC CONTROLLER")
@@ -103,7 +110,7 @@ local volume=.58;volB.MouseButton1Click:Connect(function()volume=volume>=.95 and
 local modes=Instance.new("Frame");modes.Position=UDim2.fromOffset(0,174);modes.Size=UDim2.new(1,0,0,46);modes.BackgroundTransparency=1;modes.Parent=musicBody
 for i,m in ipairs({"ALL","INDO","INTL"})do local b=button(modes,m,UDim2.new(1/3,-6,1,0),UDim2.new((i-1)/3,2,0,0),C.panel2);b.MouseButton1Click:Connect(function()Music:FireServer("MODE",m)end)end
 local qTitle=text(musicBody,"PLAYLIST / UP NEXT",14,UDim2.fromOffset(6,236),Enum.Font.GothamBold,C.white);qTitle.Size=UDim2.new(1,-12,0,22)
-local q=Instance.new("Frame");q.Position=UDim2.fromOffset(0,266);q.Size=UDim2.new(1,0,1,-274);q.BackgroundColor3=C.bg;q.BackgroundTransparency=.25;q.Parent=musicBody;corner(q,12)
+local q=Instance.new("Frame");q.Position=UDim2.fromOffset(0,266);q.Size=UDim2.new(1,0,0,170);q.BackgroundColor3=C.bg;q.BackgroundTransparency=.25;q.Parent=musicBody;corner(q,12)
 for i,n in ipairs({"Indo Bounce / Breakbeat","House / EDM","Tropical House","Techno / DnB"})do local t=text(q,string.format("%02d   %s",i,n),13,UDim2.fromOffset(14,10+(i-1)*38),Enum.Font.Gotham,C.white);t.Size=UDim2.new(1,-24,0,28)end
 MusicState.OnClientEvent:Connect(function(s)now.Text=s.title or "BBYA 24/7";meta.Text=string.format("%s • %s",s.sub or "AUTO-DJ",s.mode or "ALL");volume=s.volume or volume;volB.Text=string.format("VOL %d%%",math.floor(volume*100))end)
 launch.MUSIC.MouseButton1Click:Connect(function()show(musicPanel);Music:FireServer("STATE")end)
@@ -137,16 +144,43 @@ launch.SOCIAL.MouseButton1Click:Connect(function()show(socialPanel)end);launch.V
 local tpPanel,tpBody=makePanel("TP_PANEL","ZONE / INSPECTION")
 local codes={"A1","A2","A3","A4","A5","A6","B1","B2","B3","C1","C2","C3","D1","D2","D3","D4","D5","D6"}
 for i,c in ipairs(codes)do local col=(i-1)%6;local row=math.floor((i-1)/6);local b=button(tpBody,c,UDim2.new(1/6,-5,0,48),UDim2.new(col/6,2,0,8+row*58),C.panel2);b.MouseButton1Click:Connect(function()Teleport:FireServer(c)end)end
-local liftLabel=text(tpBody,"LIFT",14,UDim2.fromOffset(4,190),Enum.Font.GothamBold,C.white);liftLabel.Size=UDim2.fromOffset(70,22)
+local liftLabel=text(tpBody,"LIFT (masuk cab dulu)",14,UDim2.fromOffset(4,190),Enum.Font.GothamBold,C.white);liftLabel.Size=UDim2.fromOffset(190,22)
 for i,c in ipairs({"G","VIP","ROOF"})do local b=button(tpBody,c,UDim2.new(1/3,-6,0,48),UDim2.new((i-1)/3,2,0,220),C.panel2);b.MouseButton1Click:Connect(function()Lift:FireServer(c)end)end
 launch.TP.MouseButton1Click:Connect(function()show(tpPanel)end)
 
 -- PHOTO / CAMERA with guaranteed recovery from CLEAN VIEW.
 local photoPanel,photoBody=makePanel("PHOTO_PANEL","PHOTO / CAMERA")
-local cam=workspace.CurrentCamera;local freeConn=nil;local moveState={F=false,B=false,L=false,R=false,U=false,D=false};local freeCF=nil
-local function resetCam()if freeConn then freeConn:Disconnect();freeConn=nil end;cam.CameraType=Enum.CameraType.Custom;cam.CameraSubject=player.Character and player.Character:FindFirstChildOfClass("Humanoid") or nil end
+local cam=workspace.CurrentCamera
+local freeConn=nil
+local moveState={F=false,B=false,L=false,R=false,U=false,D=false}
+local freeCF=nil
+local freeYaw=0
+local freePitch=0
+local mouseLook=false
+local touchLook=nil
+local touchLast=nil
+local function resetCam()if freeConn then freeConn:Disconnect();freeConn=nil end;mouseLook=false;touchLook=nil;cam.CameraType=Enum.CameraType.Custom;cam.CameraSubject=player.Character and player.Character:FindFirstChildOfClass("Humanoid") or nil end
 local function outfit(yaw)local char=player.Character;local hrp=char and char:FindFirstChild("HumanoidRootPart");if not hrp then return end;resetCam();cam.CameraType=Enum.CameraType.Scriptable;local base=CFrame.new(hrp.Position)*CFrame.Angles(0,math.rad(yaw or 0),0);local pos=(base*CFrame.new(0,1.8,8)).Position;cam.CFrame=CFrame.new(pos,hrp.Position+Vector3.new(0,1.8,0))end
-local function freecam()resetCam();cam.CameraType=Enum.CameraType.Scriptable;freeCF=cam.CFrame;freeConn=RunService.RenderStepped:Connect(function(dt)local d=Vector3.zero;if moveState.F then d+=Vector3.new(0,0,-1)end;if moveState.B then d+=Vector3.new(0,0,1)end;if moveState.L then d+=Vector3.new(-1,0,0)end;if moveState.R then d+=Vector3.new(1,0,0)end;if moveState.U then d+=Vector3.new(0,1,0)end;if moveState.D then d+=Vector3.new(0,-1,0)end;if d.Magnitude>0 then freeCF=freeCF*CFrame.new(d.Unit*18*dt);cam.CFrame=freeCF end end)end
+local function applyLook(dx,dy)
+ if not freeConn or not freeCF then return end
+ freeYaw-=dx*.004;freePitch=math.clamp(freePitch-dy*.004,-1.35,1.35)
+ freeCF=CFrame.new(freeCF.Position)*CFrame.Angles(freePitch,freeYaw,0)
+ cam.CFrame=freeCF
+end
+local function freecam()
+ resetCam();cam.CameraType=Enum.CameraType.Scriptable;freeCF=cam.CFrame
+ local rx,ry=freeCF:ToOrientation();freePitch=rx;freeYaw=ry
+ freeConn=RunService.RenderStepped:Connect(function(dt)
+  local d=Vector3.zero;if moveState.F then d+=Vector3.new(0,0,-1)end;if moveState.B then d+=Vector3.new(0,0,1)end;if moveState.L then d+=Vector3.new(-1,0,0)end;if moveState.R then d+=Vector3.new(1,0,0)end;if moveState.U then d+=Vector3.new(0,1,0)end;if moveState.D then d+=Vector3.new(0,-1,0)end
+  if d.Magnitude>0 then freeCF=freeCF*CFrame.new(d.Unit*18*dt);cam.CFrame=freeCF end
+ end)
+end
+UIS.InputBegan:Connect(function(i,processed)if freeConn and not processed and i.UserInputType==Enum.UserInputType.MouseButton2 then mouseLook=true end end)
+UIS.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton2 then mouseLook=false end end)
+UIS.InputChanged:Connect(function(i)if freeConn and mouseLook and i.UserInputType==Enum.UserInputType.MouseMovement then applyLook(i.Delta.X,i.Delta.Y) end end)
+UIS.TouchStarted:Connect(function(i,processed)if freeConn and not processed and not touchLook then touchLook=i;touchLast=i.Position end end)
+UIS.TouchMoved:Connect(function(i)if freeConn and i==touchLook and touchLast then local d=i.Position-touchLast;touchLast=i.Position;applyLook(d.X,d.Y) end end)
+UIS.TouchEnded:Connect(function(i)if i==touchLook then touchLook=nil;touchLast=nil end end)
 local camDefs={{"FRONT",function()outfit(0)end},{"LEFT 3/4",function()outfit(-28)end},{"RIGHT 3/4",function()outfit(28)end},{"FREECAM",freecam},{"RESET",resetCam}}
 for i,d in ipairs(camDefs)do local c=(i-1)%2;local r=math.floor((i-1)/2);local b=button(photoBody,d[1],UDim2.new(.5,-8,0,54),UDim2.new(c*.5,3,0,8+r*64),C.panel2);b.MouseButton1Click:Connect(d[2])end
 local clean=button(photoBody,"CLEAN VIEW",UDim2.new(1,-6,0,54),UDim2.new(0,3,0,202),C.panel2);clean.TextColor3=C.pink
@@ -162,7 +196,7 @@ launch.PHOTO.MouseButton1Click:Connect(function()show(photoPanel)end)
 -- SETTINGS
 local setPanel,setBody=makePanel("SET_PANEL","SETTINGS")
 local resetUI=button(setBody,"RESET UI POSITIONS",UDim2.new(1,-6,0,56),UDim2.new(0,3,0,8),C.panel2)
-resetUI.MouseButton1Click:Connect(function()for _,p in ipairs({musicPanel,sawerPanel,profilePanel,socialPanel,tpPanel,photoPanel,setPanel})do centerPanel(p);local pull=p:FindFirstChild("PULL");if pull then pull.Visible=false end end;status.Position=UDim2.new(.5,0,0,8);left.Position=UDim2.new(0,10,.24,0);right.Position=UDim2.new(1,-10,.24,0);setClean(false)end)
+resetUI.MouseButton1Click:Connect(function()for _,p in ipairs({musicPanel,sawerPanel,profilePanel,socialPanel,tpPanel,photoPanel,setPanel})do centerPanel(p);local pull=p:FindFirstChild("PULL");if pull then positionPull(p,pull,nil);pull.Visible=false end end;status.Position=UDim2.new(.5,0,0,8);left.Position=UDim2.new(0,10,.24,0);right.Position=UDim2.new(1,-10,.24,0);setClean(false)end)
 launch.SET.MouseButton1Click:Connect(function()show(setPanel)end)
 
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()if active and active.Visible then constrain(active)end end)
