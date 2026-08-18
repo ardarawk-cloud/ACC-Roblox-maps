@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.7.0-prepublish-hardening",
+    Version = "0.8.0-runtime-hardening",
 
     Economy = {
         StartingCoins = 250,
@@ -118,6 +118,15 @@ return {
         WeeklyQuestEnabled = true,
     },
 
+    Runtime = {
+        DataSchemaVersion = 2,
+        DataStoreRetries = 4,
+        AutosaveSeconds = 90,
+        WondiReconnectSafe = true,
+        AdventureRewardDebounce = true,
+        MultiplayerTreasureState = true,
+    },
+
     PremiumPresentation = {
         DynamicDayNight = true,
         Atmosphere = true,
@@ -133,6 +142,7 @@ return {
     QA = {
         ClosedTestCandidate = true,
         PrePublishHardening = true,
+        RuntimeHardening = true,
         IsolatedBuildPipeline = true,
         ForeignMapTokenGuard = true,
         PublishAllowed = false,
