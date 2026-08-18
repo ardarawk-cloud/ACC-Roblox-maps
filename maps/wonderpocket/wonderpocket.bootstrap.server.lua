@@ -53,15 +53,6 @@ local function buildWorld()
     spawn.Neutral = true
     spawn.Parent = generated
 
-    local cottage = Instance.new("Model")
-    cottage.Name = "Starter Cottage"
-    cottage.Parent = generated
-    part("Floor", Vector3.new(28,1,22), Vector3.new(52,6,20), Color3.fromRGB(235,213,174), cottage)
-    part("WallBack", Vector3.new(28,14,1), Vector3.new(52,13,30.5), Color3.fromRGB(255,244,218), cottage)
-    part("WallLeft", Vector3.new(1,14,22), Vector3.new(38.5,13,20), Color3.fromRGB(255,244,218), cottage)
-    part("WallRight", Vector3.new(1,14,22), Vector3.new(65.5,13,20), Color3.fromRGB(255,244,218), cottage)
-    part("Roof", Vector3.new(32,2,26), Vector3.new(52,21,20), Color3.fromRGB(232,92,132), cottage)
-
     Lighting.Brightness = 2.2
     Lighting.ClockTime = 9.5
     Lighting.GlobalShadows = true
