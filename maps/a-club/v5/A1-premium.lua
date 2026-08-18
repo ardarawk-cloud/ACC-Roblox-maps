@@ -17,14 +17,12 @@ lowTable(A1,"WEST COURTYARD TABLE",Vector3.new(-52,1.3,143),Vector3.new(6,.7,4),
 sofa(A1,"EAST COURTYARD SOFA",Vector3.new(52,1.4,149),14,0,P.charcoal)
 lowTable(A1,"EAST COURTYARD TABLE",Vector3.new(52,1.3,143),Vector3.new(6,.7,4),P.black)
 
--- Only four subtle wayfinding lights remain; no formal queue lane.
+-- Grounded warm guide lanterns; no formal queue lane and no floating exterior fixtures.
 for _,spec in ipairs({{-20,148},{20,148},{-20,174},{20,174}}) do
  bollard(A1,"SOCIAL GUIDE "..spec[1].." "..spec[2],Vector3.new(spec[1],2,spec[2]),P.warm)
 end
-
--- Warm outfit-friendly pools make the arrival readable without turning the courtyard into a neon dance floor.
-for _,x in ipairs({-36,0,36}) do
- local lamp=glow(A1,"COURTYARD WARM LIGHT "..x,Vector3.new(2.5,.18,2.5),CFrame.new(x,7.5,157),P.warm,.34,12)
+for _,spec in ipairs({{-14,154},{14,154},{-14,166},{14,166}}) do
+ local lamp=glow(A1,"COURTYARD LANTERN "..spec[1].." "..spec[2],Vector3.new(.5,1.2,.5),CFrame.new(spec[1],1.45,spec[2]),P.warm,.34,9)
  lamp:SetAttribute("BBYACriticalFill",true)
 end
 
