@@ -8,7 +8,7 @@ Positioning: Social Life & Collection Adventure
 ## Core pillars
 - Personal Pocket World + owned player plots
 - Wondi companion collection and interaction
-- Gardening and retention loops
+- Persistent gardening + offline growth
 - Home decoration and persistent furniture
 - Wonder Square social hub
 - Mini Adventures, starting with Treasure Island
@@ -16,7 +16,7 @@ Positioning: Social Life & Collection Adventure
 - Low-cost cosmetic monetization, no pay-to-win
 
 ## Current build
-**v1.0.0 — Closed-Test Build Candidate**
+**v1.1.0 — Release-Candidate Hardening**
 
 First-session loop:
 1. Say hi to your Wondi
@@ -26,7 +26,7 @@ First-session loop:
 5. Harvest your carrot
 6. Enter Treasure Island and find treasure
 
-Runtime hardening includes canonical `Coins` / `Stars`, player DataStore retry + autosave, furniture save/load, purchased furniture inventory persistence, plot-bound placement validation, Android Place/Rotate/Cancel controls, onboarding persistence, test telemetry, and closed-test health UI.
+v1.1 hardening adds player-data schema v3, revision-safe saving, critical-save flushing, persistent starter-quest reward state, canonical retention state, persistent garden growth across rejoins, plot-relative furniture persistence, full-footprint plot validation, matching Android ghost validation, and a server-enforced 240-second Treasure Island session.
 
 ## Roblox target
 - Universe ID: `8805231520`
@@ -35,13 +35,4 @@ Runtime hardening includes canonical `Coins` / `Stars`, player DataStore retry +
 ## Publish safety
 This branch remains intentionally non-publishing. `maps/registry.json` keeps WONDERPOCKET disabled and `GameConfig.QA.PublishAllowed` remains `false` until live Roblox runtime checks pass.
 
-Required live checks before publish:
-- DataStore save/rejoin
-- purchased furniture inventory rejoin
-- furniture placement rejoin
-- 2–12 player plot ownership/isolation
-- Android BUILD controls
-- first 10-minute tutorial loop
-- Treasure Island multiplayer/reset
-- Wondi respawn/rejoin
-- 20-minute runtime with no red errors
+Required live checks before publish are tracked in `QC-v1.1.md`, including DataStore rejoin, persistent/offline garden growth, one-time quest reward integrity, 2–12 player plot isolation, Android BUILD controls, save-race stress, timed Treasure Island, Wondi reset/rejoin, first 10-minute tutorial, and a 20-minute multiplayer runtime error pass.
