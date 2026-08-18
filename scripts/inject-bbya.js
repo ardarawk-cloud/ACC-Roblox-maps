@@ -25,6 +25,7 @@ const supporterPositionLua = readLua('maps/a-club/bbya.supporter-board-position.
 const layoutHotfixLua = readLua('maps/a-club/bbya.layout-hotfix.server.lua');
 const spatialCleanupLua = readLua('maps/a-club/bbya.spatial-cleanup.server.lua');
 const queenAccessLua = readLua('maps/a-club/bbya.queen-access-hotfix.server.lua');
+const spawnEntryLua = readLua('maps/a-club/bbya.spawn-entry-hotfix.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 const musicClientLua = readLua('maps/a-club/bbya.music.client.lua');
 const supportPanelClientLua = readLua('maps/a-club/bbya.support-panel.client.lua');
@@ -54,6 +55,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYALAYOUTFIX000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Social_Corner_Layout_Hotfix</string><ProtectedString name="Source"><![CDATA[${layoutHotfixLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASPATIALCLEANUP000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Spatial_Cleanup_Hotfix</string><ProtectedString name="Source"><![CDATA[${spatialCleanupLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAQUEENACCESS000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Access_Hotfix</string><ProtectedString name="Source"><![CDATA[${queenAccessLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYASPAWNENTRY0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Spawn_Entry_Hotfix</string><ProtectedString name="Source"><![CDATA[${spawnEntryLua}]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
   <Properties><string name="Name">StarterPlayer</string></Properties>
@@ -70,4 +72,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: architecture + systems + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen hotfixes + mobile panels into', target.file);
+console.log('[BBYA] Active build injected: architecture + systems + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen/spawn-entry hotfixes + mobile panels into', target.file);
