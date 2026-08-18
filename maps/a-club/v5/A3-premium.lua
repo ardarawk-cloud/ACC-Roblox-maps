@@ -16,8 +16,7 @@ for _,x in ipairs({27,33,39,45}) do stool(A3,"WELCOME STOOL "..x,Vector3.new(x,2
 sofa(A3,"WEST SOCIAL SOFA A",Vector3.new(-42,1.4,109),15,90,P.graphite)
 sofa(A3,"WEST SOCIAL SOFA B",Vector3.new(-42,1.4,96),15,90,P.charcoal)
 lowTable(A3,"WEST SOCIAL TABLE",Vector3.new(-33,1.3,102.5),Vector3.new(7,.7,5),P.black)
-planter(A3,"WEST SOCIAL PLANTER",Vector3.new(-53,1.6,116),Vector3.new(6,2.4,6))
-palm(A3,"WEST SOCIAL PALM",Vector3.new(-53,2.9,116),8)
+palm(A3,"WEST SOCIAL PALM",Vector3.new(-53,1.6,116),8)
 zoneSign(A3,"SOCIAL LOUNGE SIGN","SOCIAL LOUNGE",CFrame.new(-45,7.1,123.1),Vector3.new(20,2.4,.25),P.pink,Enum.NormalId.Front)
 
 -- Outfit / photo corner stays open and bright; this is part of the entrance experience.
