@@ -12,11 +12,11 @@ Positioning: Social Life & Collection Adventure
 - Home decoration and persistent furniture
 - Wonder Square social hub
 - Mini Adventures, starting with Treasure Island
-- Quests, WonderDex, daily/weekly retention
+- Quests, persistent WonderDex, daily/weekly retention
 - Low-cost cosmetic monetization, no pay-to-win
 
 ## Current build
-**v1.1.0 — Release-Candidate Hardening**
+**v1.3.0 — Fail-Closed Data Safety**
 
 First-session loop:
 1. Say hi to your Wondi
@@ -26,13 +26,25 @@ First-session loop:
 5. Harvest your carrot
 6. Enter Treasure Island and find treasure
 
-v1.1 hardening adds player-data schema v3, revision-safe saving, critical-save flushing, persistent starter-quest reward state, canonical retention state, persistent garden growth across rejoins, plot-relative furniture persistence, full-footprint plot validation, matching Android ghost validation, and a server-enforced 240-second Treasure Island session.
+Current hardening includes canonical `Coins` / `Stars` / `CarrotSeed`, DataStore schema v4, revision-safe and critical saves, rate-limited Shop/Build transactions, centralized economy audit, persistent/offline garden growth, personal plots/cottages, plot-relative furniture, server-authoritative Treasure Island and WonderDex, and responsive Android-first UI.
+
+### Fail-closed data safety
+If a critical DataStore read fails after retries, WONDERPOCKET does **not** replace that subsystem with blank/default data and then save over the player's previous progress. Main player data becomes read-only, secondary persistent systems stop mutation, Shop/Build are blocked, and the player receives a visible READ-ONLY warning until a safe rejoin succeeds.
+
+Protected fail-closed stores/state:
+- main player data
+- furniture inventory
+- placed furniture
+- garden plot state
+- WonderDex
 
 ## Roblox target
 - Universe ID: `8805231520`
 - Place ID: `124843214013484`
 
 ## Publish safety
-This branch remains intentionally non-publishing. `maps/registry.json` keeps WONDERPOCKET disabled and `GameConfig.QA.PublishAllowed` remains `false` until live Roblox runtime checks pass.
+This branch remains intentionally non-public. `maps/registry.json` keeps WONDERPOCKET disabled and `GameConfig.QA.PublishAllowed` remains `false`.
 
-Required live checks before publish are tracked in `QC-v1.1.md`, including DataStore rejoin, persistent/offline garden growth, one-time quest reward integrity, 2–12 player plot isolation, Android BUILD controls, save-race stress, timed Treasure Island, Wondi reset/rejoin, first 10-minute tutorial, and a 20-minute multiplayer runtime error pass.
+A dedicated closed-test publisher is locked to the WONDERPOCKET branch and target IDs and requires the exact confirmation string `WONDERPOCKET:8805231520:124843214013484`. Normal pushes build + QC only and do not publish.
+
+Live runtime checks before release are tracked in `QC-v1.3.md`, including DataStore outage/recovery protection, exact economy/seed persistence, Shop/Build spam tests, 2–12 player plot isolation, Android UI/BUILD behavior, tutorial persistence, timed multiplayer Treasure Island, WonderDex authority, and a 20-minute multiplayer runtime error pass.
