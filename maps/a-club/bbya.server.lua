@@ -1,4 +1,4 @@
--- BBYA Social Hub runtime v0.9
+-- BBYA Social Hub runtime v0.9.1
 local Players=game:GetService("Players")
 local Lighting=game:GetService("Lighting")
 local TweenService=game:GetService("TweenService")
@@ -9,33 +9,23 @@ local function text(p,s)local g=Instance.new("SurfaceGui");g.Face=Enum.NormalId.
 local function sofa(f,n,cf,c)part(f,n.." Seat",Vector3.new(14,2,5),cf,c,Enum.Material.Fabric);part(f,n.." Back",Vector3.new(14,4.5,1.2),cf*CFrame.new(0,2,2),c,Enum.Material.Fabric);part(f,n.." L",Vector3.new(1.2,3.2,5),cf*CFrame.new(-6.5,.8,0),c,Enum.Material.Fabric);part(f,n.." R",Vector3.new(1.2,3.2,5),cf*CFrame.new(6.5,.8,0),c,Enum.Material.Fabric)end
 local function lamp(f,n,pos,c)local pole=part(f,n.." Pole",Vector3.new(.35,7,.35),CFrame.new(pos),Color3.fromRGB(40,40,48),Enum.Material.Metal,0,false);local l=part(f,n.." Lamp",Vector3.new(2,.3,2),pole.CFrame*CFrame.new(0,3.5,0),c,Enum.Material.Neon,0,false);local q=Instance.new("PointLight");q.Range=18;q.Brightness=1.25;q.Color=c;q.Parent=l end
 local function build()
- for _,n in ipairs({"BBYA Visual v0.6","BBYA Visual v0.7","BBYA Visual v0.8","BBYA Visual v0.9"})do local o=workspace:FindFirstChild(n);if o then o:Destroy()end end
- local f=Instance.new("Folder");f.Name="BBYA Visual v0.9";f.Parent=workspace
+ for _,n in ipairs({"BBYA Visual v0.6","BBYA Visual v0.7","BBYA Visual v0.8","BBYA Visual v0.9","BBYA Visual v0.9.1"})do local o=workspace:FindFirstChild(n);if o then o:Destroy()end end
+ local f=Instance.new("Folder");f.Name="BBYA Visual v0.9.1";f.Parent=workspace
  local floor=workspace:FindFirstChild("Main Floor");if floor then floor.Material=Enum.Material.Slate;floor.Color=Color3.fromRGB(26,25,33)end
  local dance=workspace:FindFirstChild("Dance Floor");if dance then dance.Material=Enum.Material.Glass;dance.Color=Color3.fromRGB(25,15,38);dance.Reflectance=.12 end
- -- cleaner perimeter architecture
  for _,x in ipairs({-58,-38,-18,18,38,58})do part(f,"Wall Column X"..x,Vector3.new(1.5,16,1.5),CFrame.new(x,9,-5),Color3.fromRGB(36,25,48),Enum.Material.Concrete)end
  for _,z in ipairs({42,20,-5,-30,-55})do part(f,"Side Column L"..z,Vector3.new(1.5,16,1.5),CFrame.new(-63,9,z),Color3.fromRGB(34,24,45),Enum.Material.Concrete);part(f,"Side Column R"..z,Vector3.new(1.5,16,1.5),CFrame.new(63,9,z),Color3.fromRGB(34,24,45),Enum.Material.Concrete)end
- -- fewer, slimmer ceiling beams so upper sightline stays clean
  for _,z in ipairs({-40,-12,16,44})do part(f,"Ceiling Beam "..z,Vector3.new(112,.55,1.1),CFrame.new(0,18.8,z),Color3.fromRGB(25,22,33),Enum.Material.Metal);part(f,"Ceiling Neon "..z,Vector3.new(72,.16,.22),CFrame.new(0,18.42,z),COLORS[(math.floor((z+40)/28)%#COLORS)+1],Enum.Material.Neon,0,false)end
- -- entrance
  local arch=workspace:FindFirstChild("Entrance Arch Top");if arch then local b=part(f,"Entrance Sign",Vector3.new(24,4,.55),arch.CFrame*CFrame.new(0,2.7,-2.2),Color3.fromRGB(20,8,30),Enum.Material.SmoothPlastic,0,false);text(b,"BBYA SOCIAL HUB");part(f,"Entrance Neon",Vector3.new(25,.22,.28),b.CFrame*CFrame.new(0,-2.25,-.4),COLORS[1],Enum.Material.Neon,0,false)end
- -- DJ stage
  local booth=workspace:FindFirstChild("DJ Booth");if booth then local b=part(f,"DJ Sign",Vector3.new(15,2.3,.4),booth.CFrame*CFrame.new(0,3,-3.2),Color3.fromRGB(22,9,32),Enum.Material.SmoothPlastic,0,false);text(b,"BBYA 24/7");for _,x in ipairs({-14,14})do part(f,"DJ Pillar"..x,Vector3.new(.32,8,.32),booth.CFrame*CFrame.new(x,3,-3.4),Color3.fromRGB(70,190,255),Enum.Material.Neon,0,false)end end
- -- VIP furnishing
  for _,cfg in ipairs({{"Left VIP Platform",Color3.fromRGB(78,30,92),-1},{"Right VIP Platform",Color3.fromRGB(42,43,100),1}})do local p=workspace:FindFirstChild(cfg[1]);if p then sofa(f,cfg[1].." Sofa",p.CFrame*CFrame.new(0,4,8),cfg[2]);part(f,cfg[1].." Table",Vector3.new(7,1.2,5),p.CFrame*CFrame.new(0,4,-2),Color3.fromRGB(30,25,38),Enum.Material.Glass);part(f,cfg[1].." Trim",Vector3.new(24,.18,.18),p.CFrame*CFrame.new(0,7,17),cfg[3]<0 and COLORS[1] or COLORS[3],Enum.Material.Neon,0,false)end end
- -- bar
  local bar=workspace:FindFirstChild("Main Bar");if bar then bar.Material=Enum.Material.Marble;bar.Color=Color3.fromRGB(35,22,42);for x=-24,24,8 do part(f,"Stool"..x,Vector3.new(2.2,3,2.2),bar.CFrame*CFrame.new(x,5,-9),Color3.fromRGB(65,42,75),Enum.Material.Metal)end end
- -- ambient lamps
  for _,z in ipairs({30,0,-30})do lamp(f,"Lamp L"..z,Vector3.new(-52,5,z),COLORS[1]);lamp(f,"Lamp R"..z,Vector3.new(52,5,z),COLORS[3])end
- -- stairs: darker, premium, with edge lighting
  for _,o in ipairs(workspace:GetDescendants())do if o:IsA("BasePart") and string.find(string.lower(o.Name),"stair") then o.Material=Enum.Material.Metal;o.Color=Color3.fromRGB(38,35,47)end end
- -- upper-floor safety rails; open view retained
- for _,x in ipairs({-34,34})do part(f,"Upper Rail "..x,Vector3.new(.3,3,72),CFrame.new(x,15,-5),Color3.fromRGB(48,43,58),Enum.Material.Metal,.15,false);part(f,"Upper Rail Neon "..x,Vector3.new(.12,.14,72),CFrame.new(x,16.55,-5),x<0 and COLORS[1] or COLORS[3],Enum.Material.Neon,0,false)end
- -- rooftop
+ -- keep lounge seating clear: decorative upper rails are shifted outward from the stair/sofa footprint
+ for _,x in ipairs({-38,38})do part(f,"Upper Rail "..x,Vector3.new(.3,3,72),CFrame.new(x,15,-5),Color3.fromRGB(48,43,58),Enum.Material.Metal,.15,false);part(f,"Upper Rail Neon "..x,Vector3.new(.12,.14,72),CFrame.new(x,16.55,-5),x<0 and COLORS[1] or COLORS[3],Enum.Material.Neon,0,false)end
  local pool=workspace:FindFirstChild("Rooftop Pool");if pool then part(f,"Pool Deck",Vector3.new(pool.Size.X+12,.45,pool.Size.Z+12),pool.CFrame*CFrame.new(0,-.8,0),Color3.fromRGB(66,58,68),Enum.Material.WoodPlanks);part(f,"Pool Rim",Vector3.new(pool.Size.X+2,.18,pool.Size.Z+2),pool.CFrame*CFrame.new(0,.65,0),COLORS[3],Enum.Material.Neon,.35,false)end
  local lounge=workspace:FindFirstChild("Rooftop Lounge");if lounge then sofa(f,"Roof Sofa",lounge.CFrame*CFrame.new(0,3,3),Color3.fromRGB(85,35,90));part(f,"Roof Table",Vector3.new(7,1.2,5),lounge.CFrame*CFrame.new(0,3,-6),Color3.fromRGB(25,25,35),Enum.Material.Glass)end
- -- photo wall
  local ph=part(f,"Photo Wall",Vector3.new(22,11,.8),CFrame.new(55,7,-54),Color3.fromRGB(34,12,44),Enum.Material.SmoothPlastic);text(ph,"BBYA ✦ SOCIAL HUB");for _,x in ipairs({-10.8,10.8})do part(f,"Photo Neon"..x,Vector3.new(.22,11,.22),ph.CFrame*CFrame.new(x,0,-.5),COLORS[1],Enum.Material.Neon,0,false)end
 end
 local function night()Lighting.ClockTime=21.5;Lighting.Brightness=2.8;Lighting.ExposureCompensation=.5;Lighting.Ambient=Color3.fromRGB(72,55,84);Lighting.OutdoorAmbient=Color3.fromRGB(40,44,68);Lighting.EnvironmentDiffuseScale=.5;Lighting.EnvironmentSpecularScale=.7 end
@@ -43,4 +33,4 @@ local function queenTag(c)local h=c:FindFirstChild("Head")or c:WaitForChild("Hea
 local function setup(p)local q=p.UserId==BBYA_QUEEN_USER_ID;p:SetAttribute("BBYARole",q and "BBYA_QUEEN"or"PLAYER");p:SetAttribute("BBYAQueen",q);if q then p:SetAttribute("IsVIP",true);p:SetAttribute("BBYAAllAccess",true);p.CharacterAdded:Connect(function(c)task.wait(1);queenTag(c)end);if p.Character then queenTag(p.Character)end end end
 local lights={};local function animate()for _,o in ipairs(workspace:GetDescendants())do if o:IsA("BasePart")and(string.find(o.Name,"Dance Light")or string.find(o.Name,"Ceiling Neon"))then table.insert(lights,o);o.Material=Enum.Material.Neon end end;if #lights>0 then task.spawn(function()local n=1;while true do n=n%#COLORS+1;for i,p in ipairs(lights)do TweenService:Create(p,TweenInfo.new(1.2),{Color=COLORS[((n+i-2)%#COLORS)+1]}):Play()end;task.wait(1.5)end end)end end
 build();night();animate();Players.PlayerAdded:Connect(setup);for _,p in ipairs(Players:GetPlayers())do setup(p)end
-print("[BBYA] Social Hub runtime v0.9 polish loaded")
+print("[BBYA] Social Hub runtime v0.9.1 collision fix loaded")
