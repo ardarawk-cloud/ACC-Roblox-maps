@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="4">
+  <External>null</External>
+  <External>nil</External>
+  <Item class="Workspace" referent="RBX1">
+    <Properties>
+      <string name="Name">Workspace</string>
+    </Properties>
+    <Item class="Part" referent="RBX10">
+      <Properties>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <CoordinateFrame name="CFrame">
+          <X>0</X><Y>0</Y><Z>0</Z>
+          <R00>1</R00><R01>0</R01><R02>0</R02>
+          <R10>0</R10><R11>1</R11><R12>0</R12>
+          <R20>0</R20><R21>0</R21><R22>1</R22>
+        </CoordinateFrame>
+        <Vector3 name="Size"><X>120</X><Y>2</Y><Z>120</Z></Vector3>
+        <string name="Name">ACC Test Floor</string>
+        <int name="BrickColor">199</int>
+      </Properties>
+    </Item>
+    <Item class="SpawnLocation" referent="RBX11">
+      <Properties>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <CoordinateFrame name="CFrame">
+          <X>0</X><Y>3</Y><Z>0</Z>
+          <R00>1</R00><R01>0</R01><R02>0</R02>
+          <R10>0</R10><R11>1</R11><R12>0</R12>
+          <R20>0</R20><R21>0</R21><R22>1</R22>
+        </CoordinateFrame>
+        <Vector3 name="Size"><X>12</X><Y>1</Y><Z>12</Z></Vector3>
+        <string name="Name">ACC Test Spawn</string>
+        <int name="BrickColor">23</int>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="Lighting" referent="RBX2">
+    <Properties>
+      <float name="Brightness">2</float>
+      <double name="ClockTime">16</double>
+      <string name="Name">Lighting</string>
+    </Properties>
+  </Item>
+</roblox>
