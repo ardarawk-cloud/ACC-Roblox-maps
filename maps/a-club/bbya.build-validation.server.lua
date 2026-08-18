@@ -1,9 +1,8 @@
--- BBYA SOCIAL HUB — BUILD VALIDATION v1.6
--- Runtime health check for clean front lobby 4.9 + live fix 4.7.
+-- BBYA SOCIAL HUB — BUILD VALIDATION v1.7
+-- Runtime health check for clean front lobby 4.9.1 + Safe Navigation v5 + live fix 4.7.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- v4.9 intentionally waits for older builders before doing its cleanup.
 task.wait(12)
 
 local remotes = ReplicatedStorage:FindFirstChild("BBYA_Remotes")
@@ -15,8 +14,9 @@ local checks = {
  {label="Phase 5", instance=workspace:FindFirstChild("BBYA Premium Phase 5 v4.5")},
  {label="Phase 6", instance=workspace:FindFirstChild("BBYA Premium Phase 6 v4.6")},
  {label="Live Fix 4.7", instance=workspace:GetAttribute("BBYALiveFix")=="4.7" and workspace or nil},
- {label="Front Lobby 4.9", instance=workspace:GetAttribute("BBYAFrontLobby")=="4.9" and workspace or nil},
+ {label="Front Lobby 4.9.1", instance=workspace:GetAttribute("BBYAFrontLobby")=="4.9.1" and workspace or nil},
  {label="Lobby Clean", instance=workspace:GetAttribute("BBYAFrontLobbyClean")==true and workspace or nil},
+ {label="Safe Navigation v5", instance=workspace:GetAttribute("BBYASafeNavigation")=="5.0" and workspace or nil},
  {label="BBYA Hero", instance=workspace:FindFirstChild("BBYA Hero",true)},
  {label="Crown Neon", instance=workspace:FindFirstChild("Crown Base",true)},
  {label="Lobby High Ceiling", instance=workspace:FindFirstChild("Lobby High Ceiling",true)},
@@ -45,7 +45,7 @@ for _,name in ipairs({
 end
 
 local status=(#missing==0 and #legacy==0) and "PASS" or "WARN"
-workspace:SetAttribute("BBYABuildVersion","4.9-clean-front-lobby")
+workspace:SetAttribute("BBYABuildVersion","4.9.1-safe-nav-v5")
 workspace:SetAttribute("BBYABuildValidation",status)
 workspace:SetAttribute("BBYABuildMissingCount",#missing)
 workspace:SetAttribute("BBYALegacyRegressionCount",#legacy)
@@ -53,4 +53,4 @@ workspace:SetAttribute("BBYABuildCheckedAt",os.time())
 
 if #missing>0 then warn("[BBYA BUILD VALIDATION] Missing: "..table.concat(missing,", ")) end
 if #legacy>0 then warn("[BBYA BUILD VALIDATION] Legacy regression: "..table.concat(legacy,", ")) end
-if status=="PASS" then print("[BBYA BUILD VALIDATION] PASS • clean front lobby 4.9") end
+if status=="PASS" then print("[BBYA BUILD VALIDATION] PASS • clean front lobby 4.9.1 + safe navigation v5") end
