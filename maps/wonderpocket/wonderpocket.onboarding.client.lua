@@ -7,8 +7,11 @@ if not remotes then return end
 local tutorial = remotes:WaitForChild("Tutorial", 10)
 
 local function waitForData()
-    local deadline = os.clock() + 15
-    while os.clock() < deadline do
+    -- Do not let a slow-but-successful DataStore load skip first-session onboarding.
+    -- The server is authoritative: continue waiting until it explicitly reports
+    -- a safe load or a fail-closed load failure.
+    while player.Parent do
+        if player:GetAttribute("WP_DataLoadFailed") == true then return false end
         if player:GetAttribute("WP_DataLoaded") == true then return true end
         task.wait(.25)
     end
