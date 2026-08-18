@@ -25,6 +25,9 @@ local revision = {}
 local savedRevision = {}
 local saving = {}
 local forcePending = {}
+local placeBusy = {}
+local lastPlace = {}
+local lastStateRequest = {}
 
 local function retry(label, fn)
     local lastErr
@@ -192,51 +195,86 @@ local function load(player)
     player:SetAttribute("WP_PlacedCount",math.max(tonumber(player:GetAttribute("WP_PlacedCount")) or 0,loadedCount))
 end
 
+local function handlePlace(player,itemId,cf)
+    local uid = player.UserId
+    if placeBusy[uid] then
+        PlacementRemote:FireClient(player,"RESULT",false,"BUSY")
+        return
+    end
+    local now = os.clock()
+    if now-(lastPlace[uid] or 0)<.2 then
+        PlacementRemote:FireClient(player,"RESULT",false,"RATE_LIMITED")
+        return
+    end
+    lastPlace[uid]=now
+    placeBusy[uid]=true
+
+    local ok,err=pcall(function()
+        if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true then
+            PlacementRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY")
+            return
+        end
+
+        itemId=tostring(itemId)
+        local size=templates[itemId]
+        if not size then
+            PlacementRemote:FireClient(player,"RESULT",false,"INVALID_ITEM")
+            return
+        end
+
+        local p=cf.Position
+        local _,yaw,_=cf:ToOrientation()
+        local q=math.pi/2
+        local snappedYaw=math.floor((yaw/q)+0.5)*q
+        local snapped=CFrame.new(snap(p.X),math.max(5.6,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
+        if not footprintInsideOwnPlot(player,snapped.Position,size,snappedYaw) then
+            PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
+            return
+        end
+
+        local invKey="WP_INV_"..itemId
+        local owned=math.max(0,math.floor(tonumber(player:GetAttribute(invKey)) or 0))
+        if owned<=0 then
+            PlacementRemote:FireClient(player,"RESULT",false,"NOT_OWNED")
+            return
+        end
+
+        local folder=getPlacedFolder(player)
+        if #folder:GetChildren()>=50 then
+            PlacementRemote:FireClient(player,"RESULT",false,"PLACEMENT_LIMIT")
+            return
+        end
+
+        makeFurniture(player,itemId,snapped)
+        player:SetAttribute(invKey,owned-1)
+        player:SetAttribute("WP_PlacedCount",(tonumber(player:GetAttribute("WP_PlacedCount")) or 0)+1)
+        player:SetAttribute("WP_LastEconomyAction","PLACE_FURNITURE")
+        player:SetAttribute("WP_LastEconomyItem",itemId)
+        player:SetAttribute("WP_LastEconomyAt",os.time())
+        markDirty(player)
+        if CriticalSave then CriticalSave:Fire(player) end
+        task.spawn(save,player,true)
+        PlacementRemote:FireClient(player,"RESULT",true,"PLACED",itemId)
+    end)
+
+    placeBusy[uid]=nil
+    if not ok then
+        warn("[WONDERPOCKET] Placement transaction failed",uid,err)
+        PlacementRemote:FireClient(player,"RESULT",false,"SERVER_ERROR")
+    end
+end
+
 PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
     if action=="REQUEST_STATE" then
+        local uid=player.UserId
+        local now=os.clock()
+        if now-(lastStateRequest[uid] or 0)<.5 then return end
+        lastStateRequest[uid]=now
         PlacementRemote:FireClient(player,"STATE",serialize(player))
         return
     end
     if action~="PLACE" or typeof(cf)~="CFrame" then return end
-    if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true then
-        PlacementRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY")
-        return
-    end
-
-    itemId=tostring(itemId)
-    local size=templates[itemId]
-    if not size then return end
-
-    local p=cf.Position
-    local _,yaw,_=cf:ToOrientation()
-    local q=math.pi/2
-    local snappedYaw=math.floor((yaw/q)+0.5)*q
-    local snapped=CFrame.new(snap(p.X),math.max(5.6,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
-    if not footprintInsideOwnPlot(player,snapped.Position,size,snappedYaw) then
-        PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
-        return
-    end
-
-    local invKey="WP_INV_"..itemId
-    local owned=tonumber(player:GetAttribute(invKey)) or 0
-    if owned<=0 then
-        PlacementRemote:FireClient(player,"RESULT",false,"NOT_OWNED")
-        return
-    end
-
-    local folder=getPlacedFolder(player)
-    if #folder:GetChildren()>=50 then
-        PlacementRemote:FireClient(player,"RESULT",false,"PLACEMENT_LIMIT")
-        return
-    end
-
-    makeFurniture(player,itemId,snapped)
-    player:SetAttribute(invKey,owned-1)
-    player:SetAttribute("WP_PlacedCount",(tonumber(player:GetAttribute("WP_PlacedCount")) or 0)+1)
-    markDirty(player)
-    task.spawn(save,player,false)
-    if CriticalSave then CriticalSave:Fire(player) end
-    PlacementRemote:FireClient(player,"RESULT",true,"PLACED",itemId)
+    handlePlace(player,itemId,cf)
 end)
 
 CriticalSave.Event:Connect(function(player)
@@ -263,6 +301,10 @@ Players.PlayerRemoving:Connect(function(player)
     savedRevision[player]=nil
     saving[player]=nil
     forcePending[player]=nil
+    local uid=player.UserId
+    placeBusy[uid]=nil
+    lastPlace[uid]=nil
+    lastStateRequest[uid]=nil
 end)
 
 task.spawn(function()
@@ -276,4 +318,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Revision-safe full-footprint furniture placement loaded")
+print("[WONDERPOCKET] Rate-limited revision-safe furniture placement loaded")
