@@ -13,7 +13,7 @@ local function travel(p,dest)
 end
 LiftRemote.OnServerEvent:Connect(travel)
 
-local rootV5=workspace:FindFirstChild("BBYA V5.2 MODULAR GREYBOX")
+local rootV5=workspace:FindFirstChild("BBYA V5.3 MASTER PLAN")
 local b3=rootV5 and rootV5:FindFirstChild("[B3] LIFT CORE")
 if b3 then
  local function station(name,pos,dest,color)
@@ -29,4 +29,4 @@ if b3 then
  station("ROOF TO G",Vector3.new(70.5,39,99.4),"GROUND",Color3.fromRGB(20,218,255))
  station("ROOF TO VIP",Vector3.new(75.5,39,99.4),"VIP",Color3.fromRGB(255,194,72))
 end
-workspace:SetAttribute("BBYASystemLift","5.0")
+workspace:SetAttribute("BBYASystemLift","5.1")
