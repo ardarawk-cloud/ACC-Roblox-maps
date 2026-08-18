@@ -40,6 +40,8 @@ jobs:
           test "$GITHUB_REF_NAME" = "agent/wonderpocket-target" || { echo "Wrong branch: $GITHUB_REF_NAME"; exit 1; }
 
       - name: Build WONDERPOCKET place
+        env:
+          WONDERPOCKET_BUILD_MODE: closed-test
         run: node scripts/build-wonderpocket.js
 
       - name: Run WONDERPOCKET QC
@@ -119,7 +121,7 @@ jobs:
             cat /tmp/wonderpocket-publish.log
           } > .diagnostics/wonderpocket-last-publish.log
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
           git add .diagnostics/wonderpocket-last-publish.log
           git commit -m "Record WONDERPOCKET publish diagnostic [skip ci]" || true
           git push origin HEAD:agent/wonderpocket-target
