@@ -14,6 +14,7 @@ const mainLua = readLua('maps/a-club/bbya.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
 const featuresLua = readLua('maps/a-club/bbya.features.server.lua');
+const qcLua = readLua('maps/a-club/bbya.qc.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
@@ -30,6 +31,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAFEATURES0000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Feature_Stations</string><ProtectedString name="Source"><![CDATA[${featuresLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAQC000000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_QC_Hotfix</string><ProtectedString name="Source"><![CDATA[${qcLua}]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
   <Properties><string name="Name">StarterPlayer</string></Properties>
@@ -44,4 +46,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Main + systems + DJ + feature stations + client + Queen UI injected into', target.file);
+console.log('[BBYA] Main + systems + DJ + features + QC hotfix + client + Queen UI injected into', target.file);
