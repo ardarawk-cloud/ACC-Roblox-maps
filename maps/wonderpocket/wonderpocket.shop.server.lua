@@ -32,6 +32,10 @@ ShopRemote.OnServerEvent:Connect(function(player,action,itemId)
     end
     if action~="BUY" and action~="BUY_COINS" then return end
 
+    if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_DataLoadFailed")==true or player:GetAttribute("WP_InventoryLoadFailed")==true then
+        ShopRemote:FireClient(player,"RESULT",false,"DATA_READ_ONLY",itemId)
+        return
+    end
     if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true then
         ShopRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY",itemId)
         return
@@ -89,4 +93,4 @@ Players.PlayerRemoving:Connect(function(player)
     purchaseBusy[uid]=nil
 end)
 
-print("[WONDERPOCKET] Audited locked critical-save shop transactions loaded")
+print("[WONDERPOCKET] Fail-closed audited shop transactions loaded")
