@@ -3,7 +3,7 @@
 local spawn=Instance.new("SpawnLocation")
 spawn.Name="BBYA ARRIVAL SPAWN"
 spawn.Size=Vector3.new(12,.6,8)
-spawn.CFrame=CFrame.new(0,1.4,-79)
+spawn.CFrame=CFrame.new(0,1.4,-79)*CFrame.Angles(0,math.rad(180),0)
 spawn.Anchored=true
 spawn.Neutral=true
 spawn.CanCollide=true
@@ -12,7 +12,7 @@ spawn.Material=Enum.Material.SmoothPlastic
 spawn.Color=Color3.fromRGB(72,190,126)
 spawn.Parent=A1
 
-local safeCFrame=CFrame.new(0,4,-72)
+local safeCFrame=CFrame.new(0,4,-72)*CFrame.Angles(0,math.rad(180),0)
 local function bindCharacter(char)
     local root=char:WaitForChild("HumanoidRootPart",10)
     if not root then return end
