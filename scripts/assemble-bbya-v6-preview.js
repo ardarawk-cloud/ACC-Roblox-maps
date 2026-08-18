@@ -41,6 +41,7 @@ const uiFiles = [
   'maps/a-club/v6/63-commerce-ui.client.lua',
   'maps/a-club/v6/64-physical-ui-bridge.client.lua',
   'maps/a-club/v6/65-performance.client.lua',
+  'maps/a-club/v6/66-ui-recovery.client.lua',
 ];
 
 const allFiles = [...architectureFiles, ...systemFiles, ...uiFiles];
