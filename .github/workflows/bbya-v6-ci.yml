@@ -10,6 +10,7 @@ on:
       - 'scripts/validate-bbya-v6.js'
       - 'scripts/validate-bbya-v6-client.js'
       - 'scripts/validate-bbya-v6-ui-recovery.js'
+      - 'scripts/validate-bbya-v6-show.js'
       - 'scripts/validate-bbya-v6-preview-gate.js'
       - '.github/workflows/bbya-v6-ci.yml'
   workflow_dispatch:
@@ -41,6 +42,9 @@ jobs:
       - name: Validate V6 UI recovery
         run: node scripts/validate-bbya-v6-ui-recovery.js
 
+      - name: Validate V6 automatic club show
+        run: node scripts/validate-bbya-v6-show.js
+
       - name: Validate V6 preview isolation
         run: node scripts/validate-bbya-v6-preview-gate.js
 
@@ -55,6 +59,9 @@ jobs:
 
       - name: Re-check UI recovery
         run: node scripts/validate-bbya-v6-ui-recovery.js
+
+      - name: Re-check club show contract
+        run: node scripts/validate-bbya-v6-show.js
 
       - name: Re-check preview isolation
         run: node scripts/validate-bbya-v6-preview-gate.js
