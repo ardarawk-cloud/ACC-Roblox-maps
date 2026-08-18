@@ -1,0 +1,77 @@
+name: BBYA Direct Live Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-direct-live.yml'
+      - 'maps/a-club/place.rbxlx'
+      - 'maps/a-club/rebuild/**'
+      - 'maps/registry.json'
+      - 'scripts/assemble-bbya-v6-preview.js'
+      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/inspect-bbya-clean-preview.js'
+      - 'scripts/publish-map.js'
+
+concurrency:
+  group: bbya-direct-live
+  cancel-in-progress: true
+
+jobs:
+  publish-bbya:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate clean rebuild
+        run: node scripts/validate-bbya-clean-rebuild.js
+
+      - name: Assemble live BBYA place
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLACE_FILE=$(node -e "const r=require('./maps/registry.json'); process.stdout.write(r.maps['a-club'].file)")
+          node scripts/assemble-bbya-v6-preview.js a-club "$PLACE_FILE"
+          node scripts/inspect-bbya-clean-preview.js "$PLACE_FILE"
+
+      - name: Publish BBYA directly to Roblox
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: node scripts/publish-map.js a-club
+
+      - name: Persist direct publish receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy-status/a-club.json
+          cp deploy-status/a-club.json /tmp/a-club-direct.json
+
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+
+          mkdir -p deploy-status
+          cp /tmp/a-club-direct.json deploy-status/a-club.json
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status/a-club.json
+
+          if git diff --cached --quiet; then
+            echo "Direct publish receipt already current."
+            exit 0
+          fi
+
+          git commit -m "Record BBYA direct live publish [skip ci]"
+          git push origin HEAD:main
