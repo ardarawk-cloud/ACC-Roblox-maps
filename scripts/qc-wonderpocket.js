@@ -11,7 +11,8 @@ const required = [
   'wonderpocket.placement.server.lua','wonderpocket.buildpreview.client.lua',
   'wonderpocket.premium-ui.client.lua','wonderpocket.gardening.server.lua',
   'wonderpocket.inventory.server.lua','wonderpocket.furniture-inventory.server.lua',
-  'wonderpocket.wonderdex.server.lua','wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
+  'wonderpocket.economy-audit.server.lua','wonderpocket.wonderdex.server.lua',
+  'wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
   'wonderpocket.tutorial.server.lua','wonderpocket.tutorial.client.lua',
   'wonderpocket.adventure.server.lua','wonderpocket.adventure-gate.server.lua',
   'wonderpocket.treasure-island.server.lua','wonderpocket.health.client.lua',
@@ -41,6 +42,7 @@ const questSrc = read('wonderpocket.quests.server.lua');
 const retentionSrc = read('wonderpocket.retention.server.lua');
 const inventorySrc = read('wonderpocket.furniture-inventory.server.lua');
 const shopSrc = read('wonderpocket.shop.server.lua');
+const economyAuditSrc = read('wonderpocket.economy-audit.server.lua');
 const dexSrc = read('wonderpocket.wonderdex.server.lua');
 const adventureSrc = read('wonderpocket.adventure.server.lua');
 const treasureSrc = read('wonderpocket.treasure-island.server.lua');
@@ -85,17 +87,26 @@ if (!gardenSrc.includes('seeds - 1')) errors.push('Planting does not decrement C
 if (!gardenSrc.includes('GetAttribute("CarrotSeed")) or 0) + 1')) errors.push('Harvest does not return a CarrotSeed.');
 if (!gardenSrc.includes('actionLocks')) errors.push('Garden action lock is missing.');
 if (!gardenSrc.includes('CriticalSave.Event:Connect')) errors.push('Garden does not participate in the critical-save bus.');
+if (!gardenSrc.includes('EconomyAudit:Fire')) errors.push('Garden transactions are not routed through economy audit.');
 
 if (!questSrc.includes('WP_QuestStarterRewarded')) errors.push('Starter quest lacks idempotent persistent reward flag.');
 if (!questSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Starter quest does not flush critical rewards.');
+if (!questSrc.includes('EconomyAudit:Fire')) errors.push('Starter quest reward is not economy-audited.');
 if (retentionSrc.includes('DataStoreService')) errors.push('Retention still uses a separate DataStore instead of canonical player data.');
 if (!retentionSrc.includes('WP_OfflineSeconds')) errors.push('Retention does not consume canonical offline elapsed time.');
+if (!retentionSrc.includes('EconomyAudit:Fire')) errors.push('Retention rewards are not economy-audited.');
 if (!inventorySrc.includes('revision[player]')) errors.push('Furniture inventory persistence is not revision-safe.');
 if (!inventorySrc.includes('CriticalSave.Event:Connect')) errors.push('Furniture inventory does not participate in critical saves.');
 
+if (!economyAuditSrc.includes('WONDERPOCKET_EconomyAudit')) errors.push('Central economy audit BindableEvent is missing.');
+if (!economyAuditSrc.includes('WP_EconTxnSeq')) errors.push('Central economy transaction sequence is missing.');
+if (!economyAuditSrc.includes('WP_EconBalanceCoins')) errors.push('Economy audit does not snapshot post-transaction balances.');
+if (!economyAuditSrc.includes('WP_EconomySessionTransactions')) errors.push('Server economy session transaction counter is missing.');
+
 if (!shopSrc.includes('purchaseBusy')) errors.push('Shop transaction lock is missing.');
 if (!shopSrc.includes('RATE_LIMITED')) errors.push('Shop remote rate limit response is missing.');
-if (!shopSrc.includes('WP_EconTxnSeq')) errors.push('Shop transaction audit sequence is missing.');
+if (!shopSrc.includes('WONDERPOCKET_EconomyAudit')) errors.push('Shop is not connected to central economy audit.');
+if (!shopSrc.includes('EconomyAudit:Fire')) errors.push('Accepted Shop purchases are not economy-audited.');
 if (!shopSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Shop transaction does not request a critical save.');
 
 if (!dexSrc.includes('WONDERPOCKET_WonderDex_v1')) errors.push('WonderDex persistence store is missing.');
@@ -111,9 +122,10 @@ if (!adventureSrc.includes('SERVER_AUTHORITATIVE')) errors.push('Adventure API d
 if (/run\.treasure\s*\+=/.test(adventureSrc)) errors.push('Adventure remote still increments treasure progress from client events.');
 if (!treasureSrc.includes('DURATION_SECONDS = 240')) errors.push('Treasure Island server deadline is not enforced at 240 seconds.');
 if (!treasureSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Adventure completion does not flush critical reward data.');
+if (!treasureSrc.includes('EconomyAudit:Fire')) errors.push('Treasure Island reward is not economy-audited.');
 
-if (!healthSrc.includes('CarrotSeed')) warnings.push('Closed-test health UI does not expose canonical seed count yet.');
-if (!healthSrc.includes('WP_EconTxnSeq')) warnings.push('Closed-test health UI does not expose economy transaction sequence yet.');
+if (!healthSrc.includes('CarrotSeed')) errors.push('Closed-test health UI does not expose canonical seed count.');
+if (!healthSrc.includes('WP_EconTxnSeq')) errors.push('Closed-test health UI does not expose economy transaction sequence.');
 
 const registry = JSON.parse(fs.readFileSync(path.join(root,'maps/registry.json'),'utf8'));
 const wp = registry.maps?.wonderpocket;
@@ -140,7 +152,7 @@ if (fs.existsSync(publisherPath)) {
     "PublishAllowed = false"
   ]) if (!publisher.includes(marker)) errors.push(`Closed-test publisher missing locked marker: ${marker}`);
   if (publisher.includes('publish-map.js')) errors.push('Dedicated WONDERPOCKET publisher must not delegate to the global publisher.');
-  if (publisher.includes('8116636513') || publisher.includes('131894120482837')) errors.push('BBYA target ID detected in WONDERPOCKET closed-test publisher.');
+  if (publisher.includes('8116636513') || publisher.includes('131894120482837')) errors.push('Foreign target ID detected in WONDERPOCKET closed-test publisher.');
 }
 if (fs.existsSync(workflowPath)) {
   const workflow = fs.readFileSync(workflowPath,'utf8');
@@ -162,7 +174,7 @@ else {
   if (!xml.includes('</roblox>')) errors.push('place.rbxlx invalid: missing </roblox>.');
   if (xml.includes('BBYA') || xml.includes('a-club')) errors.push('place.rbxlx contains foreign-map token.');
   if (!xml.includes('WONDERPOCKET_Remotes')) errors.push('Canonical WONDERPOCKET_Remotes string missing from assembled place.');
-  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory','wonderpocket.gardening','wonderpocket.wonderdex']) {
+  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory','wonderpocket.gardening','wonderpocket.wonderdex','wonderpocket.economy-audit']) {
     if (!xml.includes(marker)) errors.push(`Assembled place missing runtime marker: ${marker}`);
   }
 }
