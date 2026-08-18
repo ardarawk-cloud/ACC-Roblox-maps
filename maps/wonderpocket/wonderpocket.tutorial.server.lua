@@ -10,12 +10,12 @@ Tutorial.Name = "Tutorial"
 Tutorial.Parent = remotes
 
 local STEPS = {
-    {id="MeetWondi", text="Say hi to your Wondi", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
-    {id="PlantCarrot", text="Plant your first carrot", done=function(p) return (tonumber(p:GetAttribute("WP_PlantedCount")) or 0) >= 1 end},
-    {id="BuyFurniture", text="Buy one furniture item from Wonder Shop", done=function(p) return (tonumber(p:GetAttribute("WP_PurchasedFurnitureCount")) or 0) >= 1 end},
-    {id="PlaceFurniture", text="Place furniture inside your Pocket plot", done=function(p) return (tonumber(p:GetAttribute("WP_PlacedCount")) or 0) >= 1 end},
-    {id="HarvestCarrot", text="Harvest your first carrot", done=function(p) return (tonumber(p:GetAttribute("WP_HarvestCount")) or 0) >= 1 end},
-    {id="Treasure", text="Use Adventure Gate and find one treasure", done=function(p) return (tonumber(p:GetAttribute("WP_TreasureProgress")) or 0) >= 1 or p:GetAttribute("WP_TreasureIslandComplete") == true end},
+    {id="MeetWondi", text="Walk to Bubbi and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
+    {id="PlantCarrot", text="Go to your garden plot and plant your first carrot", done=function(p) return (tonumber(p:GetAttribute("WP_PlantedCount")) or 0) >= 1 end},
+    {id="BuyFurniture", text="Tap SHOP below, then buy one furniture item", done=function(p) return (tonumber(p:GetAttribute("WP_PurchasedFurnitureCount")) or 0) >= 1 end},
+    {id="PlaceFurniture", text="Close Shop → tap BUILD below → choose your furniture → PLACE it inside your Pocket plot", done=function(p) return (tonumber(p:GetAttribute("WP_PlacedCount")) or 0) >= 1 end},
+    {id="HarvestCarrot", text="Return to your garden when the carrot is ready, then HARVEST it", done=function(p) return (tonumber(p:GetAttribute("WP_HarvestCount")) or 0) >= 1 end},
+    {id="Treasure", text="Find the Adventure Gate → enter Treasure Island → collect one treasure", done=function(p) return (tonumber(p:GetAttribute("WP_TreasureProgress")) or 0) >= 1 or p:GetAttribute("WP_TreasureIslandComplete") == true end},
 }
 
 local watchedAttributes = {
@@ -96,4 +96,4 @@ Players.PlayerRemoving:Connect(function(player)
     connections[player] = nil
 end)
 
-print("[WONDERPOCKET] First-session tutorial progression loaded")
+print("[WONDERPOCKET] Guided first-session tutorial progression loaded")
