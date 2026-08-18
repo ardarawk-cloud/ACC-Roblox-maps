@@ -11,8 +11,8 @@ if (!target) throw new Error(`Unknown map id: ${mapId}`);
 const placePath = path.join(process.cwd(), target.file);
 const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 
-// Functional core + premium BBYA build layers.
-const mainLua = readLua('maps/a-club/bbya.server.lua');
+// Clean functional core + premium BBYA build layers. Legacy visual builder is intentionally retired.
+const coreLua = readLua('maps/a-club/bbya.core.server.lua');
 const rebuildLua = readLua('maps/a-club/bbya.visual-rebuild-v4.server.lua');
 const polishLua = readLua('maps/a-club/bbya.visual-polish-v4.server.lua');
 const phase3Lua = readLua('maps/a-club/bbya.phase3-premium.server.lua');
@@ -26,11 +26,10 @@ const monetizationLua = readLua('maps/a-club/bbya.monetization.server.lua');
 const musicLua = readLua('maps/a-club/bbya.music.server.lua');
 const supportPanelLua = readLua('maps/a-club/bbya.support-panel.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
-const qcLua = readLua('maps/a-club/bbya.qc.server.lua');
 const titleSizeLua = readLua('maps/a-club/bbya.title-size.server.lua');
 const rankSystemLua = readLua('maps/a-club/bbya.rank-system.server.lua');
 const queenAccessLua = readLua('maps/a-club/bbya.queen-access-hotfix.server.lua');
-const spawnEntryLua = readLua('maps/a-club/bbya.spawn-entry-hotfix.server.lua');
+const spawnFinalLua = readLua('maps/a-club/bbya.spawn-final.server.lua');
 
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 const musicClientLua = readLua('maps/a-club/bbya.music.client.lua');
@@ -50,7 +49,7 @@ xml = xml.replace(prior, '');
 const runtime = `${begin}
 <Item class="ServerScriptService" referent="RBXBBYASERVERSCRIPTSERVICE00000001">
   <Properties><string name="Name">ServerScriptService</string></Properties>
-  <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Core</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYACLEANCOREV30000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Clean_Functional_Core_v3</string><ProtectedString name="Source"><![CDATA[${coreLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAVISUALREBUILDV4000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Visual_Rebuild_v4</string><ProtectedString name="Source"><![CDATA[${rebuildLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAVISUALPOLISHV4100000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Venue_Polish_v4_1</string><ProtectedString name="Source"><![CDATA[${polishLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPHASE3PREMIUMV430000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_3_v4_3</string><ProtectedString name="Source"><![CDATA[${phase3Lua}]]></ProtectedString></Properties></Item>
@@ -58,17 +57,16 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAPHASE5PREMIUMV450000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_5_v4_5_1</string><ProtectedString name="Source"><![CDATA[${phase5Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPHASE6PREMIUMV460000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_6_v4_6</string><ProtectedString name="Source"><![CDATA[${phase6Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4300000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_3</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1_1</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems_v2</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMONETIZATION000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Backend</string><ProtectedString name="Source"><![CDATA[${monetizationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASUPPORTDATA0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Top_Supporter_Data</string><ProtectedString name="Source"><![CDATA[${supportPanelLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYAQC000000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_QC</string><ProtectedString name="Source"><![CDATA[${qcLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYATITLESIZE000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Title_Size</string><ProtectedString name="Source"><![CDATA[${titleSizeLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYARANKSYSTEM00000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Social_Rank_System</string><ProtectedString name="Source"><![CDATA[${rankSystemLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAQUEENACCESS000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Access</string><ProtectedString name="Source"><![CDATA[${queenAccessLua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYASPAWNENTRY0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Spawn_Entry</string><ProtectedString name="Source"><![CDATA[${spawnEntryLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAFINALSPAWN0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Final_Arrival_Spawn</string><ProtectedString name="Source"><![CDATA[${spawnFinalLua}]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
   <Properties><string name="Name">StarterPlayer</string></Properties>
@@ -89,4 +87,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium build 4.6 + final wayfinding + QC + validation + anchor navigation + adaptive performance + consolidated premium UI into', target.file);
+console.log('[BBYA] Active build injected: Premium 4.6 clean-core build + final wayfinding + QC + validation + anchor navigation + adaptive performance + consolidated UI; legacy visual/QC/spawn hotfixes retired into', target.file);
