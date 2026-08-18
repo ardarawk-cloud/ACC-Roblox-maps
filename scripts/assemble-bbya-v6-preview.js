@@ -10,7 +10,7 @@ const registry = JSON.parse(fs.readFileSync(path.join(root, 'maps/registry.json'
 const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map: ${mapId}`);
 
-// ORDER IS PART OF THE CONTRACT. Architecture must exist before systems scan/bind it.
+// ORDER IS PART OF THE CONTRACT. Structure -> finish -> social function -> systems -> commerce -> prompts -> QC.
 const architectureFiles = [
   'maps/a-club/v6/00-core.lua',
   'maps/a-club/v6/10-layout.lua',
@@ -18,9 +18,12 @@ const architectureFiles = [
   'maps/a-club/v6/21-circulation.lua',
   'maps/a-club/v6/22-facade-brand.lua',
   'maps/a-club/v6/23-lift-finish.lua',
+  'maps/a-club/v6/25-ground-finish.lua',
   'maps/a-club/v6/30-vip-level.lua',
   'maps/a-club/v6/31-vip-gates.lua',
+  'maps/a-club/v6/33-vip-finish.lua',
   'maps/a-club/v6/40-rooftop.lua',
+  'maps/a-club/v6/43-rooftop-finish.lua',
   'maps/a-club/v6/42-social-seating.lua',
   'maps/a-club/v6/45-service.lua',
 ];
