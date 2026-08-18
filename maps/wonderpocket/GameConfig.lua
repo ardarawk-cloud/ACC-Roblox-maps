@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.5.0-retention-build-polish",
+    Version = "0.6.0-closed-test-candidate",
 
     Economy = {
         StartingCoins = 250,
@@ -64,6 +64,9 @@ return {
         MaxPlacedStarter = 50,
         SaveEnabled = true,
         GhostPreviewEnabled = true,
+        ServerPlotValidation = true,
+        PlayerOwnedPlots = true,
+        MobilePlaceRotateCancel = true,
     },
 
     Shop = {
@@ -90,7 +93,7 @@ return {
 
     Social = {
         HubName = "Wonder Square",
-        MaxPlayersSuggested = 16,
+        MaxPlayersSuggested = 12,
         VisitEnabled = true,
         Gifts = {
             {Id="Balloon", PriceRobux=3},
@@ -125,6 +128,14 @@ return {
         SoftCameraMoments = true,
         FurnitureGhostPreview = true,
         PremiumPanels = true,
+    },
+
+    QA = {
+        ClosedTestCandidate = true,
+        PublishAllowed = false,
+        RequiresLiveDataStoreTest = true,
+        RequiresMultiplayerPlotTest = true,
+        RequiresMobilePlacementTest = true,
     },
 
     LiveOps = {
