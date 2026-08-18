@@ -28,25 +28,27 @@ const zoneFiles=[
   'maps/a-club/v5/C1-vip-west.lua','maps/a-club/v5/C2-vip-east.lua','maps/a-club/v5/C3-queen-bridges.lua',
   'maps/a-club/v5/D1-rooftop-arrival.lua','maps/a-club/v5/D2-rooftop-water-zone.lua','maps/a-club/v5/D3-skybar.lua',
   'maps/a-club/v5/D4-rooftop-chill.lua','maps/a-club/v5/D5-cabana-zones.lua','maps/a-club/v5/D6-photo-view.lua',
-  'maps/a-club/v5/S1-service.lua','maps/a-club/v5/98-inspection-polish.lua','maps/a-club/v5/99-finalize.lua'
+  'maps/a-club/v5/S1-service.lua','maps/a-club/v5/97-inspection-nav.lua','maps/a-club/v5/98-inspection-polish.lua','maps/a-club/v5/99-finalize.lua'
 ];
-const uiFiles=['maps/a-club/v5/ui-shell.client.lua','maps/a-club/v5/ui-shell-polish.client.lua'];
+const uiFiles=['maps/a-club/v5/ui-shell.client.lua','maps/a-club/v5/ui-shell-polish.client.lua','maps/a-club/v5/ui-inspection-nav.client.lua'];
 for(const p of [...zoneFiles,...uiFiles,'scripts/inject-bbya.js','scripts/publish-map.js']) if(!exists(p)) fail(`required V5 file missing: ${p}`);
-if(!failed) pass(`${zoneFiles.length} modular architecture files + ${uiFiles.length} UI modules present`);
+if(!failed) pass(`${zoneFiles.length} modular architecture/inspection files + ${uiFiles.length} UI modules present`);
 
 const combined=zoneFiles.filter(exists).map(read).join('\n');
 for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
   if(!combined.includes(`registerZone("${code}"`)) fail(`zone registration missing: ${code}`);
 }
-for(const marker of ['BBYAV5ZoneSchema','BBYAV5InspectionReady','BBYAV5Layout","5.2-modular-greybox','INSPECTION TAG','BBYAV5WorldInspectionTags']) {
-  if(!combined.includes(marker)) fail(`modular architecture marker missing: ${marker}`);
+for(const marker of ['BBYAV5ZoneSchema','BBYAV5InspectionReady','BBYAV5Layout","5.2-modular-greybox','INSPECTION TAG','BBYAV5WorldInspectionTags','BBYAV5InspectionNav','BBYA_V5_InspectionNav','CODED_SAFE_LANDINGS']) {
+  if(!combined.includes(marker)) fail(`modular architecture/inspection marker missing: ${marker}`);
 }
-for(const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'MarketplaceService', 'RemoteEvent', 'TextButton']) {
+for(const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'MarketplaceService', 'TextButton']) {
   if(combined.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.2 architecture: ${forbidden}`);
 }
+const remoteConstructors=(combined.match(/Instance\.new\(["']RemoteEvent["']\)/g)||[]).length;
+if(remoteConstructors!==1) fail(`expected exactly 1 inspection RemoteEvent constructor; found ${remoteConstructors}`);
 
 const ui=uiFiles.filter(exists).map(read).join('\n');
-for(const marker of ['BBYA_V5_UI','TOP controls/panels open DOWN','LEFT rail panels open RIGHT','RIGHT rail panels open LEFT','BBYACurrentZone','BBYAUIDrawerRule','BBYAV5UIPolish','BBYAUIThumbControlClearance']) {
+for(const marker of ['BBYA_V5_UI','TOP controls/panels open DOWN','LEFT rail panels open RIGHT','RIGHT rail panels open LEFT','BBYACurrentZone','BBYAUIDrawerRule','BBYAV5UIPolish','BBYAUIThumbControlClearance','BBYAV5TPPanel','BBYA_V5_InspectionNav']) {
   if(!ui.includes(marker)) fail(`UI shell marker missing: ${marker}`);
 }
 if(ui.includes('MarketplaceService')||ui.includes('PromptProductPurchase')) fail('UI shell must not activate real monetization during greybox');
@@ -62,7 +64,7 @@ for(const retired of [
   'bbya.phase6-wayfinding.server.lua','bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua',
   'bbya.client.lua','bbya.music.client.lua','bbya.monetization.client.lua','bbya.ui-coordinator.client.lua'
 ]) if(injector.includes(retired)) fail(`retired runtime still referenced: ${retired}`);
-if(!failed) pass('injector = 1 modular architecture Script + 1 polished unified UI LocalScript');
+if(!failed) pass('injector = 1 modular architecture/inspection Script + 1 polished unified UI LocalScript');
 
 if(target&&exists(target.file)) {
   const xml=read(target.file);
@@ -81,13 +83,13 @@ if(target&&exists(target.file)) {
     for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
       if(!runtime.includes(`registerZone("${code}"`)) fail(`injected runtime missing zone ${code}`);
     }
-    for(const marker of ['TOP_DOWN/LEFT_RIGHT/RIGHT_LEFT','BBYACurrentZone','MOBILE_SAFE','BBYAV5UIPolish','BBYAUIThumbControlClearance','BBYAV5WorldInspectionTags']) {
+    for(const marker of ['TOP_DOWN/LEFT_RIGHT/RIGHT_LEFT','BBYACurrentZone','MOBILE_SAFE','BBYAV5UIPolish','BBYAUIThumbControlClearance','BBYAV5WorldInspectionTags','BBYA_V5_InspectionNav','CODED_SAFE_LANDINGS','BBYAV5TPPanel']) {
       if(!runtime.includes(marker)) fail(`injected polished runtime missing marker: ${marker}`);
     }
     if(!runtime.includes('5.2-modular-greybox')) fail('V5.2 status marker missing after injection');
-    if(!failed) pass('post-injection architecture + polished mobile-safe UI valid');
+    if(!failed) pass('post-injection architecture + coded inspection nav + polished mobile-safe UI valid');
   }
 }
 
 if(failed){console.error(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} BUILD REJECTED`);process.exit(1)}
-console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR + UI POLISH 1.1`);
+console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR + CODED INSPECTION NAV + UI POLISH`);
