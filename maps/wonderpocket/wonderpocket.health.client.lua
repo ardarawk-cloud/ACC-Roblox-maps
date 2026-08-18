@@ -2,10 +2,14 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local old = playerGui:FindFirstChild("WP_ClosedTestHealth")
+if old then old:Destroy() end
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "WP_ClosedTestHealth"
 gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.Parent = playerGui
 
 local button = Instance.new("TextButton")
 button.AnchorPoint = Vector2.new(1,0)
@@ -22,20 +26,26 @@ Instance.new("UICorner",button).CornerRadius = UDim.new(0,10)
 local panel = Instance.new("TextLabel")
 panel.AnchorPoint = Vector2.new(1,0)
 panel.Position = UDim2.new(1,-10,0,112)
-panel.Size = UDim2.fromOffset(340,390)
+panel.Size = UDim2.new(1,-20,1,-128)
 panel.BackgroundColor3 = Color3.fromRGB(20,25,45)
 panel.BackgroundTransparency = .08
 panel.TextColor3 = Color3.fromRGB(235,242,255)
 panel.TextXAlignment = Enum.TextXAlignment.Left
 panel.TextYAlignment = Enum.TextYAlignment.Top
 panel.Font = Enum.Font.Code
-panel.TextSize = 13
+panel.TextSize = 12
 panel.TextWrapped = true
 panel.Visible = false
 panel.Parent = gui
+local limit=Instance.new("UISizeConstraint")
+limit.MaxSize=Vector2.new(350,460)
+limit.MinSize=Vector2.new(285,340)
+limit.Parent=panel
 Instance.new("UICorner",panel).CornerRadius = UDim.new(0,12)
 
 local function yes(v) return v and "OK" or "WAIT" end
+local function fail(v) return v and "FAIL" or "OK" end
+
 local function refresh()
     local remotes=ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes")
     local plotId=tonumber(player:GetAttribute("WP_PlotIndex")) or 0
@@ -49,6 +59,14 @@ local function refresh()
     local lastDelta=tonumber(player:GetAttribute("WP_LastEconomyDeltaCoins")) or 0
     local deadline=tonumber(player:GetAttribute("WP_AdventureDeadline")) or 0
     local secondsLeft=deadline>0 and math.max(0,deadline-os.time()) or 0
+    local readOnly=player:GetAttribute("WP_DataReadOnly")==true
+    local mainFail=player:GetAttribute("WP_DataLoadFailed")==true
+    local invFail=player:GetAttribute("WP_InventoryLoadFailed")==true
+    local furnFail=player:GetAttribute("WP_FurnitureLoadFailed")==true
+    local gardenFail=player:GetAttribute("WP_GardenLoadFailed")==true
+    local dexFail=player:GetAttribute("WP_DexLoadFailed")==true
+    local dataSafe=not (readOnly or mainFail or invFail or furnFail or gardenFail or dexFail)
+
     local dexFound=0
     for _,attr in ipairs({
         "WP_DEX_Wondies_Bubbi","WP_DEX_Wondies_Flamo","WP_DEX_Wondies_Mossy","WP_DEX_Wondies_Lumi","WP_DEX_Wondies_Zappy","WP_DEX_Wondies_Puffy",
@@ -59,17 +77,18 @@ local function refresh()
     }) do if player:GetAttribute(attr)==true then dexFound+=1 end end
 
     panel.Text=string.format(
-        " WONDERPOCKET v1.2 CLOSED TEST\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Garden Save: %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n Garden Ready: %s\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.3 DATA SAFETY\n\n DATA SAFETY: %s\n Read Only: %s\n Load Fail M/I/F/G/D: %s/%s/%s/%s/%s\n\n Data Load: %s\n Player Save: %s\n Inventory: %s / Save %s\n Furniture: %s / Save %s\n Garden: %s / Save %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        dataSafe and "OK" or "READ-ONLY",
+        readOnly and "YES" or "NO",
+        fail(mainFail),fail(invFail),fail(furnFail),fail(gardenFail),fail(dexFail),
         yes(player:GetAttribute("WP_DataLoaded")==true),
         yes(player:GetAttribute("WP_DataSaveHealthy")~=false),
-        yes(player:GetAttribute("WP_InventoryLoaded")==true),
-        yes(player:GetAttribute("WP_InventorySaveHealthy")~=false),
-        yes(player:GetAttribute("WP_FurnitureSaveHealthy")~=false),
-        yes(player:GetAttribute("WP_GardenSaveHealthy")~=false),
+        yes(player:GetAttribute("WP_InventoryLoaded")==true),yes(player:GetAttribute("WP_InventorySaveHealthy")~=false),
+        yes(player:GetAttribute("WP_FurnitureLoaded")==true),yes(player:GetAttribute("WP_FurnitureSaveHealthy")~=false),
+        yes(player:GetAttribute("WP_GardenReady")==true),yes(player:GetAttribute("WP_GardenSaveHealthy")~=false),
         yes(player:GetAttribute("WP_DexLoaded")==true),yes(player:GetAttribute("WP_DexSaveHealthy")~=false),tostring(dexFound),
         yes(remotes~=nil),
         plotId>0 and tostring(plotId) or "WAIT",yes(player:GetAttribute("WP_HomeReady")==true),
-        yes(player:GetAttribute("WP_GardenReady")==true),
         tostring(coins),tostring(stars),tostring(seeds),
         tostring(txnSeq),lastAction,lastItem,lastDelta,
         tostring(tonumber(player:GetAttribute("WP_HarvestCount")) or 0),
@@ -91,4 +110,4 @@ task.spawn(function()
     while task.wait(2) do if panel.Visible then refresh() end end
 end)
 
-print("[WONDERPOCKET] v1.2 closed-test health UI with seed/economy audit ready")
+print("[WONDERPOCKET] v1.3 fail-closed health UI ready")
