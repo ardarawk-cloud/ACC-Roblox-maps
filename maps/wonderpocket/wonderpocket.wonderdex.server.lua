@@ -14,6 +14,7 @@ DexRemote.Parent = remotes
 local Discover = ServerStorage:FindFirstChild("WONDERPOCKET_Discover") or Instance.new("BindableEvent")
 Discover.Name = "WONDERPOCKET_Discover"
 Discover.Parent = ServerStorage
+local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
 
 local Store = DataStoreService:GetDataStore("WONDERPOCKET_WonderDex_v1")
 local MAX_RETRIES = 4
@@ -89,7 +90,7 @@ local function markDirty(player) revision[player]=(revision[player] or 0)+1 end
 
 local function save(player,force)
     local data=state[player]
-    if not data then return false end
+    if not data or player:GetAttribute("WP_DexLoadFailed")==true then return false end
     if saving[player] then if force then forcePending[player]=true end return false end
     local currentRevision=revision[player] or 0
     if not force and currentRevision<=(savedRevision[player] or 0) then return true end
@@ -117,6 +118,7 @@ end
 
 local function discover(player,category,id)
     if not player or not player.Parent then return false end
+    if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_DexLoadFailed")==true or player:GetAttribute("WP_DexLoaded")~=true then return false end
     category=tostring(category or "");id=tostring(id or "")
     if not (allowed[category] and allowed[category][id]) then return false end
     local data=state[player]
@@ -130,6 +132,7 @@ local function discover(player,category,id)
 end
 
 local function scanFurniture(player)
+    if player:GetAttribute("WP_DexLoaded")~=true then return end
     for _,id in ipairs(categories.Furniture) do
         if (tonumber(player:GetAttribute("WP_INV_"..id)) or 0)>0 then discover(player,"Furniture",id) end
     end
@@ -156,14 +159,35 @@ local function watch(player,attribute,callback)
 end
 
 local function setup(player)
+    player:SetAttribute("WP_DexLoaded",false)
+    player:SetAttribute("WP_DexLoadFailed",false)
     local deadline=os.clock()+20
-    while player.Parent and os.clock()<deadline and player:GetAttribute("WP_DataLoaded")~=true do task.wait(.25) end
-    if not player.Parent then return end
+    while player.Parent and os.clock()<deadline do
+        if player:GetAttribute("WP_DataLoadFailed")==true then
+            player:SetAttribute("WP_DexLoadFailed",true)
+            player:SetAttribute("WP_DexSaveHealthy",false)
+            return
+        end
+        if player:GetAttribute("WP_DataLoaded")==true then break end
+        task.wait(.25)
+    end
+    if not player.Parent or player:GetAttribute("WP_DataLoaded")~=true then
+        player:SetAttribute("WP_DexLoadFailed",true)
+        player:SetAttribute("WP_DexSaveHealthy",false)
+        return
+    end
 
     local ok,data=retry("WonderDex load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
-    data=normalize(ok and data or nil)
+    if not ok then
+        player:SetAttribute("WP_DexLoadFailed",true)
+        player:SetAttribute("WP_DexSaveHealthy",false)
+        warn("[WONDERPOCKET] WonderDex load failed closed",player.UserId)
+        return
+    end
+
+    data=normalize(data)
     state[player]=data;revision[player]=0;savedRevision[player]=0;connections[player]={}
-    player:SetAttribute("WP_DexSaveHealthy",ok)
+    player:SetAttribute("WP_DexSaveHealthy",true)
 
     for category,list in pairs(categories) do
         for _,id in ipairs(list) do player:SetAttribute(key(category,id),data.found[category][id]==true) end
@@ -192,9 +216,19 @@ Discover.Event:Connect(function(player,category,id)
     if typeof(player)=="Instance" and player:IsA("Player") then discover(player,category,id) end
 end)
 
+CriticalSave.Event:Connect(function(player)
+    if typeof(player)=="Instance" and player:IsA("Player") and state[player] then task.spawn(save,player,true) end
+end)
+
 DexRemote.OnServerEvent:Connect(function(player,action)
     if action=="GET" then
-        DexRemote:FireClient(player,"SNAPSHOT",snapshot(player))
+        if player:GetAttribute("WP_DexLoadFailed")==true or player:GetAttribute("WP_DataReadOnly")==true then
+            DexRemote:FireClient(player,"NOTICE","DATA_READ_ONLY")
+        elseif player:GetAttribute("WP_DexLoaded")==true then
+            DexRemote:FireClient(player,"SNAPSHOT",snapshot(player))
+        else
+            DexRemote:FireClient(player,"NOTICE","DATA_NOT_READY")
+        end
     elseif action=="DISCOVER" then
         DexRemote:FireClient(player,"NOTICE","SERVER_AUTHORITATIVE")
     end
@@ -216,4 +250,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Gameplay-wired persistent server-authoritative WonderDex loaded")
+print("[WONDERPOCKET] Fail-closed persistent server-authoritative WonderDex loaded")
