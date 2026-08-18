@@ -33,11 +33,11 @@ local function glassRail(zone,name,center,size)
 end
 
 local function sofa(zone,name,center,width,yaw,color)
- local rot=CFrame.Angles(0,math.rad(yaw or 0),0)
- local base=finish(zone,name.." BASE",Vector3.new(width,1.2,4),CFrame.new(center)*rot,color or P.graphite,Enum.Material.Fabric,0,true)
- finish(zone,name.." BACK",Vector3.new(width,3.2,1),CFrame.new(center+Vector3.new(0,1.7,1.5))*rot,color or P.graphite,Enum.Material.Fabric,0,true)
- finish(zone,name.." ARM L",Vector3.new(1,2,4),CFrame.new(center)*rot*CFrame.new(-width/2+.5,.7,0),color or P.graphite,Enum.Material.Fabric,0,true)
- finish(zone,name.." ARM R",Vector3.new(1,2,4),CFrame.new(center)*rot*CFrame.new(width/2-.5,.7,0),color or P.graphite,Enum.Material.Fabric,0,true)
+ local cf=CFrame.new(center)*CFrame.Angles(0,math.rad(yaw or 0),0)
+ local base=finish(zone,name.." BASE",Vector3.new(width,1.2,4),cf,color or P.graphite,Enum.Material.Fabric,0,true)
+ finish(zone,name.." BACK",Vector3.new(width,3.2,1),cf*CFrame.new(0,1.7,1.5),color or P.graphite,Enum.Material.Fabric,0,true)
+ finish(zone,name.." ARM L",Vector3.new(1,2,4),cf*CFrame.new(-width/2+.5,.7,0),color or P.graphite,Enum.Material.Fabric,0,true)
+ finish(zone,name.." ARM R",Vector3.new(1,2,4),cf*CFrame.new(width/2-.5,.7,0),color or P.graphite,Enum.Material.Fabric,0,true)
  return base
 end
 
@@ -77,10 +77,10 @@ local function palm(zone,name,center,height)
 end
 
 local function barCounter(zone,name,center,size,yaw)
- local rot=CFrame.Angles(0,math.rad(yaw or 0),0)
- finish(zone,name.." BODY",Vector3.new(size.X,3.4,size.Z),CFrame.new(center)*rot,P.charcoal,Enum.Material.Slate,0,true)
- finish(zone,name.." TOP",Vector3.new(size.X+.5,.35,size.Z+.5),CFrame.new(center+Vector3.new(0,1.85,0))*rot,P.wood,Enum.Material.WoodPlanks,0,true)
- glow(zone,name.." UNDERGLOW",Vector3.new(size.X-.8,.18,.18),CFrame.new(center+Vector3.new(0,-.7,-size.Z/2-.11))*rot,P.warm,.35,8)
+ local cf=CFrame.new(center)*CFrame.Angles(0,math.rad(yaw or 0),0)
+ finish(zone,name.." BODY",Vector3.new(size.X,3.4,size.Z),cf,P.charcoal,Enum.Material.Slate,0,true)
+ finish(zone,name.." TOP",Vector3.new(size.X+.5,.35,size.Z+.5),cf*CFrame.new(0,1.85,0),P.wood,Enum.Material.WoodPlanks,0,true)
+ glow(zone,name.." UNDERGLOW",Vector3.new(size.X-.8,.18,.18),cf*CFrame.new(0,-.7,-size.Z/2-.11),P.warm,.35,8)
 end
 
 local function cabana(zone,name,center,yaw)
@@ -98,4 +98,4 @@ local function bollard(zone,name,center,color)
  glow(zone,name.." CAP",Vector3.new(.8,.28,.8),CFrame.new(center+Vector3.new(0,1.45,0)),color or P.warm,.4,7)
 end
 
-workspace:SetAttribute("BBYAV5DesignSystem","1.0")
+workspace:SetAttribute("BBYAV5DesignSystem","1.1")
