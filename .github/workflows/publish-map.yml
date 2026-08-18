@@ -14,8 +14,6 @@ on:
       - 'scripts/**'
       - '.github/workflows/publish-map.yml'
 
-# ACC rule: only the newest source state may reach Roblox.
-# Rapid build commits cancel obsolete in-flight publishes instead of producing founder-facing half builds.
 concurrency:
   group: roblox-map-publish-${{ github.ref }}
   cancel-in-progress: true
@@ -59,7 +57,7 @@ jobs:
 
           echo "maps=$(echo "$TARGETS" | xargs)" >> "$GITHUB_OUTPUT"
 
-      - name: Validate, inject and publish changed maps
+      - name: Validate, assemble and publish changed maps
         if: steps.targets.outputs.maps != ''
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -68,15 +66,28 @@ jobs:
         run: |
           set -euo pipefail
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
-            echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
-            node scripts/validate-bbya-build.js "$MAP_ID"
-            node scripts/validate-bbya-runtime-roots.js "$MAP_ID"
+            if [ "$MAP_ID" = "a-club" ]; then
+              PLACE_FILE=$(node -e "const r=require('./maps/registry.json'); process.stdout.write(r.maps['a-club'].file)")
 
-            echo "=== INJECT RUNTIME: $MAP_ID ==="
-            node scripts/inject-bbya.js "$MAP_ID"
+              echo "=== BBYA CLEAN REBUILD VALIDATION ==="
+              node scripts/validate-bbya-clean-rebuild.js
 
-            echo "=== POST-INJECTION VALIDATION: $MAP_ID ==="
-            node scripts/validate-bbya-build.js "$MAP_ID" --injected
+              echo "=== BBYA CLEAN REBUILD ASSEMBLY ==="
+              node scripts/assemble-bbya-v6-preview.js a-club "$PLACE_FILE"
+
+              echo "=== BBYA ASSEMBLED LIVE FILE INSPECTION ==="
+              node scripts/inspect-bbya-clean-preview.js "$PLACE_FILE"
+            else
+              echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
+              node scripts/validate-bbya-build.js "$MAP_ID"
+              node scripts/validate-bbya-runtime-roots.js "$MAP_ID"
+
+              echo "=== INJECT RUNTIME: $MAP_ID ==="
+              node scripts/inject-bbya.js "$MAP_ID"
+
+              echo "=== POST-INJECTION VALIDATION: $MAP_ID ==="
+              node scripts/validate-bbya-build.js "$MAP_ID" --injected
+            fi
 
             echo "=== PUBLISH: $MAP_ID ==="
             node scripts/publish-map.js "$MAP_ID"
@@ -95,7 +106,7 @@ jobs:
           mkdir -p /tmp/bbya-deploy-status
           cp -a deploy-status/. /tmp/bbya-deploy-status/
 
-          # Remove injected RBXLX working-tree changes before committing only receipts.
+          # Remove assembled/injected working-tree changes before committing only receipts.
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
