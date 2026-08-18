@@ -10,7 +10,7 @@ const registry = JSON.parse(fs.readFileSync(path.join(root, 'maps/registry.json'
 const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map: ${mapId}`);
 
-// Server order is authoritative: physical build -> circulation -> lighting -> safety runtime -> support/music backend -> QC.
+// Server order is authoritative: physical build -> circulation -> lighting -> safety -> social systems -> QC -> release gate.
 const serverFiles = [
   'maps/a-club/rebuild/00-core.lua',
   'maps/a-club/rebuild/10-architecture.lua',
@@ -22,6 +22,7 @@ const serverFiles = [
   'maps/a-club/rebuild/40-runtime.server.lua',
   'maps/a-club/rebuild/60-social-systems.server.lua',
   'maps/a-club/rebuild/50-qc.server.lua',
+  'maps/a-club/rebuild/80-release-gate.server.lua',
 ];
 const clientFiles = [
   'maps/a-club/rebuild/70-ui.client.lua',
@@ -77,6 +78,6 @@ xml = xml.replace(blankStarter, starterPlayer);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; phase 5 exact Support tiers, mini-player, dual-deck Auto DJ shell and QC included.`);
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; phase 5 reference systems + phase 6 runtime release gate included.`);
 console.log('[BBYA CLEAN REBUILD] Support product IDs and authorized music library intentionally remain pending/disabled until official values are supplied.');
 console.log('[BBYA CLEAN REBUILD] PREVIEW ONLY — NO ROBLOX PUBLISH PERFORMED');
