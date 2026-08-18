@@ -32,9 +32,7 @@ const pass = msg => console.log(`[BBYA V6 VALIDATE] PASS: ${msg}`);
 const fail = msg => { failed = true; console.error(`[BBYA V6 VALIDATE] FAIL: ${msg}`); };
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-for (const file of required) {
-  if (!fs.existsSync(path.join(root, file))) fail(`missing required file ${file}`);
-}
+for (const file of required) if (!fs.existsSync(path.join(root, file))) fail(`missing required file ${file}`);
 if (failed) process.exit(1);
 pass(`${required.length} required V6 source files present`);
 
@@ -122,26 +120,37 @@ for (const token of ['BBYAV6RuntimeQC','BBYAV6RuntimeIssueCount','blocked clear 
 }
 if (!failed) pass('runtime QC checks clean slate, physical features, avatar fill and clear landings');
 
-if (!assembler.includes('BBYA_V6_CLEANROOM_ARCHITECTURE') || !assembler.includes('BBYA_V6_UNIFIED_UI')) fail('V6 preview assembler runtime names missing');
+if (!assembler.includes('BBYA_V6_CLEANROOM_RUNTIME') || !assembler.includes('BBYA_V6_UNIFIED_UI')) fail('V6 deterministic preview runtime names missing');
+if (assembler.includes('BBYA_V6_CLEANROOM_ARCHITECTURE') || assembler.includes('BBYA_V6_CLEANROOM_SYSTEMS')) fail('assembler still creates parallel architecture/system scripts');
 if (/v5\//.test(assembler)) fail('V6 assembler references V5 source files');
 for (const module of ['23-lift-finish.lua','31-vip-gates.lua','55-monetization.server.lua','61-zone-hud.client.lua','62-dance-ui.client.lua','63-commerce-ui.client.lua','70-runtime-qc.server.lua']) {
   if (!assembler.includes(module)) fail(`V6 assembler missing module ${module}`);
 }
-if (!failed) pass('preview assembler isolated and includes current V6 modules');
+const architectureIndex=assembler.indexOf('maps/a-club/v6/31-vip-gates.lua');
+const systemsIndex=assembler.indexOf('maps/a-club/v6/50-systems.server.lua');
+const commerceIndex=assembler.indexOf('maps/a-club/v6/55-monetization.server.lua');
+const qcIndex=assembler.indexOf('maps/a-club/v6/70-runtime-qc.server.lua');
+if (!(architectureIndex>=0 && systemsIndex>architectureIndex && commerceIndex>systemsIndex && qcIndex>commerceIndex)) fail('server runtime source order is not architecture -> systems -> commerce -> QC');
+else pass('server runtime executes deterministic architecture -> systems -> commerce -> QC order');
 
 if (assembledFlag) {
   if (!assembledPath || !fs.existsSync(assembledPath)) fail(`assembled preview not found: ${assembledPath || '(none)'}`);
   else {
     const xml = fs.readFileSync(assembledPath, 'utf8');
     if (!xml.includes('BBYA_V6_PREVIEW_RUNTIME_BEGIN')) fail('assembled preview missing V6 runtime block');
-    if (!xml.includes('BBYA_V6_CLEANROOM_ARCHITECTURE')) fail('assembled preview missing V6 architecture runtime');
-    if (!xml.includes('BBYA_V6_CLEANROOM_SYSTEMS')) fail('assembled preview missing V6 systems runtime');
+    if (!xml.includes('BBYA_V6_CLEANROOM_RUNTIME')) fail('assembled preview missing deterministic V6 server runtime');
     if (!xml.includes('BBYA_V6_UNIFIED_UI')) fail('assembled preview missing V6 UI runtime');
+    if (xml.includes('BBYA_V6_CLEANROOM_ARCHITECTURE') || xml.includes('BBYA_V6_CLEANROOM_SYSTEMS')) fail('assembled preview still contains parallel V6 server runtimes');
     if (xml.includes('BBYA_V5_3_MASTER_ARCHITECTURE')) fail('assembled preview contains active V5.3 injected runtime');
     for (const module of ['23-lift-finish.lua','31-vip-gates.lua','55-monetization.server.lua','61-zone-hud.client.lua','62-dance-ui.client.lua','63-commerce-ui.client.lua','70-runtime-qc.server.lua']) {
       if (!xml.includes(`SOURCE FILE: maps/a-club/v6/${module}`)) fail(`assembled preview missing source ${module}`);
     }
-    if (!failed) pass('assembled RBXLX contains only current V6 injected runtime block');
+    const xmlGate=xml.indexOf('SOURCE FILE: maps/a-club/v6/31-vip-gates.lua');
+    const xmlSystems=xml.indexOf('SOURCE FILE: maps/a-club/v6/50-systems.server.lua');
+    const xmlCommerce=xml.indexOf('SOURCE FILE: maps/a-club/v6/55-monetization.server.lua');
+    const xmlQc=xml.indexOf('SOURCE FILE: maps/a-club/v6/70-runtime-qc.server.lua');
+    if (!(xmlGate>=0 && xmlSystems>xmlGate && xmlCommerce>xmlSystems && xmlQc>xmlCommerce)) fail('assembled V6 server source order is wrong');
+    if (!failed) pass('assembled RBXLX contains one ordered V6 server runtime and current UI modules only');
   }
 }
 
