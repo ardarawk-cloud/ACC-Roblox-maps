@@ -51,7 +51,11 @@ PlacementRemote.OnServerEvent:Connect(function(player, action, itemId, cf)
     end
 
     local p = cf.Position
-    local snapped = CFrame.new(snap(p.X), math.max(1, snap(p.Y)), snap(p.Z)) * CFrame.Angles(0, math.rad(math.floor(cf:ToEulerAnglesYXZ() * 4 + 0.5) / 4 * 90), 0)
+    local _, yaw, _ = cf:ToOrientation()
+    local quarterTurn = math.pi / 2
+    local snappedYaw = math.floor((yaw / quarterTurn) + 0.5) * quarterTurn
+    local snapped = CFrame.new(snap(p.X), math.max(1, snap(p.Y)), snap(p.Z)) * CFrame.Angles(0, snappedYaw, 0)
+
     local part = Instance.new("Part")
     part.Name = itemId
     part.Size = size
