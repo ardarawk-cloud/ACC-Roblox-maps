@@ -31,6 +31,7 @@ end
 local function waitForData(player)
     local deadline=os.clock()+20
     while player.Parent and os.clock()<deadline do
+        if player:GetAttribute("WP_DataLoadFailed")==true then return false end
         if player:GetAttribute("WP_DataLoaded")==true then return true end
         task.wait(.25)
     end
@@ -50,7 +51,7 @@ local function markDirty(player)
 end
 
 local function save(player,force)
-    if revision[player]==nil then return false end
+    if revision[player]==nil or player:GetAttribute("WP_InventoryLoadFailed")==true then return false end
     if saving[player] then
         if force then forcePending[player]=true end
         return false
@@ -76,13 +77,22 @@ local function save(player,force)
 end
 
 local function setup(player)
+    player:SetAttribute("WP_InventoryLoaded",false)
+    player:SetAttribute("WP_InventoryLoadFailed",false)
     if not waitForData(player) then
         player:SetAttribute("WP_InventorySaveHealthy",false)
         return
     end
 
     local ok,data=retry("inventory load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
-    data=ok and type(data)=="table" and data or {items={},purchased=0}
+    if not ok then
+        player:SetAttribute("WP_InventoryLoadFailed",true)
+        player:SetAttribute("WP_InventorySaveHealthy",false)
+        warn("[WONDERPOCKET] Furniture inventory load failed closed",player.UserId)
+        return
+    end
+
+    data=type(data)=="table" and data or {items={},purchased=0}
     local items=type(data.items)=="table" and data.items or {}
 
     revision[player]=0
@@ -93,7 +103,7 @@ local function setup(player)
     end
     player:SetAttribute("WP_PurchasedFurnitureCount",math.max(0,math.floor(tonumber(data.purchased) or 0)))
     player:SetAttribute("WP_InventoryLoaded",true)
-    player:SetAttribute("WP_InventorySaveHealthy",ok)
+    player:SetAttribute("WP_InventorySaveHealthy",true)
 
     for _,id in ipairs(IDS) do
         table.insert(connections[player],player:GetAttributeChangedSignal(key(id)):Connect(function() markDirty(player) end))
@@ -134,4 +144,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Revision-safe persistent furniture inventory loaded")
+print("[WONDERPOCKET] Fail-closed revision-safe furniture inventory loaded")
