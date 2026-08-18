@@ -14,10 +14,10 @@ gui.Parent = playerGui
 local button = Instance.new("TextButton")
 button.AnchorPoint = Vector2.new(1,0)
 button.Position = UDim2.new(1,-10,0,72)
-button.Size = UDim2.fromOffset(74,34)
+button.Size = UDim2.fromOffset(82,34)
 button.BackgroundColor3 = Color3.fromRGB(35,45,80)
 button.TextColor3 = Color3.new(1,1,1)
-button.Text = "TEST"
+button.Text = "TEST..."
 button.Font = Enum.Font.GothamBold
 button.TextSize = 13
 button.Parent = gui
@@ -47,6 +47,44 @@ local function yes(v) return v and "OK" or "WAIT" end
 local function fail(v) return v and "FAIL" or "OK" end
 local function bit(v) return v and "Y" or "-" end
 
+local function isUnsafe()
+    return player:GetAttribute("WP_DataReadOnly")==true
+        or player:GetAttribute("WP_SaveHealthReadOnly")==true
+        or player:GetAttribute("WP_DataLoadFailed")==true
+        or player:GetAttribute("WP_InventoryLoadFailed")==true
+        or player:GetAttribute("WP_FurnitureLoadFailed")==true
+        or player:GetAttribute("WP_GardenLoadFailed")==true
+        or player:GetAttribute("WP_DexLoadFailed")==true
+        or player:GetAttribute("WP_DataSaveHealthy")==false
+        or player:GetAttribute("WP_InventorySaveHealthy")==false
+        or player:GetAttribute("WP_FurnitureSaveHealthy")==false
+        or player:GetAttribute("WP_GardenSaveHealthy")==false
+        or player:GetAttribute("WP_DexSaveHealthy")==false
+end
+
+local function allLoaded()
+    return player:GetAttribute("WP_DataLoaded")==true
+        and player:GetAttribute("WP_InventoryLoaded")==true
+        and player:GetAttribute("WP_FurnitureLoaded")==true
+        and player:GetAttribute("WP_GardenReady")==true
+        and player:GetAttribute("WP_DexLoaded")==true
+        and (tonumber(player:GetAttribute("WP_PlotIndex")) or 0)>0
+        and player:GetAttribute("WP_HomeReady")==true
+end
+
+local function syncButtonHealth()
+    if isUnsafe() then
+        button.Text="TEST !"
+        button.BackgroundColor3=Color3.fromRGB(154,58,72)
+    elseif allLoaded() then
+        button.Text="TEST OK"
+        button.BackgroundColor3=Color3.fromRGB(48,132,96)
+    else
+        button.Text="TEST..."
+        button.BackgroundColor3=Color3.fromRGB(35,45,80)
+    end
+end
+
 local function refresh()
     local remotes=ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes")
     local plotId=tonumber(player:GetAttribute("WP_PlotIndex")) or 0
@@ -69,7 +107,7 @@ local function refresh()
     local furnFail=player:GetAttribute("WP_FurnitureLoadFailed")==true
     local gardenFail=player:GetAttribute("WP_GardenLoadFailed")==true
     local dexFail=player:GetAttribute("WP_DexLoadFailed")==true
-    local dataSafe=not (readOnly or saveFreeze or mainFail or invFail or furnFail or gardenFail or dexFail)
+    local dataSafe=not isUnsafe()
 
     local started=player:GetAttribute("WP_TutorialStarted")==true
     local metWondi=player:GetAttribute("WP_Tutorial_MetWondi")==true
@@ -114,6 +152,7 @@ local function refresh()
         tostring(workspace:GetAttribute("WP_CurrentPlayers") or 0),
         tostring(workspace:GetAttribute("WP_PeakPlayers") or 0)
     )
+    syncButtonHealth()
 end
 
 button.Activated:Connect(function()
@@ -122,7 +161,12 @@ button.Activated:Connect(function()
 end)
 
 task.spawn(function()
-    while task.wait(2) do if panel.Visible then refresh() end end
+    while gui.Parent do
+        syncButtonHealth()
+        if panel.Visible then refresh() end
+        task.wait(1.5)
+    end
 end)
 
+syncButtonHealth()
 print("[WONDERPOCKET] v1.3 closed-test health + first-journey checklist ready")
