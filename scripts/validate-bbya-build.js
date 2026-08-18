@@ -30,8 +30,9 @@ const zoneFiles=[
   'maps/a-club/v5/D4-rooftop-chill.lua','maps/a-club/v5/D5-cabana-zones.lua','maps/a-club/v5/D6-photo-view.lua',
   'maps/a-club/v5/S1-service.lua','maps/a-club/v5/99-finalize.lua'
 ];
-for(const p of [...zoneFiles,'scripts/inject-bbya.js','scripts/publish-map.js']) if(!exists(p)) fail(`required modular V5 file missing: ${p}`);
-if(!failed) pass(`${zoneFiles.length} modular architecture files present`);
+const uiFile='maps/a-club/v5/ui-shell.client.lua';
+for(const p of [...zoneFiles,uiFile,'scripts/inject-bbya.js','scripts/publish-map.js']) if(!exists(p)) fail(`required V5 file missing: ${p}`);
+if(!failed) pass(`${zoneFiles.length} modular architecture files + UI shell present`);
 
 const combined=zoneFiles.filter(exists).map(read).join('\n');
 for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
@@ -41,19 +42,27 @@ for(const marker of ['BBYAV5ZoneSchema','BBYAV5InspectionReady','BBYAV5Layout","
   if(!combined.includes(marker)) fail(`modular architecture marker missing: ${marker}`);
 }
 for(const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'MarketplaceService', 'RemoteEvent', 'TextButton']) {
-  if(combined.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.2: ${forbidden}`);
+  if(combined.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.2 architecture: ${forbidden}`);
 }
+
+const ui=exists(uiFile)?read(uiFile):'';
+for(const marker of ['BBYA_V5_UI','TOP controls/panels open DOWN','LEFT rail panels open RIGHT','RIGHT rail panels open LEFT','BBYACurrentZone','BBYAUIDrawerRule']) {
+  if(!ui.includes(marker)) fail(`UI shell marker missing: ${marker}`);
+}
+if(ui.includes('MarketplaceService')||ui.includes('PromptProductPurchase')) fail('UI shell must not activate real monetization during greybox');
 
 const injector=exists('scripts/inject-bbya.js')?read('scripts/inject-bbya.js'):'';
 for(const p of zoneFiles) if(!injector.includes(p)) fail(`injector missing modular source: ${p}`);
-if(!injector.includes('BBYA_V5_2_MODULAR_ARCHITECTURE')) fail('injector missing V5.2 runtime name');
+if(!injector.includes(uiFile)) fail('injector missing V5 UI shell source');
+if(!injector.includes('BBYA_V5_2_MODULAR_ARCHITECTURE')) fail('injector missing V5.2 architecture runtime');
+if(!injector.includes('BBYA_V5_Mobile_Safe_UI_Shell')) fail('injector missing mobile-safe UI runtime');
 for(const retired of [
   'bbya.v5-layout.server.lua','bbya.visual-rebuild-v4.server.lua','bbya.visual-polish-v4.server.lua',
   'bbya.phase3-premium.server.lua','bbya.phase4-experience.server.lua','bbya.phase5-finish.server.lua',
   'bbya.phase6-wayfinding.server.lua','bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua',
   'bbya.client.lua','bbya.music.client.lua','bbya.monetization.client.lua','bbya.ui-coordinator.client.lua'
 ]) if(injector.includes(retired)) fail(`retired runtime still referenced: ${retired}`);
-if(!failed) pass('injector assembles modular zones into one runtime script');
+if(!failed) pass('injector = 1 modular architecture Script + 1 unified UI LocalScript');
 
 if(target&&exists(target.file)) {
   const xml=read(target.file);
@@ -64,17 +73,21 @@ if(target&&exists(target.file)) {
     if(bc!==1||ec!==1) fail(`runtime markers invalid begin=${bc} end=${ec}`);
     const runtime=bc===1&&ec===1?xml.slice(xml.indexOf(begin),xml.indexOf(end)+end.length):'';
     if(!runtime.includes('<string name="Name">BBYA_V5_2_MODULAR_ARCHITECTURE</string>')) fail('V5.2 modular runtime missing after injection');
+    if(!runtime.includes('<string name="Name">BBYA_V5_Mobile_Safe_UI_Shell</string>')) fail('V5 mobile-safe UI shell missing after injection');
     const scripts=(runtime.match(/<Item class="Script"/g)||[]).length;
     const locals=(runtime.match(/<Item class="LocalScript"/g)||[]).length;
-    if(scripts!==1) fail(`expected exactly 1 architecture runtime script; found ${scripts}`);
-    if(locals!==0) fail(`expected 0 LocalScripts during architecture review; found ${locals}`);
+    if(scripts!==1) fail(`expected exactly 1 architecture runtime Script; found ${scripts}`);
+    if(locals!==1) fail(`expected exactly 1 unified UI LocalScript; found ${locals}`);
     for(const code of ['A1','A2','A3','A4','A5','A6','B1','B2','B3','C1','C2','C3','D1','D2','D3','D4','D5','D6','S1']) {
       if(!runtime.includes(`registerZone("${code}"`)) fail(`injected runtime missing zone ${code}`);
     }
+    for(const marker of ['TOP_DOWN/LEFT_RIGHT/RIGHT_LEFT','BBYACurrentZone','MOBILE_SAFE']) {
+      if(!runtime.includes(marker)) fail(`injected UI shell missing marker: ${marker}`);
+    }
     if(!runtime.includes('5.2-modular-greybox')) fail('V5.2 status marker missing after injection');
-    if(!failed) pass('post-injection modular architecture runtime valid');
+    if(!failed) pass('post-injection architecture + unified mobile-safe UI valid');
   }
 }
 
 if(failed){console.error(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} BUILD REJECTED`);process.exit(1)}
-console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR ZONE ARCHITECTURE`);
+console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR + MOBILE SAFE UI`);
