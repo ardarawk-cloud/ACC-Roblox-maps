@@ -1,5 +1,5 @@
--- BBYA V5.2 CODED INSPECTION NAVIGATION
--- QC-only navigation helper. Uses explicit safe landings; never derives teleports from furniture or zone centers.
+-- BBYA V5.3 CODED INSPECTION NAVIGATION
+-- QC-only navigation helper. Uses explicit safe landings; never derives teleports from furniture or feature centers.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -27,10 +27,12 @@ local TARGETS = {
     C3 = CFrame.new(0, 21, -62),
 
     D1 = CFrame.new(0, 39, 96) * CFrame.Angles(0, math.rad(180), 0),
-    D2 = CFrame.new(0, 39, -43),
+    -- D2 lands on the front pool deck, never inside water/basin.
+    D2 = CFrame.new(0, 39, -24) * CFrame.Angles(0, math.rad(180), 0),
     D3 = CFrame.new(-58, 39, 43),
     D4 = CFrame.new(58, 39, 43),
-    D5 = CFrame.new(-62, 39, -40),
+    -- D5 lands on the clear approach in front of the west cabanas, not between daybeds.
+    D5 = CFrame.new(-62, 39, -24) * CFrame.Angles(0, math.rad(180), 0),
     D6 = CFrame.new(0, 39, 108) * CFrame.Angles(0, math.rad(180), 0),
 
     S1 = CFrame.new(-75, 3, 109),
@@ -61,4 +63,4 @@ Players.PlayerRemoving:Connect(function(player)
     cooldown[player] = nil
 end)
 
-workspace:SetAttribute("BBYAV5InspectionNav", "CODED_SAFE_LANDINGS")
+workspace:SetAttribute("BBYAV5InspectionNav", "CODED_SAFE_LANDINGS_V53")
