@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local remotes = ReplicatedStorage:WaitForChild("WonderPocket_Remotes")
+local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes")
 local Placement = remotes:WaitForChild("Placement")
 
 local bus = playerGui:FindFirstChild("WP_BuildCommand") or Instance.new("BindableEvent")
@@ -89,8 +89,13 @@ end)
 
 Placement.OnClientEvent:Connect(function(action,ok,reason)
     if action=="RESULT" then
-        if ok then clearGhost() else player:SetAttribute("WP_LastBuildError",tostring(reason or "FAILED")) end
+        if ok then
+            player:SetAttribute("WP_LastBuildError","")
+            clearGhost()
+        else
+            player:SetAttribute("WP_LastBuildError",tostring(reason or "FAILED"))
+        end
     end
 end)
 
-print("[WONDERPOCKET] Mobile build preview controls loaded")
+print("[WONDERPOCKET] v1.0 mobile build preview controls loaded")
