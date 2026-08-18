@@ -89,6 +89,32 @@ local function footprintInsideOwnPlot(player, position, size, yaw)
     return math.abs(position.X-cx) + sx/2 <= hx and math.abs(position.Z-cz) + sz/2 <= hz
 end
 
+local function supportedCenterY(player, position, size, yaw)
+    local _,cy = plotInfo(player)
+    if not cy then return nil end
+
+    local sx,sz = footprintFor(size,yaw)
+    local homes = workspace:FindFirstChild("WONDERPOCKET_PlotHomes")
+    local home = homes and homes:FindFirstChild(tostring(player.UserId))
+    local floor = home and home:FindFirstChild("Floor")
+    if floor and floor:IsA("BasePart") then
+        local insideFloor = math.abs(position.X-floor.Position.X) + sx/2 <= floor.Size.X/2
+            and math.abs(position.Z-floor.Position.Z) + sz/2 <= floor.Size.Z/2
+        if insideFloor then
+            return floor.Position.Y + floor.Size.Y/2 + size.Y/2
+        end
+    end
+
+    local plotTop = cy + .5
+    local plotIndex = tonumber(player:GetAttribute("WP_PlotIndex")) or 0
+    local plots = workspace:FindFirstChild("WONDERPOCKET_PlayerPlots")
+    local plot = plots and plotIndex>0 and plots:FindFirstChild("Plot"..plotIndex)
+    if plot and plot:IsA("BasePart") then
+        plotTop = plot.Position.Y + plot.Size.Y/2
+    end
+    return plotTop + size.Y/2
+end
+
 local function makeFurniture(player,itemId,cf)
     local size = templates[itemId]
     if not size then return nil end
@@ -201,6 +227,8 @@ local function load(player)
             local pos=resolveSavedPosition(player,entry)
             local yaw=math.rad(tonumber(entry.yaw) or 0)
             if pos and footprintInsideOwnPlot(player,pos,templates[entry.id],yaw) then
+                local canonicalY=supportedCenterY(player,pos,templates[entry.id],yaw)
+                if canonicalY then pos=Vector3.new(pos.X,canonicalY,pos.Z) end
                 makeFurniture(player,entry.id,CFrame.new(pos)*CFrame.Angles(0,yaw,0))
                 loadedCount+=1
             end
@@ -245,11 +273,18 @@ local function handlePlace(player,itemId,cf)
         local _,yaw,_=cf:ToOrientation()
         local q=math.pi/2
         local snappedYaw=math.floor((yaw/q)+0.5)*q
-        local snapped=CFrame.new(snap(p.X),math.max(5.6,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
-        if not footprintInsideOwnPlot(player,snapped.Position,size,snappedYaw) then
+        local horizontal=Vector3.new(snap(p.X),0,snap(p.Z))
+        if not footprintInsideOwnPlot(player,horizontal,size,snappedYaw) then
             PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
             return
         end
+
+        local canonicalY=supportedCenterY(player,horizontal,size,snappedYaw)
+        if not canonicalY then
+            PlacementRemote:FireClient(player,"RESULT",false,"NO_VALID_SURFACE")
+            return
+        end
+        local snapped=CFrame.new(horizontal.X,canonicalY,horizontal.Z)*CFrame.Angles(0,snappedYaw,0)
 
         local invKey="WP_INV_"..itemId
         local owned=math.max(0,math.floor(tonumber(player:GetAttribute(invKey)) or 0))
@@ -335,4 +370,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Fail-closed audited furniture placement loaded")
+print("[WONDERPOCKET] Server-authoritative own-surface furniture placement loaded")
