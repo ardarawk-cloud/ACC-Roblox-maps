@@ -51,6 +51,10 @@ task.delay(7,function()
         BBYAV6SpawnReady=true,
         BBYAV6Systems="ACTIVE",
         BBYAV6LiftRuntime="READY",
+        BBYAV6ReferenceMassing="OWNER_IMAGE_1_LOCKED",
+        BBYAV6HeroComposition="LEFT_CLUB_CENTER_SOCIAL_RIGHT_VIP_UPPER_POOL",
+        BBYAV6NoFakePlayableFloors=true,
+        BBYAV6ArrivalView="OWNER_REFERENCE_DIAGONAL_HERO",
     }
     for k,want in pairs(attrs) do
         if workspace:GetAttribute(k)~=want then table.insert(issues,string.format("attr %s expected %s got %s",k,tostring(want),tostring(workspace:GetAttribute(k)))) end
@@ -70,6 +74,7 @@ task.delay(7,function()
         "D2 POOL WATER","D2 POOL DJ DESK","D2 RESORT PALM -43 69 TRUNK",
         "D3 SKY BAR COUNTER BODY","D3 BACKBAR SHELF 43",
         "D5 CABANA ROOF -33","D5 CABANA CURTAIN L -33","D6 VIEW PLATFORM","D6 CITY BLOCK 1",
+        "REF CLUB FACADE MARK","REF ROOFTOP POOL LANDMARK","REF VIP ROUTE SIGN","REF QUEEN SOCIAL BOARD","REF SUPPORT SOCIAL BOARD",
     }) do
         if not findDeep(name) then table.insert(issues,"missing physical/finish object: "..name) end
     end
@@ -107,7 +112,7 @@ task.delay(7,function()
     workspace:SetAttribute("BBYAV6RuntimeQCChecked",os.time())
 
     if #issues==0 then
-        print(string.format("[BBYA V6 QC] PASS — clean room + finishes + %d social seats + %d show lights + %d facility prompts verified",socialSeats,showLenses,prompts))
+        print(string.format("[BBYA V6 QC] PASS — clean room + owner reference + finishes + %d social seats + %d show lights + %d facility prompts verified",socialSeats,showLenses,prompts))
     else
         warn("[BBYA V6 QC] WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
     end
