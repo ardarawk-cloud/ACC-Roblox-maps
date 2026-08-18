@@ -11,6 +11,7 @@ if (!target) throw new Error(`Unknown map id: ${mapId}`);
 const placePath = path.join(process.cwd(), target.file);
 const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 const mainLua = readLua('maps/a-club/bbya.server.lua');
+const architectureLua = readLua('maps/a-club/bbya.architecture.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
 const featuresLua = readLua('maps/a-club/bbya.features.server.lua');
@@ -28,6 +29,7 @@ const runtime = `${begin}
 <Item class="ServerScriptService" referent="RBXBBYASERVERSCRIPTSERVICE00000001">
   <Properties><string name="Name">ServerScriptService</string></Properties>
   <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Main</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAARCHITECTURE000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Mega_Architecture_v2</string><ProtectedString name="Source"><![CDATA[${architectureLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAFEATURES0000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Feature_Stations</string><ProtectedString name="Source"><![CDATA[${featuresLua}]]></ProtectedString></Properties></Item>
@@ -46,4 +48,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Main + systems + DJ + features + QC hotfix + client + Queen UI injected into', target.file);
+console.log('[BBYA] Main + MEGA ARCHITECTURE v2 + systems + DJ + features + QC + client + Queen UI injected into', target.file);
