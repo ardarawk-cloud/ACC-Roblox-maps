@@ -56,6 +56,7 @@ const requiredSources = [
   'maps/a-club/bbya.support-celebration.client.lua',
   'maps/a-club/bbya.performance.client.lua',
   'maps/a-club/bbya.ui-coordinator.client.lua',
+  'maps/a-club/bbya.health.client.lua',
   'maps/a-club/bbya.queen.client.lua',
   'scripts/inject-bbya.js',
   'scripts/publish-map.js',
@@ -72,6 +73,7 @@ const mustInclude = [
   'bbya.build-validation.server.lua',
   'bbya.spawn-final.server.lua',
   'bbya.ui-coordinator.client.lua',
+  'bbya.health.client.lua',
 ];
 for (const needle of mustInclude) {
   if (!injector.includes(needle)) fail(`injector missing ${needle}`);
@@ -87,7 +89,6 @@ for (const needle of retiredInjectorSources) {
 }
 pass('injector clean-core policy checked');
 
-// Exactly one active source may own MarketplaceService.ProcessReceipt.
 const activeServerSources = requiredSources.filter((p) => p.endsWith('.server.lua'));
 const receiptOwners = [];
 for (const p of activeServerSources) {
@@ -100,7 +101,6 @@ else pass(`single ProcessReceipt owner: ${receiptOwners[0]}`);
 
 const retiredRuntimeNames = ['BBYA Visual v1.2', 'BBYA Social Systems', 'BBYA Arrival Neon Box'];
 for (const name of retiredRuntimeNames) {
-  // Build validator may mention these names intentionally; injector itself must never create them.
   if (injector.includes(name)) fail(`injector contains retired runtime name: ${name}`);
 }
 pass('legacy runtime names absent from injector');
@@ -134,6 +134,7 @@ if (target && exists(target.file)) {
       'BBYA_Music_Client',
       'BBYA_UI_Coordinator_Client',
       'BBYA_Adaptive_Performance_Client',
+      'BBYA_Queen_Playtest_Health_HUD',
     ];
     for (const scriptName of requiredRuntimeScripts) {
       if (!runtime.includes(`<string name="Name">${scriptName}</string>`)) fail(`injected runtime missing script: ${scriptName}`);
