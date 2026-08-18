@@ -1,5 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+local DataStoreService = game:GetService("DataStoreService")
 
 local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
 remotes.Name = "WONDERPOCKET_Remotes"
@@ -9,59 +11,189 @@ local DexRemote = remotes:FindFirstChild("WonderDex") or Instance.new("RemoteEve
 DexRemote.Name = "WonderDex"
 DexRemote.Parent = remotes
 
+local Discover = ServerStorage:FindFirstChild("WONDERPOCKET_Discover") or Instance.new("BindableEvent")
+Discover.Name = "WONDERPOCKET_Discover"
+Discover.Parent = ServerStorage
+
+local Store = DataStoreService:GetDataStore("WONDERPOCKET_WonderDex_v1")
+local MAX_RETRIES = 4
 local categories = {
     Wondies = {"Bubbi","Flamo","Mossy","Lumi","Zappy","Puffy"},
     Plants = {"Carrot","Strawberry","Sunflower"},
     Furniture = {"CloudBed","StarLamp","RainbowSofa","BunnyChair","ToyChest","MiniAquarium"},
+    Badges = {"TreasureIsland"},
     Biomes = {"MeadowPocket","BeachIsland","SnowWorld","CandyWorld","SpaceWorld"},
 }
 
-local function key(category, id)
-    return "WP_DEX_" .. category .. "_" .. id
+local allowed = {}
+for category,list in pairs(categories) do
+    allowed[category] = {}
+    for _,id in ipairs(list) do allowed[category][id] = true end
 end
 
-local function countCategory(player, category)
-    local found = 0
-    local list = categories[category] or {}
-    for _, id in ipairs(list) do
-        if player:GetAttribute(key(category, id)) == true then
-            found += 1
-        end
+local state = {}
+local revision = {}
+local savedRevision = {}
+local saving = {}
+local forcePending = {}
+local connections = {}
+
+local function retry(label,fn)
+    local lastErr
+    for attempt=1,MAX_RETRIES do
+        local ok,result=pcall(fn)
+        if ok then return true,result end
+        lastErr=result
+        warn(string.format("[WONDERPOCKET] %s attempt %d failed: %s",label,attempt,tostring(result)))
+        task.wait(math.min(2^(attempt-1),6))
     end
-    return found, #list
+    return false,lastErr
 end
 
-local function snapshot(player)
-    local data = {}
-    for category in pairs(categories) do
-        local found, total = countCategory(player, category)
-        data[category] = {found=found,total=total}
-    end
+local function key(category,id) return "WP_DEX_"..category.."_"..id end
+
+local function blank()
+    local data={schemaVersion=1,found={}}
+    for category in pairs(categories) do data.found[category]={} end
+    data.found.Wondies.Bubbi=true
+    data.found.Biomes.MeadowPocket=true
     return data
 end
 
-DexRemote.OnServerEvent:Connect(function(player, action, category, id)
-    if action == "GET" then
-        DexRemote:FireClient(player, "SNAPSHOT", snapshot(player))
-    elseif action == "DISCOVER" then
-        category = tostring(category)
-        id = tostring(id)
-        local allowed = false
-        for _, candidate in ipairs(categories[category] or {}) do
-            if candidate == id then allowed = true break end
+local function normalize(data)
+    if type(data)~="table" then data=blank() end
+    if type(data.found)~="table" then data.found={} end
+    for category,list in pairs(categories) do
+        if type(data.found[category])~="table" then data.found[category]={} end
+        for _,id in ipairs(list) do data.found[category][id]=data.found[category][id]==true end
+    end
+    data.found.Wondies.Bubbi=true
+    data.found.Biomes.MeadowPocket=true
+    data.schemaVersion=1
+    return data
+end
+
+local function snapshot(player)
+    local data=state[player]
+    local out={}
+    if not data then return out end
+    for category,list in pairs(categories) do
+        local found=0
+        local ids={}
+        for _,id in ipairs(list) do
+            local has=data.found[category][id]==true
+            if has then found+=1 end
+            ids[id]=has
         end
-        if not allowed then return end
-        local attr = key(category, id)
-        if player:GetAttribute(attr) ~= true then
-            player:SetAttribute(attr, true)
-            DexRemote:FireClient(player, "DISCOVERED", category, id, snapshot(player))
-        end
+        out[category]={found=found,total=#list,ids=ids}
+    end
+    return out
+end
+
+local function markDirty(player) revision[player]=(revision[player] or 0)+1 end
+
+local function save(player,force)
+    local data=state[player]
+    if not data then return false end
+    if saving[player] then
+        if force then forcePending[player]=true end
+        return false
+    end
+    local currentRevision=revision[player] or 0
+    if not force and currentRevision<=(savedRevision[player] or 0) then return true end
+
+    saving[player]=true
+    local targetRevision=currentRevision
+    local payload={schemaVersion=1,found={}}
+    for category,list in pairs(categories) do
+        payload.found[category]={}
+        for _,id in ipairs(list) do payload.found[category][id]=data.found[category][id]==true end
+    end
+    local ok=retry("WonderDex save u_"..player.UserId,function()
+        Store:UpdateAsync("u_"..player.UserId,function() return payload end)
+    end)
+    saving[player]=nil
+    player:SetAttribute("WP_DexSaveHealthy",ok)
+    if ok then savedRevision[player]=math.max(savedRevision[player] or 0,targetRevision) end
+
+    local rerun=forcePending[player]==true or (revision[player] or 0)>(savedRevision[player] or 0)
+    local nextForce=forcePending[player]==true
+    forcePending[player]=nil
+    if rerun and player.Parent then task.defer(save,player,nextForce) end
+    return ok
+end
+
+local function discover(player,category,id)
+    if not player or not player.Parent then return false end
+    category=tostring(category or "")
+    id=tostring(id or "")
+    if not (allowed[category] and allowed[category][id]) then return false end
+    local data=state[player]
+    if not data then return false end
+    if data.found[category][id] then return false end
+
+    data.found[category][id]=true
+    player:SetAttribute(key(category,id),true)
+    markDirty(player)
+    task.spawn(save,player,false)
+    DexRemote:FireClient(player,"DISCOVERED",category,id,snapshot(player))
+    return true
+end
+
+local function setup(player)
+    local deadline=os.clock()+20
+    while player.Parent and os.clock()<deadline and player:GetAttribute("WP_DataLoaded")~=true do task.wait(.25) end
+    if not player.Parent then return end
+
+    local ok,data=retry("WonderDex load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
+    data=normalize(ok and data or nil)
+    state[player]=data
+    revision[player]=0
+    savedRevision[player]=0
+    connections[player]={}
+    player:SetAttribute("WP_DexSaveHealthy",ok)
+
+    for category,list in pairs(categories) do
+        for _,id in ipairs(list) do player:SetAttribute(key(category,id),data.found[category][id]==true) end
+    end
+    player:SetAttribute("WP_DexLoaded",true)
+
+    table.insert(connections[player],player:GetAttributeChangedSignal("ActiveWondi"):Connect(function()
+        discover(player,"Wondies",player:GetAttribute("ActiveWondi"))
+    end))
+    table.insert(connections[player],player:GetAttributeChangedSignal("PocketBiome"):Connect(function()
+        discover(player,"Biomes",player:GetAttribute("PocketBiome"))
+    end))
+    discover(player,"Wondies",player:GetAttribute("ActiveWondi") or "Bubbi")
+    discover(player,"Biomes",player:GetAttribute("PocketBiome") or "MeadowPocket")
+end
+
+Discover.Event:Connect(function(player,category,id)
+    if typeof(player)=="Instance" and player:IsA("Player") then discover(player,category,id) end
+end)
+
+DexRemote.OnServerEvent:Connect(function(player,action)
+    if action=="GET" then
+        DexRemote:FireClient(player,"SNAPSHOT",snapshot(player))
+    elseif action=="DISCOVER" then
+        DexRemote:FireClient(player,"NOTICE","SERVER_AUTHORITATIVE")
     end
 end)
 
-Players.PlayerAdded:Connect(function(player)
-    player:SetAttribute(key("Wondies", "Bubbi"), true)
-    player:SetAttribute(key("Biomes", "MeadowPocket"), true)
+Players.PlayerAdded:Connect(function(player) task.spawn(setup,player) end)
+for _,player in Players:GetPlayers() do task.spawn(setup,player) end
+Players.PlayerRemoving:Connect(function(player)
+    local deadline=os.clock()+8
+    if saving[player] then forcePending[player]=true end
+    while saving[player] and os.clock()<deadline do task.wait(.1) end
+    if state[player] then save(player,true) end
+    for _,c in ipairs(connections[player] or {}) do c:Disconnect() end
+    state[player]=nil;revision[player]=nil;savedRevision[player]=nil;saving[player]=nil;forcePending[player]=nil;connections[player]=nil
 end)
 
-print("[WONDERPOCKET] WonderDex collection system loaded")
+game:BindToClose(function()
+    for _,player in Players:GetPlayers() do task.spawn(save,player,true) end
+    task.wait(4)
+end)
+
+print("[WONDERPOCKET] Persistent server-authoritative WonderDex loaded")
