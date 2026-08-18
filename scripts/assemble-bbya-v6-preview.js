@@ -18,16 +18,20 @@ const architectureFiles = [
   'maps/a-club/v6/22-facade-brand.lua',
   'maps/a-club/v6/23-lift-finish.lua',
   'maps/a-club/v6/30-vip-level.lua',
+  'maps/a-club/v6/31-vip-gates.lua',
   'maps/a-club/v6/40-rooftop.lua',
   'maps/a-club/v6/45-service.lua',
 ];
 const systemFiles = [
   'maps/a-club/v6/50-systems.server.lua',
+  'maps/a-club/v6/55-monetization.server.lua',
   'maps/a-club/v6/70-runtime-qc.server.lua',
 ];
 const uiFiles = [
   'maps/a-club/v6/60-ui.client.lua',
   'maps/a-club/v6/61-zone-hud.client.lua',
+  'maps/a-club/v6/62-dance-ui.client.lua',
+  'maps/a-club/v6/63-commerce-ui.client.lua',
 ];
 
 const allFiles = [...architectureFiles, ...systemFiles, ...uiFiles];
