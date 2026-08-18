@@ -2,8 +2,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DataStoreService = game:GetService("DataStoreService")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 
 local PlacementRemote = remotes:FindFirstChild("Placement") or Instance.new("RemoteEvent")
@@ -17,12 +17,24 @@ local templates = {
 }
 
 local function snap(n) return math.floor(n + 0.5) end
+
 local function getPlacedFolder(player)
-    local root = workspace:FindFirstChild("WonderPocket_Placed") or Instance.new("Folder")
-    root.Name = "WonderPocket_Placed"; root.Parent = workspace
+    local root = workspace:FindFirstChild("WONDERPOCKET_Placed") or Instance.new("Folder")
+    root.Name = "WONDERPOCKET_Placed"
+    root.Parent = workspace
     local folder = root:FindFirstChild(tostring(player.UserId)) or Instance.new("Folder")
-    folder.Name = tostring(player.UserId); folder.Parent = root
+    folder.Name = tostring(player.UserId)
+    folder.Parent = root
     return folder
+end
+
+local function waitForPlot(player)
+    local deadline = os.clock() + 12
+    while player.Parent and os.clock() < deadline do
+        if (tonumber(player:GetAttribute("WP_PlotIndex")) or 0) > 0 then return true end
+        task.wait(.25)
+    end
+    return false
 end
 
 local function insideOwnPlot(player, position)
@@ -35,11 +47,17 @@ local function insideOwnPlot(player, position)
 end
 
 local function makeFurniture(player,itemId,cf)
-    local size = templates[itemId]; if not size then return nil end
+    local size = templates[itemId]
+    if not size then return nil end
     local part = Instance.new("Part")
-    part.Name=itemId; part.Size=size; part.Anchored=true; part.CanCollide=true
-    part.Material=Enum.Material.SmoothPlastic; part.CFrame=cf
-    part:SetAttribute("WP_Owner",player.UserId); part:SetAttribute("WP_ItemId",itemId)
+    part.Name=itemId
+    part.Size=size
+    part.Anchored=true
+    part.CanCollide=true
+    part.Material=Enum.Material.SmoothPlastic
+    part.CFrame=cf
+    part:SetAttribute("WP_Owner",player.UserId)
+    part:SetAttribute("WP_ItemId",itemId)
     part.Parent=getPlacedFolder(player)
     return part
 end
@@ -57,11 +75,18 @@ end
 
 local function save(player)
     local data=serialize(player)
-    pcall(function() Store:SetAsync("u_"..player.UserId,data) end)
+    local ok, err = pcall(function() Store:SetAsync("u_"..player.UserId,data) end)
+    player:SetAttribute("WP_FurnitureSaveHealthy", ok)
+    if not ok then warn("[WONDERPOCKET] Furniture save failed", player.UserId, err) end
 end
 
 local function load(player)
+    if not waitForPlot(player) then
+        player:SetAttribute("WP_FurnitureSaveHealthy", false)
+        return
+    end
     local ok,data=pcall(function() return Store:GetAsync("u_"..player.UserId) end)
+    player:SetAttribute("WP_FurnitureSaveHealthy", ok)
     if not ok or type(data)~="table" then return end
     for _,entry in ipairs(data) do
         if templates[entry.id] then
@@ -79,7 +104,13 @@ PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
         return
     end
     if action~="PLACE" or typeof(cf)~="CFrame" then return end
-    itemId=tostring(itemId); if not templates[itemId] then return end
+    if player:GetAttribute("WP_DataLoaded") ~= true then
+        PlacementRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY")
+        return
+    end
+
+    itemId=tostring(itemId)
+    if not templates[itemId] then return end
 
     local p=cf.Position
     if not insideOwnPlot(player,p) then
@@ -89,30 +120,41 @@ PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
 
     local invKey="WP_INV_"..itemId
     local owned=tonumber(player:GetAttribute(invKey)) or 0
-    if owned<=0 then PlacementRemote:FireClient(player,"RESULT",false,"NOT_OWNED"); return end
+    if owned<=0 then
+        PlacementRemote:FireClient(player,"RESULT",false,"NOT_OWNED")
+        return
+    end
 
     local folder=getPlacedFolder(player)
-    if #folder:GetChildren()>=50 then PlacementRemote:FireClient(player,"RESULT",false,"PLACEMENT_LIMIT"); return end
+    if #folder:GetChildren()>=50 then
+        PlacementRemote:FireClient(player,"RESULT",false,"PLACEMENT_LIMIT")
+        return
+    end
 
-    local _,yaw,_=cf:ToOrientation(); local q=math.pi/2
+    local _,yaw,_=cf:ToOrientation()
+    local q=math.pi/2
     local snappedYaw=math.floor((yaw/q)+0.5)*q
     local snapped=CFrame.new(snap(p.X),math.max(1,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
-    if not insideOwnPlot(player,snapped.Position) then PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT"); return end
+    if not insideOwnPlot(player,snapped.Position) then
+        PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
+        return
+    end
 
     makeFurniture(player,itemId,snapped)
     player:SetAttribute(invKey,owned-1)
+    player:SetAttribute("WP_PlacedCount", (tonumber(player:GetAttribute("WP_PlacedCount")) or 0) + 1)
     task.spawn(save,player)
     PlacementRemote:FireClient(player,"RESULT",true,"PLACED",itemId)
 end)
 
 Players.PlayerAdded:Connect(function(player)
-    task.wait(1)
-    load(player)
+    player:SetAttribute("WP_PlacedCount", tonumber(player:GetAttribute("WP_PlacedCount")) or 0)
+    task.spawn(load, player)
 end)
 Players.PlayerRemoving:Connect(function(player)
     save(player)
-    local folder=workspace:FindFirstChild("WonderPocket_Placed")
-    folder=folder and folder:FindFirstChild(tostring(player.UserId))
+    local root=workspace:FindFirstChild("WONDERPOCKET_Placed")
+    local folder=root and root:FindFirstChild(tostring(player.UserId))
     if folder then folder:Destroy() end
 end)
 
@@ -120,4 +162,4 @@ game:BindToClose(function()
     for _,player in ipairs(Players:GetPlayers()) do save(player) end
 end)
 
-print("[WONDERPOCKET] Secure persistent furniture placement loaded")
+print("[WONDERPOCKET] Hardened persistent furniture placement loaded")
