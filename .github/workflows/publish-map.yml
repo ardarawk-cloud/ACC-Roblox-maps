@@ -14,6 +14,12 @@ on:
       - 'scripts/**'
       - '.github/workflows/publish-map.yml'
 
+# ACC rule: only the newest source state may reach Roblox.
+# Rapid build commits cancel obsolete in-flight publishes instead of producing founder-facing half builds.
+concurrency:
+  group: roblox-map-publish-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   detect-and-publish:
     runs-on: ubuntu-latest
