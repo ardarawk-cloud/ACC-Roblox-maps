@@ -1,159 +1,102 @@
-# BBYA SOCIAL HUB — V6 CLEAN-ROOM MASTER CONTRACT
+# BBYA SOCIAL HUB — CLEAN REBUILD MASTER CONTRACT
 
-Status: SOURCE OF TRUTH for V6 rebuild. V5 remains live until V6 passes complete internal QC and is switched once.
+Status: SOURCE OF TRUTH after owner reset on 2026-08-19. The old map geometry was rejected and the repository place base was intentionally cleaned. Live Roblox remains untouched until the new build passes QC and owner inspection.
 
 ## 1. PRODUCT IDENTITY
-BBYA is a SOCIAL HUB first. Club/dance is one facility, not the identity of the entire experience.
-Primary reasons to visit: hangout, conversation, outfit/show-off, photo/camera, social bar, chill, VIP/private social, rooftop lifestyle, and club/dance.
+BBYA is a premium SOCIAL HUB first. Club/dance is one major attraction, not the entire product.
+Primary reasons to visit: hangout, conversation, outfit/show-off, photo/camera, social bar, chill, VIP/private social, rooftop lifestyle, pool party, and club/dance.
 
-## 2. ARCHITECTURE RULE
-No V5 geometry may be reused blindly. V6 is rebuilt from a clean coordinate plan.
-No decorative object is placed until circulation, doorways, stairs, lift, landing clearances, sightlines, and room boundaries are locked.
-No patch-stack architecture. Each zone owns its geometry and finish.
+## 2. OWNER VISUAL REFERENCE LOCK
+The first owner-supplied concept image is the primary physical architecture/composition reference.
+The venue must read as one layered nightlife/social complex:
+- left multi-level club/social wing with visible glass/neon tiers;
+- central social/dance activity;
+- visibly legible VIP destination on the right;
+- upper rooftop/infinity-pool terrace;
+- foreground BBYA Queen and Support/Top Supporter landmarks;
+- palms, premium night lighting, and city depth.
 
-## 3. MACRO ZONES
-A1 Social Arrival Plaza
-A2 BBYA Storefront Entrance
-A3 Social Commons / Welcome Bar / Outfit-Selfie
-A4 Club Facility / Dance Hall
-A5 Social Bar
-A6 Chill / Conversation Lounge
-B1 West Stair
-B2 East Stair
-B3 Lift Core
-C1 VIP West Lounge
-C2 VIP East Lounge
-C3 Queen / Private Social Bridge
-D1 Rooftop Arrival
-D2 Infinity Pool + Pool DJ
-D3 Sky Bar
-D4 Rooftop Chill
-D5 Cabanas
-D6 Photo / View Deck
-S1 Service / Staff / Technical
+The second owner image is the Support/Sawer UI reference.
+The third owner image is the Music/DJ UI reference.
+UI references do not override physical circulation or architecture.
 
-## 4. MICRO CODES
+## 3. RESET RULE
+Archived `maps/a-club/v5/` and `maps/a-club/v6/` implementation modules are NOT runtime authority for the clean rebuild.
+The fresh runtime authority is only:
+- `maps/a-club/place.rbxlx` as the clean blank base;
+- `maps/a-club/rebuild/00-core.lua`;
+- `maps/a-club/rebuild/10-architecture.lua`;
+- `maps/a-club/rebuild/20-furnishing.lua`;
+- `maps/a-club/rebuild/30-lighting.lua`;
+- `maps/a-club/rebuild/40-runtime.server.lua`;
+- `maps/a-club/rebuild/50-qc.server.lua`;
+- `scripts/assemble-bbya-v6-preview.js` as the preview assembler.
+
+No old geometry, old UI stack, or patch-stack runtime may be reintroduced into assembly without explicit owner approval.
+
+## 4. PHYSICAL ZONES
 01 Arrival Plaza
-02 Welcome / Reception Host
-03 Photo / Selfie
-04 Look / Outfit Studio
-05 Dance Floor
-06 DJ Booth
-07 Stage / Lighting
-08 Social Bar
-09 VIP Lounge
-10 Queen Skybox
-11 VIP Balcony
-12 Private Rooms
-13 Infinity Pool
-14 Pool DJ
-15 Sky Bar
-16 Cabanas
-17 View Deck / City View
+02 Social Atrium
+03 Main Club / Dance Floor / DJ Stage
+04 Left Social Mezzanines
+05 VIP Wing
+06 Rooftop Infinity Pool / Pool DJ / Cabanas
+07 Queen + Support Court
+08 City Backdrop
 
-Every runtime object that is useful for inspection must expose BBYA zone/component attributes. A screenshot must be traceable to a single module.
+All playable levels must be real and reachable. No fake decorative floor that visually promises an inaccessible destination.
 
-## 5. FRONT ENTRANCE BENCHMARK
-Front must read as a modern social/lifestyle storefront, not a formal nightclub gate.
-- Large BBYA crown + neon wordmark attached to building facade.
-- Canopy/awning below brand wall.
-- Ground floor open/transparent enough to see social activity inside.
-- Welcome bar, seating, outfit/selfie activity visible from outside.
-- Warm-pink hospitality lighting; no bouncer/red-carpet checkpoint language.
-- Direct broad sightline from A1 into A3.
+## 5. ARCHITECTURE
+Architecture is built from a clean coordinate composition, not by stacking patches over rejected geometry.
+The hero read from spawn must make the reference hierarchy obvious: LEFT CLUB + CENTER SOCIAL + RIGHT VIP + UPPER POOL.
+Circulation, stairs, landings, safety rails, and avatar clearance take priority over decoration.
 
-## 6. SOCIAL DENSITY BENCHMARK
-The venue must feel alive even without entering A4.
-- Multiple micro hangout pockets.
-- Seating distributed across A1/A3/A5/A6/C/D.
-- Visual connection between zones where practical.
-- No giant empty rooms whose only purpose is transit.
-- No furniture blocking circulation.
+## 6. CLUB BENCHMARK
+Main club must contain a real dance floor, raised DJ/stage, LED/show-light wall, side social seating, and bright avatar fill lighting.
+It may use energetic pink/cyan show lighting but cannot turn every other social zone into the same visual language.
 
-## 7. CLUB FACILITY BENCHMARK
-A4 may be full neon and energetic, but it is a facility inside the hub.
-- Bright enough for outfit visibility and social screenshots.
-- Broad neutral/white/warm fill lights + neon accent lighting.
-- Dance floor, DJ, stage, side social pockets.
-- Club must not visually dominate every other floor.
+## 7. VIP BENCHMARK
+VIP is a premium lounge destination under/adjacent to the upper resort terrace.
+Use warm hospitality lighting, glass frontage, lounge groups, bar furniture, and restrained neon accents.
 
 ## 8. ROOFTOP BENCHMARK
-Rooftop is a different atmosphere from A4.
-- Luxury tropical / resort / warm night ambience.
-- Infinity pool, pool DJ, cabanas, sky bar, view deck.
-- Palms/planters and warm architectural lighting.
-- Neon used only as restrained branding/accent, never full-club lighting.
+Rooftop is tropical luxury, not a duplicate indoor club.
+Required physical features: infinity pool basin/water, real roof deck, Pool DJ, loungers/cabanas, palms, warm light, safety glass, and city-view depth.
 
-## 9. CIRCULATION
-Architectural flow must be obvious without teleport.
-A1 -> A2 -> A3 is the primary arrival.
-From A3, Social Bar, Chill, Club, VIP/Lift/Rooftop must read as parallel choices.
-Stairs and lift must have clear landings and never terminate inside furniture/geometry.
-No obby-like stacked circulation.
-Inspection TP exists only for QC and must always land on clear pads.
+## 9. SOCIAL DENSITY
+The venue must feel alive even when the dance floor is empty.
+Functional seating should be distributed across arrival, atrium, club edge, mezzanines, VIP, rooftop, and Queen court.
+Do not block the main center approach or stair circulation.
 
-## 10. UI CONTRACT
-One unified UI system only. No old stacked UI runtimes.
-The approved visual hierarchy from the BBYA UI concept poster is the target.
-- Top status/zone strip.
-- Left/right compact launchers or floating shell that preserves Roblox joystick/jump areas.
-- Major panels open as floating windows.
-- Windows can be dragged.
-- Edge parking must NOT set Visible=false; parked windows remain partially visible as a grab tab/edge.
-- Dragging upward must never make a window disappear into the main menu.
-- Music panel must remain fully recoverable after drag.
-- Only one major content window may own focus at once.
-- Photo panel includes Outfit Cam, Freecam, Clean View, Reset.
-- Mobile-first layout must be validated at phone aspect ratios.
+## 10. UI / SYSTEMS — LATER PHASE
+One unified mobile-first UI only.
+Support/Sawer follows owner image 2.
+Music/Auto-DJ/DJ Mode follows owner image 3.
+Developer Product and VIP IDs remain zero/disabled until official IDs are supplied. Never invent commerce IDs.
 
-## 11. MUSIC / CAMERA / SOCIAL SYSTEMS
-Hybrid Auto-DJ with A4 DJ and D2 Pool DJ both valid.
-Dance/sync system uses authorized/built-in assets only.
-Outfit camera + mobile freecam are first-class social features.
-VIP and Queen access must use authoritative server state.
-Sawer/Developer Product purchase buttons remain disabled while IDs are 0; no invented IDs.
-Top supporter board uses authoritative receipt data only.
+## 11. LIGHTING
+Avatars must remain readable.
+Club: white fill + pink/cyan show accents.
+Arrival/social: warm/pink hospitality.
+VIP: premium warm accent.
+Rooftop: warm tropical resort with cyan pool light.
 
-## 12. LIGHTING
-A1/A2/A3: warm-pink hospitality, readable avatars.
-A4: bright show-off club lighting + neon.
-A5/A6/C: premium lounge lighting.
-D zones: tropical warm luxury, restrained neon.
-Performance mode may reduce decorative lights but must never disable critical avatar fill lights.
+## 12. RELEASE RULE
+Development remains isolated on `agent/bbya-v6-cleanroom`.
+Do NOT merge/publish the clean rebuild until architecture, circulation, runtime QC, mobile UI, music/social/support systems, and owner inspection are complete.
 
-## 13. BUILD / RELEASE RULE
-V6 work happens on agent/bbya-v6-cleanroom.
-Do NOT point live injector to V6 until ALL of the following are complete:
-- architecture all zones
-- circulation all zones
-- finishes all zones
-- UI unified and mobile-safe
-- music/dance/camera/support systems
-- static validator
-- legacy-root guard
-- component/zone coverage validator
-- collision/landing checks
-- final source assembly check
+## 13. FAILURE CONDITIONS
+Reject the build if:
+- old rejected geometry appears;
+- the shape no longer reads like the owner reference hierarchy;
+- rooftop becomes a second neon club;
+- floors are inaccessible/fake;
+- stairs/landings terminate in geometry;
+- the dance floor or social paths are blocked;
+- UI stacks or disappears on mobile;
+- commerce IDs are invented;
+- live Roblox is changed before owner approval.
 
-Only after all gates pass: one injector switch, one publish, one founder inspection pass.
-
-## 14. FAILURE CONDITIONS
-V6 is rejected if any of these occur:
-- club becomes the perceived whole product
-- entrance looks like a formal nightclub gate
-- rooftop uses full-club neon language
-- UI layout differs materially from approved hierarchy without explicit owner revision
-- floating panel disappears when dragged
-- signage is mirrored/backwards or duplicated at one boundary
-- furniture/decor intersects stairs/lift/door paths
-- old V5 visual roots/runtime names appear in V6 assembly
-- founder is required to inspect every incremental commit
-
-## 15. OWNER VISUAL REFERENCE LOCK — 2026-08-19
-The owner-supplied BBYA concept set is now translated in `VISUAL-REFERENCE-LOCK-2026-08-19.md` and is binding for the V6 visual/massing pass.
-
-The first concept image is the primary architecture/composition reference. The complete venue must read as one layered premium complex: left multi-level club/social wing, center/lower social activity, visibly legible VIP destination, upper rooftop/infinity-pool lifestyle terrace, foreground Queen/support/social landmarks, palms and city-night depth.
-
-The second concept image is the Support/Sawer UI and leaderboard reference. The third concept image is the Music/DJ UI reference. They are feature/UI references and do not override the physical architecture rules.
-
-The reference must be implemented without fake inaccessible floors, without blocking circulation, without turning the rooftop into a second neon club, and without switching V5/live before the V6 release gate passes.
+## 14. CURRENT BUILD STATE
+Current phase: PHASE 1 — physical architecture + social furnishing + lighting + spawn/safety + runtime QC.
+Next phase after the physical preview is accepted: detailed materials/interior polish, then Support and Music UI/system implementation.
