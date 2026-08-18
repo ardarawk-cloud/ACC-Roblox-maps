@@ -19,6 +19,7 @@ const qcLua = readLua('maps/a-club/bbya.qc.server.lua');
 const titleSizeLua = readLua('maps/a-club/bbya.title-size.server.lua');
 const signFixLua = readLua('maps/a-club/bbya.signfix.server.lua');
 const supporterPositionLua = readLua('maps/a-club/bbya.supporter-board-position.server.lua');
+const layoutHotfixLua = readLua('maps/a-club/bbya.layout-hotfix.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
@@ -40,6 +41,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYATITLESIZE000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Title_Size_Hotfix</string><ProtectedString name="Source"><![CDATA[${titleSizeLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASIGNFIX0000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Sign_Orientation_Hotfix</string><ProtectedString name="Source"><![CDATA[${signFixLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASUPPORTPOS00000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Supporter_Board_Position_Hotfix</string><ProtectedString name="Source"><![CDATA[${supporterPositionLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYALAYOUTFIX000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Social_Corner_Layout_Hotfix</string><ProtectedString name="Source"><![CDATA[${layoutHotfixLua}]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
   <Properties><string name="Name">StarterPlayer</string></Properties>
@@ -54,4 +56,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Main + MEGA ARCHITECTURE v2 + systems + DJ + features + QC + smaller titles + readable signs + relocated supporter boards + client + Queen UI injected into', target.file);
+console.log('[BBYA] Active build injected: architecture + systems + DJ + features + QC + smaller titles + sign fix + supporter relocation + social corner layout + clients into', target.file);
