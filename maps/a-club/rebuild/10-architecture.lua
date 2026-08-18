@@ -83,12 +83,12 @@ end
 part(A6,"POOL DJ ISLAND",Vector3.new(24,1.2,14),CFrame.new(48,32.3,66),C.graphite,Enum.Material.Slate,0,true)
 part(A6,"POOL DJ DESK",Vector3.new(16,3.2,5),CFrame.new(48,34.4,66),C.black,Enum.Material.Metal,0,true)
 
--- Physical stairs: ground -> VIP/mezz and VIP -> rooftop.
--- Right side switchback is intentionally broad and normal, never obby-like.
-stair(A5,"STAIR G TO MID",Vector3.new(94,1.1,72),28,8,.55,.75,180,C.stone)
-part(A5,"MID STAIR LANDING",Vector3.new(12,1,10),CFrame.new(94,16.2,50),C.stone,Enum.Material.Slate,0,true)
-stair(A5,"STAIR MID TO ROOF",Vector3.new(88,16.7,47),28,8,.55,.75,0,C.stone)
-part(A6,"ROOF STAIR LANDING",Vector3.new(14,1,12),CFrame.new(88,31.4,68),C.stone,Enum.Material.Slate,0,true)
+-- Physical stairs: ground -> mid landing -> rooftop.
+-- Broad switchback; each flight terminates on a real landing.
+stair(A5,"STAIR G TO MID",Vector3.new(94,1.1,72),28,8,.55,.75,0,C.stone)
+part(A5,"MID STAIR LANDING",Vector3.new(12,1,10),CFrame.new(94,16.2,48.5),C.stone,Enum.Material.Slate,0,true)
+stair(A5,"STAIR MID TO ROOF",Vector3.new(88,16.7,47),28,8,.55,.75,180,C.stone)
+part(A6,"ROOF STAIR LANDING",Vector3.new(14,1,12),CFrame.new(88,31.4,69),C.stone,Enum.Material.Slate,0,true)
 
 -- Safety rails around mezzanine edges.
 rail(A4,"MEZZ1 FRONT RAIL",Vector3.new(32,5,.45),CFrame.new(-78,19,-.5))
