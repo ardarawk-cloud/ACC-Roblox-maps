@@ -29,8 +29,9 @@ local function retry(label,fn)
 end
 
 local function waitForData(player)
-    local deadline=os.clock()+20
-    while player.Parent and os.clock()<deadline do
+    -- Main player data owns the authoritative safe/failed state. Do not convert
+    -- a slow successful load into an inventory initialization failure.
+    while player.Parent do
         if player:GetAttribute("WP_DataLoadFailed")==true then return false end
         if player:GetAttribute("WP_DataLoaded")==true then return true end
         task.wait(.25)
