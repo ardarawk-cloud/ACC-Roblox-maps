@@ -23,7 +23,7 @@ banner.TextColor3 = Color3.fromRGB(255,245,245)
 banner.Font = Enum.Font.GothamBold
 banner.TextSize = 13
 banner.TextWrapped = true
-banner.Text = "SAVE DATA UNAVAILABLE • Your Pocket is protected. Rejoin before buying, building, planting, or collecting more progress."
+banner.Text = "SAVE DATA UNAVAILABLE • Your Pocket is READ-ONLY / protected. Rejoin before buying, building, planting, or collecting more progress."
 banner.Visible = false
 banner.Parent = gui
 local constraint = Instance.new("UISizeConstraint")
@@ -69,4 +69,4 @@ if stateRemote then
 end
 
 refresh()
-print("[WONDERPOCKET] Load/save health protection warning UI ready")
+print("[WONDERPOCKET] Load/save health READ-ONLY protection warning UI ready")
