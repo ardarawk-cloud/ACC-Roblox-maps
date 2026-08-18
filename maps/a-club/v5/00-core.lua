@@ -1,11 +1,11 @@
--- BBYA V5.2 MODULAR ARCHITECTURE CORE
+-- BBYA V5.3 MODULAR ARCHITECTURE CORE
 -- This file is concatenated first by scripts/inject-bbya.js.
--- Every physical object must belong to exactly one coded zone.
+-- Every physical object belongs to one macro zone; inspection components add a second precise address layer.
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 
-local ROOT_NAME = "BBYA V5.2 MODULAR GREYBOX"
+local ROOT_NAME = "BBYA V5.3 MASTER PLAN"
 
 -- Hard reset: V5 owns venue geometry. Preserve only Terrain/Camera/player characters.
 for _, obj in ipairs(workspace:GetChildren()) do
@@ -23,6 +23,10 @@ root.Parent = workspace
 local zoneIndex = Instance.new("Folder")
 zoneIndex.Name = "BBYA ZONE INDEX"
 zoneIndex.Parent = root
+
+local componentIndex = Instance.new("Folder")
+componentIndex.Name = "BBYA COMPONENT INDEX"
+componentIndex.Parent = root
 
 local C = {
     floor = Color3.fromRGB(108,108,114), floor2 = Color3.fromRGB(132,132,138),
@@ -48,6 +52,18 @@ local function registerZone(code, name, level, center, size)
     v.Name = code
     v.Value = string.format("%s | L%s | center %.1f,%.1f,%.1f | size %.1f,%.1f,%.1f", name, tostring(level), center.X,center.Y,center.Z,size.X,size.Y,size.Z)
     v.Parent = zoneIndex
+    return f
+end
+
+local function registerComponent(code, name, zoneCode, center, size)
+    local f = Instance.new("Folder")
+    f.Name = string.format("[%s] %s", code, name)
+    f:SetAttribute("BBYAComponentCode", code)
+    f:SetAttribute("BBYAComponentName", name)
+    f:SetAttribute("BBYAParentZone", zoneCode)
+    f:SetAttribute("BBYACenterX", center.X); f:SetAttribute("BBYACenterY", center.Y); f:SetAttribute("BBYACenterZ", center.Z)
+    f:SetAttribute("BBYASizeX", size.X); f:SetAttribute("BBYASizeY", size.Y); f:SetAttribute("BBYASizeZ", size.Z)
+    f.Parent = componentIndex
     return f
 end
 
@@ -128,7 +144,7 @@ local function uStair(zone, name, centerX, centerZ, fromY)
     part(zone,name.." CORE EAST",Vector3.new(2,18,39),CFrame.new(centerX+12,fromY+9,centerZ-1),C.wall,Enum.Material.Concrete,0,true)
 end
 
--- Neutral review lighting. Mood/decor comes only after architecture approval.
+-- Neutral base lighting; the premium atmosphere module replaces this later in the same master runtime.
 Lighting.ClockTime = 18.2; Lighting.Brightness = 2.7; Lighting.ExposureCompensation = .12
 Lighting.Ambient = Color3.fromRGB(108,108,118); Lighting.OutdoorAmbient = Color3.fromRGB(88,90,100)
 Lighting.FogStart = 1800; Lighting.FogEnd = 4000
@@ -136,5 +152,6 @@ for _,e in ipairs(Lighting:GetChildren()) do
     if e:IsA("BloomEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("Atmosphere") then e:Destroy() end
 end
 
-workspace:SetAttribute("BBYAV5ArchitectureMode","MODULAR_GREYBOX")
+workspace:SetAttribute("BBYAV5ArchitectureMode","MASTER_PLAN_BASE")
 workspace:SetAttribute("BBYAV5ZoneSchema","A1-A6/B1-B3/C1-C3/D1-D6/S1")
+workspace:SetAttribute("BBYAV5ComponentSchema","01-22 + W/E variants")
