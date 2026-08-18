@@ -13,7 +13,7 @@ const placePath = path.join(root, target.file);
 const readLua = file => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 
 // Architecture source stays modular in GitHub but is concatenated into ONE Roblox Script.
-// UI is ONE independent LocalScript shell so legacy panel stacks cannot overlap again.
+// UI source also stays modular, but is concatenated into ONE independent LocalScript shell.
 const zoneFiles = [
   'maps/a-club/v5/00-core.lua',
   'maps/a-club/v5/A1-exterior-spawn.lua',
@@ -35,11 +35,17 @@ const zoneFiles = [
   'maps/a-club/v5/D4-rooftop-chill.lua',
   'maps/a-club/v5/D5-cabana-zones.lua',
   'maps/a-club/v5/D6-photo-view.lua',
+  'maps/a-club/v5/98-inspection-polish.lua',
   'maps/a-club/v5/99-finalize.lua',
 ];
 
+const uiFiles = [
+  'maps/a-club/v5/ui-shell.client.lua',
+  'maps/a-club/v5/ui-shell-polish.client.lua',
+];
+
 const combinedLua = zoneFiles.map(file => `\n-- SOURCE FILE: ${file}\n${readLua(file)}`).join('\n');
-const uiLua = readLua('maps/a-club/v5/ui-shell.client.lua');
+const uiLua = uiFiles.map(file => `\n-- SOURCE FILE: ${file}\n${readLua(file)}`).join('\n');
 
 let xml = fs.readFileSync(placePath, 'utf8');
 const begin = '<!-- BBYA_RUNTIME_BEGIN -->';
@@ -75,4 +81,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log(`[BBYA] V5.2 modular architecture + mobile-safe UI shell injected. Architecture=${zoneFiles.length} modules -> 1 Script; UI=1 LocalScript.`);
+console.log(`[BBYA] V5.2 modular architecture + polished mobile-safe UI injected. Architecture=${zoneFiles.length} modules -> 1 Script; UI=${uiFiles.length} modules -> 1 LocalScript.`);
