@@ -46,6 +46,10 @@ Instance.new("UICorner",panel).CornerRadius = UDim.new(0,12)
 local function yes(v) return v and "OK" or "WAIT" end
 local function fail(v) return v and "FAIL" or "OK" end
 local function bit(v) return v and "Y" or "-" end
+local function mmss(seconds)
+    seconds=math.max(0,math.floor(tonumber(seconds) or 0))
+    return string.format("%02d:%02d",math.floor(seconds/60),seconds%60)
+end
 
 local function isUnsafe()
     return player:GetAttribute("WP_DataReadOnly")==true
@@ -118,6 +122,19 @@ local function refresh()
     local treasure=(tonumber(player:GetAttribute("WP_TreasureProgress")) or 0)>=1 or player:GetAttribute("WP_TreasureIslandComplete")==true
     local complete=player:GetAttribute("WP_OnboardingComplete")==true
 
+    local targetSeconds=math.max(60,math.floor(tonumber(player:GetAttribute("WP_FirstJourneyTargetSeconds")) or 600))
+    local finishedSeconds=tonumber(player:GetAttribute("WP_FirstJourneySeconds"))
+    local startedAt=tonumber(player:GetAttribute("WP_TutorialStartedAt")) or 0
+    local journeySeconds=finishedSeconds or ((startedAt>0 and started and not complete) and math.max(0,os.time()-startedAt) or 0)
+    local timingStatus
+    if finishedSeconds then
+        timingStatus=player:GetAttribute("WP_FirstJourneyWithinTarget")==true and "ON TARGET" or "OVER TARGET"
+    elseif startedAt>0 and started and not complete then
+        timingStatus=journeySeconds<=targetSeconds and "RUNNING" or "OVER TARGET"
+    else
+        timingStatus="NOT STARTED"
+    end
+
     local dexFound=0
     for _,attr in ipairs({
         "WP_DEX_Wondies_Bubbi","WP_DEX_Wondies_Flamo","WP_DEX_Wondies_Mossy","WP_DEX_Wondies_Lumi","WP_DEX_Wondies_Zappy","WP_DEX_Wondies_Puffy",
@@ -128,7 +145,7 @@ local function refresh()
     }) do if player:GetAttribute(attr)==true then dexFound+=1 end end
 
     panel.Text=string.format(
-        " WONDERPOCKET v1.3 CLOSED TEST\n\n DATA SAFETY: %s\n Read Only: %s  Save Freeze: %s\n Freeze Cause: %s\n Load Fail M/I/F/G/D: %s/%s/%s/%s/%s\n\n Data Load: %s\n Player Save: %s\n Inventory: %s / Save %s\n Furniture: %s / Save %s\n Garden: %s / Save %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n\n JOURNEY S:%s B:%s P:%s Buy:%s Pl:%s H:%s T:%s C:%s\n Step: %s (%s)\n\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.3 CLOSED TEST\n\n DATA SAFETY: %s\n Read Only: %s  Save Freeze: %s\n Freeze Cause: %s\n Load Fail M/I/F/G/D: %s/%s/%s/%s/%s\n\n Data Load: %s\n Player Save: %s\n Inventory: %s / Save %s\n Furniture: %s / Save %s\n Garden: %s / Save %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n\n JOURNEY S:%s B:%s P:%s Buy:%s Pl:%s H:%s T:%s C:%s\n Step: %s (%s)\n Time: %s / %s  %s\n\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
         dataSafe and "OK" or "READ-ONLY",
         readOnly and "YES" or "NO",
         saveFreeze and "YES" or "NO",
@@ -144,6 +161,7 @@ local function refresh()
         plotId>0 and tostring(plotId) or "WAIT",yes(player:GetAttribute("WP_HomeReady")==true),
         bit(started),bit(metWondi),bit(planted),bit(purchased),bit(placed),bit(harvested),bit(treasure),bit(complete),
         tostring(tutorialStep),tutorialStepId,
+        mmss(journeySeconds),mmss(targetSeconds),timingStatus,
         tostring(coins),tostring(stars),tostring(seeds),
         tostring(txnSeq),lastAction,lastItem,lastDelta,
         tostring(tonumber(player:GetAttribute("WP_HarvestCount")) or 0),
@@ -169,4 +187,4 @@ task.spawn(function()
 end)
 
 syncButtonHealth()
-print("[WONDERPOCKET] v1.3 closed-test health + first-journey checklist ready")
+print("[WONDERPOCKET] v1.3 closed-test health + first-journey timing ready")
