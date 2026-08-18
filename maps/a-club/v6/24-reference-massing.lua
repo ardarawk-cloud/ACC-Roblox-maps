@@ -14,12 +14,12 @@ for _,z in ipairs({70,88,106,124}) do
 end
 
 for _,cfg in ipairs({
-    {y=8.8,z=79,h=15.5,code="GROUND A"},
-    {y=8.8,z=106,h=15.5,code="GROUND B"},
-    {y=28.5,z=79,h=15.5,code="VIP A"},
-    {y=28.5,z=106,h=15.5,code="VIP B"},
+    {parent=A6,y=8.8,z=79,h=15.5,code="GROUND A"},
+    {parent=A6,y=8.8,z=106,h=15.5,code="GROUND B"},
+    {parent=C1,y=28.5,z=79,h=15.5,code="VIP A"},
+    {parent=C1,y=28.5,z=106,h=15.5,code="VIP B"},
 }) do
-    local panel=glass(A6,"REF WEST GLASS "..cfg.code,Vector3.new(.3,cfg.h,17),CFrame.new(westFacadeX-.18,cfg.y,cfg.z),nil)
+    local panel=glass(cfg.parent,"REF WEST GLASS "..cfg.code,Vector3.new(.3,cfg.h,17),CFrame.new(westFacadeX-.18,cfg.y,cfg.z),nil)
     panel.CanCollide=false
     panel.CanTouch=false
 end
