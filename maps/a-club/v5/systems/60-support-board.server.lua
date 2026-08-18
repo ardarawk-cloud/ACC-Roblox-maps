@@ -1,5 +1,5 @@
 -- [SYS-SUPPORT] IN-WORLD TOP SUPPORTERS BOARD
-local rootMap=workspace:FindFirstChild("BBYA V5.2 MODULAR GREYBOX")
+local rootMap=workspace:FindFirstChild("BBYA V5.3 MASTER PLAN")
 local a3=rootMap and rootMap:FindFirstChild("[A3] LOBBY / ORIENTATION")
 if a3 then
  local boardPart=Instance.new("Part");boardPart.Name="A3 | TOP SUPPORTERS BOARD";boardPart.Size=Vector3.new(.35,9,22);boardPart.CFrame=CFrame.new(-59.65,7,106);boardPart.Anchored=true;boardPart.CanCollide=false;boardPart.CanTouch=false;boardPart.Material=Enum.Material.SmoothPlastic;boardPart.Color=Color3.fromRGB(12,12,18);boardPart:SetAttribute("BBYAZoneCode","A3");boardPart:SetAttribute("BBYAZoneName","LOBBY / ORIENTATION");boardPart.Parent=a3
@@ -14,4 +14,4 @@ if a3 then
  task.spawn(function() while task.wait(1) do refresh();task.wait(119) end end)
  workspace:GetAttributeChangedSignal("BBYALastSupportTotal"):Connect(function() task.defer(refresh) end)
 end
-workspace:SetAttribute("BBYASystemSupportBoard","5.0")
+workspace:SetAttribute("BBYASystemSupportBoard","5.1")
