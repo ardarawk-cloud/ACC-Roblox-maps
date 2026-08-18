@@ -36,7 +36,27 @@ end
 local chestSpots = {
     Vector3.new(-25,40,-205),Vector3.new(22,40,-199),Vector3.new(0,40,-168),Vector3.new(-20,40,-174),Vector3.new(25,40,-178)
 }
+
 local collected = {}
+local completed = {}
+local lastTrigger = {}
+
+local function getState(player)
+    local uid=player.UserId
+    collected[uid]=collected[uid] or {}
+    return collected[uid]
+end
+
+local function grantCompletion(player)
+    local uid=player.UserId
+    if completed[uid] then return end
+    completed[uid]=true
+    player:SetAttribute("Coins",(tonumber(player:GetAttribute("Coins")) or 0)+120)
+    player:SetAttribute("Stars",(tonumber(player:GetAttribute("Stars")) or 0)+1)
+    player:SetAttribute("WP_TreasureIslandComplete",true)
+    player:SetAttribute("WP_AdventureCompletions",(tonumber(player:GetAttribute("WP_AdventureCompletions")) or 0)+1)
+end
+
 for i,pos in ipairs(chestSpots) do
     local chest=part("Treasure"..i,Vector3.new(4,3,3),pos,Color3.fromRGB(173,93,43),Enum.Material.Wood)
     local prompt=Instance.new("ProximityPrompt")
@@ -44,21 +64,22 @@ for i,pos in ipairs(chestSpots) do
     prompt.ObjectText="Wonder Chest"
     prompt.HoldDuration=.25
     prompt.MaxActivationDistance=10
+    prompt.RequiresLineOfSight=false
     prompt.Parent=chest
     prompt.Triggered:Connect(function(player)
-        collected[player.UserId]=collected[player.UserId] or {}
-        if collected[player.UserId][i] then return end
-        collected[player.UserId][i]=true
-        chest.Transparency=.65
-        prompt.Enabled=false
+        local now=os.clock()
+        local triggerKey=tostring(player.UserId)..":"..i
+        if lastTrigger[triggerKey] and now-lastTrigger[triggerKey]<0.75 then return end
+        lastTrigger[triggerKey]=now
+
+        local state=getState(player)
+        if state[i] then return end
+        state[i]=true
+
         local count=0
-        for _ in pairs(collected[player.UserId]) do count+=1 end
+        for _ in pairs(state) do count+=1 end
         player:SetAttribute("WP_TreasureProgress",count)
-        if count>=5 then
-            player:SetAttribute("WP_Coins",(player:GetAttribute("WP_Coins") or 0)+120)
-            player:SetAttribute("WP_Stars",(player:GetAttribute("WP_Stars") or 0)+1)
-            player:SetAttribute("WP_TreasureIslandComplete",true)
-        end
+        if count>=#chestSpots then grantCompletion(player) end
     end)
 end
 
@@ -66,7 +87,7 @@ local portal=part("ReturnPortal",Vector3.new(8,1,8),Vector3.new(0,39,-145),Color
 portal.Shape=Enum.PartType.Cylinder
 portal.Orientation=Vector3.new(0,0,90)
 local pp=Instance.new("ProximityPrompt")
-pp.ActionText="Return to Wonder Square";pp.ObjectText="Adventure Portal";pp.Parent=portal
+pp.ActionText="Return to Wonder Square";pp.ObjectText="Adventure Portal";pp.HoldDuration=.15;pp.Parent=portal
 pp.Triggered:Connect(function(player)
     local char=player.Character
     local hrp=char and char:FindFirstChild("HumanoidRootPart")
@@ -74,5 +95,18 @@ pp.Triggered:Connect(function(player)
     if hrp and target then hrp.CFrame=target.CFrame*CFrame.new(0,4,0) end
 end)
 
-Players.PlayerRemoving:Connect(function(p) collected[p.UserId]=nil end)
-print("[WONDERPOCKET] Treasure Island premium environment loaded")
+Players.PlayerAdded:Connect(function(player)
+    player:SetAttribute("WP_TreasureProgress",0)
+    player:SetAttribute("WP_TreasureIslandComplete",false)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    local uid=player.UserId
+    collected[uid]=nil
+    completed[uid]=nil
+    for key in pairs(lastTrigger) do
+        if string.sub(key,1,#tostring(uid)+1)==tostring(uid)..":" then lastTrigger[key]=nil end
+    end
+end)
+
+print("[WONDERPOCKET] Treasure Island multiplayer-safe environment loaded")
