@@ -35,6 +35,7 @@ const zoneFiles = [
   'maps/a-club/v5/D4-rooftop-chill.lua',
   'maps/a-club/v5/D5-cabana-zones.lua',
   'maps/a-club/v5/D6-photo-view.lua',
+  'maps/a-club/v5/97-inspection-nav.lua',
   'maps/a-club/v5/98-inspection-polish.lua',
   'maps/a-club/v5/99-finalize.lua',
 ];
@@ -42,6 +43,7 @@ const zoneFiles = [
 const uiFiles = [
   'maps/a-club/v5/ui-shell.client.lua',
   'maps/a-club/v5/ui-shell-polish.client.lua',
+  'maps/a-club/v5/ui-inspection-nav.client.lua',
 ];
 
 const combinedLua = zoneFiles.map(file => `\n-- SOURCE FILE: ${file}\n${readLua(file)}`).join('\n');
@@ -81,4 +83,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log(`[BBYA] V5.2 modular architecture + polished mobile-safe UI injected. Architecture=${zoneFiles.length} modules -> 1 Script; UI=${uiFiles.length} modules -> 1 LocalScript.`);
+console.log(`[BBYA] V5.2 modular architecture + coded inspection nav + polished mobile-safe UI injected. Architecture=${zoneFiles.length} modules -> 1 Script; UI=${uiFiles.length} modules -> 1 LocalScript.`);
