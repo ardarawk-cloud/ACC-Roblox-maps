@@ -1,0 +1,75 @@
+name: BBYA V6 Cleanroom CI
+
+on:
+  push:
+    branches:
+      - agent/bbya-v6-cleanroom
+    paths:
+      - 'maps/a-club/v6/**'
+      - 'scripts/assemble-bbya-v6-preview.js'
+      - 'scripts/validate-bbya-v6.js'
+      - 'scripts/validate-bbya-v6-client.js'
+      - 'scripts/validate-bbya-v6-ui-recovery.js'
+      - 'scripts/validate-bbya-v6-show.js'
+      - 'scripts/validate-bbya-v6-preview-gate.js'
+      - '.github/workflows/bbya-v6-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-v6-cleanroom-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-assemble-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout V6 branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate V6 source contract
+        run: node scripts/validate-bbya-v6.js
+
+      - name: Validate V6 client safety and performance
+        run: node scripts/validate-bbya-v6-client.js
+
+      - name: Validate V6 UI recovery
+        run: node scripts/validate-bbya-v6-ui-recovery.js
+
+      - name: Validate V6 automatic club show
+        run: node scripts/validate-bbya-v6-show.js
+
+      - name: Validate V6 preview isolation
+        run: node scripts/validate-bbya-v6-preview-gate.js
+
+      - name: Assemble isolated V6 preview
+        run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-v6-preview.rbxlx
+
+      - name: Validate assembled preview
+        run: node scripts/validate-bbya-v6.js --assembled /tmp/bbya-v6-preview.rbxlx
+
+      - name: Re-check client contract after assembly source update
+        run: node scripts/validate-bbya-v6-client.js
+
+      - name: Re-check UI recovery
+        run: node scripts/validate-bbya-v6-ui-recovery.js
+
+      - name: Re-check club show contract
+        run: node scripts/validate-bbya-v6-show.js
+
+      - name: Re-check preview isolation
+        run: node scripts/validate-bbya-v6-preview-gate.js
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-v6-cleanroom-preview
+          path: /tmp/bbya-v6-preview.rbxlx
+          if-no-files-found: error
+          retention-days: 7

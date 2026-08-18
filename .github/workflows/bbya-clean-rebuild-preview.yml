@@ -1,0 +1,64 @@
+name: BBYA Clean Rebuild Preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/bbya-v6-cleanroom
+    paths:
+      - 'maps/a-club/place.rbxlx'
+      - 'maps/a-club/rebuild/**'
+      - 'scripts/assemble-bbya-v6-preview.js'
+      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/inspect-bbya-clean-preview.js'
+      - '.github/workflows/bbya-clean-rebuild-preview.yml'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'maps/a-club/place.rbxlx'
+      - 'maps/a-club/rebuild/**'
+      - 'scripts/assemble-bbya-v6-preview.js'
+      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/inspect-bbya-clean-preview.js'
+      - '.github/workflows/bbya-clean-rebuild-preview.yml'
+
+jobs:
+  validate-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate clean rebuild source
+        run: node scripts/validate-bbya-clean-rebuild.js
+      - name: Assemble clean BBYA preview
+        run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-clean-rebuild-preview.rbxlx
+      - name: Inspect assembled preview
+        run: node scripts/inspect-bbya-clean-preview.js /tmp/bbya-clean-rebuild-preview.rbxlx
+      - name: Verify preview runtime, reference UI and release gate
+        run: |
+          test -s /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYA_CLEAN_REBUILD_RUNTIME' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYA CLEAN REBUILD' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYA_CLEAN_SOCIAL_UI' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYA SOCIAL UI' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_5_REFERENCE_UI_QC' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_5_REFERENCE_FIDELITY' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'PHASE_6_PREVIEW_GATE' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'BBYAReleaseGate' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'SUPPORT / SAWER' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'MUSIC CONTROLLER' /tmp/bbya-clean-rebuild-preview.rbxlx
+          grep -q 'MINI PLAYER' /tmp/bbya-clean-rebuild-preview.rbxlx
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-clean-rebuild-preview
+          path: /tmp/bbya-clean-rebuild-preview.rbxlx
+          if-no-files-found: error
