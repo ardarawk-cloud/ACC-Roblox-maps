@@ -55,9 +55,11 @@ local function getPlacedFolder(player)
 end
 
 local function waitForPlot(player)
-    local deadline = os.clock() + 15
-    while player.Parent and os.clock() < deadline do
+    -- Plot assignment is authoritative. Avoid treating scheduler/DataStore delay as
+    -- a furniture load failure; stop only on a real data failure or no available plot.
+    while player.Parent do
         if player:GetAttribute("WP_DataLoadFailed")==true then return false end
+        if player:GetAttribute("WP_HomeReady")==false then return false end
         if (tonumber(player:GetAttribute("WP_PlotIndex")) or 0) > 0 then return true end
         task.wait(.25)
     end
