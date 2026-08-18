@@ -127,7 +127,7 @@ if (target && exists(target.file)) {
       'BBYA_Clean_Functional_Core_v3',
       'BBYA_Premium_Visual_Rebuild_v4',
       'BBYA_Premium_Phase_6_v4_6',
-      'BBYA_Build_Validation_v1_1',
+      'BBYA_Build_Validation_v1_3',
       'BBYA_Queen_Playtest_System_Test_v1',
       'BBYA_Functional_Systems_v2',
       'BBYA_Monetization_Backend',
