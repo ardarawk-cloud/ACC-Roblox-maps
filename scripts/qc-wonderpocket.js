@@ -36,30 +36,43 @@ const placementSrc = read('wonderpocket.placement.server.lua');
 const previewSrc = read('wonderpocket.buildpreview.client.lua');
 const plotsSrc = read('wonderpocket.plots.server.lua');
 const gardenSrc = read('wonderpocket.gardening.server.lua');
+const generalInventorySrc = read('wonderpocket.inventory.server.lua');
 const questSrc = read('wonderpocket.quests.server.lua');
 const retentionSrc = read('wonderpocket.retention.server.lua');
 const inventorySrc = read('wonderpocket.furniture-inventory.server.lua');
+const shopSrc = read('wonderpocket.shop.server.lua');
 const dexSrc = read('wonderpocket.wonderdex.server.lua');
 const adventureSrc = read('wonderpocket.adventure.server.lua');
 const treasureSrc = read('wonderpocket.treasure-island.server.lua');
+const healthSrc = read('wonderpocket.health.client.lua');
 
-if (!configSrc.includes('1.1.0-release-candidate-hardening')) errors.push('GameConfig is not marked v1.1 release-candidate hardening.');
-if (!configSrc.includes('PublishAllowed = false')) errors.push('Release candidate must keep PublishAllowed = false.');
+if (!configSrc.includes('1.2.0-closed-test-ops-economy')) errors.push('GameConfig is not marked v1.2 closed-test ops/economy.');
+if (!configSrc.includes('PublishAllowed = false')) errors.push('Closed-test build must keep PublishAllowed = false.');
 for (const marker of [
-  'DataSchemaVersion = 3','RevisionSafeSaves = true','CriticalSaveBus = true',
+  'DataSchemaVersion = 4','RevisionSafeSaves = true','CriticalSaveBus = true',
+  'CanonicalSeedInventory = true','TransactionRateLimits = true','EconomyAuditAttributes = true',
+  'SeedConsumptionEnabled = true','SeedReturnOnHarvest = true',
   'PersistentPlotState = true','FullFootprintPlotValidation = true',
-  'ServerAuthoritativeAdventureRewards = true','AdventureDeadlineSeconds = 240'
-]) if (!configSrc.includes(marker)) errors.push(`GameConfig missing hardening marker: ${marker}`);
+  'ServerAuthoritativeAdventureRewards = true','AdventureDeadlineSeconds = 240',
+  'ServerAuthoritativeDiscovery = true'
+]) if (!configSrc.includes(marker)) errors.push(`GameConfig missing v1.2 marker: ${marker}`);
 
-if (!bootstrapSrc.includes('DATA_SCHEMA = 3')) errors.push('Main player data schema is not v3.');
+if (!bootstrapSrc.includes('DATA_SCHEMA = 4')) errors.push('Main player data schema is not v4.');
+if (!bootstrapSrc.includes('CarrotSeed')) errors.push('Canonical CarrotSeed persistence missing from main data.');
+if (!bootstrapSrc.includes('snapshot.inventory = table.clone')) errors.push('Nested inventory snapshot is not cloned before main DataStore save.');
 if (!bootstrapSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Critical save bus missing from bootstrap.');
 if (!bootstrapSrc.includes('revision[player]')) errors.push('Revision-safe main save guard missing.');
 if (!bootstrapSrc.includes('WP_QuestStarterRewarded')) errors.push('Starter quest reward state is not persisted in main data.');
 if (!bootstrapSrc.includes('WP_OfflineSeconds')) errors.push('Offline retention handoff missing from main data.');
 
+if (!generalInventorySrc.includes('AuthoritativeSource')) errors.push('General inventory is not explicitly a mirror of canonical main data.');
+if (!generalInventorySrc.includes('GetAttributeChangedSignal("CarrotSeed")')) errors.push('Inventory mirror does not follow canonical CarrotSeed changes.');
+
 if (!placementSrc.includes('footprintInsideOwnPlot')) errors.push('Server furniture validation does not check full footprint.');
 if (!placementSrc.includes('relX=') || !placementSrc.includes('relY=') || !placementSrc.includes('relZ=')) errors.push('Furniture persistence is not fully plot-relative.');
 if (!placementSrc.includes('revision[player]')) errors.push('Furniture placement persistence is not revision-safe.');
+if (!placementSrc.includes('placeBusy')) errors.push('Placement transaction lock is missing.');
+if (!placementSrc.includes('RATE_LIMITED')) errors.push('Placement remote rate limit response is missing.');
 if (!previewSrc.includes('footprintValid')) errors.push('Client ghost preview does not mirror full-footprint validation.');
 if (!plotsSrc.includes('WP_PlotCenterY')) errors.push('Stable plot Y coordinate is missing.');
 if (!plotsSrc.includes('WONDERPOCKET_PlotHomes')) errors.push('Personal plot home runtime is missing.');
@@ -67,12 +80,23 @@ if (!plotsSrc.includes('WONDERPOCKET_PlotHomes')) errors.push('Personal plot hom
 if (!gardenSrc.includes('WONDERPOCKET_Garden_v1')) errors.push('Persistent garden DataStore is missing.');
 if (!gardenSrc.includes('readyAt')) errors.push('Garden does not persist absolute growth deadlines.');
 if (!gardenSrc.includes('WP_GardenSaveHealthy')) errors.push('Garden save health signal missing.');
+if (!gardenSrc.includes('GetAttribute("CarrotSeed")')) errors.push('Garden does not consume canonical CarrotSeed inventory.');
+if (!gardenSrc.includes('seeds - 1')) errors.push('Planting does not decrement CarrotSeed.');
+if (!gardenSrc.includes('GetAttribute("CarrotSeed")) or 0) + 1')) errors.push('Harvest does not return a CarrotSeed.');
+if (!gardenSrc.includes('actionLocks')) errors.push('Garden action lock is missing.');
+if (!gardenSrc.includes('CriticalSave.Event:Connect')) errors.push('Garden does not participate in the critical-save bus.');
 
 if (!questSrc.includes('WP_QuestStarterRewarded')) errors.push('Starter quest lacks idempotent persistent reward flag.');
 if (!questSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Starter quest does not flush critical rewards.');
 if (retentionSrc.includes('DataStoreService')) errors.push('Retention still uses a separate DataStore instead of canonical player data.');
 if (!retentionSrc.includes('WP_OfflineSeconds')) errors.push('Retention does not consume canonical offline elapsed time.');
 if (!inventorySrc.includes('revision[player]')) errors.push('Furniture inventory persistence is not revision-safe.');
+if (!inventorySrc.includes('CriticalSave.Event:Connect')) errors.push('Furniture inventory does not participate in critical saves.');
+
+if (!shopSrc.includes('purchaseBusy')) errors.push('Shop transaction lock is missing.');
+if (!shopSrc.includes('RATE_LIMITED')) errors.push('Shop remote rate limit response is missing.');
+if (!shopSrc.includes('WP_EconTxnSeq')) errors.push('Shop transaction audit sequence is missing.');
+if (!shopSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Shop transaction does not request a critical save.');
 
 if (!dexSrc.includes('WONDERPOCKET_WonderDex_v1')) errors.push('WonderDex persistence store is missing.');
 if (!dexSrc.includes('WONDERPOCKET_Discover')) errors.push('WonderDex server-only discovery bus is missing.');
@@ -87,6 +111,9 @@ if (!adventureSrc.includes('SERVER_AUTHORITATIVE')) errors.push('Adventure API d
 if (/run\.treasure\s*\+=/.test(adventureSrc)) errors.push('Adventure remote still increments treasure progress from client events.');
 if (!treasureSrc.includes('DURATION_SECONDS = 240')) errors.push('Treasure Island server deadline is not enforced at 240 seconds.');
 if (!treasureSrc.includes('WONDERPOCKET_CriticalSave')) errors.push('Adventure completion does not flush critical reward data.');
+
+if (!healthSrc.includes('CarrotSeed')) warnings.push('Closed-test health UI does not expose canonical seed count yet.');
+if (!healthSrc.includes('WP_EconTxnSeq')) warnings.push('Closed-test health UI does not expose economy transaction sequence yet.');
 
 const registry = JSON.parse(fs.readFileSync(path.join(root,'maps/registry.json'),'utf8'));
 const wp = registry.maps?.wonderpocket;
@@ -140,7 +167,7 @@ else {
   }
 }
 
-console.log('[WONDERPOCKET QC v1.1]');
+console.log('[WONDERPOCKET QC v1.2]');
 for (const w of warnings) console.log('WARN:', w);
 if (errors.length) {
   for (const e of errors) console.error('ERROR:', e);
