@@ -13,9 +13,13 @@ on:
       - 'scripts/validate-bbya-clean-rebuild.js'
       - 'scripts/inspect-bbya-clean-preview.js'
       - 'scripts/publish-map.js'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/a-club/rebuild/LIVE-DIRECT-PR-TRIGGER.md'
 
 concurrency:
-  group: bbya-direct-live
+  group: bbya-direct-live-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -52,6 +56,7 @@ jobs:
         run: node scripts/publish-map.js a-club
 
       - name: Persist direct publish receipt
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
