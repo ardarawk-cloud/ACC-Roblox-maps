@@ -23,7 +23,7 @@ banner.TextColor3 = Color3.fromRGB(255,245,245)
 banner.Font = Enum.Font.GothamBold
 banner.TextSize = 13
 banner.TextWrapped = true
-banner.Text = "SAVE DATA UNAVAILABLE • Your Pocket is READ-ONLY. Rejoin before buying, building, planting, or collecting progress."
+banner.Text = "SAVE DATA UNAVAILABLE • Your Pocket is protected. Rejoin before buying, building, planting, or collecting more progress."
 banner.Visible = false
 banner.Parent = gui
 local constraint = Instance.new("UISizeConstraint")
@@ -40,6 +40,11 @@ local function unsafe()
         or player:GetAttribute("WP_FurnitureLoadFailed")==true
         or player:GetAttribute("WP_GardenLoadFailed")==true
         or player:GetAttribute("WP_DexLoadFailed")==true
+        or player:GetAttribute("WP_DataSaveHealthy")==false
+        or player:GetAttribute("WP_InventorySaveHealthy")==false
+        or player:GetAttribute("WP_FurnitureSaveHealthy")==false
+        or player:GetAttribute("WP_GardenSaveHealthy")==false
+        or player:GetAttribute("WP_DexSaveHealthy")==false
 end
 
 local function refresh()
@@ -49,6 +54,8 @@ end
 for _,attribute in ipairs({
     "WP_DataReadOnly","WP_DataLoadFailed","WP_InventoryLoadFailed",
     "WP_FurnitureLoadFailed","WP_GardenLoadFailed","WP_DexLoadFailed",
+    "WP_DataSaveHealthy","WP_InventorySaveHealthy","WP_FurnitureSaveHealthy",
+    "WP_GardenSaveHealthy","WP_DexSaveHealthy",
 }) do
     player:GetAttributeChangedSignal(attribute):Connect(refresh)
 end
@@ -62,4 +69,4 @@ if stateRemote then
 end
 
 refresh()
-print("[WONDERPOCKET] Fail-closed read-only warning UI ready")
+print("[WONDERPOCKET] Load/save health protection warning UI ready")
