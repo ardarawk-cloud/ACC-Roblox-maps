@@ -65,8 +65,9 @@ end
 local function palm(zone,name,center,height)
  height=height or 13
  planter(zone,name.." PLANTER",center,Vector3.new(5,2,5))
- local trunk=finish(zone,name.." TRUNK",Vector3.new(1.2,height,1.2),CFrame.new(center+Vector3.new(0,height/2+1,0)),Color3.fromRGB(105,70,45),Enum.Material.Wood,0,true)
- trunk.Shape=Enum.PartType.Cylinder;trunk.CFrame=trunk.CFrame*CFrame.Angles(0,0,math.rad(90))
+ -- Roblox Cylinder length is its local X axis. Use X=height then rotate X onto world Y.
+ local trunk=finish(zone,name.." TRUNK",Vector3.new(height,1.2,1.2),CFrame.new(center+Vector3.new(0,height/2+1,0))*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(105,70,45),Enum.Material.Wood,0,true)
+ trunk.Shape=Enum.PartType.Cylinder
  local crown=center+Vector3.new(0,height+1,0)
  for i=0,5 do
   local a=math.rad(i*60)
