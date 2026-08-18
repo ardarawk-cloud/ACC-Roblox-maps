@@ -1,6 +1,6 @@
--- BBYA MASTER MUSIC VAULT + HYBRID AUTO-DJ v1.2
+-- BBYA MASTER MUSIC VAULT + HYBRID AUTO-DJ v1.3
 -- Empty server = music off. First player joins = Auto-DJ starts.
--- A player physically at the DJ booth may manually control music; trusted roles can control anywhere.
+-- Auto-DJ shuffles startup and subsequent track order to avoid the same song on every join.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -15,6 +15,7 @@ MusicState.Name="MusicState";MusicState.Parent=remotes
 
 local QUEEN_ID=4271188557
 local manualDJUserId=nil
+local rng=Random.new(math.floor(os.clock()*100000)+game.JobId:len()*997)
 
 local function trustedRole(p)
  if not p then return false end
@@ -84,12 +85,25 @@ local activeMode="ALL"
 local queue={}
 local cursor=0
 local current=nil
+local lastPlayedId=nil
 local sessionBad={}
 local lastAction={}
 local token=0
 
 local function occupied() return #Players:GetPlayers()>0 end
 local function usable(t)return t.status~="DEAD" and not sessionBad[t.id] end
+
+local function shuffle(list)
+ for i=#list,2,-1 do
+  local j=rng:NextInteger(1,i)
+  list[i],list[j]=list[j],list[i]
+ end
+ -- Avoid reopening a queue with the exact same track that just played.
+ if #list>1 and lastPlayedId and list[1].id==lastPlayedId then
+  local j=rng:NextInteger(2,#list)
+  list[1],list[j]=list[j],list[1]
+ end
+end
 
 local function rebuild(mode)
  activeMode=mode or activeMode;queue={}
@@ -99,6 +113,7 @@ local function rebuild(mode)
  else
   for _,sub in ipairs(wanted or {})do for _,status in ipairs({"VERIFIED","TEST"}) do for _,t in ipairs(VAULT)do if usable(t) and t.sub==sub and t.status==status then table.insert(queue,t)end end end end
  end
+ shuffle(queue)
  cursor=0
 end
 
@@ -117,7 +132,7 @@ end
 local nextTrack
 local function tryTrack(t)
  if not occupied() then return end
- token+=1;local myToken=token;current=t
+ token+=1;local myToken=token;current=t;lastPlayedId=t.id
  sound:Stop();sound.SoundId="rbxassetid://"..tostring(t.id);sound.TimePosition=0;sound:Play();publish("")
  task.delay(5,function()
   if myToken~=token or current~=t or not occupied() then return end
@@ -128,10 +143,16 @@ end
 
 nextTrack=function()
  if not occupied() then sound:Stop();current=nil;publish("WAITING FOR PLAYERS");return end
- if #queue==0 then rebuild(activeMode) end
+ if #queue==0 or cursor>=#queue then rebuild(activeMode) end
  if #queue==0 then current=nil;publish("NO PLAYABLE AUDIO - CHECK ROBLOX AUDIO PERMISSIONS");return end
  local attempts=0
- repeat attempts+=1;cursor=cursor%#queue+1;local t=queue[cursor];if usable(t) then tryTrack(t);return end until attempts>=#queue
+ repeat
+  attempts+=1
+  cursor+=1
+  if cursor>#queue then rebuild(activeMode);cursor=1 end
+  local t=queue[cursor]
+  if usable(t) and (not lastPlayedId or t.id~=lastPlayedId or #queue==1) then tryTrack(t);return end
+ until attempts>=math.max(#queue,1)
  rebuild(activeMode)
  if #queue==0 then current=nil;publish("NO PLAYABLE AUDIO - CHECK ROBLOX AUDIO PERMISSIONS");return end
  cursor=1;tryTrack(queue[1])
@@ -149,7 +170,7 @@ MusicRemote.OnServerEvent:Connect(function(p,action,value)
  elseif action=="PLAY" then if sound.SoundId=="" or current==nil then nextTrack() else sound:Resume();publish("") end
  elseif action=="VOLUME" then sound.Volume=math.clamp(tonumber(value) or .65,0,1);publish("")
  elseif action=="MODE" then local m=string.upper(tostring(value or "ALL"));if FLOWS[m]then token+=1;sessionBad={};rebuild(m);nextTrack()end
- elseif action=="SUBGENRE" then local sub=string.upper(tostring(value or ""));token+=1;queue={};for _,t in ipairs(VAULT)do if t.status~="DEAD" and t.sub==sub then table.insert(queue,t)end end;cursor=0;if #queue>0 then activeMode=sub;nextTrack()end end
+ elseif action=="SUBGENRE" then local sub=string.upper(tostring(value or ""));token+=1;queue={};for _,t in ipairs(VAULT)do if t.status~="DEAD" and t.sub==sub then table.insert(queue,t)end end;shuffle(queue);cursor=0;if #queue>0 then activeMode=sub;nextTrack()end end
 end)
 
 Players.PlayerAdded:Connect(function()
@@ -166,7 +187,6 @@ Players.PlayerRemoving:Connect(function(p)
  end)
 end)
 
--- If script boots while somebody is already in the server, start immediately. Otherwise stay silent.
 rebuild("ALL")
 if occupied() then task.delay(1,nextTrack) else sound:Stop();publish("WAITING FOR PLAYERS") end
-print("[BBYA MUSIC] Hybrid Auto-DJ v1.2 loaded:",#VAULT,"tracks; empty server silent, first player starts music, booth DJ can take over")
+print("[BBYA MUSIC] Hybrid Auto-DJ v1.3 loaded:",#VAULT,"tracks; shuffled startup + no immediate repeats")
