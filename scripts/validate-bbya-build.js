@@ -41,6 +41,7 @@ const requiredSources = [
   'maps/a-club/bbya.phase6-wayfinding.server.lua',
   'maps/a-club/bbya.production-qc-v4.server.lua',
   'maps/a-club/bbya.build-validation.server.lua',
+  'maps/a-club/bbya.playtest.server.lua',
   'maps/a-club/bbya.systems.server.lua',
   'maps/a-club/bbya.monetization.server.lua',
   'maps/a-club/bbya.music.server.lua',
@@ -71,6 +72,7 @@ const mustInclude = [
   'bbya.core.server.lua',
   'bbya.phase6-wayfinding.server.lua',
   'bbya.build-validation.server.lua',
+  'bbya.playtest.server.lua',
   'bbya.spawn-final.server.lua',
   'bbya.ui-coordinator.client.lua',
   'bbya.health.client.lua',
@@ -126,6 +128,7 @@ if (target && exists(target.file)) {
       'BBYA_Premium_Visual_Rebuild_v4',
       'BBYA_Premium_Phase_6_v4_6',
       'BBYA_Build_Validation_v1_1',
+      'BBYA_Queen_Playtest_System_Test_v1',
       'BBYA_Functional_Systems_v2',
       'BBYA_Monetization_Backend',
       'BBYA_Master_Music_Vault',
@@ -134,7 +137,7 @@ if (target && exists(target.file)) {
       'BBYA_Music_Client',
       'BBYA_UI_Coordinator_Client',
       'BBYA_Adaptive_Performance_Client',
-      'BBYA_Queen_Playtest_Health_HUD',
+      'BBYA_Queen_Playtest_Health_HUD_v1_1',
     ];
     for (const scriptName of requiredRuntimeScripts) {
       if (!runtime.includes(`<string name="Name">${scriptName}</string>`)) fail(`injected runtime missing script: ${scriptName}`);
@@ -148,6 +151,9 @@ if (target && exists(target.file)) {
     const receiptAssignments = (runtime.match(/MarketplaceService\.ProcessReceipt\s*=/g) || []).length;
     if (receiptAssignments !== 1) fail(`injected runtime ProcessReceipt assignments=${receiptAssignments}, expected 1`);
     else pass('injected runtime has one ProcessReceipt assignment');
+
+    if (!runtime.includes('RunPlaytestCheck')) fail('injected runtime missing Queen playtest RemoteFunction');
+    else pass('Queen playtest harness injected');
 
     if (!process.exitCode) pass('post-injection runtime structure valid');
   }
