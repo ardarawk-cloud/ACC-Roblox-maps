@@ -4,7 +4,10 @@ local DataStoreService = game:GetService("DataStoreService")
 local Lighting = game:GetService("Lighting")
 
 local Config = require(script.Parent:WaitForChild("GameConfig"))
-local Store = DataStoreService:GetDataStore("WONDERPOCKET_PlayerData_v1")
+local Store = DataStoreService:GetDataStore("WONDERPOCKET_PlayerData_v2")
+
+local AUTOSAVE_SECONDS = 90
+local MAX_RETRIES = 4
 
 local root = workspace:FindFirstChild("WONDERPOCKET") or Instance.new("Folder")
 root.Name = "WONDERPOCKET"
@@ -70,15 +73,6 @@ local function buildWorld()
         plot:SetAttribute("ReadyAt", 0)
     end
 
-    local wondi = Instance.new("Part")
-    wondi.Name = "Bubbi"
-    wondi.Shape = Enum.PartType.Ball
-    wondi.Size = Vector3.new(5,5,5)
-    wondi.Position = Vector3.new(15,9,5)
-    wondi.Anchored = true
-    wondi.Color = Color3.fromRGB(255,211,88)
-    wondi.Parent = generated
-
     Lighting.Brightness = 2.2
     Lighting.ClockTime = 9.5
     Lighting.GlobalShadows = true
@@ -96,6 +90,7 @@ end
 
 local function defaultData()
     return {
+        schemaVersion = 2,
         coins = Config.Economy.StartingCoins,
         stars = Config.Economy.StartingStars,
         level = 1,
@@ -110,54 +105,113 @@ local function defaultData()
 end
 
 local session = {}
+local dirty = {}
+local saving = {}
+
+local function retry(label, fn)
+    local lastErr
+    for attempt=1,MAX_RETRIES do
+        local ok, result = pcall(fn)
+        if ok then return true, result end
+        lastErr = result
+        warn(string.format("[WONDERPOCKET] %s attempt %d failed: %s", label, attempt, tostring(result)))
+        task.wait(math.min(2^(attempt-1), 6))
+    end
+    return false, lastErr
+end
+
+local function syncAttributesToData(player, data)
+    data.coins = tonumber(player:GetAttribute("Coins")) or data.coins or 0
+    data.stars = tonumber(player:GetAttribute("Stars")) or data.stars or 0
+    data.activeWondi = player:GetAttribute("ActiveWondi") or data.activeWondi or Config.Starter.Wondi
+    data.pocketBiome = player:GetAttribute("PocketBiome") or data.pocketBiome or Config.Starter.Biome
+    data.lastSeen = os.time()
+    data.schemaVersion = 2
+end
+
+local function savePlayer(player, force)
+    local data = session[player]
+    if not data or saving[player] then return false end
+    if not force and not dirty[player] then return true end
+
+    saving[player] = true
+    syncAttributesToData(player, data)
+    local snapshot = table.clone(data)
+    local ok = retry("save u_"..player.UserId, function()
+        Store:UpdateAsync("u_"..player.UserId, function()
+            return snapshot
+        end)
+    end)
+    saving[player] = nil
+    if ok then
+        dirty[player] = nil
+        player:SetAttribute("WP_DataSaveHealthy", true)
+        return true
+    end
+    player:SetAttribute("WP_DataSaveHealthy", false)
+    return false
+end
+
+local function markDirty(player)
+    if session[player] then dirty[player] = true end
+end
 
 local function loadPlayer(player)
-    local data
-    local ok, result = pcall(function()
+    player:SetAttribute("WP_DataLoaded", false)
+    player:SetAttribute("WP_DataSaveHealthy", true)
+
+    local ok, result = retry("load u_"..player.UserId, function()
         return Store:GetAsync("u_"..player.UserId)
     end)
-    data = ok and result or nil
-    if type(data) ~= "table" then data = defaultData() end
+    local data = ok and result or nil
+    if type(data) ~= "table" then
+        data = defaultData()
+        if not ok then player:SetAttribute("WP_DataSaveHealthy", false) end
+    end
 
     local elapsed = math.clamp(os.time() - (tonumber(data.lastSeen) or os.time()), 0, Config.Gardening.OfflineGrowthCapSeconds)
     data.lastSeen = os.time()
     data.offlineSeconds = elapsed
     session[player] = data
 
-    player:SetAttribute("Coins", data.coins or 0)
-    player:SetAttribute("Stars", data.stars or 0)
+    player:SetAttribute("Coins", tonumber(data.coins) or 0)
+    player:SetAttribute("Stars", tonumber(data.stars) or 0)
     player:SetAttribute("ActiveWondi", data.activeWondi or Config.Starter.Wondi)
     player:SetAttribute("PocketBiome", data.pocketBiome or Config.Starter.Biome)
-    StateRemote:FireClient(player, "INIT", data)
-end
+    player:SetAttribute("WP_DataLoaded", true)
 
-local function savePlayer(player)
-    local data = session[player]
-    if not data then return end
-    data.coins = player:GetAttribute("Coins") or data.coins or 0
-    data.stars = player:GetAttribute("Stars") or data.stars or 0
-    data.activeWondi = player:GetAttribute("ActiveWondi") or data.activeWondi
-    data.lastSeen = os.time()
-    pcall(function()
-        Store:SetAsync("u_"..player.UserId, data)
-    end)
+    player:GetAttributeChangedSignal("Coins"):Connect(function() markDirty(player) end)
+    player:GetAttributeChangedSignal("Stars"):Connect(function() markDirty(player) end)
+    player:GetAttributeChangedSignal("ActiveWondi"):Connect(function() markDirty(player) end)
+    player:GetAttributeChangedSignal("PocketBiome"):Connect(function() markDirty(player) end)
+
+    StateRemote:FireClient(player, "INIT", data)
 end
 
 buildWorld()
 Players.PlayerAdded:Connect(loadPlayer)
 Players.PlayerRemoving:Connect(function(player)
-    savePlayer(player)
+    savePlayer(player, true)
     session[player] = nil
+    dirty[player] = nil
+    saving[player] = nil
+end)
+
+for _, player in Players:GetPlayers() do task.spawn(loadPlayer, player) end
+
+task.spawn(function()
+    while task.wait(AUTOSAVE_SECONDS) do
+        for _, player in Players:GetPlayers() do
+            task.spawn(savePlayer, player, false)
+        end
+    end
 end)
 
 game:BindToClose(function()
     for _, player in Players:GetPlayers() do
-        savePlayer(player)
+        task.spawn(savePlayer, player, true)
     end
+    task.wait(4)
 end)
 
-for _, player in Players:GetPlayers() do
-    task.spawn(loadPlayer, player)
-end
-
-print("[WONDERPOCKET] Foundation loaded", Config.Version)
+print("[WONDERPOCKET] Hardened foundation loaded", Config.Version)
