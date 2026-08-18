@@ -59,16 +59,41 @@ objective.TextXAlignment = Enum.TextXAlignment.Left
 objective.TextYAlignment = Enum.TextYAlignment.Top
 objective.Parent = card
 
-local function refresh()
+local panelNames = {"ShopPanel","DexPanel","BuildPanel","SocialPanel"}
+local function modalOpen()
+    local premium = playerGui:FindFirstChild("WonderPocketPremiumUI")
+    if not premium then return false end
+    for _,name in ipairs(panelNames) do
+        local panel = premium:FindFirstChild(name)
+        if panel and panel:IsA("GuiObject") and panel.Visible then
+            return true
+        end
+    end
+    return false
+end
+
+local function applyVisibility(forceComplete)
     local complete = player:GetAttribute("WP_OnboardingComplete") == true
     local started = player:GetAttribute("WP_TutorialStarted") == true
-    card.Visible = started and not complete
-    if complete then return end
+    if forceComplete then
+        card.Visible = not modalOpen()
+    else
+        card.Visible = started and not complete and not modalOpen()
+    end
+end
+
+local function refresh()
+    local complete = player:GetAttribute("WP_OnboardingComplete") == true
+    if complete then
+        card.Visible = false
+        return
+    end
 
     local step = tonumber(player:GetAttribute("WP_TutorialStep")) or 1
     local text = tostring(player:GetAttribute("WP_TutorialObjective") or "Start your Pocket journey")
     kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/6", math.clamp(step,1,6))
     objective.Text = text
+    applyVisibility(false)
 end
 
 for _, attr in ipairs({"WP_OnboardingComplete","WP_TutorialStarted","WP_TutorialStep","WP_TutorialObjective"}) do
@@ -77,18 +102,28 @@ end
 
 Tutorial.OnClientEvent:Connect(function(action, step, total, _, text)
     if action == "STEP" then
-        card.Visible = true
         kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/%d", step, total)
         objective.Text = text
+        applyVisibility(false)
     elseif action == "COMPLETE" then
-        card.Visible = true
         kicker.Text = "FIRST POCKET JOURNEY  •  COMPLETE"
         objective.Text = text or "Your Pocket journey has begun!"
+        applyVisibility(true)
         task.delay(3.5, function()
             if card.Parent then card.Visible = false end
         end)
     end
 end)
 
+-- While the first-session tutorial is active, keep the tracker out of the way of
+-- full-size SHOP / DEX / BUILD / SOCIAL panels. It reappears as soon as they close.
+task.spawn(function()
+    while gui.Parent do
+        if player:GetAttribute("WP_OnboardingComplete") == true then break end
+        applyVisibility(false)
+        task.wait(.15)
+    end
+end)
+
 refresh()
-print("[WONDERPOCKET] v1.2 responsive first-session objective tracker ready")
+print("[WONDERPOCKET] tutorial tracker modal-overlap guard ready")
