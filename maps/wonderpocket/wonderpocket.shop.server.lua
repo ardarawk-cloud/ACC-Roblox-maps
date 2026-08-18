@@ -31,7 +31,7 @@ local function inventoryKey(id)
 end
 
 ShopRemote.OnServerEvent:Connect(function(player, action, itemId)
-    if player:GetAttribute("WP_DataLoaded") ~= true then
+    if player:GetAttribute("WP_DataLoaded") ~= true or player:GetAttribute("WP_InventoryLoaded") ~= true then
         ShopRemote:FireClient(player, "RESULT", false, "DATA_NOT_READY", itemId)
         return
     end
@@ -63,4 +63,4 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
-print("[WONDERPOCKET] Canonical economy shop loaded")
+print("[WONDERPOCKET] Canonical persistent-inventory shop loaded")
