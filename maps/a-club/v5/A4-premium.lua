@@ -13,7 +13,7 @@ for _,z in ipairs({-42,-26,-10,6,22,38,54,70}) do
  glow(A4,"DANCE GRID Z "..z,Vector3.new(96,.12,.16),CFrame.new(0,.89,z),col,.14,5)
 end
 
--- Stage architecture and focal LED wall.
+-- [07] Stage architecture and focal LED wall.
 finish(A4,"STAGE BLACK SKIN",Vector3.new(76,.28,18),CFrame.new(0,3.04,-77),P.black,Enum.Material.Metal,0,false)
 finish(A4,"MAIN LED WALL",Vector3.new(62,12,.7),CFrame.new(0,10.2,-86.15),P.black,Enum.Material.SmoothPlastic,0,false)
 for i=1,7 do
@@ -23,18 +23,18 @@ for i=1,7 do
 end
 zoneSign(A4,"MAIN LED BRAND","BBYA  •  24/7 NIGHT SYSTEM",CFrame.new(0,13.6,-85.7),Vector3.new(48,3,.2),P.pink,Enum.NormalId.Back)
 
--- DJ booth is centered and leaves both stage wings open.
+-- [06] DJ booth is centered and leaves both stage wings open.
 finish(A4,"DJ BOOTH BODY",Vector3.new(24,3.4,5.5),CFrame.new(0,5,-71.5),P.charcoal,Enum.Material.Metal,0,true)
 finish(A4,"DJ BOOTH TOP",Vector3.new(25,.35,6),CFrame.new(0,6.85,-71.5),P.graphite,Enum.Material.Metal,0,true)
 glow(A4,"DJ BOOTH FRONT",Vector3.new(20,.26,.2),CFrame.new(0,5.5,-68.65),P.pink,.55,12)
 zoneSign(A4,"DJ BOOTH BRAND","BBYA RESIDENT DJ",CFrame.new(0,5,-68.48),Vector3.new(19,2.4,.2),P.white,Enum.NormalId.Front)
 
--- Speaker towers / stage wings.
+-- Speaker towers / stage wings. Cylinder depth is local X rotated onto world Z.
 for _,x in ipairs({-32,32}) do
  finish(A4,"SPEAKER TOWER "..x,Vector3.new(8,12,5),CFrame.new(x,8,-72),P.black,Enum.Material.Metal,0,true)
  for y=4.5,11.5,3.5 do
-  local cone=finish(A4,"SPEAKER CONE "..x.." "..y,Vector3.new(2.8,2.8,.35),CFrame.new(x,y,-69.35),P.graphite,Enum.Material.SmoothPlastic,0,false)
-  cone.Shape=Enum.PartType.Cylinder;cone.CFrame=cone.CFrame*CFrame.Angles(0,math.rad(90),0)
+  local cone=finish(A4,"SPEAKER CONE "..x.." "..y,Vector3.new(.35,2.8,2.8),CFrame.new(x,y,-69.35)*CFrame.Angles(0,math.rad(90),0),P.graphite,Enum.Material.SmoothPlastic,0,false)
+  cone.Shape=Enum.PartType.Cylinder
  end
  glow(A4,"STAGE WING PIN "..x,Vector3.new(.32,11,.32),CFrame.new(x+(x<0 and -5 or 5),9,-71),x<0 and P.cyan or P.pink,.48,11)
 end
