@@ -10,6 +10,8 @@ task.delay(9,function()
     if (tonumber(workspace:GetAttribute("BBYAV6RuntimeIssueCount")) or 999)>0 then table.insert(reasons,"runtime issues remain") end
     if (tonumber(workspace:GetAttribute("BBYAV6SocialSeatCount")) or 0)<28 then table.insert(reasons,"social seat density below gate") end
     if (tonumber(workspace:GetAttribute("BBYAV6InteractiveFacilityCount")) or 0)<6 then table.insert(reasons,"physical facility interactions below gate") end
+    if (tonumber(workspace:GetAttribute("BBYAV6ShowLightCount")) or 0)<14 then table.insert(reasons,"automatic club show rig below gate") end
+    if workspace:GetAttribute("BBYAV6ClubLighting")~="AUTO_BRIGHT" then table.insert(reasons,"club automatic lighting inactive") end
     if workspace:GetAttribute("BBYAV6GroundFinish")~="PREMIUM_PASS_1" then table.insert(reasons,"ground finish incomplete") end
     if workspace:GetAttribute("BBYAV6VIPFinish")~="PREMIUM_PASS_1" then table.insert(reasons,"VIP finish incomplete") end
     if workspace:GetAttribute("BBYAV6RooftopFinish")~="TROPICAL_PREMIUM_PASS_1" then table.insert(reasons,"rooftop finish incomplete") end
