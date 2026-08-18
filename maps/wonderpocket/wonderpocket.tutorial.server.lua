@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
+local Config = require(script.Parent:WaitForChild("GameConfig"))
 local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
 remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
@@ -11,7 +12,7 @@ Tutorial.Name = "Tutorial"
 Tutorial.Parent = remotes
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
-local FIRST_SESSION_TARGET_SECONDS = 10 * 60
+local FIRST_SESSION_TARGET_SECONDS = math.max(60, math.floor(((Config.Onboarding and Config.Onboarding.FirstSessionTargetMinutes) or 10) * 60))
 
 local STEPS = {
     {id="MeetWondi", text="Walk to Bubbi and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
@@ -48,6 +49,7 @@ local function finalizeJourneyTiming(player)
     if startedAt <= 0 then return end
     local seconds = math.max(0, os.time() - startedAt)
     player:SetAttribute("WP_FirstJourneySeconds", seconds)
+    player:SetAttribute("WP_FirstJourneyTargetSeconds", FIRST_SESSION_TARGET_SECONDS)
     player:SetAttribute("WP_FirstJourneyWithinTarget", seconds <= FIRST_SESSION_TARGET_SECONDS)
 end
 
@@ -100,6 +102,7 @@ local function setup(player)
     if not player.Parent then return end
 
     player:SetAttribute("WP_TutorialComplete", player:GetAttribute("WP_OnboardingComplete") == true)
+    player:SetAttribute("WP_FirstJourneyTargetSeconds", FIRST_SESSION_TARGET_SECONDS)
 
     -- v32+ persists WP_TutorialStarted in canonical player data. This fallback
     -- migrates older sessions that already completed any persisted milestone.
@@ -135,6 +138,7 @@ Tutorial.OnServerEvent:Connect(function(player, action)
 
     local firstStart = player:GetAttribute("WP_TutorialStarted") ~= true
     player:SetAttribute("WP_TutorialStarted", true)
+    player:SetAttribute("WP_FirstJourneyTargetSeconds", FIRST_SESSION_TARGET_SECONDS)
     if tonumber(player:GetAttribute("WP_TutorialStartedAt")) == nil then
         player:SetAttribute("WP_TutorialStartedAt", os.time())
     end
@@ -149,4 +153,4 @@ Players.PlayerRemoving:Connect(function(player)
     connections[player] = nil
 end)
 
-print("[WONDERPOCKET] Persistent guided tutorial + 10-minute first-session QA timing loaded")
+print("[WONDERPOCKET] Persistent guided tutorial + master-config first-session QA timing loaded")
