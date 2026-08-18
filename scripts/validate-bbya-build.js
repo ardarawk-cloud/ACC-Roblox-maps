@@ -22,20 +22,39 @@ else {
 }
 
 for (const p of ['maps/a-club/bbya.v5-layout.server.lua','scripts/inject-bbya.js','scripts/publish-map.js']) {
-  if (!exists(p)) fail(`required V5 file missing: ${p}`);
+  if (!exists(p)) fail(`required V5.1 file missing: ${p}`);
 }
-if (!failed) pass('V5 greybox source files present');
+if (!failed) pass('V5.1 architectural source files present');
 
 const layout = exists('maps/a-club/bbya.v5-layout.server.lua') ? read('maps/a-club/bbya.v5-layout.server.lua') : '';
-for (const marker of ['BBYA V5 ARCHITECTURAL GREYBOX','Ground = Y 0, VIP = Y 18, Rooftop = Y 36','MAIN ENTRANCE','Lift Core','WEST STAIR G-VIP','EAST STAIR G-VIP','CHILL LOUNGE']) {
-  if (!layout.includes(marker)) fail(`V5 layout missing architectural marker: ${marker}`);
+for (const marker of [
+  'V5.1 ARCHITECTURAL GREYBOX MASTERPLAN',
+  'Ground = Y 0, VIP = Y 18, Rooftop = Y 36',
+  'EXTERIOR BBYA IDENTITY',
+  'LOBBY',
+  'MAIN CLUB / DANCE',
+  'BAR PROGRAM',
+  'CHILL PROGRAM',
+  'LIFT CORE',
+  'WEST STAIR G-VIP',
+  'EAST STAIR G-VIP',
+  'VIP WEST MEZZANINE',
+  'POOL PROGRAM ZONE',
+  'SKY BAR PROGRAM ZONE',
+  'ROOFTOP CHILL PROGRAM ZONE',
+  'PHOTO / VIEW DECK',
+  'BBYAV5ArchitecturePhase'
+]) {
+  if (!layout.includes(marker)) fail(`V5.1 layout missing architectural marker: ${marker}`);
 }
-for (const forbidden of ['palm(', 'sofa(', 'daybed(', 'cabana', 'Pool Party Logo']) {
-  if (layout.includes(forbidden)) fail(`decoration leaked into greybox source: ${forbidden}`);
+
+// Program-zone labels such as CABANA are permitted; actual decoration builders are not.
+for (const forbidden of ['palm(', 'sofa(', 'daybed(', 'PointLight', 'ParticleEmitter', 'Beam', 'Trail', 'MarketplaceService', 'RemoteEvent']) {
+  if (layout.includes(forbidden)) fail(`non-architectural system/decor leaked into V5.1 source: ${forbidden}`);
 }
 
 const injector = exists('scripts/inject-bbya.js') ? read('scripts/inject-bbya.js') : '';
-if (!injector.includes('bbya.v5-layout.server.lua')) fail('injector missing V5 layout source');
+if (!injector.includes('bbya.v5-layout.server.lua')) fail('injector missing V5.1 layout source');
 if (!injector.includes('BBYA_V5_ARCHITECTURAL_GREYBOX')) fail('injector missing V5 runtime name');
 for (const retired of [
   'bbya.visual-rebuild-v4.server.lua','bbya.visual-polish-v4.server.lua','bbya.phase3-premium.server.lua',
@@ -43,9 +62,9 @@ for (const retired of [
   'bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua','bbya.remove-trees.server.lua',
   'bbya.client.lua','bbya.music.client.lua','bbya.monetization.client.lua','bbya.ui-coordinator.client.lua'
 ]) {
-  if (injector.includes(retired)) fail(`old runtime still in V5 injector: ${retired}`);
+  if (injector.includes(retired)) fail(`old runtime still in V5.1 injector: ${retired}`);
 }
-if (!failed) pass('injector is V5 greybox-only');
+if (!failed) pass('injector is architecture-only V5.1');
 
 if (target && exists(target.file)) {
   const xml = read(target.file);
@@ -55,15 +74,16 @@ if (target && exists(target.file)) {
     const bc=xml.split(begin).length-1, ec=xml.split(end).length-1;
     if (bc!==1 || ec!==1) fail(`runtime markers invalid begin=${bc} end=${ec}`);
     const runtime = bc===1 && ec===1 ? xml.slice(xml.indexOf(begin), xml.indexOf(end)+end.length) : '';
-    if (!runtime.includes('<string name="Name">BBYA_V5_ARCHITECTURAL_GREYBOX</string>')) fail('V5 greybox script missing after injection');
+    if (!runtime.includes('<string name="Name">BBYA_V5_ARCHITECTURAL_GREYBOX</string>')) fail('V5.1 architectural script missing after injection');
     const scripts = (runtime.match(/<Item class="Script"/g) || []).length;
     const locals = (runtime.match(/<Item class="LocalScript"/g) || []).length;
-    if (scripts !== 1) fail(`expected exactly 1 server script for greybox; found ${scripts}`);
+    if (scripts !== 1) fail(`expected exactly 1 server script for architecture review; found ${scripts}`);
     if (locals !== 0) fail(`expected 0 LocalScripts for architecture review; found ${locals}`);
     for (const oldName of ['BBYA_Premium_Visual_Rebuild_v4','BBYA_Front_Lobby_Final_v4_9','BBYA_Dance_Studio_Client','BBYA_Music_Client','BBYA_Monetization_Client']) {
-      if (runtime.includes(oldName)) fail(`legacy runtime leaked into greybox: ${oldName}`);
+      if (runtime.includes(oldName)) fail(`legacy runtime leaked into V5.1: ${oldName}`);
     }
-    if (!failed) pass('post-injection V5 architecture-only runtime valid');
+    if (!runtime.includes('5.1-architectural-masterplan')) fail('V5.1 masterplan attribute missing after injection');
+    if (!failed) pass('post-injection V5.1 architecture-only runtime valid');
   }
 }
 
@@ -71,4 +91,4 @@ if (failed) {
   console.error(`[BBYA VALIDATE] ${injected ? 'POST-INJECTION' : 'SOURCE'} BUILD REJECTED`);
   process.exit(1);
 }
-console.log(`[BBYA VALIDATE] ${injected ? 'POST-INJECTION' : 'SOURCE'} CHECKS PASSED • V5 ARCHITECTURAL GREYBOX`);
+console.log(`[BBYA VALIDATE] ${injected ? 'POST-INJECTION' : 'SOURCE'} CHECKS PASSED • V5.1 ARCHITECTURAL MASTERPLAN`);
