@@ -1,9 +1,10 @@
 -- BBYA V6 — ADAPTIVE CLIENT PERFORMANCE
 -- Mobile may reduce decorative lights only. Critical avatar/show-off fills are never disabled here.
 
+local Players=game:GetService("Players")
 local Lighting=game:GetService("Lighting")
 local UIS=game:GetService("UserInputService")
-local RunService=game:GetService("RunService")
+local player=Players.LocalPlayer
 local camera=workspace.CurrentCamera
 
 local function isMobile()
@@ -43,8 +44,9 @@ local function applyProfile()
 
     -- Bloom may exist now or in a later finish pass. Cap it; never raise it.
     for _,o in ipairs(Lighting:GetChildren()) do
-        if o:IsA("BloomEffect") then
-            if mobile then o.Intensity=math.min(o.Intensity,.32);o.Size=math.min(o.Size,32) end
+        if o:IsA("BloomEffect") and mobile then
+            o.Intensity=math.min(o.Intensity,.32)
+            o.Size=math.min(o.Size,32)
         end
     end
 
