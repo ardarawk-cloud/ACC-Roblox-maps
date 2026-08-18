@@ -1,11 +1,14 @@
 -- BBYA V6 — SPAWN + ARCHITECTURAL CIRCULATION
 -- Small wayfinding only. Geometry and sightlines do the navigation work.
 
--- Real spawn at A1, facing the storefront/social commons.
+-- Real spawn at A1. Slight right-front offset creates the owner-reference hero angle:
+-- left club/social wing + center commons + elevated right rooftop landmark can read together.
 local spawn=Instance.new("SpawnLocation")
 spawn.Name="A1 BBYA SPAWN"
 spawn.Size=Vector3.new(12,.5,8)
-spawn.CFrame=CFrame.new(0,1,-33)*CFrame.Angles(0,math.rad(180),0)
+local spawnPos=Vector3.new(28,1,-36)
+local heroTarget=Vector3.new(-10,1,72)
+spawn.CFrame=CFrame.lookAt(spawnPos,heroTarget)
 spawn.Anchored=true
 spawn.CanCollide=true
 spawn.Neutral=true
@@ -14,6 +17,7 @@ spawn.Material=Enum.Material.SmoothPlastic
 spawn.Color=Color3.fromRGB(84,196,132)
 spawn.Parent=A1
 tag(spawn,A1,"01")
+spawn:SetAttribute("BBYAHeroArrival",true)
 
 -- Arrival threshold lighting frames the building rather than filling the plaza with signs.
 for _,x in ipairs({-32,32}) do
@@ -45,3 +49,4 @@ clearPad(B3,"B3 ROOF CLEAR LANDING",Vector3.new(59,40.82,112),Vector3.new(12,.12
 
 workspace:SetAttribute("BBYAV6Circulation","LOCKED_CLEAR")
 workspace:SetAttribute("BBYAV6SpawnReady",true)
+workspace:SetAttribute("BBYAV6ArrivalView","OWNER_REFERENCE_DIAGONAL_HERO")
