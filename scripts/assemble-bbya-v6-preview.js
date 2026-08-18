@@ -10,7 +10,7 @@ const registry = JSON.parse(fs.readFileSync(path.join(root, 'maps/registry.json'
 const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map: ${mapId}`);
 
-// ORDER IS PART OF THE CONTRACT. Structure -> finish -> social function -> systems -> commerce -> prompts -> QC -> preview gate.
+// ORDER IS PART OF THE CONTRACT. Structure -> finish -> social function -> systems -> commerce -> interactions -> QC -> preview gate.
 const architectureFiles = [
   'maps/a-club/v6/00-core.lua',
   'maps/a-club/v6/10-layout.lua',
@@ -19,6 +19,7 @@ const architectureFiles = [
   'maps/a-club/v6/22-facade-brand.lua',
   'maps/a-club/v6/23-lift-finish.lua',
   'maps/a-club/v6/25-ground-finish.lua',
+  'maps/a-club/v6/26-club-lighting-rig.lua',
   'maps/a-club/v6/30-vip-level.lua',
   'maps/a-club/v6/31-vip-gates.lua',
   'maps/a-club/v6/33-vip-finish.lua',
@@ -31,6 +32,7 @@ const systemFiles = [
   'maps/a-club/v6/50-systems.server.lua',
   'maps/a-club/v6/55-monetization.server.lua',
   'maps/a-club/v6/57-social-prompts.server.lua',
+  'maps/a-club/v6/58-club-lighting.server.lua',
   'maps/a-club/v6/70-runtime-qc.server.lua',
   'maps/a-club/v6/71-preview-gate.server.lua',
 ];
