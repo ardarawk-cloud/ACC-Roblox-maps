@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "1.1.0-release-candidate-hardening",
+    Version = "1.2.0-closed-test-ops-economy",
 
     Economy = {
         StartingCoins = 250,
@@ -11,6 +11,8 @@ return {
         NoPayToWin = true,
         CanonicalCoinAttribute = "Coins",
         CanonicalStarAttribute = "Stars",
+        CanonicalCarrotSeedAttribute = "CarrotSeed",
+        TransactionAuditAttributes = true,
     },
 
     Starter = {
@@ -39,7 +41,8 @@ return {
         OfflineGrowthCapSeconds = 8 * 60 * 60,
         PersistentPlotState = true,
         OfflineGrowthFromReadyAt = true,
-        SeedConsumptionEnabled = false,
+        SeedConsumptionEnabled = true,
+        SeedReturnOnHarvest = true,
     },
 
     Quests = {
@@ -76,6 +79,7 @@ return {
         PersonalStarterCottage = true,
         PlotRelativePersistence = true,
         MobilePlaceRotateCancel = true,
+        PlacementRateLimitSeconds = 0.2,
     },
 
     Shop = {
@@ -83,6 +87,8 @@ return {
         FeaturedSlots = 4,
         CosmeticOnlyRobux = true,
         DeterministicDailyRotation = true,
+        PurchaseRateLimitSeconds = 0.25,
+        ServerTransactionLock = true,
         RobuxExamples = {
             WondiEmote = 5,
             Trail = 5,
@@ -98,6 +104,8 @@ return {
     WonderDex = {
         Categories = {"Wondies", "Plants", "Furniture", "Badges", "Biomes"},
         CompletionRewardsEnabled = true,
+        Persistent = true,
+        ServerAuthoritativeDiscovery = true,
     },
 
     Social = {
@@ -129,11 +137,14 @@ return {
     },
 
     Runtime = {
-        DataSchemaVersion = 3,
+        DataSchemaVersion = 4,
         DataStoreRetries = 4,
         AutosaveSeconds = 90,
         RevisionSafeSaves = true,
         CriticalSaveBus = true,
+        CanonicalSeedInventory = true,
+        TransactionRateLimits = true,
+        EconomyAuditAttributes = true,
         WondiReconnectSafe = true,
         AdventureRewardDebounce = true,
         ServerAuthoritativeAdventureRewards = true,
@@ -143,10 +154,12 @@ return {
         TutorialOwnsOnboardingCompletion = true,
         PersistentProgression = true,
         PersistentGardenState = true,
+        PersistentWonderDex = true,
         InternalSessionTelemetry = true,
         ClosedTestHealthPanel = true,
         CanonicalEconomyAttributes = true,
         FirstSessionObjectiveTracking = true,
+        ClosedTestPublishConfirmationRequired = true,
     },
 
     Onboarding = {
@@ -178,6 +191,10 @@ return {
     QA = {
         ClosedTestCandidate = true,
         ReleaseCandidateHardening = true,
+        ClosedTestOpsAudit = true,
+        EconomyIntegrityAudit = true,
+        SeedEconomyAudit = true,
+        RemoteSpamGuardAudit = true,
         PrePublishHardening = true,
         RuntimeHardening = true,
         ClosedTestExperiencePass = true,
@@ -188,6 +205,7 @@ return {
         GardenPersistenceAudit = true,
         FullFootprintPlacementAudit = true,
         TimedAdventureAudit = true,
+        WonderDexAuthorityAudit = true,
         PersonalPocketWorldAudit = true,
         PlotRelativeFurnitureAudit = true,
         ServerAuthorityAudit = true,
