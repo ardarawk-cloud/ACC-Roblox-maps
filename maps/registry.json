@@ -1,6 +1,13 @@
 {
   "version": 1,
   "maps": {
+    "a-club": {
+      "name": "A CLUB",
+      "enabled": true,
+      "universeId": "8116636513",
+      "placeId": "131894120482837",
+      "file": "maps/a-club/place.rbxlx"
+    },
     "mountain-social": {
       "name": "Mountain Social Adventure",
       "enabled": false,
