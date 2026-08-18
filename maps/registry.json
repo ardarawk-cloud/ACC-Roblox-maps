@@ -25,8 +25,8 @@
     "wonderpocket": {
       "name": "WONDERPOCKET",
       "enabled": false,
-      "universeId": "PUT_UNIVERSE_ID_HERE",
-      "placeId": "PUT_PLACE_ID_HERE",
+      "universeId": "8805231520",
+      "placeId": "124843214013484",
       "file": "maps/wonderpocket/place.rbxlx"
     }
   }
