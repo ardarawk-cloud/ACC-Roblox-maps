@@ -52,14 +52,24 @@ jobs:
 
           echo "maps=$(echo "$TARGETS" | xargs)" >> "$GITHUB_OUTPUT"
 
-      - name: Publish changed maps
+      - name: Validate, inject and publish changed maps
         if: steps.targets.outputs.maps != ''
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         shell: bash
         run: |
+          set -euo pipefail
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
+            echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
+            node scripts/validate-bbya-build.js "$MAP_ID"
+
+            echo "=== INJECT RUNTIME: $MAP_ID ==="
             node scripts/inject-bbya.js "$MAP_ID"
+
+            echo "=== POST-INJECTION VALIDATION: $MAP_ID ==="
+            node scripts/validate-bbya-build.js "$MAP_ID" --injected
+
+            echo "=== PUBLISH: $MAP_ID ==="
             node scripts/publish-map.js "$MAP_ID"
           done
 
