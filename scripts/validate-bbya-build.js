@@ -40,6 +40,7 @@ const requiredSources = [
   'maps/a-club/bbya.phase5-finish.server.lua',
   'maps/a-club/bbya.phase6-wayfinding.server.lua',
   'maps/a-club/bbya.production-qc-v4.server.lua',
+  'maps/a-club/bbya.livefix-4.7.server.lua',
   'maps/a-club/bbya.build-validation.server.lua',
   'maps/a-club/bbya.playtest.server.lua',
   'maps/a-club/bbya.systems.server.lua',
@@ -57,6 +58,7 @@ const requiredSources = [
   'maps/a-club/bbya.support-celebration.client.lua',
   'maps/a-club/bbya.performance.client.lua',
   'maps/a-club/bbya.ui-coordinator.client.lua',
+  'maps/a-club/bbya.livefix-4.7.client.lua',
   'maps/a-club/bbya.health.client.lua',
   'maps/a-club/bbya.queen.client.lua',
   'scripts/inject-bbya.js',
@@ -71,10 +73,12 @@ const injector = exists('scripts/inject-bbya.js') ? read('scripts/inject-bbya.js
 const mustInclude = [
   'bbya.core.server.lua',
   'bbya.phase6-wayfinding.server.lua',
+  'bbya.livefix-4.7.server.lua',
   'bbya.build-validation.server.lua',
   'bbya.playtest.server.lua',
   'bbya.spawn-final.server.lua',
   'bbya.ui-coordinator.client.lua',
+  'bbya.livefix-4.7.client.lua',
   'bbya.health.client.lua',
 ];
 for (const needle of mustInclude) {
@@ -127,6 +131,7 @@ if (target && exists(target.file)) {
       'BBYA_Clean_Functional_Core_v3',
       'BBYA_Premium_Visual_Rebuild_v4',
       'BBYA_Premium_Phase_6_v4_6',
+      'BBYA_Live_Playtest_Fix_v4_7',
       'BBYA_Build_Validation_v1_3',
       'BBYA_Queen_Playtest_System_Test_v1',
       'BBYA_Functional_Systems_v2',
@@ -137,6 +142,7 @@ if (target && exists(target.file)) {
       'BBYA_Music_Client',
       'BBYA_UI_Coordinator_Client',
       'BBYA_Adaptive_Performance_Client',
+      'BBYA_Live_Mobile_UI_Fix_v4_7',
       'BBYA_Queen_Playtest_Health_HUD_v1_1',
     ];
     for (const scriptName of requiredRuntimeScripts) {
