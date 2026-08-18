@@ -6,45 +6,53 @@ local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes", 15)
 if not remotes then return end
 local Tutorial = remotes:WaitForChild("Tutorial", 10)
 
+local playerGui = player:WaitForChild("PlayerGui")
+local old = playerGui:FindFirstChild("WP_TutorialObjective")
+if old then old:Destroy() end
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "WP_TutorialObjective"
 gui.ResetOnSpawn = false
 gui.DisplayOrder = 20
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.Parent = playerGui
 
 local card = Instance.new("Frame")
 card.Name = "ObjectiveCard"
-card.Position = UDim2.fromOffset(14, 86)
-card.Size = UDim2.fromOffset(310, 86)
-card.BackgroundColor3 = Color3.fromRGB(30, 39, 78)
+card.Position = UDim2.fromOffset(12,70)
+card.Size = UDim2.new(1,-24,0,84)
+card.BackgroundColor3 = Color3.fromRGB(30,39,78)
 card.BackgroundTransparency = .08
 card.Visible = false
 card.Parent = gui
-Instance.new("UICorner", card).CornerRadius = UDim.new(0, 18)
+local sizeConstraint = Instance.new("UISizeConstraint")
+sizeConstraint.MaxSize = Vector2.new(320,84)
+sizeConstraint.MinSize = Vector2.new(250,84)
+sizeConstraint.Parent = card
+Instance.new("UICorner", card).CornerRadius = UDim.new(0,18)
 
 local stroke = Instance.new("UIStroke")
 stroke.Thickness = 1.5
 stroke.Transparency = .6
-stroke.Color = Color3.fromRGB(127, 174, 255)
+stroke.Color = Color3.fromRGB(127,174,255)
 stroke.Parent = card
 
 local kicker = Instance.new("TextLabel")
-kicker.Position = UDim2.fromOffset(16, 10)
-kicker.Size = UDim2.new(1, -32, 0, 20)
+kicker.Position = UDim2.fromOffset(14,8)
+kicker.Size = UDim2.new(1,-28,0,20)
 kicker.BackgroundTransparency = 1
 kicker.Font = Enum.Font.GothamBold
-kicker.TextSize = 12
-kicker.TextColor3 = Color3.fromRGB(157, 197, 255)
+kicker.TextSize = 11
+kicker.TextColor3 = Color3.fromRGB(157,197,255)
 kicker.TextXAlignment = Enum.TextXAlignment.Left
 kicker.Text = "FIRST POCKET JOURNEY"
 kicker.Parent = card
 
 local objective = Instance.new("TextLabel")
-objective.Position = UDim2.fromOffset(16, 31)
-objective.Size = UDim2.new(1, -32, 0, 42)
+objective.Position = UDim2.fromOffset(14,29)
+objective.Size = UDim2.new(1,-28,0,43)
 objective.BackgroundTransparency = 1
 objective.Font = Enum.Font.GothamSemibold
-objective.TextSize = 17
+objective.TextSize = 15
 objective.TextWrapped = true
 objective.TextColor3 = Color3.fromRGB(255,255,255)
 objective.TextXAlignment = Enum.TextXAlignment.Left
@@ -77,10 +85,10 @@ Tutorial.OnClientEvent:Connect(function(action, step, total, _, text)
         kicker.Text = "FIRST POCKET JOURNEY  •  COMPLETE"
         objective.Text = text or "Your Pocket journey has begun!"
         task.delay(3.5, function()
-            if card then card.Visible = false end
+            if card.Parent then card.Visible = false end
         end)
     end
 end)
 
 refresh()
-print("[WONDERPOCKET] First-session objective tracker ready")
+print("[WONDERPOCKET] v1.2 responsive first-session objective tracker ready")
