@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
 remotes.Name = "WONDERPOCKET_Remotes"
@@ -8,6 +9,8 @@ remotes.Parent = ReplicatedStorage
 local WondiAction = remotes:FindFirstChild("WondiAction") or Instance.new("RemoteEvent")
 WondiAction.Name = "WondiAction"
 WondiAction.Parent = remotes
+
+local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
 
 local allowed = {
     Bubbi={Wave=true,Happy=true,Sleep=true},
@@ -32,10 +35,22 @@ WondiAction.OnServerEvent:Connect(function(player, action)
     local wondi=tostring(player:GetAttribute("ActiveWondi") or "Bubbi")
     action=tostring(action or "")
     if not (allowed[wondi] and allowed[wondi][action]) then return end
+
     player:SetAttribute("WP_LastWondiEmote",action)
-    player:SetAttribute("WP_Tutorial_MetWondi",true)
+
+    -- Tutorial progress is server-authoritative and only mutates in a safe loaded session.
+    if player:GetAttribute("WP_TutorialStarted")==true
+        and player:GetAttribute("WP_OnboardingComplete")~=true
+        and player:GetAttribute("WP_DataLoaded")==true
+        and player:GetAttribute("WP_DataReadOnly")~=true
+        and player:GetAttribute("WP_DataLoadFailed")~=true
+        and player:GetAttribute("WP_Tutorial_MetWondi")~=true then
+        player:SetAttribute("WP_Tutorial_MetWondi",true)
+        if CriticalSave then CriticalSave:Fire(player) end
+    end
+
     WondiAction:FireAllClients("EMOTE",player.UserId,wondi,action)
 end)
 
 Players.PlayerRemoving:Connect(function(player) cooldown[player.UserId]=nil end)
-print("[WONDERPOCKET] Canonical Wondi interaction system loaded")
+print("[WONDERPOCKET] Canonical Wondi interaction + tutorial save guard loaded")
