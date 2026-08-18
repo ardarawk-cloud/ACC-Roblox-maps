@@ -1,4 +1,4 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.1
 const fs = require('fs');
 const path = require('path');
 
