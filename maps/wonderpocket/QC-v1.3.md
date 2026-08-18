@@ -1,11 +1,11 @@
 # WONDERPOCKET QC — v1.3 Fail-Closed Data Safety
 
 ## Current closed-test baseline
-- Place version: **35**
+- Place version: **37**
 - Target: Universe `8805231520` → Place `124843214013484`
 - Public release: **closed** (`PublishAllowed = false`)
 - Registry: **disabled**
-- v35 includes persistent `WP_TutorialStarted`, backward resume migration for v31-and-earlier tutorial progress, state-driven Bubbi/Say Hi startup, SHOP/BUILD/PLACE guidance, Android placement surface/height hardening, mobile-fit onboarding, short-screen SHOP/modal/toast/TEST-panel polish, and low-part Wonder Square ambience decor.
+- v37 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, and save-health fail-closed protection that freezes persistent mutations when any persistence subsystem reports degraded save health.
 - Live/runtime gates below remain intentionally unchecked until observed in Roblox; code-side review is not treated as a runtime pass.
 
 ## Code-side gate
@@ -19,12 +19,16 @@
 - [x] Shop explicitly rejects read-only sessions
 - [x] placement explicitly rejects read-only sessions
 - [x] read-only banner is player-facing and mobile-safe
-- [x] health panel exposes main/inventory/furniture/garden/Dex failure flags
+- [x] banner also reacts to degraded main/inventory/furniture/garden/WonderDex save health
+- [x] save-health guard freezes the session into `WP_DataReadOnly` after a persistence save-health failure is reported
+- [x] Shop rejects purchases when main/inventory save health is degraded
+- [x] Adventure Gate and Treasure rewards reject protected/read-only sessions
+- [x] health panel exposes main/inventory/furniture/garden/Dex load and save status
 - [x] v1.2 economy integrity, seed economy, rate limits, and audit bus remain active
 - [x] responsive premium UI has no invalid `Frame.PaddingTop`
 - [x] responsive panel content is isolated from header/close layout
 - [x] core HUD remains mobile-safe and shows canonical CarrotSeed
-- [x] slow successful startup no longer times out onboarding/tutorial/inventory/furniture/garden into a false failure
+- [x] slow successful startup no longer false-times-out onboarding/tutorial/inventory/furniture/garden/Retention/Starter Quest/WonderDex
 - [x] `WP_TutorialStarted` is persisted in canonical main player data and critical-saved on first START
 - [x] v31-and-earlier persisted milestones migrate into resumed tutorial state, including purchase-only progress after inventory resolves
 - [x] incomplete tutorial resumes after rejoin instead of replaying the Welcome card
@@ -38,12 +42,13 @@
 - [x] tutorial-time toast is moved below the objective tracker
 - [x] closed-test TEST panel is resized for short Android screens
 - [x] low-part Wonder Square decor adds paths, seating, stylized pocket trees, fountain heart, and `Build Your Little World` tagline without external assets
+- [x] Adventure remote API does not grant Treasure Island rewards; chest system is the sole reward authority
 - [x] closed-test build includes health TEST panel; normal release build excludes it
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
 
-## v35 Android first-10-minutes live script — REQUIRED
-1. Fresh test account joins v35 and receives the Welcome card with fully visible `START MY POCKET`.
+## v37 Android first-10-minutes live script — REQUIRED
+1. Fresh test account joins v37 and receives the Welcome card with fully visible `START MY POCKET`.
 2. Tap `START MY POCKET`; tracker shows step 1/6 and Bubbi gets `NEXT • SAY HI` guidance.
 3. **Exit/rejoin before saying Hi.** Welcome card must not return; step 1/6 must resume. This verifies persisted `WP_TutorialStarted`, not milestone inference.
 4. Say Hi to Bubbi; exit/rejoin immediately. Tutorial must resume at the next unfinished objective.
@@ -55,7 +60,7 @@
 10. Harvest when ready. Verify +12 Coins and +1 CarrotSeed exactly once.
 11. Follow Adventure Gate guidance, enter Treasure Island, then verify waypoint moves to a chest. Collect one treasure; tutorial completes and completion survives immediate rejoin.
 12. Inspect Wonder Square: pastel routes, benches, four stylized corner trees, fountain heart, and `Build Your Little World` tagline must not block tutorial navigation.
-13. Open `TEST` during closed-test and confirm Data/Inventory/Furniture/Garden/WonderDex report healthy. The panel must fit the Android viewport. No red runtime errors during the run.
+13. Open `TEST` during closed-test and confirm Data/Inventory/Furniture/Garden/WonderDex load and save indicators report healthy. The panel must fit the Android viewport. No red runtime errors during the run.
 
 ## Live Roblox failure/recovery gate — REQUIRED
 - [ ] normal DataStore availability loads exact prior Coins / Stars / CarrotSeed
@@ -70,8 +75,10 @@
 - [ ] placed-furniture read failure does not save an empty furniture list
 - [ ] garden read failure does not save blank crop state
 - [ ] WonderDex read failure does not save blank discovery state
+- [ ] any observed persistence save-health failure shows the READ-ONLY/protected banner
+- [ ] after a save-health failure, new Shop/Build/Garden/Dex/Adventure reward mutations are blocked until rejoin
 - [ ] health panel identifies the exact subsystem that failed
-- [ ] after DataStore service recovers, rejoin loads the original pre-failure data intact
+- [ ] after DataStore service recovers, rejoin loads the original last-safe data intact
 - [ ] READ-ONLY banner disappears after a successful safe rejoin
 
 ## Normal runtime regression gate
