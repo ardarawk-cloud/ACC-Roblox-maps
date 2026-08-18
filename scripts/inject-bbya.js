@@ -26,7 +26,7 @@ const zoneFiles = [
   'maps/a-club/v5/A3-lobby.lua','maps/a-club/v5/A3-premium.lua',
   'maps/a-club/v5/S1-service.lua','maps/a-club/v5/S1-premium.lua',
   'maps/a-club/v5/B3-lift.lua','maps/a-club/v5/B3-premium.lua',
-  'maps/a-club/v5/A4-main-club.lua','maps/a-club/v5/A4-premium.lua',
+  'maps/a-club/v5/A4-main-club.lua','maps/a-club/v5/A4-premium.lua','maps/a-club/v5/A4-showoff-lighting.lua',
   'maps/a-club/v5/A5-bar.lua','maps/a-club/v5/A5-premium.lua',
   'maps/a-club/v5/A6-chill.lua','maps/a-club/v5/A6-premium.lua',
   'maps/a-club/v5/B1-west-stair.lua','maps/a-club/v5/B1-premium.lua',
@@ -67,6 +67,7 @@ const uiFiles = [
   'maps/a-club/v5/ui-floating-dock.client.lua',
   'maps/a-club/v5/ui-container-dock.client.lua',
   'maps/a-club/v5/ui-live.client.lua',
+  'maps/a-club/v5/ui-camera.client.lua',
   'maps/a-club/v5/ui-performance.client.lua',
 ];
 
