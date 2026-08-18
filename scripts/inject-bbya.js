@@ -12,6 +12,7 @@ const placePath = path.join(process.cwd(), target.file);
 const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 const mainLua = readLua('maps/a-club/bbya.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
+const djLua = readLua('maps/a-club/bbya.dj.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
@@ -25,6 +26,7 @@ const runtime = `${begin}
   <Properties><string name="Name">ServerScriptService</string></Properties>
   <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Main</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
   <Properties><string name="Name">StarterPlayer</string></Properties>
@@ -38,4 +40,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Main runtime + functional server systems + client UI injected into', target.file);
+console.log('[BBYA] Main runtime + systems + resident DJ + client UI injected into', target.file);
