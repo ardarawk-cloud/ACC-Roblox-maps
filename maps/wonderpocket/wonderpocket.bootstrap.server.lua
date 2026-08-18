@@ -5,10 +5,10 @@ local DataStoreService = game:GetService("DataStoreService")
 local Lighting = game:GetService("Lighting")
 
 local Config = require(script.Parent:WaitForChild("GameConfig"))
--- Keep the existing store name so v1.0 data migrates in-place.
+-- Keep the existing store name so earlier player data migrates in-place.
 local Store = DataStoreService:GetDataStore("WONDERPOCKET_PlayerData_v2")
 
-local DATA_SCHEMA = 3
+local DATA_SCHEMA = 4
 local AUTOSAVE_SECONDS = (Config.Runtime and Config.Runtime.AutosaveSeconds) or 90
 local MAX_RETRIES = (Config.Runtime and Config.Runtime.DataStoreRetries) or 4
 
@@ -108,6 +108,11 @@ local function migrateData(data)
     for key, value in pairs(defaults) do
         if data[key] == nil then data[key] = value end
     end
+    if type(data.inventory) ~= "table" then data.inventory = {} end
+    if data.inventory[Config.Starter.Seed] == nil then
+        data.inventory[Config.Starter.Seed] = Config.Starter.SeedCount
+    end
+    data.inventory[Config.Starter.Seed] = math.max(0, math.floor(tonumber(data.inventory[Config.Starter.Seed]) or 0))
     data.schemaVersion = DATA_SCHEMA
     if data.questStarterRewarded == true then data.questStarter = "COMPLETE" end
     return data
@@ -154,6 +159,8 @@ local function syncAttributesToData(player, data)
     data.lastWeeklyWeek = tonumber(player:GetAttribute("WP_LastWeeklyWeek")) or data.lastWeeklyWeek or 0
     data.dailyQuestProgress = math.max(0, math.floor(tonumber(player:GetAttribute("WP_DailyQuestProgress")) or data.dailyQuestProgress or 0))
     data.weeklyQuestProgress = math.max(0, math.floor(tonumber(player:GetAttribute("WP_WeeklyQuestProgress")) or data.weeklyQuestProgress or 0))
+    if type(data.inventory) ~= "table" then data.inventory = {} end
+    data.inventory[Config.Starter.Seed] = math.max(0, math.floor(tonumber(player:GetAttribute("CarrotSeed")) or data.inventory[Config.Starter.Seed] or 0))
     data.lastSeen = os.time()
     data.schemaVersion = DATA_SCHEMA
 end
@@ -173,6 +180,7 @@ local function savePlayer(player, force)
     saving[player] = true
     syncAttributesToData(player, data)
     local snapshot = table.clone(data)
+    snapshot.inventory = table.clone(data.inventory or {})
     local targetRevision = currentRevision
 
     local ok = retry("save u_"..player.UserId, function()
@@ -237,6 +245,7 @@ local function loadPlayer(player)
     player:SetAttribute("Stars", tonumber(data.stars) or 0)
     player:SetAttribute("ActiveWondi", data.activeWondi or Config.Starter.Wondi)
     player:SetAttribute("PocketBiome", data.pocketBiome or Config.Starter.Biome)
+    player:SetAttribute("CarrotSeed", math.max(0, math.floor(tonumber(data.inventory and data.inventory[Config.Starter.Seed]) or Config.Starter.SeedCount)))
     player:SetAttribute("WP_OnboardingComplete", data.onboardingComplete == true)
     player:SetAttribute("WP_Tutorial_MetWondi", data.tutorialMetWondi == true)
     player:SetAttribute("WP_PlantedCount", math.max(0, math.floor(tonumber(data.plantedCount) or 0)))
@@ -251,7 +260,7 @@ local function loadPlayer(player)
     player:SetAttribute("WP_WeeklyQuestProgress", math.max(0, math.floor(tonumber(data.weeklyQuestProgress) or 0)))
 
     for _, attribute in ipairs({
-        "Coins","Stars","ActiveWondi","PocketBiome","WP_OnboardingComplete",
+        "Coins","Stars","ActiveWondi","PocketBiome","CarrotSeed","WP_OnboardingComplete",
         "WP_Tutorial_MetWondi","WP_PlantedCount","WP_HarvestCount","WP_PlacedCount",
         "WP_Quest_Starter","WP_QuestStarterRewarded","WP_LastDailyDay","WP_LastWeeklyWeek",
         "WP_DailyQuestProgress","WP_WeeklyQuestProgress",
@@ -305,4 +314,4 @@ game:BindToClose(function()
     while remaining > 0 and os.clock() < deadline do task.wait(.1) end
 end)
 
-print("[WONDERPOCKET] v1.1 revision-safe foundation loaded", Config.Version)
+print("[WONDERPOCKET] v1.2 seed-persistent revision-safe foundation loaded", Config.Version)
