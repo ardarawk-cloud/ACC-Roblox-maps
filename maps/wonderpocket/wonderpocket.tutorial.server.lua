@@ -33,6 +33,13 @@ local watchedAttributes = {
 
 local connections = {}
 
+local function hasPersistedTutorialProgress(player)
+    return player:GetAttribute("WP_Tutorial_MetWondi") == true
+        or (tonumber(player:GetAttribute("WP_PlantedCount")) or 0) >= 1
+        or (tonumber(player:GetAttribute("WP_PlacedCount")) or 0) >= 1
+        or (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) >= 1
+end
+
 local function evaluate(player)
     if player:GetAttribute("WP_OnboardingComplete") == true then
         player:SetAttribute("WP_TutorialComplete", true)
@@ -72,7 +79,9 @@ local function setup(player)
 
     player:SetAttribute("WP_TutorialComplete", player:GetAttribute("WP_OnboardingComplete") == true)
     if player:GetAttribute("WP_TutorialStarted") == nil then
-        player:SetAttribute("WP_TutorialStarted", false)
+        -- TutorialStarted itself predates persistence. Infer a resumed first journey from
+        -- canonical persisted milestones so a rejoin does not show the Welcome card again.
+        player:SetAttribute("WP_TutorialStarted", hasPersistedTutorialProgress(player))
     end
 
     connections[player] = {}
@@ -102,4 +111,4 @@ Players.PlayerRemoving:Connect(function(player)
     connections[player] = nil
 end)
 
-print("[WONDERPOCKET] Guided first-session tutorial progression loaded")
+print("[WONDERPOCKET] Guided first-session tutorial progression + rejoin resume loaded")
