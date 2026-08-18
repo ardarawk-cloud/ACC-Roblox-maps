@@ -59,7 +59,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAPHASE5PREMIUMV450000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_5_v4_5_1</string><ProtectedString name="Source"><![CDATA[${phase5Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPHASE6PREMIUMV460000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_6_v4_6</string><ProtectedString name="Source"><![CDATA[${phase6Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4300000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_3</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1_1</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1_3</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPLAYTESTSERVICE00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_System_Test_v1</string><ProtectedString name="Source"><![CDATA[${playtestLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems_v2</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMONETIZATION000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Backend</string><ProtectedString name="Source"><![CDATA[${monetizationLua}]]></ProtectedString></Properties></Item>
@@ -91,4 +91,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium 4.6 playtest-hardened build + Queen system test + final wayfinding + validation + adaptive performance + consolidated UI into', target.file);
+console.log('[BBYA] Active build injected: Premium 4.6.1 playtest-hardened build + Queen system test + runtime validation v1.3 + adaptive performance + consolidated UI into', target.file);
