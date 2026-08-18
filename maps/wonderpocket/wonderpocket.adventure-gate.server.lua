@@ -19,6 +19,8 @@ if gate and gate:IsA("BasePart") then
 
     prompt.Triggered:Connect(function(player)
         if player:GetAttribute("WP_DataLoaded") ~= true then return end
+        if player:GetAttribute("WP_DataReadOnly") == true or player:GetAttribute("WP_DataLoadFailed") == true then return end
+
         local character = player.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
@@ -36,4 +38,4 @@ Players.PlayerRemoving:Connect(function(player)
     player:SetAttribute("WP_ActiveAdventure", nil)
 end)
 
-print("[WONDERPOCKET] Wonder Square Adventure Gate activated")
+print("[WONDERPOCKET] Read-only guarded Wonder Square Adventure Gate activated")
