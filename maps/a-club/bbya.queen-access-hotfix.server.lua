@@ -1,5 +1,5 @@
--- BBYA Queen deck access hotfix v1.0
--- Builds a compact staircase relative to the Queen throne so the elevated seating is reachable.
+-- BBYA Queen deck access hotfix v1.1
+-- Compact side staircase. No long rails/beams crossing the room or camera sightline.
 
 task.wait(3)
 
@@ -16,67 +16,61 @@ local model=Instance.new("Model")
 model.Name="BBYA Queen Access"
 model.Parent=workspace
 
--- Build stairs on the outer/left side of the throne so they do not cut through the lounge.
-local stepCount=7
-local rise=1.15
-local run=3.0
-local width=8
-local base=throne.CFrame*CFrame.new(-10,-(stepCount*rise)+1,-8)
+-- Put the stairs tight to the OUTER LEFT side of the Queen platform.
+-- Descend away from the lounge so nothing cuts across the center of the room.
+local stepCount=6
+local rise=0.95
+local run=2.1
+local width=6.2
+local sideOffset=-8.5
+local topOffsetZ=6.5
+local topY=-1.15
 
 for i=1,stepCount do
+ local down=stepCount-i
  local p=Instance.new("Part")
  p.Name="Queen Stair "..i
  p.Anchored=true
  p.CanCollide=true
- p.Size=Vector3.new(width,1,run+0.5)
- p.CFrame=base*CFrame.new(0,i*rise,(i-1)*run)
+ p.Size=Vector3.new(width,.8,run+0.15)
+ p.CFrame=throne.CFrame*CFrame.new(sideOffset,topY-down*rise,topOffsetZ+down*run)
  p.Material=Enum.Material.SmoothPlastic
- p.Color=Color3.fromRGB(34,28,46)
+ p.Color=Color3.fromRGB(31,26,42)
  p.Parent=model
 
  local edge=Instance.new("Part")
  edge.Name="Queen Stair Neon "..i
  edge.Anchored=true
  edge.CanCollide=false
- edge.Size=Vector3.new(width,.12,.18)
- edge.CFrame=p.CFrame*CFrame.new(0,.56,-p.Size.Z/2-.02)
+ edge.Size=Vector3.new(width,.1,.14)
+ edge.CFrame=p.CFrame*CFrame.new(0,.44,-p.Size.Z/2+.02)
  edge.Material=Enum.Material.Neon
- edge.Color=i%2==0 and Color3.fromRGB(45,205,255) or Color3.fromRGB(255,65,200)
+ edge.Color=i%2==0 and Color3.fromRGB(48,210,255) or Color3.fromRGB(255,65,205)
  edge.Parent=model
 end
 
--- Landing connects the last stair to the Queen seating level.
+-- Small landing only; no oversized platform.
 local landing=Instance.new("Part")
 landing.Name="Queen Access Landing"
 landing.Anchored=true
 landing.CanCollide=true
-landing.Size=Vector3.new(12,1,10)
-landing.CFrame=throne.CFrame*CFrame.new(-10,-1.2,10)
+landing.Size=Vector3.new(7,0.8,5.5)
+landing.CFrame=throne.CFrame*CFrame.new(sideOffset,topY,3.1)
 landing.Material=Enum.Material.SmoothPlastic
-landing.Color=Color3.fromRGB(30,24,42)
+landing.Color=Color3.fromRGB(29,24,40)
 landing.Parent=model
 
-local railColor=Color3.fromRGB(255,70,205)
-for _,x in ipairs({-width/2-0.35,width/2+0.35}) do
- local rail=Instance.new("Part")
- rail.Name="Queen Access Rail"
- rail.Anchored=true
- rail.CanCollide=false
- rail.Size=Vector3.new(.25,3,stepCount*run+4)
- rail.CFrame=base*CFrame.new(x,stepCount*rise/2+1.5,(stepCount-1)*run/2)
- rail.Material=Enum.Material.Metal
- rail.Color=Color3.fromRGB(45,40,55)
- rail.Parent=model
-
- local neon=Instance.new("Part")
- neon.Name="Queen Access Rail Neon"
- neon.Anchored=true
- neon.CanCollide=false
- neon.Size=Vector3.new(.12,.12,stepCount*run+4)
- neon.CFrame=rail.CFrame*CFrame.new(0,1.55,0)
- neon.Material=Enum.Material.Neon
- neon.Color=railColor
- neon.Parent=model
+-- Two short marker posts at the top only. No long rails.
+for _,x in ipairs({-2.7,2.7}) do
+ local post=Instance.new("Part")
+ post.Name="Queen Access Marker"
+ post.Anchored=true
+ post.CanCollide=false
+ post.Size=Vector3.new(.22,2.4,.22)
+ post.CFrame=landing.CFrame*CFrame.new(x,1.55,-2.3)
+ post.Material=Enum.Material.Neon
+ post.Color=x<0 and Color3.fromRGB(48,210,255) or Color3.fromRGB(255,65,205)
+ post.Parent=model
 end
 
-print("[BBYA] Queen deck staircase created")
+print("[BBYA] Queen deck staircase v1.1 compact layout created")
