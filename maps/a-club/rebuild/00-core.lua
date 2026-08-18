@@ -16,7 +16,7 @@ ROOT.Name = "BBYA CLEAN REBUILD"
 ROOT.Parent = workspace
 ROOT:SetAttribute("BuildFamily","BBYA_CLEAN_REBUILD")
 ROOT:SetAttribute("Reference","OWNER_IMAGE_1")
-ROOT:SetAttribute("Status","PHASE_2_PREMIUM_BUILD")
+ROOT:SetAttribute("Status","PHASE_3_CIRCULATION_FINISH")
 
 local Z = {}
 local function zone(name)
@@ -198,4 +198,4 @@ grade.Parent=Lighting
 
 workspace:SetAttribute("BBYACleanRebuild",true)
 workspace:SetAttribute("BBYAReferenceImage1",true)
-workspace:SetAttribute("BBYABuildPhase","PHASE_2_PREMIUM_BUILD")
+workspace:SetAttribute("BBYABuildPhase","PHASE_3_CIRCULATION_FINISH")
