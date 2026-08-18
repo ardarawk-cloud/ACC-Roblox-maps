@@ -1,10 +1,10 @@
--- BBYA SOCIAL HUB — CLEAN REBUILD PHASE 4 QC
+-- BBYA SOCIAL HUB — CLEAN REBUILD PHASE 5 QC
 -- Reports only; never patches geometry.
 
 local ReplicatedStorageQC=game:GetService("ReplicatedStorage")
 local SoundServiceQC=game:GetService("SoundService")
 
-task.delay(7,function()
+task.delay(8,function()
     local issues={}
     local function need(name)
         if not workspace:FindFirstChild(name,true) then
@@ -57,7 +57,7 @@ task.delay(7,function()
     if circulationLights<7 then table.insert(issues,"circulation light count below 7: "..circulationLights) end
     if panelPrompts<4 then table.insert(issues,"physical panel prompt count below 4: "..panelPrompts) end
 
-    -- Check a reduced interior volume above every clear marker. Floors under the marker and side rails are excluded by volume placement.
+    -- Reduced standing volume above every clear marker. Floors below and side rails are excluded by volume placement.
     local overlap=OverlapParams.new()
     overlap.FilterType=Enum.RaycastFilterType.Exclude
     overlap.FilterDescendantsInstances={}
@@ -72,9 +72,7 @@ task.delay(7,function()
                 if #blockers>=3 then break end
             end
         end
-        if #blockers>0 then
-            table.insert(issues,"blocked clear lane "..marker.Name..": "..table.concat(blockers,", "))
-        end
+        if #blockers>0 then table.insert(issues,"blocked clear lane "..marker.Name..": "..table.concat(blockers,", ")) end
     end
 
     if workspace:GetAttribute("BBYAArchitecture")~="REFERENCE_MASSING_PHASE_1" then table.insert(issues,"architecture phase marker missing") end
@@ -85,32 +83,46 @@ task.delay(7,function()
     if workspace:GetAttribute("BBYACirculation")~="PHASE_3_LOCKED_CLEAR" then table.insert(issues,"phase 3 circulation marker missing") end
     if workspace:GetAttribute("BBYAReferenceSilhouette")~="LEFT_CLUB_CENTER_SOCIAL_RIGHT_VIP_UPPER_POOL" then table.insert(issues,"owner-reference silhouette marker missing") end
     if workspace:GetAttribute("BBYACleanRebuild")~=true then table.insert(issues,"clean rebuild marker missing") end
-    if workspace:GetAttribute("BBYABuildPhase")~="PHASE_4_SOCIAL_SYSTEMS" then table.insert(issues,"build phase is not phase 4") end
-    if workspace:GetAttribute("BBYASocialSystems")~="PHASE_4_ACTIVE" then table.insert(issues,"phase 4 social systems marker missing") end
+    if workspace:GetAttribute("BBYABuildPhase")~="PHASE_5_REFERENCE_UI_QC" then table.insert(issues,"build phase is not phase 5") end
+    if workspace:GetAttribute("BBYASocialSystems")~="PHASE_5_REFERENCE_FIDELITY" then table.insert(issues,"phase 5 social systems marker missing") end
 
-    -- Server remotes and shared music channels must exist even while official IDs/library are pending.
+    -- Server remotes must expose the same support/music data used by physical prompts and mobile UI.
     local remoteRoot=ReplicatedStorageQC:FindFirstChild("BBYA REMOTES")
     if not remoteRoot then
         table.insert(issues,"BBYA REMOTES missing")
     else
-        for _,name in ipairs({"OpenPanel","GetSupportConfig","GetSupportBoard","GetMusicState"}) do
+        for _,name in ipairs({"OpenPanel","SupportChanged","MusicStateChanged","GetSupportConfig","GetSupportBoard","GetSupportSelf","GetMusicState"}) do
             if not remoteRoot:FindFirstChild(name) then table.insert(issues,"remote missing: "..name) end
         end
     end
+
+    -- Music deck topology exists even while the authorized library is intentionally empty.
     local musicRoot=SoundServiceQC:FindFirstChild("BBYA MUSIC")
     if not musicRoot then
         table.insert(issues,"BBYA MUSIC folder missing")
     else
-        if not musicRoot:FindFirstChild("CLUB CHANNEL") then table.insert(issues,"club music channel missing") end
-        if not musicRoot:FindFirstChild("ROOFTOP CHANNEL") then table.insert(issues,"rooftop music channel missing") end
+        for _,name in ipairs({"CLUB DECK A","CLUB DECK B","ROOFTOP DECK A","ROOFTOP DECK B"}) do
+            if not musicRoot:FindFirstChild(name) then table.insert(issues,"music deck missing: "..name) end
+        end
+    end
+    for _,groupName in ipairs({"BBYA CLUB GROUP","BBYA ROOFTOP GROUP"}) do
+        local group=SoundServiceQC:FindFirstChild(groupName)
+        if not group or not group:IsA("SoundGroup") then
+            table.insert(issues,"sound group missing: "..groupName)
+        elseif not group:FindFirstChild("BBYA EQ") then
+            table.insert(issues,"equalizer missing: "..groupName)
+        end
     end
 
-    -- Pending commerce/music data is allowed and intentional; only malformed/missing attributes are rejected.
+    -- Pending commerce/music data is valid only when all fail-closed metadata is coherent.
     if workspace:GetAttribute("BBYASupportProductsReady")==nil then table.insert(issues,"support readiness attribute missing") end
     if workspace:GetAttribute("BBYAMusicLibraryReady")==nil then table.insert(issues,"music readiness attribute missing") end
+    if workspace:GetAttribute("BBYASupportTierCount")~=5 then table.insert(issues,"support tier count is not exact reference count 5") end
+    if workspace:GetAttribute("BBYAMusicDeckCount")~=4 then table.insert(issues,"music deck count is not 4") end
+    if workspace:GetAttribute("BBYAMusicCrossfadeSeconds")~=3.5 then table.insert(issues,"music crossfade value is not 3.5") end
     if (workspace:GetAttribute("BBYAPanelPromptCount") or 0)<4 then table.insert(issues,"panel prompt attribute below 4") end
 
-    -- Runtime must contain exactly one BBYA build root. Any archived runtime geometry is rejected.
+    -- Runtime must contain exactly one clean build root. Archived visual roots are rejected.
     local rebuildRoots=0
     for _,o in ipairs(workspace:GetChildren()) do
         if o.Name=="BBYA CLEAN REBUILD" then rebuildRoots+=1 end
@@ -120,8 +132,8 @@ task.delay(7,function()
     end
     if rebuildRoots~=1 then table.insert(issues,"expected exactly one clean rebuild root, got "..rebuildRoots) end
 
-    workspace:SetAttribute("BBYAPhase4IssueCount",#issues)
-    workspace:SetAttribute("BBYAPhase4QC",#issues==0 and "PASS" or "WARN")
+    workspace:SetAttribute("BBYAPhase5IssueCount",#issues)
+    workspace:SetAttribute("BBYAPhase5QC",#issues==0 and "PASS" or "WARN")
     workspace:SetAttribute("BBYASocialSeatCount",seats)
     workspace:SetAttribute("BBYAShowLightCount",showLights)
     workspace:SetAttribute("BBYACriticalFillCount",criticalFill)
@@ -132,8 +144,8 @@ task.delay(7,function()
     workspace:SetAttribute("BBYAPanelPromptRuntimeCount",panelPrompts)
 
     if #issues==0 then
-        print(string.format("[BBYA CLEAN REBUILD] PHASE 4 PASS — %d seats, %d clear lanes, %d prompts; support/music shell verified",seats,clearLanes,panelPrompts))
+        print(string.format("[BBYA CLEAN REBUILD] PHASE 5 PASS — %d seats, %d clear lanes, %d prompts; exact support tiers + dual-deck music shell verified",seats,clearLanes,panelPrompts))
     else
-        warn("[BBYA CLEAN REBUILD] PHASE 4 WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
+        warn("[BBYA CLEAN REBUILD] PHASE 5 WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
     end
 end)
