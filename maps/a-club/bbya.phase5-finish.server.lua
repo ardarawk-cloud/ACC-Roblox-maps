@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — PREMIUM PHASE 5 v4.5
+-- BBYA SOCIAL HUB — PREMIUM PHASE 5 v4.5.1
 -- Final venue-density + crowd-atmosphere pass. No fake NPC crowds; reacts to real players.
 
 local Players = game:GetService("Players")
@@ -87,10 +87,11 @@ local arrival=Instance.new("Folder");arrival.Name="01 Arrival Density";arrival.P
 -- Valet/queue bollards keep the entry from feeling like an empty plaza.
 for _,x in ipairs({-34,-22,-10,10,22,34}) do
  for _,z in ipairs({88,97}) do
-  local post=part("Arrival Bollard "..x.." "..z,Vector3.new(.8,3,.8),CFrame.new(x,3,z),C.black,Enum.Material.Metal,0,true,arrival)
+  local postCF=CFrame.new(x,3,z)*CFrame.Angles(0,0,math.rad(90))
+  local post=part("Arrival Bollard "..x.." "..z,Vector3.new(3,.8,.8),postCF,C.black,Enum.Material.Metal,0,true,arrival)
   post.Shape=Enum.PartType.Cylinder
-  post.CFrame=post.CFrame*CFrame.Angles(0,0,math.rad(90))
-  neon("Bollard Cap "..x.." "..z,Vector3.new(.9,.12,.9),CFrame.new(x,4.45,z),x<0 and C.cyan or C.pink,arrival,false).Shape=Enum.PartType.Cylinder
+  local cap=neon("Bollard Cap "..x.." "..z,Vector3.new(.12,1,1),CFrame.new(x,4.5,z)*CFrame.Angles(0,0,math.rad(90)),x<0 and C.cyan or C.pink,arrival,false)
+  cap.Shape=Enum.PartType.Cylinder
  end
 end
 for _,z in ipairs({88,97}) do
@@ -115,9 +116,11 @@ for _,x in ipairs({-43,43}) do
  local f=Instance.new("Folder");f.Name="Speaker Tower "..x;f.Parent=club
  part("Speaker Column",Vector3.new(8,18,6),CFrame.new(x,11,-52),C.black,Enum.Material.Metal,0,true,f)
  for y=5,17,4 do
-  local cone=part("Speaker Cone "..y,Vector3.new(4,.7,4),CFrame.new(x,y,-48.8)*CFrame.Angles(math.rad(90),0,0),Color3.fromRGB(29,27,34),Enum.Material.Metal,0,false,f)
+  local coneCF=CFrame.new(x,y,-48.8)*CFrame.Angles(0,math.rad(90),0)
+  local cone=part("Speaker Cone "..y,Vector3.new(.7,4,4),coneCF,Color3.fromRGB(29,27,34),Enum.Material.Metal,0,false,f)
   cone.Shape=Enum.PartType.Cylinder
-  neon("Speaker Ring "..y,Vector3.new(4.25,.12,4.25),cone.CFrame*CFrame.new(0,.45,0),x<0 and C.cyan or C.pink,f,false).Shape=Enum.PartType.Cylinder
+  local ring=neon("Speaker Ring "..y,Vector3.new(.12,4.25,4.25),cone.CFrame*CFrame.new(.42,0,0),x<0 and C.cyan or C.pink,f,false)
+  ring.Shape=Enum.PartType.Cylinder
  end
 end
 
@@ -203,5 +206,5 @@ for _,x in ipairs({-84,84}) do
  neon("Rooftop Ledge Glow "..x,Vector3.new(.16,.16,46),CFrame.new(x + (x<0 and 1.3 or -1.3),40.6,8),x<0 and C.cyan or C.pink,roof,false)
 end
 
-workspace:SetAttribute("BBYAPremiumPhase5","4.5")
-print("[BBYA] Premium Phase 5 v4.5 loaded — real crowd atmosphere + venue density")
+workspace:SetAttribute("BBYAPremiumPhase5","4.5.1")
+print("[BBYA] Premium Phase 5 v4.5.1 loaded — real crowd atmosphere + venue density")
