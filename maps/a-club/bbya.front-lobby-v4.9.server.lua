@@ -1,11 +1,10 @@
--- BBYA SOCIAL HUB — FRONT LOBBY FINAL REBUILD v4.9
--- Live-playtest correction. This script intentionally runs AFTER the older premium layers settle,
--- then removes their arrival/lobby geometry and builds one clean entrance axis.
+-- BBYA SOCIAL HUB — FRONT LOBBY FINAL REBUILD v4.9.1
+-- Live-playtest correction. Runs after premium layers settle, removes old arrival/lobby geometry,
+-- builds one clean entrance axis, then rescues navigation landings into verified clear floor space.
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ROOT_NAME = "BBYA Front Lobby v4.9"
 
--- Roblox server scripts start in parallel. Wait so legacy/premium builders finish first,
--- otherwise deleted pieces can reappear after this script runs.
 task.wait(7)
 
 for _,name in ipairs({ROOT_NAME,"BBYA Front Lobby v4.8"}) do
@@ -13,7 +12,6 @@ for _,name in ipairs({ROOT_NAME,"BBYA Front Lobby v4.8"}) do
  if old then old:Destroy() end
 end
 
--- Remove old arrival/lobby geometry only. Main club/VIP/rooftop stay intact.
 local rebuild=workspace:FindFirstChild("BBYA Premium Visual Rebuild v4")
 if rebuild then
  local arrival=rebuild:FindFirstChild("01 Arrival Courtyard")
@@ -38,12 +36,12 @@ if phase3 then
  if oldLobby then oldLobby:Destroy() end
 end
 
--- Remove old lobby/front signage that caused stacked text in screenshots.
 local hideNames={
  ["WF Arrival Welcome"]=true,["WF Lobby Directory"]=true,["Lobby Direction"]=true,
  ["Concierge Sign"]=true,["Portal Title"]=true,["Stage Brand"]=true,
  ["WF Main Club"]=true,["WF West Services"]=true,["WF East Services"]=true,
  ["VIP Left Sign"]=true,["VIP Right Sign"]=true,["Roof Wayfinding L"]=true,["Roof Wayfinding R"]=true,
+ ["Rooftop Live State"]=true,["Rooftop Event Banner"]=true,
 }
 for _,o in ipairs(workspace:GetDescendants()) do
  if o:IsA("BasePart") and hideNames[o.Name] then
@@ -105,7 +103,6 @@ local function planter(name,pos,parent)
  end
 end
 
--- 1. CLEAR ARRIVAL AXIS ----------------------------------------------------
 local arrival=Instance.new("Folder");arrival.Name="01 Clean Arrival";arrival.Parent=root
 part("Arrival Final Floor",Vector3.new(118,1.1,46),CFrame.new(0,2.1,101),C.floor,Enum.Material.Slate,0,true,arrival)
 part("Arrival Center Runner",Vector3.new(22,.1,44),CFrame.new(0,2.7,101),Color3.fromRGB(115,89,91),Enum.Material.Marble,0,false,arrival)
@@ -113,9 +110,7 @@ neon("Arrival Edge Pink",Vector3.new(.1,.07,43),CFrame.new(-11.1,2.8,101),C.pink
 neon("Arrival Edge Cyan",Vector3.new(.1,.07,43),CFrame.new(11.1,2.8,101),C.cyan,arrival,.1,3)
 planter("Arrival Plant L",Vector3.new(-43,4,99),arrival);planter("Arrival Plant R",Vector3.new(43,4,99),arrival)
 
--- 2. ONE CLEAN BBYA FACADE -------------------------------------------------
 local facade=Instance.new("Folder");facade.Name="02 BBYA Neon Facade";facade.Parent=root
--- 54-stud clear opening. No center columns/slabs.
 part("Facade Left",Vector3.new(26,28,5),CFrame.new(-41,15.5,79),C.dark,Enum.Material.Slate,0,true,facade)
 part("Facade Right",Vector3.new(26,28,5),CFrame.new(41,15.5,79),C.dark,Enum.Material.Slate,0,true,facade)
 part("Facade Upper",Vector3.new(108,13,5),CFrame.new(0,29,79),C.dark,Enum.Material.Slate,0,true,facade)
@@ -123,7 +118,6 @@ part("Facade Header",Vector3.new(108,2,5),CFrame.new(0,15.2,79),C.dark2,Enum.Mat
 textSign("BBYA Hero","BBYA",CFrame.new(0,28,76.2),Vector3.new(70,12,.4),C.pinkSoft,Enum.Font.GothamBlack,facade)
 textSign("BBYA Social Hub","SOCIAL HUB",CFrame.new(0,19.7,76.1),Vector3.new(40,3,.3),C.pinkSoft,Enum.Font.GothamMedium,facade)
 
--- Crown: simple readable tubes, centered above logo.
 local cy,cz=38,75.8
 neon("Crown Base",Vector3.new(15,.38,.38),CFrame.new(0,cy-2.7,cz),C.pink,facade,.45,7)
 for i,cfg in ipairs({{-6.5,0,5,22},{-3.2,2.7,5,-25},{0,5.2,5,0},{3.2,2.7,5,25},{6.5,0,5,-22}}) do
@@ -131,16 +125,13 @@ for i,cfg in ipairs({{-6.5,0,5,22},{-3.2,2.7,5,-25},{0,5.2,5,0},{3.2,2.7,5,25},{
 end
 for _,x in ipairs({-27,27}) do neon("Entrance Edge "..x,Vector3.new(.22,10,.22),CFrame.new(x,9,76),C.pink,facade,.22,4) end
 
--- 3. WARM LOBBY ------------------------------------------------------------
 local lobby=Instance.new("Folder");lobby.Name="03 Warm Lobby";lobby.Parent=root
 part("Lobby Final Floor",Vector3.new(94,.8,34),CFrame.new(0,2.3,59),C.floor,Enum.Material.Slate,0,true,lobby)
--- Ceiling intentionally high (Y=26) to avoid mobile camera clipping.
 part("Lobby High Ceiling",Vector3.new(96,.7,35),CFrame.new(0,26,59),C.dark,Enum.Material.Metal,0,true,lobby)
 part("Lobby Runner",Vector3.new(20,.1,33),CFrame.new(0,2.75,59),Color3.fromRGB(119,89,92),Enum.Material.Marble,0,false,lobby)
 neon("Lobby Runner L",Vector3.new(.1,.07,32),CFrame.new(-10.1,2.83,59),C.pink,lobby,.1,3)
 neon("Lobby Runner R",Vector3.new(.1,.07,32),CFrame.new(10.1,2.83,59),C.pink,lobby,.1,3)
 
--- Left bar stays clear of the center 20-stud corridor.
 part("Lobby Bar Back",Vector3.new(28,11,1),CFrame.new(-29,8.2,47),C.dark2,Enum.Material.Slate,0,true,lobby)
 part("Lobby Bar Counter",Vector3.new(27,3,6),CFrame.new(-29,4.1,53),Color3.fromRGB(75,55,61),Enum.Material.Marble,0,true,lobby)
 neon("Lobby Bar Glow",Vector3.new(24,.12,.12),CFrame.new(-29,2.58,50),C.pink,lobby,.15,3.5)
@@ -151,24 +142,104 @@ for row=0,2 do
 end
 textSign("Lobby Lounge Brand","BBYA LOUNGE",CFrame.new(-29,13.3,46.4),Vector3.new(20,2.2,.25),C.pinkSoft,Enum.Font.GothamBold,lobby)
 
--- Right lounge seating.
 seat("Lobby Sofa A",CFrame.new(28,3.5,54),Vector3.new(8,1.4,4.5),lobby)
 seat("Lobby Sofa B",CFrame.new(32,3.5,64)*CFrame.Angles(0,math.rad(180),0),Vector3.new(8,1.4,4.5),lobby)
 seat("Lobby Sofa C",CFrame.new(20,3.5,65)*CFrame.Angles(0,math.rad(-24),0),Vector3.new(7,1.4,4.2),lobby)
 part("Lobby Coffee Table",Vector3.new(6,.8,5),CFrame.new(27,3.2,60),C.glass,Enum.Material.Glass,.15,true,lobby)
 planter("Lobby Plant L",Vector3.new(-43,4,66),lobby);planter("Lobby Plant R",Vector3.new(43,4,66),lobby)
 
--- Warm fill instead of giant neon bulbs.
 for _,cfg in ipairs({
  {Vector3.new(-25,18,57),C.warmWhite,.55,23},{Vector3.new(25,18,57),C.warmWhite,.55,23},
  {Vector3.new(0,19,67),C.warm,.35,20},{Vector3.new(-28,13,50),C.pinkSoft,.28,15},
 }) do light("Lobby Warm Fill",cfg[1],cfg[2],cfg[3],cfg[4],lobby) end
 
--- 4. SAFE CLUB THRESHOLD ---------------------------------------------------
--- A clean landing bridges lobby to existing main floor; no decorative beam crosses it.
 part("Lobby To Club Landing",Vector3.new(34,.65,15),CFrame.new(0,2.25,39),Color3.fromRGB(80,68,72),Enum.Material.Slate,0,true,root)
 textSign("Club Entry Small","MAIN CLUB",CFrame.new(0,11,32.1),Vector3.new(18,2.2,.25),C.warmWhite,Enum.Font.GothamBold,root)
 
-workspace:SetAttribute("BBYAFrontLobby","4.9")
+-- Normalize obvious prototype solids that survived in the original place file.
+for _,o in ipairs(workspace:GetDescendants()) do
+ if o:IsA("BasePart") and o.Material ~= Enum.Material.Neon and o.Material ~= Enum.Material.Glass and o.Transparency < .2 then
+  local c=o.Color
+  local large=o.Size.Magnitude > 8
+  if large and c.R > .72 and c.G < .28 and c.B < .28 then
+   o.Color=Color3.fromRGB(63,55,67);o.Material=Enum.Material.Slate
+  elseif large and c.R > .78 and c.G > .45 and c.G < .72 and c.B < .25 then
+   o.Color=Color3.fromRGB(69,59,68);o.Material=Enum.Material.Slate
+  end
+ end
+end
+
+-- SAFE NAVIGATION RESCUE ---------------------------------------------------
+-- The older functional system still handles access policy and feedback. This late listener
+-- only corrects the final landing after that teleport, so players never end up on furniture.
+local remotes=ReplicatedStorage:WaitForChild("BBYA_Remotes",10)
+local TeleportRemote=remotes and remotes:FindFirstChild("Teleport")
+local SAFE_SEEDS={
+ DANCE=CFrame.lookAt(Vector3.new(0,12,14),Vector3.new(0,12,-20)),
+ VIP=CFrame.lookAt(Vector3.new(-68,22,-15),Vector3.new(0,18,-8)),
+ BAR=CFrame.lookAt(Vector3.new(-43,14,22),Vector3.new(-57,12,22)),
+ PHOTO=CFrame.lookAt(Vector3.new(47,14,18),Vector3.new(58,12,18)),
+ CHILL=CFrame.lookAt(Vector3.new(46,14,-25),Vector3.new(58,12,-25)),
+ DJ=CFrame.lookAt(Vector3.new(0,14,-43),Vector3.new(0,12,-60)),
+ POOL=CFrame.lookAt(Vector3.new(48,52,-22),Vector3.new(0,44,-24)),
+ ROOFTOP=CFrame.lookAt(Vector3.new(58,52,18),Vector3.new(0,44,0)),
+ SUPPORT=CFrame.lookAt(Vector3.new(-43,14,22),Vector3.new(-57,12,22)),
+ QUEEN=CFrame.lookAt(Vector3.new(0,33,8),Vector3.new(0,28,-8)),
+ SALON=CFrame.lookAt(Vector3.new(46,14,-25),Vector3.new(58,12,-25)),
+}
+
+local offsets={
+ Vector3.new(0,0,0),Vector3.new(7,0,0),Vector3.new(-7,0,0),Vector3.new(0,0,7),Vector3.new(0,0,-7),
+ Vector3.new(10,0,10),Vector3.new(-10,0,10),Vector3.new(10,0,-10),Vector3.new(-10,0,-10),
+ Vector3.new(15,0,0),Vector3.new(-15,0,0),Vector3.new(0,0,15),Vector3.new(0,0,-15),
+}
+
+local function safeLanding(character,seed)
+ local hrp=character and character:FindFirstChild("HumanoidRootPart")
+ if not hrp then return nil end
+ local rayParams=RaycastParams.new();rayParams.FilterType=Enum.RaycastFilterType.Exclude;rayParams.FilterDescendantsInstances={character};rayParams.IgnoreWater=false
+ local overlap=OverlapParams.new();overlap.FilterType=Enum.RaycastFilterType.Exclude;overlap.FilterDescendantsInstances={character,root}
+ for _,off in ipairs(offsets) do
+  local p=seed.Position+off
+  local hit=workspace:Raycast(p+Vector3.new(0,18,0),Vector3.new(0,-70,0),rayParams)
+  if hit and hit.Instance and hit.Instance.CanCollide then
+   local floorY=hit.Position.Y
+   local boxCF=CFrame.new(p.X,floorY+4.6,p.Z)
+   local blocked=false
+   for _,candidate in ipairs(workspace:GetPartBoundsInBox(boxCF,Vector3.new(4.5,6,4.5),overlap)) do
+    if candidate.CanCollide and candidate.Transparency < .95 then blocked=true;break end
+   end
+   if not blocked then
+    local look=Vector3.new(seed.LookVector.X,0,seed.LookVector.Z)
+    if look.Magnitude < .1 then look=Vector3.new(0,0,-1) end
+    local pos=Vector3.new(p.X,floorY+3.2,p.Z)
+    return CFrame.lookAt(pos,pos+look.Unit)
+   end
+  end
+ end
+ return nil
+end
+
+local lastSafe={}
+if TeleportRemote then
+ TeleportRemote.OnServerEvent:Connect(function(player,spot)
+  if typeof(spot)~="string" then return end
+  local code=string.upper(spot)
+  local seed=SAFE_SEEDS[code]
+  if not seed then return end
+  if code=="QUEEN" and not (player:GetAttribute("BBYAQueen")==true or player:GetAttribute("BBYAAllAccess")==true) then return end
+  if code=="VIP" and workspace:GetAttribute("BBYAMonetizationConfigured")==true and not (player:GetAttribute("IsVIP")==true or player:GetAttribute("BBYAAllAccess")==true or player:GetAttribute("BBYAQueen")==true) then return end
+  local now=os.clock();if lastSafe[player] and now-lastSafe[player]<.25 then return end;lastSafe[player]=now
+  task.delay(.16,function()
+   local char=player.Character
+   if not char then return end
+   local cf=safeLanding(char,seed)
+   if cf then char:PivotTo(cf) end
+  end)
+ end)
+end
+
+workspace:SetAttribute("BBYAFrontLobby","4.9.1")
 workspace:SetAttribute("BBYAFrontLobbyClean",true)
-print("[BBYA] Front Lobby v4.9 loaded AFTER legacy builders — clean facade, high ceiling, clear entrance axis")
+workspace:SetAttribute("BBYASafeNavigation","5.0")
+print("[BBYA] Front Lobby v4.9.1 + Safe Navigation v5 loaded")
