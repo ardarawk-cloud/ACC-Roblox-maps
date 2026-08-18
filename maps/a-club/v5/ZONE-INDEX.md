@@ -27,13 +27,15 @@ Source of truth for architecture inspection and bug fixing.
 ## Inspection rule
 
 1. Every geometry object must have `BBYAZoneCode` and `BBYAZoneName` attributes.
-2. Greybox inspection tags display `[CODE] ZONE NAME` in-world.
+2. The current zone code is shown in the top HUD (`ZONE A4 • MAIN CLUB`, etc.); oversized in-world inspection boards are disabled.
 3. A screenshot issue is assigned to a zone code before code changes are made.
 4. Fix only that zone source file unless the issue is explicitly a shared-core or circulation dependency.
 5. `00-core.lua` contains shared helpers only; zone geometry must not be added there.
 6. `99-finalize.lua` contains status/validation attributes only; no geometry.
 7. The injector concatenates all modular files into one Roblox server Script, preventing parallel builders and layer races.
+8. The TP panel is an inspection helper only. `97-inspection-nav.lua` owns explicit safe landing coordinates for A1–A6, B1–B3, C1–C3, D1–D6 and S1. Never derive QC teleports from furniture positions.
+9. UI remains one LocalScript shell. Top drawers open DOWN, left drawers open RIGHT, and right drawers open LEFT.
 
 ## Architectural lock
 
-No decor/furniture/UI/music/monetization is allowed in this V5.2 architecture review runtime. Mood/material/decor phases are added only after circulation approval and must preserve the zone boundaries and access clearances defined here.
+No furniture, decorative trees, premium lighting package, production music, or live monetization is allowed during this V5.2 architecture review. Mood/material/decor phases begin only after circulation approval and must preserve the zone boundaries, entrances, stair/lift cores, and clearances defined here.
