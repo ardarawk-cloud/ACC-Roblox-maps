@@ -189,6 +189,9 @@ local function getOccupants()
     return result
 end
 
+-- Forward declaration must exist before any callbacks capture it.
+local moveLift
+
 -- Simple physical call panels at each landing; no floating giant text.
 local function makePanel(level,y)
     if not b3 then return end
@@ -200,9 +203,6 @@ local function makePanel(level,y)
     prompt.ActionText="CALL LIFT";prompt.ObjectText=level;prompt.HoldDuration=0;prompt.MaxActivationDistance=10;prompt.RequiresLineOfSight=false;prompt.Parent=panel
     prompt.Triggered:Connect(function() if not busy then task.spawn(function() moveLift(level) end) end end)
 end
-
--- Forward declaration because landing prompts call it.
-local moveLift
 
 -- Cab destination buttons move with the cab.
 local cabButtons={}
