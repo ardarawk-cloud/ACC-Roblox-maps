@@ -43,4 +43,5 @@ sign(A5,"ROUTE ROOF","ROOFTOP  ↑",CFrame.new(92,8,74),Vector3.new(14,2,.25),C.
 
 ROOT:SetAttribute("SpawnReady",true)
 ROOT:SetAttribute("SafetyRuntime",true)
-workspace:SetAttribute("BBYARuntime","ACTIVE_PHASE_1")
+ROOT:SetAttribute("RuntimePhase","PHASE_2_PREMIUM_BUILD")
+workspace:SetAttribute("BBYARuntime","ACTIVE_PHASE_2")
