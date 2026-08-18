@@ -148,3 +148,12 @@ V6 is rejected if any of these occur:
 - furniture/decor intersects stairs/lift/door paths
 - old V5 visual roots/runtime names appear in V6 assembly
 - founder is required to inspect every incremental commit
+
+## 15. OWNER VISUAL REFERENCE LOCK — 2026-08-19
+The owner-supplied BBYA concept set is now translated in `VISUAL-REFERENCE-LOCK-2026-08-19.md` and is binding for the V6 visual/massing pass.
+
+The first concept image is the primary architecture/composition reference. The complete venue must read as one layered premium complex: left multi-level club/social wing, center/lower social activity, visibly legible VIP destination, upper rooftop/infinity-pool lifestyle terrace, foreground Queen/support/social landmarks, palms and city-night depth.
+
+The second concept image is the Support/Sawer UI and leaderboard reference. The third concept image is the Music/DJ UI reference. They are feature/UI references and do not override the physical architecture rules.
+
+The reference must be implemented without fake inaccessible floors, without blocking circulation, without turning the rooftop into a second neon club, and without switching V5/live before the V6 release gate passes.
