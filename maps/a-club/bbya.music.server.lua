@@ -1,5 +1,5 @@
--- BBYA MASTER MUSIC VAULT + AUTO-DJ v1.0
--- Server-authoritative playback. Tracks marked DEAD are never queued.
+-- BBYA MASTER MUSIC VAULT + AUTO-DJ v1.1
+-- Server-authoritative playback with continuous permission/load fallback.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -21,7 +21,6 @@ local function canControl(p)
 end
 
 local VAULT={
- -- INDONESIAN FLOOR
  {id=85427648559465,title="DJ Phut Hon Indo Full Bass",genre="INDO",sub="BREAKBEAT",status="VERIFIED",rating=5},
  {id=100787734732008,title="Aku Suka Jedag Jedug Full Bass",genre="INDO",sub="BREAKBEAT",status="VERIFIED",rating=5},
  {id=103491797412309,title="Pyro Pulse",genre="INDO",sub="BREAKBEAT",status="TEST",rating=4},
@@ -38,8 +37,6 @@ local VAULT={
  {id=134100771661430,title="Ngamen 5",genre="INDO",sub="FUNKOT",status="TEST",rating=4},
  {id=85229747030713,title="DJ Dumes Remix Koplo",genre="INDO",sub="KOPLO",status="VERIFIED",rating=4},
  {id=87585997282125,title="Koplo Persatuan Kampungku",genre="INDO",sub="KOPLO",status="VERIFIED",rating=4},
-
- -- INTERNATIONAL FLOOR
  {id=9040442826,title="Pumpin' And Bumpin' D",genre="INTL",sub="BASS_HOUSE",status="VERIFIED",rating=4},
  {id=9045072146,title="Struck Down D",genre="INTL",sub="PSYTRANCE",status="VERIFIED",rating=4},
  {id=1839246840,title="Fast Rave",genre="INTL",sub="TECHNO",status="TEST",rating=4},
@@ -61,97 +58,111 @@ local FLOWS={
 }
 
 local sound=SoundService:FindFirstChild("BBYA_MainMusic") or Instance.new("Sound")
-sound.Name="BBYA_MainMusic";sound.Volume=.65;sound.Looped=false;sound.Parent=SoundService
+sound.Name="BBYA_MainMusic"
+sound.Volume=.65
+sound.Looped=false
+sound.PlaybackSpeed=1
+sound.Parent=SoundService
 
 local activeMode="ALL"
 local queue={}
 local cursor=0
 local current=nil
-local consecutiveFailures=0
+local sessionBad={}
 local lastAction={}
+local token=0
 
-local function usable(t)return t.status~="DEAD" end
+local function usable(t)return t.status~="DEAD" and not sessionBad[t.id] end
 local function rebuild(mode)
  activeMode=mode or activeMode
  queue={}
  local wanted=FLOWS[activeMode]
  if activeMode=="ALL" then
-  for _,t in ipairs(VAULT)do if usable(t)then table.insert(queue,t)end end
+  -- Prefer VERIFIED first so startup reaches likely-playable audio faster.
+  for _,status in ipairs({"VERIFIED","TEST"}) do
+   for _,t in ipairs(VAULT)do if usable(t) and t.status==status then table.insert(queue,t)end end
+  end
  else
   for _,sub in ipairs(wanted or {})do
-   for _,t in ipairs(VAULT)do if usable(t) and t.sub==sub then table.insert(queue,t)end end
+   for _,status in ipairs({"VERIFIED","TEST"}) do
+    for _,t in ipairs(VAULT)do if usable(t) and t.sub==sub and t.status==status then table.insert(queue,t)end end
+   end
   end
  end
  cursor=0
 end
 
-local function publish()
+local function publish(err)
  workspace:SetAttribute("BBYANowPlaying",current and current.title or "BBYA 24/7")
  workspace:SetAttribute("BBYAMusicMode",activeMode)
  workspace:SetAttribute("BBYAMusicSubgenre",current and current.sub or "")
  workspace:SetAttribute("BBYAMusicStatus",current and current.status or "")
- MusicState:FireAllClients({
-  title=current and current.title or "BBYA 24/7",
-  genre=current and current.genre or "",
-  sub=current and current.sub or "",
-  status=current and current.status or "",
-  mode=activeMode,
-  volume=sound.Volume,
-  playing=sound.Playing,
- })
+ workspace:SetAttribute("BBYAMusicError",err or "")
+ MusicState:FireAllClients({title=current and current.title or "BBYA 24/7",genre=current and current.genre or "",sub=current and current.sub or "",status=current and current.status or "",mode=activeMode,volume=sound.Volume,playing=sound.Playing,error=err or ""})
 end
 
+local nextTrack
 local function tryTrack(t)
+ token+=1
+ local myToken=token
  current=t
  sound:Stop()
  sound.SoundId="rbxassetid://"..tostring(t.id)
  sound.TimePosition=0
  sound:Play()
- publish()
- -- Give Roblox time to resolve permission/load. If inaccessible, skip automatically.
- task.delay(8,function()
-  if current~=t then return end
-  if not sound.IsLoaded or sound.TimeLength<=0 then
-   consecutiveFailures+=1
-   if consecutiveFailures<=6 then task.defer(function() if current==t then sound:Stop(); current=nil; end end) end
-  else
-   consecutiveFailures=0
+ publish("")
+
+ -- Watch actual playback. An unavailable/private audio usually never gains TimeLength/TimePosition.
+ task.delay(5,function()
+  if myToken~=token or current~=t then return end
+  local ok=sound.IsLoaded and sound.TimeLength>0 and (sound.Playing or sound.TimePosition>0)
+  if not ok then
+   sessionBad[t.id]=true
+   sound:Stop()
+   current=nil
+   publish("SKIPPING UNAVAILABLE AUDIO")
+   task.delay(.15,function()if myToken==token then nextTrack()end end)
   end
  end)
 end
 
-local function nextTrack()
+nextTrack=function()
  if #queue==0 then rebuild(activeMode) end
- if #queue==0 then current=nil;publish();return end
- cursor=cursor%#queue+1
- tryTrack(queue[cursor])
+ if #queue==0 then
+  current=nil
+  publish("NO PLAYABLE AUDIO - CHECK ROBLOX AUDIO PERMISSIONS")
+  return
+ end
+
+ local attempts=0
+ repeat
+  attempts+=1
+  cursor=cursor%#queue+1
+  local t=queue[cursor]
+  if usable(t) then tryTrack(t);return end
+ until attempts>=#queue
+
+ -- Every item in this queue failed in this server. Rebuild from remaining vault entries.
+ rebuild(activeMode)
+ if #queue==0 then current=nil;publish("NO PLAYABLE AUDIO - CHECK ROBLOX AUDIO PERMISSIONS");return end
+ cursor=1
+ tryTrack(queue[1])
 end
 
-sound.Ended:Connect(nextTrack)
-sound.Stopped:Connect(function()
- -- Only auto-advance if a failed/unloaded track cleared itself rather than a manual pause.
- if current==nil then task.delay(.25,nextTrack) end
-end)
+sound.Ended:Connect(function()task.delay(.15,nextTrack)end)
 
-local function rate(p,key,sec)
- local k=tostring(p.UserId)..":"..key;local n=os.clock()
- if lastAction[k] and n-lastAction[k]<sec then return false end
- lastAction[k]=n;return true
-end
-
+local function rate(p,key,sec)local k=tostring(p.UserId)..":"..key;local n=os.clock();if lastAction[k] and n-lastAction[k]<sec then return false end;lastAction[k]=n;return true end
 MusicRemote.OnServerEvent:Connect(function(p,action,value)
  if not canControl(p) or not rate(p,"music",.25) then return end
  action=string.upper(tostring(action or ""))
- if action=="NEXT" then nextTrack()
- elseif action=="PAUSE" then sound:Pause();publish()
- elseif action=="PLAY" then if sound.SoundId=="" then nextTrack() else sound:Resume();publish() end
- elseif action=="VOLUME" then sound.Volume=math.clamp(tonumber(value) or .65,0,1);publish()
- elseif action=="MODE" then local m=string.upper(tostring(value or "ALL"));if FLOWS[m]then rebuild(m);nextTrack()end
- elseif action=="SUBGENRE" then
-  local sub=string.upper(tostring(value or ""));queue={};for _,t in ipairs(VAULT)do if usable(t)and t.sub==sub then table.insert(queue,t)end end;cursor=0;if #queue>0 then activeMode=sub;nextTrack()end
- end
+ if action=="NEXT" then token+=1;nextTrack()
+ elseif action=="PAUSE" then sound:Pause();publish("")
+ elseif action=="PLAY" then if sound.SoundId=="" or current==nil then nextTrack() else sound:Resume();publish("") end
+ elseif action=="VOLUME" then sound.Volume=math.clamp(tonumber(value) or .65,0,1);publish("")
+ elseif action=="MODE" then local m=string.upper(tostring(value or "ALL"));if FLOWS[m]then token+=1;sessionBad={};rebuild(m);nextTrack()end
+ elseif action=="SUBGENRE" then local sub=string.upper(tostring(value or ""));token+=1;queue={};for _,t in ipairs(VAULT)do if t.status~="DEAD" and t.sub==sub then table.insert(queue,t)end end;cursor=0;if #queue>0 then activeMode=sub;nextTrack()end end
 end)
 
 rebuild("ALL")
-task.delay(3,nextTrack)
-print("[BBYA MUSIC] Master Vault loaded:",#VAULT,"tracks")
+task.delay(2,nextTrack)
+print("[BBYA MUSIC] Auto-DJ v1.1 loaded:",#VAULT,"tracks; unavailable audio will auto-skip")
