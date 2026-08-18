@@ -10,6 +10,7 @@ const registry = JSON.parse(fs.readFileSync(path.join(root, 'maps/registry.json'
 const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map: ${mapId}`);
 
+// ORDER IS PART OF THE CONTRACT. Architecture must exist before systems scan/bind it.
 const architectureFiles = [
   'maps/a-club/v6/00-core.lua',
   'maps/a-club/v6/10-layout.lua',
@@ -42,36 +43,27 @@ if (allFiles.some(f => f.includes('/v5/'))) throw new Error('V5 file leaked into
 
 const readLua = file => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 const concat = files => files.map(file => `\n-- SOURCE FILE: ${file}\n${readLua(file)}`).join('\n');
-const architectureLua = concat(architectureFiles);
-const systemsLua = concat(systemFiles);
+const serverLua = concat([...architectureFiles, ...systemFiles]);
 const uiLua = concat(uiFiles);
 
 const placePath = path.join(root, target.file);
 let xml = fs.readFileSync(placePath, 'utf8');
 if (!xml.includes('</roblox>')) throw new Error('Invalid source RBXLX: missing </roblox>');
 
-// Strip only ACC-injected runtime blocks. Static legacy Workspace geometry is intentionally left in the file;
-// V6 00-core deletes it at runtime before building the clean-room venue.
-const runtimeBlock = /<!-- BBYA_RUNTIME_BEGIN -->[\s\S]*?<!-- BBYA_RUNTIME_END -->/g;
-xml = xml.replace(runtimeBlock, '');
+// Strip prior ACC runtime blocks. V6 preview must be idempotent and must never stack old runtimes.
+xml = xml.replace(/<!-- BBYA_RUNTIME_BEGIN -->[\s\S]*?<!-- BBYA_RUNTIME_END -->/g, '');
+xml = xml.replace(/<!-- BBYA_V6_PREVIEW_RUNTIME_BEGIN -->[\s\S]*?<!-- BBYA_V6_PREVIEW_RUNTIME_END -->/g, '');
 
 const begin = '<!-- BBYA_V6_PREVIEW_RUNTIME_BEGIN -->';
 const end = '<!-- BBYA_V6_PREVIEW_RUNTIME_END -->';
 const runtime = `${begin}
 <Item class="ServerScriptService" referent="RBXBBYAV6PREVIEWSSS">
   <Properties><string name="Name">ServerScriptService</string></Properties>
-  <Item class="Script" referent="RBXBBYAV6ARCH">
+  <Item class="Script" referent="RBXBBYAV6RUNTIME">
     <Properties>
       <bool name="Disabled">false</bool>
-      <string name="Name">BBYA_V6_CLEANROOM_ARCHITECTURE</string>
-      <ProtectedString name="Source"><![CDATA[${architectureLua}]]></ProtectedString>
-    </Properties>
-  </Item>
-  <Item class="Script" referent="RBXBBYAV6SYSTEMS">
-    <Properties>
-      <bool name="Disabled">false</bool>
-      <string name="Name">BBYA_V6_CLEANROOM_SYSTEMS</string>
-      <ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString>
+      <string name="Name">BBYA_V6_CLEANROOM_RUNTIME</string>
+      <ProtectedString name="Source"><![CDATA[${serverLua}]]></ProtectedString>
     </Properties>
   </Item>
 </Item>
@@ -94,4 +86,5 @@ xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA V6] Preview assembled -> ${outArg}`);
-console.log(`[BBYA V6] ${architectureFiles.length} architecture files, ${systemFiles.length} system files, ${uiFiles.length} UI files.`);
+console.log(`[BBYA V6] deterministic runtime: ${architectureFiles.length} architecture + ${systemFiles.length} systems; ${uiFiles.length} UI modules.`);
+console.log('[BBYA V6] PREVIEW ONLY — NO ROBLOX PUBLISH PERFORMED');
