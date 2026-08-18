@@ -27,15 +27,14 @@ const qc=read(files[6]);
 const assembler=read(files[7]);
 if(!place.includes('RBXBBYABLANKWORKSPACE')||!place.includes('RBXBBYABLANKSSS')) bad('base place is not the known blank BBYA file'); else ok('blank base place locked');
 if(!core.includes('BBYA CLEAN REBUILD')||!core.includes('BBYAReferenceImage1')) bad('fresh clean rebuild core/reference lock missing'); else ok('fresh core and owner reference lock present');
-for(const token of ['CLUB GROUND SLAB','MEZZ LEVEL 1','MEZZ LEVEL 2','DANCE FLOOR','DJ BOOTH','VIP FLOOR','ROOFTOP DECK','POOL BASIN','POOL WATER','STAIR G TO MID','STAIR MID TO ROOF','MAIN BBYA WORDMARK']){
-  if(!architecture.includes(token)) bad(`architecture token missing: ${token}`);
-}
+for(const token of ['CLUB GROUND SLAB','MEZZ LEVEL 1','MEZZ LEVEL 2','DANCE FLOOR','DJ BOOTH','VIP FLOOR','ROOFTOP DECK','POOL BASIN','POOL WATER','STAIR G TO MID','STAIR MID TO ROOF','MAIN BBYA WORDMARK']) if(!architecture.includes(token)) bad(`architecture token missing: ${token}`);
 if(!fail) ok('reference-shaped physical architecture present');
+if(!architecture.includes('STAIR G TO MID",Vector3.new(94,1.1,72),28,8,.55,.75,0')||!architecture.includes('STAIR MID TO ROOF",Vector3.new(88,16.7,47),28,8,.55,.75,180')) bad('switchback stair directions are not locked to corrected circulation'); else ok('ground-to-roof switchback stair direction locked');
 for(const token of ['BBYA QUEEN THRONE','SUPPORT BOARD','ROOFTOP POOL SIGN','VIP SIGN','CITY BUILDING']) if(!furnishing.includes(token)) bad(`furnishing token missing: ${token}`);
 if(!fail) ok('Queen/support/VIP/rooftop/city landmarks present');
 if(!lighting.includes('BBYACriticalFill')||!lighting.includes('BBYAShowLight')||!lighting.includes('POOL GLOW')) bad('lighting safety/show/resort layers incomplete'); else ok('club + avatar + rooftop lighting layers present');
 if(!runtime.includes('SpawnLocation')||!runtime.includes('root.Position.Y < -28')) bad('spawn/fall safety runtime incomplete'); else ok('spawn and fall safety runtime present');
-if(!qc.includes('BBYAPhase1QC')||!qc.includes('social seat count below 24')) bad('runtime phase-one QC missing'); else ok('runtime QC present');
+if(!qc.includes('BBYAPhase1QC')||!qc.includes('social seat count below 24')||!qc.includes('expected exactly one clean rebuild root')) bad('runtime phase-one QC missing'); else ok('runtime QC and legacy-root guard present');
 if(/maps\/a-club\/v[0-9]+\//.test(assembler)) bad('assembler still references archived v5/v6 source folder'); else ok('assembler has no archived V5/V6 source path');
 for(const f of files.slice(1,7)) if(!assembler.includes(f)) bad(`assembler missing fresh module ${f}`);
 if(!assembler.includes('RBXBBYABLANKSSS')||!assembler.includes('BBYA_CLEAN_REBUILD_RUNTIME')) bad('assembler does not replace blank SSS with clean runtime'); else ok('clean deterministic assembly target present');
