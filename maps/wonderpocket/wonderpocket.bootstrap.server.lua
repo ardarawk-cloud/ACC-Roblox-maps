@@ -21,10 +21,6 @@ local StateRemote = remotes:FindFirstChild("State") or Instance.new("RemoteEvent
 StateRemote.Name = "State"
 StateRemote.Parent = remotes
 
-local OnboardingRemote = remotes:FindFirstChild("Onboarding") or Instance.new("RemoteEvent")
-OnboardingRemote.Name = "Onboarding"
-OnboardingRemote.Parent = remotes
-
 local function part(name, size, position, color, parent)
     local p = Instance.new("Part")
     p.Name = name
@@ -65,17 +61,6 @@ local function buildWorld()
     part("WallLeft", Vector3.new(1,14,22), Vector3.new(38.5,13,20), Color3.fromRGB(255,244,218), cottage)
     part("WallRight", Vector3.new(1,14,22), Vector3.new(65.5,13,20), Color3.fromRGB(255,244,218), cottage)
     part("Roof", Vector3.new(32,2,26), Vector3.new(52,21,20), Color3.fromRGB(232,92,132), cottage)
-
-    local garden = Instance.new("Folder")
-    garden.Name = "StarterGarden"
-    garden.Parent = generated
-    for i=1,6 do
-        local x = -55 + ((i-1)%3)*12
-        local z = 18 + math.floor((i-1)/3)*12
-        local plot = part("Plot"..i, Vector3.new(9,1,9), Vector3.new(x,5,z), Color3.fromRGB(105,69,45), garden)
-        plot:SetAttribute("Crop", "")
-        plot:SetAttribute("ReadyAt", 0)
-    end
 
     Lighting.Brightness = 2.2
     Lighting.ClockTime = 9.5
@@ -196,13 +181,6 @@ local function loadPlayer(player)
     StateRemote:FireClient(player, "INIT", data)
 end
 
-OnboardingRemote.OnServerEvent:Connect(function(player, action)
-    if action ~= "COMPLETE" then return end
-    if player:GetAttribute("WP_DataLoaded") ~= true then return end
-    player:SetAttribute("WP_OnboardingComplete", true)
-    markDirty(player)
-end)
-
 buildWorld()
 Players.PlayerAdded:Connect(loadPlayer)
 Players.PlayerRemoving:Connect(function(player)
@@ -229,4 +207,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Hardened foundation loaded", Config.Version)
+print("[WONDERPOCKET] v1.0 hardened foundation loaded", Config.Version)
