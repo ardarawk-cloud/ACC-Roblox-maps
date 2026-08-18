@@ -34,7 +34,8 @@ const uiFiles=[
   'maps/a-club/v5/ui-shell.client.lua',
   'maps/a-club/v5/ui-shell-polish.client.lua',
   'maps/a-club/v5/ui-inspection-nav.client.lua',
-  'maps/a-club/v5/ui-floating-dock.client.lua'
+  'maps/a-club/v5/ui-floating-dock.client.lua',
+  'maps/a-club/v5/ui-container-dock.client.lua'
 ];
 for(const p of [...zoneFiles,...uiFiles,'scripts/inject-bbya.js','scripts/publish-map.js']) if(!exists(p)) fail(`required V5 file missing: ${p}`);
 if(!failed) pass(`${zoneFiles.length} modular architecture/inspection files + ${uiFiles.length} UI modules present`);
@@ -56,7 +57,8 @@ const ui=uiFiles.filter(exists).map(read).join('\n');
 for(const marker of [
   'BBYA_V5_UI','TOP controls/panels open DOWN','LEFT rail panels open RIGHT','RIGHT rail panels open LEFT',
   'BBYACurrentZone','BBYAUIDrawerRule','BBYAV5UIPolish','BBYAUIThumbControlClearance','BBYAV5TPPanel','BBYA_V5_InspectionNav',
-  'BBYAUIFloatingDock','BBYAUIDockEdges','LEFT/RIGHT/TOP_ONLY','FloatingMoveGrip','FloatingDockTabs'
+  'BBYAUIFloatingDock','BBYAUIDockEdges','LEFT/RIGHT/TOP_ONLY','FloatingMoveGrip','FloatingDockTabs',
+  'BBYAUIContainerDock','BBYAUIContainerDockRule','TOP_UP/LEFT_LEFT/RIGHT_RIGHT/PEEK_ONLY','BBYAContainerDockHandles'
 ]) {
   if(!ui.includes(marker)) fail(`UI shell marker missing: ${marker}`);
 }
@@ -73,7 +75,7 @@ for(const retired of [
   'bbya.phase6-wayfinding.server.lua','bbya.livefix-4.7.server.lua','bbya.front-lobby-v4.9.server.lua',
   'bbya.client.lua','bbya.music.client.lua','bbya.monetization.client.lua','bbya.ui-coordinator.client.lua'
 ]) if(injector.includes(retired)) fail(`retired runtime still referenced: ${retired}`);
-if(!failed) pass('injector = 1 modular architecture/inspection Script + 1 floating unified UI LocalScript');
+if(!failed) pass('injector = 1 modular architecture/inspection Script + 1 floating/dockable unified UI LocalScript');
 
 if(target&&exists(target.file)) {
   const xml=read(target.file);
@@ -95,14 +97,15 @@ if(target&&exists(target.file)) {
     for(const marker of [
       'TOP_DOWN/LEFT_RIGHT/RIGHT_LEFT','BBYACurrentZone','MOBILE_SAFE','BBYAV5UIPolish','BBYAUIThumbControlClearance',
       'BBYAV5WorldInspectionTags','BBYA_V5_InspectionNav','CODED_SAFE_LANDINGS','BBYAV5TPPanel',
-      'BBYAUIFloatingDock','LEFT/RIGHT/TOP_ONLY','FloatingMoveGrip','FloatingDockTabs'
+      'BBYAUIFloatingDock','LEFT/RIGHT/TOP_ONLY','FloatingMoveGrip','FloatingDockTabs',
+      'BBYAUIContainerDock','TOP_UP/LEFT_LEFT/RIGHT_RIGHT/PEEK_ONLY','BBYAContainerDockHandles'
     ]) {
-      if(!runtime.includes(marker)) fail(`injected floating runtime missing marker: ${marker}`);
+      if(!runtime.includes(marker)) fail(`injected dockable runtime missing marker: ${marker}`);
     }
     if(!runtime.includes('5.2-modular-greybox')) fail('V5.2 status marker missing after injection');
-    if(!failed) pass('post-injection architecture + coded inspection nav + floating dock mobile UI valid');
+    if(!failed) pass('post-injection architecture + coded inspection nav + dockable floating mobile UI valid');
   }
 }
 
 if(failed){console.error(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} BUILD REJECTED`);process.exit(1)}
-console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR + CODED INSPECTION NAV + FLOATING DOCK UI`);
+console.log(`[BBYA VALIDATE] ${injected?'POST-INJECTION':'SOURCE'} CHECKS PASSED • V5.2 MODULAR + CODED INSPECTION NAV + DOCKABLE FLOATING UI`);
