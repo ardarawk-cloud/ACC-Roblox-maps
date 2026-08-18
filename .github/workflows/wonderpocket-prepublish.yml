@@ -28,6 +28,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
@@ -46,11 +48,33 @@ jobs:
       - name: Upload closed-test place artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wonderpocket-v1.1-closed-test-place
+          name: wonderpocket-v1.3-closed-test-place
           path: maps/wonderpocket/place.rbxlx
           retention-days: 7
 
-      - name: Verify explicit closed-test target confirmation
+      - name: Detect one-time push publish request
+        id: push_request
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          MARKER='maps/wonderpocket/CLOSED_TEST_PUBLISH_REQUEST'
+          EXPECTED='WONDERPOCKET:8805231520:124843214013484'
+          BEFORE='${{ github.event.before }}'
+          CHANGED='false'
+          if [ -n "$BEFORE" ] && ! printf '%s' "$BEFORE" | grep -Eq '^0+$'; then
+            if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -Fxq "$MARKER"; then CHANGED='true'; fi
+          else
+            if git show --pretty='' --name-only "$GITHUB_SHA" | grep -Fxq "$MARKER"; then CHANGED='true'; fi
+          fi
+          if [ "$CHANGED" = 'true' ] && [ -f "$MARKER" ] && [ "$(tr -d '\r\n' < "$MARKER")" = "$EXPECTED" ]; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+            echo 'One-time locked WONDERPOCKET publish request accepted.'
+          else
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            echo 'No valid one-time push publish request in this commit.'
+          fi
+
+      - name: Verify explicit dispatch target confirmation
         if: github.event_name == 'workflow_dispatch' && inputs.publish_closed_test == true
         env:
           CONFIRM_TARGET: ${{ inputs.confirm_target }}
@@ -58,9 +82,16 @@ jobs:
           test "$CONFIRM_TARGET" = "WONDERPOCKET:8805231520:124843214013484" || { echo "Closed-test target confirmation mismatch."; exit 1; }
           echo "Locked WONDERPOCKET target confirmed. This does not change Roblox public visibility/access."
 
-      - name: Publish WONDERPOCKET closed-test place version
+      - name: Publish WONDERPOCKET closed-test from dispatch
         if: github.event_name == 'workflow_dispatch' && inputs.publish_closed_test == true
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           WONDERPOCKET_CONFIRM_TARGET: ${{ inputs.confirm_target }}
+        run: node scripts/publish-wonderpocket-closed-test.js
+
+      - name: Publish WONDERPOCKET closed-test from one-time push request
+        if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true'
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          WONDERPOCKET_CONFIRM_TARGET: WONDERPOCKET:8805231520:124843214013484
         run: node scripts/publish-wonderpocket-closed-test.js
