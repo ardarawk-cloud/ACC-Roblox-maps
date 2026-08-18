@@ -1,0 +1,67 @@
+name: Publish Roblox Map
+
+on:
+  workflow_dispatch:
+    inputs:
+      map_id:
+        description: Map ID from maps/registry.json
+        required: true
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - 'maps/**'
+      - 'scripts/publish-map.js'
+
+jobs:
+  detect-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Select map targets
+        id: targets
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "maps=${{ inputs.map_id }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only HEAD^ HEAD || true)
+          TARGETS=""
+          for MAP_ID in $(node -e "const r=require('./maps/registry.json'); console.log(Object.keys(r.maps).join(' '))"); do
+            if echo "$CHANGED" | grep -q "^maps/$MAP_ID/"; then
+              TARGETS="$TARGETS $MAP_ID"
+            fi
+          done
+
+          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/publish-map.js$'; then
+            TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([,v])=>v.enabled).map(([k])=>k).join(' '))")
+          fi
+
+          echo "maps=$(echo "$TARGETS" | xargs)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish changed maps
+        if: steps.targets.outputs.maps != ''
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+        shell: bash
+        run: |
+          for MAP_ID in ${{ steps.targets.outputs.maps }}; do
+            node scripts/publish-map.js "$MAP_ID"
+          done
+
+      - name: Nothing to publish
+        if: steps.targets.outputs.maps == ''
+        run: echo "No enabled map target changed."
