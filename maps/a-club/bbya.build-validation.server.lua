@@ -1,11 +1,12 @@
--- BBYA SOCIAL HUB — BUILD VALIDATION v1.1
--- Lightweight runtime health check for the premium build. No visual side effects.
+-- BBYA SOCIAL HUB — BUILD VALIDATION v1.2
+-- Runtime health check for premium build 4.6, including legacy-regression guards.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 task.wait(7)
 
 local checks = {
+ {label="Clean Core", instance=workspace:GetAttribute("BBYACleanCore")=="3.0" and workspace or nil},
  {label="Visual Rebuild", instance=workspace:FindFirstChild("BBYA Premium Visual Rebuild v4")},
  {label="Venue Polish", instance=workspace:FindFirstChild("BBYA Premium Venue Polish v4.1")},
  {label="Phase 3", instance=workspace:FindFirstChild("BBYA Premium Phase 3 v4.3")},
@@ -20,6 +21,7 @@ local checks = {
  {label="Rooftop Floor", instance=workspace:FindFirstChild("Rooftop Floor",true)},
  {label="Rooftop Pool", instance=workspace:FindFirstChild("Rooftop Pool",true)},
  {label="Wayfinding", instance=workspace:GetAttribute("BBYAWayfindingReady")==true and workspace or nil},
+ {label="Final Spawn", instance=workspace:GetAttribute("BBYAFinalSpawnReady")==true and workspace or nil},
  {label="BBYA Remotes", instance=ReplicatedStorage:FindFirstChild("BBYA_Remotes")},
  {label="Monetization Config", instance=ReplicatedStorage:FindFirstChild("BBYA_Monetization")},
 }
@@ -29,14 +31,24 @@ for _,check in ipairs(checks) do
  if not check.instance then table.insert(missing,check.label) end
 end
 
-local status = #missing == 0 and "PASS" or "WARN"
-workspace:SetAttribute("BBYABuildVersion","4.6")
+local legacy = {}
+for _,name in ipairs({
+ "BBYA Visual v1.2",
+ "BBYA Social Systems",
+ "BBYA Arrival Neon Box",
+ "BBYA Mega Architecture v2",
+ "BBYA Master Plan Completion v3",
+}) do
+ if workspace:FindFirstChild(name) then table.insert(legacy,name) end
+end
+
+local status = (#missing == 0 and #legacy == 0) and "PASS" or "WARN"
+workspace:SetAttribute("BBYABuildVersion","4.6-clean")
 workspace:SetAttribute("BBYABuildValidation",status)
 workspace:SetAttribute("BBYABuildMissingCount",#missing)
+workspace:SetAttribute("BBYALegacyRegressionCount",#legacy)
 workspace:SetAttribute("BBYABuildCheckedAt",os.time())
 
-if #missing > 0 then
- warn("[BBYA BUILD VALIDATION] Missing: "..table.concat(missing,", "))
-else
- print("[BBYA BUILD VALIDATION] PASS • premium build 4.6")
-end
+if #missing > 0 then warn("[BBYA BUILD VALIDATION] Missing: "..table.concat(missing,", ")) end
+if #legacy > 0 then warn("[BBYA BUILD VALIDATION] Legacy regression: "..table.concat(legacy,", ")) end
+if status == "PASS" then print("[BBYA BUILD VALIDATION] PASS • premium build 4.6 clean") end
