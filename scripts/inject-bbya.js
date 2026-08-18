@@ -13,12 +13,13 @@ const placePath = path.join(root, target.file);
 const readLua = file => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 
 // V5.3 contract:
-// - Repo stays modular and zone-coded for surgical maintenance.
+// - Repo stays modular and zone/component-coded for surgical maintenance.
 // - Roblox receives ONE architecture/finish Script, ONE systems Script, ONE unified UI LocalScript.
 // - No legacy visual builders are injected.
 const zoneFiles = [
   'maps/a-club/v5/00-core.lua',
   'maps/a-club/v5/10-design-system.lua',
+  'maps/a-club/v5/15-component-registry.lua',
 
   'maps/a-club/v5/A1-exterior-spawn.lua','maps/a-club/v5/A1-premium.lua',
   'maps/a-club/v5/A2-entrance-facade.lua','maps/a-club/v5/A2-premium.lua',
@@ -60,6 +61,7 @@ const systemFiles = [
 
 const uiFiles = [
   'maps/a-club/v5/ui-shell.client.lua',
+  'maps/a-club/v5/ui-component-inspector.client.lua',
   'maps/a-club/v5/ui-shell-polish.client.lua',
   'maps/a-club/v5/ui-inspection-nav.client.lua',
   'maps/a-club/v5/ui-floating-dock.client.lua',
