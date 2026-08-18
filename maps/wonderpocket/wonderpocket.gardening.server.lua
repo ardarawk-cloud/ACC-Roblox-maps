@@ -10,6 +10,7 @@ plotsFolder.Parent = ROOT
 
 local Store = DataStoreService:GetDataStore("WONDERPOCKET_Garden_v1")
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit", 20)
 local GROW_SECONDS = 180
 local REWARD_COINS = 12
 local MAX_RETRIES = 4
@@ -191,9 +192,9 @@ local function createPlot(player, index, position)
                 player:SetAttribute("CarrotSeed", seeds - 1)
                 entry.readyAt = now + GROW_SECONDS
                 player:SetAttribute("WP_PlantedCount", (tonumber(player:GetAttribute("WP_PlantedCount")) or 0) + 1)
-                player:SetAttribute("WP_LastEconomyAction", "PLANT_CARROT")
                 refreshVisual(plot, prompt, entry)
                 markDirty(player)
+                if EconomyAudit then EconomyAudit:Fire(player,"PLANT_CARROT","Carrot",0,0,-1) end
                 if CriticalSave then CriticalSave:Fire(player) end
                 task.spawn(save, player, true)
                 return
@@ -208,10 +209,9 @@ local function createPlot(player, index, position)
             addCoins(player, REWARD_COINS)
             player:SetAttribute("CarrotSeed", (tonumber(player:GetAttribute("CarrotSeed")) or 0) + 1)
             player:SetAttribute("WP_HarvestCount", (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) + 1)
-            player:SetAttribute("WP_LastEconomyAction", "HARVEST_CARROT")
-            player:SetAttribute("WP_LastEconomyDeltaCoins", REWARD_COINS)
             resetVisual(plot, prompt)
             markDirty(player)
+            if EconomyAudit then EconomyAudit:Fire(player,"HARVEST_CARROT","Carrot",REWARD_COINS,0,1) end
             if CriticalSave then CriticalSave:Fire(player) end
             task.spawn(save, player, true)
         end)
@@ -276,4 +276,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Seed-authoritative persistent offline-growth garden loaded")
+print("[WONDERPOCKET] Audited seed-authoritative persistent garden loaded")
