@@ -30,9 +30,7 @@ const placePath = path.join(root, target.file);
 let xml = fs.readFileSync(placePath, 'utf8');
 if (!xml.includes('</roblox>')) throw new Error('Invalid blank RBXLX: missing </roblox>');
 
-xml = xml.replace(/<!-- BBYA_CLEAN_REBUILD_BEGIN -->[\s\S]*?<!-- BBYA_CLEAN_REBUILD_END -->/g, '');
-const runtime = `<!-- BBYA_CLEAN_REBUILD_BEGIN -->
-<Item class="ServerScriptService" referent="RBXBBYACLEANSSS">
+const runtimeService = `<Item class="ServerScriptService" referent="RBXBBYACLEANSSS">
   <Properties><string name="Name">ServerScriptService</string></Properties>
   <Item class="Script" referent="RBXBBYACLEANRUNTIME">
     <Properties>
@@ -41,10 +39,12 @@ const runtime = `<!-- BBYA_CLEAN_REBUILD_BEGIN -->
       <ProtectedString name="Source"><![CDATA[${source}]]></ProtectedString>
     </Properties>
   </Item>
-</Item>
-<!-- BBYA_CLEAN_REBUILD_END -->`;
+</Item>`;
 
-xml = xml.replace('</roblox>', `${runtime}\n</roblox>`);
+const blankService = /<Item class="ServerScriptService" referent="RBXBBYABLANKSSS">[\s\S]*?<\/Item>/;
+if (!blankService.test(xml)) throw new Error('Blank ServerScriptService anchor not found');
+xml = xml.replace(blankService, runtimeService);
+
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
