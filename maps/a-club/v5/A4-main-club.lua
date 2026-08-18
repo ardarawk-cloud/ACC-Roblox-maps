@@ -12,5 +12,6 @@ landing(A4,"DANCE LANDING",Vector3.new(0,.64,14),C.pink)
 -- Stage is integrated into rear wall zone; 14+ stud side circulation retained.
 part(A4,"STAGE PLATFORM",Vector3.new(76,3,18),CFrame.new(0,1.5,-77),C.wall2,Enum.Material.Concrete,0,true)
 landing(A4,"DJ LANDING",Vector3.new(0,3.7,-63),C.pink)
-label(A4,"STAGE LABEL","DJ / STAGE",CFrame.new(0,7,-86.8),Vector3.new(28,3,.25),C.pink,Enum.NormalId.Front)
-zoneStamp(A4,CFrame.new(0,8,-59.8),Vector3.new(38,4,.25),C.pink,Enum.NormalId.Front)
+-- A4 interior is approached from +Z toward the rear stage, so labels must face +Z (Back face).
+label(A4,"STAGE LABEL","DJ / STAGE",CFrame.new(0,7,-86.8),Vector3.new(28,3,.25),C.pink,Enum.NormalId.Back)
+zoneStamp(A4,CFrame.new(0,8,-59.8),Vector3.new(38,4,.25),C.pink,Enum.NormalId.Back)
