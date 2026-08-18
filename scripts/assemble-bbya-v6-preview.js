@@ -77,6 +77,6 @@ xml = xml.replace(blankStarter, starterPlayer);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; phase 4 support/music shell included.`);
-console.log('[BBYA CLEAN REBUILD] Support product IDs and music library intentionally remain pending/disabled until official values are supplied.');
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; phase 5 exact Support tiers, mini-player, dual-deck Auto DJ shell and QC included.`);
+console.log('[BBYA CLEAN REBUILD] Support product IDs and authorized music library intentionally remain pending/disabled until official values are supplied.');
 console.log('[BBYA CLEAN REBUILD] PREVIEW ONLY — NO ROBLOX PUBLISH PERFORMED');
