@@ -11,6 +11,7 @@ Tutorial.Name = "Tutorial"
 Tutorial.Parent = remotes
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
+local FIRST_SESSION_TARGET_SECONDS = 10 * 60
 
 local STEPS = {
     {id="MeetWondi", text="Walk to Bubbi and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
@@ -41,6 +42,15 @@ local function hasPersistedTutorialProgress(player)
         or (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) >= 1
 end
 
+local function finalizeJourneyTiming(player)
+    if tonumber(player:GetAttribute("WP_FirstJourneySeconds")) then return end
+    local startedAt = tonumber(player:GetAttribute("WP_TutorialStartedAt")) or 0
+    if startedAt <= 0 then return end
+    local seconds = math.max(0, os.time() - startedAt)
+    player:SetAttribute("WP_FirstJourneySeconds", seconds)
+    player:SetAttribute("WP_FirstJourneyWithinTarget", seconds <= FIRST_SESSION_TARGET_SECONDS)
+end
+
 local function evaluate(player)
     if player:GetAttribute("WP_OnboardingComplete") == true then
         player:SetAttribute("WP_TutorialComplete", true)
@@ -65,6 +75,7 @@ local function evaluate(player)
     player:SetAttribute("WP_TutorialStep", 0)
     player:SetAttribute("WP_TutorialStepId", "COMPLETE")
     player:SetAttribute("WP_TutorialObjective", "Pocket ready!")
+    finalizeJourneyTiming(player)
     player:SetAttribute("WP_OnboardingComplete", true)
     if CriticalSave then CriticalSave:Fire(player) end
     Tutorial:FireClient(player, "COMPLETE", #STEPS, #STEPS, "COMPLETE", "Your Pocket journey has begun!")
@@ -99,6 +110,14 @@ local function setup(player)
         if CriticalSave then CriticalSave:Fire(player) end
     end
 
+    -- For a resumed tutorial this timer measures only the current QA session.
+    -- The clean first-session 10-minute run is intentionally tested separately from rejoin QC.
+    if player:GetAttribute("WP_TutorialStarted") == true
+        and player:GetAttribute("WP_OnboardingComplete") ~= true
+        and tonumber(player:GetAttribute("WP_TutorialStartedAt")) == nil then
+        player:SetAttribute("WP_TutorialStartedAt", os.time())
+    end
+
     connections[player] = {}
     for _, attr in ipairs(watchedAttributes) do
         table.insert(connections[player], player:GetAttributeChangedSignal(attr):Connect(function()
@@ -116,7 +135,7 @@ Tutorial.OnServerEvent:Connect(function(player, action)
 
     local firstStart = player:GetAttribute("WP_TutorialStarted") ~= true
     player:SetAttribute("WP_TutorialStarted", true)
-    if player:GetAttribute("WP_TutorialStartedAt") == nil then
+    if tonumber(player:GetAttribute("WP_TutorialStartedAt")) == nil then
         player:SetAttribute("WP_TutorialStartedAt", os.time())
     end
     if firstStart and CriticalSave then CriticalSave:Fire(player) end
@@ -130,4 +149,4 @@ Players.PlayerRemoving:Connect(function(player)
     connections[player] = nil
 end)
 
-print("[WONDERPOCKET] Persistent guided first-session tutorial + backward resume migration loaded")
+print("[WONDERPOCKET] Persistent guided tutorial + 10-minute first-session QA timing loaded")
