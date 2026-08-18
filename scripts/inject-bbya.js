@@ -16,6 +16,7 @@ const mainLua = readLua('maps/a-club/bbya.server.lua');
 const rebuildLua = readLua('maps/a-club/bbya.visual-rebuild-v4.server.lua');
 const polishLua = readLua('maps/a-club/bbya.visual-polish-v4.server.lua');
 const phase3Lua = readLua('maps/a-club/bbya.phase3-premium.server.lua');
+const phase4Lua = readLua('maps/a-club/bbya.phase4-experience.server.lua');
 const productionQCLua = readLua('maps/a-club/bbya.production-qc-v4.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
 const monetizationLua = readLua('maps/a-club/bbya.monetization.server.lua');
@@ -48,8 +49,9 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAVISUALREBUILDV4000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Visual_Rebuild_v4</string><ProtectedString name="Source"><![CDATA[${rebuildLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAVISUALPOLISHV4100000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Venue_Polish_v4_1</string><ProtectedString name="Source"><![CDATA[${polishLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPHASE3PREMIUMV430000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_3_v4_3</string><ProtectedString name="Source"><![CDATA[${phase3Lua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4200000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_2</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
-  <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAPHASE4PREMIUMV440000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_4_v4_4_1</string><ProtectedString name="Source"><![CDATA[${phase4Lua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4300000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_3</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems_v2</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMONETIZATION000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Backend</string><ProtectedString name="Source"><![CDATA[${monetizationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASUPPORTDATA0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Top_Supporter_Data</string><ProtectedString name="Source"><![CDATA[${supportPanelLua}]]></ProtectedString></Properties></Item>
@@ -77,4 +79,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium Visual Rebuild v4 + Venue Polish v4.1 + Phase 3 v4.3 + Production QC + premium dance/music + Queen + VIP/support celebration into', target.file);
+console.log('[BBYA] Active build injected: Visual Rebuild v4 + Polish v4.1 + Phase 3 v4.3 + Phase 4 v4.4.1 + QC v4.3 + anchor navigation + premium UI systems into', target.file);
