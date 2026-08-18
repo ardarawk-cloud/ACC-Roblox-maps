@@ -18,20 +18,30 @@ local function waitForData()
     return false
 end
 
-local function waitForTutorialState()
-    -- Tutorial server resolves whether this is a fresh journey or a resumed one.
-    -- Waiting for the attribute prevents a race where the Welcome card flashes on rejoin.
-    while player.Parent and player:GetAttribute("WP_TutorialStarted") == nil do
-        if player:GetAttribute("WP_DataLoadFailed") == true then return false end
-        task.wait(.1)
+local function waitForResumeState()
+    -- Furniture purchase progress is persisted separately, so resolve that store
+    -- before deciding whether this is a genuine first Welcome or a resumed journey.
+    while player.Parent do
+        if player:GetAttribute("WP_InventoryLoadFailed") == true then return false end
+        if player:GetAttribute("WP_InventoryLoaded") == true then return true end
+        task.wait(.25)
     end
-    return player.Parent ~= nil
+    return false
+end
+
+local function hasTutorialProgress()
+    return player:GetAttribute("WP_TutorialStarted") == true
+        or player:GetAttribute("WP_Tutorial_MetWondi") == true
+        or (tonumber(player:GetAttribute("WP_PlantedCount")) or 0) >= 1
+        or (tonumber(player:GetAttribute("WP_PurchasedFurnitureCount")) or 0) >= 1
+        or (tonumber(player:GetAttribute("WP_PlacedCount")) or 0) >= 1
+        or (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) >= 1
 end
 
 if not waitForData() then return end
-if not waitForTutorialState() then return end
 if player:GetAttribute("WP_OnboardingComplete") == true then return end
-if player:GetAttribute("WP_TutorialStarted") == true then return end
+if not waitForResumeState() then return end
+if player:GetAttribute("WP_OnboardingComplete") == true or hasTutorialProgress() then return end
 
 local playerGui = player:WaitForChild("PlayerGui")
 local old = playerGui:FindFirstChild("WP_Onboarding")
@@ -127,4 +137,4 @@ start.Activated:Connect(function()
     end)
 end)
 
-print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit + rejoin-resume ready")
+print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit + persistent resume aware")
