@@ -1,7 +1,10 @@
--- BBYA SOCIAL HUB — CLEAN REBUILD PHASE 3 QC
+-- BBYA SOCIAL HUB — CLEAN REBUILD PHASE 4 QC
 -- Reports only; never patches geometry.
 
-task.delay(6,function()
+local ReplicatedStorageQC=game:GetService("ReplicatedStorage")
+local SoundServiceQC=game:GetService("SoundService")
+
+task.delay(7,function()
     local issues={}
     local function need(name)
         if not workspace:FindFirstChild(name,true) then
@@ -30,6 +33,7 @@ task.delay(6,function()
     local facadeWash=0
     local clearLanes=0
     local circulationLights=0
+    local panelPrompts=0
     local clearMarkers={}
     for _,o in ipairs(workspace:GetDescendants()) do
         if o:IsA("Seat") and o:GetAttribute("BBYASocialSeat") then seats+=1 end
@@ -37,6 +41,7 @@ task.delay(6,function()
         if o:GetAttribute("BBYACriticalFill") then criticalFill+=1 end
         if o:GetAttribute("BBYAFacadeWash") then facadeWash+=1 end
         if o:GetAttribute("BBYACirculationLight") then circulationLights+=1 end
+        if o:IsA("ProximityPrompt") and o.Name=="BBYA PANEL PROMPT" then panelPrompts+=1 end
         if o:IsA("BasePart") and o:GetAttribute("BBYAClearLane") then
             clearLanes+=1
             table.insert(clearMarkers,o)
@@ -50,6 +55,7 @@ task.delay(6,function()
     if facadeWash<4 then table.insert(issues,"hero facade wash count below 4: "..facadeWash) end
     if clearLanes<8 then table.insert(issues,"clear circulation marker count below 8: "..clearLanes) end
     if circulationLights<7 then table.insert(issues,"circulation light count below 7: "..circulationLights) end
+    if panelPrompts<4 then table.insert(issues,"physical panel prompt count below 4: "..panelPrompts) end
 
     -- Check a reduced interior volume above every clear marker. Floors under the marker and side rails are excluded by volume placement.
     local overlap=OverlapParams.new()
@@ -79,7 +85,30 @@ task.delay(6,function()
     if workspace:GetAttribute("BBYACirculation")~="PHASE_3_LOCKED_CLEAR" then table.insert(issues,"phase 3 circulation marker missing") end
     if workspace:GetAttribute("BBYAReferenceSilhouette")~="LEFT_CLUB_CENTER_SOCIAL_RIGHT_VIP_UPPER_POOL" then table.insert(issues,"owner-reference silhouette marker missing") end
     if workspace:GetAttribute("BBYACleanRebuild")~=true then table.insert(issues,"clean rebuild marker missing") end
-    if workspace:GetAttribute("BBYABuildPhase")~="PHASE_3_CIRCULATION_FINISH" then table.insert(issues,"build phase is not phase 3") end
+    if workspace:GetAttribute("BBYABuildPhase")~="PHASE_4_SOCIAL_SYSTEMS" then table.insert(issues,"build phase is not phase 4") end
+    if workspace:GetAttribute("BBYASocialSystems")~="PHASE_4_ACTIVE" then table.insert(issues,"phase 4 social systems marker missing") end
+
+    -- Server remotes and shared music channels must exist even while official IDs/library are pending.
+    local remoteRoot=ReplicatedStorageQC:FindFirstChild("BBYA REMOTES")
+    if not remoteRoot then
+        table.insert(issues,"BBYA REMOTES missing")
+    else
+        for _,name in ipairs({"OpenPanel","GetSupportConfig","GetSupportBoard","GetMusicState"}) do
+            if not remoteRoot:FindFirstChild(name) then table.insert(issues,"remote missing: "..name) end
+        end
+    end
+    local musicRoot=SoundServiceQC:FindFirstChild("BBYA MUSIC")
+    if not musicRoot then
+        table.insert(issues,"BBYA MUSIC folder missing")
+    else
+        if not musicRoot:FindFirstChild("CLUB CHANNEL") then table.insert(issues,"club music channel missing") end
+        if not musicRoot:FindFirstChild("ROOFTOP CHANNEL") then table.insert(issues,"rooftop music channel missing") end
+    end
+
+    -- Pending commerce/music data is allowed and intentional; only malformed/missing attributes are rejected.
+    if workspace:GetAttribute("BBYASupportProductsReady")==nil then table.insert(issues,"support readiness attribute missing") end
+    if workspace:GetAttribute("BBYAMusicLibraryReady")==nil then table.insert(issues,"music readiness attribute missing") end
+    if (workspace:GetAttribute("BBYAPanelPromptCount") or 0)<4 then table.insert(issues,"panel prompt attribute below 4") end
 
     -- Runtime must contain exactly one BBYA build root. Any archived runtime geometry is rejected.
     local rebuildRoots=0
@@ -91,8 +120,8 @@ task.delay(6,function()
     end
     if rebuildRoots~=1 then table.insert(issues,"expected exactly one clean rebuild root, got "..rebuildRoots) end
 
-    workspace:SetAttribute("BBYAPhase3IssueCount",#issues)
-    workspace:SetAttribute("BBYAPhase3QC",#issues==0 and "PASS" or "WARN")
+    workspace:SetAttribute("BBYAPhase4IssueCount",#issues)
+    workspace:SetAttribute("BBYAPhase4QC",#issues==0 and "PASS" or "WARN")
     workspace:SetAttribute("BBYASocialSeatCount",seats)
     workspace:SetAttribute("BBYAShowLightCount",showLights)
     workspace:SetAttribute("BBYACriticalFillCount",criticalFill)
@@ -100,10 +129,11 @@ task.delay(6,function()
     workspace:SetAttribute("BBYAFacadeWashCount",facadeWash)
     workspace:SetAttribute("BBYAClearLaneRuntimeCount",clearLanes)
     workspace:SetAttribute("BBYACirculationLightCount",circulationLights)
+    workspace:SetAttribute("BBYAPanelPromptRuntimeCount",panelPrompts)
 
     if #issues==0 then
-        print(string.format("[BBYA CLEAN REBUILD] PHASE 3 PASS — %d seats, %d clear lanes, %d circulation lights; premium silhouette/circulation verified",seats,clearLanes,circulationLights))
+        print(string.format("[BBYA CLEAN REBUILD] PHASE 4 PASS — %d seats, %d clear lanes, %d prompts; support/music shell verified",seats,clearLanes,panelPrompts))
     else
-        warn("[BBYA CLEAN REBUILD] PHASE 3 WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
+        warn("[BBYA CLEAN REBUILD] PHASE 4 WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
     end
 end)
