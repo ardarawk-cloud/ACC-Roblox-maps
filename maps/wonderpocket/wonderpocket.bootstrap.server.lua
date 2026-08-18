@@ -167,7 +167,7 @@ end
 
 local function savePlayer(player, force)
     local data = session[player]
-    if not data then return false end
+    if not data or player:GetAttribute("WP_DataReadOnly") == true or player:GetAttribute("WP_DataLoadFailed") == true then return false end
 
     if saving[player] then
         if force then forcePending[player] = true end
@@ -224,14 +224,23 @@ end
 
 local function loadPlayer(player)
     player:SetAttribute("WP_DataLoaded", false)
+    player:SetAttribute("WP_DataLoadFailed", false)
+    player:SetAttribute("WP_DataReadOnly", true)
     player:SetAttribute("WP_DataSaveHealthy", true)
 
     local ok, result = retry("load u_"..player.UserId, function()
         return Store:GetAsync("u_"..player.UserId)
     end)
-    local data = migrateData(ok and result or nil)
-    if not ok then player:SetAttribute("WP_DataSaveHealthy", false) end
+    if not ok then
+        player:SetAttribute("WP_DataLoadFailed", true)
+        player:SetAttribute("WP_DataReadOnly", true)
+        player:SetAttribute("WP_DataSaveHealthy", false)
+        StateRemote:FireClient(player, "LOAD_FAILED")
+        warn("[WONDERPOCKET] Player data load failed closed; no defaults will overwrite existing data", player.UserId)
+        return
+    end
 
+    local data = migrateData(result)
     local now = os.time()
     local elapsed = math.clamp(now - (tonumber(data.lastSeen) or now), 0, Config.Gardening.OfflineGrowthCapSeconds)
     data.offlineSeconds = elapsed
@@ -268,6 +277,7 @@ local function loadPlayer(player)
         watchAttribute(player, attribute)
     end
 
+    player:SetAttribute("WP_DataReadOnly", false)
     player:SetAttribute("WP_DataLoaded", true)
     StateRemote:FireClient(player, "INIT", data)
 end
@@ -314,4 +324,4 @@ game:BindToClose(function()
     while remaining > 0 and os.clock() < deadline do task.wait(.1) end
 end)
 
-print("[WONDERPOCKET] v1.2 seed-persistent revision-safe foundation loaded", Config.Version)
+print("[WONDERPOCKET] fail-closed seed-persistent revision-safe foundation loaded", Config.Version)
