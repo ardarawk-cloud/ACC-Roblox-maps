@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "maps": {
+    "mountain-social": {
+      "name": "Mountain Social Adventure",
+      "enabled": false,
+      "universeId": "PUT_UNIVERSE_ID_HERE",
+      "placeId": "PUT_PLACE_ID_HERE",
+      "file": "maps/mountain-social/place.rbxlx"
+    },
+    "bali-nightlife": {
+      "name": "Bali Virtual Nightlife 24/7",
+      "enabled": false,
+      "universeId": "PUT_UNIVERSE_ID_HERE",
+      "placeId": "PUT_PLACE_ID_HERE",
+      "file": "maps/bali-nightlife/place.rbxlx"
+    },
+    "wonderpocket": {
+      "name": "WONDERPOCKET",
+      "enabled": false,
+      "universeId": "PUT_UNIVERSE_ID_HERE",
+      "placeId": "PUT_PLACE_ID_HERE",
+      "file": "maps/wonderpocket/place.rbxlx"
+    }
+  }
+}
