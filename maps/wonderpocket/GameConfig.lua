@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.4.0-premium-ux-social",
+    Version = "0.5.0-retention-build-polish",
 
     Economy = {
         StartingCoins = 250,
@@ -20,12 +20,12 @@ return {
     },
 
     Wondies = {
-        {Id="Bubbi", Element="Joy", Rarity="Common"},
-        {Id="Flamo", Element="Fire", Rarity="Common"},
-        {Id="Mossy", Element="Nature", Rarity="Common"},
-        {Id="Lumi", Element="Light", Rarity="Uncommon"},
-        {Id="Zappy", Element="Spark", Rarity="Uncommon"},
-        {Id="Puffy", Element="Cloud", Rarity="Rare"},
+        {Id="Bubbi", Element="Joy", Rarity="Common", Emotes={"Wave","Happy","Sleep"}},
+        {Id="Flamo", Element="Fire", Rarity="Common", Emotes={"Wave","Spark"}},
+        {Id="Mossy", Element="Nature", Rarity="Common", Emotes={"Wave","Bloom"}},
+        {Id="Lumi", Element="Light", Rarity="Uncommon", Emotes={"Wave","Glow"}},
+        {Id="Zappy", Element="Spark", Rarity="Uncommon", Emotes={"Wave","Zap"}},
+        {Id="Puffy", Element="Cloud", Rarity="Rare", Emotes={"Wave","Float"}},
     },
 
     Gardening = {
@@ -39,6 +39,15 @@ return {
 
     Quests = {
         Starter = {Id="HARVEST_3", Target=3, RewardCoins=75, RewardStars=2},
+        Daily = {
+            {Id="DAILY_HARVEST_5", Target=5, RewardCoins=100, RewardStars=1},
+            {Id="DAILY_VISIT_1", Target=1, RewardCoins=60, RewardStars=1},
+            {Id="DAILY_TREASURE_3", Target=3, RewardCoins=90, RewardStars=1},
+        },
+        Weekly = {
+            {Id="WEEKLY_HARVEST_25", Target=25, RewardCoins=500, RewardStars=5},
+            {Id="WEEKLY_ADVENTURE_5", Target=5, RewardCoins=450, RewardStars=5},
+        },
     },
 
     Furniture = {
@@ -51,13 +60,17 @@ return {
             {Id="MiniAquarium", Name="Mini Aquarium", PriceCoins=550, Rarity="Rare"},
         },
         PlacementGrid = 1,
+        RotationStepDegrees = 90,
         MaxPlacedStarter = 50,
+        SaveEnabled = true,
+        GhostPreviewEnabled = true,
     },
 
     Shop = {
         RotationHours = 24,
         FeaturedSlots = 4,
         CosmeticOnlyRobux = true,
+        DeterministicDailyRotation = true,
         RobuxExamples = {
             WondiEmote = 5,
             Trail = 5,
@@ -91,6 +104,15 @@ return {
         {Id="TreasureIsland", Name="Treasure Island", DurationSeconds=240, RewardCoins=120, RewardStars=1},
         {Id="EscapeVolcano", Name="Escape Volcano", DurationSeconds=300, RewardCoins=160, RewardStars=1},
         {Id="CloudRace", Name="Cloud Race", DurationSeconds=180, RewardCoins=100, RewardStars=1},
+    },
+
+    Retention = {
+        OfflineRewardEnabled = true,
+        OfflineRewardCapSeconds = 8 * 60 * 60,
+        OfflineCoinsPerMinute = 1,
+        DailyRewardEnabled = true,
+        DailyQuestEnabled = true,
+        WeeklyQuestEnabled = true,
     },
 
     PremiumPresentation = {
