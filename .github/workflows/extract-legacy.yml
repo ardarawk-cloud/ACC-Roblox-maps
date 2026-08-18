@@ -28,27 +28,41 @@ jobs:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           ROBLOX_UNIVERSE_ID: '8805231520'
           ROBLOX_PLACE_ID: '124843214013484'
-        run: python tools/legacy-extract/extract.py
+        shell: bash
+        run: |
+          mkdir -p exports/legacy
+          set +e
+          python tools/legacy-extract/extract.py > exports/legacy/extraction-attempt.log 2>&1
+          CODE=$?
+          echo "$CODE" > exports/legacy/extraction-exit-code.txt
+          echo "Extraction exit code: $CODE"
+          cat exports/legacy/extraction-attempt.log
+          exit 0
 
-      - name: Build BBYA legacy Asset ID library
-        if: success()
-        run: python tools/legacy-extract/apply-to-bbya.py
+      - name: Build BBYA legacy Asset ID library when extraction succeeded
+        shell: bash
+        run: |
+          if [ -f exports/legacy/manifest.json ]; then
+            python tools/legacy-extract/apply-to-bbya.py
+          else
+            echo "No manifest yet; preserving diagnostic output only."
+          fi
 
-      - name: Commit backup package and BBYA library
-        if: success()
+      - name: Commit backup, BBYA library, or diagnostics
         run: |
           git config user.name "ACC Roblox Backup Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add exports/legacy assets/bbya
+          git add exports/legacy
+          if [ -d assets/bbya ]; then git add assets/bbya; fi
           if git diff --cached --quiet; then
-            echo "No export changes to commit."
+            echo "No extraction output changes to commit."
           else
-            git commit -m "Backup legacy assets and transfer IDs to BBYA"
+            git commit -m "Record legacy asset extraction result"
             git push
           fi
 
-      - name: Upload backup artifact
-        if: success()
+      - name: Upload backup artifact when available
+        if: hashFiles('exports/legacy/legacy-ui-music-lighting-8805231520-124843214013484.zip') != ''
         uses: actions/upload-artifact@v4
         with:
           name: legacy-ui-music-lighting
