@@ -41,6 +41,7 @@ const requiredSources = [
   'maps/a-club/bbya.phase6-wayfinding.server.lua',
   'maps/a-club/bbya.production-qc-v4.server.lua',
   'maps/a-club/bbya.livefix-4.7.server.lua',
+  'maps/a-club/bbya.lobby-reference-v4.8.server.lua',
   'maps/a-club/bbya.build-validation.server.lua',
   'maps/a-club/bbya.playtest.server.lua',
   'maps/a-club/bbya.systems.server.lua',
@@ -74,6 +75,7 @@ const mustInclude = [
   'bbya.core.server.lua',
   'bbya.phase6-wayfinding.server.lua',
   'bbya.livefix-4.7.server.lua',
+  'bbya.lobby-reference-v4.8.server.lua',
   'bbya.build-validation.server.lua',
   'bbya.playtest.server.lua',
   'bbya.spawn-final.server.lua',
@@ -132,6 +134,7 @@ if (target && exists(target.file)) {
       'BBYA_Premium_Visual_Rebuild_v4',
       'BBYA_Premium_Phase_6_v4_6',
       'BBYA_Live_Playtest_Fix_v4_7',
+      'BBYA_Front_Lobby_Reference_v4_8',
       'BBYA_Build_Validation_v1_3',
       'BBYA_Queen_Playtest_System_Test_v1',
       'BBYA_Functional_Systems_v2',
@@ -160,6 +163,9 @@ if (target && exists(target.file)) {
 
     if (!runtime.includes('RunPlaytestCheck')) fail('injected runtime missing Queen playtest RemoteFunction');
     else pass('Queen playtest harness injected');
+
+    if (!runtime.includes('BBYAFrontLobby')) fail('front lobby v4.8 marker missing from injected runtime');
+    else pass('front lobby v4.8 injected');
 
     if (!process.exitCode) pass('post-injection runtime structure valid');
   }
