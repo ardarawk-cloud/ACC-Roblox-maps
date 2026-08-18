@@ -16,12 +16,19 @@ const architectureFiles = [
   'maps/a-club/v6/20-ground-shell.lua',
   'maps/a-club/v6/21-circulation.lua',
   'maps/a-club/v6/22-facade-brand.lua',
+  'maps/a-club/v6/23-lift-finish.lua',
   'maps/a-club/v6/30-vip-level.lua',
   'maps/a-club/v6/40-rooftop.lua',
   'maps/a-club/v6/45-service.lua',
 ];
-const systemFiles = ['maps/a-club/v6/50-systems.server.lua'];
-const uiFiles = ['maps/a-club/v6/60-ui.client.lua'];
+const systemFiles = [
+  'maps/a-club/v6/50-systems.server.lua',
+  'maps/a-club/v6/70-runtime-qc.server.lua',
+];
+const uiFiles = [
+  'maps/a-club/v6/60-ui.client.lua',
+  'maps/a-club/v6/61-zone-hud.client.lua',
+];
 
 const allFiles = [...architectureFiles, ...systemFiles, ...uiFiles];
 for (const file of allFiles) {
@@ -83,4 +90,4 @@ xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA V6] Preview assembled -> ${outArg}`);
-console.log(`[BBYA V6] ${architectureFiles.length} architecture files, ${systemFiles.length} systems file, ${uiFiles.length} UI file.`);
+console.log(`[BBYA V6] ${architectureFiles.length} architecture files, ${systemFiles.length} system files, ${uiFiles.length} UI files.`);
