@@ -11,11 +11,12 @@ wallX(C1,"C1 REAR WALL",132,-70,-16,29,18,2,P.charcoal,"09W")
 -- front edge partly open to commons, protected with rail.
 glass(C1,"C1 FRONT BALCONY RAIL",Vector3.new(40,5,.45),CFrame.new(-38,22.5,65),"11W")
 
--- East VIP deck
-floor(C2,"C2 EAST VIP FLOOR",Vector3.new(54,1,68),Vector3.new(28,20,98),Color3.fromRGB(50,44,47),Enum.Material.WoodPlanks,"09E")
+-- East VIP deck is split so no floor crosses the B3 lift shaft at x=50..68 / z>=119.
+floor(C2,"C2 EAST VIP FLOOR FRONT",Vector3.new(54,1,54),Vector3.new(28,20,91),Color3.fromRGB(50,44,47),Enum.Material.WoodPlanks,"09E")
+floor(C2,"C2 EAST VIP FLOOR REAR",Vector3.new(47,1,14),Vector3.new(24.5,20,125),Color3.fromRGB(50,44,47),Enum.Material.WoodPlanks,"09E")
 glass(C2,"C2 CLUB VIEW RAIL",Vector3.new(.45,6,48),CFrame.new(1.3,23,96),"11E")
 wallZ(C2,"C2 EAST OUTER WALL",55,64,118,29,18,2,P.charcoal,"09E")
--- leave lift core area at x50..68/z119..149 intact.
+-- lift core starts behind this wall termination; shaft stays physically clear.
 glass(C2,"C2 FRONT BALCONY RAIL",Vector3.new(40,5,.45),CFrame.new(28,22.5,65),"11E")
 
 -- VIP lounge furniture: distributed social pockets, not one giant room.
@@ -84,3 +85,4 @@ clearPad(C2,"C2 LIFT CLEAR LANDING",Vector3.new(59,20.62,112),Vector3.new(12,.12
 twoFaceSign(C2,"C2 LIFT WAYFINDING","LIFT / ROOFTOP →","← VIP LOUNGE",CFrame.new(50,27,116),Vector3.new(12,1.5,.25),P.white,nil)
 
 workspace:SetAttribute("BBYAV6VIPFloor","COMPLETE")
+workspace:SetAttribute("BBYAV6LiftShaftClearVIP",true)
