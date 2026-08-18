@@ -40,6 +40,15 @@ local chestSpots = {
 local collected = {}
 local completed = {}
 local lastTrigger = {}
+local adventureConnections = {}
+
+local function resetRun(player)
+    local uid = player.UserId
+    collected[uid] = {}
+    completed[uid] = nil
+    player:SetAttribute("WP_TreasureProgress",0)
+    player:SetAttribute("WP_TreasureIslandComplete",false)
+end
 
 local function getState(player)
     local uid=player.UserId
@@ -67,6 +76,7 @@ for i,pos in ipairs(chestSpots) do
     prompt.RequiresLineOfSight=false
     prompt.Parent=chest
     prompt.Triggered:Connect(function(player)
+        if player:GetAttribute("WP_ActiveAdventure") ~= "TreasureIsland" then return end
         local now=os.clock()
         local triggerKey=tostring(player.UserId)..":"..i
         if lastTrigger[triggerKey] and now-lastTrigger[triggerKey]<0.75 then return end
@@ -93,20 +103,27 @@ pp.Triggered:Connect(function(player)
     local hrp=char and char:FindFirstChild("HumanoidRootPart")
     local target=workspace:FindFirstChild("WonderSquareSpawn",true) or workspace:FindFirstChildWhichIsA("SpawnLocation",true)
     if hrp and target then hrp.CFrame=target.CFrame*CFrame.new(0,4,0) end
+    player:SetAttribute("WP_ActiveAdventure", "")
 end)
 
-Players.PlayerAdded:Connect(function(player)
-    player:SetAttribute("WP_TreasureProgress",0)
-    player:SetAttribute("WP_TreasureIslandComplete",false)
-end)
+local function setupPlayer(player)
+    resetRun(player)
+    adventureConnections[player] = player:GetAttributeChangedSignal("WP_AdventureStartedAt"):Connect(function()
+        if player:GetAttribute("WP_ActiveAdventure") == "TreasureIsland" then resetRun(player) end
+    end)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+for _, player in Players:GetPlayers() do setupPlayer(player) end
 
 Players.PlayerRemoving:Connect(function(player)
     local uid=player.UserId
     collected[uid]=nil
     completed[uid]=nil
+    if adventureConnections[player] then adventureConnections[player]:Disconnect(); adventureConnections[player]=nil end
     for key in pairs(lastTrigger) do
         if string.sub(key,1,#tostring(uid)+1)==tostring(uid)..":" then lastTrigger[key]=nil end
     end
 end)
 
-print("[WONDERPOCKET] Treasure Island multiplayer-safe environment loaded")
+print("[WONDERPOCKET] Treasure Island run-safe multiplayer environment loaded")
