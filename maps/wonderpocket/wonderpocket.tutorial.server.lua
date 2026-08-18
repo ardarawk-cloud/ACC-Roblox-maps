@@ -65,7 +65,9 @@ local function setup(player)
     if not player.Parent then return end
 
     player:SetAttribute("WP_TutorialComplete", player:GetAttribute("WP_OnboardingComplete") == true)
-    player:SetAttribute("WP_TutorialStarted", false)
+    if player:GetAttribute("WP_TutorialStarted") == nil then
+        player:SetAttribute("WP_TutorialStarted", false)
+    end
 
     connections[player] = {}
     for _, attr in ipairs(watchedAttributes) do
@@ -73,13 +75,17 @@ local function setup(player)
             evaluate(player)
         end))
     end
+
+    if player:GetAttribute("WP_TutorialStarted") == true then evaluate(player) end
 end
 
 Tutorial.OnServerEvent:Connect(function(player, action)
     if action ~= "START" or player:GetAttribute("WP_DataLoaded") ~= true then return end
     if player:GetAttribute("WP_OnboardingComplete") == true then return end
     player:SetAttribute("WP_TutorialStarted", true)
-    player:SetAttribute("WP_TutorialStartedAt", os.time())
+    if player:GetAttribute("WP_TutorialStartedAt") == nil then
+        player:SetAttribute("WP_TutorialStartedAt", os.time())
+    end
     evaluate(player)
 end)
 
