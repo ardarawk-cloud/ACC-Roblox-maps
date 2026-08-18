@@ -1,4 +1,4 @@
--- WONDERPOCKET Persistent Gardening Loop v1.1
+-- WONDERPOCKET Persistent Gardening Loop v1.2
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local DataStoreService = game:GetService("DataStoreService")
@@ -19,6 +19,7 @@ local revision = {}
 local savedRevision = {}
 local saving = {}
 local forcePending = {}
+local actionLocks = {}
 
 local function retry(label, fn)
     local lastErr
@@ -140,6 +141,15 @@ local function refreshVisual(plot, prompt, entry)
     end
 end
 
+local function withActionLock(player, index, fn)
+    local key = tostring(player.UserId)..":"..tostring(index)
+    if actionLocks[key] then return end
+    actionLocks[key] = true
+    local ok, err = pcall(fn)
+    actionLocks[key] = nil
+    if not ok then warn("[WONDERPOCKET] Garden action failed", player.UserId, index, err) end
+end
+
 local function createPlot(player, index, position)
     local plot = Instance.new("Part")
     plot.Name = "Plot_" .. player.UserId .. "_" .. index
@@ -164,30 +174,47 @@ local function createPlot(player, index, position)
 
     prompt.Triggered:Connect(function(triggeringPlayer)
         if triggeringPlayer ~= player or player:GetAttribute("WP_DataLoaded") ~= true then return end
-        local now = os.time()
-        local readyAt = tonumber(entry.readyAt) or 0
+        withActionLock(player, index, function()
+            local now = os.time()
+            local readyAt = tonumber(entry.readyAt) or 0
 
-        if readyAt <= 0 then
-            entry.readyAt = now + GROW_SECONDS
-            player:SetAttribute("WP_PlantedCount", (tonumber(player:GetAttribute("WP_PlantedCount")) or 0) + 1)
-            refreshVisual(plot, prompt, entry)
+            if readyAt <= 0 then
+                local seeds = math.max(0, math.floor(tonumber(player:GetAttribute("CarrotSeed")) or 0))
+                if seeds <= 0 then
+                    prompt.ActionText = "Need Carrot Seed"
+                    task.delay(1.2, function()
+                        if prompt.Parent and (tonumber(entry.readyAt) or 0) <= 0 then prompt.ActionText = "Plant Carrot" end
+                    end)
+                    return
+                end
+
+                player:SetAttribute("CarrotSeed", seeds - 1)
+                entry.readyAt = now + GROW_SECONDS
+                player:SetAttribute("WP_PlantedCount", (tonumber(player:GetAttribute("WP_PlantedCount")) or 0) + 1)
+                player:SetAttribute("WP_LastEconomyAction", "PLANT_CARROT")
+                refreshVisual(plot, prompt, entry)
+                markDirty(player)
+                if CriticalSave then CriticalSave:Fire(player) end
+                task.spawn(save, player, true)
+                return
+            end
+
+            if now < readyAt then
+                prompt.ActionText = "Growing... " .. tostring(math.max(1, readyAt-now)) .. "s"
+                return
+            end
+
+            entry.readyAt = 0
+            addCoins(player, REWARD_COINS)
+            player:SetAttribute("CarrotSeed", (tonumber(player:GetAttribute("CarrotSeed")) or 0) + 1)
+            player:SetAttribute("WP_HarvestCount", (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) + 1)
+            player:SetAttribute("WP_LastEconomyAction", "HARVEST_CARROT")
+            player:SetAttribute("WP_LastEconomyDeltaCoins", REWARD_COINS)
+            resetVisual(plot, prompt)
             markDirty(player)
-            task.spawn(save, player, false)
-            return
-        end
-
-        if now < readyAt then
-            prompt.ActionText = "Growing... " .. tostring(math.max(1, readyAt-now)) .. "s"
-            return
-        end
-
-        entry.readyAt = 0
-        addCoins(player, REWARD_COINS)
-        player:SetAttribute("WP_HarvestCount", (tonumber(player:GetAttribute("WP_HarvestCount")) or 0) + 1)
-        resetVisual(plot, prompt)
-        markDirty(player)
-        task.spawn(save, player, false)
-        if CriticalSave then CriticalSave:Fire(player) end
+            if CriticalSave then CriticalSave:Fire(player) end
+            task.spawn(save, player, true)
+        end)
     end)
 end
 
@@ -218,6 +245,12 @@ local function cleanupPlots(player)
     end
 end
 
+CriticalSave.Event:Connect(function(player)
+    if typeof(player)=="Instance" and player:IsA("Player") and state[player] then
+        task.spawn(save, player, true)
+    end
+end)
+
 Players.PlayerAdded:Connect(function(player) task.spawn(setup, player) end)
 for _, player in Players:GetPlayers() do task.spawn(setup, player) end
 
@@ -232,6 +265,10 @@ Players.PlayerRemoving:Connect(function(player)
     savedRevision[player] = nil
     saving[player] = nil
     forcePending[player] = nil
+    local prefix = tostring(player.UserId)..":"
+    for key in pairs(actionLocks) do
+        if string.sub(key,1,#prefix)==prefix then actionLocks[key]=nil end
+    end
 end)
 
 game:BindToClose(function()
@@ -239,4 +276,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Persistent offline-growth garden loaded")
+print("[WONDERPOCKET] Seed-authoritative persistent offline-growth garden loaded")
