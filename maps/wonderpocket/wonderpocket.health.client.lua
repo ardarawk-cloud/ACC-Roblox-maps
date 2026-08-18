@@ -22,7 +22,7 @@ Instance.new("UICorner",button).CornerRadius = UDim.new(0,10)
 local panel = Instance.new("TextLabel")
 panel.AnchorPoint = Vector2.new(1,0)
 panel.Position = UDim2.new(1,-10,0,112)
-panel.Size = UDim2.fromOffset(320,340)
+panel.Size = UDim2.fromOffset(340,390)
 panel.BackgroundColor3 = Color3.fromRGB(20,25,45)
 panel.BackgroundTransparency = .08
 panel.TextColor3 = Color3.fromRGB(235,242,255)
@@ -42,6 +42,11 @@ local function refresh()
     local tutorialStep=tonumber(player:GetAttribute("WP_TutorialStep")) or 0
     local coins=tonumber(player:GetAttribute("Coins")) or 0
     local stars=tonumber(player:GetAttribute("Stars")) or 0
+    local seeds=tonumber(player:GetAttribute("CarrotSeed")) or 0
+    local txnSeq=tonumber(player:GetAttribute("WP_EconTxnSeq")) or 0
+    local lastAction=tostring(player:GetAttribute("WP_LastEconomyAction") or "-")
+    local lastItem=tostring(player:GetAttribute("WP_LastEconomyItem") or "-")
+    local lastDelta=tonumber(player:GetAttribute("WP_LastEconomyDeltaCoins")) or 0
     local deadline=tonumber(player:GetAttribute("WP_AdventureDeadline")) or 0
     local secondsLeft=deadline>0 and math.max(0,deadline-os.time()) or 0
     local dexFound=0
@@ -54,7 +59,7 @@ local function refresh()
     }) do if player:GetAttribute(attr)==true then dexFound+=1 end end
 
     panel.Text=string.format(
-        " WONDERPOCKET v1.1 RC\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Garden Save: %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n Garden Ready: %s\n Economy: %sC / %sS\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.2 CLOSED TEST\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Garden Save: %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n Garden Ready: %s\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Tutorial Step: %s\n Onboarding: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
         yes(player:GetAttribute("WP_DataLoaded")==true),
         yes(player:GetAttribute("WP_DataSaveHealthy")~=false),
         yes(player:GetAttribute("WP_InventoryLoaded")==true),
@@ -65,7 +70,8 @@ local function refresh()
         yes(remotes~=nil),
         plotId>0 and tostring(plotId) or "WAIT",yes(player:GetAttribute("WP_HomeReady")==true),
         yes(player:GetAttribute("WP_GardenReady")==true),
-        tostring(coins),tostring(stars),
+        tostring(coins),tostring(stars),tostring(seeds),
+        tostring(txnSeq),lastAction,lastItem,lastDelta,
         tostring(tonumber(player:GetAttribute("WP_HarvestCount")) or 0),
         tostring(player:GetAttribute("WP_Quest_Starter") or "-"),
         tostring(tutorialStep),
@@ -85,4 +91,4 @@ task.spawn(function()
     while task.wait(2) do if panel.Visible then refresh() end end
 end)
 
-print("[WONDERPOCKET] v1.1 release-candidate health UI with WonderDex status ready")
+print("[WONDERPOCKET] v1.2 closed-test health UI with seed/economy audit ready")
