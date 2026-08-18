@@ -39,6 +39,7 @@ const uiFiles = [
   'maps/a-club/v6/62-dance-ui.client.lua',
   'maps/a-club/v6/63-commerce-ui.client.lua',
   'maps/a-club/v6/64-physical-ui-bridge.client.lua',
+  'maps/a-club/v6/65-performance.client.lua',
 ];
 
 const allFiles = [...architectureFiles, ...systemFiles, ...uiFiles];
@@ -56,7 +57,6 @@ const placePath = path.join(root, target.file);
 let xml = fs.readFileSync(placePath, 'utf8');
 if (!xml.includes('</roblox>')) throw new Error('Invalid source RBXLX: missing </roblox>');
 
-// Strip prior ACC runtime blocks. V6 preview must be idempotent and must never stack old runtimes.
 xml = xml.replace(/<!-- BBYA_RUNTIME_BEGIN -->[\s\S]*?<!-- BBYA_RUNTIME_END -->/g, '');
 xml = xml.replace(/<!-- BBYA_V6_PREVIEW_RUNTIME_BEGIN -->[\s\S]*?<!-- BBYA_V6_PREVIEW_RUNTIME_END -->/g, '');
 
