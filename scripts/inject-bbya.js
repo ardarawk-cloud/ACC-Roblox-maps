@@ -13,6 +13,7 @@ const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8'
 const mainLua = readLua('maps/a-club/bbya.server.lua');
 const architectureLua = readLua('maps/a-club/bbya.architecture.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
+const musicLua = readLua('maps/a-club/bbya.music.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
 const featuresLua = readLua('maps/a-club/bbya.features.server.lua');
 const qcLua = readLua('maps/a-club/bbya.qc.server.lua');
@@ -24,6 +25,7 @@ const layoutHotfixLua = readLua('maps/a-club/bbya.layout-hotfix.server.lua');
 const spatialCleanupLua = readLua('maps/a-club/bbya.spatial-cleanup.server.lua');
 const queenAccessLua = readLua('maps/a-club/bbya.queen-access-hotfix.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
+const musicClientLua = readLua('maps/a-club/bbya.music.client.lua');
 const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
@@ -38,6 +40,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Main</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAARCHITECTURE000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Mega_Architecture_v2</string><ProtectedString name="Source"><![CDATA[${architectureLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAFEATURES0000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Feature_Stations</string><ProtectedString name="Source"><![CDATA[${featuresLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAQC000000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_QC_Hotfix</string><ProtectedString name="Source"><![CDATA[${qcLua}]]></ProtectedString></Properties></Item>
@@ -54,6 +57,7 @@ const runtime = `${begin}
   <Item class="StarterPlayerScripts" referent="RBXBBYASTARTERPLAYERSCRIPTS00000001">
     <Properties><string name="Name">StarterPlayerScripts</string></Properties>
     <Item class="LocalScript" referent="RBXBBYACLIENT000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Client</string><ProtectedString name="Source"><![CDATA[${clientLua}]]></ProtectedString></Properties></Item>
+    <Item class="LocalScript" referent="RBXBBYAMUSICCLIENT000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Music_Client</string><ProtectedString name="Source"><![CDATA[${musicClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAQUEENCLIENT0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Client</string><ProtectedString name="Source"><![CDATA[${queenClientLua}]]></ProtectedString></Properties></Item>
   </Item>
 </Item>
@@ -62,4 +66,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: architecture + systems + DJ + features + QC + social ranks + sign/layout/spatial cleanup + Queen access + clients into', target.file);
+console.log('[BBYA] Active build injected: architecture + systems + Music Vault/Auto-DJ + DJ + features + QC + social ranks + visual/layout/Queen hotfixes + mobile panels into', target.file);
