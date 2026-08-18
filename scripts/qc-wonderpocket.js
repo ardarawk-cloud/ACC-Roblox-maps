@@ -10,9 +10,10 @@ const required = [
   'GameConfig.lua','wonderpocket.bootstrap.server.lua','wonderpocket.plots.server.lua',
   'wonderpocket.placement.server.lua','wonderpocket.buildpreview.client.lua',
   'wonderpocket.premium-ui.client.lua','wonderpocket.gardening.server.lua',
-  'wonderpocket.inventory.server.lua','wonderpocket.wondi.server.lua',
-  'wonderpocket.wondi-meet.server.lua','wonderpocket.tutorial.server.lua',
-  'wonderpocket.tutorial.client.lua','wonderpocket.adventure-gate.server.lua',
+  'wonderpocket.inventory.server.lua','wonderpocket.furniture-inventory.server.lua',
+  'wonderpocket.wondi.server.lua','wonderpocket.wondi-meet.server.lua',
+  'wonderpocket.tutorial.server.lua','wonderpocket.tutorial.client.lua',
+  'wonderpocket.adventure.server.lua','wonderpocket.adventure-gate.server.lua',
   'wonderpocket.treasure-island.server.lua','wonderpocket.health.client.lua'
 ];
 for (const f of required) if (!fs.existsSync(path.join(dir,f))) errors.push(`Missing required file: ${f}`);
@@ -27,9 +28,24 @@ for (const f of luaFiles) {
   if ((f.includes('gardening') || f.includes('quests')) && src.includes('leaderstats')) errors.push(`${f}: gameplay rewards must use canonical saved attributes, not leaderstats.`);
 }
 
-const configSrc = fs.readFileSync(path.join(dir,'GameConfig.lua'),'utf8');
+const read = f => fs.readFileSync(path.join(dir,f),'utf8');
+const configSrc = read('GameConfig.lua');
+const bootstrapSrc = read('wonderpocket.bootstrap.server.lua');
+const placementSrc = read('wonderpocket.placement.server.lua');
+const plotsSrc = read('wonderpocket.plots.server.lua');
+const adventureSrc = read('wonderpocket.adventure.server.lua');
+
 if (!configSrc.includes('1.0.0-closed-test-build-candidate')) warnings.push('GameConfig is not marked as the v1.0 closed-test build candidate.');
 if (!configSrc.includes('PublishAllowed = false')) errors.push('Closed-test candidate must keep PublishAllowed = false.');
+if (!configSrc.includes('PlotRelativePersistence = true')) errors.push('Plot-relative furniture persistence is not locked in GameConfig.');
+if (!configSrc.includes('PersonalStarterCottage = true')) errors.push('Personal Starter Cottage is not locked in GameConfig.');
+if (!configSrc.includes('ServerAuthoritativeAdventureRewards = true')) errors.push('Server-authoritative adventure rewards are not locked in GameConfig.');
+
+if (bootstrapSrc.includes('OnboardingRemote.OnServerEvent')) errors.push('Legacy client-authoritative onboarding completion handler detected.');
+if (!placementSrc.includes('relX=') || !placementSrc.includes('relZ=')) errors.push('Furniture persistence is not plot-relative.');
+if (!plotsSrc.includes('WONDERPOCKET_PlotHomes')) errors.push('Personal plot home runtime is missing.');
+if (!adventureSrc.includes('SERVER_AUTHORITATIVE')) errors.push('Adventure API does not explicitly reject client-authoritative progress.');
+if (/run\.treasure\s*\+=/.test(adventureSrc)) errors.push('Adventure remote still increments treasure progress from client events.');
 
 const registry = JSON.parse(fs.readFileSync(path.join(root,'maps/registry.json'),'utf8'));
 const wp = registry.maps?.wonderpocket;
@@ -47,7 +63,7 @@ else {
   if (!xml.includes('</roblox>')) errors.push('place.rbxlx invalid: missing </roblox>.');
   if (xml.includes('BBYA') || xml.includes('a-club')) errors.push('place.rbxlx contains foreign-map token.');
   if (!xml.includes('WONDERPOCKET_Remotes')) errors.push('Canonical WONDERPOCKET_Remotes string missing from assembled place.');
-  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet']) {
+  for (const marker of ['wonderpocket.tutorial','wonderpocket.adventure-gate','wonderpocket.wondi-meet','wonderpocket.furniture-inventory']) {
     if (!xml.includes(marker)) errors.push(`Assembled place missing runtime marker: ${marker}`);
   }
 }
