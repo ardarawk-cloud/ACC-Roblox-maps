@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — V5 UI POLISH v1.1
+-- BBYA SOCIAL HUB — V5 UI POLISH v1.2
 -- Screenshot-driven corrections: clear thumb controls, remove unsupported glyphs.
 
 local function setRailButtons(frame, labels)
@@ -15,6 +15,7 @@ end
 
 setRailButtons(leftRail, {"DANCE","VIP","PHOTO","TP"})
 setRailButtons(rightRail, {"MUSIC","SAWER","PROFILE","SET"})
+phaseLine.Text="V5.3 MASTER"
 
 local function safeTopButton()
     task.defer(function()
@@ -61,5 +62,5 @@ local polishCam = workspace.CurrentCamera
 if polishCam then polishCam:GetPropertyChangedSignal("ViewportSize"):Connect(applyPolishLayout) end
 applyPolishLayout()
 
-player:SetAttribute("BBYAV5UIPolish", "1.1")
-print("[BBYA] V5 UI polish 1.1 loaded • rails clear of joystick/jump • ASCII-safe labels")
+player:SetAttribute("BBYAV5UIPolish", "1.2")
+print("[BBYA] V5 UI polish 1.2 loaded • rails clear of joystick/jump • V5.3 HUD")
