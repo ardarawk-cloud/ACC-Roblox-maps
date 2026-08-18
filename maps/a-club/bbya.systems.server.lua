@@ -1,26 +1,236 @@
--- BBYA Social Hub v1.7 functional interaction backend
-local Players=game:GetService("Players")
-local ReplicatedStorage=game:GetService("ReplicatedStorage")
-local Debris=game:GetService("Debris")
-local Lighting=game:GetService("Lighting")
-local QUEEN_ID=4271188557
-local remotes=ReplicatedStorage:FindFirstChild("BBYA_Remotes")or Instance.new("Folder");remotes.Name="BBYA_Remotes";remotes.Parent=ReplicatedStorage
-local function remote(n)local r=remotes:FindFirstChild(n)or Instance.new("RemoteEvent");r.Name=n;r.Parent=remotes;return r end
-local DanceRemote=remote("Dance"),SyncRemote=remote("SyncDance"),TitleRemote=remote("SetTitle"),FXRemote=remote("FX"),TeleportRemote=remote("Teleport"),AdminRemote=remote("QueenAdmin"),NoticeRemote=remote("Notice"),FeedbackRemote=remote("Feedback")
-local lastEmote,cooldown={},{}
-local function ready(p,k,s)local id=p.UserId..":"..k;local n=os.clock();if cooldown[id]and n-cooldown[id]<s then return false end;cooldown[id]=n;return true end
-local allowed={dance=true,dance2=true,dance3=true,wave=true,cheer=true,laugh=true,point=true}
-local spots={DANCE=CFrame.new(0,5,0),VIP=CFrame.new(-30,8,8),BAR=CFrame.new(-31,6,24),PHOTO=CFrame.new(31,6,25),CHILL=CFrame.new(31,6,-30),DJ=CFrame.new(0,7,-39),POOL=CFrame.new(0,24,35),SALON=CFrame.new(69,5,18),SUPPORT=CFrame.new(-68,5,28)}
-local function feedback(p,t)FeedbackRemote:FireClient(p,t)end
-local function isQueen(p)return p and p.UserId==QUEEN_ID end
-local function play(p,n)local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid");if not h then return false end;if n=="stop"then for _,tr in ipairs(h:GetPlayingAnimationTracks())do tr:Stop(.15)end;lastEmote[p.UserId]=nil;return true end;if not allowed[n]then return false end;lastEmote[p.UserId]=n;local ok=pcall(function()h:PlayEmote(n)end);return ok end
-DanceRemote.OnServerEvent:Connect(function(p,n)if typeof(n)~="string"or not ready(p,"dance",.15)then return end;n=string.lower(n);if play(p,n)then feedback(p,n=="stop"and"Dance stopped"or("Playing "..string.upper(n)))else feedback(p,"Emote unavailable on this avatar")end end)
-SyncRemote.OnServerEvent:Connect(function(p,uid)if typeof(uid)~="number"or not ready(p,"sync",.6)then return end;local t=Players:GetPlayerByUserId(uid);local a=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local b=t and t.Character and t.Character:FindFirstChild("HumanoidRootPart");if not a or not b or(a.Position-b.Position).Magnitude>35 then feedback(p,"No dancer nearby");return end;local n=lastEmote[t.UserId];if n and play(p,n)then feedback(p,"Synced with "..t.DisplayName)else feedback(p,"That player is not dancing")end end)
-TeleportRemote.OnServerEvent:Connect(function(p,s)if typeof(s)~="string"or not ready(p,"tp",.35)then return end;local cf=spots[string.upper(s)];if cf and p.Character then p.Character:PivotTo(cf);feedback(p,"Moved to "..string.upper(s))else feedback(p,"Area unavailable")end end)
-FXRemote.OnServerEvent:Connect(function(p,k)if(k~="glowstick"and k~="confetti")or not ready(p,"fx",k=="confetti"and 3 or .6)then return end;local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");if not r then return end;if k=="glowstick"then local existing=p.Backpack:FindFirstChild("BBYA Glowstick")or c:FindFirstChild("BBYA Glowstick");if existing then existing:Destroy();feedback(p,"Glowstick removed");return end;local tool=Instance.new("Tool");tool.Name="BBYA Glowstick";tool.RequiresHandle=true;local h=Instance.new("Part");h.Name="Handle";h.Size=Vector3.new(.35,3,.35);h.Material=Enum.Material.Neon;h.Color=Color3.fromRGB(255,70,200);h.CanCollide=false;h.Parent=tool;local l=Instance.new("PointLight");l.Range=10;l.Brightness=1;l.Color=h.Color;l.Parent=h;tool.Parent=p.Backpack;feedback(p,"Glowstick equipped")else for i=1,20 do local q=Instance.new("Part");q.Size=Vector3.new(.25,.25,.25);q.Material=Enum.Material.Neon;q.Color=Color3.fromHSV(math.random(),.8,1);q.CanCollide=false;q.CFrame=r.CFrame*CFrame.new(math.random(-4,4),math.random(2,7),math.random(-4,4));q.Parent=workspace;q.AssemblyLinearVelocity=Vector3.new(math.random(-10,10),math.random(10,22),math.random(-10,10));Debris:AddItem(q,2.5)end;feedback(p,"Confetti!")end end)
-TitleRemote.OnServerEvent:Connect(function(p,uid,title)if not isQueen(p)or typeof(uid)~="number"or typeof(title)~="string"then return end;title=string.sub(title:gsub("[%c]",""),1,24);local t=Players:GetPlayerByUserId(uid);if not t then return end;t:SetAttribute("BBYACustomTitle",title);local head=t.Character and t.Character:FindFirstChild("Head");if not head then return end;local old=head:FindFirstChild("BBYACustomTitleTag");if old then old:Destroy()end;if title==""then return end;local g=Instance.new("BillboardGui");g.Name="BBYACustomTitleTag";g.Size=UDim2.fromOffset(180,34);g.StudsOffset=Vector3.new(0,3.5,0);g.MaxDistance=45;g.Parent=head;local lab=Instance.new("TextLabel");lab.BackgroundTransparency=1;lab.Size=UDim2.fromScale(1,1);lab.Font=Enum.Font.GothamBold;lab.Text=title;lab.TextColor3=Color3.fromRGB(255,180,235);lab.TextScaled=true;lab.Parent=g end)
-local function announce(t)t=string.sub(tostring(t or""):gsub("[%c]"," "),1,120);if t~=""then NoticeRemote:FireAllClients(t)end end
-AdminRemote.OnServerEvent:Connect(function(p,a,x)if not isQueen(p)or not ready(p,"admin",.25)then return end;a=string.lower(tostring(a or""));if a=="announce"then announce(x)elseif a=="party"then workspace:SetAttribute("BBYAPartyMode",true);Lighting.ClockTime=22;announce("BBYA PARTY MODE ON")elseif a=="normal"then workspace:SetAttribute("BBYAPartyMode",false);Lighting.ClockTime=21.5;announce("BBYA normal mode")else local uid=tonumber(x);local t=uid and Players:GetPlayerByUserId(uid);if a=="kick"and t and t~=p then t:Kick("Removed by BBYA Queen")elseif a=="bring"and t and t.Character and p.Character then t.Character:PivotTo(p.Character:GetPivot()*CFrame.new(3,0,0))elseif a=="goto"and t and t.Character and p.Character then p.Character:PivotTo(t.Character:GetPivot()*CFrame.new(3,0,0))elseif a=="speed"then local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid");if h then h.WalkSpeed=math.clamp(tonumber(x)or 32,16,80)end elseif a=="speednormal"then local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid");if h then h.WalkSpeed=16 end end end end)
-local function tag(p)p:SetAttribute("BBYAQueen",isQueen(p));if isQueen(p)then p:SetAttribute("BBYARole","BBYA_QUEEN");p:SetAttribute("BBYAAllAccess",true);p:SetAttribute("IsVIP",true)elseif not p:GetAttribute("BBYARole")then p:SetAttribute("BBYARole","GUEST")end end
-Players.PlayerAdded:Connect(tag);for _,p in ipairs(Players:GetPlayers())do tag(p)end
-print("[BBYA] v1.7 functional backend loaded")
+-- BBYA SOCIAL HUB — FUNCTIONAL SYSTEMS v2.0
+-- Premium-build-safe interaction backend. Navigation resolves live map anchors instead of legacy coordinates.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+local Lighting = game:GetService("Lighting")
+
+local QUEEN_ID = 4271188557
+
+local remotes = ReplicatedStorage:FindFirstChild("BBYA_Remotes") or Instance.new("Folder")
+remotes.Name = "BBYA_Remotes"
+remotes.Parent = ReplicatedStorage
+
+local function remote(name)
+ local r = remotes:FindFirstChild(name) or Instance.new("RemoteEvent")
+ r.Name = name
+ r.Parent = remotes
+ return r
+end
+
+local DanceRemote = remote("Dance")
+local SyncRemote = remote("SyncDance")
+local TitleRemote = remote("SetTitle")
+local FXRemote = remote("FX")
+local TeleportRemote = remote("Teleport")
+local AdminRemote = remote("QueenAdmin")
+local NoticeRemote = remote("Notice")
+local FeedbackRemote = remote("Feedback")
+
+local lastEmote = {}
+local cooldown = {}
+local allowed = {dance=true,dance2=true,dance3=true,wave=true,cheer=true,laugh=true,point=true}
+
+local function ready(player, key, seconds)
+ local id = player.UserId .. ":" .. key
+ local now = os.clock()
+ if cooldown[id] and now - cooldown[id] < seconds then return false end
+ cooldown[id] = now
+ return true
+end
+
+local function feedback(player, text)
+ FeedbackRemote:FireClient(player, text)
+end
+
+local function isQueen(player)
+ return player and player.UserId == QUEEN_ID
+end
+
+local function isVIP(player)
+ return player and (player:GetAttribute("IsVIP") == true or player:GetAttribute("BBYAAllAccess") == true or isQueen(player))
+end
+
+local function play(player, name)
+ local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if not humanoid then return false end
+ if name == "stop" then
+  for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do track:Stop(.15) end
+  lastEmote[player.UserId] = nil
+  return true
+ end
+ if not allowed[name] then return false end
+ lastEmote[player.UserId] = name
+ return pcall(function() humanoid:PlayEmote(name) end)
+end
+
+DanceRemote.OnServerEvent:Connect(function(player, name)
+ if typeof(name) ~= "string" or not ready(player,"dance",.15) then return end
+ name = string.lower(name)
+ if play(player,name) then
+  feedback(player,name=="stop" and "Dance stopped" or ("Playing "..string.upper(name)))
+ else
+  feedback(player,"Emote unavailable on this avatar")
+ end
+end)
+
+SyncRemote.OnServerEvent:Connect(function(player, userId)
+ if typeof(userId) ~= "number" or not ready(player,"sync",.6) then return end
+ local target = Players:GetPlayerByUserId(userId)
+ local a = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+ local b = target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+ if not a or not b or (a.Position-b.Position).Magnitude > 35 then
+  feedback(player,"No dancer nearby")
+  return
+ end
+ local name = lastEmote[target.UserId]
+ if name and play(player,name) then feedback(player,"Synced with "..target.DisplayName)
+ else feedback(player,"That player is not dancing") end
+end)
+
+-- Premium navigation ---------------------------------------------------------
+local function anchor(name)
+ return workspace:FindFirstChild(name, true)
+end
+
+local function targetFrom(name, localOffset)
+ local a = anchor(name)
+ if not a or not a:IsA("BasePart") then return nil end
+ return a.CFrame * (localOffset or CFrame.new(0,4,0))
+end
+
+local function resolveSpot(code)
+ code = string.upper(code)
+ if code == "DANCE" then return targetFrom("Dance Floor", CFrame.new(0,4,0)) end
+ if code == "VIP" then return targetFrom("Left VIP Platform", CFrame.new(0,4,4)) end
+ if code == "BAR" then return targetFrom("BBYA Bar", CFrame.new(0,4,-8)) end
+ if code == "PHOTO" then
+  local a = anchor("Photo Wall")
+  return a and a:IsA("BasePart") and (a.CFrame * CFrame.new(0,-a.Size.Y/2+2,-8)) or nil
+ end
+ if code == "CHILL" then return targetFrom("Chill Table", CFrame.new(0,3,8)) end
+ if code == "DJ" then return targetFrom("DJ Booth", CFrame.new(0,4,10)) end
+ if code == "POOL" or code == "ROOFTOP" then return targetFrom("Rooftop Pool", CFrame.new(0,4,24)) end
+ if code == "SUPPORT" then
+  local a = anchor("Support Celebration Screen")
+  return a and a:IsA("BasePart") and (a.CFrame * CFrame.new(0,-10,8)) or targetFrom("BBYA Bar",CFrame.new(0,4,-8))
+ end
+ if code == "QUEEN" then return targetFrom("Queen Skybox Floor", CFrame.new(0,4,0)) end
+ -- Legacy SALON button is intentionally redirected into the active social zone.
+ if code == "SALON" then return targetFrom("Chill Table", CFrame.new(0,3,8)) end
+ return nil
+end
+
+TeleportRemote.OnServerEvent:Connect(function(player, spot)
+ if typeof(spot) ~= "string" or not ready(player,"tp",.35) then return end
+ local code = string.upper(spot)
+ if code == "QUEEN" and not (isQueen(player) or player:GetAttribute("BBYAAllAccess") == true) then
+  feedback(player,"Queen Skybox is private")
+  return
+ end
+ if code == "VIP" and workspace:GetAttribute("BBYAMonetizationConfigured") == true and not isVIP(player) then
+  feedback(player,"VIP access required • open VIP / SAWER panel")
+  return
+ end
+ local cf = resolveSpot(code)
+ if cf and player.Character then
+  player.Character:PivotTo(cf)
+  feedback(player,"Moved to "..code)
+ else
+  feedback(player,"Area unavailable")
+ end
+end)
+
+FXRemote.OnServerEvent:Connect(function(player, kind)
+ if (kind~="glowstick" and kind~="confetti") or not ready(player,"fx",kind=="confetti" and 3 or .6) then return end
+ local char = player.Character
+ local root = char and char:FindFirstChild("HumanoidRootPart")
+ if not root then return end
+ if kind == "glowstick" then
+  local existing = player.Backpack:FindFirstChild("BBYA Glowstick") or char:FindFirstChild("BBYA Glowstick")
+  if existing then existing:Destroy(); feedback(player,"Glowstick removed"); return end
+  local tool = Instance.new("Tool")
+  tool.Name = "BBYA Glowstick"
+  tool.RequiresHandle = true
+  local handle = Instance.new("Part")
+  handle.Name = "Handle"
+  handle.Size = Vector3.new(.35,3,.35)
+  handle.Material = Enum.Material.Neon
+  handle.Color = Color3.fromRGB(255,70,200)
+  handle.CanCollide = false
+  handle.Parent = tool
+  local light = Instance.new("PointLight")
+  light.Range=10; light.Brightness=1; light.Color=handle.Color; light.Parent=handle
+  tool.Parent = player.Backpack
+  feedback(player,"Glowstick equipped")
+ else
+  for _=1,20 do
+   local q=Instance.new("Part")
+   q.Size=Vector3.new(.25,.25,.25)
+   q.Material=Enum.Material.Neon
+   q.Color=Color3.fromHSV(math.random(),.8,1)
+   q.CanCollide=false
+   q.CFrame=root.CFrame*CFrame.new(math.random(-4,4),math.random(2,7),math.random(-4,4))
+   q.Parent=workspace
+   q.AssemblyLinearVelocity=Vector3.new(math.random(-10,10),math.random(10,22),math.random(-10,10))
+   Debris:AddItem(q,2.5)
+  end
+  feedback(player,"Confetti!")
+ end
+end)
+
+TitleRemote.OnServerEvent:Connect(function(player,userId,title)
+ if not isQueen(player) or typeof(userId)~="number" or typeof(title)~="string" then return end
+ title=string.sub(title:gsub("[%c]",""),1,24)
+ local target=Players:GetPlayerByUserId(userId)
+ if not target then return end
+ target:SetAttribute("BBYACustomTitle",title)
+ local head=target.Character and target.Character:FindFirstChild("Head")
+ if not head then return end
+ local old=head:FindFirstChild("BBYACustomTitleTag")
+ if old then old:Destroy() end
+ if title=="" then return end
+ local g=Instance.new("BillboardGui")
+ g.Name="BBYACustomTitleTag";g.Size=UDim2.fromOffset(180,34);g.StudsOffset=Vector3.new(0,3.5,0);g.MaxDistance=45;g.Parent=head
+ local lab=Instance.new("TextLabel")
+ lab.BackgroundTransparency=1;lab.Size=UDim2.fromScale(1,1);lab.Font=Enum.Font.GothamBold;lab.Text=title;lab.TextColor3=Color3.fromRGB(255,180,235);lab.TextScaled=true;lab.Parent=g
+end)
+
+local function announce(text)
+ text=string.sub(tostring(text or""):gsub("[%c]"," "),1,120)
+ if text~="" then NoticeRemote:FireAllClients(text) end
+end
+
+AdminRemote.OnServerEvent:Connect(function(player,action,value)
+ if not isQueen(player) or not ready(player,"admin",.25) then return end
+ action=string.lower(tostring(action or""))
+ if action=="announce" then announce(value)
+ elseif action=="party" then workspace:SetAttribute("BBYAPartyMode",true);Lighting.ClockTime=22;announce("BBYA PARTY MODE ON")
+ elseif action=="normal" then workspace:SetAttribute("BBYAPartyMode",false);Lighting.ClockTime=23.2;announce("BBYA normal mode")
+ else
+  local uid=tonumber(value)
+  local target=uid and Players:GetPlayerByUserId(uid)
+  if action=="kick" and target and target~=player then target:Kick("Removed by BBYA Queen")
+  elseif action=="bring" and target and target.Character and player.Character then target.Character:PivotTo(player.Character:GetPivot()*CFrame.new(3,0,0))
+  elseif action=="goto" and target and target.Character and player.Character then player.Character:PivotTo(target.Character:GetPivot()*CFrame.new(3,0,0))
+  elseif action=="speed" then local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid");if h then h.WalkSpeed=math.clamp(tonumber(value) or 32,16,80) end
+  elseif action=="speednormal" then local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid");if h then h.WalkSpeed=16 end end
+ end
+end)
+
+local function tag(player)
+ player:SetAttribute("BBYAQueen",isQueen(player))
+ if isQueen(player) then
+  player:SetAttribute("BBYARole","BBYA_QUEEN")
+  player:SetAttribute("BBYAAllAccess",true)
+  player:SetAttribute("IsVIP",true)
+ elseif not player:GetAttribute("BBYARole") then
+  player:SetAttribute("BBYARole","GUEST")
+ end
+end
+Players.PlayerAdded:Connect(tag)
+for _,player in ipairs(Players:GetPlayers()) do tag(player) end
+
+workspace:SetAttribute("BBYAFunctionalSystems","2.0")
+print("[BBYA] Functional Systems v2.0 loaded — premium anchor navigation active")
