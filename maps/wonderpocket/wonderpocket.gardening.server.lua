@@ -1,4 +1,4 @@
--- WONDERPOCKET Persistent Gardening Loop v1.2
+-- WONDERPOCKET Persistent Gardening Loop v1.3
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local DataStoreService = game:GetService("DataStoreService")
@@ -55,7 +55,7 @@ end
 
 local function save(player, force)
     local data = state[player]
-    if not data then return false end
+    if not data or player:GetAttribute("WP_GardenLoadFailed")==true then return false end
     if saving[player] then
         if force then forcePending[player] = true end
         return false
@@ -95,11 +95,12 @@ end
 local function waitForPlot(player)
     local deadline = os.clock() + 15
     while player.Parent and os.clock() < deadline do
+        if player:GetAttribute("WP_DataLoadFailed")==true then return nil end
         local index = tonumber(player:GetAttribute("WP_PlotIndex")) or 0
         local cx = tonumber(player:GetAttribute("WP_PlotCenterX"))
         local cy = tonumber(player:GetAttribute("WP_PlotCenterY")) or 5
         local cz = tonumber(player:GetAttribute("WP_PlotCenterZ"))
-        if index > 0 and cx and cz then return Vector3.new(cx, cy + .6, cz) end
+        if index > 0 and cx and cz and player:GetAttribute("WP_DataLoaded")==true then return Vector3.new(cx, cy + .6, cz) end
         task.wait(.25)
     end
     return nil
@@ -174,7 +175,8 @@ local function createPlot(player, index, position)
     refreshVisual(plot, prompt, entry)
 
     prompt.Triggered:Connect(function(triggeringPlayer)
-        if triggeringPlayer ~= player or player:GetAttribute("WP_DataLoaded") ~= true then return end
+        if triggeringPlayer ~= player or player:GetAttribute("WP_DataLoaded") ~= true or player:GetAttribute("WP_GardenReady")~=true then return end
+        if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_GardenLoadFailed")==true then return end
         withActionLock(player, index, function()
             local now = os.time()
             local readyAt = tonumber(entry.readyAt) or 0
@@ -219,20 +221,30 @@ local function createPlot(player, index, position)
 end
 
 local function setup(player)
+    player:SetAttribute("WP_GardenReady",false)
+    player:SetAttribute("WP_GardenLoadFailed",false)
     local center = waitForPlot(player)
     if not center then
+        player:SetAttribute("WP_GardenLoadFailed",true)
         player:SetAttribute("WP_GardenSaveHealthy", false)
-        warn("[WONDERPOCKET] No player plot available for garden", player.UserId)
+        warn("[WONDERPOCKET] No safe player data/plot available for garden", player.UserId)
         return
     end
 
     local ok, data = retry("garden load u_"..player.UserId, function()
         return Store:GetAsync("u_"..player.UserId)
     end)
-    state[player] = normalize(ok and data or nil)
+    if not ok then
+        player:SetAttribute("WP_GardenLoadFailed",true)
+        player:SetAttribute("WP_GardenSaveHealthy",false)
+        warn("[WONDERPOCKET] Garden load failed closed",player.UserId)
+        return
+    end
+
+    state[player] = normalize(data)
     revision[player] = 0
     savedRevision[player] = 0
-    player:SetAttribute("WP_GardenSaveHealthy", ok)
+    player:SetAttribute("WP_GardenSaveHealthy", true)
 
     local offsets = {Vector3.new(-7,0,9),Vector3.new(0,0,9),Vector3.new(7,0,9)}
     for i, offset in ipairs(offsets) do createPlot(player, i, center + offset) end
@@ -276,4 +288,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Audited seed-authoritative persistent garden loaded")
+print("[WONDERPOCKET] Fail-closed audited persistent garden loaded")
