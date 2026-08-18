@@ -12,6 +12,22 @@ gui.Parent = playerGui
 local function corner(parent,radius) local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,radius or 16); c.Parent=parent end
 local function stroke(parent,thickness,transparency) local s=Instance.new("UIStroke"); s.Thickness=thickness or 1; s.Transparency=transparency or .7; s.Parent=parent end
 
+local toast=Instance.new("TextLabel")
+toast.AnchorPoint=Vector2.new(.5,0); toast.Position=UDim2.new(.5,0,0,76); toast.Size=UDim2.fromOffset(330,46)
+toast.BackgroundColor3=Color3.fromRGB(35,45,85); toast.BackgroundTransparency=.05; toast.TextColor3=Color3.new(1,1,1)
+toast.Font=Enum.Font.GothamSemibold; toast.TextSize=15; toast.TextWrapped=true; toast.Visible=false; toast.Parent=gui; corner(toast,14)
+local toastToken=0
+local function showToast(text)
+    toastToken+=1; local token=toastToken
+    toast.Text=tostring(text); toast.Visible=true; toast.TextTransparency=1; toast.BackgroundTransparency=1
+    TweenService:Create(toast,TweenInfo.new(.15),{TextTransparency=0,BackgroundTransparency=.05}):Play()
+    task.delay(2.6,function()
+        if token~=toastToken or not toast.Parent then return end
+        local tween=TweenService:Create(toast,TweenInfo.new(.2),{TextTransparency=1,BackgroundTransparency=1}); tween:Play(); tween.Completed:Wait()
+        if token==toastToken and toast.Parent then toast.Visible=false end
+    end)
+end
+
 local dock=Instance.new("Frame")
 dock.Name="BottomDock"; dock.AnchorPoint=Vector2.new(.5,1); dock.Position=UDim2.new(.5,0,1,-14); dock.Size=UDim2.fromOffset(390,64)
 dock.BackgroundColor3=Color3.fromRGB(25,31,65); dock.BackgroundTransparency=.08; dock.Parent=gui; corner(dock,22); stroke(dock,1.5,.55)
@@ -32,15 +48,18 @@ local buildPanel=makePanel("BuildPanel","Decorate My Pocket")
 local socialPanel=makePanel("SocialPanel","Friends & Gifts")
 
 local catalog={{"Star Lamp",125,"StarLamp"},{"Bunny Chair",180,"BunnyChair"},{"Toy Chest",220,"ToyChest"},{"Cloud Bed",325,"CloudBed"},{"Rainbow Sofa",450,"RainbowSofa"},{"Mini Aquarium",550,"MiniAquarium"}}
-local remotes=ReplicatedStorage:WaitForChild("WonderPocket_Remotes",8)
+local remotes=ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes",12)
 local shopRemote=remotes and remotes:FindFirstChild("Shop")
 local socialRemote=remotes and remotes:FindFirstChild("Social")
-local buildBus=playerGui:WaitForChild("WP_BuildCommand",8)
+local buildBus=playerGui:WaitForChild("WP_BuildCommand",10)
 
 local shopGrid=Instance.new("UIGridLayout"); shopGrid.CellPadding=UDim2.fromOffset(10,10); shopGrid.CellSize=UDim2.fromOffset(180,88); shopGrid.HorizontalAlignment=Enum.HorizontalAlignment.Center; shopGrid.Parent=shopPanel; shopPanel.PaddingTop=UDim.new(0,75)
 for _,item in ipairs(catalog) do
     local b=Instance.new("TextButton"); b.BackgroundColor3=Color3.fromRGB(235,244,255); b.Text=item[1].."\n"..item[2].." Coins"; b.TextColor3=Color3.fromRGB(40,55,100); b.TextSize=17; b.Font=Enum.Font.GothamSemibold; b.Parent=shopPanel; corner(b,16)
-    b.Activated:Connect(function() if shopRemote then shopRemote:FireServer("BUY",item[3]) end end)
+    b.Activated:Connect(function()
+        if not shopRemote then showToast("Shop is still loading") return end
+        shopRemote:FireServer("BUY",item[3])
+    end)
 end
 
 local dexText=Instance.new("TextLabel"); dexText.Position=UDim2.fromOffset(24,82); dexText.Size=UDim2.new(1,-48,1,-110); dexText.BackgroundTransparency=1; dexText.TextXAlignment=Enum.TextXAlignment.Left; dexText.TextYAlignment=Enum.TextYAlignment.Top; dexText.Font=Enum.Font.GothamMedium; dexText.TextSize=18; dexText.TextColor3=Color3.fromRGB(50,60,95); dexText.TextWrapped=true; dexText.Text="WONDIES\nBubbi ✓   Flamo ?   Mossy ?\nLumi ?   Zappy ?   Puffy ?\n\nPLANTS\nCarrot ✓   Strawberry ?   Sunflower ?\n\nFURNITURE\nCollect, decorate, and complete your WonderDex."; dexText.Parent=dexPanel
@@ -49,10 +68,25 @@ local buildHint=Instance.new("TextLabel"); buildHint.Position=UDim2.fromOffset(2
 
 local buildItemsFrame=Instance.new("Frame"); buildItemsFrame.Position=UDim2.fromOffset(22,138); buildItemsFrame.Size=UDim2.new(1,-44,0,170); buildItemsFrame.BackgroundTransparency=1; buildItemsFrame.Parent=buildPanel
 local buildGrid=Instance.new("UIGridLayout"); buildGrid.CellPadding=UDim2.fromOffset(8,8); buildGrid.CellSize=UDim2.fromOffset(118,48); buildGrid.HorizontalAlignment=Enum.HorizontalAlignment.Center; buildGrid.Parent=buildItemsFrame
+local buildButtons={}
+local function ownedCount(id) return math.max(0,math.floor(tonumber(player:GetAttribute("WP_INV_"..id)) or 0)) end
+local function refreshBuildButton(id)
+    local data=buildButtons[id]; if not data then return end
+    local count=ownedCount(id)
+    data.button.Text=data.name.."  x"..count
+    data.button.BackgroundColor3=count>0 and Color3.fromRGB(232,242,255) or Color3.fromRGB(225,226,232)
+    data.button.TextColor3=count>0 and Color3.fromRGB(45,60,100) or Color3.fromRGB(125,128,145)
+end
 for _,item in ipairs(catalog) do
-    local id=item[3]
-    local b=Instance.new("TextButton"); b.BackgroundColor3=Color3.fromRGB(232,242,255); b.Text=item[1]; b.TextColor3=Color3.fromRGB(45,60,100); b.TextSize=14; b.Font=Enum.Font.GothamSemibold; b.Parent=buildItemsFrame; corner(b,13)
-    b.Activated:Connect(function() if buildBus then buildBus:Fire("BEGIN",id); buildPanel.Visible=false; activePanel=nil end end)
+    local name,id=item[1],item[3]
+    local b=Instance.new("TextButton"); b.TextSize=13; b.Font=Enum.Font.GothamSemibold; b.Parent=buildItemsFrame; corner(b,13)
+    buildButtons[id]={button=b,name=name}
+    b.Activated:Connect(function()
+        if ownedCount(id)<=0 then showToast("You don't own "..name.." yet. Buy it in SHOP.") return end
+        if buildBus then buildBus:Fire("BEGIN",id); buildPanel.Visible=false; activePanel=nil else showToast("Build controls are still loading") end
+    end)
+    player:GetAttributeChangedSignal("WP_INV_"..id):Connect(function() refreshBuildButton(id) end)
+    refreshBuildButton(id)
 end
 
 local controls=Instance.new("Frame"); controls.AnchorPoint=Vector2.new(.5,1); controls.Position=UDim2.new(.5,0,1,-88); controls.Size=UDim2.fromOffset(360,58); controls.BackgroundTransparency=1; controls.Parent=gui; controls.Visible=false
@@ -82,4 +116,21 @@ for _,entry in ipairs({{"SHOP","ShopPanel"},{"DEX","DexPanel"},{"BUILD","BuildPa
     end)
 end
 
-print("[WONDERPOCKET] Premium mobile UI + build controls loaded")
+if shopRemote then
+    shopRemote.OnClientEvent:Connect(function(action,ok,reason,itemId)
+        if action~="RESULT" then return end
+        if ok then
+            local label=tostring(itemId or "item"):gsub("(%l)(%u)","%1 %2")
+            showToast(label.." added to your inventory")
+        elseif reason=="NOT_ENOUGH_COINS" then showToast("Not enough Coins")
+        elseif reason=="DATA_NOT_READY" then showToast("Your Pocket data is still loading")
+        else showToast("Purchase failed: "..tostring(reason or "UNKNOWN")) end
+    end)
+end
+
+player:GetAttributeChangedSignal("WP_LastBuildError"):Connect(function()
+    local err=player:GetAttribute("WP_LastBuildError")
+    if err and err~="" then showToast("Build: "..tostring(err)) end
+end)
+
+print("[WONDERPOCKET] v1.0 premium mobile shop + build UX loaded")
