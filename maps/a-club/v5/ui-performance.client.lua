@@ -1,4 +1,4 @@
--- [SYS-PERF CLIENT] BBYA V5 ADAPTIVE PERFORMANCE
+-- [SYS-PERF CLIENT] BBYA V5 ADAPTIVE PERFORMANCE + FINAL CLIENT STARTUP SYNC
 local Lighting=game:GetService("Lighting")
 local UIS=game:GetService("UserInputService")
 local camera=workspace.CurrentCamera
@@ -11,4 +11,9 @@ for _,d in ipairs(workspace:GetDescendants()) do
  elseif d:IsA("SurfaceLight") then d.Shadows=false;if mobile then d.Brightness=math.min(d.Brightness,.35);d.Range=math.min(d.Range,8) end end
 end
 local bloom=Lighting:FindFirstChild("BBYA V5 Bloom");if bloom and mobile then bloom.Intensity=math.min(bloom.Intensity,.32);bloom.Size=math.min(bloom.Size,20) end
+
+-- ui-live intentionally uses a shared local boardFn. Resolve a rare startup race after all live UI is constructed.
+if not boardFn and v5Remotes then boardFn=v5Remotes:WaitForChild("SupportBoard",10) end
+
 player:SetAttribute("BBYAClientPerformanceProfile",mobile and "MOBILE" or "DESKTOP")
+player:SetAttribute("BBYAClientStartupSync",boardFn and "PASS" or "SUPPORT_BOARD_PENDING")
