@@ -15,6 +15,7 @@ const architectureLua = readLua('maps/a-club/bbya.architecture.server.lua');
 const masterPlanLua = readLua('maps/a-club/bbya.master-plan-completion.server.lua');
 const masterPlanQCLua = readLua('maps/a-club/bbya.master-plan-qc.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
+const monetizationLua = readLua('maps/a-club/bbya.monetization.server.lua');
 const musicLua = readLua('maps/a-club/bbya.music.server.lua');
 const supportPanelLua = readLua('maps/a-club/bbya.support-panel.server.lua');
 const djLua = readLua('maps/a-club/bbya.dj.server.lua');
@@ -31,6 +32,7 @@ const spawnEntryLua = readLua('maps/a-club/bbya.spawn-entry-hotfix.server.lua');
 const clientLua = readLua('maps/a-club/bbya.client.lua');
 const musicClientLua = readLua('maps/a-club/bbya.music.client.lua');
 const supportPanelClientLua = readLua('maps/a-club/bbya.support-panel.client.lua');
+const monetizationClientLua = readLua('maps/a-club/bbya.monetization.client.lua');
 const queenClientLua = readLua('maps/a-club/bbya.queen.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
@@ -47,6 +49,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAMASTERPLAN00000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Plan_Completion_v3</string><ProtectedString name="Source"><![CDATA[${masterPlanLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMASTERPLANQC000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Plan_QC_v3_0_1</string><ProtectedString name="Source"><![CDATA[${masterPlanQCLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYAMONETIZATION000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Backend</string><ProtectedString name="Source"><![CDATA[${monetizationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAMUSICSERVER0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Master_Music_Vault</string><ProtectedString name="Source"><![CDATA[${musicLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASUPPORTDATA0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Top_Supporter_Data</string><ProtectedString name="Source"><![CDATA[${supportPanelLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYADJ00000000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Resident_DJ</string><ProtectedString name="Source"><![CDATA[${djLua}]]></ProtectedString></Properties></Item>
@@ -68,6 +71,7 @@ const runtime = `${begin}
     <Item class="LocalScript" referent="RBXBBYACLIENT000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Client</string><ProtectedString name="Source"><![CDATA[${clientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAMUSICCLIENT000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Music_Client</string><ProtectedString name="Source"><![CDATA[${musicClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYASUPPORTCLIENT0000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Supporter_Client</string><ProtectedString name="Source"><![CDATA[${supportPanelClientLua}]]></ProtectedString></Properties></Item>
+    <Item class="LocalScript" referent="RBXBBYAMONETIZATIONCLIENT00000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Monetization_Client</string><ProtectedString name="Source"><![CDATA[${monetizationClientLua}]]></ProtectedString></Properties></Item>
     <Item class="LocalScript" referent="RBXBBYAQUEENCLIENT0000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Client</string><ProtectedString name="Source"><![CDATA[${queenClientLua}]]></ProtectedString></Properties></Item>
   </Item>
 </Item>
@@ -76,4 +80,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: architecture + master-plan completion/QC + systems + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen/spawn-entry hotfixes + mobile panels into', target.file);
+console.log('[BBYA] Active build injected: architecture + master-plan completion/QC + systems + VIP/support monetization + Music Vault/Auto-DJ + Top Supporter avatar panel + DJ + features + QC + social ranks + visual/layout/Queen/spawn-entry hotfixes + mobile panels into', target.file);
