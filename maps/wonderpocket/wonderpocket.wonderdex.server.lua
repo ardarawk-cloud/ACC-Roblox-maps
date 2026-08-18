@@ -27,16 +27,11 @@ local categories = {
 
 local allowed = {}
 for category,list in pairs(categories) do
-    allowed[category] = {}
-    for _,id in ipairs(list) do allowed[category][id] = true end
+    allowed[category]={}
+    for _,id in ipairs(list) do allowed[category][id]=true end
 end
 
-local state = {}
-local revision = {}
-local savedRevision = {}
-local saving = {}
-local forcePending = {}
-local connections = {}
+local state,revision,savedRevision,saving,forcePending,connections = {},{},{},{},{},{}
 
 local function retry(label,fn)
     local lastErr
@@ -95,10 +90,7 @@ local function markDirty(player) revision[player]=(revision[player] or 0)+1 end
 local function save(player,force)
     local data=state[player]
     if not data then return false end
-    if saving[player] then
-        if force then forcePending[player]=true end
-        return false
-    end
+    if saving[player] then if force then forcePending[player]=true end return false end
     local currentRevision=revision[player] or 0
     if not force and currentRevision<=(savedRevision[player] or 0) then return true end
 
@@ -125,19 +117,42 @@ end
 
 local function discover(player,category,id)
     if not player or not player.Parent then return false end
-    category=tostring(category or "")
-    id=tostring(id or "")
+    category=tostring(category or "");id=tostring(id or "")
     if not (allowed[category] and allowed[category][id]) then return false end
     local data=state[player]
-    if not data then return false end
-    if data.found[category][id] then return false end
-
+    if not data or data.found[category][id] then return false end
     data.found[category][id]=true
     player:SetAttribute(key(category,id),true)
     markDirty(player)
     task.spawn(save,player,false)
     DexRemote:FireClient(player,"DISCOVERED",category,id,snapshot(player))
     return true
+end
+
+local function scanFurniture(player)
+    for _,id in ipairs(categories.Furniture) do
+        if (tonumber(player:GetAttribute("WP_INV_"..id)) or 0)>0 then discover(player,"Furniture",id) end
+    end
+    local root=workspace:FindFirstChild("WONDERPOCKET_Placed")
+    local folder=root and root:FindFirstChild(tostring(player.UserId))
+    if folder then
+        for _,obj in ipairs(folder:GetChildren()) do
+            local id=tostring(obj:GetAttribute("WP_ItemId") or obj.Name)
+            discover(player,"Furniture",id)
+        end
+    end
+end
+
+local function syncVerifiedGameplay(player)
+    discover(player,"Wondies",player:GetAttribute("ActiveWondi") or "Bubbi")
+    discover(player,"Biomes",player:GetAttribute("PocketBiome") or "MeadowPocket")
+    if (tonumber(player:GetAttribute("WP_HarvestCount")) or 0)>0 then discover(player,"Plants","Carrot") end
+    if player:GetAttribute("WP_TreasureIslandComplete")==true then discover(player,"Badges","TreasureIsland") end
+    scanFurniture(player)
+end
+
+local function watch(player,attribute,callback)
+    table.insert(connections[player],player:GetAttributeChangedSignal(attribute):Connect(callback))
 end
 
 local function setup(player)
@@ -147,10 +162,7 @@ local function setup(player)
 
     local ok,data=retry("WonderDex load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
     data=normalize(ok and data or nil)
-    state[player]=data
-    revision[player]=0
-    savedRevision[player]=0
-    connections[player]={}
+    state[player]=data;revision[player]=0;savedRevision[player]=0;connections[player]={}
     player:SetAttribute("WP_DexSaveHealthy",ok)
 
     for category,list in pairs(categories) do
@@ -158,14 +170,22 @@ local function setup(player)
     end
     player:SetAttribute("WP_DexLoaded",true)
 
-    table.insert(connections[player],player:GetAttributeChangedSignal("ActiveWondi"):Connect(function()
-        discover(player,"Wondies",player:GetAttribute("ActiveWondi"))
-    end))
-    table.insert(connections[player],player:GetAttributeChangedSignal("PocketBiome"):Connect(function()
-        discover(player,"Biomes",player:GetAttribute("PocketBiome"))
-    end))
-    discover(player,"Wondies",player:GetAttribute("ActiveWondi") or "Bubbi")
-    discover(player,"Biomes",player:GetAttribute("PocketBiome") or "MeadowPocket")
+    watch(player,"ActiveWondi",function() discover(player,"Wondies",player:GetAttribute("ActiveWondi")) end)
+    watch(player,"PocketBiome",function() discover(player,"Biomes",player:GetAttribute("PocketBiome")) end)
+    watch(player,"WP_HarvestCount",function()
+        if (tonumber(player:GetAttribute("WP_HarvestCount")) or 0)>0 then discover(player,"Plants","Carrot") end
+    end)
+    watch(player,"WP_TreasureIslandComplete",function()
+        if player:GetAttribute("WP_TreasureIslandComplete")==true then discover(player,"Badges","TreasureIsland") end
+    end)
+    watch(player,"WP_PlacedCount",function() task.defer(scanFurniture,player) end)
+    for _,id in ipairs(categories.Furniture) do
+        watch(player,"WP_INV_"..id,function()
+            if (tonumber(player:GetAttribute("WP_INV_"..id)) or 0)>0 then discover(player,"Furniture",id) end
+        end)
+    end
+
+    task.delay(2,function() if player.Parent then syncVerifiedGameplay(player) end end)
 end
 
 Discover.Event:Connect(function(player,category,id)
@@ -196,4 +216,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Persistent server-authoritative WonderDex loaded")
+print("[WONDERPOCKET] Gameplay-wired persistent server-authoritative WonderDex loaded")
