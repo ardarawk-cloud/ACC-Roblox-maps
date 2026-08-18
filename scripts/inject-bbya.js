@@ -24,6 +24,8 @@ const serverScripts = [
   ['BBYA_Live_Playtest_Fix_v4_7', 'maps/a-club/bbya.livefix-4.7.server.lua'],
   // v4.9 deliberately waits for builders above, then removes their old lobby geometry.
   ['BBYA_Front_Lobby_Final_v4_9', 'maps/a-club/bbya.front-lobby-v4.9.server.lua'],
+  // User-requested cleanup: trees/palms are removed entirely after all builders settle.
+  ['BBYA_Remove_Trees_v1', 'maps/a-club/bbya.remove-trees.server.lua'],
   ['BBYA_Build_Validation', 'maps/a-club/bbya.build-validation.server.lua'],
   ['BBYA_Queen_Playtest_System_Test_v1', 'maps/a-club/bbya.playtest.server.lua'],
   ['BBYA_Functional_Systems_v2', 'maps/a-club/bbya.systems.server.lua'],
@@ -82,4 +84,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: v4.9 clean front lobby AFTER legacy builders; v4.8 retired.');
+console.log('[BBYA] Active build injected: v4.9 clean front lobby + full tree/palm removal cleanup.');
