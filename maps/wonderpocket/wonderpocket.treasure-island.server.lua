@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit",20)
 local DURATION_SECONDS = 240
 
 local root = workspace:FindFirstChild("TreasureIsland") or Instance.new("Folder")
@@ -85,6 +86,7 @@ local function grantCompletion(player)
     player:SetAttribute("WP_TreasureIslandComplete",true)
     player:SetAttribute("WP_AdventureCompletions",(tonumber(player:GetAttribute("WP_AdventureCompletions")) or 0)+1)
     player:SetAttribute("WP_ActiveAdventure","")
+    if EconomyAudit then EconomyAudit:Fire(player,"TREASURE_ISLAND","TreasureIsland",120,1,0) end
     if CriticalSave then CriticalSave:Fire(player) end
 end
 
@@ -144,4 +146,4 @@ Players.PlayerRemoving:Connect(function(player)
     end
 end)
 
-print("[WONDERPOCKET] Timed server-authoritative Treasure Island loaded")
+print("[WONDERPOCKET] Audited timed server-authoritative Treasure Island loaded")
