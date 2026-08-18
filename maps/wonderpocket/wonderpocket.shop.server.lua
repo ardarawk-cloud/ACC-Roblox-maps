@@ -10,6 +10,7 @@ local ShopRemote = remotes:FindFirstChild("Shop") or Instance.new("RemoteEvent")
 ShopRemote.Name = "Shop"
 ShopRemote.Parent = remotes
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit",20)
 
 local catalog = {
     CloudBed={price=325,category="Furniture"}, StarLamp={price=125,category="Furniture"},
@@ -19,20 +20,10 @@ local catalog = {
 
 local lastPurchase = {}
 local purchaseBusy = {}
-local transactionSeq = {}
 
 local function inventoryKey(id) return "WP_INV_"..id end
 local function getCoins(player) return math.max(0, math.floor(tonumber(player:GetAttribute("Coins")) or 0)) end
 local function setCoins(player,value) player:SetAttribute("Coins",math.max(0,math.floor(value))) end
-
-local function recordTransaction(player, action, itemId, coinDelta)
-    transactionSeq[player.UserId] = (transactionSeq[player.UserId] or 0) + 1
-    player:SetAttribute("WP_EconTxnSeq", transactionSeq[player.UserId])
-    player:SetAttribute("WP_LastEconomyAction", action)
-    player:SetAttribute("WP_LastEconomyItem", tostring(itemId or ""))
-    player:SetAttribute("WP_LastEconomyDeltaCoins", math.floor(tonumber(coinDelta) or 0))
-    player:SetAttribute("WP_LastEconomyAt", os.time())
-end
 
 ShopRemote.OnServerEvent:Connect(function(player,action,itemId)
     if action=="GET_CATALOG" then
@@ -77,7 +68,7 @@ ShopRemote.OnServerEvent:Connect(function(player,action,itemId)
         local key=inventoryKey(itemId)
         player:SetAttribute(key,(tonumber(player:GetAttribute(key)) or 0)+1)
         player:SetAttribute("WP_PurchasedFurnitureCount",(tonumber(player:GetAttribute("WP_PurchasedFurnitureCount")) or 0)+1)
-        recordTransaction(player,"BUY_FURNITURE",itemId,-item.price)
+        if EconomyAudit then EconomyAudit:Fire(player,"BUY_FURNITURE",itemId,-item.price,0,0) end
         if CriticalSave then CriticalSave:Fire(player) end
         ShopRemote:FireClient(player,"RESULT",true,"PURCHASED",itemId)
     end)
@@ -91,14 +82,11 @@ end)
 
 Players.PlayerAdded:Connect(function(player)
     if player:GetAttribute("WP_PurchasedFurnitureCount")==nil then player:SetAttribute("WP_PurchasedFurnitureCount",0) end
-    transactionSeq[player.UserId]=0
-    player:SetAttribute("WP_EconTxnSeq",0)
 end)
 Players.PlayerRemoving:Connect(function(player)
     local uid=player.UserId
     lastPurchase[uid]=nil
     purchaseBusy[uid]=nil
-    transactionSeq[uid]=nil
 end)
 
-print("[WONDERPOCKET] Locked critical-save shop transactions loaded")
+print("[WONDERPOCKET] Audited locked critical-save shop transactions loaded")
