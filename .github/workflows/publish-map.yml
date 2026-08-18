@@ -11,7 +11,7 @@ on:
     branches: [main]
     paths:
       - 'maps/**'
-      - 'scripts/publish-map.js'
+      - 'scripts/**'
 
 jobs:
   detect-and-publish:
@@ -46,7 +46,7 @@ jobs:
             fi
           done
 
-          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/publish-map.js$'; then
+          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/'; then
             TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([,v])=>v.enabled).map(([k])=>k).join(' '))")
           fi
 
@@ -59,6 +59,7 @@ jobs:
         shell: bash
         run: |
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
+            node scripts/inject-bbya.js "$MAP_ID"
             node scripts/publish-map.js "$MAP_ID"
           done
 
