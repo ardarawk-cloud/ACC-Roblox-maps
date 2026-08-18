@@ -12,6 +12,7 @@ PlacementRemote.Name = "Placement"
 PlacementRemote.Parent = remotes
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
+local EconomyAudit = ServerStorage:WaitForChild("WONDERPOCKET_EconomyAudit",20)
 local Store = DataStoreService:GetDataStore("WONDERPOCKET_Furniture_v1")
 local MAX_RETRIES = 4
 local AUTOSAVE_SECONDS = 60
@@ -56,6 +57,7 @@ end
 local function waitForPlot(player)
     local deadline = os.clock() + 15
     while player.Parent and os.clock() < deadline do
+        if player:GetAttribute("WP_DataLoadFailed")==true then return false end
         if (tonumber(player:GetAttribute("WP_PlotIndex")) or 0) > 0 then return true end
         task.wait(.25)
     end
@@ -125,7 +127,7 @@ local function markDirty(player)
 end
 
 local function save(player, force)
-    if not player then return false end
+    if not player or player:GetAttribute("WP_FurnitureLoadFailed")==true then return false end
     if saving[player] then
         if force then forcePending[player] = true end
         return false
@@ -170,15 +172,25 @@ local function resolveSavedPosition(player, entry)
 end
 
 local function load(player)
+    player:SetAttribute("WP_FurnitureLoaded",false)
+    player:SetAttribute("WP_FurnitureLoadFailed",false)
     if not waitForPlot(player) then
+        player:SetAttribute("WP_FurnitureLoadFailed",true)
         player:SetAttribute("WP_FurnitureSaveHealthy",false)
         return
     end
     local ok,data=retry("furniture load u_"..player.UserId,function() return Store:GetAsync("u_"..player.UserId) end)
-    player:SetAttribute("WP_FurnitureSaveHealthy",ok)
+    if not ok then
+        player:SetAttribute("WP_FurnitureLoadFailed",true)
+        player:SetAttribute("WP_FurnitureSaveHealthy",false)
+        warn("[WONDERPOCKET] Placed furniture load failed closed",player.UserId)
+        return
+    end
+
+    player:SetAttribute("WP_FurnitureSaveHealthy",true)
     revision[player]=0
     savedRevision[player]=0
-    if not ok or type(data)~="table" then return end
+    data=type(data)=="table" and data or {schemaVersion=3,items={}}
 
     local items = type(data.items)=="table" and data.items or data
     local loadedCount=0
@@ -193,6 +205,7 @@ local function load(player)
         end
     end
     player:SetAttribute("WP_PlacedCount",math.max(tonumber(player:GetAttribute("WP_PlacedCount")) or 0,loadedCount))
+    player:SetAttribute("WP_FurnitureLoaded",true)
 end
 
 local function handlePlace(player,itemId,cf)
@@ -210,8 +223,12 @@ local function handlePlace(player,itemId,cf)
     placeBusy[uid]=true
 
     local ok,err=pcall(function()
-        if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true then
+        if player:GetAttribute("WP_DataLoaded")~=true or player:GetAttribute("WP_InventoryLoaded")~=true or player:GetAttribute("WP_FurnitureLoaded")~=true then
             PlacementRemote:FireClient(player,"RESULT",false,"DATA_NOT_READY")
+            return
+        end
+        if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_InventoryLoadFailed")==true or player:GetAttribute("WP_FurnitureLoadFailed")==true then
+            PlacementRemote:FireClient(player,"RESULT",false,"DATA_READ_ONLY")
             return
         end
 
@@ -248,10 +265,8 @@ local function handlePlace(player,itemId,cf)
         makeFurniture(player,itemId,snapped)
         player:SetAttribute(invKey,owned-1)
         player:SetAttribute("WP_PlacedCount",(tonumber(player:GetAttribute("WP_PlacedCount")) or 0)+1)
-        player:SetAttribute("WP_LastEconomyAction","PLACE_FURNITURE")
-        player:SetAttribute("WP_LastEconomyItem",itemId)
-        player:SetAttribute("WP_LastEconomyAt",os.time())
         markDirty(player)
+        if EconomyAudit then EconomyAudit:Fire(player,"PLACE_FURNITURE",itemId,0,0,0) end
         if CriticalSave then CriticalSave:Fire(player) end
         task.spawn(save,player,true)
         PlacementRemote:FireClient(player,"RESULT",true,"PLACED",itemId)
@@ -270,7 +285,7 @@ PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
         local now=os.clock()
         if now-(lastStateRequest[uid] or 0)<.5 then return end
         lastStateRequest[uid]=now
-        PlacementRemote:FireClient(player,"STATE",serialize(player))
+        if player:GetAttribute("WP_FurnitureLoaded")==true then PlacementRemote:FireClient(player,"STATE",serialize(player)) end
         return
     end
     if action~="PLACE" or typeof(cf)~="CFrame" then return end
@@ -318,4 +333,4 @@ game:BindToClose(function()
     task.wait(4)
 end)
 
-print("[WONDERPOCKET] Rate-limited revision-safe furniture placement loaded")
+print("[WONDERPOCKET] Fail-closed audited furniture placement loaded")
