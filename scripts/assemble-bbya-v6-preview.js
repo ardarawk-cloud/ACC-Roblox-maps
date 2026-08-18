@@ -18,6 +18,7 @@ const architectureFiles = [
   'maps/a-club/v6/21-circulation.lua',
   'maps/a-club/v6/22-facade-brand.lua',
   'maps/a-club/v6/23-lift-finish.lua',
+  'maps/a-club/v6/24-reference-massing.lua',
   'maps/a-club/v6/25-ground-finish.lua',
   'maps/a-club/v6/26-club-lighting-rig.lua',
   'maps/a-club/v6/30-vip-level.lua',
