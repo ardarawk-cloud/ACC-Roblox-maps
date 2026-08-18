@@ -29,4 +29,14 @@ lowTable(A3,"WEST LOBBY TABLE",Vector3.new(-43,1.3,100),Vector3.new(6,.7,4),P.bl
 sofa(A3,"EAST LOBBY SOFA",Vector3.new(43,1.4,94),13,180,P.graphite)
 lowTable(A3,"EAST LOBBY TABLE",Vector3.new(43,1.3,100),Vector3.new(6,.7,4),P.black)
 
-zoneSign(A3,"LOBBY MAIN WAYFINDING","MAIN CLUB ↑     BAR ←     CHILL →",CFrame.new(0,12.1,83.9),Vector3.new(44,3,.25),P.white,Enum.NormalId.Front)
+-- One physical boundary board. The two copies face away from each other instead of stacking two sign parts.
+-- Front (-Z / club side): returning toward lobby. Back (+Z / lobby side): entering the club.
+zoneSignPair(
+ A3,
+ "LOBBY CLUB SHARED WAYFINDING",
+ "LOBBY ↑     CHILL ←     BAR →     VIP / ROOF STAIRS",
+ "MAIN CLUB ↑     BAR ←     CHILL →",
+ CFrame.new(0,12.1,83.9),
+ Vector3.new(46,3,.25),
+ P.white
+)
