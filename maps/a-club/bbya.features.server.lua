@@ -61,14 +61,19 @@ local donateText=label(donateWall,"LIVE SUPPORT\nWaiting for donation...",Color3
 local function hookDonate(plr)local before=plr:GetAttribute("TotalDonated")or 0;plr:GetAttributeChangedSignal("TotalDonated"):Connect(function()local now=plr:GetAttribute("TotalDonated")or 0;if now>before then donateText.Text=string.format("THANK YOU %s!\n+R$%d • TOTAL R$%d",plr.DisplayName,now-before,now)end;before=now end)end
 for _,p in ipairs(Players:GetPlayers())do hookDonate(p)end;Players.PlayerAdded:Connect(hookDonate)
 
--- DUO PHOTO v1.8: seats face INTO the club, not into the backdrop.
+-- DUO PHOTO: seats must face the backdrop/camera composition, not away from it.
 local duoWall=part("Duo Photo Wall",Vector3.new(15,8,.7),CFrame.new(69,5,-31),Color3.fromRGB(45,14,55),Enum.Material.SmoothPlastic)
 label(duoWall,"DUO PHOTO ♥",Color3.fromRGB(255,100,220))
 local duoStage=part("Duo Photo Stage",Vector3.new(11,.35,5.5),CFrame.new(69,.85,-35.5),Color3.fromRGB(35,20,45),Enum.Material.Marble)
-for _,x in ipairs({-2.7,2.7})do local s=Instance.new("Seat");s.Name="Duo Photo Seat";s.Size=Vector3.new(2.8,1,2.8);s.CFrame=CFrame.new(69+x,1.65,-35.2);s.Anchored=true;s.Color=Color3.fromRGB(80,45,95);s.Material=Enum.Material.Fabric;s.Parent=root end
+for _,x in ipairs({-2.7,2.7})do
+ local s=Instance.new("Seat");s.Name="Duo Photo Seat";s.Size=Vector3.new(2.8,1,2.8)
+ -- 180-degree yaw fixes Roblox Seat occupant facing direction.
+ s.CFrame=CFrame.new(69+x,1.65,-35.2)*CFrame.Angles(0,math.rad(180),0)
+ s.Anchored=true;s.Color=Color3.fromRGB(80,45,95);s.Material=Enum.Material.Fabric;s.Parent=root
+end
 local marker=part("Duo Camera Marker",Vector3.new(4,.12,2),CFrame.new(69,.7,-43),Color3.fromRGB(255,70,210),Enum.Material.Neon,.45,false)
 label(marker,"PHOTO",Color3.new(1,1,1))
 
 local pool=workspace:FindFirstChild("Rooftop Pool")
 if pool then local splashPad=part("Pool Splash Pad",Vector3.new(6,.3,6),pool.CFrame*CFrame.new(0,pool.Size.Y/2+.4,0),Color3.fromRGB(50,190,255),Enum.Material.Glass,.55);local splashPrompt=prompt(splashPad,"SPLASH","Pool Party");splashPrompt.Triggered:Connect(function()splashPrompt.Enabled=false;for i=1,20 do local d=Instance.new("Part");d.Shape=Enum.PartType.Ball;d.Size=Vector3.new(.35,.35,.35);d.Material=Enum.Material.Neon;d.Color=Color3.fromRGB(80,210,255);d.CanCollide=false;d.CFrame=splashPad.CFrame*CFrame.new(math.random(-3,3),2,math.random(-3,3));d.Parent=workspace;d.AssemblyLinearVelocity=Vector3.new(math.random(-9,9),math.random(10,20),math.random(-9,9));Debris:AddItem(d,2)end;task.delay(2,function()if splashPrompt.Parent then splashPrompt.Enabled=true end end)end)end
-print("[BBYA] v1.8 feature stations loaded: corrected Duo Photo orientation + supporter hall")
+print("[BBYA] feature stations loaded: Duo Photo seat facing corrected 180 degrees")
