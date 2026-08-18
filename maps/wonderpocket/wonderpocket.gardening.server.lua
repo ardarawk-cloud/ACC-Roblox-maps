@@ -93,9 +93,11 @@ local function save(player, force)
 end
 
 local function waitForPlot(player)
-    local deadline = os.clock() + 15
-    while player.Parent and os.clock() < deadline do
+    -- Wait for authoritative main data + plot assignment. Do not mark garden data
+    -- failed merely because startup scheduling took longer than an arbitrary timeout.
+    while player.Parent do
         if player:GetAttribute("WP_DataLoadFailed")==true then return nil end
+        if player:GetAttribute("WP_HomeReady")==false then return nil end
         local index = tonumber(player:GetAttribute("WP_PlotIndex")) or 0
         local cx = tonumber(player:GetAttribute("WP_PlotCenterX"))
         local cy = tonumber(player:GetAttribute("WP_PlotCenterY")) or 5
