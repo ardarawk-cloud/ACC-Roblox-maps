@@ -25,7 +25,7 @@ jobs:
   build-qc:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,8 +90,42 @@ jobs:
         run: node scripts/publish-wonderpocket-closed-test.js
 
       - name: Publish WONDERPOCKET closed-test from one-time push request
+        id: push_publish
         if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true'
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           WONDERPOCKET_CONFIRM_TARGET: WONDERPOCKET:8805231520:124843214013484
-        run: node scripts/publish-wonderpocket-closed-test.js
+        shell: bash
+        run: |
+          set +e
+          node scripts/publish-wonderpocket-closed-test.js > /tmp/wonderpocket-publish.log 2>&1
+          CODE=$?
+          cat /tmp/wonderpocket-publish.log
+          echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Record WONDERPOCKET publish diagnostic
+        if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true'
+        shell: bash
+        run: |
+          mkdir -p .diagnostics
+          {
+            echo "commit=$GITHUB_SHA"
+            echo "workflow=$GITHUB_WORKFLOW"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "exit_code=${{ steps.push_publish.outputs.exit_code }}"
+            echo "utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "--- publisher output ---"
+            cat /tmp/wonderpocket-publish.log
+          } > .diagnostics/wonderpocket-last-publish.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .diagnostics/wonderpocket-last-publish.log
+          git commit -m "Record WONDERPOCKET publish diagnostic [skip ci]" || true
+          git push origin HEAD:agent/wonderpocket-target
+
+      - name: Fail workflow if WONDERPOCKET publish failed
+        if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true' && steps.push_publish.outputs.exit_code != '0'
+        run: |
+          echo "WONDERPOCKET closed-test publish failed; diagnostic committed to .diagnostics/wonderpocket-last-publish.log"
+          exit 1
