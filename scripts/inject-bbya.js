@@ -9,19 +9,33 @@ const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map id: ${mapId}`);
 
 const placePath = path.join(process.cwd(), target.file);
-const luaPath = path.join(process.cwd(), 'maps/a-club/bbya.server.lua');
+const readLua = (file) => fs.readFileSync(path.join(process.cwd(), file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
+const mainLua = readLua('maps/a-club/bbya.server.lua');
+const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
+const clientLua = readLua('maps/a-club/bbya.client.lua');
 
 let xml = fs.readFileSync(placePath, 'utf8');
-const lua = fs.readFileSync(luaPath, 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
-
 const begin = '<!-- BBYA_RUNTIME_BEGIN -->';
 const end = '<!-- BBYA_RUNTIME_END -->';
 const prior = new RegExp(`${begin}[\\s\\S]*?${end}`, 'g');
 xml = xml.replace(prior, '');
 
-const runtime = `${begin}<Item class="ServerScriptService" referent="RBXBBYASERVERSCRIPTSERVICE00000001"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_v0_2</string><ProtectedString name="Source"><![CDATA[${lua}]]></ProtectedString></Properties></Item></Item>${end}`;
+const runtime = `${begin}
+<Item class="ServerScriptService" referent="RBXBBYASERVERSCRIPTSERVICE00000001">
+  <Properties><string name="Name">ServerScriptService</string></Properties>
+  <Item class="Script" referent="RBXBBYARUNTIME00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Runtime_Main</string><ProtectedString name="Source"><![CDATA[${mainLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
+</Item>
+<Item class="StarterPlayer" referent="RBXBBYASTARTERPLAYER00000000000001">
+  <Properties><string name="Name">StarterPlayer</string></Properties>
+  <Item class="StarterPlayerScripts" referent="RBXBBYASTARTERPLAYERSCRIPTS00000001">
+    <Properties><string name="Name">StarterPlayerScripts</string></Properties>
+    <Item class="LocalScript" referent="RBXBBYACLIENT000000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Client</string><ProtectedString name="Source"><![CDATA[${clientLua}]]></ProtectedString></Properties></Item>
+  </Item>
+</Item>
+${end}`;
 
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Runtime injected into', target.file);
+console.log('[BBYA] Main runtime + functional server systems + client UI injected into', target.file);
