@@ -51,4 +51,6 @@ end
 -- Perimeter accents reinforce circulation without filling it with furniture.
 glow(A4,"WEST FLOOR EDGE",Vector3.new(.2,.18,118),CFrame.new(-50,.9,10),P.cyan,.18,6)
 glow(A4,"EAST FLOOR EDGE",Vector3.new(.2,.18,118),CFrame.new(50,.9,10),P.pink,.18,6)
-zoneSign(A4,"CLUB EXIT WAYFINDING","LOBBY ↓   •   BAR ←   •   CHILL →   •   VIP / ROOF STAIRS",CFrame.new(0,13,80.2),Vector3.new(46,2.5,.2),P.white,Enum.NormalId.Back)
+
+-- A3 owns the shared Lobby <-> Main Club boundary board.
+-- It is now a single physical sign with two readable faces, so no duplicate A4 sign is created here.
