@@ -1,4 +1,4 @@
--- BBYA Queen mobile control panel v1.0
+-- BBYA Queen mobile control panel v1.1
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local QUEEN_ID=4271188557
@@ -9,8 +9,8 @@ local Admin=remotes:WaitForChild("QueenAdmin")
 local Notice=remotes:WaitForChild("Notice")
 
 local gui=Instance.new("ScreenGui");gui.Name="BBYA_QUEEN_UI";gui.ResetOnSpawn=false;gui.DisplayOrder=40;gui.IgnoreGuiInset=false;gui.Parent=player:WaitForChild("PlayerGui")
-local open=Instance.new("TextButton");open.Size=UDim2.fromOffset(78,34);open.Text="QUEEN";open.Font=Enum.Font.GothamBlack;open.TextSize=14;open.TextColor3=Color3.fromRGB(255,225,110);open.BackgroundColor3=Color3.fromRGB(55,22,68);open.Parent=gui;Instance.new("UICorner",open).CornerRadius=UDim.new(0,8)
-local frame=Instance.new("Frame");frame.Size=UDim2.fromOffset(220,285);frame.BackgroundColor3=Color3.fromRGB(16,12,23);frame.BackgroundTransparency=.04;frame.Visible=false;frame.Parent=gui;Instance.new("UICorner",frame).CornerRadius=UDim.new(0,10)
+local open=Instance.new("TextButton");open.Size=UDim2.fromOffset(44,44);open.AnchorPoint=Vector2.new(1,0);open.Position=UDim2.new(1,-112,0,8);open.Text="Q";open.Font=Enum.Font.GothamBlack;open.TextSize=15;open.TextColor3=Color3.fromRGB(255,225,110);open.BackgroundColor3=Color3.fromRGB(55,22,68);open.Parent=gui;Instance.new("UICorner",open).CornerRadius=UDim.new(0,13)
+local frame=Instance.new("Frame");frame.AnchorPoint=Vector2.new(1,0);frame.Position=UDim2.new(1,-8,0,58);frame.Size=UDim2.fromOffset(220,285);frame.BackgroundColor3=Color3.fromRGB(16,12,23);frame.BackgroundTransparency=.04;frame.Visible=false;frame.Parent=gui;Instance.new("UICorner",frame).CornerRadius=UDim.new(0,10)
 local title=Instance.new("TextLabel");title.Size=UDim2.new(1,-38,0,32);title.Position=UDim2.fromOffset(8,4);title.BackgroundTransparency=1;title.Text="👑 BBYA QUEEN";title.TextColor3=Color3.fromRGB(255,220,90);title.Font=Enum.Font.GothamBlack;title.TextSize=16;title.TextXAlignment=Enum.TextXAlignment.Left;title.Parent=frame
 local close=Instance.new("TextButton");close.Size=UDim2.fromOffset(28,28);close.Position=UDim2.new(1,-33,0,5);close.Text="×";close.TextSize=22;close.Font=Enum.Font.GothamBold;close.TextColor3=Color3.new(1,1,1);close.BackgroundColor3=Color3.fromRGB(60,35,72);close.Parent=frame;Instance.new("UICorner",close).CornerRadius=UDim.new(0,6)
 local scroll=Instance.new("ScrollingFrame");scroll.Size=UDim2.new(1,-12,1,-44);scroll.Position=UDim2.fromOffset(6,38);scroll.BackgroundTransparency=1;scroll.BorderSizePixel=0;scroll.ScrollBarThickness=3;scroll.CanvasSize=UDim2.new();scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;scroll.Parent=frame
@@ -29,6 +29,6 @@ btn("CONFETTI",function()remotes.FX:FireServer("confetti")end)
 open.MouseButton1Click:Connect(function()frame.Visible=not frame.Visible end);close.MouseButton1Click:Connect(function()frame.Visible=false end)
 Notice.OnClientEvent:Connect(function(text)notice.Text=tostring(text);notice.Visible=true;task.delay(4,function()if notice.Text==tostring(text)then notice.Visible=false end end)end)
 local cam=workspace.CurrentCamera
-local function layout()local v=cam.ViewportSize;if v.X>v.Y then open.Position=UDim2.new(0,100,0,12);frame.AnchorPoint=Vector2.new(1,0);frame.Position=UDim2.new(1,-12,0,54);frame.Size=UDim2.fromOffset(210,math.min(285,v.Y-70))else open.Position=UDim2.new(1,-90,0,54);frame.AnchorPoint=Vector2.new(1,0);frame.Position=UDim2.new(1,-10,0,94);frame.Size=UDim2.fromOffset(210,math.min(285,v.Y-110))end end
+local function layout()local v=cam.ViewportSize;frame.Size=UDim2.fromOffset(220,math.min(285,v.Y-70));open.Position=UDim2.new(1,-112,0,8);frame.Position=UDim2.new(1,-8,0,58)end
 layout();cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)
-print("[BBYA] Queen mobile control panel loaded")
+print("[BBYA] Queen mobile control panel v1.1 unified top-right loaded")
