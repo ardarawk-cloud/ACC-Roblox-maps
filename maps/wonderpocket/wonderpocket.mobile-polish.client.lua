@@ -26,6 +26,22 @@ local shopPanel = premium:FindFirstChild("ShopPanel", true)
 local shopContent = shopPanel and shopPanel:FindFirstChild("Content")
 local shopGrid = shopContent and shopContent:FindFirstChildOfClass("UIGridLayout")
 
+local healthPanel
+local healthConstraint
+
+local function bindHealthGui(gui)
+    if not gui or gui.Name ~= "WP_ClosedTestHealth" then return end
+    healthPanel = nil
+    healthConstraint = nil
+    for _, child in ipairs(gui:GetChildren()) do
+        if child:IsA("TextLabel") then
+            healthPanel = child
+            healthConstraint = child:FindFirstChildOfClass("UISizeConstraint")
+            break
+        end
+    end
+end
+
 local function tutorialActive()
     return player:GetAttribute("WP_TutorialStarted") == true
         and player:GetAttribute("WP_OnboardingComplete") ~= true
@@ -45,7 +61,8 @@ end
 local function applyResponsiveLayout()
     local camera = Workspace.CurrentCamera
     if not camera then return end
-    local shortScreen = camera.ViewportSize.Y <= 480
+    local viewportHeight = camera.ViewportSize.Y
+    local shortScreen = viewportHeight <= 480
 
     for _, panel in ipairs(panels) do
         local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
@@ -69,6 +86,19 @@ local function applyResponsiveLayout()
             or UDim2.new(.5, 0, 0, 66)
     end
 
+    if healthPanel and healthPanel.Parent then
+        healthPanel.TextSize = shortScreen and 10 or 12
+        if healthConstraint then
+            if shortScreen then
+                healthConstraint.MinSize = Vector2.new(260, 220)
+                healthConstraint.MaxSize = Vector2.new(340, math.max(220, viewportHeight - 128))
+            else
+                healthConstraint.MinSize = Vector2.new(285, 340)
+                healthConstraint.MaxSize = Vector2.new(350, 460)
+            end
+        end
+    end
+
     syncModalDock()
 end
 
@@ -79,6 +109,17 @@ end
 for _, attribute in ipairs({"WP_TutorialStarted", "WP_OnboardingComplete"}) do
     player:GetAttributeChangedSignal(attribute):Connect(applyResponsiveLayout)
 end
+
+playerGui.ChildAdded:Connect(function(child)
+    if child.Name == "WP_ClosedTestHealth" then
+        task.defer(function()
+            bindHealthGui(child)
+            applyResponsiveLayout()
+        end)
+    end
+end)
+
+bindHealthGui(playerGui:FindFirstChild("WP_ClosedTestHealth"))
 
 local cameraConnection
 local function bindCamera()
@@ -93,4 +134,4 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
 bindCamera()
 
-print("[WONDERPOCKET] Android short-screen modal/dock/toast polish loaded")
+print("[WONDERPOCKET] Android short-screen modal/dock/toast/health polish loaded")
