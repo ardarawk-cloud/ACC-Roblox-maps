@@ -4,9 +4,9 @@
   "name": "BBYA Social Hub",
   "universeId": "8116636513",
   "placeId": "131894120482837",
-  "sourceCommit": "7ceab80611bdb2dbabdc7565f137557e03dbc127",
-  "publishedAt": "2026-08-18T18:59:54.173Z",
+  "sourceCommit": "cdbce9f7d7569add42561359fe544ab5b34b016e",
+  "publishedAt": "2026-08-18T19:01:29.344Z",
   "response": {
-    "versionNumber": 112
+    "versionNumber": 113
   }
 }
