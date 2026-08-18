@@ -18,6 +18,10 @@ local DARK = Color3.fromRGB(31,29,39)
 local DARK2 = Color3.fromRGB(45,41,52)
 local WARM = Color3.fromRGB(255,226,196)
 
+-- Let the premium phase scripts and production QC finish first so this live fix
+-- always wins the final visual state regardless of Roblox script scheduling.
+task.wait(6)
+
 -- -------------------------------------------------------------------------
 -- 1. Readable premium night instead of near-black voids.
 -- -------------------------------------------------------------------------
@@ -72,7 +76,6 @@ local function lightAnchor(name,pos,color,brightness,range)
  return p
 end
 
--- Soft architectural fill: enough to read avatars/walls without washing neon out.
 for _,cfg in ipairs({
  {Vector3.new(0,18,24),WARM,.72,34},
  {Vector3.new(0,18,-20),Color3.fromRGB(214,205,255),.62,34},
@@ -99,14 +102,12 @@ for _,obj in ipairs(workspace:GetDescendants()) do
     obj.Color = DARK2
    end
   end
-  -- Very black structural slabs were disappearing completely on phones.
   if obj.Material ~= Enum.Material.Neon and obj.Material ~= Enum.Material.Glass and obj.Transparency < .15 then
    local c=obj.Color
    if c.R < .075 and c.G < .075 and c.B < .09 and not string.find(n,"skyline") then
     obj.Color = DARK
    end
   end
-  -- Keep dance-floor language focused on BBYA pink/cyan, not rainbow arcade.
   if string.find(n,"dance edge") or string.find(n,"dance neon") then
    obj.Color = obj.Position.X < 0 and CYAN or PINK
    local l=obj:FindFirstChildOfClass("PointLight")
@@ -115,7 +116,6 @@ for _,obj in ipairs(workspace:GetDescendants()) do
  end
 end
 
--- Stronger anchor materials so major levels are readable in screenshots.
 local anchorLooks={
  ["Main Floor"]={Color3.fromRGB(48,45,55),Enum.Material.Slate},
  ["Rooftop Floor"]={Color3.fromRGB(51,47,57),Enum.Material.Slate},
@@ -180,7 +180,6 @@ local function part(name,size,cf,color,material,transparency)
  return p
 end
 
--- VIP stair side rails following the existing stair vectors.
 for _,side in ipairs({-1,1}) do
  local x=47*side
  local endX=68*side
@@ -194,7 +193,6 @@ for _,side in ipairs({-1,1}) do
  end
 end
 
--- Rooftop stairs get simple side stringers to break the giant block-step silhouette.
 for _,x in ipairs({-78,78}) do
  for _,ox in ipairs({-4.7,4.7}) do
   local beam=part("Roof Stair Stringer",Vector3.new(.45,3,39),CFrame.new(x+ox,24.5,39)*CFrame.Angles(math.rad(-33),0,0),DARK2,Enum.Material.Metal,0)
