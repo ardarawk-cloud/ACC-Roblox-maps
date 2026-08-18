@@ -2,7 +2,7 @@ return {
     GameId = "WONDERPOCKET",
     DisplayName = "WONDERPOCKET",
     Tagline = "Build Your Little World",
-    Version = "0.1.0-foundation",
+    Version = "0.2.0-mvp-core",
 
     Economy = {
         StartingCoins = 250,
@@ -34,6 +34,10 @@ return {
             Sunflower = {GrowSeconds=900, Sell=65, XP=20},
         },
         OfflineGrowthCapSeconds = 8 * 60 * 60,
+    },
+
+    Quests = {
+        Starter = {Id="HARVEST_3", Target=3, RewardCoins=75, RewardStars=2},
     },
 
     Social = {
