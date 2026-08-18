@@ -36,6 +36,8 @@ task.delay(7,function()
         BBYAV6CleanSlate=true,
         BBYAV6GroundShell="COMPLETE",
         BBYAV6GroundFinish="PREMIUM_PASS_1",
+        BBYAV6ClubShowRig="BRIGHT_ACCENT_ONLY",
+        BBYAV6ClubLighting="AUTO_BRIGHT",
         BBYAV6LiftShell="SEALED_3_LEVEL",
         BBYAV6LiftFinish="COMPLETE",
         BBYAV6VIPFloor="COMPLETE",
@@ -60,7 +62,7 @@ task.delay(7,function()
     for _,name in ipairs({
         "A1 BBYA SPAWN","A1 WARM BOLLARD -58","A2 CANOPY SLAT -40",
         "A3 WELCOME BAR BODY","A3 LOOK CYC WALL","A3 SOCIAL ISLAND WEST SEAT","A3 CEILING BEAM 23",
-        "A4 DANCE FLOOR","A4 DJ BOOTH","A4 CEILING TRUSS X 74",
+        "A4 DANCE FLOOR","A4 DJ BOOTH","A4 CEILING TRUSS X 74","A4 SHOW HEAD 1","A4 STAGE WASH 1",
         "A5 MAIN BAR BODY","A5 BACKBAR SHELF 3.8",
         "A6 CONVERSATION SOFA A 78 SEAT","A6 ACOUSTIC PANEL 72",
         "B3 SHAFT WEST","B3 G LANDING DOOR L","B3 VIP LANDING DOOR L","B3 ROOF LANDING DOOR L","B3 LIFT CAB CEILING",
@@ -80,6 +82,9 @@ task.delay(7,function()
     local critical=countAttr("BBYACriticalFill",true)
     if critical<8 then table.insert(issues,"critical avatar fill count below 8: "..critical) end
 
+    local showLenses=countAttr("BBYAShowLightLens",true)
+    if showLenses<14 then table.insert(issues,"club show-light lens count below 14: "..showLenses) end
+
     local socialSeats=countAttr("BBYASocialSeat",true)
     if socialSeats<28 then table.insert(issues,"functional social seat count below 28: "..socialSeats) end
 
@@ -96,12 +101,13 @@ task.delay(7,function()
     workspace:SetAttribute("BBYAV6RuntimeIssueCount",#issues)
     workspace:SetAttribute("BBYAV6RuntimeQC",#issues==0 and "PASS" or "WARN")
     workspace:SetAttribute("BBYAV6CriticalFillCount",critical)
+    workspace:SetAttribute("BBYAV6ShowLightCount",showLenses)
     workspace:SetAttribute("BBYAV6SocialSeatCount",socialSeats)
     workspace:SetAttribute("BBYAV6InteractiveFacilityCount",facilities)
     workspace:SetAttribute("BBYAV6RuntimeQCChecked",os.time())
 
     if #issues==0 then
-        print(string.format("[BBYA V6 QC] PASS — clean room + finishes + %d social seats + %d facility prompts verified",socialSeats,prompts))
+        print(string.format("[BBYA V6 QC] PASS — clean room + finishes + %d social seats + %d show lights + %d facility prompts verified",socialSeats,showLenses,prompts))
     else
         warn("[BBYA V6 QC] WARN ("..#issues..")\n - "..table.concat(issues,"\n - "))
     end
