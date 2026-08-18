@@ -52,12 +52,26 @@ local function findButton(root, text)
     return nil
 end
 
+local function findButtonContaining(root, text)
+    if not root then return nil end
+    local needle = string.lower(tostring(text or ""))
+    for _, instance in ipairs(root:GetDescendants()) do
+        if instance:IsA("TextButton") and string.find(string.lower(instance.Text), needle, 1, true) then
+            return instance
+        end
+    end
+    return nil
+end
+
 local function attachButtonGuide(button, labelText)
     if not button or not button.Parent then
         clearButtonGuide()
         return
     end
-    if currentTarget == button then return end
+    if currentTarget == button then
+        if currentBadge and currentBadge.Parent then currentBadge.Text = labelText or "NEXT" end
+        return
+    end
 
     clearButtonGuide()
     currentTarget = button
@@ -74,7 +88,7 @@ local function attachButtonGuide(button, labelText)
     badge.Name = "WP_TutorialGuideBadge"
     badge.AnchorPoint = Vector2.new(.5, 1)
     badge.Position = UDim2.new(.5, 0, 0, -5)
-    badge.Size = UDim2.fromOffset(76, 24)
+    badge.Size = UDim2.fromOffset(84, 24)
     badge.BackgroundColor3 = Color3.fromRGB(255, 221, 92)
     badge.TextColor3 = Color3.fromRGB(42, 47, 72)
     badge.Font = Enum.Font.GothamBold
@@ -123,7 +137,7 @@ local function attachWorldGuide(part, labelText)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "WP_TutorialWorldGuide"
     billboard.Adornee = part
-    billboard.Size = UDim2.fromOffset(148, 34)
+    billboard.Size = UDim2.fromOffset(166, 34)
     billboard.StudsOffsetWorldSpace = Vector3.new(0, math.max(3, part.Size.Y * .5 + 2.2), 0)
     billboard.AlwaysOnTop = true
     billboard.MaxDistance = 180
@@ -183,6 +197,24 @@ local function findAdventureGate()
     return nil
 end
 
+local function findNearestTreasure()
+    local island = workspace:FindFirstChild("TreasureIsland")
+    if not island then return nil end
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    local best, bestDistance
+    for _, object in ipairs(island:GetChildren()) do
+        if object:IsA("BasePart") and string.match(object.Name, "^Treasure%d+$") then
+            local distance = hrp and (object.Position - hrp.Position).Magnitude or 0
+            if not best or distance < bestDistance then
+                best = object
+                bestDistance = distance
+            end
+        end
+    end
+    return best
+end
+
 local function refreshWorldGuide(stepId)
     if stepId == "MeetWondi" then
         attachWorldGuide(findOwnedWondiBody(), "NEXT • SAY HI")
@@ -191,10 +223,33 @@ local function refreshWorldGuide(stepId)
     elseif stepId == "HarvestCarrot" then
         attachWorldGuide(findOwnedGardenPlot(), "HARVEST HERE WHEN READY")
     elseif stepId == "Treasure" then
-        attachWorldGuide(findAdventureGate(), "NEXT • GO HERE")
+        if player:GetAttribute("WP_ActiveAdventure") == "TreasureIsland" then
+            attachWorldGuide(findNearestTreasure(), "NEXT • COLLECT TREASURE")
+        else
+            attachWorldGuide(findAdventureGate(), "NEXT • GO TO GATE")
+        end
     else
         clearWorldGuide()
     end
+end
+
+local buildChoices = {
+    {id="StarLamp", name="Star Lamp"},
+    {id="BunnyChair", name="Bunny Chair"},
+    {id="ToyChest", name="Toy Chest"},
+    {id="CloudBed", name="Cloud Bed"},
+    {id="RainbowSofa", name="Rainbow Sofa"},
+    {id="MiniAquarium", name="Mini Aquarium"},
+}
+
+local function findOwnedBuildButton(buildPanel)
+    for _, item in ipairs(buildChoices) do
+        if (tonumber(player:GetAttribute("WP_INV_"..item.id)) or 0) > 0 then
+            local button = findButtonContaining(buildPanel, item.name)
+            if button then return button end
+        end
+    end
+    return nil
 end
 
 local function refreshButtonGuide(stepId)
@@ -209,7 +264,7 @@ local function refreshButtonGuide(stepId)
 
     if stepId == "BuyFurniture" then
         if shopPanel and shopPanel.Visible then
-            clearButtonGuide()
+            attachButtonGuide(findButtonContaining(shopPanel, "Star Lamp"), "BUY THIS")
             return
         end
         attachButtonGuide(findButton(premium, "SHOP"), "TAP ME")
@@ -222,7 +277,7 @@ local function refreshButtonGuide(stepId)
             return
         end
         if buildPanel and buildPanel.Visible then
-            clearButtonGuide()
+            attachButtonGuide(findOwnedBuildButton(buildPanel), "SELECT")
             return
         end
         attachButtonGuide(findButton(premium, "BUILD"), "TAP ME")
@@ -267,6 +322,7 @@ for _, attr in ipairs({
     "WP_TutorialStarted",
     "WP_TutorialStepId",
     "WP_BuildActive",
+    "WP_ActiveAdventure",
 }) do
     player:GetAttributeChangedSignal(attr):Connect(refresh)
 end
@@ -280,7 +336,7 @@ end)
 local premium = playerGui:FindFirstChild("WonderPocketPremiumUI") or playerGui:WaitForChild("WonderPocketPremiumUI", 15)
 if premium then bindPremiumUI(premium) end
 
--- Runtime objects such as personal gardens/Wondies may appear after this LocalScript.
+-- Runtime objects such as personal gardens/Wondies/Treasure Island may appear after this LocalScript.
 task.spawn(function()
     while player.Parent do
         if player:GetAttribute("WP_TutorialStarted") == true and player:GetAttribute("WP_OnboardingComplete") ~= true then
@@ -290,4 +346,4 @@ task.spawn(function()
     end
 end)
 
-print("[WONDERPOCKET] Tutorial button guidance + world waypoints ready")
+print("[WONDERPOCKET] Guided tutorial buttons + contextual world waypoints ready")
