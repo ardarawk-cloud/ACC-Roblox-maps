@@ -1,11 +1,11 @@
 # WONDERPOCKET QC — v1.3 Fail-Closed Data Safety
 
 ## Current closed-test baseline
-- Place version: **37**
+- Place version: **41**
 - Target: Universe `8805231520` → Place `124843214013484`
 - Public release: **closed** (`PublishAllowed = false`)
 - Registry: **disabled**
-- v37 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, and save-health fail-closed protection that freezes persistent mutations when any persistence subsystem reports degraded save health.
+- v41 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, save-health fail-closed protection, first-journey runtime checklist, at-a-glance `TEST OK / TEST... / TEST !` health state, and first-session timing bound to `GameConfig.Onboarding.FirstSessionTargetMinutes` (currently 10 minutes).
 - Live/runtime gates below remain intentionally unchecked until observed in Roblox; code-side review is not treated as a runtime pass.
 
 ## Code-side gate
@@ -24,6 +24,10 @@
 - [x] Shop rejects purchases when main/inventory save health is degraded
 - [x] Adventure Gate and Treasure rewards reject protected/read-only sessions
 - [x] health panel exposes main/inventory/furniture/garden/Dex load and save status
+- [x] health panel exposes first-journey milestones `S/B/P/Buy/Pl/H/T/C`
+- [x] TEST button shows `TEST...` while loading, `TEST OK` when core subsystems are healthy, and `TEST !` when protected/read-only
+- [x] first-session QA timer reads the target from master `GameConfig` rather than hardcoding it
+- [x] completed clean-run timing records `WP_FirstJourneySeconds` and `WP_FirstJourneyWithinTarget`
 - [x] v1.2 economy integrity, seed economy, rate limits, and audit bus remain active
 - [x] responsive premium UI has no invalid `Frame.PaddingTop`
 - [x] responsive panel content is isolated from header/close layout
@@ -47,20 +51,25 @@
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
 
-## v37 Android first-10-minutes live script — REQUIRED
-1. Fresh test account joins v37 and receives the Welcome card with fully visible `START MY POCKET`.
-2. Tap `START MY POCKET`; tracker shows step 1/6 and Bubbi gets `NEXT • SAY HI` guidance.
-3. **Exit/rejoin before saying Hi.** Welcome card must not return; step 1/6 must resume. This verifies persisted `WP_TutorialStarted`, not milestone inference.
-4. Say Hi to Bubbi; exit/rejoin immediately. Tutorial must resume at the next unfinished objective.
-5. Plant one carrot. Verify CarrotSeed decreases by exactly 1 and garden remains planted after rejoin.
-6. Open SHOP from the tutorial pulse. Verify Star Lamp receives `BUY THIS`; buy once and verify Coins decrease exactly once. On a short Android screen, all six shop items must remain visible and the bottom dock must not cover the panel.
-7. Exit/rejoin before placing. Purchased Star Lamp must remain owned and tutorial must resume at BUILD/PLACE without replaying Welcome.
-8. Open BUILD; owned furniture receives `SELECT`. Begin placement; `PLACE` pulses. Rotate/place on own Pocket ground and cottage floor. Preview/server must agree and furniture must not sink/float.
-9. Exit/rejoin. Placed furniture must reappear relative to the newly assigned plot position.
-10. Harvest when ready. Verify +12 Coins and +1 CarrotSeed exactly once.
-11. Follow Adventure Gate guidance, enter Treasure Island, then verify waypoint moves to a chest. Collect one treasure; tutorial completes and completion survives immediate rejoin.
-12. Inspect Wonder Square: pastel routes, benches, four stylized corner trees, fountain heart, and `Build Your Little World` tagline must not block tutorial navigation.
-13. Open `TEST` during closed-test and confirm Data/Inventory/Furniture/Garden/WonderDex load and save indicators report healthy. The panel must fit the Android viewport. No red runtime errors during the run.
+## v41 Android clean first-session timing run — REQUIRED
+1. Use a fresh test account and join v41. `START MY POCKET` must be fully visible and TEST should move from `TEST...` to `TEST OK` after safe loading.
+2. Tap `START MY POCKET` and complete the six objectives **without rejoining**: Bubbi → Plant → SHOP/Buy → BUILD/Place → Harvest → Treasure.
+3. TEST panel journey bits must advance in order: `S/B/P/Buy/Pl/H/T/C`.
+4. SHOP guidance must highlight Star Lamp; BUILD guidance must highlight owned furniture; PLACE must pulse during placement.
+5. Android placement preview and server placement must agree on own Pocket ground/cottage floor; furniture must not sink or float.
+6. Treasure waypoint must switch from Adventure Gate to a chest after entering Treasure Island.
+7. On completion, TEST must report the journey time against the master target `10:00`; target result should be evaluated as `ON TARGET` or `OVER TARGET` from the runtime measurement, not assumed.
+8. No red runtime errors.
+
+## v41 Android rejoin persistence run — REQUIRED
+1. Fresh test account: START, then exit/rejoin before Say Hi. Welcome must not return; step 1/6 resumes.
+2. Say Hi → rejoin. Next unfinished objective resumes.
+3. Plant → rejoin. Crop state and CarrotSeed must persist.
+4. Buy Star Lamp → rejoin before placement. Inventory and Coins must persist; tutorial resumes at BUILD/PLACE.
+5. Place furniture → rejoin. Furniture must return relative to the newly assigned plot.
+6. Harvest → verify exactly +12 Coins and +1 CarrotSeed.
+7. Collect one Treasure → tutorial completion must survive immediate rejoin.
+8. Open TEST and confirm main/inventory/furniture/garden/WonderDex load/save states are healthy and the panel fits the Android viewport.
 
 ## Live Roblox failure/recovery gate — REQUIRED
 - [ ] normal DataStore availability loads exact prior Coins / Stars / CarrotSeed
