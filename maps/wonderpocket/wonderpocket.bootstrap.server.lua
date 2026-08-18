@@ -21,6 +21,10 @@ local StateRemote = remotes:FindFirstChild("State") or Instance.new("RemoteEvent
 StateRemote.Name = "State"
 StateRemote.Parent = remotes
 
+local OnboardingRemote = remotes:FindFirstChild("Onboarding") or Instance.new("RemoteEvent")
+OnboardingRemote.Name = "Onboarding"
+OnboardingRemote.Parent = remotes
+
 local function part(name, size, position, color, parent)
     local p = Instance.new("Part")
     p.Name = name
@@ -101,6 +105,7 @@ local function defaultData()
         lastSeen = os.time(),
         pocketBiome = Config.Starter.Biome,
         house = Config.Starter.House,
+        onboardingComplete = false,
     }
 end
 
@@ -125,6 +130,7 @@ local function syncAttributesToData(player, data)
     data.stars = tonumber(player:GetAttribute("Stars")) or data.stars or 0
     data.activeWondi = player:GetAttribute("ActiveWondi") or data.activeWondi or Config.Starter.Wondi
     data.pocketBiome = player:GetAttribute("PocketBiome") or data.pocketBiome or Config.Starter.Biome
+    data.onboardingComplete = player:GetAttribute("WP_OnboardingComplete") == true
     data.lastSeen = os.time()
     data.schemaVersion = 2
 end
@@ -178,15 +184,24 @@ local function loadPlayer(player)
     player:SetAttribute("Stars", tonumber(data.stars) or 0)
     player:SetAttribute("ActiveWondi", data.activeWondi or Config.Starter.Wondi)
     player:SetAttribute("PocketBiome", data.pocketBiome or Config.Starter.Biome)
+    player:SetAttribute("WP_OnboardingComplete", data.onboardingComplete == true)
     player:SetAttribute("WP_DataLoaded", true)
 
     player:GetAttributeChangedSignal("Coins"):Connect(function() markDirty(player) end)
     player:GetAttributeChangedSignal("Stars"):Connect(function() markDirty(player) end)
     player:GetAttributeChangedSignal("ActiveWondi"):Connect(function() markDirty(player) end)
     player:GetAttributeChangedSignal("PocketBiome"):Connect(function() markDirty(player) end)
+    player:GetAttributeChangedSignal("WP_OnboardingComplete"):Connect(function() markDirty(player) end)
 
     StateRemote:FireClient(player, "INIT", data)
 end
+
+OnboardingRemote.OnServerEvent:Connect(function(player, action)
+    if action ~= "COMPLETE" then return end
+    if player:GetAttribute("WP_DataLoaded") ~= true then return end
+    player:SetAttribute("WP_OnboardingComplete", true)
+    markDirty(player)
+end)
 
 buildWorld()
 Players.PlayerAdded:Connect(loadPlayer)
