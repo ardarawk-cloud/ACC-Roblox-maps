@@ -1,4 +1,6 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
 
 local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
 remotes.Name = "WonderPocket_Remotes"
@@ -8,67 +10,114 @@ local PlacementRemote = remotes:FindFirstChild("Placement") or Instance.new("Rem
 PlacementRemote.Name = "Placement"
 PlacementRemote.Parent = remotes
 
+local Store = DataStoreService:GetDataStore("WONDERPOCKET_Furniture_v1")
 local templates = {
-    CloudBed = Vector3.new(6,2,4),
-    StarLamp = Vector3.new(1.5,4,1.5),
-    RainbowSofa = Vector3.new(6,2.5,2.5),
-    BunnyChair = Vector3.new(2.5,3,2.5),
-    ToyChest = Vector3.new(3,2,2),
-    MiniAquarium = Vector3.new(4,3,2),
+    CloudBed = Vector3.new(6,2,4), StarLamp = Vector3.new(1.5,4,1.5), RainbowSofa = Vector3.new(6,2.5,2.5),
+    BunnyChair = Vector3.new(2.5,3,2.5), ToyChest = Vector3.new(3,2,2), MiniAquarium = Vector3.new(4,3,2),
 }
 
-local function snap(n)
-    return math.floor(n + 0.5)
-end
-
+local function snap(n) return math.floor(n + 0.5) end
 local function getPlacedFolder(player)
     local root = workspace:FindFirstChild("WonderPocket_Placed") or Instance.new("Folder")
-    root.Name = "WonderPocket_Placed"
-    root.Parent = workspace
+    root.Name = "WonderPocket_Placed"; root.Parent = workspace
     local folder = root:FindFirstChild(tostring(player.UserId)) or Instance.new("Folder")
-    folder.Name = tostring(player.UserId)
-    folder.Parent = root
+    folder.Name = tostring(player.UserId); folder.Parent = root
     return folder
 end
 
-PlacementRemote.OnServerEvent:Connect(function(player, action, itemId, cf)
-    if action ~= "PLACE" or typeof(cf) ~= "CFrame" then return end
-    itemId = tostring(itemId)
-    local size = templates[itemId]
-    if not size then return end
+local function insideOwnPlot(player, position)
+    local cx = tonumber(player:GetAttribute("WP_PlotCenterX"))
+    local cz = tonumber(player:GetAttribute("WP_PlotCenterZ"))
+    local hx = tonumber(player:GetAttribute("WP_PlotHalfX"))
+    local hz = tonumber(player:GetAttribute("WP_PlotHalfZ"))
+    if not (cx and cz and hx and hz) then return false end
+    return math.abs(position.X-cx) <= hx and math.abs(position.Z-cz) <= hz
+end
 
-    local invKey = "WP_INV_" .. itemId
-    local owned = tonumber(player:GetAttribute(invKey)) or 0
-    if owned <= 0 then
-        PlacementRemote:FireClient(player, "RESULT", false, "NOT_OWNED")
-        return
-    end
-
-    local folder = getPlacedFolder(player)
-    if #folder:GetChildren() >= 50 then
-        PlacementRemote:FireClient(player, "RESULT", false, "PLACEMENT_LIMIT")
-        return
-    end
-
-    local p = cf.Position
-    local _, yaw, _ = cf:ToOrientation()
-    local quarterTurn = math.pi / 2
-    local snappedYaw = math.floor((yaw / quarterTurn) + 0.5) * quarterTurn
-    local snapped = CFrame.new(snap(p.X), math.max(1, snap(p.Y)), snap(p.Z)) * CFrame.Angles(0, snappedYaw, 0)
-
+local function makeFurniture(player,itemId,cf)
+    local size = templates[itemId]; if not size then return nil end
     local part = Instance.new("Part")
-    part.Name = itemId
-    part.Size = size
-    part.Anchored = true
-    part.CanCollide = true
-    part.Material = Enum.Material.SmoothPlastic
-    part.CFrame = snapped
-    part:SetAttribute("WP_Owner", player.UserId)
-    part:SetAttribute("WP_ItemId", itemId)
-    part.Parent = folder
+    part.Name=itemId; part.Size=size; part.Anchored=true; part.CanCollide=true
+    part.Material=Enum.Material.SmoothPlastic; part.CFrame=cf
+    part:SetAttribute("WP_Owner",player.UserId); part:SetAttribute("WP_ItemId",itemId)
+    part.Parent=getPlacedFolder(player)
+    return part
+end
 
-    player:SetAttribute(invKey, owned - 1)
-    PlacementRemote:FireClient(player, "RESULT", true, "PLACED", itemId)
+local function serialize(player)
+    local out={}
+    for _,obj in ipairs(getPlacedFolder(player):GetChildren()) do
+        if obj:IsA("BasePart") then
+            local _,yaw,_=obj.CFrame:ToOrientation()
+            table.insert(out,{id=obj:GetAttribute("WP_ItemId") or obj.Name,x=obj.Position.X,y=obj.Position.Y,z=obj.Position.Z,yaw=math.deg(yaw)})
+        end
+    end
+    return out
+end
+
+local function save(player)
+    local data=serialize(player)
+    pcall(function() Store:SetAsync("u_"..player.UserId,data) end)
+end
+
+local function load(player)
+    local ok,data=pcall(function() return Store:GetAsync("u_"..player.UserId) end)
+    if not ok or type(data)~="table" then return end
+    for _,entry in ipairs(data) do
+        if templates[entry.id] then
+            local pos=Vector3.new(tonumber(entry.x) or 0,tonumber(entry.y) or 1,tonumber(entry.z) or 0)
+            if insideOwnPlot(player,pos) then
+                makeFurniture(player,entry.id,CFrame.new(pos)*CFrame.Angles(0,math.rad(tonumber(entry.yaw) or 0),0))
+            end
+        end
+    end
+end
+
+PlacementRemote.OnServerEvent:Connect(function(player,action,itemId,cf)
+    if action=="REQUEST_STATE" then
+        PlacementRemote:FireClient(player,"STATE",serialize(player))
+        return
+    end
+    if action~="PLACE" or typeof(cf)~="CFrame" then return end
+    itemId=tostring(itemId); if not templates[itemId] then return end
+
+    local p=cf.Position
+    if not insideOwnPlot(player,p) then
+        PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT")
+        return
+    end
+
+    local invKey="WP_INV_"..itemId
+    local owned=tonumber(player:GetAttribute(invKey)) or 0
+    if owned<=0 then PlacementRemote:FireClient(player,"RESULT",false,"NOT_OWNED"); return end
+
+    local folder=getPlacedFolder(player)
+    if #folder:GetChildren()>=50 then PlacementRemote:FireClient(player,"RESULT",false,"PLACEMENT_LIMIT"); return end
+
+    local _,yaw,_=cf:ToOrientation(); local q=math.pi/2
+    local snappedYaw=math.floor((yaw/q)+0.5)*q
+    local snapped=CFrame.new(snap(p.X),math.max(1,snap(p.Y)),snap(p.Z))*CFrame.Angles(0,snappedYaw,0)
+    if not insideOwnPlot(player,snapped.Position) then PlacementRemote:FireClient(player,"RESULT",false,"OUTSIDE_OWN_PLOT"); return end
+
+    makeFurniture(player,itemId,snapped)
+    player:SetAttribute(invKey,owned-1)
+    task.spawn(save,player)
+    PlacementRemote:FireClient(player,"RESULT",true,"PLACED",itemId)
 end)
 
-print("[WONDERPOCKET] Furniture placement loaded")
+Players.PlayerAdded:Connect(function(player)
+    task.wait(1)
+    load(player)
+end)
+Players.PlayerRemoving:Connect(function(player)
+    save(player)
+    local folder=workspace:FindFirstChild("WonderPocket_Placed")
+    folder=folder and folder:FindFirstChild(tostring(player.UserId))
+    if folder then folder:Destroy() end
+end)
+
+game:BindToClose(function()
+    for _,player in ipairs(Players:GetPlayers()) do save(player) end
+end)
+
+print("[WONDERPOCKET] Secure persistent furniture placement loaded")
