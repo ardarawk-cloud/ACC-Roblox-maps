@@ -20,6 +20,7 @@ const phase5Lua = readLua('maps/a-club/bbya.phase5-finish.server.lua');
 const phase6Lua = readLua('maps/a-club/bbya.phase6-wayfinding.server.lua');
 const productionQCLua = readLua('maps/a-club/bbya.production-qc-v4.server.lua');
 const liveFixLua = readLua('maps/a-club/bbya.livefix-4.7.server.lua');
+const lobbyLua = readLua('maps/a-club/bbya.lobby-reference-v4.8.server.lua');
 const buildValidationLua = readLua('maps/a-club/bbya.build-validation.server.lua');
 const playtestLua = readLua('maps/a-club/bbya.playtest.server.lua');
 const systemsLua = readLua('maps/a-club/bbya.systems.server.lua');
@@ -61,6 +62,7 @@ const runtime = `${begin}
   <Item class="Script" referent="RBXBBYAPHASE6PREMIUMV460000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Premium_Phase_6_v4_6</string><ProtectedString name="Source"><![CDATA[${phase6Lua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPRODUCTIONQCV4300000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Production_QC_v4_3</string><ProtectedString name="Source"><![CDATA[${productionQCLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYALIVEFIXV470000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Live_Playtest_Fix_v4_7</string><ProtectedString name="Source"><![CDATA[${liveFixLua}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="RBXBBYALOBBYV48000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Front_Lobby_Reference_v4_8</string><ProtectedString name="Source"><![CDATA[${lobbyLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYABUILDVALIDATION00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Build_Validation_v1_3</string><ProtectedString name="Source"><![CDATA[${buildValidationLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYAPLAYTESTSERVICE00000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Queen_Playtest_System_Test_v1</string><ProtectedString name="Source"><![CDATA[${playtestLua}]]></ProtectedString></Properties></Item>
   <Item class="Script" referent="RBXBBYASYSTEMS00000000000000000001"><Properties><bool name="Disabled">false</bool><string name="Name">BBYA_Functional_Systems_v2</string><ProtectedString name="Source"><![CDATA[${systemsLua}]]></ProtectedString></Properties></Item>
@@ -94,4 +96,4 @@ ${end}`;
 if (!xml.includes('</roblox>')) throw new Error('Invalid RBXLX: missing </roblox>');
 xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.writeFileSync(placePath, xml);
-console.log('[BBYA] Active build injected: Premium 4.7 live-playtest fix build + brighter venue + signage cleanup + mobile UI scaling + validation into', target.file);
+console.log('[BBYA] Active build injected: Premium 4.8 front-lobby build + crown neon identity + warm social lobby + livefix 4.7 + validation into', target.file);
