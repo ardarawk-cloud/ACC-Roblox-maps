@@ -34,15 +34,17 @@ for(const token of required){
 }
 if(!fail) ok('phase 5 runtime/UI plus phase 6 release-gate markers assembled');
 
-for(const forbidden of [
-  'maps/a-club/v5/',
-  'maps/a-club/v6/',
-  'BBYA Mega Architecture v2',
-  'BBYA V6 CLEANROOM ROOT',
-]){
-  if(xml.includes(forbidden)) bad(`archived source/runtime leak: ${forbidden}`);
+// Source paths must be clean. Runtime-name checks must ignore Lua source text because QC intentionally
+// contains old root names as rejection strings. Strip ProtectedString source before inspecting XML object names.
+for(const forbiddenPath of ['maps/a-club/v5/','maps/a-club/v6/']){
+  if(xml.includes(forbiddenPath)) bad(`archived source path leak: ${forbiddenPath}`);
 }
-if(!fail) ok('no archived BBYA source/runtime root detected');
+const xmlObjectsOnly=xml.replace(/<ProtectedString name="Source"><!\[CDATA\[[\s\S]*?\]\]><\/ProtectedString>/g,'');
+for(const forbiddenName of ['BBYA Mega Architecture v2','BBYA V6 CLEANROOM ROOT']){
+  const needle=`<string name="Name">${forbiddenName}</string>`;
+  if(xmlObjectsOnly.includes(needle)) bad(`archived runtime object leak: ${forbiddenName}`);
+}
+if(!fail) ok('no archived BBYA source path or runtime object detected');
 
 const serverScriptCount=(xml.match(/<Item class="Script"/g)||[]).length;
 const localScriptCount=(xml.match(/<Item class="LocalScript"/g)||[]).length;
