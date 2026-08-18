@@ -18,6 +18,20 @@ local function attachPrompt(model)
     prompt.RequiresLineOfSight=false
     prompt.Parent=body
 
+    local ownerConnection
+    local function syncPrompt()
+        local owner=Players:GetPlayerByUserId(ownerUserId)
+        prompt.Enabled = owner ~= nil and owner:GetAttribute("WP_Tutorial_MetWondi") ~= true
+    end
+
+    local function bindOwner()
+        local owner=Players:GetPlayerByUserId(ownerUserId)
+        if not owner then return end
+        if ownerConnection then ownerConnection:Disconnect() end
+        ownerConnection=owner:GetAttributeChangedSignal("WP_Tutorial_MetWondi"):Connect(syncPrompt)
+        syncPrompt()
+    end
+
     prompt.Triggered:Connect(function(player)
         if player.UserId~=ownerUserId or player:GetAttribute("WP_DataLoaded")~=true then return end
         if player:GetAttribute("WP_Tutorial_MetWondi")~=true then
@@ -25,8 +39,27 @@ local function attachPrompt(model)
             if CriticalSave then CriticalSave:Fire(player) end
         end
         player:SetAttribute("WP_LastWondiEmote","Wave")
-        prompt.ActionText="Hi!"
-        task.delay(1.5,function() if prompt.Parent then prompt.ActionText="Say Hi" end end)
+        prompt.Enabled=false
+    end)
+
+    task.spawn(function()
+        local deadline=os.clock()+20
+        while prompt.Parent and os.clock()<deadline do
+            local owner=Players:GetPlayerByUserId(ownerUserId)
+            if owner and owner:GetAttribute("WP_DataLoaded")==true then
+                bindOwner()
+                break
+            end
+            task.wait(.25)
+        end
+        syncPrompt()
+    end)
+
+    prompt.AncestryChanged:Connect(function(_,parent)
+        if parent==nil and ownerConnection then
+            ownerConnection:Disconnect()
+            ownerConnection=nil
+        end
     end)
 
     model:SetAttribute("WP_MeetPromptAttached",true)
@@ -56,4 +89,4 @@ Players.PlayerAdded:Connect(function(player)
     end)
 end)
 
-print("[WONDERPOCKET] Persistence-safe Wondi meet interaction loaded")
+print("[WONDERPOCKET] Tutorial-aware Wondi meet interaction loaded")
