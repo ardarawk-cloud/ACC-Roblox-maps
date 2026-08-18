@@ -16,12 +16,16 @@ local function attachPrompt(model)
     prompt.HoldDuration=.15
     prompt.MaxActivationDistance=10
     prompt.RequiresLineOfSight=false
+    prompt.Enabled=false
     prompt.Parent=body
 
     local ownerConnection
     local function syncPrompt()
         local owner=Players:GetPlayerByUserId(ownerUserId)
-        prompt.Enabled = owner ~= nil and owner:GetAttribute("WP_Tutorial_MetWondi") ~= true
+        prompt.Enabled = owner ~= nil
+            and owner:GetAttribute("WP_DataLoaded")==true
+            and owner:GetAttribute("WP_DataLoadFailed")~=true
+            and owner:GetAttribute("WP_Tutorial_MetWondi") ~= true
     end
 
     local function bindOwner()
@@ -34,6 +38,7 @@ local function attachPrompt(model)
 
     prompt.Triggered:Connect(function(player)
         if player.UserId~=ownerUserId or player:GetAttribute("WP_DataLoaded")~=true then return end
+        if player:GetAttribute("WP_DataReadOnly")==true or player:GetAttribute("WP_DataLoadFailed")==true then return end
         if player:GetAttribute("WP_Tutorial_MetWondi")~=true then
             player:SetAttribute("WP_Tutorial_MetWondi",true)
             if CriticalSave then CriticalSave:Fire(player) end
@@ -43,16 +48,21 @@ local function attachPrompt(model)
     end)
 
     task.spawn(function()
-        local deadline=os.clock()+20
-        while prompt.Parent and os.clock()<deadline do
+        -- Keep the meet prompt synchronized even when the initial DataStore read is slow.
+        -- Stop only when the owner leaves or the authoritative main data load fails closed.
+        while prompt.Parent do
             local owner=Players:GetPlayerByUserId(ownerUserId)
-            if owner and owner:GetAttribute("WP_DataLoaded")==true then
+            if not owner then return end
+            if owner:GetAttribute("WP_DataLoadFailed")==true then
+                syncPrompt()
+                return
+            end
+            if owner:GetAttribute("WP_DataLoaded")==true then
                 bindOwner()
-                break
+                return
             end
             task.wait(.25)
         end
-        syncPrompt()
     end)
 
     prompt.AncestryChanged:Connect(function(_,parent)
@@ -81,12 +91,14 @@ if folder then bindFolder(folder) else warn("[WONDERPOCKET] ActiveWondies folder
 
 Players.PlayerAdded:Connect(function(player)
     task.spawn(function()
-        local deadline=os.clock()+20
-        while player.Parent and os.clock()<deadline and player:GetAttribute("WP_DataLoaded")~=true do task.wait(.25) end
+        while player.Parent and player:GetAttribute("WP_DataLoaded")~=true do
+            if player:GetAttribute("WP_DataLoadFailed")==true then return end
+            task.wait(.25)
+        end
         if player.Parent and player:GetAttribute("WP_Tutorial_MetWondi")==nil then
             player:SetAttribute("WP_Tutorial_MetWondi",false)
         end
     end)
 end)
 
-print("[WONDERPOCKET] Tutorial-aware Wondi meet interaction loaded")
+print("[WONDERPOCKET] Tutorial-aware state-driven Wondi meet interaction loaded")
