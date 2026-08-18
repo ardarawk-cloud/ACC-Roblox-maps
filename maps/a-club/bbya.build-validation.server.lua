@@ -1,10 +1,11 @@
--- BBYA SOCIAL HUB — BUILD VALIDATION v1.2
--- Runtime health check for premium build 4.6, including legacy-regression guards.
+-- BBYA SOCIAL HUB — BUILD VALIDATION v1.3
+-- Runtime health check for premium build 4.6.1, including playtest harness and legacy-regression guards.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 task.wait(7)
 
+local remotes = ReplicatedStorage:FindFirstChild("BBYA_Remotes")
 local checks = {
  {label="Clean Core", instance=workspace:GetAttribute("BBYACleanCore")=="3.0" and workspace or nil},
  {label="Visual Rebuild", instance=workspace:FindFirstChild("BBYA Premium Visual Rebuild v4")},
@@ -22,7 +23,8 @@ local checks = {
  {label="Rooftop Pool", instance=workspace:FindFirstChild("Rooftop Pool",true)},
  {label="Wayfinding", instance=workspace:GetAttribute("BBYAWayfindingReady")==true and workspace or nil},
  {label="Final Spawn", instance=workspace:GetAttribute("BBYAFinalSpawnReady")==true and workspace or nil},
- {label="BBYA Remotes", instance=ReplicatedStorage:FindFirstChild("BBYA_Remotes")},
+ {label="BBYA Remotes", instance=remotes},
+ {label="Playtest Harness", instance=remotes and remotes:FindFirstChild("RunPlaytestCheck")},
  {label="Monetization Config", instance=ReplicatedStorage:FindFirstChild("BBYA_Monetization")},
 }
 
@@ -43,7 +45,7 @@ for _,name in ipairs({
 end
 
 local status = (#missing == 0 and #legacy == 0) and "PASS" or "WARN"
-workspace:SetAttribute("BBYABuildVersion","4.6-clean")
+workspace:SetAttribute("BBYABuildVersion","4.6.1-playtest")
 workspace:SetAttribute("BBYABuildValidation",status)
 workspace:SetAttribute("BBYABuildMissingCount",#missing)
 workspace:SetAttribute("BBYALegacyRegressionCount",#legacy)
@@ -51,4 +53,4 @@ workspace:SetAttribute("BBYABuildCheckedAt",os.time())
 
 if #missing > 0 then warn("[BBYA BUILD VALIDATION] Missing: "..table.concat(missing,", ")) end
 if #legacy > 0 then warn("[BBYA BUILD VALIDATION] Legacy regression: "..table.concat(legacy,", ")) end
-if status == "PASS" then print("[BBYA BUILD VALIDATION] PASS • premium build 4.6 clean") end
+if status == "PASS" then print("[BBYA BUILD VALIDATION] PASS • premium build 4.6.1 playtest") end
