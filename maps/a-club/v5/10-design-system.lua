@@ -28,6 +28,30 @@ local function zoneSign(zone,name,value,cf,size,color,face)
  return label(zone,name,value,cf,size,color or P.white,face or Enum.NormalId.Front)
 end
 
+-- One physical sign board, two independent readable faces.
+-- Use different copy per side when circulation direction changes.
+local function zoneSignPair(zone,name,frontValue,backValue,cf,size,color)
+ local p=zoneSign(zone,name,frontValue,cf,size,color or P.white,Enum.NormalId.Front)
+ local gui=Instance.new("SurfaceGui")
+ gui.Name="BACK FACE"
+ gui.Face=Enum.NormalId.Back
+ gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+ gui.PixelsPerStud=28
+ gui.LightInfluence=0
+ gui.Parent=p
+ local t=Instance.new("TextLabel")
+ t.Size=UDim2.fromScale(1,1)
+ t.BackgroundTransparency=1
+ t.Text=backValue or frontValue
+ t.TextColor3=color or P.white
+ t.Font=Enum.Font.GothamBlack
+ t.TextScaled=true
+ t.TextWrapped=true
+ t.Parent=gui
+ p:SetAttribute("BBYADoubleSidedSign",true)
+ return p
+end
+
 local function glassRail(zone,name,center,size)
  return finish(zone,name,size,CFrame.new(center),P.glass,Enum.Material.Glass,.48,true)
 end
@@ -98,4 +122,4 @@ local function bollard(zone,name,center,color)
  glow(zone,name.." CAP",Vector3.new(.8,.28,.8),CFrame.new(center+Vector3.new(0,1.45,0)),color or P.warm,.4,7)
 end
 
-workspace:SetAttribute("BBYAV5DesignSystem","1.1")
+workspace:SetAttribute("BBYAV5DesignSystem","1.2")
