@@ -22,7 +22,7 @@ Instance.new("UICorner",button).CornerRadius = UDim.new(0,10)
 local panel = Instance.new("TextLabel")
 panel.AnchorPoint = Vector2.new(1,0)
 panel.Position = UDim2.new(1,-10,0,112)
-panel.Size = UDim2.fromOffset(280,230)
+panel.Size = UDim2.fromOffset(290,250)
 panel.BackgroundColor3 = Color3.fromRGB(20,25,45)
 panel.BackgroundTransparency = .08
 panel.TextColor3 = Color3.fromRGB(235,242,255)
@@ -43,9 +43,11 @@ local function refresh()
     local coins = tonumber(player:GetAttribute("Coins")) or 0
     local stars = tonumber(player:GetAttribute("Stars")) or 0
     panel.Text = string.format(
-        " WONDERPOCKET v1.0 CLOSED TEST\n\n Data Load: %s\n Player Save: %s\n Furniture Save: %s\n Remotes: %s\n Plot: %s\n Garden: %s\n Economy: %sC / %sS\n Tutorial Step: %s\n Onboarding: %s\n Adventure Gate: %s\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.0 CLOSED TEST\n\n Data Load: %s\n Player Save: %s\n Inventory Load: %s\n Inventory Save: %s\n Furniture Save: %s\n Remotes: %s\n Plot: %s\n Garden: %s\n Economy: %sC / %sS\n Tutorial Step: %s\n Onboarding: %s\n Adventure Gate: %s\n Players: %s / Peak %s",
         yes(player:GetAttribute("WP_DataLoaded") == true),
         yes(player:GetAttribute("WP_DataSaveHealthy") ~= false),
+        yes(player:GetAttribute("WP_InventoryLoaded") == true),
+        yes(player:GetAttribute("WP_InventorySaveHealthy") ~= false),
         yes(player:GetAttribute("WP_FurnitureSaveHealthy") ~= false),
         yes(remotes ~= nil),
         plotId > 0 and tostring(plotId) or "WAIT",
