@@ -1,8 +1,7 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 
 local ShopRotation = remotes:FindFirstChild("ShopRotation") or Instance.new("RemoteFunction")
@@ -32,7 +31,7 @@ local function rotationForDay(day)
     return out
 end
 
-ShopRotation.OnServerInvoke = function(player)
+ShopRotation.OnServerInvoke = function()
     local day = math.floor(os.time() / 86400)
     return {
         day = day,
