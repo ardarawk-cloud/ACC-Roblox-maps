@@ -4,12 +4,15 @@ const path = require('path');
 const root = process.cwd();
 const mapDir = path.join(root, 'maps/wonderpocket');
 const out = path.join(mapDir, 'place.rbxlx');
+const buildMode = String(process.env.WONDERPOCKET_BUILD_MODE || 'release').toLowerCase();
+const closedTest = buildMode === 'closed-test';
 
 const serverScripts = fs.readdirSync(mapDir)
   .filter(f => f.startsWith('wonderpocket.') && f.endsWith('.server.lua'))
   .sort();
 const clientScripts = fs.readdirSync(mapDir)
   .filter(f => f.startsWith('wonderpocket.') && f.endsWith('.client.lua'))
+  .filter(f => closedTest || f !== 'wonderpocket.health.client.lua')
   .sort();
 
 function readLua(file) {
@@ -56,5 +59,6 @@ const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="
 
 fs.writeFileSync(out, xml);
 console.log(`[WONDERPOCKET] Built ${out}`);
+console.log(`[WONDERPOCKET] Build mode: ${closedTest ? 'closed-test (health panel included)' : 'release-safe (health panel excluded)'}`);
 console.log('[WONDERPOCKET] Minimal Roblox DataModel serialization enabled; ModuleScript uses valid properties only.');
 console.log(`[WONDERPOCKET] Server scripts: ${serverScripts.length}; client scripts: ${clientScripts.length}`);
