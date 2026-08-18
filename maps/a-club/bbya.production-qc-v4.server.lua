@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — PRODUCTION QC v4.2
--- Final runtime hygiene for the premium rebuild: collision, light budget, anchor validation.
+-- BBYA SOCIAL HUB — PRODUCTION QC v4.3
+-- Runtime hygiene for premium rebuild: anchor validation, decorative collision cleanup,
+-- conservative light budget, and preservation of the active v4 post-processing stack.
 
 local Lighting = game:GetService("Lighting")
 
@@ -33,7 +34,7 @@ local decorativeCollisionCleared = 0
 for _, obj in ipairs(workspace:GetDescendants()) do
  if obj:IsA("BasePart") then
   local n = string.lower(obj.Name)
-  if string.find(n,"neon") or string.find(n,"accent") or string.find(n,"logo") or string.find(n,"sign") or string.find(n,"window") then
+  if string.find(n,"neon") or string.find(n,"accent") or string.find(n,"logo") or string.find(n,"sign") or string.find(n,"window") or string.find(n,"glow") then
    if obj.CanCollide then
     obj.CanCollide = false
     decorativeCollisionCleared += 1
@@ -54,16 +55,24 @@ for _, obj in ipairs(workspace:GetDescendants()) do
  end
 end
 
--- Keep only the premium post-processing pair from this rebuild family.
+-- Preserve the current premium v4 stack. Disable only obsolete duplicate effects.
+local allowedBloom = {
+ ["BBYA_Bloom_v4"] = true,
+ ["BBYA_PremiumBloom"] = true,
+}
+local allowedColor = {
+ ["BBYA_Color_v4"] = true,
+ ["BBYA_PremiumColor"] = true,
+}
 for _, effect in ipairs(Lighting:GetChildren()) do
- if effect:IsA("BloomEffect") and effect.Name ~= "BBYA_PremiumBloom" then
+ if effect:IsA("BloomEffect") and not allowedBloom[effect.Name] then
   effect.Enabled = false
- elseif effect:IsA("ColorCorrectionEffect") and effect.Name ~= "BBYA_PremiumColor" then
+ elseif effect:IsA("ColorCorrectionEffect") and not allowedColor[effect.Name] then
   effect.Enabled = false
  end
 end
 
-workspace:SetAttribute("BBYAProductionQC","4.2")
+workspace:SetAttribute("BBYAProductionQC","4.3")
 workspace:SetAttribute("BBYAMissingAnchors",#missing)
 workspace:SetAttribute("BBYALightCountAfterQC",math.max(0,lightCount-removedSkyLights))
 
@@ -72,4 +81,4 @@ if #missing > 0 then
 else
  print("[BBYA QC] Required anchors OK")
 end
-print(string.format("[BBYA QC] v4.2 loaded — decorative collisions cleared %d, skyline lights removed %d",decorativeCollisionCleared,removedSkyLights))
+print(string.format("[BBYA QC] v4.3 loaded — decorative collisions cleared %d, skyline lights removed %d",decorativeCollisionCleared,removedSkyLights))
