@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remotes = ReplicatedStorage:FindFirstChild("WonderPocket_Remotes") or Instance.new("Folder")
-remotes.Name = "WonderPocket_Remotes"
+local remotes = ReplicatedStorage:FindFirstChild("WONDERPOCKET_Remotes") or Instance.new("Folder")
+remotes.Name = "WONDERPOCKET_Remotes"
 remotes.Parent = ReplicatedStorage
 
 local AdventureRemote = remotes:FindFirstChild("Adventure") or Instance.new("RemoteEvent")
@@ -19,16 +19,20 @@ local function finish(player, success, reason)
     if not run then return end
     active[player] = nil
 
-    if success then
-        player:SetAttribute("WP_Coins", (tonumber(player:GetAttribute("WP_Coins")) or 0) + run.rewardCoins)
-        player:SetAttribute("WP_Stars", (tonumber(player:GetAttribute("WP_Stars")) or 0) + run.rewardStars)
+    if success and not run.rewardGranted then
+        run.rewardGranted = true
+        player:SetAttribute("Coins", (tonumber(player:GetAttribute("Coins")) or 0) + run.rewardCoins)
+        player:SetAttribute("Stars", (tonumber(player:GetAttribute("Stars")) or 0) + run.rewardStars)
         player:SetAttribute("WP_DEX_Badges_TreasureIsland", true)
+        player:SetAttribute("WP_AdventureCompleteCount", (tonumber(player:GetAttribute("WP_AdventureCompleteCount")) or 0) + 1)
     end
 
     AdventureRemote:FireClient(player, "FINISH", success, reason, run.rewardCoins, run.rewardStars)
 end
 
 AdventureRemote.OnServerEvent:Connect(function(player, action, adventureId)
+    if player:GetAttribute("WP_DataLoaded") ~= true then return end
+
     if action == "START" then
         adventureId = tostring(adventureId)
         local cfg = CONFIG[adventureId]
@@ -42,12 +46,15 @@ AdventureRemote.OnServerEvent:Connect(function(player, action, adventureId)
             rewardCoins = cfg.rewardCoins,
             rewardStars = cfg.rewardStars,
             treasure = 0,
+            rewardGranted = false,
         }
+        player:SetAttribute("WP_ActiveAdventure", adventureId)
         AdventureRemote:FireClient(player, "STARTED", adventureId, cfg.duration)
         task.delay(cfg.duration + 1, function()
             local run = active[player]
             if run and run.token == token then
                 finish(player, false, "TIME_UP")
+                player:SetAttribute("WP_ActiveAdventure", "")
             end
         end)
     elseif action == "TREASURE" then
@@ -57,9 +64,11 @@ AdventureRemote.OnServerEvent:Connect(function(player, action, adventureId)
         AdventureRemote:FireClient(player, "PROGRESS", run.treasure, 5)
         if run.treasure >= 5 then
             finish(player, true, "TREASURE_COMPLETE")
+            player:SetAttribute("WP_ActiveAdventure", "")
         end
     elseif action == "QUIT" then
         finish(player, false, "QUIT")
+        player:SetAttribute("WP_ActiveAdventure", "")
     end
 end)
 
@@ -67,4 +76,4 @@ Players.PlayerRemoving:Connect(function(player)
     active[player] = nil
 end)
 
-print("[WONDERPOCKET] Treasure Island mini-adventure loop loaded")
+print("[WONDERPOCKET] Canonical Treasure Island adventure loop loaded")
