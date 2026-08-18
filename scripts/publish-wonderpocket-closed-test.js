@@ -8,6 +8,7 @@ const EXPECTED = {
   file: 'maps/wonderpocket/place.rbxlx',
   branch: 'agent/wonderpocket-target',
   confirmation: 'WONDERPOCKET:8805231520:124843214013484',
+  buildVersion: '1.3.0-fail-closed-data-safety',
 };
 
 function fail(message) {
@@ -35,7 +36,9 @@ if (target.enabled !== false) fail('registry must remain disabled for the closed
 const configPath = path.join(process.cwd(), 'maps/wonderpocket/GameConfig.lua');
 const config = fs.readFileSync(configPath, 'utf8');
 if (!config.includes('PublishAllowed = false')) fail('GameConfig.QA.PublishAllowed must remain false for closed-test publishing.');
-if (!config.includes('1.1.0-release-candidate-hardening')) fail('only the v1.1 release-candidate hardening build is accepted by this publisher.');
+if (!config.includes(`Version = "${EXPECTED.buildVersion}"`)) fail(`only WONDERPOCKET ${EXPECTED.buildVersion} is accepted by this publisher.`);
+if (!config.includes('FailClosedDataLoads = true')) fail('fail-closed DataStore protection must remain enabled.');
+if (!config.includes('NoDefaultOverwriteOnReadFailure = true')) fail('no-default-overwrite protection must remain enabled.');
 
 const placePath = path.join(process.cwd(), EXPECTED.file);
 if (!fs.existsSync(placePath)) fail('place.rbxlx is missing; run build + QC first.');
@@ -43,11 +46,13 @@ const body = fs.readFileSync(placePath);
 const text = body.toString('utf8');
 if (!text.includes('</roblox>')) fail('place.rbxlx is not valid Roblox XML.');
 if (text.includes('BBYA') || text.includes('a-club')) fail('foreign-map token detected in assembled WONDERPOCKET place.');
+if (!text.includes(EXPECTED.buildVersion)) fail('assembled place does not contain the locked WONDERPOCKET v1.3 build marker.');
 
 const url = `https://apis.roblox.com/universes/v1/${EXPECTED.universeId}/places/${EXPECTED.placeId}/versions?versionType=Published`;
 
 (async () => {
   console.log('[WONDERPOCKET CLOSED TEST] Locked target verified.');
+  console.log(`[WONDERPOCKET CLOSED TEST] Build ${EXPECTED.buildVersion}`);
   console.log(`[WONDERPOCKET CLOSED TEST] Universe ${EXPECTED.universeId} / Place ${EXPECTED.placeId}`);
   console.log('[WONDERPOCKET CLOSED TEST] This updates place code only; it does not change Roblox access/public visibility settings.');
 
