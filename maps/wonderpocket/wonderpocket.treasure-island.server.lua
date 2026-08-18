@@ -43,6 +43,12 @@ local adventureConnections={}
 local runToken={}
 local deadlines={}
 
+local function protected(player)
+    return player:GetAttribute("WP_DataReadOnly")==true
+        or player:GetAttribute("WP_DataLoadFailed")==true
+        or player:GetAttribute("WP_DataLoaded")~=true
+end
+
 local function clearRunState(player)
     local uid=player.UserId
     collected[uid]={}
@@ -60,6 +66,7 @@ local function expireRun(player,token)
 end
 
 local function beginRun(player)
+    if protected(player) then return end
     local uid=player.UserId
     clearRunState(player)
     runToken[uid]=(runToken[uid] or 0)+1
@@ -78,6 +85,7 @@ local function getState(player)
 end
 
 local function grantCompletion(player)
+    if protected(player) then return end
     local uid=player.UserId
     if completed[uid] then return end
     completed[uid]=true
@@ -95,6 +103,7 @@ for i,pos in ipairs(chestSpots) do
     local prompt=Instance.new("ProximityPrompt")
     prompt.ActionText="Collect Treasure";prompt.ObjectText="Wonder Chest";prompt.HoldDuration=.25;prompt.MaxActivationDistance=10;prompt.RequiresLineOfSight=false;prompt.Parent=chest
     prompt.Triggered:Connect(function(player)
+        if protected(player) then return end
         if player:GetAttribute("WP_ActiveAdventure")~="TreasureIsland" then return end
         local uid=player.UserId
         if os.time()>(deadlines[uid] or 0) then
@@ -146,4 +155,4 @@ Players.PlayerRemoving:Connect(function(player)
     end
 end)
 
-print("[WONDERPOCKET] Audited timed server-authoritative Treasure Island loaded")
+print("[WONDERPOCKET] Protected timed server-authoritative Treasure Island loaded")
