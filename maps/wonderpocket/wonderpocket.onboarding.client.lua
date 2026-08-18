@@ -18,7 +18,20 @@ local function waitForData()
     return false
 end
 
-if not waitForData() or player:GetAttribute("WP_OnboardingComplete") == true then return end
+local function waitForTutorialState()
+    -- Tutorial server resolves whether this is a fresh journey or a resumed one.
+    -- Waiting for the attribute prevents a race where the Welcome card flashes on rejoin.
+    while player.Parent and player:GetAttribute("WP_TutorialStarted") == nil do
+        if player:GetAttribute("WP_DataLoadFailed") == true then return false end
+        task.wait(.1)
+    end
+    return player.Parent ~= nil
+end
+
+if not waitForData() then return end
+if not waitForTutorialState() then return end
+if player:GetAttribute("WP_OnboardingComplete") == true then return end
+if player:GetAttribute("WP_TutorialStarted") == true then return end
 
 local playerGui = player:WaitForChild("PlayerGui")
 local old = playerGui:FindFirstChild("WP_Onboarding")
@@ -114,4 +127,4 @@ start.Activated:Connect(function()
     end)
 end)
 
-print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit ready")
+print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit + rejoin-resume ready")
