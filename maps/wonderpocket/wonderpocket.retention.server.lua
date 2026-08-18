@@ -10,8 +10,8 @@ local function utcDay(t) return math.floor(t / DAILY_SECONDS) end
 local function utcWeek(t) return math.floor(t / WEEK_SECONDS) end
 
 local function waitForData(player)
-    local deadline = os.clock() + 20
-    while player.Parent and os.clock() < deadline do
+    while player.Parent do
+        if player:GetAttribute("WP_DataLoadFailed") == true then return false end
         if player:GetAttribute("WP_DataLoaded") == true then return true end
         task.wait(.25)
     end
@@ -28,6 +28,7 @@ end
 
 local function load(player)
     if not waitForData(player) or player:GetAttribute("WP_RetentionLoaded") == true then return end
+    if player:GetAttribute("WP_DataReadOnly") == true then return end
 
     local now = os.time()
     local offline = math.clamp(tonumber(player:GetAttribute("WP_OfflineSeconds")) or 0, 0, 8 * 60 * 60)
@@ -65,4 +66,4 @@ end
 Players.PlayerAdded:Connect(function(player) task.spawn(load, player) end)
 for _, player in Players:GetPlayers() do task.spawn(load, player) end
 
-print("[WONDERPOCKET] Audited canonical retention rewards loaded")
+print("[WONDERPOCKET] State-driven canonical retention rewards loaded")
