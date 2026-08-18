@@ -8,6 +8,7 @@ on:
       - 'maps/a-club/v6/**'
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/validate-bbya-v6.js'
+      - 'scripts/validate-bbya-v6-client.js'
       - '.github/workflows/bbya-v6-ci.yml'
   workflow_dispatch:
 
@@ -32,11 +33,17 @@ jobs:
       - name: Validate V6 source contract
         run: node scripts/validate-bbya-v6.js
 
+      - name: Validate V6 client safety and performance
+        run: node scripts/validate-bbya-v6-client.js
+
       - name: Assemble isolated V6 preview
         run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-v6-preview.rbxlx
 
       - name: Validate assembled preview
         run: node scripts/validate-bbya-v6.js --assembled /tmp/bbya-v6-preview.rbxlx
+
+      - name: Re-check client contract after assembly source update
+        run: node scripts/validate-bbya-v6-client.js
 
       - name: Upload preview artifact
         uses: actions/upload-artifact@v4
