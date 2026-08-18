@@ -1,6 +1,7 @@
 -- BBYA SOCIAL HUB — PHASE 4 SUPPORT + MUSIC SERVER SYSTEMS
 -- Authoritative backend. Commerce stays disabled while official Developer Product IDs are zero.
 
+local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local DataStoreService=game:GetService("DataStoreService")
@@ -73,7 +74,6 @@ local function refreshBoardCache()
     boardCache=nextRows
 end
 
--- Players is already defined by 00-core.lua in the assembled server runtime.
 getSupportBoard.OnServerInvoke=function()
     if #boardCache==0 then refreshBoardCache() end
     return boardCache
