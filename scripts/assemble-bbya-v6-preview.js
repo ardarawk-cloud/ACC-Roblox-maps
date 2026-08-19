@@ -19,13 +19,16 @@ const serverFiles = [
   'maps/a-club/rebuild/35-circulation.lua',
   'maps/a-club/rebuild/30-lighting.lua',
   'maps/a-club/rebuild/40-runtime.server.lua',
+  'maps/a-club/rebuild/45-owner-layout-fix.server.lua',
   'maps/a-club/rebuild/60-social-systems.server.lua',
+  'maps/a-club/rebuild/65-live-services.server.lua',
   'maps/a-club/rebuild/50-qc.server.lua',
   'maps/a-club/rebuild/80-release-gate.server.lua',
 ];
 const clientFiles = [
   'maps/a-club/rebuild/70-ui.client.lua',
   'maps/a-club/rebuild/71-ui-consolidate.client.lua',
+  'maps/a-club/rebuild/72-hybrid-ui.client.lua',
 ];
 const allFiles=[...serverFiles,...clientFiles];
 for (const file of allFiles) {
@@ -80,6 +83,6 @@ xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI modules; clean carrier + phase 6 release gate included.`);
-console.log('[BBYA CLEAN REBUILD] Support product IDs and authorized music library intentionally remain pending/disabled until official values are supplied.');
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI modules; owner layout fixes + hybrid Auto DJ included.`);
+console.log('[BBYA CLEAN REBUILD] Preview keeps commerce fail-closed; direct live deploy resolves existing Roblox commerce IDs.');
 console.log('[BBYA CLEAN REBUILD] PREVIEW ASSEMBLY COMPLETE');
