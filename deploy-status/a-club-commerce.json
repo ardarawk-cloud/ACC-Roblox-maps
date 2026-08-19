@@ -1,0 +1,27 @@
+{
+  "universeId": "8116636513",
+  "vipGamePassId": 0,
+  "vipMeta": null,
+  "supportProducts": {
+    "5": 0,
+    "10": 0,
+    "50": 0,
+    "100": 0,
+    "500": 0
+  },
+  "supportMeta": {
+    "5": null,
+    "10": null,
+    "50": null,
+    "100": null,
+    "500": null
+  },
+  "discovered": {
+    "gamePasses": 3,
+    "developerProducts": 0
+  },
+  "errors": [
+    "game-pass creator: 403 https://apis.roblox.com/game-passes/v1/universes/8116636513/game-passes/creator?maxPageSize=100 :: {\"errors\":[{\"code\":0,\"message\":\"Scope not authorized.\"}]}\n",
+    "developer-product creator: 403 https://apis.roblox.com/developer-products/v2/universes/8116636513/developer-products/creator?maxPageSize=100 :: {\"errors\":[{\"code\":0,\"message\":\"Scope not authorized.\"}]}\n"
+  ]
+}
