@@ -50,6 +50,21 @@ for _,x in ipairs({-3,47}) do
 end
 part(A2,"ATRIUM CANOPY",Vector3.new(54,1,13),CFrame.new(22,18,-8),C.black,Enum.Material.Metal,0,true)
 
+-- Rear atrium closure: prevents the WELCOME area from opening into a black void.
+part(A2,"ATRIUM REAR PLINTH",Vector3.new(58,3,2),CFrame.new(22,1.5,94),C.black,Enum.Material.Slate,0,true)
+part(A2,"ATRIUM REAR BEAM",Vector3.new(58,1.2,2),CFrame.new(22,17.4,94),C.graphite,Enum.Material.Metal,0,true)
+for _,x in ipairs({-6,7,22,37,50}) do
+    part(A2,"ATRIUM REAR MULLION "..x,Vector3.new(.8,17,.8),CFrame.new(x,9,93.8),C.graphite,Enum.Material.Metal,0,true)
+end
+for _,x in ipairs({-.5,14.5,29.5,44.5}) do
+    local g=glass(A2,"ATRIUM REAR GLASS "..x,Vector3.new(13.5,13,.45),CFrame.new(x,9,94.2),.34)
+    g.CanCollide=false
+end
+part(A2,"WELCOME BACKDROP",Vector3.new(18,12,1),CFrame.new(22,8.5,93.2),C.black,Enum.Material.SmoothPlastic,0,true)
+neon(A2,"WELCOME BACKDROP TOP",Vector3.new(16,.18,.18),CFrame.new(22,14.6,92.6),C.pink)
+neon(A2,"WELCOME BACKDROP BOTTOM",Vector3.new(16,.18,.18),CFrame.new(22,2.4,92.6),C.cyan)
+sign(A2,"WELCOME BACKDROP BRAND","BBYA\nSOCIAL HUB",CFrame.new(22,8.7,92.55),Vector3.new(14,7,.25),C.pink,Enum.NormalId.Front)
+
 -- Right VIP wing on ground floor, with real roof deck above.
 part(A5,"VIP FLOOR",Vector3.new(72,1.4,84),CFrame.new(68,.2,35),Color3.fromRGB(47,38,48),Enum.Material.Marble,0,true)
 part(A5,"VIP EAST WALL",Vector3.new(2,18,84),CFrame.new(104,9,35),C.charcoal,Enum.Material.Concrete,0,true)
@@ -103,5 +118,5 @@ neon(A2,"CROWN L2",Vector3.new(9,.4,.4),CFrame.new(-13,39,-11.4)*CFrame.Angles(0
 neon(A2,"CROWN R2",Vector3.new(9,.4,.4),CFrame.new(-7,39,-11.4)*CFrame.Angles(0,0,math.rad(62)),C.pink)
 neon(A2,"CROWN R1",Vector3.new(9,.4,.4),CFrame.new(-1,38,-11.4)*CFrame.Angles(0,0,math.rad(-58)),C.pink)
 
-workspace:SetAttribute("BBYAArchitecture","REFERENCE_MASSING_PHASE_1")
+workspace:SetAttribute("BBYAArchitecture","REFERENCE_MASSING_PHASE_1_REAR_CLOSED")
 workspace:SetAttribute("BBYAPlayableLevels",3)
