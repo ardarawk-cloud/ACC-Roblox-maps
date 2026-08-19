@@ -11,7 +11,7 @@ local resolvedReceipt=commerceReceipt.supportProducts or {}
 local kindsReceipt=commerceReceipt.supportKinds or {}
 local productToAmountReceipt={}
 local passToAmountReceipt={}
-for _,amount in ipairs({5,10,50,100,500}) do
+for _,amount in ipairs({5,10,50,100,500,10000}) do
     local id=tonumber(resolvedReceipt[amount] or resolvedReceipt[tostring(amount)]) or 0
     local kind=tostring(kindsReceipt[amount] or kindsReceipt[tostring(amount)] or "none")
     if id>0 and kind=="developerProduct" then productToAmountReceipt[id]=amount end
@@ -39,11 +39,9 @@ if next(productToAmountReceipt)~=nil or next(passToAmountReceipt)~=nil then
             end)
         end)
         if not ok or type(data)~="table" then return false,false,0 end
-
         local totalAfter=tonumber(data.total) or 0
         local okMirror=pcall(function() totals:SetAsync(tostring(playerId),totalAfter) end)
         if not okMirror then return false,false,totalAfter end
-
         local player=PlayersReceipt:GetPlayerByUserId(playerId)
         if player then player:SetAttribute("TotalDonated",totalAfter) end
         if newlyGranted then changedReceipt:FireAllClients({playerId=playerId,amount=amount,total=totalAfter}) end
