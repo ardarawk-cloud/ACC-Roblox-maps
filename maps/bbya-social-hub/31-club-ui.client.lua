@@ -7,7 +7,7 @@ local supportRemote=remotes:WaitForChild("Support")
 local stateRemote=remotes:WaitForChild("State")
 
 local gui=Instance.new("ScreenGui")
-gui.Name="BBYAClubUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=false;gui.DisplayOrder=10;gui.Parent=player:WaitForChild("PlayerGui")
+gui.Name="BBYAClubUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=10;gui.Parent=player:WaitForChild("PlayerGui")
 local PINK=Color3.fromRGB(255,48,160);local CYAN=Color3.fromRGB(0,190,255);local BG=Color3.fromRGB(11,10,14);local CARD=Color3.fromRGB(24,21,29);local MUTED=Color3.fromRGB(150,147,158)
 local function round(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
 local function stroke(o,col,t,tr)local s=Instance.new("UIStroke");s.Color=col;s.Thickness=t or 1;s.Transparency=tr or .3;s.Parent=o end
@@ -15,8 +15,9 @@ local function btn(parent,text,pos,size,color)
  local b=Instance.new("TextButton");b.Text=text;b.Position=pos;b.Size=size;b.BackgroundColor3=color or CARD;b.TextColor3=Color3.fromRGB(244,244,247);b.Font=Enum.Font.GothamSemibold;b.TextSize=14;b.BorderSizePixel=0;b.Parent=parent;round(b,9);return b
 end
 
-local menuBtn=btn(gui,"BBYA",UDim2.new(1,-76,0,18),UDim2.fromOffset(58,42),Color3.fromRGB(28,20,30));stroke(menuBtn,PINK,1,.15)
-local menu=Instance.new("Frame");menu.Name="ClubMenu";menu.AnchorPoint=Vector2.new(1,0);menu.Position=UDim2.new(1,-12,0,68);menu.Size=UDim2.new(0,310,.76,0);menu.BackgroundColor3=BG;menu.BackgroundTransparency=.02;menu.BorderSizePixel=0;menu.Visible=false;menu.ClipsDescendants=true;menu.Parent=gui;round(menu,16);stroke(menu,PINK,1.1,.28)
+-- Pinned high in the actual device viewport, top-right.
+local menuBtn=btn(gui,"BBYA",UDim2.new(1,-70,0,10),UDim2.fromOffset(58,42),Color3.fromRGB(28,20,30));stroke(menuBtn,PINK,1,.15)
+local menu=Instance.new("Frame");menu.Name="ClubMenu";menu.AnchorPoint=Vector2.new(1,0);menu.Position=UDim2.new(1,-12,0,60);menu.Size=UDim2.new(0,310,.76,0);menu.BackgroundColor3=BG;menu.BackgroundTransparency=.02;menu.BorderSizePixel=0;menu.Visible=false;menu.ClipsDescendants=true;menu.Parent=gui;round(menu,16);stroke(menu,PINK,1.1,.28)
 local lim=Instance.new("UISizeConstraint");lim.MinSize=Vector2.new(280,350);lim.MaxSize=Vector2.new(330,560);lim.Parent=menu
 
 local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(20,16,23)),ColorSequenceKeypoint.new(1,Color3.fromRGB(10,10,13))});grad.Rotation=90;grad.Parent=menu
