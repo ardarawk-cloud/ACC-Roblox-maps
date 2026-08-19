@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.1
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.2
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -22,10 +22,8 @@ end
 local function neon(name,size,cf,color)local p=part(name,size,cf,color or C.pink,Enum.Material.Neon,0);p.CanCollide=false;return p end
 local function pointLight(parent,color,brightness,range)local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=true;l.Parent=parent end
 local function fixedText(panel,text,font,canvasY)
- for _,face in ipairs({Enum.NormalId.Front,Enum.NormalId.Back}) do
-  local gui=Instance.new("SurfaceGui");gui.Face=face;gui.AlwaysOnTop=true;gui.LightInfluence=0;gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(2800,canvasY or 700);gui.Parent=panel
-  local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Position=UDim2.fromScale(.01,.01);t.Size=UDim2.fromScale(.98,.98);t.Text=text;t.TextColor3=C.pink;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=C.pink;t.TextStrokeTransparency=.16;t.Parent=gui
- end
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=true;gui.LightInfluence=0;gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(2800,canvasY or 700);gui.Parent=panel
+ local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Position=UDim2.fromScale(.01,.01);t.Size=UDim2.fromScale(.98,.98);t.Text=text;t.TextColor3=C.pink;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=C.pink;t.TextStrokeTransparency=.16;t.Parent=gui
 end
 local function stroke(name,a,b,width)local mid=(a+b)/2;local p=neon(name,Vector3.new(width,width,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);pointLight(p,C.pink,.5,10) end
 
@@ -35,34 +33,33 @@ part("FacadeLeft",Vector3.new(24,24,10),CFrame.new(-33,12,-39),C.black)
 part("FacadeRight",Vector3.new(24,24,10),CFrame.new(33,12,-39),C.black)
 part("FacadeHeader",Vector3.new(50,16,10),CFrame.new(0,26,-39),C.black)
 
-part("PortalLeft",Vector3.new(3,15,3),CFrame.new(-22.5,7.5,-33.8),C.charcoal,Enum.Material.Metal)
-part("PortalRight",Vector3.new(3,15,3),CFrame.new(22.5,7.5,-33.8),C.charcoal,Enum.Material.Metal)
-part("PortalTop",Vector3.new(48,3,3),CFrame.new(0,15,-33.8),C.charcoal,Enum.Material.Metal)
-neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-32.2),C.pink)
+part("PortalLeft",Vector3.new(3,15,3),CFrame.new(-22.5,7.5,-43.2),C.charcoal,Enum.Material.Metal)
+part("PortalRight",Vector3.new(3,15,3),CFrame.new(22.5,7.5,-43.2),C.charcoal,Enum.Material.Metal)
+part("PortalTop",Vector3.new(48,3,3),CFrame.new(0,15,-43.2),C.charcoal,Enum.Material.Metal)
+neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-44.8),C.pink)
 
-local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-32.8),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
-local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-32.8),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
+local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
+local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
--- Branding moved FORWARD toward player and enlarged.
-local bbyaPanel=part("BBYASignPanel",Vector3.new(72,13,.35),CFrame.new(0,29,-31.4),C.black)
+-- Front of building is SOUTH / negative Z. Branding must sit on the negative-Z face.
+local bbyaPanel=part("BBYASignPanel",Vector3.new(72,13,.35),CFrame.new(0,29,-44.35),C.black)
 fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,760)
-local socialPanel=part("SocialHubSignPanel",Vector3.new(52,6,.35),CFrame.new(0,20.8,-31.35),C.black)
+local socialPanel=part("SocialHubSignPanel",Vector3.new(52,6,.35),CFrame.new(0,20.8,-44.32),C.black)
 fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,520)
 
--- Crown also moved forward so all branding sits on the same visual plane.
-local z=-31.0
+local z=-44.7
 local pts={Vector3.new(-7.5,36,z),Vector3.new(-6.2,41.3,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.6,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.3,z),Vector3.new(7.5,36,z)}
 for i=1,#pts-1 do stroke("CrownStroke"..i,pts[i],pts[i+1],.5) end
 stroke("CrownBase",Vector3.new(-7.5,36,z),Vector3.new(7.5,36,z),.5)
 stroke("CrownBase2",Vector3.new(-6.3,34.8,z),Vector3.new(6.3,34.8,z),.38)
 
-for _,x in ipairs({-30,0,30}) do local w=neon("WarmFacade"..x,Vector3.new(7,.2,.35),CFrame.new(x,12,-32.5),C.warm);pointLight(w,C.warm,2.8,20) end
-for _,x in ipairs({-16,16}) do local p=neon("PinkFacade"..x,Vector3.new(5,.18,.3),CFrame.new(x,17,-32.4),C.pink);pointLight(p,C.pink,1.8,14) end
+for _,x in ipairs({-30,0,30}) do local w=neon("WarmFacade"..x,Vector3.new(7,.2,.35),CFrame.new(x,12,-44.5),C.warm);pointLight(w,C.warm,2.8,20) end
+for _,x in ipairs({-16,16}) do local p=neon("PinkFacade"..x,Vector3.new(5,.18,.3),CFrame.new(x,17,-44.4),C.pink);pointLight(p,C.pink,1.8,14) end
 
-local spawn=Instance.new("SpawnLocation");spawn.Name="EntranceSpawn";spawn.Anchored=true;spawn.Neutral=true;spawn.Size=Vector3.new(7,1,7);spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-66),Vector3.new(0,12,-34));spawn.Transparency=1;spawn.Parent=model
+local spawn=Instance.new("SpawnLocation");spawn.Name="EntranceSpawn";spawn.Anchored=true;spawn.Neutral=true;spawn.Size=Vector3.new(7,1,7);spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-66),Vector3.new(0,12,-44));spawn.Transparency=1;spawn.Parent=model
 
 Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(72,52,72);Lighting.OutdoorAmbient=Color3.fromRGB(42,31,46);Lighting.EnvironmentDiffuseScale=.45;Lighting.EnvironmentSpecularScale=.5
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.05;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.1: branding enlarged and moved forward")
+print("[BBYA] Entrance validation v1.2: branding corrected to SOUTH/front facade")
