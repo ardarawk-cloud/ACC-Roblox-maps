@@ -4,10 +4,10 @@
   "name": "BBYA Social Hub",
   "universeId": "8116636513",
   "placeId": "131894120482837",
-  "sourceCommit": "143c53a1d538841fed7b25a60fbdbec95decce01",
-  "publishedAt": "2026-08-19T17:55:51.442Z",
+  "sourceCommit": "cdf92e742b421563452a0650121ccff532e508c6",
+  "publishedAt": "2026-08-19T17:56:14.596Z",
   "publishedFile": "/tmp/bbya-zero-live.rbxl",
   "response": {
-    "versionNumber": 194
+    "versionNumber": 195
   }
 }
