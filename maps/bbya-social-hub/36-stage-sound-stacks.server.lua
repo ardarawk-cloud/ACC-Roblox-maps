@@ -19,10 +19,11 @@ local function speakerStack(prefix,x,y,z,accent)
  neon(prefix.."TopGlow",Vector3.new(5.5,.15,.2),CFrame.new(x,y+13.5,z-2.15),accent,model)
  return model
 end
--- Main Club: large left/right PA stacks flanking stage.
+-- Exact mirrored placement around DJ sightline X=0.
+-- Main Club: same distance, height, depth and footprint on both sides.
 speakerStack("MainClubLeft",-29,4.2,43.5,Color3.fromRGB(0,174,255))
-speakerStack("MainClubRight",35,4.2,43.5,Color3.fromRGB(255,42,157))
--- Underground: blue/yellow stacks beside DJ stage.
+speakerStack("MainClubRight",29,4.2,43.5,Color3.fromRGB(255,42,157))
+-- Underground: exact mirror beside DJ stage.
 speakerStack("UndergroundLeft",-27,-12.5,31.5,Color3.fromRGB(0,142,255))
 speakerStack("UndergroundRight",27,-12.5,31.5,Color3.fromRGB(255,202,36))
-print("[BBYA] Main Club + Underground stage sound stacks installed")
+print("[BBYA] Stage PA stacks realigned as exact left/right mirrors")
