@@ -13,13 +13,15 @@
       "BasementBOH": { "$path": "26-basement-backofhouse.server.lua" },
       "ShellAndDressing": { "$path": "27-shell-and-dressing.server.lua" },
       "LightingAmbience": { "$path": "28-lighting-ambience.server.lua" },
-      "SocialInteractions": { "$path": "29-social-interactions.server.lua" }
+      "SocialInteractions": { "$path": "29-social-interactions.server.lua" },
+      "ClubSystems": { "$path": "30-club-systems.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
-        "RuntimeEditorClient": { "$path": "23-editor.client.lua" }
+        "RuntimeEditorClient": { "$path": "23-editor.client.lua" },
+        "ClubUI": { "$path": "31-club-ui.client.lua" }
       }
     },
     "Lighting": {
