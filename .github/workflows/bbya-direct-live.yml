@@ -93,3 +93,5 @@ jobs:
 
           git commit -m "Record BBYA V7 direct live publish [skip ci]"
           git push origin HEAD:main
+
+# V7 direct-live retrigger 2026-08-19
