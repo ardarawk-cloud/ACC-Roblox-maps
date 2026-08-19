@@ -8,20 +8,22 @@ Main public entertainment floors stack vertically around one central building fo
 
 ## Site / building envelope
 - Site: 160 x 120 studs.
-- Main building footprint target: approx 120 x 90 studs, centered on site.
+- Main building footprint: approx 120 x 90 studs, centered on site.
 - Front setback / arrival forecourt: approx 20 studs.
 - Side/rear service clearance retained.
 - Main entrance faces SOUTH (-Z).
 
 ## Primary vertical stack
 
-### B — BASEMENT | Y -16..0
-Back-of-house only:
-- Staff area
-- Storage
-- Technical / utilities
-- Service circulation
-No primary public attraction here.
+### B — FULL-FOOTPRINT BASEMENT | Y -16..0
+- Basement footprint MUST match the complete main building footprint above: approx 120 x 90 studs.
+- Basement sits directly below the full L1 structural footprint; do not make it a small utility room.
+- Full basement slab and perimeter retaining walls follow the building envelope.
+- Internal basement zoning will be designed later.
+- Intended capacity includes staff, storage, technical/utilities, service circulation and future back-of-house requirements.
+- Public front entrance does NOT enter the basement.
+- Vehicle/service basement entrance reserved at rear-right side of building, separated from the public frontage.
+- Internal service stair/lift connects Basement -> L1 -> upper service points.
 
 ### L1 — MAIN CLUB + ARRIVAL | Y 0..24
 This is the MAIN CLUB floor and the first major public experience.
@@ -70,17 +72,18 @@ Structural intent:
 - Main public stairs/lift core: L1 -> L2 -> Rooftop.
 - VIP access can be controlled at L2 entry.
 - Rooftop route must not cross the center of the dance floor.
-- Separate basement/service circulation where practical.
+- Basement has separate service circulation and rear-right access.
 - Main stairs minimum 12 studs wide.
 - Secondary/service stairs minimum 7 studs wide.
 
 ## Structural massing lock
 From outside, the building should read as ONE premium multi-level entertainment complex:
-1. Strong entrance/frontage at L1.
-2. Tall Main Club volume visible in the central mass.
-3. L2 VIP perimeter/balcony mass wrapping the club void.
-4. Rooftop pool/social deck visibly crowning the building.
+1. Full-footprint basement directly beneath building.
+2. Strong entrance/frontage at L1.
+3. Tall Main Club volume visible in the central mass.
+4. L2 VIP perimeter/balcony mass wrapping the club void.
+5. Rooftop pool/social deck visibly crowning the building.
 
 ## Current build gate
-Approved scope now: site slab + primary building footprint + floor elevations + central Main Club void + L2 perimeter/VIP shell + rooftop slab + circulation cores.
+Approved scope now: site slab + FULL 120x90 basement shell + primary building footprint + floor elevations + central Main Club void + L2 perimeter/VIP shell + rooftop slab + circulation cores.
 DO NOT add detailed rooms, furniture, neon decoration, UI, music system, support/sawer system, NPCs, or cosmetic props until the primary structure is accepted.
