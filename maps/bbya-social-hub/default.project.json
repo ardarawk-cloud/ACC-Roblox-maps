@@ -20,7 +20,8 @@
       "RuntimeQC": { "$path": "33-runtime-qc.server.lua" },
       "SupportDashboard": { "$path": "34-support-dashboard.server.lua" },
       "DJBoothUpgrade": { "$path": "35-dj-booth-upgrade.server.lua" },
-      "StageSoundStacks": { "$path": "36-stage-sound-stacks.server.lua" }
+      "StageSoundStacks": { "$path": "36-stage-sound-stacks.server.lua" },
+      "UndergroundFurnishMainLight": { "$path": "37-underground-furnish-mainclub-light.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -33,7 +34,7 @@
     },
     "Lighting": {
       "$className": "Lighting",
-      "$properties": { "Brightness": 1.6, "ClockTime": 21 }
+      "$properties": { "Brightness": 2.35, "ClockTime": 21 }
     }
   }
 }
