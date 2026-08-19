@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.9
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v2.0
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -67,16 +67,19 @@ local function drawText3D(parent,name,text,centerX,centerY,zBase,scale,gap,thick
  local line=Instance.new("Model");line.Name=name;line.Parent=parent
  local total=measureText(text,scale,gap)
  local cursor=centerX+(total*.5)
- -- Front facade is viewed from SOUTH (-Z). Mirror the X placement itself so glyph shapes and word order read correctly from that side.
  for i=1,#text do
-  local glyph=LETTERS[text:sub(i,i)] or LETTERS[" "]
+  local ch=text:sub(i,i)
+  local glyph=LETTERS[ch] or LETTERS[" "]
   local glyphLeft=cursor-(glyph.w*scale)
   for si,seg in ipairs(glyph.segs) do
    local localX=(glyph.w-seg.x)*scale
    local gx=glyphLeft+localX
    local gy=centerY+((seg.y-(glyph.h*.5))*scale)
    local rot=0
-   if seg.k=="d" then rot=-seg.r end
+   if seg.k=="d" then
+    -- Slash and 7 need their original diagonal direction after front-side mirroring.
+    if ch=="/" or ch=="7" then rot=seg.r else rot=-seg.r end
+   end
    if seg.k=="h" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,seg.w*scale,thickness*scale,0,faceColor,bodyColor)
    elseif seg.k=="v" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*scale,seg.h*scale,0,faceColor,bodyColor)
    elseif seg.k=="d" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*.9*scale,seg.l*scale,rot,faceColor,bodyColor) end
@@ -98,12 +101,12 @@ local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass
 local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
 part("BBYABackplate",Vector3.new(64,12,.5),CFrame.new(0,28.6,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
-part("SocialHubBackplate",Vector3.new(54,6.8,.5),CFrame.new(0,21.8,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
-part("AlwaysOpenBackplate",Vector3.new(32,5.8,.5),CFrame.new(0,16.4,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
+part("SocialHubBackplate",Vector3.new(54,6.8,.5),CFrame.new(0,21.1,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
+part("AlwaysOpenBackplate",Vector3.new(32,5.8,.5),CFrame.new(0,16.0,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
 
 drawText3D(signModel,"BBYA3D","BBYA",0,29.0,-44.0,1.16,.90,1.45,C.pink,C.pinkBody)
-drawText3D(signModel,"SocialHub3D","SOCIAL HUB",0,21.9,-44.0,.48,.66,1.25,C.pink,C.pinkBody)
-drawText3D(signModel,"AlwaysOpen3D","24 / 7",0,16.55,-43.98,.52,.72,1.20,C.blue,C.blueBody)
+drawText3D(signModel,"SocialHub3D","SOCIAL HUB",0,21.1,-44.0,.48,.66,1.25,C.pink,C.pinkBody)
+drawText3D(signModel,"AlwaysOpen3D","24 / 7",0,16.0,-43.98,.52,.72,1.20,C.blue,C.blueBody)
 
 local z=-44.7
 local pts={Vector3.new(-7.5,36,z),Vector3.new(-6.2,41.3,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.6,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.3,z),Vector3.new(7.5,36,z)}
@@ -118,4 +121,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.34;bloom.Size=22;bloom.Threshold=1.12;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.9: front-side X mirroring corrected")
+print("[BBYA] Entrance validation v2.0: BBYA/SOCIAL spacing refined; slash and 7 corrected")
