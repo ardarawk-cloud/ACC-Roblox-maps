@@ -27,6 +27,9 @@ function deepPrice(x){
   }
   return walk(x,0);
 }
+function compact(item){
+  return {id:idOf(item),name:nameOf(item),price:deepPrice(item),isForSale:item?.isForSale??item?.isOnSale??item?.forSale??null};
+}
 async function getJson(url,auth=true){
   const headers={Accept:'application/json'};
   if(auth&&apiKey) headers['x-api-key']=apiKey;
@@ -70,7 +73,6 @@ function supportScore(item,amount){
     developerProducts=await listCreator(`/developer-products/v2/universes/${universeId}/developer-products/creator`,['developerProducts','products','data']);
   }catch(e){ errors.push(`developer-product creator: ${e.message}`); }
 
-  // Public game-pass fallback if the deploy key lacks game-pass:read.
   if(gamePasses.length===0){
     try{
       const body=await getJson(`https://apis.roblox.com/game-passes/v1/universes/${universeId}/game-passes?passView=Full&pageSize=100`,false);
@@ -95,27 +97,30 @@ function supportScore(item,amount){
       .sort((a,b)=>b.score-a.score);
     const chosen=ranked[0]?.x||null;
     supportProducts[String(amount)]=chosen?idOf(chosen):0;
-    supportMeta[String(amount)]=chosen?{id:idOf(chosen),name:nameOf(chosen),price:deepPrice(chosen)}:null;
+    supportMeta[String(amount)]=chosen?compact(chosen):null;
   }
 
   const result={
     universeId,
     vipGamePassId:vip?idOf(vip):0,
-    vipMeta:vip?{id:idOf(vip),name:nameOf(vip),price:deepPrice(vip)}:null,
+    vipMeta:vip?compact(vip):null,
+    gamePasses:gamePasses.map(compact),
     supportProducts,
     supportMeta,
+    developerProducts:developerProducts.map(compact),
     discovered:{gamePasses:gamePasses.length,developerProducts:developerProducts.length},
     errors,
   };
   fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n');
   console.log('[BBYA COMMERCE] resolved',JSON.stringify({
     vipGamePassId:result.vipGamePassId,
+    gamePasses:result.gamePasses,
     supportProducts:result.supportProducts,
     discovered:result.discovered,
     errors:result.errors,
   }));
 })().catch(err=>{
   console.error('[BBYA COMMERCE] fatal resolver error',err);
-  fs.writeFileSync(out,JSON.stringify({universeId,vipGamePassId:0,supportProducts:Object.fromEntries(desired.map(x=>[String(x),0])),errors:[String(err)]},null,2)+'\n');
+  fs.writeFileSync(out,JSON.stringify({universeId,vipGamePassId:0,gamePasses:[],supportProducts:Object.fromEntries(desired.map(x=>[String(x),0])),developerProducts:[],errors:[String(err)]},null,2)+'\n');
   process.exitCode=0;
 });
