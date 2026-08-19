@@ -22,6 +22,7 @@ const serverFiles = [
   'maps/a-club/rebuild/45-owner-layout-fix.server.lua',
   'maps/a-club/rebuild/60-social-systems.server.lua',
   'maps/a-club/rebuild/65-live-services.server.lua',
+  'maps/a-club/rebuild/66-support-receipt-hotfix.server.lua',
   'maps/a-club/rebuild/50-qc.server.lua',
   'maps/a-club/rebuild/80-release-gate.server.lua',
 ];
