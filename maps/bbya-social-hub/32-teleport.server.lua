@@ -9,6 +9,7 @@ local destinations={
  Queen=CFrame.new(-43,28,10),
  Rooftop=CFrame.new(0,48,-34),
  Pool=CFrame.new(0,48,-12),
+ Basement=CFrame.new(0,-12,0),
 }
 tp.OnServerEvent:Connect(function(player,key)
  local cf=destinations[key];if not cf then return end
