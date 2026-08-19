@@ -1,6 +1,6 @@
 -- BBYA SOCIAL HUB — OWNER LIVE LAYOUT FIX
 -- Removes noisy/incorrect signage, hardens facade glass, builds a gated VIP entrance,
--- and cuts a real stairwell opening so the rooftop is physically reachable.
+-- opens a real rooftop stairwell, and keeps the arrival/support forecourt visually clean.
 
 local MarketplaceServiceLayout=game:GetService("MarketplaceService")
 
@@ -11,6 +11,12 @@ end
 local function destroyNamed(name)
     local obj=findDeep(name)
     if obj then obj:Destroy() end
+end
+
+local function destroyPrefix(prefix)
+    for _,obj in ipairs(workspace:GetDescendants()) do
+        if string.sub(obj.Name,1,#prefix)==prefix then obj:Destroy() end
+    end
 end
 
 local function setSignText(partObj,text)
@@ -38,6 +44,9 @@ for _,name in ipairs({
 }) do
     destroyNamed(name)
 end
+
+-- Owner correction: arrival/support forecourt must stay open. Remove the loose benches/chairs shown in live screenshots.
+destroyPrefix("ARRIVAL SEAT ")
 
 local mainBrand=findDeep("MAIN BBYA WORDMARK")
 if mainBrand and mainBrand:IsA("BasePart") then
@@ -162,8 +171,9 @@ rail(A6,"ROOF STAIRWELL EAST RAIL",Vector3.new(.45,4.8,36),CFrame.new(96.1,35,61
 rail(A6,"ROOF STAIRWELL FRONT RAIL",Vector3.new(16,4.8,.45),CFrame.new(88,35,42.2))
 neon(A6,"ROOF STAIR ARRIVAL GLOW",Vector3.new(12,.14,.14),CFrame.new(88,33.05,75),C.warm)
 
-workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V1")
+workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V2")
 workspace:SetAttribute("BBYAFacadeGlassSolid",true)
 workspace:SetAttribute("BBYAVIPDoorInstalled",true)
 workspace:SetAttribute("BBYAVIPPassResolved",VIP_GAMEPASS_ID>0)
 workspace:SetAttribute("BBYARooftopStairwellOpen",true)
+workspace:SetAttribute("BBYAArrivalSeatsRemoved",true)
