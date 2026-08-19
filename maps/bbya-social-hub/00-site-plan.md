@@ -1,62 +1,86 @@
-# BBYA SOCIAL HUB — ZERO BASELINE SITE PLAN
+# BBYA SOCIAL HUB — PRIMARY STRUCTURE BASELINE
 
-Status: SITE MAPPING ONLY. No architecture, UI, music, support, or decoration yet.
+Status: STRUCTURE MAPPING ONLY. No decoration, UI, music, support system, furniture, lighting show, or neon detailing yet.
 
-## Reference footprint
-Target usable site: 160 x 120 studs (19,200 stud²), rectangular entertainment compound.
-Reserve 10 studs perimeter/service margin around the compound.
-Coordinate convention: X = west/east, Z = front/back. Main public entrance faces SOUTH (-Z).
-Ground datum Y = 0.
+## Core rule
+BBYA is a compact VERTICAL Social Hub. Do not stretch the major program into a long horizontal compound.
+Main public entertainment floors stack vertically around one central building footprint.
 
-## Horizontal zoning
-Overall usable bounds: X -80..80, Z -60..60.
+## Site / building envelope
+- Site: 160 x 120 studs.
+- Main building footprint target: approx 120 x 90 studs, centered on site.
+- Front setback / arrival forecourt: approx 20 studs.
+- Side/rear service clearance retained.
+- Main entrance faces SOUTH (-Z).
 
-### SOUTH / ARRIVAL BAND — Z -60..-30
-- 01 Arrival Plaza: X -24..24, Z -60..-46
-- 02 Reception / main entrance: X -24..24, Z -46..-30
-- 03 Photo/Selfie zone: X -70..-30, Z -56..-32
-- 04 Salon/Look Studio A: X -70..-30, Z -30..-6
-- 04 Salon/Look Studio B / flexible social room: X 30..70, Z -56..-30
+## Primary vertical stack
 
-### CENTER / MAIN SOCIAL-CLUB CORE — Z -30..25
-- 05 Main Dance Floor: X -30..32, Z -22..22
-- 06 DJ Booth: X -12..12, Z 14..24
-- 07 Stage / Lighting Show: X -26..26, Z 22..30
-- 08 Main Bar: X 34..70, Z -18..18
-- Social circulation ring: minimum 10 studs clear around dance floor.
+### B — BASEMENT | Y -16..0
+Back-of-house only:
+- Staff area
+- Storage
+- Technical / utilities
+- Service circulation
+No primary public attraction here.
 
-### WEST / VIP-SOCIAL WING — X -70..-32, Z -6..35
-- 09 VIP Lounge: X -70..-34, Z -2..25
-- 10 BBYA Queen Skybox footprint above VIP wing
+### L1 — MAIN CLUB + ARRIVAL | Y 0..24
+This is the MAIN CLUB floor and the first major public experience.
+- Entrance / arrival threshold at front
+- Reception integrated into entry sequence
+- Main Dance Floor as central dominant void
+- DJ Booth
+- Stage / Lighting Show position
+- Main Bar
+- Ground-level social circulation / lounge edges
+- Photo / selfie and look/social support spaces may occupy front/side edge without replacing the Main Club
 
-### NORTH / PREMIUM WING — Z 25..52
-- 11 VIP Balcony: overlooking Main Dance Floor
-- 12 Private Rooms: X 30..70, Z 24..50
-- Service corridor behind premium rooms: minimum 8 studs.
+Structural intent:
+- Large central double-height club volume.
+- Clear sightline from arrival toward the club interior.
+- Perimeter columns/walls only where needed; avoid chopping dance floor into small rooms.
 
-## Vertical zoning
-B — Basement / service: Y -16..0
-1 — Arrival / social ground: Y 0..16
-2 — Main Club: Y 16..36
-3 — VIP level: Y 36..54
-R — Rooftop: Y 54..70
+### L2 — VIP LEVEL | Y 24..44
+Premium floor wrapped around / overlooking the Main Club.
+- VIP Lounge
+- BBYA Queen Skybox
+- VIP Balcony overlooking dance floor
+- Private Rooms
+- Premium circulation
 
-## Rooftop allocation
-- 13 Infinity Pool: X -45..35, Z -8..28, approx 80 x 36 studs
-- 14 Pool DJ Deck: centered pool-side, approx 20 x 16 studs
-- 15 Sky Bar: east/north rooftop edge
-- 16 Cabanas: north and west pool perimeter
-- 17 View Deck / City View: east rooftop edge
+Structural intent:
+- L2 should NOT fully cap the Main Club.
+- Keep a large central opening/atrium above the dance floor so VIP users can see the club below.
+- VIP rooms/lounges form perimeter wings around the opening.
 
-## Circulation lock
-- Main public route: Arrival Plaza -> Reception -> Social Ground -> Main Club -> VIP access -> Rooftop.
-- Rooftop access must not cut through dance floor.
-- VIP circulation separated from main crowd where practical.
-- Service route runs perimeter/back-of-house and does not cross main arrival axis.
-- Minimum main corridor width: 10 studs.
-- Minimum secondary corridor width: 7 studs.
-- Main staircase width: 12 studs minimum.
+### R — ROOFTOP POOL & SOCIAL DECK | Y 44..58+
+Outdoor premium social level.
+- Infinity Pool
+- Pool DJ Deck
+- Sky Bar
+- Cabanas
+- View Deck / City View
+- Open social deck
+
+Structural intent:
+- Rooftop is a full destination, not a tiny roof accessory.
+- Pool is the dominant rooftop anchor.
+- Preserve open skyline / city-view edges.
+
+## Vertical circulation
+- Main public stairs/lift core: L1 -> L2 -> Rooftop.
+- VIP access can be controlled at L2 entry.
+- Rooftop route must not cross the center of the dance floor.
+- Separate basement/service circulation where practical.
+- Main stairs minimum 12 studs wide.
+- Secondary/service stairs minimum 7 studs wide.
+
+## Structural massing lock
+From outside, the building should read as ONE premium multi-level entertainment complex:
+1. Strong entrance/frontage at L1.
+2. Tall Main Club volume visible in the central mass.
+3. L2 VIP perimeter/balcony mass wrapping the club void.
+4. Rooftop pool/social deck visibly crowning the building.
 
 ## Current build gate
-Only site footprint, coordinates, zoning, elevations and circulation are approved at this stage.
-DO NOT generate buildings or decorative neon from this file until the site map is accepted.
+Approved scope now: site slab + primary building footprint + floor elevations + central Main Club void + L2 perimeter/VIP shell + rooftop slab + circulation cores.
+DO NOT add detailed rooms, furniture, neon decoration, UI, music system, support/sawer system, NPCs, or cosmetic props until the primary structure is accepted.
