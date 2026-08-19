@@ -22,7 +22,10 @@ const serverFiles=[
   'maps/a-club/rebuild/50-qc.server.lua',
   'maps/a-club/rebuild/80-release-gate.server.lua',
 ];
-const clientFiles=['maps/a-club/rebuild/70-ui.client.lua'];
+const clientFiles=[
+  'maps/a-club/rebuild/70-ui.client.lua',
+  'maps/a-club/rebuild/71-ui-consolidate.client.lua',
+];
 for(const file of [...serverFiles,...clientFiles]){
   if(!fs.existsSync(path.join(root,file))) throw new Error(`Missing BBYA clean source: ${file}`);
   if(/\/v[0-9]+\//.test(file)) throw new Error(`Archived source forbidden: ${file}`);
