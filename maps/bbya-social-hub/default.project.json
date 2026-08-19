@@ -26,7 +26,8 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "RuntimeEditorClient": { "$path": "23-editor.client.lua" },
-        "ClubUI": { "$path": "31-club-ui.client.lua" }
+        "ClubUI": { "$path": "31-club-ui.client.lua" },
+        "ResponsiveUIPatch": { "$path": "35-ui-responsive-patch.client.lua" }
       }
     },
     "Lighting": {
