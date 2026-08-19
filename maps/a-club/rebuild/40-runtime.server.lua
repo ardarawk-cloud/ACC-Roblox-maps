@@ -1,4 +1,5 @@
--- BBYA SOCIAL HUB — CLEAN REBUILD RUNTIME
+-- BBYA SOCIAL HUB — V7 CLEAN RUNTIME
+-- Minimal server runtime: safe arrival, fall recovery, readable in-world routing.
 
 local spawn=Instance.new("SpawnLocation")
 spawn.Name="BBYA ARRIVAL SPAWN"
@@ -36,12 +37,11 @@ Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(bindCharacter)
 end)
 
--- Small in-world route signs only; architecture remains the primary navigation.
 sign(A2,"ROUTE CLUB","CLUB  ←",CFrame.new(-2,6,-4),Vector3.new(11,2,.25),C.pink,Enum.NormalId.Front)
 sign(A2,"ROUTE VIP","VIP  →",CFrame.new(38,6,-4),Vector3.new(11,2,.25),C.gold,Enum.NormalId.Front)
 sign(A5,"ROUTE ROOF","ROOFTOP  ↑",CFrame.new(92,8,74),Vector3.new(14,2,.25),C.cyan,Enum.NormalId.Front)
 
 ROOT:SetAttribute("SpawnReady",true)
 ROOT:SetAttribute("SafetyRuntime",true)
-ROOT:SetAttribute("RuntimePhase","PHASE_2_PREMIUM_BUILD")
-workspace:SetAttribute("BBYARuntime","ACTIVE_PHASE_2")
+ROOT:SetAttribute("RuntimePhase","V7_CLEAN_PREVIEW")
+workspace:SetAttribute("BBYARuntime","V7_CLEAN_PREVIEW")
