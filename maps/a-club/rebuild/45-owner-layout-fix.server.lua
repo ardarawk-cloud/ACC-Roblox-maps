@@ -153,10 +153,19 @@ end)
 
 -- =========================================================
 -- REAL ROOFTOP ACCESS.
--- The previous single solid roof slab crossed the stair path. Split it around a stairwell.
+-- Open BOTH obstruction layers: VIP ceiling at Y=18 and rooftop deck at Y=31.
+-- The stair flight is centered around X=88, Z=47..68.
 -- =========================================================
-destroyNamed("ROOFTOP DECK")
 
+-- 1) Cut a real stairwell through the VIP ceiling. The old full slab blocked the second flight.
+destroyNamed("VIP CEILING")
+part(A5,"VIP CEILING WEST",Vector3.new(50,1,84),CFrame.new(57,18,35),C.charcoal,Enum.Material.Concrete,0,true)
+part(A5,"VIP CEILING EAST",Vector3.new(10,1,84),CFrame.new(99,18,35),C.charcoal,Enum.Material.Concrete,0,true)
+part(A5,"VIP CEILING FRONT BRIDGE",Vector3.new(12,1,49),CFrame.new(88,18,17.5),C.charcoal,Enum.Material.Concrete,0,true)
+part(A5,"VIP CEILING REAR CAP",Vector3.new(12,1,4),CFrame.new(88,18,75),C.charcoal,Enum.Material.Concrete,0,true)
+
+-- 2) Split rooftop deck around the upper stairwell opening.
+destroyNamed("ROOFTOP DECK")
 part(A6,"ROOFTOP DECK WEST",Vector3.new(87,2,92),CFrame.new(36.5,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
 part(A6,"ROOFTOP DECK EAST FRONT",Vector3.new(16,2,54),CFrame.new(88,31,15),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
 part(A6,"ROOFTOP DECK EAST EDGE",Vector3.new(7,2,92),CFrame.new(99.5,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
@@ -171,9 +180,10 @@ rail(A6,"ROOF STAIRWELL EAST RAIL",Vector3.new(.45,4.8,36),CFrame.new(96.1,35,61
 rail(A6,"ROOF STAIRWELL FRONT RAIL",Vector3.new(16,4.8,.45),CFrame.new(88,35,42.2))
 neon(A6,"ROOF STAIR ARRIVAL GLOW",Vector3.new(12,.14,.14),CFrame.new(88,33.05,75),C.warm)
 
-workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V2")
+workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V3")
 workspace:SetAttribute("BBYAFacadeGlassSolid",true)
 workspace:SetAttribute("BBYAVIPDoorInstalled",true)
 workspace:SetAttribute("BBYAVIPPassResolved",VIP_GAMEPASS_ID>0)
 workspace:SetAttribute("BBYARooftopStairwellOpen",true)
+workspace:SetAttribute("BBYAVIPCeilingStairwellOpen",true)
 workspace:SetAttribute("BBYAArrivalSeatsRemoved",true)
