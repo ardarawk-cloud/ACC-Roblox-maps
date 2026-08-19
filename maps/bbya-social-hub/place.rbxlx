@@ -1,0 +1,52 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+<External>null</External><External>nil</External>
+<Item class="Workspace" referent="RBXBBYAWORKSPACE"><Properties><string name="Name">Workspace</string></Properties></Item>
+<Item class="Lighting" referent="RBXBBYALIGHTING"><Properties><float name="Brightness">1.6</float><double name="ClockTime">21</double><string name="Name">Lighting</string><Color3 name="Ambient"><R>0.12</R><G>0.08</G><B>0.14</B></Color3><Color3 name="OutdoorAmbient"><R>0.05</R><G>0.04</G><B>0.08</B></Color3></Properties></Item>
+<Item class="ServerScriptService" referent="RBXBBYASSS"><Properties><string name="Name">ServerScriptService</string></Properties>
+<Item class="Script" referent="RBXBBYABUILD"><Properties><string name="Name">BBYAZeroPreview</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[
+local W=game:GetService("Workspace")
+local L=game:GetService("Lighting")
+for _,c in ipairs(W:GetChildren()) do if c.Name=="BBYA_ZERO_BUILD" then c:Destroy() end end
+local root=Instance.new("Folder",W); root.Name="BBYA_ZERO_BUILD"
+local function p(n,s,pos,col,mat,tr,parent)
+ local x=Instance.new("Part");x.Name=n;x.Anchored=true;x.CanCollide=true;x.Size=s;x.CFrame=CFrame.new(pos);x.Color=col;x.Material=mat or Enum.Material.SmoothPlastic;x.Transparency=tr or 0;x.Parent=parent or root;return x
+end
+local pink=Color3.fromRGB(255,37,149)
+local dark=Color3.fromRGB(12,9,14)
+local wall=Color3.fromRGB(28,22,29)
+local floor=Color3.fromRGB(53,43,48)
+local warm=Color3.fromRGB(255,177,110)
+local glass=Color3.fromRGB(50,25,52)
+local green=Color3.fromRGB(55,85,62)
+-- site + building footprint preview
+p("Site",Vector3.new(160,1,120),Vector3.new(0,-0.5,0),Color3.fromRGB(18,18,22),Enum.Material.Slate)
+p("BasementFloor",Vector3.new(120,1,90),Vector3.new(0,-15.5,0),Color3.fromRGB(24,24,28),Enum.Material.Concrete)
+p("BasementNorth",Vector3.new(120,16,2),Vector3.new(0,-8,44),Color3.fromRGB(20,20,24),Enum.Material.Concrete)
+p("BasementSouth",Vector3.new(120,16,2),Vector3.new(0,-8,-44),Color3.fromRGB(20,20,24),Enum.Material.Concrete)
+p("BasementWest",Vector3.new(2,16,88),Vector3.new(-59,-8,0),Color3.fromRGB(20,20,24),Enum.Material.Concrete)
+p("BasementEast",Vector3.new(2,16,88),Vector3.new(59,-8,0),Color3.fromRGB(20,20,24),Enum.Material.Concrete)
+-- arrival + entrance matching reference composition
+p("ArrivalForecourt",Vector3.new(72,1,25),Vector3.new(0,0,-55),floor,Enum.Material.Slate)
+p("EntryFloor",Vector3.new(72,1,34),Vector3.new(0,0,-31),floor,Enum.Material.Slate)
+p("FacadeLeft",Vector3.new(18,22,6),Vector3.new(-27,11,-45),dark)
+p("FacadeRight",Vector3.new(18,22,6),Vector3.new(27,11,-45),dark)
+p("FacadeTop",Vector3.new(36,6,6),Vector3.new(0,19,-45),dark)
+local sign=p("SignPanel",Vector3.new(54,13,1.2),Vector3.new(0,23.5,-42.7),wall)
+local sg=Instance.new("SurfaceGui",sign);sg.Face=Enum.NormalId.Front;sg.AlwaysOnTop=true;sg.PixelsPerStud=35;sg.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+local t=Instance.new("TextLabel",sg);t.BackgroundTransparency=1;t.Size=UDim2.fromScale(1,1);t.Text="♕\nBBYA\nSOCIAL HUB";t.TextColor3=pink;t.TextScaled=true;t.Font=Enum.Font.GothamMedium;t.TextStrokeTransparency=.8
+for _,d in ipairs({{-34.2,.6,-55,.35,.18,22},{34.2,.6,-55,.35,.18,22},{0,29.9,-42.05,54,.2,.3},{0,17.1,-42.05,54,.2,.3},{0,15.4,-37,54,.18,.22}}) do p("Neon",Vector3.new(d[4],d[5],d[6]),Vector3.new(d[1],d[2],d[3]),pink,Enum.Material.Neon,0) end
+local gl=p("GlassLeft",Vector3.new(16,14,.5),Vector3.new(-25,9,-41.8),glass,Enum.Material.Glass,.35);gl.CanCollide=false
+local gr=p("GlassRight",Vector3.new(16,14,.5),Vector3.new(25,9,-41.8),glass,Enum.Material.Glass,.35);gr.CanCollide=false
+p("EntryCeiling",Vector3.new(72,1,25),Vector3.new(0,16,-29),dark)
+p("ShowcaseBack",Vector3.new(26,9,1),Vector3.new(-22,6,-19),wall)
+local sh=p("ShowcaseGlass",Vector3.new(24,7,.4),Vector3.new(-22,6,-18.4),glass,Enum.Material.Glass,.28);sh.CanCollide=false
+p("ShowcaseCounter",Vector3.new(24,3,5),Vector3.new(-22,2.1,-20),wall)
+p("ShowcaseGlow",Vector3.new(23,.18,.25),Vector3.new(-22,8.7,-18.1),pink,Enum.Material.Neon)
+for i,x in ipairs({-12,9}) do p("Sofa"..i,Vector3.new(10,2.4,4.5),Vector3.new(x,1.7,-9),Color3.fromRGB(23,18,25),Enum.Material.Fabric);p("Table"..i,Vector3.new(5.5,1.2,3.2),Vector3.new(x,1.1,-4.8),Color3.fromRGB(48,35,42)) end
+for i,x in ipairs({-31,31}) do p("Planter"..i,Vector3.new(7,2.5,7),Vector3.new(x,1.5,-33),wall,Enum.Material.Slate);local plant=p("Plant"..i,Vector3.new(1.8,4.5,1.8),Vector3.new(x,4.2,-33),green,Enum.Material.Grass);plant.CanCollide=false;p("PlanterGlow"..i,Vector3.new(6.2,.15,6.2),Vector3.new(x,2.84,-33),pink,Enum.Material.Neon) end
+for _,v in ipairs({Vector3.new(-31,8,-25),Vector3.new(31,8,-25),Vector3.new(-31,8,-11),Vector3.new(31,8,-11)}) do local f=p("WarmLight",Vector3.new(.35,1.8,.35),v,warm,Enum.Material.Neon);local q=Instance.new("PointLight",f);q.Color=warm;q.Brightness=1.3;q.Range=13;q.Shadows=true end
+local sp=Instance.new("SpawnLocation",root);sp.Name="EntranceSpawn";sp.Anchored=true;sp.Neutral=true;sp.Size=Vector3.new(7,1,7);sp.CFrame=CFrame.lookAt(Vector3.new(0,1,-65),Vector3.new(0,1,-30));sp.Transparency=1
+local cc=Instance.new("ColorCorrectionEffect",L);cc.Name="BBYAPreviewColor";cc.Brightness=-.04;cc.Contrast=.12;cc.TintColor=Color3.fromRGB(255,225,244)
+]]></ProtectedString></Properties></Item>
+</Item>
+</roblox>
