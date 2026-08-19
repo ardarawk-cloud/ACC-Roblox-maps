@@ -1,7 +1,5 @@
--- BBYA SOCIAL HUB — ENTRANCE BUILD v0.1
--- Reference target: dark premium entry lobby with large BBYA SOCIAL HUB sign,
--- warm interior lighting, glass-front lounge/bar view, planter accents, clear walk-in axis.
--- Scope ONLY: entrance / arrival threshold. No club core, VIP, rooftop, UI or systems.
+-- BBYA SOCIAL HUB — ENTRANCE BUILD v0.2
+-- Goal: visually match the supplied entrance reference before any other BBYA zone is expanded.
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -22,17 +20,21 @@ model.Name = "Entrance"
 model.Parent = root
 
 local C = {
-    black = Color3.fromRGB(10, 8, 13),
-    charcoal = Color3.fromRGB(22, 18, 25),
-    wall = Color3.fromRGB(28, 22, 29),
-    floor = Color3.fromRGB(52, 42, 48),
-    trim = Color3.fromRGB(255, 37, 149),
-    warm = Color3.fromRGB(255, 177, 110),
-    glass = Color3.fromRGB(43, 24, 48),
-    green = Color3.fromRGB(54, 82, 61),
+    black = Color3.fromRGB(8,7,11),
+    charcoal = Color3.fromRGB(23,18,26),
+    wall = Color3.fromRGB(35,27,36),
+    wallWarm = Color3.fromRGB(47,35,40),
+    floor = Color3.fromRGB(73,59,61),
+    floor2 = Color3.fromRGB(88,69,68),
+    pink = Color3.fromRGB(255,42,157),
+    magenta = Color3.fromRGB(236,28,146),
+    warm = Color3.fromRGB(255,185,118),
+    warmDim = Color3.fromRGB(209,127,75),
+    glass = Color3.fromRGB(61,35,63),
+    green = Color3.fromRGB(59,91,66),
 }
 
-local function part(name, size, cf, color, material, transparency)
+local function part(name, size, cf, color, material, transparency, parent)
     local p = Instance.new("Part")
     p.Name = name
     p.Anchored = true
@@ -42,154 +44,174 @@ local function part(name, size, cf, color, material, transparency)
     p.Color = color
     p.Material = material or Enum.Material.SmoothPlastic
     p.Transparency = transparency or 0
-    p.Parent = model
+    p.Parent = parent or model
     return p
 end
 
-local function neon(name, size, cf, color)
-    local p = part(name, size, cf, color, Enum.Material.Neon)
+local function neon(name, size, cf, color, parent)
+    local p = part(name,size,cf,color or C.pink,Enum.Material.Neon,0,parent)
     p.CanCollide = false
     return p
 end
 
-local function surfaceText(partObj, face, text, color, textSize)
+local function pointLight(parent,color,brightness,range)
+    local l = Instance.new("PointLight")
+    l.Color = color
+    l.Brightness = brightness
+    l.Range = range
+    l.Shadows = true
+    l.Parent = parent
+    return l
+end
+
+local function textSign(parent,text,size,color)
     local gui = Instance.new("SurfaceGui")
-    gui.Name = "SignGui"
-    gui.Face = face
+    gui.Face = Enum.NormalId.Front
     gui.AlwaysOnTop = true
     gui.LightInfluence = 0
     gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-    gui.PixelsPerStud = 35
-    gui.Parent = partObj
-
-    local label = Instance.new("TextLabel")
-    label.BackgroundTransparency = 1
-    label.Size = UDim2.fromScale(1,1)
-    label.Text = text
-    label.TextColor3 = color
-    label.TextScaled = false
-    label.TextSize = textSize or 72
-    label.Font = Enum.Font.GothamMedium
-    label.TextStrokeTransparency = 0.75
-    label.TextXAlignment = Enum.TextXAlignment.Center
-    label.TextYAlignment = Enum.TextYAlignment.Center
-    label.Parent = gui
-    return label
+    gui.PixelsPerStud = 50
+    gui.Parent = parent
+    local t = Instance.new("TextLabel")
+    t.BackgroundTransparency = 1
+    t.Size = UDim2.fromScale(1,1)
+    t.Text = text
+    t.TextColor3 = color
+    t.TextScaled = true
+    t.Font = Enum.Font.GothamMedium
+    t.TextStrokeTransparency = .72
+    t.Parent = gui
+    return t
 end
 
--- Coordinate convention: front / public approach is SOUTH (-Z).
--- Entrance occupies central front portion of the 120x90 building footprint.
+-- ===== ARRIVAL FORECOURT =====
+part("ArrivalForecourt",Vector3.new(78,1,28),CFrame.new(0,0,-58),C.floor2,Enum.Material.Slate)
+part("EntranceFloor",Vector3.new(78,1,40),CFrame.new(0,0,-25),C.floor,Enum.Material.Slate)
 
--- Arrival forecourt / approach
-part("ArrivalForecourt", Vector3.new(70, 1, 24), CFrame.new(0, 0, -55), C.floor, Enum.Material.Slate)
-neon("ArrivalEdgeLeft", Vector3.new(0.35, 0.18, 22), CFrame.new(-34.2, 0.62, -55), C.trim)
-neon("ArrivalEdgeRight", Vector3.new(0.35, 0.18, 22), CFrame.new(34.2, 0.62, -55), C.trim)
+-- warm walkway strips; reference is not pure-black underfoot
+for _,x in ipairs({-34,-17,0,17,34}) do
+    neon("WarmFloorStrip",Vector3.new(.16,.08,34),CFrame.new(x,.56,-25),C.warmDim)
+end
+neon("FrontThresholdPink",Vector3.new(70,.1,.24),CFrame.new(0,.57,-44),C.pink)
 
--- Main threshold floor continuing inside
-part("EntranceFloor", Vector3.new(70, 1, 32), CFrame.new(0, 0, -31), C.floor, Enum.Material.Slate)
+-- ===== LARGE REAL FACADE =====
+-- full-width wall masses instead of isolated pillars
+part("FacadeLeftWing",Vector3.new(24,26,10),CFrame.new(-31,13,-42),C.black)
+part("FacadeRightWing",Vector3.new(24,26,10),CFrame.new(31,13,-42),C.black)
+part("FacadeHeader",Vector3.new(42,10,10),CFrame.new(0,23,-42),C.black)
+part("FacadeBackLeft",Vector3.new(2,18,28),CFrame.new(-42,9,-25),C.charcoal)
+part("FacadeBackRight",Vector3.new(2,18,28),CFrame.new(42,9,-25),C.charcoal)
 
--- Tall facade side masses, leaving broad central opening
-part("FacadeLeft", Vector3.new(18, 22, 6), CFrame.new(-26, 11, -45), C.black, Enum.Material.SmoothPlastic)
-part("FacadeRight", Vector3.new(18, 22, 6), CFrame.new(26, 11, -45), C.black, Enum.Material.SmoothPlastic)
-part("FacadeTop", Vector3.new(34, 6, 6), CFrame.new(0, 19, -45), C.black, Enum.Material.SmoothPlastic)
+-- strong neon outline framing the entry
+neon("FacadePinkTop",Vector3.new(74,.28,.34),CFrame.new(0,18.1,-36.8),C.pink)
+neon("FacadePinkLeft",Vector3.new(.28,18,.34),CFrame.new(-36,9,-36.8),C.pink)
+neon("FacadePinkRight",Vector3.new(.28,18,.34),CFrame.new(36,9,-36.8),C.pink)
 
--- Sign panel above entrance, close to reference composition
-local signPanel = part("MainSignPanel", Vector3.new(52, 13, 1.2), CFrame.new(0, 23.5, -42.7), C.charcoal, Enum.Material.SmoothPlastic)
-surfaceText(signPanel, Enum.NormalId.Front, "♕\nBBYA\nSOCIAL HUB", C.trim, 78)
-neon("SignGlowTop", Vector3.new(52, 0.25, 0.35), CFrame.new(0, 29.9, -42.05), C.trim)
-neon("SignGlowBottom", Vector3.new(52, 0.18, 0.35), CFrame.new(0, 17.1, -42.05), C.trim)
+-- ===== DOMINANT BBYA SIGN =====
+-- lower and much larger so it fills the first-person view like the reference
+local signPanel = part("MainSignPanel",Vector3.new(66,18,1.3),CFrame.new(0,25.5,-36.6),C.charcoal)
+textSign(signPanel,"BBYA\nSOCIAL HUB",110,C.pink)
+local crownPanel = part("CrownPanel",Vector3.new(17,7,.9),CFrame.new(0,36.8,-36.5),C.charcoal)
+textSign(crownPanel,"♕",90,C.pink)
+neon("SignTopGlow",Vector3.new(65,.2,.3),CFrame.new(0,34.4,-35.9),C.magenta)
+neon("SignBottomGlow",Vector3.new(65,.15,.3),CFrame.new(0,16.6,-35.9),C.magenta)
 
--- Open entry aperture and glass strips on both sides
-local glassL = part("GlassLeft", Vector3.new(16, 14, 0.5), CFrame.new(-25, 9, -41.8), C.glass, Enum.Material.Glass, 0.38)
-glassL.CanCollide = false
-local glassR = part("GlassRight", Vector3.new(16, 14, 0.5), CFrame.new(25, 9, -41.8), C.glass, Enum.Material.Glass, 0.38)
-glassR.CanCollide = false
+-- ===== OPEN ENTRY / GLASS =====
+local gL = part("GlassLeft",Vector3.new(18,15,.55),CFrame.new(-26,8.5,-35.4),C.glass,Enum.Material.Glass,.22)
+local gR = part("GlassRight",Vector3.new(18,15,.55),CFrame.new(26,8.5,-35.4),C.glass,Enum.Material.Glass,.22)
+gL.CanCollide=false; gR.CanCollide=false
 
--- Interior ceiling bands; open central sightline
-part("EntryCeiling", Vector3.new(70, 1, 25), CFrame.new(0, 16, -29), C.black, Enum.Material.SmoothPlastic)
-neon("CeilingPinkBand", Vector3.new(54, 0.18, 0.22), CFrame.new(0, 15.4, -37), C.trim)
+-- ===== INTERIOR DEPTH =====
+part("InteriorCeiling",Vector3.new(82,1,40),CFrame.new(0,17,-16),C.black)
+part("InteriorRearWall",Vector3.new(82,18,2),CFrame.new(0,9,4),C.charcoal)
+part("InteriorLeftWall",Vector3.new(2,18,40),CFrame.new(-41,9,-16),C.wall)
+part("InteriorRightWall",Vector3.new(2,18,40),CFrame.new(41,9,-16),C.wall)
 
--- Interior left showcase / bar-like glass counter visible from entrance
-part("ShowcaseBack", Vector3.new(26, 9, 1), CFrame.new(-22, 6, -19), C.charcoal, Enum.Material.SmoothPlastic)
-local showcaseGlass = part("ShowcaseGlass", Vector3.new(24, 7, 0.4), CFrame.new(-22, 6, -18.4), C.glass, Enum.Material.Glass, 0.3)
-showcaseGlass.CanCollide = false
-part("ShowcaseCounter", Vector3.new(24, 3, 5), CFrame.new(-22, 2.1, -20), C.wall, Enum.Material.SmoothPlastic)
-neon("ShowcaseGlow", Vector3.new(23, 0.18, 0.25), CFrame.new(-22, 8.7, -18.1), C.trim)
-
--- Warm visible social seating islands as seen through entrance
-for i, x in ipairs({-12, 9}) do
-    part("LowSofa"..i, Vector3.new(10, 2.4, 4.5), CFrame.new(x, 1.7, -9), C.charcoal, Enum.Material.Fabric)
-    part("LowTable"..i, Vector3.new(5.5, 1.2, 3.2), CFrame.new(x, 1.1, -4.8), Color3.fromRGB(48,35,42), Enum.Material.SmoothPlastic)
+-- warm ceiling grid / practical lighting so the room reads instead of disappearing
+for _,x in ipairs({-30,-15,0,15,30}) do
+    local lamp = neon("CeilingWarm",Vector3.new(8,.18,.35),CFrame.new(x,16.3,-22),C.warm)
+    pointLight(lamp,C.warm,1.6,16)
+end
+for _,z in ipairs({-30,-18,-6}) do
+    local lamp = neon("CeilingPink",Vector3.new(5,.16,.3),CFrame.new(0,16.2,z),C.pink)
+    pointLight(lamp,C.pink,1.1,12)
 end
 
--- Side planter blocks framing the approach
-for i, x in ipairs({-31, 31}) do
-    part("Planter"..i, Vector3.new(7, 2.5, 7), CFrame.new(x, 1.5, -33), C.charcoal, Enum.Material.Slate)
-    local plant = part("PlantCore"..i, Vector3.new(1.8, 4.5, 1.8), CFrame.new(x, 4.2, -33), C.green, Enum.Material.Grass)
-    plant.CanCollide = false
-    neon("PlanterGlow"..i, Vector3.new(6.2, 0.15, 6.2), CFrame.new(x, 2.84, -33), C.trim)
+-- ===== LEFT SHOWCASE / BAR WINDOW =====
+part("ShowcaseWall",Vector3.new(31,11,1.4),CFrame.new(-22,6.5,-8),C.charcoal)
+local showGlass = part("ShowcaseGlass",Vector3.new(28,8,.35),CFrame.new(-22,7,-7.2),C.glass,Enum.Material.Glass,.18)
+showGlass.CanCollide=false
+part("ShowcaseCounter",Vector3.new(27,2.6,5.5),CFrame.new(-22,2,-10),C.wallWarm,Enum.Material.Slate)
+neon("ShowcaseTopGlow",Vector3.new(28,.2,.28),CFrame.new(-22,11,-7),C.pink)
+for _,x in ipairs({-31,-25,-19,-13}) do
+    local s=neon("ShelfWarm",Vector3.new(3.5,.12,.2),CFrame.new(x,6.5,-6.95),C.warm)
+    pointLight(s,C.warm,0.5,6)
 end
 
--- Warm wall sconces / lobby points
-for _, pos in ipairs({
-    Vector3.new(-31, 8, -25), Vector3.new(31, 8, -25),
-    Vector3.new(-31, 8, -11), Vector3.new(31, 8, -11)
-}) do
-    local fixture = neon("WarmFixture", Vector3.new(0.35, 1.8, 0.35), CFrame.new(pos), C.warm)
-    local light = Instance.new("PointLight")
-    light.Color = C.warm
-    light.Brightness = 1.3
-    light.Range = 13
-    light.Shadows = true
-    light.Parent = fixture
+-- ===== LOUNGE FURNITURE =====
+local function sofa(name,pos,rot)
+    local seat=part(name,Vector3.new(10,2.2,4.2),CFrame.new(pos)*CFrame.Angles(0,math.rad(rot or 0),0),C.wallWarm,Enum.Material.Fabric)
+    part(name.."Back",Vector3.new(10,3.2,1.2),seat.CFrame*CFrame.new(0,2,-1.7),C.charcoal,Enum.Material.Fabric)
+end
+sofa("SofaA",Vector3.new(7,1.7,-10),0)
+sofa("SofaB",Vector3.new(21,1.7,-2),180)
+sofa("SofaC",Vector3.new(-3,1.7,0),90)
+for i,pos in ipairs({Vector3.new(7,1,-4),Vector3.new(21,1,-8),Vector3.new(-10,1,-2)}) do
+    part("LoungeTable"..i,Vector3.new(5,1.1,3),CFrame.new(pos),Color3.fromRGB(54,42,44),Enum.Material.Slate)
+    local glow=neon("TableGlow"..i,Vector3.new(4.3,.09,2.3),CFrame.new(pos+Vector3.new(0,.62,0)),C.warm)
+    pointLight(glow,C.warm,.35,5)
 end
 
--- Pink ambient points for the entrance identity
-for _, pos in ipairs({
-    Vector3.new(-20, 12.8, -32), Vector3.new(0, 12.8, -32), Vector3.new(20, 12.8, -32)
-}) do
-    local lamp = neon("PinkCeilingLamp", Vector3.new(1.2, 0.25, 1.2), CFrame.new(pos), C.trim)
-    local light = Instance.new("PointLight")
-    light.Color = C.trim
-    light.Brightness = 1
-    light.Range = 10
-    light.Parent = lamp
+-- ===== PLANTERS =====
+for i,x in ipairs({-35,35}) do
+    part("Planter"..i,Vector3.new(8,2.6,8),CFrame.new(x,1.5,-27),C.charcoal,Enum.Material.Slate)
+    for j=1,5 do
+        local stem=part("PlantStem"..i.."_"..j,Vector3.new(.5,4+j*.35,.5),CFrame.new(x+(j-3)*.75,4,-27+(j%2==0 and 1 or -1)),C.green,Enum.Material.Grass)
+        stem.CanCollide=false
+    end
+    neon("PlanterGlow"..i,Vector3.new(7.2,.12,7.2),CFrame.new(x,2.85,-27),C.pink)
 end
 
--- Spawn at the front facing inward.
-local spawn = Instance.new("SpawnLocation")
-spawn.Name = "EntranceSpawn"
-spawn.Anchored = true
-spawn.CanCollide = true
-spawn.Neutral = true
-spawn.Size = Vector3.new(7, 1, 7)
-spawn.CFrame = CFrame.lookAt(Vector3.new(0, 1, -60), Vector3.new(0, 1, -30))
-spawn.Transparency = 1
-spawn.Parent = model
-
--- Entrance boundary markers for later exact integration with L1 plan.
-local markers = Instance.new("Folder")
-markers.Name = "Markers"
-markers.Parent = model
-local function marker(name, position)
-    local p = part(name, Vector3.new(0.5,0.5,0.5), CFrame.new(position), Color3.fromRGB(255,255,255), Enum.Material.SmoothPlastic, 1)
-    p.CanCollide = false
-    p.Parent = markers
-end
-marker("PublicAxisStart", Vector3.new(0, 0, -60))
-marker("MainDoorAxis", Vector3.new(0, 0, -42))
-marker("LobbyAxis", Vector3.new(0, 0, -24))
-marker("ClubTransition", Vector3.new(0, 0, -8))
-
--- Mild global night ambience only if not already configured by a later lighting module.
-if not Lighting:FindFirstChild("BBYAEntranceColor") then
-    local cc = Instance.new("ColorCorrectionEffect")
-    cc.Name = "BBYAEntranceColor"
-    cc.Brightness = -0.05
-    cc.Contrast = 0.12
-    cc.Saturation = -0.02
-    cc.TintColor = Color3.fromRGB(255, 225, 244)
-    cc.Parent = Lighting
+-- ===== WALL PRACTICALS =====
+for _,pos in ipairs({Vector3.new(-39,7,-29),Vector3.new(39,7,-29),Vector3.new(-39,7,-13),Vector3.new(39,7,-13),Vector3.new(-39,7,0),Vector3.new(39,7,0)}) do
+    local f=neon("WarmSconce",Vector3.new(.35,2,.4),CFrame.new(pos),C.warm)
+    pointLight(f,C.warm,1.5,14)
 end
 
-print("[BBYA] Entrance v0.1 built from zero-baseline reference")
+-- ===== SPAWN / CAMERA FIRST IMPRESSION =====
+local spawn=Instance.new("SpawnLocation")
+spawn.Name="EntranceSpawn"
+spawn.Anchored=true
+spawn.CanCollide=true
+spawn.Neutral=true
+spawn.Size=Vector3.new(7,1,7)
+spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-67),Vector3.new(0,7,-22))
+spawn.Transparency=1
+spawn.Parent=model
+
+-- ===== LIGHTING =====
+Lighting.ClockTime = 20.6
+Lighting.Brightness = 2.6
+Lighting.Ambient = Color3.fromRGB(52,38,55)
+Lighting.OutdoorAmbient = Color3.fromRGB(28,22,34)
+Lighting.EnvironmentDiffuseScale = .35
+Lighting.EnvironmentSpecularScale = .45
+
+for _,n in ipairs({"BBYAEntranceColor","BBYAPreviewColor","BBYABloom"}) do
+    local x=Lighting:FindFirstChild(n); if x then x:Destroy() end
+end
+local cc=Instance.new("ColorCorrectionEffect")
+cc.Name="BBYAEntranceColor"
+cc.Brightness=.05
+cc.Contrast=.08
+cc.Saturation=.03
+cc.TintColor=Color3.fromRGB(255,235,244)
+cc.Parent=Lighting
+local bloom=Instance.new("BloomEffect")
+bloom.Name="BBYABloom"
+bloom.Intensity=.45
+bloom.Size=28
+bloom.Threshold=1.2
+bloom.Parent=Lighting
+
+print("[BBYA] Entrance v0.2 rebuilt for visual-reference fidelity")
