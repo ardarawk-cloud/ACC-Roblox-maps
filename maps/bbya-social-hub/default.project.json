@@ -15,8 +15,10 @@
       "LightingAmbience": { "$path": "28-lighting-ambience.server.lua" },
       "SocialInteractions": { "$path": "29-social-interactions.server.lua" },
       "ClubSystems": { "$path": "30-club-systems.server.lua" },
+      "TeleportSystem": { "$path": "32-teleport.server.lua" },
       "FinalPolish": { "$path": "32-final-polish.server.lua" },
-      "RuntimeQC": { "$path": "33-runtime-qc.server.lua" }
+      "RuntimeQC": { "$path": "33-runtime-qc.server.lua" },
+      "SupportDashboard": { "$path": "34-support-dashboard.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
