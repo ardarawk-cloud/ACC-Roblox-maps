@@ -9,7 +9,7 @@ on:
       - 'maps/a-club/place.rbxlx'
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/inspect-bbya-clean-preview.js'
-      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/validate-bbya-v7-reference.js'
       - '.github/workflows/bbya-v6-ci.yml'
   pull_request:
     paths:
@@ -17,7 +17,7 @@ on:
       - 'maps/a-club/place.rbxlx'
       - 'scripts/assemble-bbya-v6-preview.js'
       - 'scripts/inspect-bbya-clean-preview.js'
-      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/validate-bbya-v7-reference.js'
       - '.github/workflows/bbya-v6-ci.yml'
   workflow_dispatch:
 
@@ -39,8 +39,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate clean rebuild source contract
-        run: node scripts/validate-bbya-clean-rebuild.js
+      - name: Validate V7 reference source contract
+        run: node scripts/validate-bbya-v7-reference.js
 
       - name: Assemble deterministic BBYA preview
         run: node scripts/assemble-bbya-v6-preview.js a-club /tmp/bbya-v7-reference-preview.rbxlx
@@ -48,8 +48,8 @@ jobs:
       - name: Inspect assembled preview
         run: node scripts/inspect-bbya-clean-preview.js /tmp/bbya-v7-reference-preview.rbxlx
 
-      - name: Re-run source validation after assembly
-        run: node scripts/validate-bbya-clean-rebuild.js
+      - name: Re-run V7 source validation after assembly
+        run: node scripts/validate-bbya-v7-reference.js
 
       - name: Upload V7 preview artifact
         uses: actions/upload-artifact@v4
