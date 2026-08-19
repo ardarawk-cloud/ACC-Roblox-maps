@@ -15,14 +15,11 @@ local musicCommandLive=remotesLive:FindFirstChild("MusicCommand") or Instance.ne
 musicCommandLive.Name="MusicCommand"
 musicCommandLive.Parent=remotesLive
 
--- =========================================================
--- SUPPORT / SAWER — existing Roblox commerce resolved during deploy.
--- Developer Products are preferred; matching Support Game Passes are accepted as a one-time fallback.
--- =========================================================
 local commerce=rawget(_G,"BBYA_COMMERCE_RESOLVED") or {}
 local resolvedProducts=commerce.supportProducts or {}
 local resolvedKinds=commerce.supportKinds or {}
 local SUPPORT_ORDER_LIVE={5,10,50,100,500}
+table.insert(SUPPORT_ORDER_LIVE,10000)
 local SUPPORT_PRODUCTS_LIVE={}
 local SUPPORT_KINDS_LIVE={}
 local supportLiveEnabled=false
@@ -43,18 +40,9 @@ getSupportConfigLive.OnServerInvoke=function()
         local kind=SUPPORT_KINDS_LIVE[amount]
         table.insert(rows,{amount=amount,productId=id,enabled=id>0 and kind~="none",kind=kind})
     end
-    return {
-        enabled=supportLiveEnabled,
-        products=rows,
-        currency="Robux",
-        note=supportLiveEnabled and "Support active" or "Support passes/products not resolved from Roblox",
-    }
+    return {enabled=supportLiveEnabled,products=rows,currency="Robux",note=supportLiveEnabled and "Support active" or "Support passes/products not resolved from Roblox"}
 end
 
--- =========================================================
--- HYBRID AUTO DJ — owner-supplied Roblox audio IDs.
--- Auto DJ runs continuously; one DJ can claim temporary manual NEXT control.
--- =========================================================
 local TRACKS_LIVE={
     {id=134073539670673,title="BBYA 01"},
     {id=116255319981650,title="BBYA 02"},
@@ -89,7 +77,6 @@ local activeDJUserId=nil
 local activeDJName=nil
 local lastDJAction=0
 local DJ_IDLE_TIMEOUT=45
-
 local function sid(id) return "rbxassetid://"..tostring(id) end
 local function fireMusicState() musicStateChangedLive:FireAllClients() end
 
@@ -104,10 +91,7 @@ local function startHybridTrack(forceNext)
     local oldRoof=roofDecksLive[activeDeckLive]
     local newClub=clubDecksLive[nextDeck]
     local newRoof=roofDecksLive[nextDeck]
-
-    for _,s in ipairs({newClub,newRoof}) do
-        s.SoundId=sid(row.id);s.TimePosition=0;s.Volume=0;s.Looped=false;s:Play()
-    end
+    for _,s in ipairs({newClub,newRoof}) do s.SoundId=sid(row.id);s.TimePosition=0;s.Volume=0;s.Looped=false;s:Play() end
     local fade=forceNext and 1.25 or CROSSFADE_LIVE
     TweenServiceLive:Create(newClub,TweenInfo.new(fade,Enum.EasingStyle.Linear),{Volume=.58}):Play()
     TweenServiceLive:Create(newRoof,TweenInfo.new(fade,Enum.EasingStyle.Linear),{Volume=.58}):Play()
@@ -125,34 +109,21 @@ end
 
 local function musicStateFor(player)
     return {
-        autoDJ=true,
-        mode=activeDJUserId and "HYBRID_DJ_OVERRIDE" or "HYBRID_AUTO",
-        libraryReady=true,
-        djModeAvailable=true,
-        djActive=activeDJUserId~=nil,
-        djOwnerUserId=activeDJUserId,
-        djOwnerName=activeDJName,
-        isDJ=player and activeDJUserId==player.UserId or false,
-        trackTitle=currentTitleLive,
-        crossfadeSeconds=CROSSFADE_LIVE,
-        eqPreset="BALANCED",
+        autoDJ=true,mode=activeDJUserId and "HYBRID_DJ_OVERRIDE" or "HYBRID_AUTO",libraryReady=true,djModeAvailable=true,
+        djActive=activeDJUserId~=nil,djOwnerUserId=activeDJUserId,djOwnerName=activeDJName,isDJ=player and activeDJUserId==player.UserId or false,
+        trackTitle=currentTitleLive,crossfadeSeconds=CROSSFADE_LIVE,eqPreset="BALANCED",
         club={current=currentTitleLive,queued=queuedTitleLive,queue={TRACKS_LIVE[1].title,TRACKS_LIVE[2].title,TRACKS_LIVE[3].title,TRACKS_LIVE[4].title}},
         rooftop={current=currentTitleLive,queued=queuedTitleLive,queue={TRACKS_LIVE[3].title,TRACKS_LIVE[4].title,TRACKS_LIVE[5].title,TRACKS_LIVE[6].title}},
     }
 end
-
 getMusicStateLive.OnServerInvoke=function(player) return musicStateFor(player) end
 
 musicCommandLive.OnServerInvoke=function(player,command)
     command=tostring(command or "")
     if command=="TOGGLE_DJ" then
-        if activeDJUserId==nil then
-            activeDJUserId=player.UserId;activeDJName=player.DisplayName;lastDJAction=os.clock()
-        elseif activeDJUserId==player.UserId then
-            activeDJUserId=nil;activeDJName=nil;lastDJAction=0
-        else
-            return {ok=false,message="DJ booth is currently controlled by "..tostring(activeDJName or "another DJ"),state=musicStateFor(player)}
-        end
+        if activeDJUserId==nil then activeDJUserId=player.UserId;activeDJName=player.DisplayName;lastDJAction=os.clock()
+        elseif activeDJUserId==player.UserId then activeDJUserId=nil;activeDJName=nil;lastDJAction=0
+        else return {ok=false,message="DJ booth is currently controlled by "..tostring(activeDJName or "another DJ"),state=musicStateFor(player)} end
         fireMusicState()
         return {ok=true,message=activeDJUserId and "DJ MODE ACTIVE" or "AUTO DJ RESUMED",state=musicStateFor(player)}
     elseif command=="NEXT" then
@@ -173,15 +144,10 @@ end)
 startHybridTrack(true)
 task.spawn(function()
     while true do
-        if activeDJUserId and lastDJAction>0 and os.clock()-lastDJAction>=DJ_IDLE_TIMEOUT then
-            activeDJUserId=nil;activeDJName=nil;lastDJAction=0;fireMusicState()
-        end
+        if activeDJUserId and lastDJAction>0 and os.clock()-lastDJAction>=DJ_IDLE_TIMEOUT then activeDJUserId=nil;activeDJName=nil;lastDJAction=0;fireMusicState() end
         local active=clubDecksLive[activeDeckLive]
-        if active and active.IsPlaying and active.TimeLength>0 and active.TimePosition>=math.max(0,active.TimeLength-CROSSFADE_LIVE) then
-            startHybridTrack(false)
-        elseif active and not active.IsPlaying and not transitioningLive then
-            startHybridTrack(false)
-        end
+        if active and active.IsPlaying and active.TimeLength>0 and active.TimePosition>=math.max(0,active.TimeLength-CROSSFADE_LIVE) then startHybridTrack(false)
+        elseif active and not active.IsPlaying and not transitioningLive then startHybridTrack(false) end
         task.wait(.5)
     end
 end)
