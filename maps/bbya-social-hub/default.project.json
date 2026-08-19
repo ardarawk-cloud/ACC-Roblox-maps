@@ -18,7 +18,8 @@
       "TeleportSystem": { "$path": "32-teleport.server.lua" },
       "FinalPolish": { "$path": "32-final-polish.server.lua" },
       "RuntimeQC": { "$path": "33-runtime-qc.server.lua" },
-      "SupportDashboard": { "$path": "34-support-dashboard.server.lua" }
+      "SupportDashboard": { "$path": "34-support-dashboard.server.lua" },
+      "DJBoothUpgrade": { "$path": "35-dj-booth-upgrade.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
