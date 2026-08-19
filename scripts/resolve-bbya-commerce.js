@@ -4,6 +4,7 @@ const universeId=process.env.BBYA_UNIVERSE_ID||'8116636513';
 const apiKey=process.env.ROBLOX_API_KEY||'';
 const out=process.env.BBYA_COMMERCE_JSON||'/tmp/bbya-commerce.json';
 const desired=[5,10,50,100,500];
+desired.push(10000);
 
 function itemsFrom(body,keys){
   for(const key of keys){ if(Array.isArray(body?.[key])) return body[key]; }
@@ -69,7 +70,7 @@ async function listCreator(basePath,keys){
 function supportScore(item,amount){
   const n=nameOf(item).toLowerCase();
   let score=0;
-  if(/support|sawer|donat|donate|tip/.test(n)) score+=20;
+  if(/support|sawer|donat|donate|tip|sultan/.test(n)) score+=20;
   if(new RegExp(`(^|\\D)${amount}(\\D|$)`).test(n)) score+=10;
   if(deepPrice(item)===amount) score+=30;
   return score;
@@ -93,9 +94,8 @@ function supportScore(item,amount){
     .filter(x=>/vip/i.test(nameOf(x)))
     .sort((a,b)=>(deepPrice(b)===10?1:0)-(deepPrice(a)===10?1:0));
   let vip=vipCandidates[0]||null;
-  // If no pass is literally named VIP, a unique 10-Robux non-support pass is a safe fallback for the planned VIP price.
   if(!vip){
-    const ten=gamePasses.filter(x=>deepPrice(x)===10&&!/support|sawer|donat|donate|tip/i.test(nameOf(x)));
+    const ten=gamePasses.filter(x=>deepPrice(x)===10&&!/support|sawer|donat|donate|tip|sultan/i.test(nameOf(x)));
     if(ten.length===1) vip=ten[0];
   }
   const vipId=vip?idOf(vip):0;
@@ -109,7 +109,7 @@ function supportScore(item,amount){
       const passRanked=gamePasses
         .filter(x=>idOf(x)!==vipId)
         .map(x=>({x,score:supportScore(x,amount)}))
-        .filter(r=>r.score>=30 || (/support|sawer|donat|donate|tip/i.test(nameOf(r.x))&&r.score>0))
+        .filter(r=>r.score>=30 || (/support|sawer|donat|donate|tip|sultan/i.test(nameOf(r.x))&&r.score>0))
         .sort((a,b)=>b.score-a.score);
       if(passRanked[0]){ chosen=passRanked[0].x; kind='gamePass'; }
     }
