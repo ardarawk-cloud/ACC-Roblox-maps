@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.7
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.8
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -31,7 +31,6 @@ local function extrudedStroke(parent,name,x,y,zBase,w,h,rotDeg,faceColor,bodyCol
  depth=depth or DEFAULT_DEPTH
  local rotation=CFrame.Angles(0,0,math.rad(rotDeg or 0))
  local body=part(name.."Body",Vector3.new(w,h,depth),CFrame.new(x,y,zBase)*rotation,bodyColor or C.charcoal,Enum.Material.Metal,0,parent);body.CanCollide=false
- -- Neon face is pushed toward SOUTH/front (-Z), the player-facing side.
  local faceZ=zBase-(depth*.5)-(FACE_THICK*.5)-.04
  local face=part(name.."Face",Vector3.new(math.max(.18,w*.90),math.max(.18,h*.90),FACE_THICK),CFrame.new(x,y,faceZ)*rotation,faceColor or C.pink,Enum.Material.Neon,0,parent);face.CanCollide=false
  pointLight(face,faceColor or C.pink,glowBrightness or 1.05,glowRange or 14)
@@ -59,19 +58,12 @@ local LETTERS={
  ["/"]={w=6.2,h=10,segs={D(3.1,5.0,10.2,25)}}
 }
 
-local function reverseText(s)
- local out=""
- for i=#s,1,-1 do out=out..s:sub(i,i) end
- return out
-end
 local function measureText(text,scale,gap)
  local total=0
  for i=1,#text do local glyph=LETTERS[text:sub(i,i)] or LETTERS[" "];total=total+glyph.w;if i<#text then total=total+gap end end
  return total*scale
 end
 local function drawText3D(parent,name,text,centerX,centerY,zBase,scale,gap,thickness,faceColor,bodyColor)
- -- Camera/player views facade from SOUTH. Reverse source order so the physical geometry reads correctly from that side.
- text=reverseText(text)
  local line=Instance.new("Model");line.Name=name;line.Parent=parent
  local total=measureText(text,scale,gap)
  local cursor=centerX-(total*.5)
@@ -82,7 +74,7 @@ local function drawText3D(parent,name,text,centerX,centerY,zBase,scale,gap,thick
    local gy=centerY+((seg.y-(glyph.h*.5))*scale)
    if seg.k=="h" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,seg.w*scale,thickness*scale,0,faceColor,bodyColor)
    elseif seg.k=="v" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*scale,seg.h*scale,0,faceColor,bodyColor)
-   elseif seg.k=="d" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*.9*scale,seg.l*scale,-seg.r,faceColor,bodyColor) end
+   elseif seg.k=="d" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*.9*scale,seg.l*scale,seg.r,faceColor,bodyColor) end
   end
   cursor=cursor+(glyph.w+gap)*scale
  end
@@ -100,7 +92,6 @@ neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-44.8),C.pink)
 local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
 local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
--- Balanced final-pass proportions: smaller than v1.6, still dominant from the forecourt.
 part("BBYABackplate",Vector3.new(64,12,.5),CFrame.new(0,28.6,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
 part("SocialHubBackplate",Vector3.new(54,6.8,.5),CFrame.new(0,21.8,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
 part("AlwaysOpenBackplate",Vector3.new(32,5.8,.5),CFrame.new(0,16.4,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
@@ -122,4 +113,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.34;bloom.Size=22;bloom.Threshold=1.12;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.7: 3D signage orientation fixed and scale normalized")
+print("[BBYA] Entrance validation v1.8: 3D signage reads left-to-right from front")
