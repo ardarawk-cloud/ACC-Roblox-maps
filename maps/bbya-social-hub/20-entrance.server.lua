@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.8
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.9
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -66,17 +66,22 @@ end
 local function drawText3D(parent,name,text,centerX,centerY,zBase,scale,gap,thickness,faceColor,bodyColor)
  local line=Instance.new("Model");line.Name=name;line.Parent=parent
  local total=measureText(text,scale,gap)
- local cursor=centerX-(total*.5)
+ local cursor=centerX+(total*.5)
+ -- Front facade is viewed from SOUTH (-Z). Mirror the X placement itself so glyph shapes and word order read correctly from that side.
  for i=1,#text do
   local glyph=LETTERS[text:sub(i,i)] or LETTERS[" "]
+  local glyphLeft=cursor-(glyph.w*scale)
   for si,seg in ipairs(glyph.segs) do
-   local gx=cursor+(seg.x*scale)
+   local localX=(glyph.w-seg.x)*scale
+   local gx=glyphLeft+localX
    local gy=centerY+((seg.y-(glyph.h*.5))*scale)
+   local rot=0
+   if seg.k=="d" then rot=-seg.r end
    if seg.k=="h" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,seg.w*scale,thickness*scale,0,faceColor,bodyColor)
    elseif seg.k=="v" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*scale,seg.h*scale,0,faceColor,bodyColor)
-   elseif seg.k=="d" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*.9*scale,seg.l*scale,seg.r,faceColor,bodyColor) end
+   elseif seg.k=="d" then extrudedStroke(line,name.."_"..i.."_"..si,gx,gy,zBase,thickness*.9*scale,seg.l*scale,rot,faceColor,bodyColor) end
   end
-  cursor=cursor+(glyph.w+gap)*scale
+  cursor=cursor-((glyph.w+gap)*scale)
  end
 end
 
@@ -113,4 +118,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.34;bloom.Size=22;bloom.Threshold=1.12;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.8: 3D signage reads left-to-right from front")
+print("[BBYA] Entrance validation v1.9: front-side X mirroring corrected")
