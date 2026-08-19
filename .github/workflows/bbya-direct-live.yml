@@ -9,6 +9,7 @@ on:
       - 'maps/a-club/rebuild/**'
       - 'maps/registry.json'
       - 'scripts/prepare-bbya-rojo-live.js'
+      - 'scripts/resolve-bbya-commerce.js'
       - 'scripts/validate-bbya-clean-rebuild.js'
       - 'scripts/publish-map.js'
   pull_request:
@@ -42,7 +43,16 @@ jobs:
       - name: Validate clean rebuild source
         run: node scripts/validate-bbya-clean-rebuild.js
 
+      - name: Resolve existing BBYA commerce IDs
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          BBYA_UNIVERSE_ID: '8116636513'
+          BBYA_COMMERCE_JSON: /tmp/bbya-commerce.json
+        run: node scripts/resolve-bbya-commerce.js
+
       - name: Prepare Rojo live tree
+        env:
+          BBYA_COMMERCE_JSON: /tmp/bbya-commerce.json
         run: node scripts/prepare-bbya-rojo-live.js /tmp/bbya-rojo-live
 
       - name: Build canonical binary Roblox place
