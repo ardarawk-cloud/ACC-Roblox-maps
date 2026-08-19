@@ -10,12 +10,8 @@ on:
       - 'maps/registry.json'
       - 'scripts/prepare-bbya-rojo-live.js'
       - 'scripts/resolve-bbya-commerce.js'
-      - 'scripts/validate-bbya-clean-rebuild.js'
+      - 'scripts/validate-bbya-v7-reference.js'
       - 'scripts/publish-map.js'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'maps/a-club/rebuild/LIVE-DIRECT-PR-TRIGGER.md'
 
 concurrency:
   group: bbya-direct-live-${{ github.event_name }}
@@ -40,8 +36,8 @@ jobs:
       - name: Install canonical Roblox serializer
         run: cargo install rojo --version 7.7.0 --locked
 
-      - name: Validate clean rebuild source
-        run: node scripts/validate-bbya-clean-rebuild.js
+      - name: Validate BBYA V7 clean source
+        run: node scripts/validate-bbya-v7-reference.js
 
       - name: Resolve existing BBYA commerce IDs
         env:
@@ -50,12 +46,12 @@ jobs:
           BBYA_COMMERCE_JSON: /tmp/bbya-commerce.json
         run: node scripts/resolve-bbya-commerce.js
 
-      - name: Prepare Rojo live tree
+      - name: Prepare V7 clean Rojo live tree
         env:
           BBYA_COMMERCE_JSON: /tmp/bbya-commerce.json
         run: node scripts/prepare-bbya-rojo-live.js /tmp/bbya-rojo-live
 
-      - name: Build canonical binary Roblox place
+      - name: Build canonical V7 Roblox place
         shell: bash
         run: |
           set -euo pipefail
@@ -63,7 +59,7 @@ jobs:
           test -s /tmp/bbya-live.rbxl
           ls -lh /tmp/bbya-live.rbxl
 
-      - name: Publish BBYA directly to Roblox
+      - name: Publish BBYA V7 directly to Roblox
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status
@@ -71,7 +67,6 @@ jobs:
         run: node scripts/publish-map.js a-club
 
       - name: Persist direct publish receipt
-        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -96,5 +91,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Record BBYA direct live publish [skip ci]"
+          git commit -m "Record BBYA V7 direct live publish [skip ci]"
           git push origin HEAD:main
