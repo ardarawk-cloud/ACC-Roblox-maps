@@ -1,21 +1,60 @@
 {
   "universeId": "8116636513",
-  "vipGamePassId": 0,
-  "vipMeta": null,
+  "vipGamePassId": 1477823766,
+  "vipMeta": {
+    "id": 1477823766,
+    "name": "B pass",
+    "price": 10,
+    "isForSale": true
+  },
+  "gamePasses": [
+    {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true
+    },
+    {
+      "id": 1477823766,
+      "name": "B pass",
+      "price": 10,
+      "isForSale": true
+    },
+    {
+      "id": 1458614776,
+      "name": "A Pass",
+      "price": 5,
+      "isForSale": true
+    }
+  ],
   "supportProducts": {
-    "5": 0,
+    "5": 1458614776,
     "10": 0,
     "50": 0,
     "100": 0,
     "500": 0
   },
+  "supportKinds": {
+    "5": "gamePass",
+    "10": "none",
+    "50": "none",
+    "100": "none",
+    "500": "none"
+  },
   "supportMeta": {
-    "5": null,
+    "5": {
+      "id": 1458614776,
+      "name": "A Pass",
+      "price": 5,
+      "isForSale": true,
+      "kind": "gamePass"
+    },
     "10": null,
     "50": null,
     "100": null,
     "500": null
   },
+  "developerProducts": [],
   "discovered": {
     "gamePasses": 3,
     "developerProducts": 0
