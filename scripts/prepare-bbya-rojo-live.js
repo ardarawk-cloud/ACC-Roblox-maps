@@ -29,6 +29,7 @@ const clientFiles=[
   'maps/a-club/rebuild/70-ui.client.lua',
   'maps/a-club/rebuild/71-ui-consolidate.client.lua',
   'maps/a-club/rebuild/72-hybrid-ui.client.lua',
+  'maps/a-club/rebuild/73-support-ui.client.lua',
 ];
 for(const file of [...serverFiles,...clientFiles]){
   if(!fs.existsSync(path.join(root,file))) throw new Error(`Missing BBYA clean source: ${file}`);
@@ -36,14 +37,20 @@ for(const file of [...serverFiles,...clientFiles]){
 }
 
 const commercePath=process.env.BBYA_COMMERCE_JSON||'/tmp/bbya-commerce.json';
-let commerce={vipGamePassId:0,supportProducts:{'5':0,'10':0,'50':0,'100':0,'500':0}};
+let commerce={
+  vipGamePassId:0,
+  supportProducts:{'5':0,'10':0,'50':0,'100':0,'500':0},
+  supportKinds:{'5':'none','10':'none','50':'none','100':'none','500':'none'},
+};
 if(fs.existsSync(commercePath)){
   try{ commerce={...commerce,...JSON.parse(fs.readFileSync(commercePath,'utf8'))}; }
   catch(err){ console.warn(`[BBYA ROJO] Commerce JSON unreadable: ${err.message}`); }
 }
 const sp=commerce.supportProducts||{};
+const sk=commerce.supportKinds||{};
 const n=v=>Number(v)||0;
-const commerceBootstrap=`\n-- DEPLOY RESOLVED COMMERCE BOOTSTRAP\n_G.BBYA_COMMERCE_RESOLVED={\n  vipGamePassId=${n(commerce.vipGamePassId)},\n  supportProducts={\n    [5]=${n(sp['5']??sp[5])},\n    [10]=${n(sp['10']??sp[10])},\n    [50]=${n(sp['50']??sp[50])},\n    [100]=${n(sp['100']??sp[100])},\n    [500]=${n(sp['500']??sp[500])},\n  }\n}\n`;
+const kind=v=>['developerProduct','gamePass'].includes(String(v))?String(v):'none';
+const commerceBootstrap=`\n-- DEPLOY RESOLVED COMMERCE BOOTSTRAP\n_G.BBYA_COMMERCE_RESOLVED={\n  vipGamePassId=${n(commerce.vipGamePassId)},\n  supportProducts={\n    [5]=${n(sp['5']??sp[5])},\n    [10]=${n(sp['10']??sp[10])},\n    [50]=${n(sp['50']??sp[50])},\n    [100]=${n(sp['100']??sp[100])},\n    [500]=${n(sp['500']??sp[500])},\n  },\n  supportKinds={\n    [5]=${JSON.stringify(kind(sk['5']??sk[5]))},\n    [10]=${JSON.stringify(kind(sk['10']??sk[10]))},\n    [50]=${JSON.stringify(kind(sk['50']??sk[50]))},\n    [100]=${JSON.stringify(kind(sk['100']??sk[100]))},\n    [500]=${JSON.stringify(kind(sk['500']??sk[500]))},\n  }\n}\n`;
 
 const concat=files=>files.map(file=>`\n-- SOURCE FILE: ${file}\n${fs.readFileSync(path.join(root,file),'utf8')}`).join('\n');
 fs.writeFileSync(path.join(serverDir,'BBYA_CLEAN_REBUILD_RUNTIME.server.lua'),commerceBootstrap+concat(serverFiles));
@@ -70,4 +77,10 @@ const project={
 fs.writeFileSync(path.join(outDir,'default.project.json'),JSON.stringify(project,null,2)+'\n');
 console.log(`[BBYA ROJO] Prepared canonical build tree at ${outDir}`);
 console.log(`[BBYA ROJO] ${serverFiles.length} server modules + ${clientFiles.length} client modules; no archived V5/V6 modules.`);
-console.log(`[BBYA ROJO] Commerce bootstrap VIP=${n(commerce.vipGamePassId)} support=${JSON.stringify({5:n(sp['5']??sp[5]),10:n(sp['10']??sp[10]),50:n(sp['50']??sp[50]),100:n(sp['100']??sp[100]),500:n(sp['500']??sp[500])})}`);
+console.log(`[BBYA ROJO] Commerce bootstrap VIP=${n(commerce.vipGamePassId)} support=${JSON.stringify({
+  5:{id:n(sp['5']??sp[5]),kind:kind(sk['5']??sk[5])},
+  10:{id:n(sp['10']??sp[10]),kind:kind(sk['10']??sk[10])},
+  50:{id:n(sp['50']??sp[50]),kind:kind(sk['50']??sk[50])},
+  100:{id:n(sp['100']??sp[100]),kind:kind(sk['100']??sk[100])},
+  500:{id:n(sp['500']??sp[500]),kind:kind(sk['500']??sk[500])},
+})}`);
