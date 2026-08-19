@@ -1,0 +1,13 @@
+{
+  "status": "PUBLISHED",
+  "mapId": "a-club",
+  "name": "BBYA Social Hub",
+  "universeId": "8116636513",
+  "placeId": "131894120482837",
+  "sourceCommit": "e4d29c2af622cbfa3b7b1d33e35b678d8357bb43",
+  "publishedAt": "2026-08-19T13:15:20.610Z",
+  "publishedFile": "/tmp/bbya-zero-live.rbxl",
+  "response": {
+    "versionNumber": 160
+  }
+}
