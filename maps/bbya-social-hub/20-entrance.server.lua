@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.2
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.3
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -14,16 +14,17 @@ local model=Instance.new("Model")
 model.Name="Entrance"
 model.Parent=root
 
-local C={black=Color3.fromRGB(9,8,12),charcoal=Color3.fromRGB(25,21,28),floor=Color3.fromRGB(71,58,63),pink=Color3.fromRGB(255,42,157),warm=Color3.fromRGB(255,188,122),glass=Color3.fromRGB(50,34,55)}
+local C={black=Color3.fromRGB(9,8,12),charcoal=Color3.fromRGB(25,21,28),floor=Color3.fromRGB(71,58,63),pink=Color3.fromRGB(255,42,157),blue=Color3.fromRGB(0,174,255),warm=Color3.fromRGB(255,188,122),glass=Color3.fromRGB(50,34,55)}
 
 local function part(name,size,cf,color,material,transparency)
  local p=Instance.new("Part");p.Name=name;p.Anchored=true;p.CanCollide=true;p.Size=size;p.CFrame=cf;p.Color=color;p.Material=material or Enum.Material.SmoothPlastic;p.Transparency=transparency or 0;p.Parent=model;return p
 end
 local function neon(name,size,cf,color)local p=part(name,size,cf,color or C.pink,Enum.Material.Neon,0);p.CanCollide=false;return p end
 local function pointLight(parent,color,brightness,range)local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=true;l.Parent=parent end
-local function fixedText(panel,text,font,canvasY)
+local function fixedText(panel,text,font,canvasY,color)
  local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=true;gui.LightInfluence=0;gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(2800,canvasY or 700);gui.Parent=panel
- local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Position=UDim2.fromScale(.01,.01);t.Size=UDim2.fromScale(.98,.98);t.Text=text;t.TextColor3=C.pink;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=C.pink;t.TextStrokeTransparency=.16;t.Parent=gui
+ local tc=color or C.pink
+ local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Position=UDim2.fromScale(.01,.01);t.Size=UDim2.fromScale(.98,.98);t.Text=text;t.TextColor3=tc;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=tc;t.TextStrokeTransparency=.16;t.Parent=gui
 end
 local function stroke(name,a,b,width)local mid=(a+b)/2;local p=neon(name,Vector3.new(width,width,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);pointLight(p,C.pink,.5,10) end
 
@@ -41,11 +42,13 @@ neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-44.8),C.pink)
 local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
 local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
--- Front of building is SOUTH / negative Z. Branding must sit on the negative-Z face.
+-- Keep branding on the validated SOUTH/front facade; scale only.
 local bbyaPanel=part("BBYASignPanel",Vector3.new(72,13,.35),CFrame.new(0,29,-44.35),C.black)
-fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,760)
+fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,152,C.pink) -- 5x visual text scale vs prior canvas
 local socialPanel=part("SocialHubSignPanel",Vector3.new(52,6,.35),CFrame.new(0,20.8,-44.32),C.black)
-fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,520)
+fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,149,C.pink) -- 3.5x visual text scale
+local alwaysPanel=part("AlwaysOpenSignPanel",Vector3.new(52,6,.35),CFrame.new(0,15.2,-44.31),C.black)
+fixedText(alwaysPanel,"24/7",Enum.Font.GothamMedium,149,C.blue)
 
 local z=-44.7
 local pts={Vector3.new(-7.5,36,z),Vector3.new(-6.2,41.3,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.6,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.3,z),Vector3.new(7.5,36,z)}
@@ -62,4 +65,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.05;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.2: branding corrected to SOUTH/front facade")
+print("[BBYA] Entrance validation v1.3: BBYA 5x, SOCIAL HUB 3.5x, blue 24/7 added")
