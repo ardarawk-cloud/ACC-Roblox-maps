@@ -28,8 +28,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
       - name: Install canonical Roblox serializer
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
         run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
 
       - name: Build canonical BBYA preview place
         shell: bash
