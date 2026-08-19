@@ -25,6 +25,7 @@ const serverFiles = [
 ];
 const clientFiles = [
   'maps/a-club/rebuild/70-ui.client.lua',
+  'maps/a-club/rebuild/71-ui-consolidate.client.lua',
 ];
 const allFiles=[...serverFiles,...clientFiles];
 for (const file of allFiles) {
@@ -79,6 +80,6 @@ xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; clean carrier + phase 6 release gate included.`);
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI modules; clean carrier + phase 6 release gate included.`);
 console.log('[BBYA CLEAN REBUILD] Support product IDs and authorized music library intentionally remain pending/disabled until official values are supplied.');
 console.log('[BBYA CLEAN REBUILD] PREVIEW ASSEMBLY COMPLETE');
