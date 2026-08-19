@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.4
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.5
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -49,7 +49,7 @@ fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,152,C.pink)
 local socialPanel=part("SocialHubSignPanel",Vector3.new(60,7.2,.35),CFrame.new(0,21.8,-44.32),C.black)
 fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,149,C.pink)
 local alwaysPanel=part("AlwaysOpenSignPanel",Vector3.new(60,7.2,.35),CFrame.new(0,16.5,-44.31),C.black)
-fixedText(alwaysPanel,"24/7",Enum.Font.GothamMedium,149,C.blue)
+fixedText(alwaysPanel,"24 / 7",Enum.Font.GothamMedium,149,C.blue)
 
 local z=-44.7
 local pts={Vector3.new(-7.5,36,z),Vector3.new(-6.2,41.3,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.6,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.3,z),Vector3.new(7.5,36,z)}
@@ -66,4 +66,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.05;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.4: branding enlarged and vertical spacing tightened")
+print("[BBYA] Entrance validation v1.5: 24 / 7 spacing applied")
