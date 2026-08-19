@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE BUILD v0.5
+-- BBYA SOCIAL HUB — ENTRANCE BUILD v0.6
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
 local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD") or Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=Workspace
@@ -8,13 +8,13 @@ local C={black=Color3.fromRGB(8,7,11),charcoal=Color3.fromRGB(23,18,26),wall=Col
 local function part(n,s,cf,c,m,t)local p=Instance.new("Part");p.Name=n;p.Anchored=true;p.CanCollide=true;p.Size=s;p.CFrame=cf;p.Color=c;p.Material=m or Enum.Material.SmoothPlastic;p.Transparency=t or 0;p.Parent=model;return p end
 local function neon(n,s,cf,c)local p=part(n,s,cf,c or C.pink,Enum.Material.Neon);p.CanCollide=false;return p end
 local function light(p,c,b,r)local l=Instance.new("PointLight");l.Color=c;l.Brightness=b;l.Range=r;l.Shadows=true;l.Parent=p end
-local function worldText(name,pos,size,text,font)
- local anchor=part(name.."Anchor",Vector3.new(.5,.5,.5),CFrame.new(pos),C.black,Enum.Material.SmoothPlastic,1);anchor.CanCollide=false
- local gui=Instance.new("BillboardGui");gui.Name=name;gui.Adornee=anchor;gui.Size=UDim2.new(size.X,0,size.Y,0);gui.AlwaysOnTop=true;gui.LightInfluence=0;gui.MaxDistance=300;gui.Parent=anchor
- local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Size=UDim2.fromScale(1,1);t.Text=text;t.TextColor3=C.pink;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=C.pink;t.TextStrokeTransparency=.35;t.Parent=gui
- return anchor
+local function wallText(name,pos,size,text,font)
+ local panel=part(name.."Panel",Vector3.new(size.X,size.Y,.3),CFrame.new(pos),Color3.fromRGB(10,8,13),Enum.Material.SmoothPlastic,0)
+ local gui=Instance.new("SurfaceGui");gui.Name=name;gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=false;gui.LightInfluence=0;gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(math.floor(size.X*40),math.floor(size.Y*40));gui.Parent=panel
+ local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Size=UDim2.fromScale(1,1);t.Text=text;t.TextColor3=C.pink;t.TextScaled=true;t.Font=font;t.TextStrokeColor3=C.pink;t.TextStrokeTransparency=.28;t.Parent=gui
+ return panel
 end
-local function stroke(n,a,b,w)local mid=(a+b)/2;local p=neon(n,Vector3.new(w,w,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);light(p,C.pink,.4,8) end
+local function stroke(n,a,b,w)local mid=(a+b)/2;local p=neon(n,Vector3.new(w,w,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);light(p,C.pink,.5,9) end
 part("ArrivalForecourt",Vector3.new(90,1,28),CFrame.new(0,0,-58),C.floor2,Enum.Material.Slate)
 part("EntranceFloor",Vector3.new(86,1,42),CFrame.new(0,0,-24),C.floor,Enum.Material.Slate)
 part("FacadeLeftWing",Vector3.new(24,25,10),CFrame.new(-34,12.5,-42),C.black)
@@ -22,11 +22,16 @@ part("FacadeRightWing",Vector3.new(24,25,10),CFrame.new(34,12.5,-42),C.black)
 part("FacadeSignWall",Vector3.new(56,20,8),CFrame.new(0,25,-42),C.black)
 part("FacadeBackLeft",Vector3.new(2,18,30),CFrame.new(-45,9,-24),C.charcoal);part("FacadeBackRight",Vector3.new(2,18,30),CFrame.new(45,9,-24),C.charcoal)
 neon("EntryTop",Vector3.new(48,.28,.35),CFrame.new(0,17.5,-36.8),C.pink);neon("EntryLeft",Vector3.new(.28,17,.35),CFrame.new(-24,9,-36.8),C.pink);neon("EntryRight",Vector3.new(.28,17,.35),CFrame.new(24,9,-36.8),C.pink)
--- reliable world-space branding; no SurfaceGui face/orientation dependency
-worldText("BBYATitle",Vector3.new(0,28,-36.25),Vector2.new(58,10),"BBYA",Enum.Font.GothamBold)
-worldText("SocialHubTitle",Vector3.new(0,21,-36.2),Vector2.new(38,4.5),"SOCIAL HUB",Enum.Font.GothamMedium)
-local z=-36.1;local pts={Vector3.new(-7,36,z),Vector3.new(-5.8,41,z),Vector3.new(-2.3,38.2,z),Vector3.new(0,43,z),Vector3.new(2.3,38.2,z),Vector3.new(5.8,41,z),Vector3.new(7,36,z)}
-for i=1,#pts-1 do stroke("CrownStroke"..i,pts[i],pts[i+1],.45) end;stroke("CrownBase",Vector3.new(-7,36,z),Vector3.new(7,36,z),.45);stroke("CrownBase2",Vector3.new(-6,35,z),Vector3.new(6,35,z),.35)
+-- Fixed wall-mounted signage. Front face naturally points toward SOUTH (-Z), the spawn side.
+wallText("BBYATitle",Vector3.new(0,28,-37.72),Vector2.new(66,10.5),"BBYA",Enum.Font.GothamBold)
+wallText("SocialHubTitle",Vector3.new(0,20.7,-37.70),Vector2.new(45,4.6),"SOCIAL HUB",Enum.Font.GothamMedium)
+-- Crown fixed to facade, slightly in front of the text plane so it cannot disappear behind the wall.
+local z=-37.50
+local pts={Vector3.new(-7.5,35.8,z),Vector3.new(-6.2,41.2,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.5,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.2,z),Vector3.new(7.5,35.8,z)}
+for i=1,#pts-1 do stroke("CrownStroke"..i,pts[i],pts[i+1],.5) end
+stroke("CrownBase",Vector3.new(-7.5,35.8,z),Vector3.new(7.5,35.8,z),.5)
+stroke("CrownBase2",Vector3.new(-6.4,34.6,z),Vector3.new(6.4,34.6,z),.38)
+for i,p in ipairs({Vector3.new(-6.2,41.2,z),Vector3.new(0,43.5,z),Vector3.new(6.2,41.2,z)}) do local tip=neon("CrownTip"..i,Vector3.new(.9,.9,.55),CFrame.new(p),C.pink);light(tip,C.pink,.7,9) end
 local gl=part("GlassLeft",Vector3.new(18,15,.4),CFrame.new(-34,8.5,-36.5),C.glass,Enum.Material.Glass,.28);gl.CanCollide=false
 local gr=part("GlassRight",Vector3.new(18,15,.4),CFrame.new(34,8.5,-36.5),C.glass,Enum.Material.Glass,.28);gr.CanCollide=false
 part("InteriorCeiling",Vector3.new(88,1,42),CFrame.new(0,17,-15),C.black);part("InteriorRearWall",Vector3.new(88,18,2),CFrame.new(0,9,5),C.charcoal);part("InteriorLeftWall",Vector3.new(2,18,42),CFrame.new(-44,9,-15),C.wall);part("InteriorRightWall",Vector3.new(2,18,42),CFrame.new(44,9,-15),C.wall)
@@ -44,4 +49,4 @@ Lighting.ClockTime=20.3;Lighting.Brightness=3;Lighting.Ambient=Color3.fromRGB(68
 for _,n in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(n);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.04;cc.Saturation=.05;cc.TintColor=Color3.fromRGB(255,239,245);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.15;bloom.Parent=Lighting
-print("[BBYA] Entrance v0.5 world-space branding enabled")
+print("[BBYA] Entrance v0.6 fixed facade signage + restored crown")
