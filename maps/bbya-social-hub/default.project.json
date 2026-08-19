@@ -22,7 +22,8 @@
       "DJBoothUpgrade": { "$path": "35-dj-booth-upgrade.server.lua" },
       "StageSoundStacks": { "$path": "36-stage-sound-stacks.server.lua" },
       "UndergroundFurnishMainLight": { "$path": "37-underground-furnish-mainclub-light.server.lua" },
-      "RealismPass": { "$path": "38-realism-pass.server.lua" }
+      "RealismPass": { "$path": "38-realism-pass.server.lua" },
+      "QualityReset": { "$path": "40-quality-reset.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
