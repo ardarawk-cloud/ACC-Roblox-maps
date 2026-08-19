@@ -14,7 +14,9 @@
       "ShellAndDressing": { "$path": "27-shell-and-dressing.server.lua" },
       "LightingAmbience": { "$path": "28-lighting-ambience.server.lua" },
       "SocialInteractions": { "$path": "29-social-interactions.server.lua" },
-      "ClubSystems": { "$path": "30-club-systems.server.lua" }
+      "ClubSystems": { "$path": "30-club-systems.server.lua" },
+      "FinalPolish": { "$path": "32-final-polish.server.lua" },
+      "RuntimeQC": { "$path": "33-runtime-qc.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
