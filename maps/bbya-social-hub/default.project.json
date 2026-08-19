@@ -2,15 +2,15 @@
   "name": "BBYAZeroPreview",
   "tree": {
     "$className": "DataModel",
-    "Workspace": {
-      "$className": "Workspace"
-    },
+    "Workspace": { "$className": "Workspace" },
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "Entrance": { "$path": "20-entrance.server.lua" },
       "SiteBasement": { "$path": "21-site-basement.server.lua" },
       "RuntimeEditorServer": { "$path": "22-editor.server.lua" },
-      "Floor1Core": { "$path": "24-floor1-core.server.lua" }
+      "Floor1Core": { "$path": "24-floor1-core.server.lua" },
+      "UpperLevels": { "$path": "25-upper-levels.server.lua" },
+      "BasementBOH": { "$path": "26-basement-backofhouse.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -21,10 +21,7 @@
     },
     "Lighting": {
       "$className": "Lighting",
-      "$properties": {
-        "Brightness": 1.6,
-        "ClockTime": 21
-      }
+      "$properties": { "Brightness": 1.6, "ClockTime": 21 }
     }
   }
 }
