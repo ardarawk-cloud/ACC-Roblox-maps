@@ -1,10 +1,11 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.1
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.2
 const fs = require('fs');
 const path = require('path');
 
 const mapId = process.argv[2] || process.env.MAP_ID;
 const apiKey = process.env.ROBLOX_API_KEY;
 const receiptDir = process.env.PUBLISH_RECEIPT_DIR || '';
+const placeOverride = process.env.PLACE_FILE_OVERRIDE || '';
 
 if (!mapId) {
   console.error('Missing map id. Usage: node scripts/publish-map.js <map-id>');
@@ -30,14 +31,15 @@ if (!/^\d+$/.test(String(target.universeId)) || !/^\d+$/.test(String(target.plac
   process.exit(1);
 }
 
-const placePath = path.join(process.cwd(), target.file);
+const selectedFile = placeOverride || target.file;
+const placePath = path.isAbsolute(selectedFile) ? selectedFile : path.join(process.cwd(), selectedFile);
 if (!fs.existsSync(placePath)) {
-  console.error(`Place file not found: ${target.file}`);
+  console.error(`Place file not found: ${selectedFile}`);
   process.exit(1);
 }
 
 const body = fs.readFileSync(placePath);
-const contentType = target.file.endsWith('.rbxl') ? 'application/octet-stream' : 'application/xml';
+const contentType = selectedFile.endsWith('.rbxl') ? 'application/octet-stream' : 'application/xml';
 const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
 
 function safePayload(payload) {
@@ -61,6 +63,7 @@ function writeReceipt(payload, status) {
     placeId: String(target.placeId),
     sourceCommit: process.env.GITHUB_SHA || '',
     publishedAt: new Date().toISOString(),
+    publishedFile: selectedFile,
     response: safePayload(payload),
   };
   fs.writeFileSync(path.join(outDir, `${mapId}.json`), JSON.stringify(receipt, null, 2) + '\n');
@@ -68,7 +71,7 @@ function writeReceipt(payload, status) {
 }
 
 (async () => {
-  console.log(`Publishing ${target.name} (${mapId})...`);
+  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType}...`);
   const response = await fetch(url, {
     method: 'POST',
     headers: {
