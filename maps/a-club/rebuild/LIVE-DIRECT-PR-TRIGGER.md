@@ -2,4 +2,4 @@
 
 Same-repository PR trigger used only to run and observe the direct BBYA live publish workflow.
 
-Carrier fix retry: 2026-08-19.
+Canonical Rojo binary retry: 2026-08-19.
