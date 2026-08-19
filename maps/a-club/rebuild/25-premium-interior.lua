@@ -20,40 +20,31 @@ part(A2,"SELFIE PLATFORM",Vector3.new(18,.5,9),CFrame.new(-1,.5,64),C.graphite,E
 -- =========================================================
 -- MAIN CLUB SHOW ENVIRONMENT
 -- =========================================================
--- Ceiling truss grid over the dance floor.
 for _,x in ipairs({-56,-42,-28,-14,0}) do
     part(A3,"CLUB TRUSS X "..x,Vector3.new(1,1,54),CFrame.new(x,18,37),C.graphite,Enum.Material.Metal,0,false)
 end
 for _,z in ipairs({16,37,58}) do
     part(A3,"CLUB TRUSS Z "..z,Vector3.new(70,1,1),CFrame.new(-28,18,z),C.graphite,Enum.Material.Metal,0,false)
 end
-
--- Show light housings; actual light behavior lives in 30-lighting.lua.
 for i,cfg in ipairs({
     {-56,17,18,C.pink},{-42,17,18,C.cyan},{-28,17,18,C.pink},{-14,17,18,C.cyan},{0,17,18,C.pink},
     {-56,17,55,C.cyan},{-42,17,55,C.pink},{-28,17,55,C.cyan},{-14,17,55,C.pink},{0,17,55,C.cyan},
 }) do
-    local head=part(A3,"SHOW HEAD "..i,Vector3.new(2.2,1.4,2.2),CFrame.new(cfg[1],cfg[2],cfg[3]),C.black,Enum.Material.Metal,0,false)
+    part(A3,"SHOW HEAD "..i,Vector3.new(2.2,1.4,2.2),CFrame.new(cfg[1],cfg[2],cfg[3]),C.black,Enum.Material.Metal,0,false)
     local lens=neon(A3,"SHOW LENS "..i,Vector3.new(1.3,.25,1.3),CFrame.new(cfg[1],cfg[2]-.75,cfg[3]),cfg[4])
     lens:SetAttribute("BBYAShowLight",true)
 end
-
--- Side wall treatment prevents the club from reading as a grey box.
 for _,z in ipairs({18,34,50,66}) do
     part(A3,"CLUB WALL PANEL WEST "..z,Vector3.new(1,10,11),CFrame.new(-85.3,7,z),z%32==2 and C.graphite or C.charcoal,Enum.Material.Slate,0,true)
     neon(A3,"CLUB WALL STRIP WEST "..z,Vector3.new(.15,7,.15),CFrame.new(-84.7,7,z-4.5),z%32==2 and C.cyan or C.pink)
 end
-
--- DJ booth finish.
 neon(A3,"DJ BOOTH FRONT",Vector3.new(20,.25,.25),CFrame.new(-28,5.6,69.4),C.pink)
 sign(A3,"DJ BOOTH BRAND","BBYA",CFrame.new(-28,6.6,69.35),Vector3.new(14,2.3,.25),C.pink,Enum.NormalId.Front)
 
 -- =========================================================
 -- MEZZANINE SOCIAL BALCONIES
 -- =========================================================
-for _,cfg in ipairs({
-    {y=17,z=18},{y=17,z=50},{y=31,z=28},{y=31,z=58},
-}) do
+for _,cfg in ipairs({{y=17,z=18},{y=17,z=50},{y=31,z=28},{y=31,z=58}}) do
     part(A4,"MEZZ PRIVACY PANEL "..cfg.y.." "..cfg.z,Vector3.new(1,7,10),CFrame.new(-93.5,cfg.y+3,cfg.z),C.charcoal,Enum.Material.Slate,0,true)
     neon(A4,"MEZZ WARM STRIP "..cfg.y.." "..cfg.z,Vector3.new(.15,5,.15),CFrame.new(-92.9,cfg.y+3,cfg.z),C.warm)
 end
@@ -61,7 +52,6 @@ end
 -- =========================================================
 -- VIP HOSPITALITY
 -- =========================================================
--- Backbar display and wall panels.
 part(A5,"VIP BACKBAR",Vector3.new(34,10,1.2),CFrame.new(68,7,76),C.black,Enum.Material.Slate,0,true)
 for _,y in ipairs({4,7,10}) do
     part(A5,"VIP BACKBAR SHELF "..y,Vector3.new(30,.35,2),CFrame.new(68,y,74.8),C.wood,Enum.Material.WoodPlanks,0,false)
@@ -70,8 +60,7 @@ for _,x in ipairs({48,60,76,92}) do
     part(A5,"VIP WALL PANEL "..x,Vector3.new(12,10,.8),CFrame.new(x,8,76.7),C.graphite,Enum.Material.Fabric,0,true)
     neon(A5,"VIP WALL LINE "..x,Vector3.new(8,.12,.12),CFrame.new(x,12.7,76.2),x<70 and C.pink or C.gold)
 end
-
--- Queen-style private social niche inside VIP wing.
+-- Ground-floor private niche complements, but does not duplicate, the elevated BBYA Queen lounge.
 part(A5,"VIP QUEEN NICHE FLOOR",Vector3.new(24,.6,18),CFrame.new(47,.65,63),C.charcoal,Enum.Material.Marble,0,true)
 seat(A5,"VIP QUEEN SOFA",CFrame.new(47,1.4,67),14,C.cream)
 tableLow(A5,"VIP QUEEN TABLE",CFrame.new(47,1.15,59),Vector3.new(8,.65,5))
@@ -80,33 +69,19 @@ neon(A5,"VIP QUEEN NICHE EDGE",Vector3.new(22,.16,.16),CFrame.new(47,1.2,54.2),C
 -- =========================================================
 -- ROOFTOP LIFESTYLE / SKY BAR
 -- =========================================================
--- Sky bar on the east side, clear of pool and stair landing.
 part(A6,"SKY BAR BODY",Vector3.new(24,4,7),CFrame.new(86,34.2,51),C.graphite,Enum.Material.Slate,0,true)
 part(A6,"SKY BAR TOP",Vector3.new(25,.4,7.7),CFrame.new(86,36.4,51),C.wood,Enum.Material.WoodPlanks,0,true)
 neon(A6,"SKY BAR WARM",Vector3.new(22,.14,.14),CFrame.new(86,34.4,47.2),C.warm)
 sign(A6,"SKY BAR SIGN","SKY BAR",CFrame.new(98.4,39,51),Vector3.new(.3,2.5,13),C.gold,Enum.NormalId.Right)
-
--- Pool edge daybed islands.
 for _,x in ipairs({16,80}) do
     part(A6,"POOL DAYBED PLATFORM "..x,Vector3.new(18,.55,14),CFrame.new(x,32.1,42),C.charcoal,Enum.Material.WoodPlanks,0,true)
     seat(A6,"POOL SOCIAL DAYBED "..x,CFrame.new(x,33,42),12,C.cream)
 end
-
--- Photo/view frame at rooftop front corner.
 for _,x in ipairs({18,78}) do
     part(A6,"ROOF PHOTO FRAME L "..x,Vector3.new(.55,8,.55),CFrame.new(x-6,37,6),C.wood,Enum.Material.Wood,0,true)
     part(A6,"ROOF PHOTO FRAME R "..x,Vector3.new(.55,8,.55),CFrame.new(x+6,37,6),C.wood,Enum.Material.Wood,0,true)
     part(A6,"ROOF PHOTO FRAME TOP "..x,Vector3.new(12,.55,.55),CFrame.new(x,41,6),C.wood,Enum.Material.Wood,0,true)
 end
 
--- =========================================================
--- QUEEN / SUPPORT COURT FINISH
--- =========================================================
--- Dedicated presentation floor gives the foreground landmarks intentional architecture.
-part(A7,"COURT FLOOR",Vector3.new(112,1,32),CFrame.new(3,.1,-23),Color3.fromRGB(33,31,43),Enum.Material.Marble,0,true)
-for _,x in ipairs({-52,-24,28,58}) do
-    neon(A7,"COURT FLOOR STRIP "..x,Vector3.new(18,.12,.12),CFrame.new(x,.7,-36),x<0 and C.pink or C.cyan)
-end
-
-workspace:SetAttribute("BBYAPremiumInterior","PHASE_2_COMPLETE")
-workspace:SetAttribute("BBYASocialDensity","PREMIUM_HANGOUT_PASS_2")
+workspace:SetAttribute("BBYAPremiumInterior","REFERENCE_CONNECTED_PASS_3")
+workspace:SetAttribute("BBYASocialDensity","PREMIUM_HANGOUT_PASS_3")

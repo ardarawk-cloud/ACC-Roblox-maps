@@ -47,6 +47,21 @@ part(A5,"VIP BAR TOP",Vector3.new(29,.4,6.6),CFrame.new(68,4.4,68),C.wood,Enum.M
 neon(A5,"VIP BAR ACCENT",Vector3.new(26,.18,.18),CFrame.new(68,2.4,64.9),C.pink)
 sign(A5,"VIP SIGN","VIP AREA",CFrame.new(68,11.5,-6.8),Vector3.new(30,4,.3),C.pink,Enum.NormalId.Front)
 
+-- BBYA Queen private lounge is integrated into VIP architecture; no floating arrival-court monument.
+part(A5,"BBYA QUEEN DECK",Vector3.new(30,1.2,20),CFrame.new(48,19.1,61),C.charcoal,Enum.Material.Marble,0,true)
+rail(A5,"BBYA QUEEN GLASS",Vector3.new(28,4.2,.4),CFrame.new(48,21.8,51.2))
+seat(A5,"BBYA QUEEN THRONE",CFrame.new(48,20.2,64),8,C.graphite)
+part(A5,"BBYA QUEEN THRONE BACK",Vector3.new(10,9,2),CFrame.new(48,24.2,68),C.black,Enum.Material.Metal,0,true)
+for i=0,4 do
+    neon(A5,"BBYA QUEEN CROWN SPIKE "..i,Vector3.new(1,5.5,1),CFrame.new(42+i*3,29+(i%2)*1.3,67.8)*CFrame.Angles(0,0,math.rad((i-2)*10)),C.pink)
+end
+sign(A5,"BBYA QUEEN SIGN","BBYA QUEEN",CFrame.new(48,27,67.8),Vector3.new(24,4,.3),C.pink,Enum.NormalId.Front)
+
+-- Support destination is integrated into the social atrium wall.
+part(A2,"SUPPORT WALL PANEL",Vector3.new(24,11,1),CFrame.new(43,6,70),C.black,Enum.Material.SmoothPlastic,0,true)
+sign(A2,"SUPPORT BOARD","TOP SUPPORTERS",CFrame.new(43,7,69.4),Vector3.new(20,5,.25),C.cyan,Enum.NormalId.Front)
+neon(A2,"SUPPORT PANEL EDGE",Vector3.new(21,.15,.15),CFrame.new(43,11.3,69.2),C.pink)
+
 -- Rooftop loungers face the pool / social center.
 for _,x in ipairs({9,25}) do
     seat(A6,"POOL LOUNGER "..x,CFrame.new(x,32.4,48)*CFrame.Angles(0,math.rad(180),0),8,C.cream)
@@ -67,22 +82,6 @@ for _,p in ipairs({Vector3.new(5,32,7),Vector3.new(91,32,7),Vector3.new(5,32,75)
     palm(A6,"ROOF PALM "..p.X.." "..p.Z,p,10)
 end
 
--- Foreground Queen landmark from owner reference.
-part(A7,"QUEEN PODIUM",Vector3.new(28,1.2,18),CFrame.new(-38,.8,-23),C.charcoal,Enum.Material.Marble,0,true)
-neon(A7,"QUEEN PODIUM EDGE",Vector3.new(28,.18,.18),CFrame.new(-38,1.5,-32),C.pink)
-local throne=seat(A7,"BBYA QUEEN THRONE",CFrame.new(-38,2.1,-23),8,C.graphite)
-part(A7,"QUEEN THRONE BACK",Vector3.new(10,10,2),CFrame.new(-38,6.6,-20.4),C.black,Enum.Material.Metal,0,true)
-for i=0,4 do
-    neon(A7,"QUEEN CROWN SPIKE "..i,Vector3.new(1,6,1),CFrame.new(-44+i*3,12+(i%2)*1.5,-20.2)*CFrame.Angles(0,0,math.rad((i-2)*10)),C.pink)
-end
-sign(A7,"QUEEN BOARD","BBYA QUEEN",CFrame.new(-38,14,-20),Vector3.new(24,4,.3),C.pink,Enum.NormalId.Front)
-
--- Support / top supporter landmark. Backend comes later; this is physical destination only.
-part(A7,"SUPPORT BOARD BODY",Vector3.new(32,16,2),CFrame.new(45,8,-22),C.black,Enum.Material.SmoothPlastic,0,true)
-sign(A7,"SUPPORT BOARD","SUPPORT\nTOP SUPPORTERS",CFrame.new(45,8,-23.1),Vector3.new(30,14,.3),C.cyan,Enum.NormalId.Front)
-neon(A7,"SUPPORT BOARD EDGE TOP",Vector3.new(32,.18,.18),CFrame.new(45,16,-23.2),C.cyan)
-neon(A7,"SUPPORT BOARD EDGE BOTTOM",Vector3.new(32,.18,.18),CFrame.new(45,.2,-23.2),C.pink)
-
 -- Lifestyle labels seen from hero arrival.
 sign(A6,"ROOFTOP POOL SIGN","ROOFTOP\nPOOL PARTY",CFrame.new(82,45,-4),Vector3.new(28,8,.35),C.cyan,Enum.NormalId.Front)
 sign(A3,"CLUB SIGN","BBYA CLUB",CFrame.new(-69,12,-9.2),Vector3.new(34,5,.3),C.pink,Enum.NormalId.Front)
@@ -100,4 +99,4 @@ for i,h in ipairs(heights) do
     end
 end
 
-workspace:SetAttribute("BBYAFurnishing","PREMIUM_SOCIAL_PASS_1_ORIENTATION_FIXED")
+workspace:SetAttribute("BBYAFurnishing","REFERENCE_CONNECTED_ORIENTATION_FIXED")
