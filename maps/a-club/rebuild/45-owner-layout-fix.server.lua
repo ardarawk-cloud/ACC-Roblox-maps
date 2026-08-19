@@ -14,8 +14,12 @@ local function destroyNamed(name)
 end
 
 local function destroyPrefix(prefix)
+    local kill={}
     for _,obj in ipairs(workspace:GetDescendants()) do
-        if string.sub(obj.Name,1,#prefix)==prefix then obj:Destroy() end
+        if string.sub(obj.Name,1,#prefix)==prefix then table.insert(kill,obj) end
+    end
+    for _,obj in ipairs(kill) do
+        if obj and obj.Parent then obj:Destroy() end
     end
 end
 
@@ -30,22 +34,13 @@ end
 -- CLEAN SIGNAGE: one BBYA SOCIAL HUB identity only.
 -- =========================================================
 for _,name in ipairs({
-    "WELCOME BAR SIGN",
-    "WELCOME BACKDROP BRAND",
-    "WELCOME BACKDROP TOP",
-    "WELCOME BACKDROP BOTTOM",
-    "WELCOME BACKDROP",
-    "SELFIE WORDMARK",
-    "CLUB WING BRAND",
-    "CLUB SIGN",
-    "CLUB ENTRY WAYFIND",
-    "DJ BOOTH BRAND",
+    "WELCOME BAR SIGN","WELCOME BACKDROP BRAND","WELCOME BACKDROP TOP","WELCOME BACKDROP BOTTOM","WELCOME BACKDROP",
+    "SELFIE WORDMARK","CLUB WING BRAND","CLUB SIGN","CLUB ENTRY WAYFIND","DJ BOOTH BRAND",
     "CROWN BASE","CROWN L1","CROWN L2","CROWN R2","CROWN R1",
 }) do
     destroyNamed(name)
 end
 
--- Owner correction: arrival/support forecourt must stay open. Remove the loose benches/chairs shown in live screenshots.
 destroyPrefix("ARRIVAL SEAT ")
 
 local mainBrand=findDeep("MAIN BBYA WORDMARK")
@@ -55,13 +50,11 @@ if mainBrand and mainBrand:IsA("BasePart") then
     setSignText(mainBrand,"BBYA SOCIAL HUB")
 end
 
--- Queen is a zone label, not repeated venue branding.
 local queenBoard=findDeep("QUEEN BOARD")
 if queenBoard then setSignText(queenBoard,"QUEEN") end
 
 -- =========================================================
 -- FACADE GLASS MUST BE A REAL PHYSICAL BARRIER.
--- Pool water is intentionally excluded.
 -- =========================================================
 for _,obj in ipairs(workspace:GetDescendants()) do
     if obj:IsA("BasePart") then
@@ -76,13 +69,14 @@ end
 
 -- =========================================================
 -- VIP GLASS FRONT + LOCKED ACCESS DOOR.
--- Replace overlapping decorative glass with a clean partition and one real door.
 -- =========================================================
+local vipFacadeKill={}
 for _,obj in ipairs(workspace:GetDescendants()) do
     if obj:IsA("BasePart") and (string.match(obj.Name,"^VIP FRONT GLASS ") or string.match(obj.Name,"^VIP FACADE PANEL ")) then
-        obj:Destroy()
+        table.insert(vipFacadeKill,obj)
     end
 end
+for _,obj in ipairs(vipFacadeKill) do if obj.Parent then obj:Destroy() end end
 
 local vipGlassL=glass(A5,"VIP LOCKED GLASS LEFT",Vector3.new(39.5,13,.5),CFrame.new(51.75,7.1,-8.55),.34)
 vipGlassL.CanCollide=true
@@ -124,24 +118,14 @@ end
 local function ownsVip(player)
     if player:GetAttribute("BBYAAllAccess")==true or player:GetAttribute("IsVIP")==true then return true end
     if VIP_GAMEPASS_ID<=0 then return false end
-    local ok,owns=pcall(function()
-        return MarketplaceServiceLayout:UserOwnsGamePassAsync(player.UserId,VIP_GAMEPASS_ID)
-    end)
-    if ok and owns then
-        player:SetAttribute("IsVIP",true)
-        return true
-    end
+    local ok,owns=pcall(function() return MarketplaceServiceLayout:UserOwnsGamePassAsync(player.UserId,VIP_GAMEPASS_ID) end)
+    if ok and owns then player:SetAttribute("IsVIP",true);return true end
     return false
 end
 
 vipPrompt.Triggered:Connect(function(player)
-    if ownsVip(player) then
-        openVipDoor(player)
-        return
-    end
-    if VIP_GAMEPASS_ID>0 then
-        MarketplaceServiceLayout:PromptGamePassPurchase(player,VIP_GAMEPASS_ID)
-    end
+    if ownsVip(player) then openVipDoor(player)
+    elseif VIP_GAMEPASS_ID>0 then MarketplaceServiceLayout:PromptGamePassPurchase(player,VIP_GAMEPASS_ID) end
 end)
 
 MarketplaceServiceLayout.PromptGamePassPurchaseFinished:Connect(function(player,passId,purchased)
@@ -152,38 +136,48 @@ MarketplaceServiceLayout.PromptGamePassPurchaseFinished:Connect(function(player,
 end)
 
 -- =========================================================
--- REAL ROOFTOP ACCESS.
--- Open BOTH obstruction layers: VIP ceiling at Y=18 and rooftop deck at Y=31.
--- The stair flight is centered around X=88, Z=47..68.
+-- REAL ROOFTOP ACCESS — FULLY OPEN EXIT.
+-- Stair flight center: X=88, Z=47..67.25, Y=16.7..31.55.
+-- Remove every old landing/rail/slab that can cross the avatar path, then rebuild the exit beyond the last step.
 -- =========================================================
 
--- 1) Cut a real stairwell through the VIP ceiling. The old full slab blocked the second flight.
+-- Ceiling opening around the entire second flight.
 destroyNamed("VIP CEILING")
-part(A5,"VIP CEILING WEST",Vector3.new(50,1,84),CFrame.new(57,18,35),C.charcoal,Enum.Material.Concrete,0,true)
-part(A5,"VIP CEILING EAST",Vector3.new(10,1,84),CFrame.new(99,18,35),C.charcoal,Enum.Material.Concrete,0,true)
-part(A5,"VIP CEILING FRONT BRIDGE",Vector3.new(12,1,49),CFrame.new(88,18,17.5),C.charcoal,Enum.Material.Concrete,0,true)
-part(A5,"VIP CEILING REAR CAP",Vector3.new(12,1,4),CFrame.new(88,18,75),C.charcoal,Enum.Material.Concrete,0,true)
+for _,name in ipairs({"VIP CEILING WEST","VIP CEILING EAST","VIP CEILING FRONT BRIDGE","VIP CEILING REAR CAP"}) do destroyNamed(name) end
+part(A5,"VIP CEILING WEST",Vector3.new(48,1,84),CFrame.new(56,18,35),C.charcoal,Enum.Material.Concrete,0,true)
+part(A5,"VIP CEILING EAST",Vector3.new(8,1,84),CFrame.new(100,18,35),C.charcoal,Enum.Material.Concrete,0,true)
+part(A5,"VIP CEILING FRONT BRIDGE",Vector3.new(16,1,46),CFrame.new(88,18,15),C.charcoal,Enum.Material.Concrete,0,true)
+-- No rear cap: the flight and exit remain open all the way toward Z=80.
 
--- 2) Split rooftop deck around the upper stairwell opening.
+-- Rooftop opening.
 destroyNamed("ROOFTOP DECK")
-part(A6,"ROOFTOP DECK WEST",Vector3.new(87,2,92),CFrame.new(36.5,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
-part(A6,"ROOFTOP DECK EAST FRONT",Vector3.new(16,2,54),CFrame.new(88,31,15),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
-part(A6,"ROOFTOP DECK EAST EDGE",Vector3.new(7,2,92),CFrame.new(99.5,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
+for _,name in ipairs({"ROOFTOP DECK WEST","ROOFTOP DECK EAST FRONT","ROOFTOP DECK EAST EDGE"}) do destroyNamed(name) end
+part(A6,"ROOFTOP DECK WEST",Vector3.new(86,2,92),CFrame.new(36,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
+part(A6,"ROOFTOP DECK EAST FRONT",Vector3.new(14,2,54),CFrame.new(89,31,15),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
+part(A6,"ROOFTOP DECK EAST EDGE",Vector3.new(6,2,92),CFrame.new(100,31,34),Color3.fromRGB(72,61,59),Enum.Material.WoodPlanks,0,true)
 
-local roofLanding=findDeep("ROOF STAIR LANDING")
-if roofLanding and roofLanding:IsA("BasePart") then
-    roofLanding.CFrame=CFrame.new(88,32.45,69)
-    roofLanding.Size=Vector3.new(14,1,12)
-end
-part(A6,"ROOF STAIR BRIDGE",Vector3.new(5,1,12),CFrame.new(79.5,32.45,69),C.stone,Enum.Material.Slate,0,true)
-rail(A6,"ROOF STAIRWELL EAST RAIL",Vector3.new(.45,4.8,36),CFrame.new(96.1,35,61))
-rail(A6,"ROOF STAIRWELL FRONT RAIL",Vector3.new(16,4.8,.45),CFrame.new(88,35,42.2))
-neon(A6,"ROOF STAIR ARRIVAL GLOW",Vector3.new(12,.14,.14),CFrame.new(88,33.05,75),C.warm)
+-- Remove all previous objects around the top stair mouth, including the landing that was sitting over the last steps.
+for _,name in ipairs({
+    "ROOF STAIR LANDING","ROOF STAIR BRIDGE",
+    "ROOF LANDING RAIL WEST","ROOF LANDING RAIL EAST",
+    "ROOF STAIRWELL EAST RAIL","ROOF STAIRWELL FRONT RAIL",
+    "ROOF STAIR ARRIVAL GLOW",
+}) do destroyNamed(name) end
 
-workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V3")
+-- Open transition after the final stair. Nothing sits above the avatar path.
+part(A6,"ROOF EXIT TRANSITION",Vector3.new(8,.7,2.2),CFrame.new(88,31.62,68.25),C.stone,Enum.Material.Slate,0,true)
+part(A6,"ROOF ACCESS LANDING",Vector3.new(14,1,9),CFrame.new(88,31.5,73.6),C.stone,Enum.Material.Slate,0,true)
+
+-- Side guards only, outside the 8-stud stair width. No front/cross rail.
+rail(A6,"ROOF ACCESS GUARD WEST",Vector3.new(.4,4,10),CFrame.new(80.7,34,73.5))
+rail(A6,"ROOF ACCESS GUARD EAST",Vector3.new(.4,4,10),CFrame.new(95.3,34,73.5))
+neon(A6,"ROOF ACCESS GLOW",Vector3.new(12,.14,.14),CFrame.new(88,32.08,77.8),C.warm)
+
+workspace:SetAttribute("BBYAOwnerLayoutFix","LIVE_OWNER_CORRECTIONS_V4")
 workspace:SetAttribute("BBYAFacadeGlassSolid",true)
 workspace:SetAttribute("BBYAVIPDoorInstalled",true)
 workspace:SetAttribute("BBYAVIPPassResolved",VIP_GAMEPASS_ID>0)
 workspace:SetAttribute("BBYARooftopStairwellOpen",true)
 workspace:SetAttribute("BBYAVIPCeilingStairwellOpen",true)
+workspace:SetAttribute("BBYARooftopExitCrossBarrier",false)
 workspace:SetAttribute("BBYAArrivalSeatsRemoved",true)
