@@ -1,0 +1,25 @@
+{
+  "name": "BBYAZeroPreview",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Entrance": {
+        "$path": "20-entrance.server.lua"
+      },
+      "SiteBasement": {
+        "$path": "21-site-basement.server.lua"
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Brightness": 1.6,
+        "ClockTime": 21
+      }
+    }
+  }
+}
