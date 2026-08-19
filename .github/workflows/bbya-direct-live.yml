@@ -76,7 +76,9 @@ jobs:
         run: |
           set -euo pipefail
           test -f deploy-status/a-club.json
+          test -f /tmp/bbya-commerce.json
           cp deploy-status/a-club.json /tmp/a-club-direct.json
+          cp /tmp/bbya-commerce.json /tmp/a-club-commerce.json
 
           git reset --hard HEAD
           git clean -fd
@@ -84,9 +86,10 @@ jobs:
 
           mkdir -p deploy-status
           cp /tmp/a-club-direct.json deploy-status/a-club.json
+          cp /tmp/a-club-commerce.json deploy-status/a-club-commerce.json
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deploy-status/a-club.json
+          git add deploy-status/a-club.json deploy-status/a-club-commerce.json
 
           if git diff --cached --quiet; then
             echo "Direct publish receipt already current."
