@@ -57,11 +57,11 @@ p("DanceFloor",Vector3.new(58,.35,42),CFrame.new(3,.72,11),Color3.fromRGB(36,31,
 for _,x in ipairs({-20,-10,0,10,20}) do neon("DanceStripX"..x,Vector3.new(.14,.07,38),CFrame.new(3+x,.94,11),x==0 and C.blue or C.pink,dance) end
 for _,z in ipairs({-3,11,25}) do neon("DanceStripZ"..z,Vector3.new(54,.07,.14),CFrame.new(3,.95,z),z==11 and C.blue or C.pink,dance) end
 
--- 06 DJ BOOTH: rear-center, visually aligned from reception.
+-- 06 DJ BOOTH: centered exactly on the main sightline x=0.
 local dj=zone("06_DJBooth")
-p("DJPlatform",Vector3.new(22,2.2,8),CFrame.new(3,1.6,34),C.metal,Enum.Material.Metal,0,dj)
-p("DJDesk",Vector3.new(17,3,4),CFrame.new(3,3.2,31),C.dark,Enum.Material.Metal,0,dj)
-neon("DJDeskGlow",Vector3.new(15,.22,.25),CFrame.new(3,4.8,28.95),C.pink,dj)
+p("DJPlatform",Vector3.new(22,2.2,8),CFrame.new(0,1.6,34),C.metal,Enum.Material.Metal,0,dj)
+p("DJDesk",Vector3.new(17,3,4),CFrame.new(0,3.2,31),C.dark,Enum.Material.Metal,0,dj)
+neon("DJDeskGlow",Vector3.new(15,.22,.25),CFrame.new(0,4.8,28.95),C.pink,dj)
 
 -- 07 STAGE / LIGHTING: broad rear band, slightly wider than DJ but narrower than dance floor.
 local stage=zone("07_StageLighting")
@@ -80,4 +80,4 @@ neon("BarCounterGlow",Vector3.new(.18,.2,22),CFrame.new(32.45,3.6,11),C.pink,bar
 p("TransitionCourt",Vector3.new(34,.08,12),CFrame.new(0,1.01,-12),Color3.fromRGB(55,45,52),Enum.Material.Slate,0,m).CanCollide=false
 local sight=neon("CenterSightline",Vector3.new(.10,.04,70),CFrame.new(0,1.03,2),C.blue,m);sight.Transparency=.72
 
-print("[BBYA] Floor 1 remapped to irregular stepped blueprint footprint; entrance untouched")
+print("[BBYA] Floor 1 remapped to irregular stepped blueprint footprint; DJ booth centered on sightline")
