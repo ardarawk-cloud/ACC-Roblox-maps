@@ -19,6 +19,7 @@ const serverFiles=[
   'maps/a-club/rebuild/30-lighting.lua',
   'maps/a-club/rebuild/40-runtime.server.lua',
   'maps/a-club/rebuild/45-owner-layout-fix.server.lua',
+  'maps/a-club/rebuild/46-owner-seat-cleanup.server.lua',
   'maps/a-club/rebuild/47-street-frontage.server.lua',
   'maps/a-club/rebuild/60-social-systems.server.lua',
   'maps/a-club/rebuild/65-live-services.server.lua',
