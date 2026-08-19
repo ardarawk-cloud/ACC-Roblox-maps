@@ -8,6 +8,7 @@ on:
       - 'maps/bbya-social-hub/**'
       - 'maps/registry.json'
       - '.github/workflows/bbya-zero-live.yml'
+      - 'scripts/publish-map.js'
 
 concurrency:
   group: bbya-zero-live-${{ github.ref }}
@@ -27,23 +28,38 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Verify zero-baseline place
+      - name: Install canonical Roblox serializer
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build canonical BBYA preview place
+        shell: bash
         run: |
-          test -f maps/bbya-social-hub/place.rbxlx
-          grep -q 'BBYAZeroPreview' maps/bbya-social-hub/place.rbxlx
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-zero-live.rbxl
+          test -s /tmp/bbya-zero-live.rbxl
+          ls -lh /tmp/bbya-zero-live.rbxl
 
       - name: Publish BBYA preview live
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-zero-live.rbxl
         run: node scripts/publish-map.js a-club
 
       - name: Persist deploy receipt
+        shell: bash
         run: |
-          if [ ! -d deploy-status ]; then exit 1; fi
+          set -euo pipefail
+          test -f deploy-status/a-club.json
+          cp deploy-status/a-club.json /tmp/a-club-zero.json
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/a-club-zero.json deploy-status/a-club.json
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deploy-status
+          git add deploy-status/a-club.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Record BBYA zero preview deploy [skip ci]"
           git push origin HEAD:main
