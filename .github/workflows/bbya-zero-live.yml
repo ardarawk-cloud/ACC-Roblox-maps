@@ -1,0 +1,49 @@
+name: BBYA Zero Live Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - 'maps/registry.json'
+      - '.github/workflows/bbya-zero-live.yml'
+
+concurrency:
+  group: bbya-zero-live-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify zero-baseline place
+        run: |
+          test -f maps/bbya-social-hub/place.rbxlx
+          grep -q 'BBYAZeroPreview' maps/bbya-social-hub/place.rbxlx
+
+      - name: Publish BBYA preview live
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: node scripts/publish-map.js a-club
+
+      - name: Persist deploy receipt
+        run: |
+          if [ ! -d deploy-status ]; then exit 1; fi
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record BBYA zero preview deploy [skip ci]"
+          git push origin HEAD:main
