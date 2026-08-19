@@ -1,8 +1,8 @@
 -- BBYA SOCIAL HUB — CLEAN REBUILD FURNISHING
 
--- Arrival social pockets.
+-- Arrival social pockets. Seats face inward toward the social tables/venue, never toward blank walls.
 for _,cfg in ipairs({
-    {-66,-48,0,C.graphite},{-44,-48,0,C.cream},{44,-48,180,C.cream},{66,-48,180,C.graphite}
+    {-66,-48,-90,C.graphite},{-44,-48,90,C.cream},{44,-48,-90,C.cream},{66,-48,90,C.graphite}
 }) do
     seat(A1,"ARRIVAL SEAT "..cfg[1],CFrame.new(cfg[1],1.25,cfg[2])*CFrame.Angles(0,math.rad(cfg[3]),0),10,cfg[4])
 end
@@ -11,9 +11,9 @@ for _,x in ipairs({-55,55}) do
     palm(A1,"ARRIVAL PALM "..x,Vector3.new(x,1,-70),12)
 end
 
--- Atrium hangout islands.
+-- Atrium hangout islands. Left sofas face east; right sofas face west, toward their tables and each other.
 for _,cfg in ipairs({
-    {-2,17,90,C.cream},{17,17,-90,C.graphite},{-2,50,90,C.graphite},{17,50,-90,C.cream}
+    {-2,17,-90,C.cream},{17,17,90,C.graphite},{-2,50,-90,C.graphite},{17,50,90,C.cream}
 }) do
     seat(A2,"ATRIUM SOFA "..cfg[1].." "..cfg[2],CFrame.new(cfg[1],1.25,cfg[2])*CFrame.Angles(0,math.rad(cfg[3]),0),11,cfg[4])
 end
@@ -21,25 +21,25 @@ for _,z in ipairs({17,50}) do
     tableLow(A2,"ATRIUM TABLE "..z,CFrame.new(8,1.05,z),Vector3.new(7,.6,4))
 end
 
--- Club side lounges, keeping dance floor fully open.
+-- Club side lounges face the dance floor, not the perimeter walls.
 for _,cfg in ipairs({
-    {-75,20,90},{-75,48,90},{8,20,-90},{8,48,-90}
+    {-75,20,-90},{-75,48,-90},{8,20,90},{8,48,90}
 }) do
     seat(A3,"CLUB WATCH SOFA "..cfg[1].." "..cfg[2],CFrame.new(cfg[1],1.25,cfg[2])*CFrame.Angles(0,math.rad(cfg[3]),0),10,C.graphite)
 end
 
--- Mezzanine social seating.
+-- Mezzanine social seating faces the open venue / tables to the east.
 for _,y in ipairs({16.9,30.9}) do
     for _,z in ipairs({18,42,66}) do
-        seat(A4,"MEZZ SOFA "..y.." "..z,CFrame.new(-78,y,z)*CFrame.Angles(0,math.rad(90),0),9,y<20 and C.graphite or C.cream)
+        seat(A4,"MEZZ SOFA "..y.." "..z,CFrame.new(-78,y,z)*CFrame.Angles(0,math.rad(-90),0),9,y<20 and C.graphite or C.cream)
         tableLow(A4,"MEZZ TABLE "..y.." "..z,CFrame.new(-68,y-.2,z),Vector3.new(5,.6,4))
     end
 end
 
--- VIP lounge under rooftop.
+-- VIP lounge pairs face inward toward the center tables.
 for _,z in ipairs({10,31,52}) do
-    seat(A5,"VIP EAST SOFA "..z,CFrame.new(94,1.25,z)*CFrame.Angles(0,math.rad(-90),0),11,C.cream)
-    seat(A5,"VIP WEST SOFA "..z,CFrame.new(48,1.25,z)*CFrame.Angles(0,math.rad(90),0),11,C.graphite)
+    seat(A5,"VIP EAST SOFA "..z,CFrame.new(94,1.25,z)*CFrame.Angles(0,math.rad(90),0),11,C.cream)
+    seat(A5,"VIP WEST SOFA "..z,CFrame.new(48,1.25,z)*CFrame.Angles(0,math.rad(-90),0),11,C.graphite)
     tableLow(A5,"VIP TABLE "..z,CFrame.new(71,1.05,z),Vector3.new(7,.7,5))
 end
 part(A5,"VIP BAR BODY",Vector3.new(28,4,6),CFrame.new(68,2.2,68),C.graphite,Enum.Material.Slate,0,true)
@@ -47,8 +47,11 @@ part(A5,"VIP BAR TOP",Vector3.new(29,.4,6.6),CFrame.new(68,4.4,68),C.wood,Enum.M
 neon(A5,"VIP BAR ACCENT",Vector3.new(26,.18,.18),CFrame.new(68,2.4,64.9),C.pink)
 sign(A5,"VIP SIGN","VIP AREA",CFrame.new(68,11.5,-6.8),Vector3.new(30,4,.3),C.pink,Enum.NormalId.Front)
 
--- Rooftop loungers and cabana-like chill corners.
-for _,x in ipairs({9,25,71,87}) do
+-- Rooftop loungers face the pool / social center.
+for _,x in ipairs({9,25}) do
+    seat(A6,"POOL LOUNGER "..x,CFrame.new(x,32.4,48)*CFrame.Angles(0,math.rad(180),0),8,C.cream)
+end
+for _,x in ipairs({71,87}) do
     seat(A6,"POOL LOUNGER "..x,CFrame.new(x,32.4,48),8,C.cream)
 end
 for _,x in ipairs({12,84}) do
@@ -58,7 +61,7 @@ for _,x in ipairs({12,84}) do
         end
     end
     part(A6,"CABANA ROOF "..x,Vector3.new(14,.5,12),CFrame.new(x,40,67),C.charcoal,Enum.Material.WoodPlanks,0,true)
-    seat(A6,"CABANA DAYBED "..x,CFrame.new(x,32.4,68),9,C.cream)
+    seat(A6,"CABANA DAYBED "..x,CFrame.new(x,32.4,68)*CFrame.Angles(0,math.rad(180),0),9,C.cream)
 end
 for _,p in ipairs({Vector3.new(5,32,7),Vector3.new(91,32,7),Vector3.new(5,32,75),Vector3.new(91,32,75)}) do
     palm(A6,"ROOF PALM "..p.X.." "..p.Z,p,10)
@@ -97,4 +100,4 @@ for i,h in ipairs(heights) do
     end
 end
 
-workspace:SetAttribute("BBYAFurnishing","PREMIUM_SOCIAL_PASS_1")
+workspace:SetAttribute("BBYAFurnishing","PREMIUM_SOCIAL_PASS_1_ORIENTATION_FIXED")
