@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - 'maps/**'
+      - '!maps/a-club/**'
       - 'scripts/**'
       - '.github/workflows/publish-map.yml'
 
@@ -39,20 +40,25 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.map_id }}" = "a-club" ]; then
+              echo "BBYA a-club is owned exclusively by bbya-direct-live.yml"
+              echo "maps=" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             echo "maps=${{ inputs.map_id }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           CHANGED=$(git diff --name-only HEAD^ HEAD || true)
           TARGETS=""
-          for MAP_ID in $(node -e "const r=require('./maps/registry.json'); console.log(Object.keys(r.maps).join(' '))"); do
+          for MAP_ID in $(node -e "const r=require('./maps/registry.json'); console.log(Object.keys(r.maps).filter(k=>k!=='a-club').join(' '))"); do
             if echo "$CHANGED" | grep -q "^maps/$MAP_ID/"; then
               TARGETS="$TARGETS $MAP_ID"
             fi
           done
 
           if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/\|^.github/workflows/publish-map.yml$'; then
-            TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([,v])=>v.enabled).map(([k])=>k).join(' '))")
+            TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([k,v])=>k!=='a-club' && v.enabled).map(([k])=>k).join(' '))")
           fi
 
           echo "maps=$(echo "$TARGETS" | xargs)" >> "$GITHUB_OUTPUT"
@@ -66,28 +72,15 @@ jobs:
         run: |
           set -euo pipefail
           for MAP_ID in ${{ steps.targets.outputs.maps }}; do
-            if [ "$MAP_ID" = "a-club" ]; then
-              PLACE_FILE=$(node -e "const r=require('./maps/registry.json'); process.stdout.write(r.maps['a-club'].file)")
+            echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
+            node scripts/validate-bbya-build.js "$MAP_ID"
+            node scripts/validate-bbya-runtime-roots.js "$MAP_ID"
 
-              echo "=== BBYA CLEAN REBUILD VALIDATION ==="
-              node scripts/validate-bbya-clean-rebuild.js
+            echo "=== INJECT RUNTIME: $MAP_ID ==="
+            node scripts/inject-bbya.js "$MAP_ID"
 
-              echo "=== BBYA CLEAN REBUILD ASSEMBLY ==="
-              node scripts/assemble-bbya-v6-preview.js a-club "$PLACE_FILE"
-
-              echo "=== BBYA ASSEMBLED LIVE FILE INSPECTION ==="
-              node scripts/inspect-bbya-clean-preview.js "$PLACE_FILE"
-            else
-              echo "=== PRE-PUBLISH VALIDATION: $MAP_ID ==="
-              node scripts/validate-bbya-build.js "$MAP_ID"
-              node scripts/validate-bbya-runtime-roots.js "$MAP_ID"
-
-              echo "=== INJECT RUNTIME: $MAP_ID ==="
-              node scripts/inject-bbya.js "$MAP_ID"
-
-              echo "=== POST-INJECTION VALIDATION: $MAP_ID ==="
-              node scripts/validate-bbya-build.js "$MAP_ID" --injected
-            fi
+            echo "=== POST-INJECTION VALIDATION: $MAP_ID ==="
+            node scripts/validate-bbya-build.js "$MAP_ID" --injected
 
             echo "=== PUBLISH: $MAP_ID ==="
             node scripts/publish-map.js "$MAP_ID"
@@ -106,7 +99,6 @@ jobs:
           mkdir -p /tmp/bbya-deploy-status
           cp -a deploy-status/. /tmp/bbya-deploy-status/
 
-          # Remove assembled/injected working-tree changes before committing only receipts.
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
@@ -128,4 +120,4 @@ jobs:
 
       - name: Nothing to publish
         if: steps.targets.outputs.maps == ''
-        run: echo "No enabled map target changed."
+        run: echo "No generic map target changed. BBYA uses its dedicated direct-live pipeline."
