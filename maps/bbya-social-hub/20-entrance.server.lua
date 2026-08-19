@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE BUILD v0.6
+-- BBYA SOCIAL HUB — ENTRANCE BUILD v0.7
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
 local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD") or Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=Workspace
@@ -15,38 +15,78 @@ local function wallText(name,pos,size,text,font)
  return panel
 end
 local function stroke(n,a,b,w)local mid=(a+b)/2;local p=neon(n,Vector3.new(w,w,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);light(p,C.pink,.5,9) end
-part("ArrivalForecourt",Vector3.new(90,1,28),CFrame.new(0,0,-58),C.floor2,Enum.Material.Slate)
-part("EntranceFloor",Vector3.new(86,1,42),CFrame.new(0,0,-24),C.floor,Enum.Material.Slate)
-part("FacadeLeftWing",Vector3.new(24,25,10),CFrame.new(-34,12.5,-42),C.black)
-part("FacadeRightWing",Vector3.new(24,25,10),CFrame.new(34,12.5,-42),C.black)
-part("FacadeSignWall",Vector3.new(56,20,8),CFrame.new(0,25,-42),C.black)
-part("FacadeBackLeft",Vector3.new(2,18,30),CFrame.new(-45,9,-24),C.charcoal);part("FacadeBackRight",Vector3.new(2,18,30),CFrame.new(45,9,-24),C.charcoal)
-neon("EntryTop",Vector3.new(48,.28,.35),CFrame.new(0,17.5,-36.8),C.pink);neon("EntryLeft",Vector3.new(.28,17,.35),CFrame.new(-24,9,-36.8),C.pink);neon("EntryRight",Vector3.new(.28,17,.35),CFrame.new(24,9,-36.8),C.pink)
--- Fixed wall-mounted signage. Front face naturally points toward SOUTH (-Z), the spawn side.
-wallText("BBYATitle",Vector3.new(0,28,-37.72),Vector2.new(66,10.5),"BBYA",Enum.Font.GothamBold)
-wallText("SocialHubTitle",Vector3.new(0,20.7,-37.70),Vector2.new(45,4.6),"SOCIAL HUB",Enum.Font.GothamMedium)
--- Crown fixed to facade, slightly in front of the text plane so it cannot disappear behind the wall.
-local z=-37.50
+
+-- Ground / arrival
+part("ArrivalForecourt",Vector3.new(96,1,30),CFrame.new(0,0,-59),C.floor2,Enum.Material.Slate)
+part("EntranceFloor",Vector3.new(90,1,46),CFrame.new(0,0,-22),C.floor,Enum.Material.Slate)
+part("FrontStep",Vector3.new(72,.8,5),CFrame.new(0,.2,-45),C.charcoal,Enum.Material.Slate)
+neon("FrontStepGlow",Vector3.new(70,.12,.25),CFrame.new(0,.65,-47.3),C.pink)
+
+-- Facade: wider, layered, less like a flat black box
+part("FacadeLeftWing",Vector3.new(26,26,12),CFrame.new(-35,13,-41),C.black)
+part("FacadeRightWing",Vector3.new(26,26,12),CFrame.new(35,13,-41),C.black)
+part("FacadeSignWall",Vector3.new(58,21,9),CFrame.new(0,25.5,-41.5),C.black)
+part("FacadeLeftReturn",Vector3.new(8,18,22),CFrame.new(-44,9,-30),C.charcoal)
+part("FacadeRightReturn",Vector3.new(8,18,22),CFrame.new(44,9,-30),C.charcoal)
+part("Canopy",Vector3.new(58,1.4,10),CFrame.new(0,18.1,-37.5),C.charcoal,Enum.Material.Metal)
+neon("CanopyFrontGlow",Vector3.new(56,.22,.28),CFrame.new(0,17.4,-42.3),C.pink)
+
+-- Entrance portal columns + top beam
+part("PortalLeft",Vector3.new(3,17,3),CFrame.new(-25.5,8.5,-37.1),C.charcoal,Enum.Material.Metal)
+part("PortalRight",Vector3.new(3,17,3),CFrame.new(25.5,8.5,-37.1),C.charcoal,Enum.Material.Metal)
+part("PortalTop",Vector3.new(54,3,3),CFrame.new(0,17,-37.1),C.charcoal,Enum.Material.Metal)
+neon("EntryTop",Vector3.new(50,.3,.38),CFrame.new(0,15.8,-35.55),C.pink)
+neon("EntryLeft",Vector3.new(.3,14,.38),CFrame.new(-24,8,-35.55),C.pink)
+neon("EntryRight",Vector3.new(.3,14,.38),CFrame.new(24,8,-35.55),C.pink)
+
+-- Branding
+wallText("BBYATitle",Vector3.new(0,28.2,-37.05),Vector2.new(66,10.5),"BBYA",Enum.Font.GothamBold)
+wallText("SocialHubTitle",Vector3.new(0,20.8,-37.03),Vector2.new(45,4.6),"SOCIAL HUB",Enum.Font.GothamMedium)
+local z=-36.85
 local pts={Vector3.new(-7.5,35.8,z),Vector3.new(-6.2,41.2,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.5,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.2,z),Vector3.new(7.5,35.8,z)}
 for i=1,#pts-1 do stroke("CrownStroke"..i,pts[i],pts[i+1],.5) end
 stroke("CrownBase",Vector3.new(-7.5,35.8,z),Vector3.new(7.5,35.8,z),.5)
 stroke("CrownBase2",Vector3.new(-6.4,34.6,z),Vector3.new(6.4,34.6,z),.38)
-for i,p in ipairs({Vector3.new(-6.2,41.2,z),Vector3.new(0,43.5,z),Vector3.new(6.2,41.2,z)}) do local tip=neon("CrownTip"..i,Vector3.new(.9,.9,.55),CFrame.new(p),C.pink);light(tip,C.pink,.7,9) end
-local gl=part("GlassLeft",Vector3.new(18,15,.4),CFrame.new(-34,8.5,-36.5),C.glass,Enum.Material.Glass,.28);gl.CanCollide=false
-local gr=part("GlassRight",Vector3.new(18,15,.4),CFrame.new(34,8.5,-36.5),C.glass,Enum.Material.Glass,.28);gr.CanCollide=false
-part("InteriorCeiling",Vector3.new(88,1,42),CFrame.new(0,17,-15),C.black);part("InteriorRearWall",Vector3.new(88,18,2),CFrame.new(0,9,5),C.charcoal);part("InteriorLeftWall",Vector3.new(2,18,42),CFrame.new(-44,9,-15),C.wall);part("InteriorRightWall",Vector3.new(2,18,42),CFrame.new(44,9,-15),C.wall)
-for _,x in ipairs({-32,-16,0,16,32}) do local p=neon("WarmCeiling",Vector3.new(9,.2,.4),CFrame.new(x,16.3,-20),C.warm);light(p,C.warm,2.2,20) end
-for _,zz in ipairs({-31,-18,-5}) do local p=neon("PinkCeiling",Vector3.new(6,.18,.35),CFrame.new(0,16.2,zz),C.pink);light(p,C.pink,1.5,15) end
-part("ShowcaseFrame",Vector3.new(32,12,1.2),CFrame.new(-23,6.5,-7),C.charcoal);local sg=part("ShowcaseGlass",Vector3.new(29,8.5,.3),CFrame.new(-23,7,-6.3),C.glass,Enum.Material.Glass,.2);sg.CanCollide=false
-part("ShowcaseCounter",Vector3.new(28,2.6,5),CFrame.new(-23,2,-9),C.wallWarm,Enum.Material.Slate);local st=neon("ShowcaseGlow",Vector3.new(29,.2,.3),CFrame.new(-23,11,-6),C.pink);light(st,C.pink,1,10)
+
+-- Glass frontage like reference
+local gl=part("GlassLeft",Vector3.new(18,14,.45),CFrame.new(-34,8,-34.9),C.glass,Enum.Material.Glass,.18);gl.CanCollide=false
+local gr=part("GlassRight",Vector3.new(18,14,.45),CFrame.new(34,8,-34.9),C.glass,Enum.Material.Glass,.18);gr.CanCollide=false
+neon("GlassLeftTop",Vector3.new(18,.16,.22),CFrame.new(-34,15,-34.55),C.pink)
+neon("GlassRightTop",Vector3.new(18,.16,.22),CFrame.new(34,15,-34.55),C.pink)
+
+-- Interior shell with stronger depth
+part("InteriorCeiling",Vector3.new(90,1,46),CFrame.new(0,17,-14),C.black)
+part("InteriorRearWall",Vector3.new(90,18,2),CFrame.new(0,9,8),C.charcoal)
+part("InteriorLeftWall",Vector3.new(2,18,46),CFrame.new(-44,9,-14),C.wall)
+part("InteriorRightWall",Vector3.new(2,18,46),CFrame.new(44,9,-14),C.wall)
+part("RearAccentWall",Vector3.new(28,10,.6),CFrame.new(-18,7,6.7),C.wallWarm)
+neon("RearAccentGlow",Vector3.new(26,.22,.25),CFrame.new(-18,11.9,6.35),C.pink)
+
+-- Warm ceiling lights and pink practicals
+for _,x in ipairs({-32,-16,0,16,32}) do local p=neon("WarmCeiling",Vector3.new(9,.2,.4),CFrame.new(x,16.25,-20),C.warm);light(p,C.warm,2.6,22) end
+for _,zz in ipairs({-31,-18,-5,5}) do local p=neon("PinkCeiling",Vector3.new(6,.18,.35),CFrame.new(0,16.2,zz),C.pink);light(p,C.pink,1.8,16) end
+
+-- Showcase / bar visible through left side
+part("ShowcaseFrame",Vector3.new(32,12,1.2),CFrame.new(-23,6.5,-5),C.charcoal)
+local sg=part("ShowcaseGlass",Vector3.new(29,8.5,.3),CFrame.new(-23,7,-4.3),C.glass,Enum.Material.Glass,.15);sg.CanCollide=false
+part("ShowcaseCounter",Vector3.new(28,2.6,5),CFrame.new(-23,2,-7),C.wallWarm,Enum.Material.Slate)
+local st=neon("ShowcaseGlow",Vector3.new(29,.2,.3),CFrame.new(-23,11,-4),C.pink);light(st,C.pink,1.2,11)
+
+-- Lounge furniture, more visible near entrance
 local function sofa(n,x,zv,r)local s=part(n,Vector3.new(10,2.2,4.2),CFrame.new(x,1.7,zv)*CFrame.Angles(0,math.rad(r or 0),0),C.wallWarm,Enum.Material.Fabric);part(n.."Back",Vector3.new(10,3.2,1.2),s.CFrame*CFrame.new(0,2,-1.7),C.charcoal,Enum.Material.Fabric) end
-sofa("LoungeA",8,-9,0);sofa("LoungeB",23,-3,180);sofa("LoungeC",-5,0,90)
-for i,p in ipairs({Vector3.new(8,1,-3),Vector3.new(23,1,-9),Vector3.new(-12,1,-1)}) do part("Table"..i,Vector3.new(5,1.1,3),CFrame.new(p),C.wallWarm,Enum.Material.Slate);local g=neon("TableGlow"..i,Vector3.new(4.4,.1,2.4),CFrame.new(p+Vector3.new(0,.62,0)),C.warm);light(g,C.warm,.5,6) end
-for i,x in ipairs({-35,35}) do part("Planter"..i,Vector3.new(8,2.5,8),CFrame.new(x,1.5,-28),C.charcoal,Enum.Material.Slate);for j=1,5 do local stem=part("Plant"..i.."_"..j,Vector3.new(.55,4+j*.35,.55),CFrame.new(x+(j-3)*.8,4,-28+(j%2)),C.green,Enum.Material.Grass);stem.CanCollide=false end;neon("PlanterGlow"..i,Vector3.new(7.2,.12,7.2),CFrame.new(x,2.8,-28),C.pink) end
-for _,x in ipairs({-41,-30,30,41}) do local p=neon("FacadeWarm",Vector3.new(.35,2.2,.4),CFrame.new(x,8,-36.2),C.warm);light(p,C.warm,2,15) end
-local spawn=Instance.new("SpawnLocation");spawn.Name="EntranceSpawn";spawn.Anchored=true;spawn.Neutral=true;spawn.Size=Vector3.new(7,1,7);spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-66),Vector3.new(0,10,-20));spawn.Transparency=1;spawn.Parent=model
-Lighting.ClockTime=20.3;Lighting.Brightness=3;Lighting.Ambient=Color3.fromRGB(68,48,68);Lighting.OutdoorAmbient=Color3.fromRGB(38,29,43);Lighting.EnvironmentDiffuseScale=.45;Lighting.EnvironmentSpecularScale=.5
+sofa("LoungeA",8,-8,0);sofa("LoungeB",24,-1,180);sofa("LoungeC",-6,1,90)
+for i,p in ipairs({Vector3.new(8,1,-2),Vector3.new(24,1,-7),Vector3.new(-13,1,0)}) do part("Table"..i,Vector3.new(5,1.1,3),CFrame.new(p),C.wallWarm,Enum.Material.Slate);local g=neon("TableGlow"..i,Vector3.new(4.4,.1,2.4),CFrame.new(p+Vector3.new(0,.62,0)),C.warm);light(g,C.warm,.7,7) end
+
+-- Planters closer to reference framing
+for i,x in ipairs({-36,36}) do part("Planter"..i,Vector3.new(8,2.6,8),CFrame.new(x,1.5,-27),C.charcoal,Enum.Material.Slate);for j=1,6 do local stem=part("Plant"..i.."_"..j,Vector3.new(.55,4+j*.35,.55),CFrame.new(x+(j-3.5)*.75,4,-27+((j%2)*1.2)),C.green,Enum.Material.Grass);stem.CanCollide=false end;neon("PlanterGlow"..i,Vector3.new(7.2,.12,7.2),CFrame.new(x,2.85,-27),C.pink) end
+
+-- Extra facade warm sconces so structure reads at night
+for _,x in ipairs({-42,-31,31,42}) do local p=neon("FacadeWarm",Vector3.new(.35,2.4,.4),CFrame.new(x,8,-35.5),C.warm);light(p,C.warm,2.4,17) end
+
+local spawn=Instance.new("SpawnLocation");spawn.Name="EntranceSpawn";spawn.Anchored=true;spawn.Neutral=true;spawn.Size=Vector3.new(7,1,7);spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-66),Vector3.new(0,9,-20));spawn.Transparency=1;spawn.Parent=model
+
+Lighting.ClockTime=20.1;Lighting.Brightness=3.4;Lighting.Ambient=Color3.fromRGB(78,56,76);Lighting.OutdoorAmbient=Color3.fromRGB(46,34,48);Lighting.EnvironmentDiffuseScale=.5;Lighting.EnvironmentSpecularScale=.55
 for _,n in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(n);if e then e:Destroy() end end
-local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.04;cc.Saturation=.05;cc.TintColor=Color3.fromRGB(255,239,245);cc.Parent=Lighting
-local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.15;bloom.Parent=Lighting
-print("[BBYA] Entrance v0.6 fixed facade signage + restored crown")
+local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.1;cc.Contrast=.03;cc.Saturation=.06;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
+local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.4;bloom.Size=24;bloom.Threshold=1.05;bloom.Parent=Lighting
+print("[BBYA] Entrance v0.7 facade depth and reference fidelity pass")
