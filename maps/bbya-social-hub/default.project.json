@@ -9,7 +9,8 @@
       "$className": "ServerScriptService",
       "Entrance": { "$path": "20-entrance.server.lua" },
       "SiteBasement": { "$path": "21-site-basement.server.lua" },
-      "RuntimeEditorServer": { "$path": "22-editor.server.lua" }
+      "RuntimeEditorServer": { "$path": "22-editor.server.lua" },
+      "Floor1Core": { "$path": "24-floor1-core.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
