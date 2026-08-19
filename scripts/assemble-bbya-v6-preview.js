@@ -30,6 +30,7 @@ const clientFiles = [
   'maps/a-club/rebuild/70-ui.client.lua',
   'maps/a-club/rebuild/71-ui-consolidate.client.lua',
   'maps/a-club/rebuild/72-hybrid-ui.client.lua',
+  'maps/a-club/rebuild/73-support-ui.client.lua',
 ];
 const allFiles=[...serverFiles,...clientFiles];
 for (const file of allFiles) {
@@ -84,6 +85,6 @@ xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI modules; owner layout fixes + hybrid Auto DJ included.`);
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI modules; owner layout fixes + Hybrid Auto DJ + support purchase UI included.`);
 console.log('[BBYA CLEAN REBUILD] Preview keeps commerce fail-closed; direct live deploy resolves existing Roblox commerce IDs.');
 console.log('[BBYA CLEAN REBUILD] PREVIEW ASSEMBLY COMPLETE');
