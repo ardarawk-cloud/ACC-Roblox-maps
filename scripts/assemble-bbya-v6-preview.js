@@ -10,7 +10,6 @@ const registry = JSON.parse(fs.readFileSync(path.join(root, 'maps/registry.json'
 const target = registry.maps?.[mapId];
 if (!target) throw new Error(`Unknown map: ${mapId}`);
 
-// Server order is authoritative: physical build -> circulation -> lighting -> safety -> social systems -> QC -> release gate.
 const serverFiles = [
   'maps/a-club/rebuild/00-core.lua',
   'maps/a-club/rebuild/10-architecture.lua',
@@ -40,7 +39,14 @@ const clientSource=concat(clientFiles);
 
 const placePath = path.join(root, target.file);
 let xml = fs.readFileSync(placePath, 'utf8');
-if (!xml.includes('</roblox>')) throw new Error('Invalid blank RBXLX: missing </roblox>');
+if (!xml.includes('</roblox>')) throw new Error('Invalid carrier RBXLX: missing </roblox>');
+if (!xml.includes('RBXBBYACARRIERWORKSPACE') || !xml.includes('RBXBBYACARRIERLIGHTING')) {
+  throw new Error('BBYA carrier anchors missing');
+}
+
+const begin='<!-- BBYA_CLEAN_RUNTIME_BEGIN -->';
+const end='<!-- BBYA_CLEAN_RUNTIME_END -->';
+xml=xml.replace(new RegExp(`${begin}[\\s\\S]*?${end}`,'g'),'');
 
 const runtimeService = `<Item class="ServerScriptService" referent="RBXBBYACLEANSSS">
   <Properties><string name="Name">ServerScriptService</string></Properties>
@@ -53,7 +59,7 @@ const runtimeService = `<Item class="ServerScriptService" referent="RBXBBYACLEAN
   </Item>
 </Item>`;
 
-const starterPlayer = `<Item class="StarterPlayer" referent="RBXBBYABLANKSTARTERPLAYER">
+const starterPlayer = `<Item class="StarterPlayer" referent="RBXBBYACLEANSTARTERPLAYER">
   <Properties><string name="Name">StarterPlayer</string></Properties>
   <Item class="StarterPlayerScripts" referent="RBXBBYACLEANSTARTERSCRIPTS">
     <Properties><string name="Name">StarterPlayerScripts</string></Properties>
@@ -67,17 +73,12 @@ const starterPlayer = `<Item class="StarterPlayer" referent="RBXBBYABLANKSTARTER
   </Item>
 </Item>`;
 
-const blankService = /<Item class="ServerScriptService" referent="RBXBBYABLANKSSS">[\s\S]*?<\/Item>/;
-if (!blankService.test(xml)) throw new Error('Blank ServerScriptService anchor not found');
-xml = xml.replace(blankService, runtimeService);
-
-const blankStarter = /<Item class="StarterPlayer" referent="RBXBBYABLANKSTARTERPLAYER">[\s\S]*?<\/Item>/;
-if (!blankStarter.test(xml)) throw new Error('Blank StarterPlayer anchor not found');
-xml = xml.replace(blankStarter, starterPlayer);
+const runtime = `${begin}\n${runtimeService}\n${starterPlayer}\n${end}`;
+xml = xml.replace('</roblox>', `${runtime}</roblox>`);
 
 fs.mkdirSync(path.dirname(outArg), { recursive: true });
 fs.writeFileSync(outArg, xml);
 console.log(`[BBYA CLEAN REBUILD] Preview assembled -> ${outArg}`);
-console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; phase 5 reference systems + phase 6 runtime release gate included.`);
+console.log(`[BBYA CLEAN REBUILD] ${serverFiles.length} server modules + ${clientFiles.length} client UI module; clean carrier + phase 6 release gate included.`);
 console.log('[BBYA CLEAN REBUILD] Support product IDs and authorized music library intentionally remain pending/disabled until official values are supplied.');
-console.log('[BBYA CLEAN REBUILD] PREVIEW ONLY — NO ROBLOX PUBLISH PERFORMED');
+console.log('[BBYA CLEAN REBUILD] PREVIEW ASSEMBLY COMPLETE');
