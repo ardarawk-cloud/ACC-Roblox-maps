@@ -11,17 +11,16 @@ for _,p in ipairs({
     l.Parent:SetAttribute("BBYACriticalFill",true)
 end
 
--- Main club truss and show heads.
-for _,z in ipairs({12,34,56}) do
-    part(A3,"CLUB TRUSS "..z,Vector3.new(76,.7,.7),CFrame.new(-28,19,z),C.black,Enum.Material.Metal,0,false)
-    for _,x in ipairs({-58,-43,-28,-13,2}) do
-        local head=part(A3,"SHOW HEAD "..x.." "..z,Vector3.new(2,1.5,2),CFrame.new(x,18.3,z),C.black,Enum.Material.Metal,0,false)
+-- Main club show lighting only. Truss geometry is authored in 25-premium-interior.lua.
+for _,z in ipairs({18,55}) do
+    for _,x in ipairs({-56,-42,-28,-14,0}) do
+        local head=part(A3,"ACTIVE SHOW HEAD "..x.." "..z,Vector3.new(1.7,1.2,1.7),CFrame.new(x,16.9,z),C.black,Enum.Material.Metal,0,false)
         local s=Instance.new("SpotLight")
         s.Name="SHOW BEAM"
         s.Face=Enum.NormalId.Bottom
         s.Angle=36
-        s.Brightness=3.2
-        s.Range=55
+        s.Brightness=3.1
+        s.Range=52
         s.Shadows=false
         s.Color=((x+z)%2==0) and C.pink or C.cyan
         s.Parent=head
@@ -53,6 +52,9 @@ for _,p in ipairs({
     Vector3.new(-2,14,65),Vector3.new(20,14,65),Vector3.new(42,14,65),
 }) do light(A2,"ATRIUM WARM",p,C.warm,1.15,19) end
 
+-- Integrated supporter wall key.
+light(A2,"SUPPORT WALL KEY",Vector3.new(43,12,64),C.cyan,.95,14)
+
 -- VIP premium lighting.
 for _,z in ipairs({5,24,43,62}) do
     light(A5,"VIP WARM "..z,Vector3.new(54,13,z),C.warm,1.05,18)
@@ -60,6 +62,10 @@ for _,z in ipairs({5,24,43,62}) do
 end
 neon(A5,"VIP CEILING LINE L",Vector3.new(.18,.18,68),CFrame.new(44,17.4,34),C.pink)
 neon(A5,"VIP CEILING LINE R",Vector3.new(.18,.18,68),CFrame.new(92,17.4,34),C.cyan)
+
+-- Elevated BBYA Queen lounge lighting integrated with VIP wing.
+light(A5,"BBYA QUEEN KEY",Vector3.new(48,28,58),C.pink,1.15,18)
+light(A5,"BBYA QUEEN FILL",Vector3.new(48,25,70),C.warm,.85,14)
 
 -- Rooftop resort lighting: restrained, warm, cyan only around water.
 for _,p in ipairs({
@@ -75,13 +81,6 @@ end
 neon(A6,"POOL DJ FRONT",Vector3.new(14,.2,.18),CFrame.new(48,34.6,63.45),C.pink)
 for _,x in ipairs({39,57}) do light(A6,"POOL DJ WARM "..x,Vector3.new(x,38,64),C.warm,.8,12) end
 
--- Queen/support front court illumination.
-light(A7,"QUEEN KEY",Vector3.new(-38,14,-29),C.pink,1.3,20)
-light(A7,"SUPPORT KEY",Vector3.new(45,15,-30),C.cyan,1.2,20)
-
--- =========================================================
--- PHASE 2 PREMIUM ARCHITECTURAL LIGHTING
--- =========================================================
 -- Hero facade wash keeps the building readable from spawn.
 for _,p in ipairs({
     Vector3.new(-70,24,-15),Vector3.new(-20,24,-15),Vector3.new(24,20,-15),Vector3.new(72,20,-15),
@@ -103,7 +102,6 @@ for _,y in ipairs({22,36}) do
     end
 end
 
--- VIP portal and Queen niche accents.
 light(A5,"VIP PORTAL KEY",Vector3.new(77,14,-3),C.pink,.95,15)
 light(A5,"VIP QUEEN NICHE KEY",Vector3.new(47,10,61),C.warm,.95,13)
 
@@ -112,5 +110,6 @@ for _,p in ipairs({Vector3.new(86,41,51),Vector3.new(18,42,6),Vector3.new(78,42,
     light(A6,"ROOF LIFESTYLE KEY",p,C.warm,.82,13)
 end
 
-workspace:SetAttribute("BBYALighting","PREMIUM_NIGHT_PASS_2")
+workspace:SetAttribute("BBYALighting","V7_CLEAN_REFERENCE_NIGHT")
 workspace:SetAttribute("BBYAFacadeLighting","HERO_READABLE")
+workspace:SetAttribute("BBYAIntegratedQueenLighting",true)
