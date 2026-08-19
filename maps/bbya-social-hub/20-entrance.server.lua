@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.3
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v1.4
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -42,12 +42,13 @@ neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-44.8),C.pink)
 local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
 local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
--- Keep branding on the validated SOUTH/front facade; scale only.
-local bbyaPanel=part("BBYASignPanel",Vector3.new(72,13,.35),CFrame.new(0,29,-44.35),C.black)
-fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,152,C.pink) -- 5x visual text scale vs prior canvas
-local socialPanel=part("SocialHubSignPanel",Vector3.new(52,6,.35),CFrame.new(0,20.8,-44.32),C.black)
-fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,149,C.pink) -- 3.5x visual text scale
-local alwaysPanel=part("AlwaysOpenSignPanel",Vector3.new(52,6,.35),CFrame.new(0,15.2,-44.31),C.black)
+-- Branding remains on the validated SOUTH/front facade.
+-- v1.4: larger lettering blocks with tighter vertical grouping.
+local bbyaPanel=part("BBYASignPanel",Vector3.new(82,15,.35),CFrame.new(0,28.6,-44.35),C.black)
+fixedText(bbyaPanel,"BBYA",Enum.Font.GothamBold,152,C.pink)
+local socialPanel=part("SocialHubSignPanel",Vector3.new(60,7.2,.35),CFrame.new(0,21.8,-44.32),C.black)
+fixedText(socialPanel,"SOCIAL HUB",Enum.Font.GothamMedium,149,C.pink)
+local alwaysPanel=part("AlwaysOpenSignPanel",Vector3.new(60,7.2,.35),CFrame.new(0,16.5,-44.31),C.black)
 fixedText(alwaysPanel,"24/7",Enum.Font.GothamMedium,149,C.blue)
 
 local z=-44.7
@@ -65,4 +66,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.38;bloom.Size=24;bloom.Threshold=1.05;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v1.3: BBYA 5x, SOCIAL HUB 3.5x, blue 24/7 added")
+print("[BBYA] Entrance validation v1.4: branding enlarged and vertical spacing tightened")
