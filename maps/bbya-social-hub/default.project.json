@@ -21,12 +21,12 @@
       "SupportDashboard": { "$path": "34-support-dashboard.server.lua" },
       "DJBoothUpgrade": { "$path": "35-dj-booth-upgrade.server.lua" },
       "StageSoundStacks": { "$path": "36-stage-sound-stacks.server.lua" },
-      "UndergroundFurnishMainLight": { "$path": "37-underground-furnish-mainclub-light.server.lua" }
+      "UndergroundFurnishMainLight": { "$path": "37-underground-furnish-mainclub-light.server.lua" },
+      "RealismPass": { "$path": "38-realism-pass.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
-        "$className": "StarterPlayerScripts",
         "RuntimeEditorClient": { "$path": "23-editor.client.lua" },
         "ClubUI": { "$path": "31-club-ui.client.lua" },
         "ResponsiveUIPatch": { "$path": "35-ui-responsive-patch.client.lua" }
