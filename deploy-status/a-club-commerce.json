@@ -29,17 +29,19 @@
   ],
   "supportProducts": {
     "5": 1458614776,
-    "10": 0,
-    "50": 0,
-    "100": 0,
-    "500": 0
+    "10": 1490269572,
+    "50": 1490269572,
+    "100": 1490269572,
+    "500": 1490269572,
+    "10000": 1490269572
   },
   "supportKinds": {
     "5": "gamePass",
-    "10": "none",
-    "50": "none",
-    "100": "none",
-    "500": "none"
+    "10": "gamePass",
+    "50": "gamePass",
+    "100": "gamePass",
+    "500": "gamePass",
+    "10000": "gamePass"
   },
   "supportMeta": {
     "5": {
@@ -49,10 +51,41 @@
       "isForSale": true,
       "kind": "gamePass"
     },
-    "10": null,
-    "50": null,
-    "100": null,
-    "500": null
+    "10": {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true,
+      "kind": "gamePass"
+    },
+    "50": {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true,
+      "kind": "gamePass"
+    },
+    "100": {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true,
+      "kind": "gamePass"
+    },
+    "500": {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true,
+      "kind": "gamePass"
+    },
+    "10000": {
+      "id": 1490269572,
+      "name": "SULTAN CORE",
+      "price": 10000,
+      "isForSale": true,
+      "kind": "gamePass"
+    }
   },
   "developerProducts": [],
   "discovered": {
