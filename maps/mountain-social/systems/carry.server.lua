@@ -1,9 +1,13 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local remote = ReplicatedStorage:FindFirstChild("ACC_MountainCarry") or Instance.new("RemoteEvent")
-remote.Name = "ACC_MountainCarry"
-remote.Parent = ReplicatedStorage
+local remotes = ReplicatedStorage:FindFirstChild("ACC_MountainRemotes") or Instance.new("Folder")
+remotes.Name = "ACC_MountainRemotes"
+remotes.Parent = ReplicatedStorage
+
+local remote = remotes:FindFirstChild("Carry") or Instance.new("RemoteEvent")
+remote.Name = "Carry"
+remote.Parent = remotes
 
 local active = {}
 
