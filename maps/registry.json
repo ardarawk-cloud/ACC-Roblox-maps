@@ -28,6 +28,13 @@
       "universeId": "PUT_UNIVERSE_ID_HERE",
       "placeId": "PUT_PLACE_ID_HERE",
       "file": "maps/wonderpocket/place.rbxlx"
+    },
+    "bbyavatar": {
+      "name": "BBYAVATAR",
+      "enabled": false,
+      "universeId": "10744157359",
+      "placeId": "85866320744490",
+      "file": "maps/bbyavatar/place.rbxlx"
     }
   }
 }
