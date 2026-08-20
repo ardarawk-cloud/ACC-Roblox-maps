@@ -19,30 +19,38 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-      - name: Create compact base64 thumbnail
+      - name: Crop Studio viewport and encode QC thumbnail
         shell: powershell
         run: |
           Add-Type -AssemblyName System.Drawing
           $src=Join-Path $env:GITHUB_WORKSPACE 'deploy-status\bbya-studio-view.jpg'
           if(-not (Test-Path $src)){throw 'Studio screenshot missing in checkout'}
           $im=[System.Drawing.Image]::FromFile($src)
-          $w=96; $h=[int]($im.Height*$w/$im.Width)
+          # Studio cloud window is portrait. Crop the central 3D viewport, excluding Explorer/Properties/toolbars.
+          $x=[int]($im.Width*0.30); $y=[int]($im.Height*0.18)
+          $cw=[int]($im.Width*0.50); $ch=[int]($im.Height*0.64)
+          if($x+$cw -gt $im.Width){$cw=$im.Width-$x}
+          if($y+$ch -gt $im.Height){$ch=$im.Height-$y}
+          $crop=New-Object System.Drawing.Bitmap($cw,$ch)
+          $gc=[System.Drawing.Graphics]::FromImage($crop)
+          $gc.DrawImage($im,(New-Object System.Drawing.Rectangle(0,0,$cw,$ch)),(New-Object System.Drawing.Rectangle($x,$y,$cw,$ch)),[System.Drawing.GraphicsUnit]::Pixel)
+          $w=320; $h=[int]($ch*$w/$cw)
           $small=New-Object System.Drawing.Bitmap($w,$h)
           $g=[System.Drawing.Graphics]::FromImage($small)
-          $g.InterpolationMode=[System.Drawing.Drawing2D.InterpolationMode]::HighQualityBilinear
-          $g.DrawImage($im,0,0,$w,$h)
-          $out=Join-Path $env:GITHUB_WORKSPACE 'bbya-thumb-small.jpg'
+          $g.InterpolationMode=[System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+          $g.DrawImage($crop,0,0,$w,$h)
+          $out=Join-Path $env:GITHUB_WORKSPACE 'bbya-viewport-qc.jpg'
           $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object{$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
           $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
-          $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]8)
+          $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]38)
           $small.Save($out,$codec,$ep)
-          $g.Dispose();$small.Dispose();$im.Dispose()
+          $gc.Dispose();$g.Dispose();$crop.Dispose();$small.Dispose();$im.Dispose()
           $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes($out))
           $bytes=[Text.Encoding]::UTF8.GetBytes($b64)
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Thumb"}
-          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-thumb.b64"
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-viewport-thumb.b64"
           $sha=$null
           try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
-          $body=@{message='Record BBYA Studio tiny thumb [skip ci]';content=[Convert]::ToBase64String($bytes);branch='main'}
+          $body=@{message='Record BBYA Studio viewport thumb [skip ci]';content=[Convert]::ToBase64String($bytes);branch='main'}
           if($sha){$body.sha=$sha}
           Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json' | Out-Null
