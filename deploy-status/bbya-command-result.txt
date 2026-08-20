@@ -1,6 +1,7 @@
-timestamp=2026-08-20T21:07:13.9579326+00:00
+timestamp=2026-08-20T21:19:22.6594782+00:00
+dialog_confirmed=Continue
 dialog_confirmed=Run
-2026-08-20T21:07:16.476Z,37.476234,2164,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
+2026-08-20T21:19:23.346Z,35.346897,1914,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -19,27 +20,22 @@ local emitters=0
 local downlights=0
 local nonWhite=0
 local minY,ma
-2026-08-20T21:07:16.477Z,37.477242,2164,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=true|ceiling=true|geo=true
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] COUNTS|segments=25|emitters=27|downlights=15|nonWhite=0
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] HEIGHT|emitterY=43.82..43.82|roofUnderside=44.00|gap=0.18
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] BOUNDS|x=-55.5..56.5|z=-20.0..16.5
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] META|ceilingY=43.82|style=White Geometric Triangle Frames|whiteOnly=true|shape=Connected triangles and polygons
-2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:07:16.487Z,37.487289,2018,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
-2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] NamedMutex(000002C6209DF430, name:InstallerInfo.log)
-2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] ~NamedMutex(000002C6209DF430, name:InstallerInfo.log)
-2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] NamedMutex(000002C6209DF3F0, name:InstallerInfo.log)
-2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] ~NamedMutex(000002C6209DF3F0, name:InstallerInfo.log)
-2026-08-20T21:07:17.540Z,38.540661,1750,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:07:18.296Z,39.296928,1328,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T21:07:18.296Z,39.296928,1328,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2231 ms: Error
-2026-08-20T21:07:18.296Z,39.296928,1328,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T21:07:18.296Z,39.296928,18f8,12 [DFLog::HttpTraceError] HttpResponse(#338 0x2c6adc59358) time:2232.1ms (net:2232.0ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T21:07:18.296Z,39.296928,18f8,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
-2026-08-20T21:07:20.691Z,41.691502,2164,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
+2026-08-20T21:19:23.382Z,35.382832,0bf0,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
+2026-08-20T21:19:23.477Z,35.477180,0bf0,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1749e438150 windowHandle=0x170284 dims=350x1
+2026-08-20T21:19:23.477Z,35.477180,0bf0,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x1 swapChain=0x1749e438150
+2026-08-20T21:19:23.503Z,35.503231,0bf0,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1749e438150 windowHandle=0x170284 dims=350x128
+2026-08-20T21:19:23.504Z,35.504234,0bf0,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x1749e438150
+2026-08-20T21:19:26.778Z,38.778763,1c30,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:19:26.778Z,38.778763,1c30,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2209 ms: Error
+2026-08-20T21:19:26.778Z,38.778763,1c30,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:19:26.779Z,38.779770,04d4,12 [DFLog::HttpTraceError] HttpResponse(#225 0x1750dd1f118) time:2208.8ms (net:2208.4ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:19:26.779Z,38.779770,04d4,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] NamedMutex(00000174B5EDF430, name:InstallerInfo.log)
+2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174B5EDF430, name:InstallerInfo.log)
+2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] NamedMutex(00000174B5EDF3F0, name:InstallerInfo.log)
+2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174B5EDF3F0, name:InstallerInfo.log)
+2026-08-20T21:19:27.178Z,39.178997,0bf0,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:19:28.756Z,40.756741,1914,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -58,14 +54,16 @@ local emitters=0
 local downlights=0
 local nonWhite=0
 local minY,ma
-2026-08-20T21:07:20.691Z,41.691502,0bf0,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=true|ceiling=true|geo=true
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] COUNTS|segments=25|emitters=27|downlights=15|nonWhite=0
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] HEIGHT|emitterY=43.82..43.82|roofUnderside=44.00|gap=0.18
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] BOUNDS|x=-55.5..56.5|z=-20.0..16.5
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] META|ceilingY=43.82|style=White Geometric Triangle Frames|whiteOnly=true|shape=Connected triangles and polygons
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
-2026-08-20T21:07:21.510Z,42.510288,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:19:28.758Z,40.758739,0660,6,Error [FLog::DialogManagerUIBridge] Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:19:28.758Z,40.758739,0660,6,Error [FLog::DialogManager] Command DialogManager/ShowDialogAsync failed. Error: Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:19:32.002Z,44.002762,1c30,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:19:32.002Z,44.002762,1c30,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2219 ms: Error
+2026-08-20T21:19:32.002Z,44.002762,1c30,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:19:32.002Z,44.002762,04d4,12 [DFLog::HttpTraceError] HttpResponse(#228 0x1750dd1c328) time:2219.8ms (net:2219.4ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:19:32.002Z,44.002762,04d4,6 [DFLog::WebSocketTraceError] ws: 7 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:19:32.162Z,44.162605,1914,6 [DFLog::NamedMutex] NamedMutex(00000174919DF430, name:InstallerInfo.log)
+2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174919DF430, name:InstallerInfo.log)
+2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] NamedMutex(00000174919DF3F0, name:InstallerInfo.log)
+2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174919DF3F0, name:InstallerInfo.log)
+2026-08-20T21:19:32.182Z,44.182465,0bf0,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:19:33.724Z,45.724693,238c,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 2 cur_l2ts 0 elapsed_l2b 0
