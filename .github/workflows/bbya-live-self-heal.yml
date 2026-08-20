@@ -1,0 +1,129 @@
+name: BBYA Live Self Heal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-live-self-heal.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-live-self-heal
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Rojo with captured diagnostics
+        id: rojo
+        shell: bash
+        run: |
+          set +e
+          if command -v rojo >/dev/null 2>&1; then
+            rojo --version > /tmp/bbya-rojo.log 2>&1
+            code=$?
+          else
+            cargo install rojo --version 7.7.0 --locked > /tmp/bbya-rojo.log 2>&1
+            code=$?
+            if [ "$code" -eq 0 ]; then rojo --version >> /tmp/bbya-rojo.log 2>&1; fi
+          fi
+          cat /tmp/bbya-rojo.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Build canonical BBYA place with captured diagnostics
+        id: build
+        if: steps.rojo.outputs.exit_code == '0'
+        shell: bash
+        run: |
+          set +e
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-zero-live.rbxl > /tmp/bbya-build.log 2>&1
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            test -s /tmp/bbya-zero-live.rbxl
+            code=$?
+          fi
+          cat /tmp/bbya-build.log
+          if [ -f /tmp/bbya-zero-live.rbxl ]; then ls -lh /tmp/bbya-zero-live.rbxl; fi
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publish BBYA live with captured diagnostics
+        id: publish
+        if: steps.rojo.outputs.exit_code == '0' && steps.build.outputs.exit_code == '0'
+        shell: bash
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-zero-live.rbxl
+        run: |
+          set +e
+          node scripts/publish-map.js a-club > /tmp/bbya-publish.log 2>&1
+          code=$?
+          cat /tmp/bbya-publish.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Persist receipt and self-diagnostic
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo_code='${{ steps.rojo.outputs.exit_code }}'
+          build_code='${{ steps.build.outputs.exit_code }}'
+          publish_code='${{ steps.publish.outputs.exit_code }}'
+          [ -n "$rojo_code" ] || rojo_code=SKIPPED
+          [ -n "$build_code" ] || build_code=SKIPPED
+          [ -n "$publish_code" ] || publish_code=SKIPPED
+
+          if [ "$publish_code" = "0" ] && [ -f deploy-status/a-club.json ]; then
+            cp deploy-status/a-club.json /tmp/a-club-new.json
+          fi
+
+          {
+            echo "source_commit=$GITHUB_SHA"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "rojo_exit=$rojo_code"
+            echo "build_exit=$build_code"
+            echo "publish_exit=$publish_code"
+            echo "--- rojo tail ---"
+            tail -n 40 /tmp/bbya-rojo.log 2>/dev/null || true
+            echo "--- build tail ---"
+            tail -n 80 /tmp/bbya-build.log 2>/dev/null || true
+            echo "--- publish tail ---"
+            tail -n 80 /tmp/bbya-publish.log 2>/dev/null || true
+          } > /tmp/bbya-self-heal.txt
+
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/bbya-self-heal.txt deploy-status/a-club-self-heal.txt
+          if [ -f /tmp/a-club-new.json ]; then cp /tmp/a-club-new.json deploy-status/a-club.json; fi
+
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status/a-club-self-heal.txt deploy-status/a-club.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BBYA self-heal publish diagnostics [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Final publish gate
+        if: always()
+        shell: bash
+        run: |
+          test '${{ steps.rojo.outputs.exit_code }}' = '0'
+          test '${{ steps.build.outputs.exit_code }}' = '0'
+          test '${{ steps.publish.outputs.exit_code }}' = '0'
