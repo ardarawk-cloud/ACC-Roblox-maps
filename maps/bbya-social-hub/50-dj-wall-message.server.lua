@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — DJ WALL MESSAGE SYSTEM v1
+-- BBYA SOCIAL HUB — DJ WALL MESSAGE SYSTEM v2
 -- Full-wall LED behind DJ: idle VJ visualizer + filtered queued prestige messages.
--- Public paid message flow is ready for a 2 Robux Developer Product. Set DJ_MESSAGE_PRODUCT_ID when created.
+-- Real Developer Product monetization + centralized receipt routing.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -20,17 +20,26 @@ wallRemote.Name="DJWall";wallRemote.Parent=remotes
 local stateRemote=remotes:FindFirstChild("State") or Instance.new("RemoteEvent")
 stateRemote.Name="State";stateRemote.Parent=remotes
 
--- IMPORTANT: create a Developer Product priced at 2 Robux, then replace 0 with its Product ID.
-local DJ_MESSAGE_PRODUCT_ID=0
+local DJ_MESSAGE_PRODUCT_ID=3709047092
+local SUPPORT_BY_PRODUCT={
+ [3709047095]=10,
+ [3709047097]=25,
+ [3709047101]=50,
+ [3709047104]=100,
+ [3709047106]=250,
+ [3709047107]=500,
+ [3709047109]=1000,
+ [3709048779]=2000,
+}
 local DISPLAY_SECONDS=12
 local MAX_CHARS=80
 local SUBMIT_COOLDOWN=45
 local MAX_QUEUE=20
 
 local C={
- black=Color3.fromRGB(5,5,8), panel=Color3.fromRGB(12,10,16), panel2=Color3.fromRGB(22,17,27),
- pink=Color3.fromRGB(255,38,155), cyan=Color3.fromRGB(0,210,238), gold=Color3.fromRGB(238,190,94),
- white=Color3.fromRGB(244,242,247), muted=Color3.fromRGB(164,157,171), green=Color3.fromRGB(62,205,124),
+ black=Color3.fromRGB(5,5,8),panel=Color3.fromRGB(12,10,16),panel2=Color3.fromRGB(22,17,27),
+ pink=Color3.fromRGB(255,38,155),cyan=Color3.fromRGB(0,210,238),gold=Color3.fromRGB(238,190,94),
+ white=Color3.fromRGB(244,242,247),muted=Color3.fromRGB(164,157,171),green=Color3.fromRGB(62,205,124),
 }
 
 local function isAdmin(player)
@@ -42,7 +51,7 @@ end
 
 local model=Instance.new("Model")
 model.Name="DJWallMessageSystem"
-model:SetAttribute("Pass","DJ_WALL_PRESTIGE_V1")
+model:SetAttribute("Pass","DJ_WALL_PRESTIGE_V2")
 model.Parent=root
 
 local function part(name,size,cf,color,material,transparency)
@@ -71,7 +80,6 @@ part("BottomTrim",Vector3.new(56.9,.08,.10),wallCF*CFrame.new(0,-6.34,-.18),C.cy
 
 local sg=Instance.new("SurfaceGui")
 sg.Name="DJWallUI";sg.Face=Enum.NormalId.Front;sg.AlwaysOnTop=false;sg.LightInfluence=.05;sg.PixelsPerStud=55;sg.Parent=screen
-
 local bg=Instance.new("Frame")
 bg.Size=UDim2.fromScale(1,1);bg.BackgroundColor3=C.black;bg.BorderSizePixel=0;bg.Parent=sg
 local bgGrad=Instance.new("UIGradient")
@@ -80,10 +88,10 @@ bgGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(31,8,
 -- IDLE / VJ MODE --------------------------------------------------------------
 local idle=Instance.new("Frame")
 idle.Name="IdleVisuals";idle.Size=UDim2.fromScale(1,1);idle.BackgroundTransparency=1;idle.Parent=bg
-local topBrand=label(idle,"BBYA",UDim2.fromScale(.035,.045),UDim2.fromScale(.18,.09),Enum.Font.GothamBlack,42,C.white)
-local live=label(idle,"●  LIVE VISUALS",UDim2.fromScale(.79,.055),UDim2.fromScale(.17,.05),Enum.Font.GothamBold,18,C.green,Enum.TextXAlignment.Right)
-local centerBrand=label(idle,"SOCIAL HUB",UDim2.fromScale(.30,.18),UDim2.fromScale(.40,.12),Enum.Font.GothamBlack,56,C.white,Enum.TextXAlignment.Center)
-local centerSub=label(idle,"AUTODJ  •  COMMUNITY  •  24/7",UDim2.fromScale(.30,.30),UDim2.fromScale(.40,.05),Enum.Font.GothamBold,17,C.muted,Enum.TextXAlignment.Center)
+label(idle,"BBYA",UDim2.fromScale(.035,.045),UDim2.fromScale(.18,.09),Enum.Font.GothamBlack,42,C.white)
+label(idle,"●  LIVE VISUALS",UDim2.fromScale(.79,.055),UDim2.fromScale(.17,.05),Enum.Font.GothamBold,18,C.green,Enum.TextXAlignment.Right)
+label(idle,"SOCIAL HUB",UDim2.fromScale(.30,.18),UDim2.fromScale(.40,.12),Enum.Font.GothamBlack,56,C.white,Enum.TextXAlignment.Center)
+label(idle,"AUTODJ  •  COMMUNITY  •  24/7",UDim2.fromScale(.30,.30),UDim2.fromScale(.40,.05),Enum.Font.GothamBold,17,C.muted,Enum.TextXAlignment.Center)
 
 local visual=Instance.new("Frame")
 visual.Name="VJVisualizer";visual.Position=UDim2.fromScale(.055,.43);visual.Size=UDim2.fromScale(.89,.38);visual.BackgroundColor3=Color3.fromRGB(8,8,12);visual.BackgroundTransparency=.15;visual.BorderSizePixel=0;visual.ClipsDescendants=true;visual.Parent=idle;round(visual,18);stroke(visual,Color3.fromRGB(69,45,70),1,.45)
@@ -95,8 +103,8 @@ for i=1,BAR_COUNT do
  b.BackgroundColor3=(i%5==0 and C.cyan or (i%3==0 and C.gold or C.pink));b.BorderSizePixel=0;b.Parent=visual;round(b,6)
  table.insert(bars,b)
 end
-local vjLabel=label(idle,"BBYA LIVE WAVE",UDim2.fromScale(.055,.84),UDim2.fromScale(.45,.05),Enum.Font.GothamBold,16,C.pink)
-local vjHint=label(idle,"Walk up to the screen to send a prestige message",UDim2.fromScale(.50,.84),UDim2.fromScale(.445,.05),Enum.Font.GothamMedium,14,C.muted,Enum.TextXAlignment.Right)
+label(idle,"BBYA LIVE WAVE",UDim2.fromScale(.055,.84),UDim2.fromScale(.45,.05),Enum.Font.GothamBold,16,C.pink)
+label(idle,"Open MESSAGE from the top menu • 2 R$",UDim2.fromScale(.50,.84),UDim2.fromScale(.445,.05),Enum.Font.GothamMedium,14,C.muted,Enum.TextXAlignment.Right)
 
 -- MESSAGE MODE ----------------------------------------------------------------
 local message=Instance.new("Frame")
@@ -106,9 +114,8 @@ msgGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(73,1
 local categoryBadge=label(message,"BBYA LIVE MESSAGE",UDim2.fromScale(.06,.08),UDim2.fromScale(.88,.08),Enum.Font.GothamBlack,28,C.pink,Enum.TextXAlignment.Center)
 local msgText=label(message,"",UDim2.fromScale(.08,.25),UDim2.fromScale(.84,.38),Enum.Font.GothamBlack,48,C.white,Enum.TextXAlignment.Center)
 local fromText=label(message,"",UDim2.fromScale(.10,.69),UDim2.fromScale(.80,.08),Enum.Font.GothamBold,22,C.gold,Enum.TextXAlignment.Center)
-local footer=label(message,"BBYA SOCIAL HUB  •  MAKE THE NIGHT YOURS",UDim2.fromScale(.10,.84),UDim2.fromScale(.80,.05),Enum.Font.GothamBold,16,C.muted,Enum.TextXAlignment.Center)
+label(message,"BBYA SOCIAL HUB  •  MAKE THE NIGHT YOURS",UDim2.fromScale(.10,.84),UDim2.fromScale(.80,.05),Enum.Font.GothamBold,16,C.muted,Enum.TextXAlignment.Center)
 
--- Prompt lives on the giant screen itself.
 local prompt=Instance.new("ProximityPrompt")
 prompt.Name="CreatePrestigeMessage";prompt.ActionText="Create Message";prompt.ObjectText="BBYA DJ Wall • 2 R$";prompt.KeyboardKeyCode=Enum.KeyCode.E
 prompt.HoldDuration=0;prompt.MaxActivationDistance=14;prompt.RequiresLineOfSight=false;prompt.Parent=screen
@@ -117,7 +124,6 @@ local queue={}
 local pending={}
 local lastSubmit={}
 local displaying=false
-
 local CATEGORY={BIRTHDAY="BIRTHDAY CELEBRATION",LOVE="LOVE MESSAGE",SHOUTOUT="SHOUTOUT",CUSTOM="LIVE MESSAGE"}
 
 local function filterMessage(player,raw)
@@ -134,38 +140,25 @@ local function filterMessage(player,raw)
  if #visible<2 then return nil,"Pesan terlalu banyak berisi kata yang disensor." end
  return result,nil
 end
-
 local function queueMessage(entry)
  if #queue>=MAX_QUEUE then return false end
- table.insert(queue,entry)
- return true
+ table.insert(queue,entry);return true
 end
-
 local function showMessage(entry)
- displaying=true
- idle.Visible=false;message.Visible=true
+ displaying=true;idle.Visible=false;message.Visible=true
  categoryBadge.Text="BBYA  •  "..(CATEGORY[entry.category] or CATEGORY.CUSTOM)
- msgText.Text=entry.text
- fromText.Text="FROM  @"..entry.from
- message.BackgroundTransparency=1
+ msgText.Text=entry.text;fromText.Text="FROM  @"..entry.from;message.BackgroundTransparency=1
  TweenService:Create(message,TweenInfo.new(.35,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{BackgroundTransparency=.04}):Play()
  task.wait(DISPLAY_SECONDS)
  local fade=TweenService:Create(message,TweenInfo.new(.35,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{BackgroundTransparency=1})
- fade:Play();fade.Completed:Wait()
- message.Visible=false;idle.Visible=true;message.BackgroundTransparency=.04
- displaying=false
+ fade:Play();fade.Completed:Wait();message.Visible=false;idle.Visible=true;message.BackgroundTransparency=.04;displaying=false
 end
 
 task.spawn(function()
  while task.wait(.25) do
-  if not displaying and #queue>0 then
-   local entry=table.remove(queue,1)
-   showMessage(entry)
-  end
+  if not displaying and #queue>0 then showMessage(table.remove(queue,1)) end
  end
 end)
-
--- Animated idle bars. Decorative VJ motion; music itself remains server AutoDJ.
 task.spawn(function()
  local t=0
  while task.wait(.07) do
@@ -180,50 +173,37 @@ task.spawn(function()
 end)
 
 local function configFor(player)
- return {price=2,productConfigured=DJ_MESSAGE_PRODUCT_ID>0,maxChars=MAX_CHARS,displaySeconds=DISPLAY_SECONDS,queue=#queue,admin=isAdmin(player)}
+ return {price=2,productConfigured=true,maxChars=MAX_CHARS,displaySeconds=DISPLAY_SECONDS,queue=#queue,admin=isAdmin(player)}
 end
-
-prompt.Triggered:Connect(function(player)
- wallRemote:FireClient(player,"open",configFor(player))
-end)
+prompt.Triggered:Connect(function(player)wallRemote:FireClient(player,"open",configFor(player))end)
 
 wallRemote.OnServerEvent:Connect(function(player,action,data)
  if action=="config" then wallRemote:FireClient(player,"config",configFor(player));return end
- if action~="submit" then return end
- if type(data)~="table" then return end
+ if action~="submit" or type(data)~="table" then return end
  local now=os.clock();local last=lastSubmit[player.UserId] or 0
  if now-last<SUBMIT_COOLDOWN and not isAdmin(player) then
-  wallRemote:FireClient(player,"toast",string.format("Tunggu %d detik sebelum kirim pesan lagi.",math.ceil(SUBMIT_COOLDOWN-(now-last))))
-  return
+  wallRemote:FireClient(player,"toast",string.format("Tunggu %d detik sebelum kirim pesan lagi.",math.ceil(SUBMIT_COOLDOWN-(now-last))));return
  end
  if pending[player.UserId] then wallRemote:FireClient(player,"toast","Selesaikan request sebelumnya dulu.");return end
  if #queue>=MAX_QUEUE then wallRemote:FireClient(player,"toast","Antrean DJ Wall sedang penuh.");return end
- local category=tostring(data.category or "CUSTOM"):upper()
- if not CATEGORY[category] then category="CUSTOM" end
+ local category=tostring(data.category or "CUSTOM"):upper();if not CATEGORY[category] then category="CUSTOM" end
  local filtered,err=filterMessage(player,data.text)
  if not filtered then wallRemote:FireClient(player,"toast",err or "Pesan ditolak filter.");return end
  local entry={text=filtered,category=category,from=player.DisplayName,userId=player.UserId}
  lastSubmit[player.UserId]=now
  if isAdmin(player) then
-  queueMessage(entry)
-  wallRemote:FireClient(player,"queued",{position=#queue,text=filtered,adminPreview=true})
-  return
- end
- if DJ_MESSAGE_PRODUCT_ID<=0 then
-  wallRemote:FireClient(player,"toast","DJ Wall sudah siap, tapi Developer Product 2 Robux belum dikonfigurasi.")
-  return
+  queueMessage(entry);wallRemote:FireClient(player,"queued",{position=#queue,text=filtered,adminPreview=true});return
  end
  pending[player.UserId]=entry
  wallRemote:FireClient(player,"purchase",{message=filtered})
  MarketplaceService:PromptProductPurchase(player,DJ_MESSAGE_PRODUCT_ID)
 end)
 
--- Only one ProcessReceipt handler should own Developer Products. Unknown IDs are left for future handling.
+-- Central Developer Product receipt router for BBYA.
 local previousProcessReceipt=MarketplaceService.ProcessReceipt
 MarketplaceService.ProcessReceipt=function(receiptInfo)
- if receiptInfo.ProductId==DJ_MESSAGE_PRODUCT_ID and DJ_MESSAGE_PRODUCT_ID>0 then
-  local userId=receiptInfo.PlayerId
-  local entry=pending[userId]
+ if receiptInfo.ProductId==DJ_MESSAGE_PRODUCT_ID then
+  local userId=receiptInfo.PlayerId;local entry=pending[userId]
   if entry then
    pending[userId]=nil
    if queueMessage(entry) then
@@ -233,9 +213,18 @@ MarketplaceService.ProcessReceipt=function(receiptInfo)
   end
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
- if previousProcessReceipt then
-  return previousProcessReceipt(receiptInfo)
+
+ local supportAmount=SUPPORT_BY_PRODUCT[receiptInfo.ProductId]
+ if supportAmount then
+  local plr=Players:GetPlayerByUserId(receiptInfo.PlayerId)
+  if plr then
+   stateRemote:FireClient(plr,"toast",string.format("Support %d R$ diterima • Thank you for supporting BBYA!",supportAmount))
+   stateRemote:FireAllClients("supportReceived",{displayName=plr.DisplayName,userId=plr.UserId,amount=supportAmount})
+  end
+  return Enum.ProductPurchaseDecision.PurchaseGranted
  end
+
+ if previousProcessReceipt then return previousProcessReceipt(receiptInfo) end
  return Enum.ProductPurchaseDecision.NotProcessedYet
 end
 
@@ -243,4 +232,4 @@ Players.PlayerRemoving:Connect(function(player)
  pending[player.UserId]=nil;lastSubmit[player.UserId]=nil
 end)
 
-print("[BBYA] DJ Wall Prestige v1 online: full-wall VJ + filtered queued messages; 2R product configured =",DJ_MESSAGE_PRODUCT_ID>0)
+print("[BBYA] DJ Wall Prestige v2 online: real 2R purchase + Support receipt routing")
