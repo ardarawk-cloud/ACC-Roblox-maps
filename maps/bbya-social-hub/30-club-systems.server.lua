@@ -32,58 +32,52 @@ local function denyTransport(player)
  stateRemote:FireClient(player,"toast","DJ transport controls khusus admin. Gunakan Request untuk antrean lagu.")
 end
 
-local group=SoundService:FindFirstChild("BBYAClubMaster")
-if not group then group=Instance.new("SoundGroup");group.Name="BBYAClubMaster";group.Parent=SoundService end
-group.Volume=.92
-local eq=group:FindFirstChild("ClubEQ")
-if not eq then eq=Instance.new("EqualizerSoundEffect");eq.Name="ClubEQ";eq.Parent=group end
-eq.LowGain=2.0;eq.MidGain=-.35;eq.HighGain=.75
-local compressor=group:FindFirstChild("VenueCompressor")
-if not compressor then compressor=Instance.new("CompressorSoundEffect");compressor.Name="VenueCompressor";compressor.Parent=group end
-compressor.Threshold=-12;compressor.Ratio=3;compressor.Attack=.08;compressor.Release=.22;compressor.GainMakeup=1
-
-local oldEmitter=Workspace:FindFirstChild("BBYAClubSoundEmitter")
-if oldEmitter then oldEmitter:Destroy() end
-local oldSound=Workspace:FindFirstChild("BBYAClubSound",true)
-if oldSound then oldSound:Destroy() end
+-- AUDIO V3: one server-authoritative non-spatial feed.
+-- The previous five independent 3D Sounds could drift/echo. A single feed keeps every listener on one timeline;
+-- each client applies local zone volume so the venue still feels spatial without phase delay.
 local oldZones=Workspace:FindFirstChild("BBYAAudioZones")
 if oldZones then oldZones:Destroy() end
-
-local zones=Instance.new("Folder");zones.Name="BBYAAudioZones";zones.Parent=Workspace
-local ZONE_SPECS={
- {name="StageMain",pos=Vector3.new(3,7,34.5),volume=.70,min=28,max=175,size=32},
- {name="BarFill",pos=Vector3.new(38,6,11),volume=.32,min=18,max=92,size=20},
- {name="VIPLoungeFill",pos=Vector3.new(-38,5,14),volume=.30,min=18,max=92,size=20},
- {name="TransitionFill",pos=Vector3.new(0,5,-8),volume=.19,min=14,max=68,size=15},
- {name="FrontHallFill",pos=Vector3.new(0,4,-24),volume=.12,min=12,max=48,size=12},
-}
-local sounds={}
-for _,spec in ipairs(ZONE_SPECS) do
- local emitter=Instance.new("Part")
- emitter.Name="Emitter_"..spec.name;emitter.Size=Vector3.new(.4,.4,.4);emitter.CFrame=CFrame.new(spec.pos);emitter.Anchored=true;emitter.CanCollide=false;emitter.CanTouch=false;emitter.CanQuery=false;emitter.Transparency=1;emitter.Parent=zones
- local s=Instance.new("Sound")
- s.Name="BBYAClubSound_"..spec.name;s.Volume=spec.volume;s.Looped=false;s.RollOffMode=Enum.RollOffMode.InverseTapered;s.RollOffMinDistance=spec.min;s.RollOffMaxDistance=spec.max;s.EmitterSize=spec.size;s.SoundGroup=group;s.Parent=emitter
- table.insert(sounds,s)
+for _,obj in ipairs(Workspace:GetDescendants()) do
+ if obj:IsA("Sound") and (obj.Name=="BBYAClubSound" or obj.Name:match("^BBYAClubSound_")) then obj:Destroy() end
 end
-local masterSound=sounds[1]
+local oldFeed=SoundService:FindFirstChild("BBYAClubFeed")
+if oldFeed then oldFeed:Destroy() end
+
+local group=SoundService:FindFirstChild("BBYAClubMaster")
+if not group then group=Instance.new("SoundGroup");group.Name="BBYAClubMaster";group.Parent=SoundService end
+group.Volume=1
+group:SetAttribute("BBYAAudioMode","SYNCED_MASTER_V3")
+
+local eq=group:FindFirstChild("ClubEQ")
+if not eq then eq=Instance.new("EqualizerSoundEffect");eq.Name="ClubEQ";eq.Parent=group end
+eq.LowGain=1.15;eq.MidGain=-.15;eq.HighGain=.45
+local compressor=group:FindFirstChild("VenueCompressor")
+if not compressor then compressor=Instance.new("CompressorSoundEffect");compressor.Name="VenueCompressor";compressor.Parent=group end
+compressor.Threshold=-10;compressor.Ratio=2.25;compressor.Attack=.06;compressor.Release=.28;compressor.GainMakeup=.5
+
+local masterSound=Instance.new("Sound")
+masterSound.Name="BBYAClubFeed"
+masterSound.Volume=1
+masterSound.Looped=false
+masterSound.SoundGroup=group
+masterSound.Parent=SoundService
 
 local current=1
 local requestQueue={}
 local requestCooldown={}
 local function validTrack(i)local t=PLAYLIST[i];return t and t.id and tostring(t.id)~="" end
 local function fireMusicState(playing)
- stateRemote:FireAllClients("music",{index=current,title=PLAYLIST[current] and PLAYLIST[current].title or "",playing=playing,queue=#requestQueue})
+ stateRemote:FireAllClients("music",{index=current,title=PLAYLIST[current] and PLAYLIST[current].title or "",playing=playing,queue=#requestQueue,audioMode="SYNCED"})
 end
-local function setAllTrack(i)
- local soundId="rbxassetid://"..tostring(PLAYLIST[i].id)
- for _,s in ipairs(sounds) do s.SoundId=soundId;s.TimePosition=0 end
-end
-local function playAll()for _,s in ipairs(sounds) do s:Play() end end
-local function pauseAll()for _,s in ipairs(sounds) do s:Pause() end end
-local function resumeAll()for _,s in ipairs(sounds) do s:Resume() end end
 local function playTrack(i)
  if not validTrack(i) then return false end
- current=i;setAllTrack(i);playAll();fireMusicState(true);return true
+ current=i
+ masterSound:Stop()
+ masterSound.SoundId="rbxassetid://"..tostring(PLAYLIST[i].id)
+ masterSound.TimePosition=0
+ masterSound:Play()
+ fireMusicState(true)
+ return true
 end
 local function nextTrack()
  while #requestQueue>0 do
@@ -94,7 +88,10 @@ local function nextTrack()
    return true
   end
  end
- for step=1,#PLAYLIST do local i=((current-1+step)%#PLAYLIST)+1;if playTrack(i) then return true end end
+ for step=1,#PLAYLIST do
+  local i=((current-1+step)%#PLAYLIST)+1
+  if playTrack(i) then return true end
+ end
  return false
 end
 local function queueRequest(player,index)
@@ -103,7 +100,11 @@ local function queueRequest(player,index)
  local now=os.clock();local last=requestCooldown[player.UserId] or 0
  if now-last<20 then stateRemote:FireClient(player,"toast","Tunggu sebentar sebelum request lagu lagi.");return false end
  if #requestQueue>=8 then stateRemote:FireClient(player,"toast","DJ request queue sedang penuh.");return false end
- for _,req in ipairs(requestQueue) do if req.playerId==player.UserId and req.index==index then stateRemote:FireClient(player,"toast","Request itu sudah ada di antrean.");return false end end
+ for _,req in ipairs(requestQueue) do
+  if req.playerId==player.UserId and req.index==index then
+   stateRemote:FireClient(player,"toast","Request itu sudah ada di antrean.");return false
+  end
+ end
  requestCooldown[player.UserId]=now
  table.insert(requestQueue,{playerId=player.UserId,index=index})
  stateRemote:FireClient(player,"toast",string.format("Request masuk #%d: %s",#requestQueue,PLAYLIST[index].title))
@@ -116,18 +117,13 @@ masterSound.Ended:Connect(nextTrack)
 musicRemote.OnServerEvent:Connect(function(player,action,arg)
  if action=="list" then
   stateRemote:FireClient(player,"playlist",PLAYLIST)
- elseif action=="request" then
-  queueRequest(player,arg)
- elseif action=="queue" then
-  stateRemote:FireClient(player,"djQueue",{position=0,count=#requestQueue,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
- elseif action=="play" then
-  if isAdmin(player) then playTrack(tonumber(arg) or current) else denyTransport(player) end
- elseif action=="pause" then
-  if isAdmin(player) then pauseAll();fireMusicState(false) else denyTransport(player) end
- elseif action=="resume" then
-  if isAdmin(player) then resumeAll();fireMusicState(true) else denyTransport(player) end
- elseif action=="next" then
-  if isAdmin(player) then nextTrack() else denyTransport(player) end
+  stateRemote:FireClient(player,"music",{index=current,title=PLAYLIST[current] and PLAYLIST[current].title or "",playing=masterSound.IsPlaying,queue=#requestQueue,audioMode="SYNCED"})
+ elseif action=="request" then queueRequest(player,arg)
+ elseif action=="queue" then stateRemote:FireClient(player,"djQueue",{position=0,count=#requestQueue,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
+ elseif action=="play" then if isAdmin(player) then playTrack(tonumber(arg) or current) else denyTransport(player) end
+ elseif action=="pause" then if isAdmin(player) then masterSound:Pause();fireMusicState(false) else denyTransport(player) end
+ elseif action=="resume" then if isAdmin(player) then masterSound:Resume();fireMusicState(true) else denyTransport(player) end
+ elseif action=="next" then if isAdmin(player) then nextTrack() else denyTransport(player) end
  end
 end)
 
@@ -143,7 +139,7 @@ supportRemote.OnServerEvent:Connect(function(player,action,arg)
  if action~="prompt" then return end
  local idx=tonumber(arg);local item=idx and SUPPORT_PRODUCTS[idx];if not item then return end
  if item.productId and item.productId>0 then MarketplaceService:PromptProductPurchase(player,item.productId)
- else stateRemote:FireClient(player,"toast","Sawer siap. Product ID experience belum dipasang.") end
+ else stateRemote:FireClient(player,"toast","Support siap. Product ID experience belum dipasang.") end
 end)
 
 Players.PlayerAdded:Connect(function(player)
@@ -151,26 +147,11 @@ Players.PlayerAdded:Connect(function(player)
   if player.Parent then
    stateRemote:FireClient(player,"playlist",PLAYLIST)
    stateRemote:FireClient(player,"supportProducts",SUPPORT_PRODUCTS)
-   stateRemote:FireClient(player,"audioZones",{count=#ZONE_SPECS})
-   if masterSound.IsPlaying then stateRemote:FireClient(player,"music",{index=current,title=PLAYLIST[current].title,playing=true,queue=#requestQueue}) end
+   stateRemote:FireClient(player,"music",{index=current,title=PLAYLIST[current] and PLAYLIST[current].title or "",playing=masterSound.IsPlaying,queue=#requestQueue,audioMode="SYNCED"})
   end
  end)
 end)
 Players.PlayerRemoving:Connect(function(player)requestCooldown[player.UserId]=nil end)
 
-task.spawn(function()
- while task.wait(6) do
-  if masterSound and masterSound.Parent and masterSound.IsPlaying then
-   for i=2,#sounds do
-    local s=sounds[i]
-    if s and s.Parent then
-     if not s.IsPlaying then s.TimePosition=masterSound.TimePosition;s:Play()
-     elseif math.abs(s.TimePosition-masterSound.TimePosition)>.35 then s.TimePosition=masterSound.TimePosition end
-    end
-   end
-  end
- end
-end)
-
 task.delay(2,function()if not masterSound.IsPlaying then playTrack(1) end end)
-print("[BBYA] Multi-zone audio + secure admin transport controls online")
+print("[BBYA] Synced master club feed online; client zone-volume balancing enabled")
