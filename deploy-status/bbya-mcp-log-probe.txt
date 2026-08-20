@@ -1,0 +1,490 @@
+timestamp=2026-08-20T13:22:25.2904153+00:00
+REG_BEGIN
+
+
+ApplicationLocationOnCrash1                                                                       : PlaceSessionState-E
+                                                                                                    xecuted-PlaceIdle
+ApplicationLocationOnCrash2                                                                       : None
+ApplicationLocationOnCrash3                                                                       : Standard
+rbxl_last_directory                                                                               : C:/Users/Administra
+                                                                                                    tor/Documents
+PreviousVersion                                                                                   : 0.735.19.7351131
+StartNumAfterUpdate                                                                               : 6
+DraggerMode                                                                                       : 0
+BreakOnErrorMode                                                                                  : 0
+insertObjectsShowRecommendedOnlyEmbedded                                                          : false
+BetaFeatureInformation                                                                            : {64, 0, 86, 0...}
+luaStartPagePopupClosed                                                                           : true
+ApplicationLocationOnCrash0                                                                       : VisualDesign
+File_Sync_Persistence_SafetyBit                                                                   : false
+GridSize                                                                                          : 4
+File_Sync_Persistence_Record_V1:131894120482837:43461472-ce34-a36d-0a98-3a5100000002              : [
+                                                                                                    ]
+                                                                                                    
+File_Sync_Persistence_Record_V1:131894120482837:43461472-ce34-a36d-0a98-3a5100000002_timeLastUsed : 1787208786977
+File_Sync_Persistence_Record_V1:131894120482837:43461472-ce34-a36d-0a98-3a5100000002_lastUsedDir  : 
+rbxCommandHistory                                                                                 : {}
+StudioFavoritesJSON                                                                               : {"Metadata":{"versi
+                                                                                                    on":"0.1"},"Favorit
+                                                                                                    es":{"Attachment":[
+                                                                                                    "ParticleEmitter","
+                                                                                                    Beam","PointLight",
+                                                                                                    "Fire","Smoke"],"St
+                                                                                                    andalonePluginScrip
+                                                                                                    ts":["Script","Loca
+                                                                                                    lScript"],"ServerSt
+                                                                                                    orage":["Folder","M
+                                                                                                    oduleScript","Scrip
+                                                                                                    t"],"BillboardGui":
+                                                                                                    ["TextLabel","Frame
+                                                                                                    ","TextBox","ImageL
+                                                                                                    abel"],"ClickDetect
+                                                                                                    or":["Script"],"Fol
+                                                                                                    der":["Folder","Rem
+                                                                                                    oteEvent","Script",
+                                                                                                    "ClickDetector","Te
+                                                                                                    xture","ModuleScrip
+                                                                                                    t","Decal"],"MeshPa
+                                                                                                    rt":["Texture","Dec
+                                                                                                    al","Script","Attac
+                                                                                                    hment","ClickDetect
+                                                                                                    or","ProximityPromp
+                                                                                                    t","WeldConstraint"
+                                                                                                    ],"InputAction":["I
+                                                                                                    nputBinding"],"Dial
+                                                                                                    og":["DialogChoice"
+                                                                                                    ],"Humanoid":["Anim
+                                                                                                    ation"],"ImageButto
+                                                                                                    n":["LocalScript","
+                                                                                                    TextLabel"],"InputC
+                                                                                                    ontext":["InputActi
+                                                                                                    on"],"DialogChoice"
+                                                                                                    :["DialogChoice"],"
+                                                                                                    Frame":["TextLabel"
+                                                                                                    ,"TextButton","Fram
+                                                                                                    e","TextBox","Image
+                                                                                                    Label","LocalScript
+                                                                                                    ","ImageButton"],"R
+                                                                                                    eplicatedScriptServ
+                                                                                                    ice":["Script","Loc
+                                                                                                    alScript","ModuleSc
+                                                                                                    ript","Folder"],"Im
+                                                                                                    ageLabel":["TextLab
+                                                                                                    el","TextButton","F
+                                                                                                    rame","ImageLabel",
+                                                                                                    "LocalScript","Imag
+                                                                                                    eButton","TextBox"]
+                                                                                                    ,"Lighting":["Sky",
+                                                                                                    "Atmosphere","SunRa
+                                                                                                    ysEffect","ColorCor
+                                                                                                    rectionEffect","Blo
+                                                                                                    omEffect","BlurEffe
+                                                                                                    ct"],"ScrollingFram
+                                                                                                    e":["TextButton","T
+                                                                                                    extLabel","Frame","
+                                                                                                    UIListLayout","UIGr
+                                                                                                    idLayout"],"LocalSc
+                                                                                                    ript":["Animation",
+                                                                                                    "Folder"],"Model":[
+                                                                                                    "Humanoid","Script"
+                                                                                                    ,"Accessory","Pants
+                                                                                                    ","Shirt","BodyColo
+                                                                                                    rs","Model"],"Modul
+                                                                                                    eScript":["ModuleSc
+                                                                                                    ript","Folder"],"Pa
+                                                                                                    rt":["Script","Deca
+                                                                                                    l","Texture","Click
+                                                                                                    Detector","Proximit
+                                                                                                    yPrompt","PointLigh
+                                                                                                    t","SurfaceGui"],"S
+                                                                                                    creenGui":["Frame",
+                                                                                                    "TextButton","TextL
+                                                                                                    abel","LocalScript"
+                                                                                                    ,"ImageLabel","Text
+                                                                                                    Box","ImageButton"]
+                                                                                                    ,"Sound":["ChorusSo
+                                                                                                    undEffect","Distort
+                                                                                                    ionSoundEffect","Pi
+                                                                                                    tchShiftSoundEffect
+                                                                                                    ","ReverbSoundEffec
+                                                                                                    t","EchoSoundEffect
+                                                                                                    ","EqualizerSoundEf
+                                                                                                    fect","Script"],"Te
+                                                                                                    xtLabel":["LocalScr
+                                                                                                    ipt","Script","Text
+                                                                                                    Label","TextBox","T
+                                                                                                    extButton","Frame"]
+                                                                                                    ,"ProximityPrompt":
+                                                                                                    ["Script"],"Replica
+                                                                                                    tedFirst":["LocalSc
+                                                                                                    ript"],"ReplicatedS
+                                                                                                    torage":["Folder","
+                                                                                                    RemoteEvent","Remot
+                                                                                                    eFunction","ModuleS
+                                                                                                    cript"],"StyleSheet
+                                                                                                    ":["StyleRule","Fol
+                                                                                                    der","StyleDerive"]
+                                                                                                    ,"Script":["Animati
+                                                                                                    on","Script","Remot
+                                                                                                    eEvent","ModuleScri
+                                                                                                    pt","Folder","Local
+                                                                                                    Script"],"ServerScr
+                                                                                                    iptService":["Scrip
+                                                                                                    t","ModuleScript","
+                                                                                                    Folder"],"SoundGrou
+                                                                                                    p":["ChorusSoundEff
+                                                                                                    ect","DistortionSou
+                                                                                                    ndEffect","PitchShi
+                                                                                                    ftSoundEffect","Rev
+                                                                                                    erbSoundEffect","Ec
+                                                                                                    hoSoundEffect","Equ
+                                                                                                    alizerSoundEffect",
+                                                                                                    "Script"],"Tool":["
+                                                                                                    LocalScript","Modul
+                                                                                                    eScript","ClickDete
+                                                                                                    ctor","Script","Par
+                                                                                                    t","Animation","Tex
+                                                                                                    ture"],"SoundServic
+                                                                                                    e":["SoundGroup","S
+                                                                                                    ound"],"StarterGui"
+                                                                                                    :["ScreenGui","Loca
+                                                                                                    lScript","Script","
+                                                                                                    Folder"],"SpawnLoca
+                                                                                                    tion":["ClickDetect
+                                                                                                    or","Texture","Deca
+                                                                                                    l","Script"],"Surfa
+                                                                                                    ceGui":["TextLabel"
+                                                                                                    ,"TextBox","Frame",
+                                                                                                    "ImageLabel","TextB
+                                                                                                    utton"],"StarterCha
+                                                                                                    racterScripts":["Lo
+                                                                                                    calScript","Script"
+                                                                                                    ],"StarterPack":["T
+                                                                                                    ool","LocalScript",
+                                                                                                    "Script","Animation
+                                                                                                    "],"StarterPlayer":
+                                                                                                    ["Humanoid","Model"
+                                                                                                    ],"StarterPlayerScr
+                                                                                                    ipts":["LocalScript
+                                                                                                    ","InputAction","In
+                                                                                                    putContext"],"Style
+                                                                                                    Rule":["StyleRule",
+                                                                                                    "Folder"],"Teams":[
+                                                                                                    "Team"],"UnionOpera
+                                                                                                    tion":["Texture","S
+                                                                                                    cript","Decal","Cli
+                                                                                                    ckDetector","PointL
+                                                                                                    ight","Attachment",
+                                                                                                    "SurfaceLight"],"Te
+                                                                                                    stService":["LocalS
+                                                                                                    cript","Script"],"T
+                                                                                                    extBox":["LocalScri
+                                                                                                    pt"],"TextButton":[
+                                                                                                    "LocalScript","Scri
+                                                                                                    pt","Frame","TextLa
+                                                                                                    bel","TextButton","
+                                                                                                    ImageLabel"],"Works
+                                                                                                    pace":["Part","Scri
+                                                                                                    pt","Folder","Tool"
+                                                                                                    ,"SpawnLocation","M
+                                                                                                    eshPart","Model"],"
+                                                                                                    TextChatService":["
+                                                                                                    TextChannel","TextC
+                                                                                                    hatCommand","Folder
+                                                                                                    "]}}
+RobloxAutocompleteWeights                                                                         : {}
+BaseUrl                                                                                           : https://www.roblox.
+                                                                                                    com
+ContentFolder                                                                                     : C:\Program Files (x
+                                                                                                    86)\Roblox\Versions
+                                                                                                    \version-b6a4437e62
+                                                                                                    1c45aa\content\
+File_Sync_Persistence_Record_V1:82661754996018:58c8be42-8f12-c229-0a98-584d00000002               : [
+                                                                                                    ]
+                                                                                                    
+File_Sync_Persistence_Record_V1:82661754996018:58c8be42-8f12-c229-0a98-584d00000002_timeLastUsed  : 1787215581200
+File_Sync_Persistence_Record_V1:82661754996018:58c8be42-8f12-c229-0a98-584d00000002_lastUsedDir   : 
+File_Sync_Persistence_Record_V1:85866320744490:4ff4523f-e851-6cf9-0a98-58e200000002               : [
+                                                                                                    ]
+                                                                                                    
+File_Sync_Persistence_Record_V1:85866320744490:4ff4523f-e851-6cf9-0a98-58e200000002_timeLastUsed  : 1787216033314
+File_Sync_Persistence_Record_V1:85866320744490:4ff4523f-e851-6cf9-0a98-58e200000002_lastUsedDir   : 
+File_Sync_Persistence_Record_V1:82661754996018:3599c823-0e7f-5030-0a98-88bc00000002               : [
+                                                                                                    ]
+                                                                                                    
+File_Sync_Persistence_Record_V1:82661754996018:3599c823-0e7f-5030-0a98-88bc00000002_timeLastUsed  : 1787227858894
+File_Sync_Persistence_Record_V1:82661754996018:3599c823-0e7f-5030-0a98-88bc00000002_lastUsedDir   : 
+PSPath                                                                                            : Microsoft.PowerShel
+                                                                                                    l.Core\Registry::HK
+                                                                                                    EY_CURRENT_USER\Sof
+                                                                                                    tware\Roblox\Roblox
+                                                                                                    Studio
+PSParentPath                                                                                      : Microsoft.PowerShel
+                                                                                                    l.Core\Registry::HK
+                                                                                                    EY_CURRENT_USER\Sof
+                                                                                                    tware\Roblox
+PSChildName                                                                                       : RobloxStudio
+PSDrive                                                                                           : HKCU
+PSProvider                                                                                        : Microsoft.PowerShel
+                                                                                                    l.Core\Registry
+
+
+
+
+REG_END
+SETTINGS_BEGIN
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<External>null</External>
+	<External>nil</External>
+	<Item class="UserGameSettings" referent="RBXB3C0541778F146EFBB84BCBAB7DEA4CF">
+		<Properties>
+			<bool name="AllTutorialsDisabled">false</bool>
+			<bool name="BadgeVisible">true</bool>
+			<token name="CameraMode">0</token>
+			<bool name="CameraYInverted">false</bool>
+			<bool name="ChatTranslationEnabled">true</bool>
+			<bool name="ChatTranslationFTUXShown">true</bool>
+			<string name="ChatTranslationLocale"></string>
+			<bool name="ChatTranslationToggleEnabled">false</bool>
+			<bool name="ChatVisible">true</bool>
+			<string name="CompletedTutorials"></string>
+			<bool name="ComputerCameraMovementChanged">false</bool>
+			<token name="ComputerCameraMovementMode">0</token>
+			<bool name="ComputerMovementChanged">false</bool>
+			<token name="ComputerMovementMode">0</token>
+			<token name="ControlMode">0</token>
+			<string name="DefaultCameraID"></string>
+			<int name="FramerateCap">-1</int>
+			<bool name="Fullscreen">false</bool>
+			<float name="GamepadCameraSensitivity">1</float>
+			<token name="GraphicsOptimizationMode">1</token>
+			<int name="GraphicsQualityLevel">0</int>
+			<float name="HapticStrength">1</float>
+			<bool name="HasEverUsedVR">false</bool>
+			<float name="MasterVolume">1</float>
+			<float name="MasterVolumeStudio">1</float>
+			<bool name="MaxQualityEnabled">false</bool>
+			<bool name="MicroProfilerWebServerEnabled">false</bool>
+			<float name="MouseSensitivity">1</float>
+			<Vector2 name="MouseSensitivityFirstPerson">
+				<X>1</X>
+				<Y>1</Y>
+			</Vector2>
+			<Vector2 name="MouseSensitivityThirdPerson">
+				<X>1</X>
+				<Y>1</Y>
+			</Vector2>
+			<bool name="OnScreenProfilerEnabled">false</bool>
+			<float name="PartyVoiceVolume">1</float>
+			<token name="PeoplePageLayout">0</token>
+			<bool name="PerformanceStatsVisible">false</bool>
+			<float name="PlayerHeight">5.70000029</float>
+			<bool name="PlayerListVisible">true</bool>
+			<bool name="PlayerNamesEnabled">true</bool>
+			<token name="PreferredTextSize">1</token>
+			<float name="PreferredTransparency">1</float>
+			<int name="QualityResetLevel">-1</int>
+			<int name="RCCProfilerRecordFrameRate">1</int>
+			<int name="RCCProfilerRecordTimeFrame">1</int>
+			<bool name="ReadAloud">false</bool>
+			<bool name="ReducedMotion">false</bool>
+			<token name="SavedQualityLevel">0</token>
+			<bool name="StartMaximized">true</bool>
+			<Vector2 name="StartScreenPosition">
+				<X>20</X>
+				<Y>20</Y>
+			</Vector2>
+			<Vector2 name="StartScreenSize">
+				<X>800</X>
+				<Y>600</Y>
+			</Vector2>
+			<bool name="TouchCameraMovementChanged">false</bool>
+			<token name="TouchCameraMovementMode">0</token>
+			<bool name="TouchMovementChanged">false</bool>
+			<token name="TouchMovementMode">0</token>
+			<bool name="UiNavigationKeyBindEnabled">true</bool>
+			<bool name="UsedCoreGuiIsVisibleToggle">false</bool>
+			<bool name="UsedCustomGuiIsVisibleToggle">false</bool>
+			<bool name="UsedHideHudShortcut">false</bool>
+			<token name="VRComfortSetting">1</token>
+			<bool name="VREnabled">false</bool>
+			<int name="VRRotationIntensity">1</int>
+			<token name="VRSafetyBubbleMode">0</token>
+			<bool name="VRSmoothRotationEnabled">false</bool>
+			<bool name="VRSmoothRotationEnabledCustomOption">false</bool>
+			<bool name="VRThirdPersonFollowCamEnabled">true</bool>
+			<bool name="VRThirdPersonFollowCamEnabledCustomOption">true</bool>
+			<bool name="VignetteEnabled">true</bool>
+			<bool name="VignetteEnabledCustomOption">true</bool>
+			<float name="VoiceChatVolume">1</float>
+			<string name="gaID"></string>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+			<bool name="DefinesCapabilities">false</bool>
+			<string name="Name">GameSettings</string>
+			<int64 name="SourceAssetId">-1</int64>
+			<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
+		</Properties>
+	</Item>
+	<SharedStrings>
+		<SharedString md5="yuZpQdnvvUBOTYh1jqZ2cA=="></SharedString>
+	</SharedStrings>
+</roblox>
+SETTINGS_END
+LOG_MATCH_BEGIN
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T121102Z_Studio_57D4A_last.log
+327:2026-08-20T12:11:06.370Z,4.370393,090c,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+339:2026-08-20T12:11:06.748Z,4.748885,090c,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7614 msec
+340:2026-08-20T12:11:06.749Z,4.749883,090c,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 379.4898 msec
+341:2026-08-20T12:11:06.752Z,4.752877,090c,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 382.3429999999997 msec
+381:2026-08-20T12:11:07.428Z,5.428681,090c,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+385:2026-08-20T12:11:07.430Z,5.430679,090c,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 363.3178999999993 msec
+447:2026-08-20T12:11:08.177Z,6.177135,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+500:2026-08-20T12:11:09.132Z,7.132113,04d8,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+931:2026-08-20T12:11:22.223Z,20.223940,0688,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_M
+1057:2026-08-20T12:11:23.612Z,21.612606,1d90,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.8322 msec
+1058:2026-08-20T12:11:23.613Z,21.613605,1d90,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 1262.2869 msec
+1059:2026-08-20T12:11:23.615Z,21.615604,1d90,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 1266.1275999999973 msec
+1079:2026-08-20T12:11:24.007Z,22.007099,1d90,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 390.3275999999991 msec
+1102:2026-08-20T12:11:24.259Z,22.259708,1d90,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+2334:2026-08-20T12:21:59.010Z,657.010498,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+3153:2026-08-20T12:33:32.476Z,1350.476685,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+3981:2026-08-20T12:45:26.622Z,2064.622803,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+4723:2026-08-20T12:55:51.011Z,2689.011475,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+5575:2026-08-20T13:07:44.139Z,3402.139893,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+6336:2026-08-20T13:18:29.479Z,4047.479980,090c,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T120847Z_Studio_ADA19_last.log
+330:2026-08-20T12:08:55.932Z,8.932618,1a60,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+363:2026-08-20T12:08:56.698Z,9.698750,1a60,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 1.1112 msec
+364:2026-08-20T12:08:56.698Z,9.698750,1a60,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 748.2870 msec
+365:2026-08-20T12:08:56.701Z,9.701756,1a60,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 767.4760000000002 msec
+386:2026-08-20T12:08:57.088Z,10.088228,1a60,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+390:2026-08-20T12:08:57.089Z,10.089225,1a60,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 303.25500000000005 msec
+439:2026-08-20T12:08:57.565Z,10.565672,1a60,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+495:2026-08-20T12:08:58.198Z,11.198684,1ae4,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+987:2026-08-20T12:10:43.785Z,116.785789,1ae8,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_
+1025:2026-08-20T12:10:44.139Z,117.139511,1aec,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7836 msec
+1026:2026-08-20T12:10:44.139Z,117.139511,1aec,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 320.9767 msec
+1027:2026-08-20T12:10:44.142Z,117.142532,1aec,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 322.3758999999973 msec
+1038:2026-08-20T12:10:44.431Z,117.431290,1aec,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 289.5935000000094 msec
+1051:2026-08-20T12:10:44.523Z,117.523598,1aec,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+1695:2026-08-20T12:11:01.030Z,134.030960,1a60,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+2024:2026-08-20T12:11:02.038Z,135.038681,1a60,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Standalone
+2204:2026-08-20T12:11:02.159Z,135.159485,1a44,6,Info [FLog::StudioMessagePassing] Shutting down MessageReceiver RaiseAssistantVisibilityExperimentFetcher
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T065135Z_Studio_0BCBC_last.log
+333:2026-08-20T06:51:43.965Z,8.965612,1394,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+353:2026-08-20T06:51:44.415Z,9.415146,1e5c,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7974 msec
+354:2026-08-20T06:51:44.416Z,9.416141,1e5c,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 439.0176 msec
+355:2026-08-20T06:51:44.417Z,9.417136,1e5c,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 440.78700000000026 msec
+371:2026-08-20T06:51:44.795Z,9.795393,0278,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+375:2026-08-20T06:51:44.796Z,9.796394,0278,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 338.9564000000007 msec
+396:2026-08-20T06:51:45.038Z,10.038839,0278,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+489:2026-08-20T06:51:46.281Z,11.281716,1e5c,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+908:2026-08-20T06:53:08.886Z,93.886230,0da4,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_M
+1009:2026-08-20T06:53:09.526Z,94.526215,0fd4,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7527 msec
+1010:2026-08-20T06:53:09.527Z,94.527214,0fd4,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 429.1250 msec
+1011:2026-08-20T06:53:09.528Z,94.528214,0fd4,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 430.2828000000005 msec
+1022:2026-08-20T06:53:09.930Z,94.930672,0fd4,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 401.77070000000015 msec
+1035:2026-08-20T06:53:10.134Z,95.134262,0fd4,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+1538:2026-08-20T06:53:41.202Z,126.202087,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1543:2026-08-20T06:53:42.211Z,127.211746,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1565:2026-08-20T06:55:06.892Z,211.892563,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1728:2026-08-20T07:02:54.834Z,679.834229,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+1834:2026-08-20T07:08:55.142Z,1040.142090,13ec,6,Error [FLog::AuxiliaryView] AuxiliaryView::updateWidgetOnScreenChange: rplg_sabuiltin_Assistant.rbxm_Assistant - Error disconnecting
+1860:2026-08-20T07:10:22.450Z,1127.450806,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1886:2026-08-20T07:12:27.619Z,1252.619995,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1903:2026-08-20T07:12:40.636Z,1265.636719,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1912:2026-08-20T07:12:59.363Z,1284.363892,13ec,6,Warning [FLog::StudioPluginRelay] PluginDockWidgetRelay::addOrRestoreToMainWindow: rplg_sabuiltin_Assistant.rbxm_Assistant - Failed Already Added
+1918:2026-08-20T07:13:09.106Z,1294.106445,13ec,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Assistant.rbxm_Assistant_DialogWidget_c6f2a09a-5393-42a5-b1c4-77a5baeaa8c1 - Failed Empty
+1919:2026-08-20T07:13:09.107Z,1294.107422,13ec,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Assistant.rbxm_Assistant_DialogWidget_c6f2a09a-5393-42a5-b1c4-77a5baeaa8c1 - Failed Empty
+1998:2026-08-20T07:14:19.475Z,1364.475342,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+2729:2026-08-20T07:24:20.010Z,1965.010376,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+3434:2026-08-20T07:34:21.090Z,2566.090576,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+4354:2026-08-20T07:45:57.234Z,3262.234375,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+5205:2026-08-20T07:56:30.850Z,3895.850342,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+5912:2026-08-20T08:06:42.380Z,4507.380371,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+6247:2026-08-20T08:15:06.666Z,5011.666992,13ec,6,Error [FLog::AuxiliaryView] AuxiliaryView::updateWidgetOnScreenChange: rplg_sabuiltin_Assistant.rbxm_Assistant - Error disconnecting
+6255:2026-08-20T08:15:06.666Z,5011.666992,13ec,6,Error [FLog::AuxiliaryView] AuxiliaryView::updateWidgetOnScreenChange: rplg_sabuiltin_Assistant.rbxm_Assistant_DialogWidget_c6f2a09a-5393-42a5-b1c4-77a5baeaa8c1 - Error disconnecting
+6308:2026-08-20T08:17:07.673Z,5132.673828,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+6607:2026-08-20T08:28:07.929Z,5792.929688,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+6824:2026-08-20T08:38:08.966Z,6393.966309,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7028:2026-08-20T08:48:39.687Z,7024.687988,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7364:2026-08-20T08:59:10.848Z,7655.848145,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7501:2026-08-20T09:10:45.406Z,8350.406250,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7646:2026-08-20T09:22:10.319Z,9035.319336,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7789:2026-08-20T09:33:19.607Z,9704.607422,1394,6,Verbose [FLog::StudioPluginOTANew] Selected plugin version: 23738, studio version: 0.735.19.7351131 for plugin Assistant
+7942:2026-08-20T09:43:00.670Z,10285.670898,1394,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Standalone
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T091247Z_Studio_5B337_last.log
+311:2026-08-20T09:12:51.814Z,4.814801,15c0,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+410:2026-08-20T09:12:53.188Z,6.188430,15c0,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.8380 msec
+411:2026-08-20T09:12:53.188Z,6.188430,15c0,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 1370.6481 msec
+412:2026-08-20T09:12:53.190Z,6.190423,15c0,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 1373.0725000000002 msec
+419:2026-08-20T09:12:53.414Z,6.414245,15c0,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+423:2026-08-20T09:12:53.415Z,6.415247,15c0,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 179.9686000000005 msec
+439:2026-08-20T09:12:53.848Z,6.848398,2378,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T084626Z_Studio_6CA30_last.log
+311:2026-08-20T08:46:29.884Z,3.884177,1b10,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+335:2026-08-20T08:46:30.388Z,4.388957,1a2c,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7845 msec
+336:2026-08-20T08:46:30.388Z,4.388957,1a2c,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 478.7463 msec
+337:2026-08-20T08:46:30.390Z,4.390952,1a2c,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 482.60919999999976 msec
+365:2026-08-20T08:46:30.872Z,4.872850,1a2c,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+369:2026-08-20T08:46:30.874Z,4.874843,1a2c,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 310.0209999999999 msec
+444:2026-08-20T08:46:32.244Z,6.244679,01f4,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+866:2026-08-20T08:52:38.940Z,372.940033,01f4,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_
+1242:2026-08-20T08:52:43.186Z,377.186554,1b10,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7897 msec
+1243:2026-08-20T08:52:43.186Z,377.186554,1b10,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 348.9472 msec
+1244:2026-08-20T08:52:43.189Z,377.189545,1b10,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 352.5984000000335 msec
+1302:2026-08-20T08:52:43.464Z,377.464264,1b10,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 273.9002999999798 msec
+1308:2026-08-20T08:52:43.520Z,377.520142,14f4,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+1760:2026-08-20T08:53:34.378Z,428.378540,01f4,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+2319:2026-08-20T08:53:40.046Z,434.046783,1a2c,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_
+2360:2026-08-20T08:53:40.416Z,434.416321,1a2c,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.9082 msec
+2361:2026-08-20T08:53:40.417Z,434.417297,1a2c,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 362.5839 msec
+2362:2026-08-20T08:53:40.419Z,434.419312,1a2c,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 371.3824999999815 msec
+2558:2026-08-20T08:53:43.102Z,437.102814,1d94,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 450.71669999998676 msec
+2757:2026-08-20T08:53:45.295Z,439.295715,0f00,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+2944:2026-08-20T08:53:52.855Z,446.855225,1b10,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+3283:2026-08-20T08:53:53.887Z,447.887299,1b10,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Standalone
+3464:2026-08-20T08:53:53.990Z,447.990570,211c,6,Info [FLog::StudioMessagePassing] Shutting down MessageReceiver RaiseAssistantVisibilityExperimentFetcher
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.19.7351131_20260820T084358Z_Studio_69B3B_last.log
+312:2026-08-20T08:44:03.184Z,5.184148,06b0,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+331:2026-08-20T08:44:03.652Z,5.652096,06b0,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7781 msec
+332:2026-08-20T08:44:03.653Z,5.653099,06b0,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 464.9551 msec
+333:2026-08-20T08:44:03.655Z,5.655105,06b0,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 470.0806000000002 msec
+368:2026-08-20T08:44:04.215Z,6.215162,1ed0,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+372:2026-08-20T08:44:04.216Z,6.216161,1ed0,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 329.28900000000016 msec
+438:2026-08-20T08:44:05.312Z,7.312172,1a04,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+829:2026-08-20T08:44:20.176Z,22.176620,1a04,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_M
+862:2026-08-20T08:44:20.676Z,22.676933,21bc,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.8543 msec
+863:2026-08-20T08:44:20.676Z,22.676933,21bc,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 480.2907 msec
+864:2026-08-20T08:44:20.679Z,22.679932,21bc,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 484.2477000000009 msec
+875:2026-08-20T08:44:20.965Z,22.965809,06b0,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 282.67350000000135 msec
+1214:2026-08-20T08:44:24.605Z,26.605293,06b0,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+1700:2026-08-20T08:45:55.835Z,117.835320,21bc,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+2370:2026-08-20T08:46:01.804Z,123.804298,1a04,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_PlaceVersionHistory.rbxm, sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AnimationGraphEditor.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetExport.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AssetQualityValidation.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioCompressorEditor.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AudioPlayerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ConnectionIndicator.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_CreatorConfig.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_Dialog.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_Footer.rbxm, sabuiltin_HotModuleReplacement.rbxm, sabuiltin_InputActionManager.rbxm, sabuiltin_LoginPage.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_
+2395:2026-08-20T08:46:02.183Z,124.183495,1a04,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.7169 msec
+2396:2026-08-20T08:46:02.184Z,124.184502,1a04,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 360.2590 msec
+2397:2026-08-20T08:46:02.186Z,124.186508,1a04,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 361.6683999999992 msec
+2414:2026-08-20T08:46:02.520Z,124.520264,1a04,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 333.6960999999974 msec
+2721:2026-08-20T08:46:05.886Z,127.886742,1cb8,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+2999:2026-08-20T08:46:21.058Z,143.058411,1cb8,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+3297:2026-08-20T08:46:21.906Z,143.906754,1cb8,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Standalone
+3505:2026-08-20T08:46:22.040Z,144.040237,0940,6,Info [FLog::StudioMessagePassing] Shutting down MessageReceiver RaiseAssistantVisibilityExperimentFetcher
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\RobloxStudioInstaller_E5C1E.log
+FILE=C:\Users\Administrator\AppData\Local\Roblox\logs\0.735.0.7351131_20260820T063611Z_Studio_E4329_last.log
+323:2026-08-20T06:36:17.533Z,6.533757,0ff4,6,Info [FLog::PluginLoadingEnhanced] sabuiltin_Assistant.rbxm, sabuiltin_ActivityFeed.rbxm, sabuiltin_AssetAccess.rbxm, sabuiltin_AssetManager.rbxm, sabuiltin_AttenuationCurveEditor.rbxm, sabuiltin_AudioActions.rbxm, sabuiltin_AudioEqualizerEditor.rbxm, sabuiltin_AvatarSettings.rbxm, sabuiltin_CancellableDialog.rbxm, sabuiltin_CollisionGroupsEditor.rbxm, sabuiltin_ControlsEmulator.rbxm, sabuiltin_Debugger.rbxm, sabuiltin_DirectionalCurveEditor.rbxm, sabuiltin_ExplorerPlugin.rbxm, sabuiltin_FindReplaceAll.rbxm, sabuiltin_ModerationDialog.rbxm, sabuiltin_Notifications.rbxm, sabuiltin_PlaceAnnotations.rbxm, sabuiltin_PluginManagement.rbxm, sabuiltin_PropertiesPlugin.rbxm, sabuiltin_Ribbon.rbxm, sabuiltin_TransformDragger.rbxm, sabuiltin_Tutorials.rbxm, sabuiltin_VisualizationModes.rbxm plugins requested to load for gst 'Standalone'
+334:2026-08-20T06:36:17.925Z,6.925453,0ff4,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.8801 msec
+335:2026-08-20T06:36:17.926Z,6.926456,0ff4,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 391.7019 msec
+336:2026-08-20T06:36:17.928Z,6.928463,0ff4,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 393.57050000000004 msec
+361:2026-08-20T06:36:18.328Z,7.328003,0ff4,6,Warning [FLog::StudioCommands] Unable to find component AssistantBridge in histogram map.
+365:2026-08-20T06:36:18.330Z,7.330000,0ff4,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 299.04129999999986 msec
+472:2026-08-20T06:36:20.188Z,9.188782,0ff4,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+1101:2026-08-20T06:36:25.987Z,14.987199,1204,6,Info [FLog::PluginFileRead] Hashing Plugin 'sabuiltin_Assistant.rbxm' took 0.8640 msec
+1102:2026-08-20T06:36:25.988Z,14.988202,1204,6,Info [FLog::PluginFileRead] Plugin file read 'sabuiltin_Assistant.rbxm' took 602.9971 msec
+1103:2026-08-20T06:36:25.991Z,14.991210,1204,6,Info [FLog::PluginLoadingEnhanced] loadPlugin sabuiltin_Assistant.rbxm took 606.1197000000006 msec
+1146:2026-08-20T06:36:26.623Z,15.623935,0aa4,6,Info [FLog::PluginLoadingEnhanced] Running plugin sabuiltin_Assistant.rbxm took 405.75120000000095 msec
+1256:2026-08-20T06:36:27.604Z,16.604574,1204,6,Info [FLog::AssistantApplication] AssistantVersion: 3576c20
+2976:2026-08-20T06:42:48.507Z,397.507446,0aa4,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Edit
+4750:2026-08-20T06:51:12.630Z,901.630981,0ff4,6,Info [FLog::PluginLoadingEnhanced] Unloading plugin 'sabuiltin_Assistant.rbxm' in datamodel StudioGameStateType_Standalone
+4934:2026-08-20T06:51:12.740Z,901.740845,0948,6,Info [FLog::StudioMessagePassing] Shutting down MessageReceiver RaiseAssistantVisibilityExperimentFetcher
+LOG_MATCH_END
