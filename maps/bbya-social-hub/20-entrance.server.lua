@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v2.0
+-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v2.1
 -- Scope lock: FACADE + OPENING + SIGNAGE/CROWN + LIGHTING ONLY.
+-- v2.1: enlarge/tighten true 3D entrance typography while preserving the approved facade/crown.
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
 
@@ -24,8 +25,8 @@ local function pointLight(parent,color,brightness,range)local l=Instance.new("Po
 local function stroke(name,a,b,width)local mid=(a+b)/2;local p=neon(name,Vector3.new(width,width,(b-a).Magnitude),CFrame.lookAt(mid,b),C.pink);pointLight(p,C.pink,.5,10) end
 
 local signModel=Instance.new("Model");signModel.Name="EntranceSignage";signModel.Parent=model
-local FACE_THICK=.18
-local DEFAULT_DEPTH=1.35
+local FACE_THICK=.24
+local DEFAULT_DEPTH=1.70
 
 local function extrudedStroke(parent,name,x,y,zBase,w,h,rotDeg,faceColor,bodyColor,depth,glowBrightness,glowRange)
  depth=depth or DEFAULT_DEPTH
@@ -100,13 +101,13 @@ neon("PortalPinkTop",Vector3.new(44,.25,.3),CFrame.new(0,13.6,-44.8),C.pink)
 local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
 local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
 
-part("BBYABackplate",Vector3.new(64,12,.5),CFrame.new(0,28.6,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
-part("SocialHubBackplate",Vector3.new(54,6.8,.5),CFrame.new(0,21.1,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
-part("AlwaysOpenBackplate",Vector3.new(32,5.8,.5),CFrame.new(0,16.0,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
+part("BBYABackplate",Vector3.new(68,12.8,.5),CFrame.new(0,28.7,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
+part("SocialHubBackplate",Vector3.new(58,7.2,.5),CFrame.new(0,21.0,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
+part("AlwaysOpenBackplate",Vector3.new(34,6.0,.5),CFrame.new(0,16.15,-43.95),C.black,Enum.Material.SmoothPlastic,0,signModel)
 
-drawText3D(signModel,"BBYA3D","BBYA",0,29.0,-44.0,1.16,.90,1.45,C.pink,C.pinkBody)
-drawText3D(signModel,"SocialHub3D","SOCIAL HUB",0,21.1,-44.0,.48,.66,1.25,C.pink,C.pinkBody)
-drawText3D(signModel,"AlwaysOpen3D","24 / 7",0,16.0,-43.98,.52,.72,1.20,C.blue,C.blueBody)
+drawText3D(signModel,"BBYA3D","BBYA",0,28.7,-44.0,1.22,.72,1.58,C.pink,C.pinkBody)
+drawText3D(signModel,"SocialHub3D","SOCIAL HUB",0,21.0,-44.0,.51,.50,1.38,C.pink,C.pinkBody)
+drawText3D(signModel,"AlwaysOpen3D","24 / 7",0,16.15,-43.98,.54,.60,1.28,C.blue,C.blueBody)
 
 local z=-44.7
 local pts={Vector3.new(-7.5,36,z),Vector3.new(-6.2,41.3,z),Vector3.new(-2.5,38.2,z),Vector3.new(0,43.6,z),Vector3.new(2.5,38.2,z),Vector3.new(6.2,41.3,z),Vector3.new(7.5,36,z)}
@@ -121,4 +122,4 @@ Lighting.ClockTime=20.2;Lighting.Brightness=3.2;Lighting.Ambient=Color3.fromRGB(
 for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
 local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
 local bloom=Instance.new("BloomEffect");bloom.Name="BBYABloom";bloom.Intensity=.34;bloom.Size=22;bloom.Threshold=1.12;bloom.Parent=Lighting
-print("[BBYA] Entrance validation v2.0: BBYA/SOCIAL spacing refined; slash and 7 corrected")
+print("[BBYA] Entrance validation v2.1: larger/tighter true 3D BBYA/SOCIAL HUB/24 / 7 signage loaded")
