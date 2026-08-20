@@ -26,8 +26,7 @@
       "Floor1LuxuryFinish": { "$path": "45-floor1-luxury-finish.server.lua" },
       "Floor1UltraPremium": { "$path": "46-floor1-ultra-premium.server.lua" },
       "Floor1Features": { "$path": "47-floor1-features.server.lua" },
-      "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" },
-      "Support500Tier": { "$path": "51-support-500.server.lua" }
+      "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
