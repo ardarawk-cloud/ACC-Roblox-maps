@@ -16,6 +16,7 @@ const placePath = path.join(root, target.file);
 const readLua = (file) => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 const worldLua = readLua('maps/mountain-social/mountain.world.server.lua');
 const moduleFiles = [
+  ['visual', 'maps/mountain-social/mountain.visual.server.lua'],
   ['checkpoint', 'maps/mountain-social/systems/checkpoint.server.lua'],
   ['ambience', 'maps/mountain-social/systems/ambience.server.lua'],
   ['summit', 'maps/mountain-social/systems/summit.server.lua'],
@@ -28,7 +29,7 @@ const wrappedModules = moduleFiles.map(([name, file]) => {
   return `\ntask.spawn(function()\n  local ok, err = pcall(function()\n${src}\n  end)\n  if not ok then warn('[Mountain:${name}]', err) end\nend)\n`;
 }).join('\n');
 
-const bundledLua = `${worldLua}\n\n-- ACC Mountain core server modules\n${wrappedModules}\nworkspace:SetAttribute('ACC_MountainCoreBundle', 'v1.3')\n`;
+const bundledLua = `${worldLua}\n\n-- ACC Mountain runtime modules\n${wrappedModules}\nworkspace:SetAttribute('ACC_MountainCoreBundle', 'v1.4')\n`;
 const clientLua = `${readLua('maps/mountain-social/mountain.client.lua')}\n\n${readLua('maps/mountain-social/mountain.performance.client.lua')}\n`;
 
 const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
@@ -37,7 +38,7 @@ const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="
 <Item class="Lighting" referent="RBXMOUNTAINLIGHTING"><Properties><float name="Brightness">2</float><double name="ClockTime">6.2</double><string name="Name">Lighting</string></Properties></Item>
 <Item class="ServerScriptService" referent="RBXMOUNTAINSSS"><Properties><string name="Name">ServerScriptService</string></Properties>
 <Item class="Script" referent="RBXMOUNTAINBUILD"><Properties><string name="Name">ACC_Mountain_World</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${bundledLua}]]></ProtectedString></Properties></Item>
-<Item class="Script" referent="RBXMOUNTAINQC"><Properties><string name="Name">ACC_Mountain_QC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[task.delay(10,function() local r=workspace:FindFirstChild('ACC_MountainSocial'); workspace:SetAttribute('ACC_MountainReady', r ~= nil and r:GetAttribute('BuildVersion') ~= nil) end)]]></ProtectedString></Properties></Item>
+<Item class="Script" referent="RBXMOUNTAINQC"><Properties><string name="Name">ACC_Mountain_QC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[task.delay(12,function() local r=workspace:FindFirstChild('ACC_MountainSocial'); workspace:SetAttribute('ACC_MountainReady', r ~= nil and r:GetAttribute('BuildVersion') ~= nil) end)]]></ProtectedString></Properties></Item>
 </Item>
 <Item class="StarterPlayer" referent="RBXMOUNTAINSTARTERPLAYER"><Properties><string name="Name">StarterPlayer</string></Properties>
 <Item class="StarterPlayerScripts" referent="RBXMOUNTAINSTARTERPLAYERSCRIPTS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>
@@ -47,4 +48,4 @@ const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="
 </roblox>`;
 
 fs.writeFileSync(placePath, xml);
-console.log('[Mountain] Injected compatible Mountain full runtime v1.3 into', target.file);
+console.log('[Mountain] Injected compatible Mountain full runtime v1.4 into', target.file);
