@@ -9,12 +9,18 @@ if not root then return end
 
 local lights = root:WaitForChild("DynamicLights",10)
 if lights then
+    local pulseLights={}
+    for _,obj in ipairs(lights:GetDescendants()) do
+        if obj:IsA("PointLight") or obj:IsA("SpotLight") then
+            table.insert(pulseLights,obj)
+        end
+    end
     local phase = 0
     RunService.RenderStepped:Connect(function(dt)
         phase = phase + dt
         local pulse = 0.72 + (math.sin(phase*2.4)+1)*0.24
-        for _,obj in ipairs(lights:GetDescendants()) do
-            if obj:IsA("PointLight") or obj:IsA("SpotLight") then
+        for _,obj in ipairs(pulseLights) do
+            if obj.Parent then
                 obj.Brightness = math.max(0.25, pulse * 1.45)
             end
         end
