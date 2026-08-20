@@ -1,4 +1,4 @@
-timestamp=2026-08-20T13:37:19.3618482+00:00
+timestamp=2026-08-20T13:41:06.5502667+00:00
 2026-08-20T13:37:20.078Z,5178.078613,090c,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:audit-runtime-001]")
 local RunService = game:GetService("RunService")
 print("STATE|running=" .. tostring(RunService:IsRunning()) .. "|studio=" .. tostring(RunService:IsStudio()))
@@ -15,3 +15,31 @@ print("[BBYA_JOB_END:audit-runtime-001]")
 2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] STATE|running=false|studio=true
 2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] ROOT|exists=false
 2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:audit-runtime-001]
+2026-08-20T13:41:07.145Z,5405.145508,090c,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:run-and-audit-floor1-002]")
+local RunService = game:GetService("RunService")
+print("STATE_BEFORE|running=" .. tostring(RunService:IsRunning()) .. "|studio=" .. tostring(RunService:IsStudio()))
+local ok, err = pcall(function()
+    if not RunService:IsRunning() then
+        RunService:Run()
+    end
+end)
+print("RUN_CALL|ok=" .. tostring(ok) .. "|err=" .. tostring(err))
+task.wait(6)
+print("STATE_AFTER|running=" .. tostring(RunService:IsRunning()))
+local root = workspace:FindFirstChild("BBYA_ZERO_BUILD")
+print("ROOT|exists=" .. tostring(root ~= nil))
+
+local function report(pathLabel, obj)
+    if not obj then
+        print("OBJ|" .. pathLabel .. "|missing")
+        return
+    end
+    if obj:IsA("BasePart") then
+        local p = obj.Position
+        local s = obj.Size
+        print(string.format("OBJ|%s|class=%s|pos=%.2f,%.2f,%.2f|size=%.2f,%.2f,%.2f|collide=%s", pathLabel, obj.ClassName, p.X,p.Y,p.Z,s.X,s.Y,s.Z,tostri
+2026-08-20T13:41:07.163Z,5405.163086,090c,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T13:41:07.187Z,5405.187012,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:run-and-audit-floor1-002]
+2026-08-20T13:41:07.187Z,5405.187988,090c,6,Info [FLog::CreatorOutput] STATE_BEFORE|running=false|studio=true
+2026-08-20T13:41:07.187Z,5405.187988,090c,6,Info [FLog::CreatorOutput] RUN_CALL|ok=true|err=nil
+2026-08-20T13:41:08.391Z,5406.391602,090c,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 270 cur_l2ts 0 elapsed_l2b 0
