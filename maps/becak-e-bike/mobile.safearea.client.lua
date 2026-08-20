@@ -1,5 +1,5 @@
--- BECAK E-BIKE — mobile safe-area controller v1.6
--- Keeps the driver phone away from Roblox touch controls on portrait/landscape screens.
+-- BECAK E-BIKE — mobile safe-area controller v1.8
+-- Keeps the driver phone on the LEFT side as requested, below Roblox top controls and clear of vehicle controls.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -20,26 +20,28 @@ local function applySafeArea()
     local v=camera and camera.ViewportSize or Vector2.new(800,600)
     local portrait=v.Y>v.X
 
-    -- Launcher sits high on the right edge, clear of left thumbstick and right jump/vehicle controls.
-    launcher.AnchorPoint=Vector2.new(1,0)
-    launcher.Position=portrait and UDim2.new(1,-14,0,104) or UDim2.new(1,-18,0,92)
+    -- User preference: launcher on the left, but below Roblox top-left menu/chat/mic controls.
+    launcher.AnchorPoint=Vector2.new(0,0)
+    launcher.Position=portrait and UDim2.new(0,16,0,118) or UDim2.new(0,18,0,112)
     launcher.Size=UDim2.fromOffset(portrait and 48 or 50,portrait and 48 or 50)
 
-    -- Phone opens in the upper-right quadrant instead of occupying the bottom control zone.
-    phone.AnchorPoint=Vector2.new(1,0)
+    -- Phone opens on the left side. Leave a top safety band for Roblox CoreGui.
+    phone.AnchorPoint=Vector2.new(0,0)
     if scaler then
         if portrait then
-            scaler.Scale=math.clamp(math.min((v.X-18)/326,(v.Y-190)/566),0.62,0.78)
+            scaler.Scale=math.clamp(math.min((v.X-24)/326,(v.Y-210)/566),0.60,0.78)
         else
-            scaler.Scale=math.clamp(math.min((v.X*0.34)/326,(v.Y-150)/566),0.68,0.90)
+            scaler.Scale=math.clamp(math.min((v.X*0.34)/326,(v.Y-168)/566),0.66,0.88)
         end
     end
     if phone.Visible then
-        phone.Position=portrait and UDim2.new(1,-12,0,72) or UDim2.new(1,-18,0,64)
+        phone.Position=portrait and UDim2.new(0,12,0,106) or UDim2.new(0,16,0,104)
     end
 end
 
 applySafeArea()
+launcher:GetPropertyChangedSignal('Visible'):Connect(applySafeArea)
+phone:GetPropertyChangedSignal('Visible'):Connect(applySafeArea)
 if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(applySafeArea) end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     camera=Workspace.CurrentCamera
@@ -47,14 +49,15 @@ Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     applySafeArea()
 end)
 
--- The base UI has an open/close tween with bottom anchoring. Re-apply only while visible,
--- at low frequency, so the phone never drifts back over touch controls.
+-- Base phone UI still owns its open/close tween. Re-assert the safe position while visible
+-- so it cannot drift to the right or into mobile steering/jump controls.
 local acc=0
 RunService.RenderStepped:Connect(function(dt)
     acc += dt
-    if acc < 0.08 then return end
+    if acc < 0.04 then return end
     acc=0
     applySafeArea()
 end)
 
-Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.6')
+Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
+Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
