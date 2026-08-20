@@ -1,4 +1,7 @@
-2026-08-20T13:33:50Z\n32374968460	BBYA Runner Unblock	in_progress		2026-08-20T13:33:43Z
+2026-08-20T13:37:44Z\n32375339650	BBYA Runner Unblock	in_progress		2026-08-20T13:37:37Z
+32375184082	BBYA Studio Command Worker	completed	success	2026-08-20T13:35:58Z
+32375059033	BBYA CommandBar Bridge	completed	success	2026-08-20T13:34:38Z
+32374968460	BBYA Runner Unblock	completed	success	2026-08-20T13:33:43Z
 32374872845	BBYA Runner Unblock	completed	success	2026-08-20T13:32:43Z
 32374061196	BBYA Studio UI Tree Probe	completed	success	2026-08-20T13:24:08Z
 32373883864	BBYA MCP Log Probe	completed	success	2026-08-20T13:22:18Z
