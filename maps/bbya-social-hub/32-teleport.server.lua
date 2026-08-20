@@ -26,8 +26,9 @@ local destinations={
  Rooftop=CFrame.new(43,47,-28),
  Pool=CFrame.new(0,47,-12),
  Basement=CFrame.new(0,-12,0),
+ Skatepark=CFrame.new(0,3,-132),
 }
-local PAID={VIP=5,Rooftop=10,Basement=20}
+local PAID={VIP=5,Skatepark=5,Rooftop=10,Basement=20}
 
 local function isAdmin(player)
  if not player then return false end
@@ -75,4 +76,4 @@ tp.OnServerEvent:Connect(function(player,key)
  MarketplaceService:PromptProductPurchase(player,productId)
 end)
 
-print("[BBYA] Travel v2 online: Basement restored / VIP 5R / Rooftop 10R / Basement 20R")
+print("[BBYA] Travel v2 online: VIP 5R / Skatepark 5R / Rooftop 10R / Basement 20R")
