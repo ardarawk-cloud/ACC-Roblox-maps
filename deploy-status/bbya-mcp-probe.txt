@@ -1,0 +1,42 @@
+timestamp=2026-08-20T13:17:38.8114954+00:00
+whoami=ec2amaz-4r0t5go\administrator
+MCP_BAT_EXISTS=True
+ROBLOX_STUDIO_VISIBLE=True
+ROBLOX_DIR_BEGIN
+
+Name                              Length LastWriteTime        
+----                              ------ -------------        
+0                                        8/20/2026 6:22:33 AM 
+8878884630                               8/20/2026 6:31:51 AM 
+AssistantSettings                        8/20/2026 6:31:48 AM 
+ClientSettings                           8/20/2026 6:31:45 AM 
+DefaultInstances                         8/20/2026 6:22:31 AM 
+Downloads                                8/20/2026 6:22:04 AM 
+LocalStorage                             8/20/2026 12:11:04 PM
+logs                                     8/20/2026 12:11:02 PM
+OTAPatchBackups                          8/20/2026 6:22:27 AM 
+OTAPlugins                               8/20/2026 6:31:47 AM 
+placeIDEState                            8/20/2026 12:10:58 PM
+rbx-storage                              8/20/2026 12:11:11 PM
+rbx-storage-sc                           8/20/2026 12:11:11 PM
+RobloxStudio                             8/20/2026 6:37:48 AM 
+RobloxStudioInstaller                    8/20/2026 6:51:32 AM 
+AnalysticsSettings.xml            195    8/20/2026 6:22:26 AM 
+frm.cfg                           75     8/20/2026 12:11:00 PM
+GlobalBasicSettings_13_Studio.xml 4213   8/20/2026 12:11:00 PM
+mcp.bat                           329    8/20/2026 6:53:02 AM 
+rbx-storage.db                    81920  8/20/2026 1:16:14 PM 
+rbx-storage.db-shm                32768  8/20/2026 12:11:11 PM
+rbx-storage.db-wal                0      8/20/2026 1:17:29 PM 
+rbx-storage.id                    8      8/20/2026 6:29:27 AM 
+
+
+
+ROBLOX_DIR_END
+MCP_BAT_BEGIN
+@echo off
+if exist "C:\Program Files (x86)\Roblox\Versions\version-b6a4437e621c45aa\StudioMCP.exe" ( "C:\Program Files (x86)\Roblox\Versions\version-b6a4437e621c45aa\StudioMCP.exe" %* )
+else (for /f "tokens=2*" %%A in ('reg query HKEY_CURRENT_USER\Software\Roblox\RobloxStudio /v ContentFolder') do (
+"%%B/..\StudioMCP.exe" %*
+))
+MCP_BAT_END
