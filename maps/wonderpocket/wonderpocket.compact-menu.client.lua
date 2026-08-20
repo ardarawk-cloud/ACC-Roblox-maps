@@ -57,6 +57,13 @@ local function anyPanelOpen()
     return false
 end
 
+local function tutorialNeedsDock()
+    if player:GetAttribute("WP_TutorialStarted") ~= true then return false end
+    if player:GetAttribute("WP_OnboardingComplete") == true then return false end
+    local stepId = tostring(player:GetAttribute("WP_TutorialStepId") or "")
+    return stepId == "BuyFurniture" or stepId == "PlaceFurniture"
+end
+
 local function setDockButtonsVisible(visible)
     for _, button in ipairs(dockButtons) do
         if button.Parent then button.Visible = visible end
@@ -88,7 +95,8 @@ local function apply()
     dock.Visible = true
     dock.Position = UDim2.new(.5,0,1,-8)
 
-    if expanded then
+    local showActions = expanded or tutorialNeedsDock()
+    if showActions then
         menu.Visible = false
         setDockButtonsVisible(true)
         dock.Size = UDim2.new(1,-28,0,46)
@@ -119,10 +127,14 @@ for _, panel in ipairs(panels) do
     end)
 end
 
-player:GetAttributeChangedSignal("WP_BuildActive"):Connect(function()
-    if player:GetAttribute("WP_BuildActive") == true then expanded = false end
-    apply()
-end)
+for _, attribute in ipairs({"WP_BuildActive", "WP_TutorialStarted", "WP_OnboardingComplete", "WP_TutorialStepId"}) do
+    player:GetAttributeChangedSignal(attribute):Connect(function()
+        if attribute == "WP_BuildActive" and player:GetAttribute("WP_BuildActive") == true then
+            expanded = false
+        end
+        apply()
+    end)
+end
 
 local cameraConnection
 local function bindCamera()
@@ -137,4 +149,4 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
 bindCamera()
 
-print("[WONDERPOCKET] Android compact MENU dock ready")
+print("[WONDERPOCKET] Android compact MENU dock + tutorial auto-open ready")
