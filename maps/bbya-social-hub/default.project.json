@@ -26,7 +26,8 @@
       "Floor1LuxuryFinish": { "$path": "45-floor1-luxury-finish.server.lua" },
       "Floor1UltraPremium": { "$path": "46-floor1-ultra-premium.server.lua" },
       "Floor1Features": { "$path": "47-floor1-features.server.lua" },
-      "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" }
+      "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" },
+      "Support500Tier": { "$path": "51-support-500.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -37,7 +38,8 @@
         "Floor1FeatureClient": { "$path": "47-floor1-features.client.lua" },
         "DJRequestCompactPatch": { "$path": "48-dj-request-compact.client.lua" },
         "UIClarityPatch": { "$path": "49-ui-clarity-patch.client.lua" },
-        "DJWallPrestigeClient": { "$path": "50-dj-wall-message.client.lua" }
+        "DJWallPrestigeClient": { "$path": "50-dj-wall-message.client.lua" },
+        "MenuMessageScrollPatch": { "$path": "51-menu-message-scroll.client.lua" }
       }
     },
     "Lighting": {
