@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — TRAVEL / PAID TELEPORT v2
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v3
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
+local Players=game:GetService("Players")
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -10,11 +11,11 @@ local state=remotes:FindFirstChild("State")
 local internal=remotes:FindFirstChild("InternalTeleport") or Instance.new("BindableEvent")
 internal.Name="InternalTeleport";internal.Parent=remotes
 
-local productModule=script.Parent:FindFirstChild("MonetizationProducts")
-local PRODUCTS={TRAVEL={}}
-if productModule and productModule:IsA("ModuleScript") then
- local ok,data=pcall(require,productModule)
- if ok and type(data)=="table" then PRODUCTS=data end
+local passModule=script.Parent:FindFirstChild("TravelPasses")
+local PASSES={VIP=0,Skatepark=0,Rooftop=0,Basement=0}
+if passModule and passModule:IsA("ModuleScript") then
+ local ok,data=pcall(require,passModule)
+ if ok and type(data)=="table" then PASSES=data end
 end
 
 local destinations={
@@ -26,20 +27,24 @@ local destinations={
  Rooftop=CFrame.new(43,47,-28),
  Pool=CFrame.new(0,47,-12),
  Basement=CFrame.new(0,-12,0),
- Skatepark=CFrame.new(0,3,-132),
+ Skatepark=CFrame.new(0,3,112),
 }
-local PAID={VIP=5,Skatepark=5,Rooftop=10,Basement=20}
+local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20}
+local keyByPass={}
+for key,id in pairs(PASSES) do
+ id=tonumber(id) or 0
+ if id>0 then keyByPass[id]=key end
+end
+local ownershipCache={}
 
 local function isAdmin(player)
  if not player then return false end
  if player:GetAttribute("BBYAAdmin")==true then return true end
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
-
 local function toast(player,msg)
  if state and state:IsA("RemoteEvent") then state:FireClient(player,"toast",msg) end
 end
-
 local function doTeleport(player,key)
  local cf=destinations[key]
  if not cf then return false end
@@ -51,29 +56,49 @@ local function doTeleport(player,key)
  hrp.AssemblyAngularVelocity=Vector3.zero
  return true
 end
+local function owns(player,key)
+ if isAdmin(player) then return true end
+ local passId=tonumber(PASSES[key]) or 0
+ if passId<=0 then return false end
+ ownershipCache[player.UserId]=ownershipCache[player.UserId] or {}
+ local cached=ownershipCache[player.UserId][key]
+ if cached~=nil then return cached end
+ local ok,value=pcall(MarketplaceService.UserOwnsGamePassAsync,MarketplaceService,player.UserId,passId)
+ if ok then ownershipCache[player.UserId][key]=value==true;return value==true end
+ return false
+end
 
 internal.Event:Connect(function(player,key)
- if doTeleport(player,key) then
-  local price=PAID[key]
-  if price then toast(player,string.format("%s access granted • %d R$",key,price)) end
- end
+ if doTeleport(player,key) then toast(player,tostring(key).." access ready.") end
 end)
 
 tp.OnServerEvent:Connect(function(player,key)
  key=tostring(key or "")
  if not destinations[key] then return end
- local price=PAID[key]
- if not price or isAdmin(player) then
-  doTeleport(player,key)
+ local price=PRICES[key]
+ if not price then doTeleport(player,key);return end
+ if owns(player,key) then doTeleport(player,key);return end
+ local passId=tonumber(PASSES[key]) or 0
+ if passId<=0 then
+  toast(player,"One-time access sedang sinkron. Coba lagi sebentar.")
   return
  end
- local productId=PRODUCTS.TRAVEL and tonumber(PRODUCTS.TRAVEL[key]) or 0
- if productId<=0 then
-  toast(player,"Travel purchase sedang sinkron. Coba lagi sebentar.")
-  return
- end
- player:SetAttribute("BBYATravelPurchase",key)
- MarketplaceService:PromptProductPurchase(player,productId)
+ player:SetAttribute("BBYAPendingTravelPass",key)
+ MarketplaceService:PromptGamePassPurchase(player,passId)
 end)
 
-print("[BBYA] Travel v2 online: VIP 5R / Skatepark 5R / Rooftop 10R / Basement 20R")
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId,purchased)
+ if not player or not purchased then return end
+ local key=keyByPass[tonumber(passId) or 0]
+ if not key then return end
+ ownershipCache[player.UserId]=ownershipCache[player.UserId] or {}
+ ownershipCache[player.UserId][key]=true
+ player:SetAttribute("BBYAPendingTravelPass",nil)
+ if doTeleport(player,key) then
+  toast(player,string.format("%s unlocked permanently • %d R$",key,PRICES[key]))
+ end
+end)
+
+Players.PlayerRemoving:Connect(function(player)ownershipCache[player.UserId]=nil end)
+
+print("[BBYA] Travel v3 online: permanent passes VIP 5R / Skatepark 5R / Rooftop 10R / Basement 20R")
