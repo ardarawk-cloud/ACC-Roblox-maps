@@ -41,6 +41,10 @@ local root = Instance.new("Folder")
 root.Name = ROOT_NAME
 root.Parent = Workspace
 
+local economyTransaction = Instance.new("BindableFunction")
+economyTransaction.Name = "EconomyTransaction"
+economyTransaction.Parent = root
+
 local world = Instance.new("Folder") world.Name = "Nusakarya" world.Parent = root
 local vehicles = Instance.new("Folder") vehicles.Name = "Vehicles" vehicles.Parent = root
 local passengers = Instance.new("Folder") passengers.Name = "Passengers" passengers.Parent = root
@@ -49,6 +53,19 @@ local interactives = Instance.new("Folder") interactives.Name = "Interactives" i
 local playerData = {}
 local activeTrips = {}
 local playerVehicles = {}
+
+economyTransaction.OnInvoke = function(player, amount, xp, reason)
+    local d = playerData[player]
+    if not d then return false end
+    amount = math.floor(tonumber(amount) or 0)
+    xp = math.max(0, math.floor(tonumber(xp) or 0))
+    if amount < 0 and d.Coins < -amount then return false end
+    d.Coins += amount
+    d.XP += xp
+    d.Level = math.max(1, math.floor(math.sqrt(d.XP/100))+1)
+    player:SetAttribute("BecakTrips", d.Trips)
+    return true, d.Coins, reason
+end
 
 local function copy(t)
     local o = {}
@@ -253,6 +270,7 @@ local function createBecak(player)
     m:SetAttribute("OwnerUserId",player.UserId)
     m:SetAttribute("Battery",batteryCapacity(d))
     m:SetAttribute("BatteryMax",batteryCapacity(d))
+    m:SetAttribute("Condition",100)
     local chassis=part(m,"Chassis",Vector3.new(6,1.2,10),CFrame.new(-80,2.6,-40),Color3.fromRGB(42,105,70),Enum.Material.Metal,true)
     chassis.Anchored=false
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.4,0.55,0.1,1,1)
@@ -384,6 +402,7 @@ RunService.Heartbeat:Connect(function(dt)
                 local dist=(trip.start-c.chassis.Position).Magnitude
                 local reward=math.floor(5000+dist*18)
                 d.Coins+=reward d.XP+=math.floor(20+dist/60) d.Trips+=1 d.Level=levelFromXP(d.XP)
+                player:SetAttribute("BecakTrips",d.Trips)
                 activeTrips[player]=nil
                 toast(player,"Trip selesai! +Rp"..reward.." • XP bertambah")
                 pushState(player)
@@ -403,6 +422,8 @@ Players.PlayerAdded:Connect(function(player)
     local ok,saved=pcall(function() return SAVE:GetAsync("u_"..player.UserId) end)
     if ok and type(saved)=="table" then for k,v in pairs(DEFAULT) do if saved[k]~=nil then d[k]=saved[k] end end end
     playerData[player]=d
+    player:SetAttribute("BecakTrips",d.Trips)
+    player:SetAttribute("BecakVersion","1.2.0")
     local stats=Instance.new("Folder") stats.Name="leaderstats" stats.Parent=player
     local coins=Instance.new("IntValue") coins.Name="Rupiah" coins.Value=d.Coins coins.Parent=stats
     local level=Instance.new("IntValue") level.Name="Level" level.Value=d.Level level.Parent=stats
@@ -426,6 +447,260 @@ game:BindToClose(function()
 end)
 
 print("[BECAK E-BIKE] runtime v"..VERSION.." initialized | Universe 10745325613 | Place 80994730522893")
+
+Workspace:SetAttribute("ACC_BecakRuntime","v1.2")
+]]></ProtectedString></Properties></Item><Item class="Script" referent="D"><Properties><string name="Name">BecakEBike_CityDetails</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Nusakarya visual/detail pass v1.1
+local Workspace=game:GetService('Workspace')
+local root=Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local world=root:WaitForChild('Nusakarya',20)
+if not world then return end
+
+local details=Instance.new('Folder') details.Name='CityDetails' details.Parent=world
+local function p(name,size,cf,color,material,collide)
+ local x=Instance.new('Part');x.Name=name;x.Size=size;x.CFrame=cf;x.Anchored=true;x.CanCollide=collide~=false;x.TopSurface=Enum.SurfaceType.Smooth;x.BottomSurface=Enum.SurfaceType.Smooth;x.Color=color;x.Material=material or Enum.Material.SmoothPlastic;x.Parent=details;return x
+end
+local function cylinder(name,size,cf,color)
+ local x=p(name,size,cf,color,Enum.Material.SmoothPlastic,true);x.Shape=Enum.PartType.Cylinder;return x
+end
+
+-- Main sidewalks
+local concrete=Color3.fromRGB(150,150,145)
+p('Sidewalk_Merdeka_N',Vector3.new(1100,1,8),CFrame.new(0,.55,-25),concrete,Enum.Material.Concrete,true)
+p('Sidewalk_Merdeka_S',Vector3.new(1100,1,8),CFrame.new(0,.55,25),concrete,Enum.Material.Concrete,true)
+p('Sidewalk_Nusantara_W',Vector3.new(8,1,1100),CFrame.new(-25,.55,0),concrete,Enum.Material.Concrete,true)
+p('Sidewalk_Nusantara_E',Vector3.new(8,1,1100),CFrame.new(25,.55,0),concrete,Enum.Material.Concrete,true)
+
+-- Zebra crossings around city centre
+for _,z in ipairs({-38,38}) do
+ for i=-4,4 do p('Crosswalk',Vector3.new(3.2,.08,11),CFrame.new(i*6,.52,z),Color3.fromRGB(235,235,230),Enum.Material.SmoothPlastic,false) end
+end
+for _,x in ipairs({-38,38}) do
+ for i=-4,4 do p('Crosswalk',Vector3.new(11,.08,3.2),CFrame.new(x,.52,i*6),Color3.fromRGB(235,235,230),Enum.Material.SmoothPlastic,false) end
+end
+
+-- Street lights
+local function lightPole(pos,rot)
+ local pole=p('StreetLightPole',Vector3.new(.7,10,.7),CFrame.new(pos)*CFrame.Angles(0,rot or 0,0),Color3.fromRGB(65,68,70),Enum.Material.Metal,true)
+ local arm=p('StreetLightArm',Vector3.new(4,.45,.45),pole.CFrame*CFrame.new(1.8,4.6,0),Color3.fromRGB(65,68,70),Enum.Material.Metal,true)
+ local lamp=p('StreetLamp',Vector3.new(1.2,.35,1.2),arm.CFrame*CFrame.new(1.6,-.25,0),Color3.fromRGB(255,235,175),Enum.Material.Neon,false)
+ local l=Instance.new('PointLight');l.Range=25;l.Brightness=1.1;l.Color=Color3.fromRGB(255,225,170);l.Parent=lamp
+end
+for x=-500,500,80 do lightPole(Vector3.new(x,5,-31),0);lightPole(Vector3.new(x,5,31),math.pi) end
+for z=-500,500,80 do lightPole(Vector3.new(-31,5,z),math.pi/2);lightPole(Vector3.new(31,5,z),-math.pi/2) end
+
+-- Trees & planter rhythm
+local function tree(pos,scale)
+ scale=scale or 1
+ local trunk=p('TreeTrunk',Vector3.new(2*scale,9*scale,2*scale),CFrame.new(pos+Vector3.new(0,4.5*scale,0)),Color3.fromRGB(105,72,45),Enum.Material.Wood,true)
+ local crown=p('TreeCrown',Vector3.new(9*scale,9*scale,9*scale),CFrame.new(pos+Vector3.new(0,11*scale,0)),Color3.fromRGB(62,132,72),Enum.Material.Grass,false);crown.Shape=Enum.PartType.Ball
+end
+for x=-520,520,65 do tree(Vector3.new(x,0,-48),.75);tree(Vector3.new(x,0,48),.75) end
+for z=-520,520,65 do tree(Vector3.new(-48,0,z),.75);tree(Vector3.new(48,0,z),.75) end
+for i=0,10 do tree(Vector3.new(-40+i*55,0,-515),1.15) end
+
+-- Market stalls
+for i=0,7 do
+ local x=-510+i*55
+ p('MarketTable',Vector3.new(30,2,10),CFrame.new(x,2,332),Color3.fromRGB(125,78,46),Enum.Material.Wood,true)
+ p('MarketAwning',Vector3.new(34,.7,17),CFrame.new(x,7,332),i%2==0 and Color3.fromRGB(205,65,55) or Color3.fromRGB(235,195,65),Enum.Material.Fabric,false)
+end
+
+-- Beach promenade + palms
+p('BeachPromenade',Vector3.new(700,1,20),CFrame.new(230,.5,-485),Color3.fromRGB(175,165,145),Enum.Material.Concrete,true)
+for i=0,9 do
+ local base=Vector3.new(-10+i*55,0,-530)
+ local trunk=cylinder('PalmTrunk',Vector3.new(16,1.6,1.6),CFrame.new(base+Vector3.new(0,8,0))*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(125,92,58))
+ trunk.CanCollide=true
+ local crown=p('PalmCrown',Vector3.new(10,4,10),CFrame.new(base+Vector3.new(0,17,0)),Color3.fromRGB(55,140,75),Enum.Material.Grass,false);crown.Shape=Enum.PartType.Ball
+end
+
+-- Traffic lights at central junction
+local function trafficLight(pos)
+ local pole=p('TrafficPole',Vector3.new(.7,10,.7),CFrame.new(pos+Vector3.new(0,5,0)),Color3.fromRGB(50,52,55),Enum.Material.Metal,true)
+ local box=p('TrafficSignal',Vector3.new(2.2,5,1.8),pole.CFrame*CFrame.new(0,4.5,0),Color3.fromRGB(35,37,39),Enum.Material.Metal,false)
+ for i,c in ipairs({Color3.fromRGB(215,55,50),Color3.fromRGB(235,180,45),Color3.fromRGB(65,190,90)}) do
+  local bulb=p('SignalBulb',Vector3.new(.8,.8,.25),box.CFrame*CFrame.new(0,1.6-(i-1)*1.55,-1.02),c,Enum.Material.Neon,false);bulb.Shape=Enum.PartType.Ball
+ end
+end
+for _,pos in ipairs({Vector3.new(-30,0,-30),Vector3.new(30,0,30),Vector3.new(-30,0,30),Vector3.new(30,0,-30)}) do trafficLight(pos) end
+
+-- Benches / social spots
+for _,pos in ipairs({Vector3.new(100,0,-100),Vector3.new(140,0,-100),Vector3.new(180,0,-100),Vector3.new(220,0,-485),Vector3.new(270,0,-485)}) do
+ p('BenchSeat',Vector3.new(8,.6,2),CFrame.new(pos+Vector3.new(0,2,0)),Color3.fromRGB(115,75,45),Enum.Material.Wood,true)
+ p('BenchLeg',Vector3.new(.7,2,.7),CFrame.new(pos+Vector3.new(-3,1,0)),Color3.fromRGB(60,62,64),Enum.Material.Metal,true)
+ p('BenchLeg',Vector3.new(.7,2,.7),CFrame.new(pos+Vector3.new(3,1,0)),Color3.fromRGB(60,62,64),Enum.Material.Metal,true)
+end
+
+-- Perbukitan Asri silhouette / uphill visual destination
+for i=1,7 do
+ local s=100+i*28
+ local hill=p('Hill_'..i,Vector3.new(s,28+i*10,s),CFrame.new(-260+i*75,10+i*5,560+i*15),Color3.fromRGB(70,112,64),Enum.Material.Grass,true)
+ hill.Shape=Enum.PartType.Ball
+end
+
+Workspace:SetAttribute('ACC_BecakCityDetails','v1.1')
+print('[BECAK E-BIKE] Nusakarya detail pass v1.1 ready')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan systems v1.2
+-- Weather, cargo, damage/repair, session challenge, story progression and ambient traffic.
+local Players=game:GetService('Players')
+local Workspace=game:GetService('Workspace')
+local Lighting=game:GetService('Lighting')
+local ReplicatedStorage=game:GetService('ReplicatedStorage')
+local RunService=game:GetService('RunService')
+
+local root=Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local world=root:WaitForChild('Nusakarya',20)
+local vehicles=root:WaitForChild('Vehicles',20)
+local interactives=root:WaitForChild('Interactives',20)
+local remotes=ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+local economy=root:WaitForChild('EconomyTransaction',20)
+if not world or not vehicles or not interactives or not remotes or not economy then return end
+local toast=remotes:WaitForChild('Toast')
+
+local systems=Instance.new('Folder');systems.Name='MasterplanSystems';systems.Parent=root
+local function part(parent,name,size,cf,color,material,collide)
+ local p=Instance.new('Part');p.Name=name;p.Size=size;p.CFrame=cf;p.Anchored=true;p.CanCollide=collide~=false;p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Color=color;p.Material=material or Enum.Material.SmoothPlastic;p.Parent=parent;return p
+end
+local function prompt(parent,action,obj)
+ local x=Instance.new('ProximityPrompt');x.ActionText=action;x.ObjectText=obj;x.HoldDuration=.35;x.MaxActivationDistance=12;x.RequiresLineOfSight=false;x.Parent=parent;return x
+end
+local function label(parent,text)
+ local g=Instance.new('BillboardGui');g.Size=UDim2.fromOffset(230,60);g.StudsOffset=Vector3.new(0,4,0);g.AlwaysOnTop=true;g.Parent=parent
+ local t=Instance.new('TextLabel');t.Size=UDim2.fromScale(1,1);t.BackgroundTransparency=.2;t.BackgroundColor3=Color3.fromRGB(18,22,26);t.TextColor3=Color3.new(1,1,1);t.TextScaled=true;t.Font=Enum.Font.GothamBold;t.Text=text;t.Parent=g
+end
+local function playerBecak(player)
+ for _,m in ipairs(vehicles:GetChildren()) do if m:GetAttribute('OwnerUserId')==player.UserId then return m end end
+end
+local function transact(player,amount,xp,reason)
+ local ok,result=pcall(function() return economy:Invoke(player,amount,xp or 0,reason or '') end)
+ return ok and result==true
+end
+
+-- Dynamic weather.
+local weatherCycle={'CERAH','MENDUNG','HUJAN','CERAH','CERAH','HUJAN'}
+local weatherIndex=1
+local function setWeather(name)
+ Workspace:SetAttribute('BecakWeather',name)
+ if name=='CERAH' then Lighting.Brightness=2.6;Lighting.ExposureCompensation=.05
+ elseif name=='MENDUNG' then Lighting.Brightness=1.65;Lighting.ExposureCompensation=-.15
+ elseif name=='HUJAN' then Lighting.Brightness=1.25;Lighting.ExposureCompensation=-.3 end
+ local a=Lighting:FindFirstChildOfClass('Atmosphere');if a then a.Density=name=='HUJAN' and .38 or (name=='MENDUNG' and .3 or .2);a.Haze=name=='HUJAN' and 2.4 or 1.1 end
+ for _,plr in ipairs(Players:GetPlayers()) do toast:FireClient(plr,'Cuaca Nusakarya: '..name) end
+end
+setWeather(weatherCycle[weatherIndex])
+task.spawn(function() while root.Parent do task.wait(180);weatherIndex=weatherIndex%#weatherCycle+1;setWeather(weatherCycle[weatherIndex]) end end)
+
+-- Vehicle condition and collision damage.
+local damageCooldown={}
+local function hookVehicle(model)
+ if not model:IsA('Model') then return end
+ task.defer(function()
+  local chassis=model:WaitForChild('Chassis',10);if not chassis then return end
+  if model:GetAttribute('Condition')==nil then model:SetAttribute('Condition',100) end
+  chassis.Touched:Connect(function(hit)
+   if not hit or hit:IsDescendantOf(model) or not hit.CanCollide then return end
+   local now=os.clock();if damageCooldown[model] and now-damageCooldown[model]<1.1 then return end
+   local speed=chassis.AssemblyLinearVelocity.Magnitude;if speed<18 then return end
+   damageCooldown[model]=now
+   local condition=model:GetAttribute('Condition') or 100
+   local loss=math.clamp(math.floor(speed*.22),3,18)
+   model:SetAttribute('Condition',math.max(0,condition-loss))
+   local ownerId=model:GetAttribute('OwnerUserId');local plr=ownerId and Players:GetPlayerByUserId(ownerId)
+   if plr then toast:FireClient(plr,'Becak terbentur • kondisi -'..loss..'%') end
+  end)
+ end)
+end
+for _,v in ipairs(vehicles:GetChildren()) do hookVehicle(v) end
+vehicles.ChildAdded:Connect(hookVehicle)
+
+-- Repair shop.
+local repair=part(interactives,'RepairShop',Vector3.new(28,1,20),CFrame.new(-155,.6,-85),Color3.fromRGB(205,85,65),Enum.Material.Neon,true)
+label(repair,'BENGKEL • SERVIS')
+local repairPrompt=prompt(repair,'Service Becak','Bengkel Pak Jaya')
+repairPrompt.Triggered:Connect(function(player)
+ local b=playerBecak(player);if not b then return end
+ local hp=b:GetAttribute('Condition') or 100
+ if hp>=99 then toast:FireClient(player,'Kondisi becak masih prima.') return end
+ local cost=math.ceil((100-hp)*500)
+ if not transact(player,-cost,0,'repair') then toast:FireClient(player,'Biaya servis Rp'..cost..'. Saldo belum cukup.') return end
+ b:SetAttribute('Condition',100);toast:FireClient(player,'Servis selesai • kondisi kembali 100%.')
+end)
+
+-- Cargo / logistics jobs.
+local cargoFolder=Instance.new('Folder');cargoFolder.Name='CargoJobs';cargoFolder.Parent=systems
+local cargoActive={}
+local cargoPickup=part(cargoFolder,'CargoDepot',Vector3.new(30,1,22),CFrame.new(365,.6,430),Color3.fromRGB(210,145,55),Enum.Material.Neon,true)
+label(cargoPickup,'CARGO DEPOT')
+local cargoPrompt=prompt(cargoPickup,'Ambil Cargo','Nusakarya Logistics')
+local cargoDrops={
+ {name='Pasar Nusantara',pos=Vector3.new(-310,2,300)},
+ {name='Terminal Raya',pos=Vector3.new(390,2,60)},
+ {name='Hotel Bahari',pos=Vector3.new(340,2,-220)},
+ {name='Sekolah Nusakarya',pos=Vector3.new(-300,2,-80)},
+}
+for i,d in ipairs(cargoDrops) do local x=part(cargoFolder,'CargoDrop_'..i,Vector3.new(13,.5,13),CFrame.new(d.pos),Color3.fromRGB(235,165,60),Enum.Material.Neon,false);x.Transparency=.55;x:SetAttribute('DropName',d.name) end
+cargoPrompt.Triggered:Connect(function(player)
+ if cargoActive[player] then toast:FireClient(player,'Cargo aktif: '..cargoActive[player].name) return end
+ local b=playerBecak(player);if not b or not b.PrimaryPart or (b.PrimaryPart.Position-cargoPickup.Position).Magnitude>30 then toast:FireClient(player,'Dekatkan Becak E-Bike ke Cargo Depot.') return end
+ local d=cargoDrops[math.random(1,#cargoDrops)];cargoActive[player]=d;player:SetAttribute('CargoDestination',d.name);toast:FireClient(player,'Cargo dimuat • antar ke '..d.name..'.')
+end)
+
+-- Session challenge and story progression based on persistent trip total.
+local joinTrips={}
+local function syncProgress(player)
+ local total=player:GetAttribute('BecakTrips') or 0
+ local chapter=1
+ if total>=10 then chapter=2 end;if total>=25 then chapter=3 end;if total>=50 then chapter=4 end;if total>=100 then chapter=5 end
+ player:SetAttribute('StoryChapter',chapter)
+ local baseline=joinTrips[player] or total
+ local sessionTrips=math.max(0,total-baseline);player:SetAttribute('SessionTrips',sessionTrips)
+ if sessionTrips>=10 and not player:GetAttribute('Session10Claimed') then
+  player:SetAttribute('Session10Claimed',true)
+  if transact(player,50000,100,'session10') then toast:FireClient(player,'Tantangan 10 trip selesai • +Rp50.000 +100 XP') end
+ end
+end
+
+-- Lightweight ambient traffic.
+local traffic=Instance.new('Folder');traffic.Name='AmbientTraffic';traffic.Parent=systems
+local cars={}
+for i=1,12 do
+ local body=part(traffic,'Traffic_'..i,Vector3.new(6,2.5,10),CFrame.new(-480+(i-1)*80,2,(i%2==0 and 10 or -10)),i%3==0 and Color3.fromRGB(65,105,175) or (i%3==1 and Color3.fromRGB(185,65,55) or Color3.fromRGB(185,185,180)),Enum.Material.Metal,false)
+ cars[i]={part=body,t=(i-1)/12,axis=(i<=6 and 'x' or 'z'),dir=i%2==0 and 1 or -1}
+end
+
+local accum=0
+RunService.Heartbeat:Connect(function(dt)
+ accum+=dt;if accum<.08 then return end;local step=accum;accum=0
+ for _,c in ipairs(cars) do
+  c.t=(c.t+step*.018*c.dir)%1
+  if c.axis=='x' then local x=-520+c.t*1040;c.part.CFrame=CFrame.new(x,2,c.dir>0 and 10 or -10)*CFrame.Angles(0,c.dir>0 and math.rad(90) or math.rad(-90),0)
+  else local z=-520+c.t*1040;c.part.CFrame=CFrame.new(c.dir>0 and 10 or -10,2,z)*CFrame.Angles(0,c.dir>0 and 0 or math.pi,0) end
+ end
+ for player,d in pairs(cargoActive) do
+  if player.Parent then
+   local b=playerBecak(player)
+   if b and b.PrimaryPart and (b.PrimaryPart.Position-d.pos).Magnitude<25 then
+    cargoActive[player]=nil;player:SetAttribute('CargoDestination',nil)
+    if transact(player,35000,45,'cargo') then player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1);toast:FireClient(player,'Cargo terkirim ke '..d.name..' • +Rp35.000 +45 XP') end
+   end
+  end
+ end
+ for _,player in ipairs(Players:GetPlayers()) do syncProgress(player) end
+end)
+
+local function setupPlayer(player)
+ player:SetAttribute('DailyTripGoal',10);player:SetAttribute('CargoJobs',player:GetAttribute('CargoJobs') or 0);player:SetAttribute('Session10Claimed',false)
+ task.delay(2,function() if player.Parent then local total=player:GetAttribute('BecakTrips') or 0;joinTrips[player]=total;syncProgress(player) end end)
+ task.delay(4,function() if player.Parent then toast:FireClient(player,'Nusakarya aktif • penumpang • cargo • charging • bengkel • cuaca • upgrade') end end)
+end
+for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
+Players.PlayerAdded:Connect(setupPlayer)
+Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;cargoActive[player]=nil end)
+
+Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.2')
+print('[BECAK E-BIKE] masterplan systems v1.2 ready')
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BecakEBike_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE client HUD v1.0
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -496,4 +771,32 @@ toastEvent.OnClientEvent:Connect(function(msg)
         TweenService:Create(toast,TweenInfo.new(0.5),{BackgroundTransparency=1,TextTransparency=1}):Play()
     end)
 end)
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MC"><Properties><string name="Name">BecakEBike_MasterplanClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan client v1.2
+local Players=game:GetService('Players')
+local Workspace=game:GetService('Workspace')
+local player=Players.LocalPlayer
+local playerGui=player:WaitForChild('PlayerGui')
+
+local gui=Instance.new('ScreenGui')
+gui.Name='BecakMasterplanHUD';gui.ResetOnSpawn=false;gui.Parent=playerGui
+local panel=Instance.new('Frame')
+panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(.98,0,.03,0);panel.Size=UDim2.new(.34,0,0,118);panel.BackgroundColor3=Color3.fromRGB(15,20,24);panel.BackgroundTransparency=.12;panel.Parent=gui
+local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(0,14);corner.Parent=panel
+local function line(y,text,size)
+ local t=Instance.new('TextLabel');t.Position=UDim2.new(.05,0,0,y);t.Size=UDim2.new(.9,0,0,size or 24);t.BackgroundTransparency=1;t.TextColor3=Color3.new(1,1,1);t.Font=Enum.Font.GothamBold;t.TextSize=14;t.TextXAlignment=Enum.TextXAlignment.Left;t.Text=text;t.Parent=panel;return t
+end
+local weather=line(8,'CUACA: CERAH',22)
+local story=line(32,'STORY: CHAPTER 1',22)
+local cargo=line(56,'CARGO: —',22)
+local challenge=line(80,'TARGET SESI: 0/10 TRIP',28)
+
+local function refresh()
+ weather.Text='CUACA: '..tostring(Workspace:GetAttribute('BecakWeather') or 'CERAH')
+ story.Text='STORY: CHAPTER '..tostring(player:GetAttribute('StoryChapter') or 1)
+ local c=player:GetAttribute('CargoDestination');cargo.Text=c and ('CARGO: '..c) or 'CARGO: —'
+ challenge.Text='TARGET SESI: '..tostring(player:GetAttribute('SessionTrips') or 0)..'/10 TRIP'
+end
+for _,name in ipairs({'StoryChapter','CargoDestination','SessionTrips'}) do player:GetAttributeChangedSignal(name):Connect(refresh) end
+Workspace:GetAttributeChangedSignal('BecakWeather'):Connect(refresh)
+refresh()
 ]]></ProtectedString></Properties></Item></Item></Item></roblox>
