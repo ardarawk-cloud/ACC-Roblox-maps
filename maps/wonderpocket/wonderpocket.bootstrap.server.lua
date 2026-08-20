@@ -199,7 +199,9 @@ local function savePlayer(player, force)
         player:SetAttribute("WP_DataSaveHealthy", false)
     end
 
-    local needsAnother = forcePending[player] == true or (revision[player] or 0) > (savedRevision[player] or 0)
+    -- Only coalesce another write after a successful save. If retry exhaustion
+    -- occurs, save-health protection freezes the session instead of spinning.
+    local needsAnother = ok and (forcePending[player] == true or (revision[player] or 0) > (savedRevision[player] or 0))
     local nextForce = forcePending[player] == true
     forcePending[player] = nil
     if needsAnother and player.Parent and session[player] then
