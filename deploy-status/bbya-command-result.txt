@@ -1,45 +1,45 @@
-timestamp=2026-08-20T13:41:06.5502667+00:00
-2026-08-20T13:37:20.078Z,5178.078613,090c,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:audit-runtime-001]")
-local RunService = game:GetService("RunService")
-print("STATE|running=" .. tostring(RunService:IsRunning()) .. "|studio=" .. tostring(RunService:IsStudio()))
-local root = workspace:FindFirstChild("BBYA_ZERO_BUILD")
-print("ROOT|exists=" .. tostring(root ~= nil))
-if root then
-    for _, name in ipairs({"Floor1Core","MainClubRealism","Floor1FrontPremium"}) do
-        local obj = root:FindFirstChild(name)
-        print("MODEL|" .. name .. "|exists=" .. tostring(obj ~= nil) .. (obj and ("|desc=" .. tostring(#obj:GetDescendants())) or ""))
-    end
+timestamp=2026-08-20T19:36:52.0676432+00:00
+2026-08-20T19:36:54.325Z,327.325806,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:dj-wall-live-visual-audit-001]")
+local RunService=game:GetService("RunService")
+local Players=game:GetService("Players")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
+print("ROOT|exists="..tostring(root~=nil))
+local function report(label,obj)
+ if not obj then print("OBJ|"..label.."|missing") return end
+ if obj:IsA("BasePart") then
+  local p=obj.Position local s=obj.Size
+  print(string.format("OBJ|%s|%s|pos=%.2f,%.2f,%.2f|size=%.2f,%.2f,%.2f|trans=%.2f",label,obj.ClassName,p.X,p.Y,p.Z,s.X,s.Y,s.Z,obj.Transparency))
+ else
+  print("OBJ|"..label.."|"..obj.ClassName.."|desc="..tostring(#obj:GetDescendants()))
+ end
 end
-print("[BBYA_JOB_END:audit-runtime-001]")
-2026-08-20T13:37:20.094Z,5178.094727,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:audit-runtime-001]
-2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] STATE|running=false|studio=true
-2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] ROOT|exists=false
-2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:audit-runtime-001]
-2026-08-20T13:41:07.145Z,5405.145508,090c,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:run-and-audit-floor1-002]")
-local RunService = game:GetService("RunService")
-print("STATE_BEFORE|running=" .. tostring(RunService:IsRunning()) .. "|studio=" .. tostring(RunService:IsStudio()))
-local ok, err = pcall(function()
-    if not RunService:IsRunning() then
-        RunService:Run()
-    end
-end)
-print("RUN_CALL|ok=" .. tostring(ok) .. "|err=" .. tostring(err))
-task.wait(6)
-print("STATE_AFTER|running=" .. tostring(RunService:IsRunning()))
-local root = workspace:FindFirstChild("BBYA_ZERO_BUILD")
-print("ROOT|exists=" .. tostring(root ~= nil))
-
-local function report(pathLabel, obj)
-    if not obj then
-        print("OBJ|" .. pathLabel .. "|missing")
-        return
-    end
-    if obj:IsA("BasePart") then
-        local p = obj.Position
-        local s = obj.Size
-        print(string.format("OBJ|%s|class=%s|pos=%.2f,%.2f,%.2f|size=%.2f,%.2f,%.2f|collide=%s", pathLabel, obj.ClassName, p.X,p.Y,p.Z,s.X,s.Y,s.Z,tostri
-2026-08-20T13:41:07.163Z,5405.163086,090c,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T13:41:07.187Z,5405.187012,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:run-and-audit-floor1-002]
-2026-08-20T13:41:07.187Z,5405.187988,090c,6,Info [FLog::CreatorOutput] STATE_BEFORE|running=false|studio=true
-2026-08-20T13:41:07.187Z,5405.187988,090c,6,Info [FLog::CreatorOutput] RUN_CALL|ok=true|err=nil
-2026-08-20T13:41:08.391Z,5406.391602,090c,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 270 cur_l2ts 0 elapsed_l2b 0
+if root then
+ local sys=root:FindFirstChild("DJWallMessageSystem")
+ report("DJWallMessageSystem",sys)
+ local final=sys and sys:FindFirstChild("FinalMountedWall")
+ report("FinalMountedWall",final
+2026-08-20T19:36:54.325Z,327.325806,06bc,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T19:36:54.334Z,327.334869,1a50,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:dj-wall-live-visual-audit-001]
+2026-08-20T19:36:54.335Z,327.335876,1a50,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T19:36:54.335Z,327.335876,1a50,6,Info [FLog::CreatorOutput] ROOT|exists=true
+2026-08-20T19:36:54.335Z,327.335876,1a50,6,Info [FLog::CreatorOutput] OBJ|DJWallMessageSystem|Model|desc=1038
+2026-08-20T19:36:54.335Z,327.335876,1a50,6,Info [FLog::CreatorOutput] OBJ|FinalMountedWall|Model|desc=1037
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] OBJ|Final.PrestigeLED|Part|pos=3.00,10.00,47.30|size=56.90,12.35,0.12|trans=0.00
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUI|DJWallUI|enabled=false|face=Enum.NormalId.Front|always=false|adornee=nil|desc=245
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUISTATE|idle=true|random=true|message=false
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUI|DJWallUI_OppositeFace|enabled=false|face=Enum.NormalId.Back|always=false|adornee=nil|desc=245
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUISTATE|idle=true|random=true|message=false
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] PROMPT|CreatePrestigeMessage|enabled=true|dist=14
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUI|BBYAClientWallFront|enabled=true|face=Enum.NormalId.Front|always=false|adornee=nil|desc=266
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUISTATE|idle=nil|random=nil|message=nil
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUI|BBYAClientWallBack|enabled=true|face=Enum.NormalId.Back|always=false|adornee=nil|desc=266
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] GUISTATE|idle=nil|random=nil|message=nil
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] OBJ|Legacy.LEDWall|missing
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] OBJ|Legacy.LogoDisplay|missing
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] PLAYERS|count=1
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] PLAYER|RidhooMauKamu|gui=true
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] PLAYERGUI|BBYADJWallUI=true
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T19:36:54.336Z,327.336884,1a50,6,Info [FLog::CreatorOutput] CAMERA|set=true
+2026-08-20T19:36:56.360Z,329.360809,1a50,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:dj-wall-live-visual-audit-001]
