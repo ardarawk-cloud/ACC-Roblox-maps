@@ -1,0 +1,565 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">1.65</float><double name="ClockTime">23.15</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="TS"><Properties><string name="Name">TRACK01_Runtime</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+
+local ROOT_NAME = "ACC_TRACK01"
+local VERSION = "1.0.0"
+
+local old = Workspace:FindFirstChild(ROOT_NAME)
+if old then old:Destroy() end
+
+local root = Instance.new("Folder")
+root.Name = ROOT_NAME
+root.Parent = Workspace
+root:SetAttribute("Version", VERSION)
+root:SetAttribute("UniverseId", "10745349805")
+root:SetAttribute("PlaceId", "79748872921213")
+root:SetAttribute("Concept", "Abandoned Railway Station Nightclub")
+
+local world = Instance.new("Folder")
+world.Name = "World"
+world.Parent = root
+local architecture = Instance.new("Folder")
+architecture.Name = "Architecture"
+architecture.Parent = world
+local railway = Instance.new("Folder")
+railway.Name = "Railway"
+railway.Parent = world
+local train = Instance.new("Folder")
+train.Name = "TrainCars"
+train.Parent = world
+local props = Instance.new("Folder")
+props.Name = "Props"
+props.Parent = world
+local lightsFolder = Instance.new("Folder")
+lightsFolder.Name = "DynamicLights"
+lightsFolder.Parent = root
+
+local C = {
+    charcoal = Color3.fromRGB(22, 23, 24),
+    black = Color3.fromRGB(8, 9, 10),
+    steel = Color3.fromRGB(76, 79, 82),
+    steel2 = Color3.fromRGB(112, 116, 118),
+    rust = Color3.fromRGB(98, 51, 35),
+    rust2 = Color3.fromRGB(129, 70, 42),
+    brick = Color3.fromRGB(87, 55, 45),
+    brickDark = Color3.fromRGB(54, 37, 32),
+    concrete = Color3.fromRGB(85, 82, 76),
+    concreteDark = Color3.fromRGB(45, 46, 45),
+    glass = Color3.fromRGB(77, 99, 107),
+    amber = Color3.fromRGB(255, 169, 72),
+    signalRed = Color3.fromRGB(214, 48, 38),
+    warm = Color3.fromRGB(255, 214, 164),
+    white = Color3.fromRGB(231, 229, 220),
+}
+
+local function cf(x,y,z,rx,ry,rz)
+    return CFrame.new(x,y,z) * CFrame.Angles(math.rad(rx or 0), math.rad(ry or 0), math.rad(rz or 0))
+end
+
+local function part(parent, name, size, frame, color, material, transparency, collide, shape)
+    local p = Instance.new("Part")
+    p.Name = name
+    p.Size = size
+    p.CFrame = frame
+    p.Color = color or C.steel
+    p.Material = material or Enum.Material.Metal
+    p.Anchored = true
+    p.CanCollide = collide ~= false
+    p.CanQuery = true
+    p.CanTouch = true
+    p.Transparency = transparency or 0
+    p.TopSurface = Enum.SurfaceType.Smooth
+    p.BottomSurface = Enum.SurfaceType.Smooth
+    if shape then p.Shape = shape end
+    p.Parent = parent
+    return p
+end
+
+local function cylinder(parent, name, size, frame, color, material, collide)
+    return part(parent, name, size, frame, color, material, 0, collide, Enum.PartType.Cylinder)
+end
+
+local function surfaceText(target, face, text, textColor, bgColor, font)
+    local gui = Instance.new("SurfaceGui")
+    gui.Name = "Signage"
+    gui.Face = face
+    gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+    gui.PixelsPerStud = 42
+    gui.AlwaysOnTop = false
+    gui.Parent = target
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.fromScale(1,1)
+    label.BackgroundColor3 = bgColor or C.black
+    label.BackgroundTransparency = bgColor and 0.08 or 1
+    label.BorderSizePixel = 0
+    label.Text = text
+    label.TextColor3 = textColor or C.white
+    label.TextScaled = true
+    label.TextWrapped = true
+    label.Font = font or Enum.Font.GothamBold
+    label.Parent = gui
+    return label
+end
+
+local function addPointLight(parent, color, brightness, range)
+    local l = Instance.new("PointLight")
+    l.Color = color
+    l.Brightness = brightness
+    l.Range = range
+    l.Shadows = true
+    l.Parent = parent
+    return l
+end
+
+local function addSpot(parent, color, brightness, range, angle, face)
+    local l = Instance.new("SpotLight")
+    l.Color = color
+    l.Brightness = brightness
+    l.Range = range
+    l.Angle = angle
+    l.Face = face or Enum.NormalId.Bottom
+    l.Shadows = true
+    l.Parent = parent
+    return l
+end
+
+local function neonTube(parent, name, size, frame, color, brightness)
+    local p = part(parent, name, size, frame, color, Enum.Material.Neon, 0, false)
+    local l = addPointLight(p, color, brightness or 1.1, 18)
+    l.Name = "PulseLight"
+    p.Parent = lightsFolder
+    return p
+end
+
+-- Lighting: wet, cinematic, abandoned station at night.
+Lighting.Brightness = 1.65
+Lighting.ClockTime = 23.15
+Lighting.Ambient = Color3.fromRGB(34, 39, 45)
+Lighting.OutdoorAmbient = Color3.fromRGB(46, 49, 53)
+Lighting.EnvironmentDiffuseScale = 0.32
+Lighting.EnvironmentSpecularScale = 0.55
+Lighting.GlobalShadows = true
+Lighting.ShadowSoftness = 0.32
+
+for _, n in ipairs({"TRACK01_Atmosphere","TRACK01_Bloom","TRACK01_Color"}) do
+    local o = Lighting:FindFirstChild(n)
+    if o then o:Destroy() end
+end
+local atmosphere = Instance.new("Atmosphere")
+atmosphere.Name = "TRACK01_Atmosphere"
+atmosphere.Density = 0.31
+atmosphere.Offset = 0.05
+atmosphere.Color = Color3.fromRGB(173, 185, 193)
+atmosphere.Decay = Color3.fromRGB(76, 78, 82)
+atmosphere.Glare = 0.08
+atmosphere.Haze = 1.8
+atmosphere.Parent = Lighting
+local bloom = Instance.new("BloomEffect")
+bloom.Name = "TRACK01_Bloom"
+bloom.Intensity = 0.32
+bloom.Size = 22
+bloom.Threshold = 1.3
+bloom.Parent = Lighting
+local cc = Instance.new("ColorCorrectionEffect")
+cc.Name = "TRACK01_Color"
+cc.Brightness = -0.025
+cc.Contrast = 0.14
+cc.Saturation = -0.12
+cc.TintColor = Color3.fromRGB(236, 224, 210)
+cc.Parent = Lighting
+
+-- Layered yard base and arrival lane.
+part(architecture,"Ground",Vector3.new(290,2,430),cf(4,-1.4,20),Color3.fromRGB(37,38,36),Enum.Material.Asphalt)
+part(architecture,"StationApron",Vector3.new(128,0.45,108),cf(-48,0,-112),Color3.fromRGB(71,68,61),Enum.Material.Concrete)
+part(architecture,"ArrivalLane",Vector3.new(92,0.35,32),cf(-43,0.2,-57),Color3.fromRGB(43,44,43),Enum.Material.Asphalt)
+for x=-78,-8,17.5 do
+    part(architecture,"ArrivalMarking",Vector3.new(8,0.06,0.35),cf(x,0.4,-57),Color3.fromRGB(174,165,129),Enum.Material.SmoothPlastic,0.25,false)
+end
+for x=-79,-7,12 do
+    cylinder(props,"ArrivalBollard",Vector3.new(2.7,0.65,0.65),cf(x,1.55,-74,0,0,90),C.steel2,Enum.Material.Metal)
+end
+part(railway,"Ballast",Vector3.new(34,1.25,388),cf(22,-0.4,20),Color3.fromRGB(66,63,59),Enum.Material.Slate)
+
+for z=-168,205,5 do
+    part(railway,"Sleeper",Vector3.new(22,0.55,2.1),cf(22,0.15,z),Color3.fromRGB(70,49,37),Enum.Material.WoodPlanks)
+end
+for _,x in ipairs({16.5,27.5}) do
+    part(railway,"Rail",Vector3.new(0.72,0.72,392),cf(x,0.72,20),Color3.fromRGB(128,128,124),Enum.Material.Metal)
+    part(railway,"RailWeb",Vector3.new(0.32,0.95,392),cf(x,0.1,20),Color3.fromRGB(70,71,70),Enum.Material.CorrodedMetal)
+end
+
+-- Platform with battered coping stones and tactile strip.
+part(architecture,"Platform",Vector3.new(24,2.7,300),cf(1,1.35,15),Color3.fromRGB(74,72,67),Enum.Material.Concrete)
+part(architecture,"PlatformEdge",Vector3.new(1.5,0.35,300),cf(12.3,2.87,15),Color3.fromRGB(191,172,112),Enum.Material.Concrete)
+for z=-132,156,12 do
+    part(architecture,"PlatformJoint",Vector3.new(23,0.08,0.12),cf(1,2.76,z),Color3.fromRGB(42,42,40),Enum.Material.Slate,0,false)
+end
+
+-- Old station building shell, split into architectural masses and a pitched roof.
+local station = Instance.new("Folder")
+station.Name = "OldStation"
+station.Parent = architecture
+part(station,"HallFloor",Vector3.new(70,1,72),cf(-39,0.5,-115),Color3.fromRGB(78,72,65),Enum.Material.Concrete)
+part(station,"BackWall",Vector3.new(70,18,2),cf(-39,9,-150),C.brickDark,Enum.Material.Brick)
+part(station,"LeftWall",Vector3.new(2,18,70),cf(-73,9,-115),C.brick,Enum.Material.Brick)
+part(station,"RightPier",Vector3.new(2,18,24),cf(-5,9,-139),C.brick,Enum.Material.Brick)
+part(station,"RightPier2",Vector3.new(2,18,23),cf(-5,9,-91.5),C.brick,Enum.Material.Brick)
+part(station,"FrontLeft",Vector3.new(25,17,2),cf(-61.5,8.5,-79),C.brick,Enum.Material.Brick)
+part(station,"FrontRight",Vector3.new(25,17,2),cf(-16.5,8.5,-79),C.brick,Enum.Material.Brick)
+part(station,"FrontTop",Vector3.new(20,6,2),cf(-39,14,-79),C.brickDark,Enum.Material.Brick)
+for _,x in ipairs({-51,-27}) do
+    part(station,"EntranceColumn",Vector3.new(3,18,3),cf(x,9,-78),C.concrete,Enum.Material.Concrete)
+    part(station,"ColumnCap",Vector3.new(4.5,1.1,4.5),cf(x,17.6,-78),C.concrete,Enum.Material.Concrete)
+end
+for i=-3,3 do
+    local x=-39+i*3.6
+    local y=16.2 + (1-math.abs(i)/4)*2.2
+    part(station,"ArchTrim",Vector3.new(3.7,1.3,2.8),cf(x,y,-77.7,0,0,i*6),C.concrete,Enum.Material.Concrete)
+end
+part(station,"RoofL",Vector3.new(38,1.2,78),cf(-56.5,20.3,-115,0,0,-15),Color3.fromRGB(57,59,58),Enum.Material.CorrodedMetal)
+part(station,"RoofR",Vector3.new(38,1.2,78),cf(-21.5,20.3,-115,0,0,15),Color3.fromRGB(49,51,50),Enum.Material.CorrodedMetal)
+part(station,"RoofRidge",Vector3.new(2,1.4,78),cf(-39,25,-115),C.steel2,Enum.Material.CorrodedMetal)
+for _,z in ipairs({-140,-127,-103,-90}) do
+    part(station,"Window",Vector3.new(0.35,8,8),cf(-4.3,10,z),C.glass,Enum.Material.Glass,0.35,false)
+    part(station,"WindowFrameV",Vector3.new(0.6,8.6,0.35),cf(-4.0,10,z),C.black,Enum.Material.Metal)
+    part(station,"WindowFrameH",Vector3.new(0.6,0.35,8.6),cf(-4.0,10,z),C.black,Enum.Material.Metal)
+end
+for _,x in ipairs({-62,-16}) do
+    part(station,"FrontWindow",Vector3.new(9,8,0.35),cf(x,10,-77.8),C.glass,Enum.Material.Glass,0.28,false)
+    part(station,"FrontWindowFrame",Vector3.new(10,0.35,0.7),cf(x,10,-77.4),C.black,Enum.Material.Metal)
+    part(station,"FrontWindowFrameV",Vector3.new(0.35,8.8,0.7),cf(x,10,-77.4),C.black,Enum.Material.Metal)
+end
+part(station,"TicketCounter",Vector3.new(26,4,4),cf(-54,4,-135),Color3.fromRGB(54,47,40),Enum.Material.WoodPlanks)
+local ticketSign=part(station,"TicketSign",Vector3.new(22,4,0.55),cf(-54,10,-132.8),C.black,Enum.Material.Metal)
+surfaceText(ticketSign,Enum.NormalId.Front,"TICKETS  •  TRACK 01",C.amber,C.black)
+local stationSign=part(station,"StationSign",Vector3.new(36,7,0.7),cf(-39,19.5,-76.8),C.black,Enum.Material.Metal)
+surfaceText(stationSign,Enum.NormalId.Front,"TRACK 01",C.white,C.black,Enum.Font.GothamBlack)
+local subSign=part(station,"SubSign",Vector3.new(32,2.8,0.45),cf(-39,14.1,-76.4),C.black,Enum.Material.Metal)
+surfaceText(subSign,Enum.NormalId.Front,"NO DESTINATION. JUST THE NIGHT.",C.amber,C.black)
+
+-- Platform canopy.
+for z=-125,135,22 do
+    cylinder(architecture,"CanopyColumn",Vector3.new(12,1.05,1.05),cf(-5,8.2,z,0,0,90),C.steel,Enum.Material.CorrodedMetal)
+    part(architecture,"CanopyBrace",Vector3.new(17,0.8,0.8),cf(0,12.6,z,0,0,-14),C.steel2,Enum.Material.Metal)
+    part(architecture,"CanopyBrace2",Vector3.new(12,0.7,0.7),cf(-9,12.2,z,0,0,25),C.steel2,Enum.Material.Metal)
+end
+for x=-9,8,4.2 do
+    part(architecture,"CanopyRoof",Vector3.new(4.3,0.45,280),cf(x,15.3,5,0,0,(x+1)*0.45),Color3.fromRGB(64,67,66),Enum.Material.CorrodedMetal)
+end
+
+local board=part(props,"DepartureBoard",Vector3.new(18,8,0.7),cf(-4,11,-50),C.black,Enum.Material.Metal)
+surfaceText(board,Enum.NormalId.Front,"TRACK 01  TONIGHT\n22:00  BOARDING\n23:00  LOCAL EXPRESS\n00:30  NIGHT SERVICE\n02:00  HEADLINER\n04:00  LAST TRAIN",C.amber,C.black,Enum.Font.RobotoMono)
+
+local clock=part(props,"ClockBody",Vector3.new(1.0,7.5,7.5),cf(-4.4,13,-25),C.white,Enum.Material.Metal,0,false,Enum.PartType.Cylinder)
+local clockFace=part(props,"ClockFace",Vector3.new(0.25,6.8,6.8),cf(-3.85,13,-25),Color3.fromRGB(230,225,208),Enum.Material.SmoothPlastic,0,false,Enum.PartType.Cylinder)
+part(props,"ClockHand",Vector3.new(0.18,0.22,2.6),cf(-3.55,13.7,-25,0,90,18),C.black,Enum.Material.Metal,0,false)
+part(props,"ClockHand",Vector3.new(0.18,0.18,2.1),cf(-3.53,12.7,-25,0,90,-48),C.signalRed,Enum.Material.Metal,0,false)
+
+local function addWheel(carFolder,x,z)
+    cylinder(carFolder,"Wheel",Vector3.new(1.25,4.6,4.6),cf(x,2.1,z),Color3.fromRGB(36,36,36),Enum.Material.Metal)
+    cylinder(carFolder,"Hub",Vector3.new(1.4,1.8,1.8),cf(x,2.1,z),C.steel2,Enum.Material.Metal,false)
+end
+
+local function addSpeaker(parent,x,y,z)
+    part(parent,"Speaker",Vector3.new(4.2,7.4,3.2),cf(x,y,z),C.black,Enum.Material.Metal)
+    for _,dy in ipairs({-1.7,1.6}) do
+        cylinder(parent,"Driver",Vector3.new(0.35,2.7,2.7),cf(x,y+dy,z-1.72,0,90,0),Color3.fromRGB(25,25,25),Enum.Material.SmoothPlastic,false)
+    end
+end
+
+local function addCar(index, centerZ, role)
+    local f=Instance.new("Folder")
+    f.Name=string.format("CAR_%02d_%s",index,role)
+    f.Parent=train
+    local centerX=22
+    local L=50
+    part(f,"Underframe",Vector3.new(16.8,1.1,L-1),cf(centerX,3.35,centerZ),C.black,Enum.Material.Metal)
+    part(f,"Floor",Vector3.new(16.2,0.7,L-2),cf(centerX,4.35,centerZ),Color3.fromRGB(49,47,44),Enum.Material.DiamondPlate)
+    for _,sx in ipairs({-1,1}) do
+        local x=centerX+sx*8.15
+        part(f,"LowerBody",Vector3.new(0.75,4.6,L-2),cf(x,6.8,centerZ),index>=3 and C.charcoal or C.steel,Enum.Material.CorrodedMetal)
+        part(f,"UpperRail",Vector3.new(0.7,2.2,L-2),cf(x,14.1,centerZ),C.charcoal,Enum.Material.Metal)
+        part(f,"WindowSill",Vector3.new(0.55,0.55,L-2),cf(x-sx*0.15,9.1,centerZ),C.steel2,Enum.Material.Metal)
+        part(f,"WindowTop",Vector3.new(0.55,0.55,L-2),cf(x-sx*0.15,13.0,centerZ),C.steel2,Enum.Material.Metal)
+        for dz=-19,19,6.5 do
+            local isDoor = (sx==-1 and math.abs(dz+0.5)<3.5)
+            if not isDoor then
+                part(f,"WindowGlass",Vector3.new(0.24,3.35,5.3),cf(x-sx*0.39,11.05,centerZ+dz),C.glass,Enum.Material.Glass,0.42,false)
+                part(f,"Mullion",Vector3.new(0.34,3.8,0.22),cf(x-sx*0.42,11.05,centerZ+dz+2.8),C.black,Enum.Material.Metal)
+            else
+                part(f,"DoorFrameA",Vector3.new(0.6,8.3,0.5),cf(x,9.2,centerZ+dz-3),C.steel2,Enum.Material.Metal)
+                part(f,"DoorFrameB",Vector3.new(0.6,8.3,0.5),cf(x,9.2,centerZ+dz+3),C.steel2,Enum.Material.Metal)
+                part(f,"DoorHeader",Vector3.new(0.6,0.55,6.5),cf(x,13.3,centerZ+dz),C.steel2,Enum.Material.Metal)
+                part(f,"Step",Vector3.new(2.4,0.45,6.2),cf(x-2.1,3.5,centerZ+dz),C.steel2,Enum.Material.DiamondPlate)
+            end
+        end
+    end
+    for _,sz in ipairs({-1,1}) do
+        local z=centerZ+sz*24.5
+        part(f,"EndSideL",Vector3.new(5.8,10.7,0.65),cf(centerX-5.2,9.3,z),C.steel,Enum.Material.CorrodedMetal)
+        part(f,"EndSideR",Vector3.new(5.8,10.7,0.65),cf(centerX+5.2,9.3,z),C.steel,Enum.Material.CorrodedMetal)
+        part(f,"EndTop",Vector3.new(4.8,2.2,0.7),cf(centerX,13.6,z),C.charcoal,Enum.Material.Metal)
+    end
+    local roofBands={{-6.3,15.2,-30},{-3.3,16.55,-14},{0,17.0,0},{3.3,16.55,14},{6.3,15.2,30}}
+    for _,b in ipairs(roofBands) do
+        part(f,"RoofBand",Vector3.new(4.0,0.65,L),cf(centerX+b[1],b[2],centerZ,0,0,b[3]),Color3.fromRGB(64,66,65),Enum.Material.CorrodedMetal)
+    end
+    for dz=-16,16,16 do
+        cylinder(f,"RoofVent",Vector3.new(1.0,2.2,2.2),cf(centerX,17.55,centerZ+dz,0,0,90),Color3.fromRGB(52,54,53),Enum.Material.Metal,false)
+    end
+    part(f,"RoofConduit",Vector3.new(0.5,0.5,L-8),cf(centerX+2.2,17.45,centerZ),C.steel2,Enum.Material.Metal,0,false)
+    for _,dz in ipairs({-15.5,15.5}) do
+        part(f,"Bogie",Vector3.new(14,1.1,8.5),cf(centerX,2.8,centerZ+dz),C.black,Enum.Material.Metal)
+        for _,sx in ipairs({-1,1}) do
+            addWheel(f,centerX+sx*6.6,centerZ+dz-2.2)
+            addWheel(f,centerX+sx*6.6,centerZ+dz+2.2)
+        end
+    end
+    for _,sz in ipairs({-1,1}) do
+        part(f,"CouplerBeam",Vector3.new(1.3,1.1,4.0),cf(centerX,3.2,centerZ+sz*26.5),C.black,Enum.Material.Metal)
+        cylinder(f,"CouplerHead",Vector3.new(0.9,2.4,2.4),cf(centerX,3.2,centerZ+sz*28.1,0,90,0),C.steel,Enum.Material.Metal,false)
+    end
+    for _,sx in ipairs({-1,1}) do
+        part(f,"Stripe",Vector3.new(0.18,0.72,L-3),cf(centerX+sx*8.56,8.6,centerZ),index>=3 and C.signalRed or C.rust2,Enum.Material.Metal,0,false)
+    end
+    for dz=-18,18,9 do
+        local col = index>=3 and (index==4 and C.signalRed or C.amber) or C.warm
+        local fixture=part(f,"CeilingLamp",Vector3.new(1.2,0.22,2.2),cf(centerX,15.55,centerZ+dz),col,Enum.Material.Neon,0,false)
+        local l=addPointLight(fixture,col,index>=3 and 1.2 or 0.7,index>=3 and 14 or 10)
+        if index>=3 then l.Name="PulseLight"; fixture.Parent=lightsFolder end
+    end
+    local plate=part(f,"CarPlate",Vector3.new(5.5,2.0,0.35),cf(centerX-8.62,8.1,centerZ-18,0,90,0),C.black,Enum.Material.Metal)
+    surfaceText(plate,Enum.NormalId.Front,string.format("CAR %02d",index),C.white,C.black)
+    return f
+end
+
+local car1=addCar(1,-58,"SOCIAL")
+local car2=addCar(2,-5,"BAR")
+local car3=addCar(3,48,"DANCE")
+local car4=addCar(4,101,"END_OF_LINE")
+
+-- CAR 01 social/waiting room.
+for _,z in ipairs({-72,-60,-48}) do
+    part(car1,"BenchSeat",Vector3.new(4.8,1.2,8),cf(26.5,6.1,z),Color3.fromRGB(63,48,42),Enum.Material.Fabric)
+    part(car1,"BenchBack",Vector3.new(1.2,4.4,8),cf(28.4,8.0,z),Color3.fromRGB(55,43,38),Enum.Material.Fabric)
+    cylinder(car1,"Table",Vector3.new(0.55,3.6,3.6),cf(20.5,7.0,z),Color3.fromRGB(55,55,52),Enum.Material.Metal)
+    cylinder(car1,"TableStem",Vector3.new(3.0,0.45,0.45),cf(20.5,5.4,z,0,0,90),C.black,Enum.Material.Metal)
+end
+
+-- CAR 02 bar.
+part(car2,"BarCounter",Vector3.new(5.0,4.2,31),cf(26.2,6.4,-5),Color3.fromRGB(45,39,35),Enum.Material.WoodPlanks)
+part(car2,"BarTop",Vector3.new(6.2,0.45,32),cf(26.0,8.7,-5),Color3.fromRGB(86,82,73),Enum.Material.Slate)
+part(car2,"BackBar",Vector3.new(0.8,8.2,30),cf(29.3,9.7,-5),C.black,Enum.Material.Metal)
+for z=-16,8,4 do
+    for y=8.1,13.1,2.5 do
+        cylinder(car2,"Bottle",Vector3.new(1.25,0.5,0.5),cf(28.7,y,z,0,0,90),Color3.fromRGB(134+math.floor((z+20)%40),95,55),Enum.Material.Glass,false)
+    end
+end
+local menu=part(car2,"BarMenu",Vector3.new(0.4,6.2,16),cf(28.85,11,-5),C.black,Enum.Material.Metal)
+surfaceText(menu,Enum.NormalId.Left,"DEPARTURES\nJAKARTA  22:30\nTOKYO  23:00\nBERLIN  23:45\nIBIZA  00:30\nUNKNOWN  01:00",C.amber,C.black,Enum.Font.RobotoMono)
+
+-- CAR 03 dance room.
+for _,z in ipairs({36,48,60}) do
+    part(car3,"Truss",Vector3.new(13.5,0.55,0.55),cf(22,14.7,z),C.steel2,Enum.Material.Metal)
+    part(car3,"TrussDropL",Vector3.new(0.5,3.2,0.5),cf(16,13.0,z),C.steel2,Enum.Material.Metal)
+    part(car3,"TrussDropR",Vector3.new(0.5,3.2,0.5),cf(28,13.0,z),C.steel2,Enum.Material.Metal)
+end
+addSpeaker(car3,16.3,8.3,29)
+addSpeaker(car3,27.7,8.3,29)
+neonTube(car3,"AmberRail",Vector3.new(0.18,0.18,38),cf(14.5,9.5,48),C.amber,0.9)
+neonTube(car3,"RedRail",Vector3.new(0.18,0.18,38),cf(29.5,9.5,48),C.signalRed,0.9)
+
+-- CAR 04 hero room and rear DJ booth.
+part(car4,"DJStage",Vector3.new(14.5,1.4,10),cf(22,5.2,117),Color3.fromRGB(32,32,31),Enum.Material.DiamondPlate)
+part(car4,"DJDesk",Vector3.new(11.5,4.5,3.4),cf(22,7.7,117),C.black,Enum.Material.Metal)
+part(car4,"DJDeskTrim",Vector3.new(12.0,0.28,3.7),cf(22,10.0,117),C.signalRed,Enum.Material.Neon,0,false)
+part(car4,"Mixer",Vector3.new(3.8,0.4,2.2),cf(22,10.25,116.8),Color3.fromRGB(46,48,49),Enum.Material.Metal,0,false)
+for _,x in ipairs({18.1,25.9}) do
+    cylinder(car4,"Deck",Vector3.new(0.35,2.8,2.8),cf(x,10.27,116.8,0,0,90),Color3.fromRGB(31,31,31),Enum.Material.SmoothPlastic,false)
+    cylinder(car4,"Platter",Vector3.new(0.37,1.8,1.8),cf(x,10.48,116.8,0,0,90),C.steel2,Enum.Material.Metal,false)
+end
+addSpeaker(car4,15.8,9.0,120)
+addSpeaker(car4,28.2,9.0,120)
+local endWall=part(car4,"EndOfLineWall",Vector3.new(14.7,8.2,0.55),cf(22,12.1,124.1),C.black,Enum.Material.Metal)
+surfaceText(endWall,Enum.NormalId.Front,"END OF LINE\nTRACK 01",C.white,C.black,Enum.Font.GothamBlack)
+neonTube(car4,"HeroRedL",Vector3.new(0.25,6.5,0.25),cf(16.2,11.4,123.65),C.signalRed,1.4)
+neonTube(car4,"HeroRedR",Vector3.new(0.25,6.5,0.25),cf(27.8,11.4,123.65),C.signalRed,1.4)
+for z=82,109,9 do
+    local beamFixture=part(car4,"SpotFixture",Vector3.new(1.1,0.8,1.1),cf(22,15.0,z),C.black,Enum.Material.Metal,0,false)
+    local spot=addSpot(beamFixture,(z%18==0) and C.signalRed or C.amber,1.8,25,55,Enum.NormalId.Bottom)
+    spot.Name="PulseLight"
+    beamFixture.Parent=lightsFolder
+end
+
+-- THE YARD outdoor area.
+part(architecture,"YardPad",Vector3.new(70,0.6,96),cf(-43,0.3,65),Color3.fromRGB(47,47,44),Enum.Material.Asphalt)
+part(architecture,"YardWall",Vector3.new(2,9,96),cf(-78,4.5,65),C.brickDark,Enum.Material.Brick)
+local yardSign=part(props,"YardSign",Vector3.new(18,5,0.6),cf(-76.8,8,29,0,90,0),C.black,Enum.Material.Metal)
+surfaceText(yardSign,Enum.NormalId.Front,"THE YARD",C.amber,C.black)
+for z=35,95,20 do
+    for _,x in ipairs({-61,-47,-33}) do
+        cylinder(props,"CableSpoolTop",Vector3.new(0.7,6,6),cf(x,3.8,z,0,0,90),Color3.fromRGB(78,58,43),Enum.Material.WoodPlanks)
+        cylinder(props,"CableSpoolBase",Vector3.new(0.7,6,6),cf(x,1.9,z,0,0,90),Color3.fromRGB(78,58,43),Enum.Material.WoodPlanks)
+        cylinder(props,"CableSpoolCore",Vector3.new(2.1,2.0,2.0),cf(x,2.85,z,0,0,90),Color3.fromRGB(54,42,33),Enum.Material.WoodPlanks)
+    end
+end
+for z=27,112,17 do
+    cylinder(props,"Barrel",Vector3.new(4.8,3.2,3.2),cf(-68,2.7,z,0,0,90),C.rust,Enum.Material.CorrodedMetal)
+end
+
+-- Platform lighting.
+for z=-118,142,26 do
+    cylinder(props,"LampPost",Vector3.new(11.5,0.65,0.65),cf(-1.0,8.5,z,0,0,90),C.black,Enum.Material.Metal)
+    part(props,"LampArm",Vector3.new(5.0,0.55,0.55),cf(1.0,14,z),C.black,Enum.Material.Metal)
+    local lamp=part(props,"Lamp",Vector3.new(2.3,0.55,1.8),cf(3.2,13.7,z),C.warm,Enum.Material.Neon,0,false)
+    addPointLight(lamp,C.warm,1.25,20)
+end
+
+-- Railway signal.
+cylinder(props,"SignalMast",Vector3.new(13,0.7,0.7),cf(34,7.5,145,0,0,90),C.black,Enum.Material.Metal)
+part(props,"SignalHead",Vector3.new(3.2,8,2.4),cf(34,14.2,145),C.black,Enum.Material.Metal)
+for i,col in ipairs({C.signalRed,C.amber,Color3.fromRGB(58,154,90)}) do
+    local lamp=cylinder(props,"SignalLamp",Vector3.new(0.35,1.65,1.65),cf(32.65,17.0-(i-1)*2.8,145),col,Enum.Material.Neon,false)
+    addPointLight(lamp,col,i==1 and 1.2 or 0.25,10)
+end
+
+-- Grime/debris breaks up clean generated surfaces.
+for z=-140,140,14 do
+    local x = (z%28==0) and 9.5 or -10.5
+    part(props,"PlatformGrime",Vector3.new(2.5,0.04,5.5),cf(x,2.78,z,0,(z*7)%180,0),Color3.fromRGB(46,42,37),Enum.Material.Slate,0.25,false)
+end
+for z=-144,132,18 do
+    part(props,"TrackDebris",Vector3.new(1.2,0.3,3.8),cf(8,0.3,z,0,(z*3)%90,0),C.rust,Enum.Material.CorrodedMetal,0,false)
+end
+
+-- Invisible safety boundaries.
+for _,spec in ipairs({
+    {Vector3.new(290,30,2),cf(4,14,-194)},
+    {Vector3.new(290,30,2),cf(4,14,234)},
+    {Vector3.new(2,30,430),cf(-141,14,20)},
+    {Vector3.new(2,30,430),cf(149,14,20)},
+}) do
+    part(root,"SafetyBoundary",spec[1],spec[2],C.black,Enum.Material.SmoothPlastic,1,true)
+end
+
+-- Safe station-hall spawn and directional marker.
+local spawn=Instance.new("SpawnLocation")
+spawn.Name="TRACK01_SPAWN"
+spawn.Size=Vector3.new(8,1,8)
+spawn.CFrame=cf(-39,2,-102)
+spawn.Anchored=true
+spawn.CanCollide=false
+spawn.Transparency=1
+spawn.Neutral=true
+spawn.Duration=0
+spawn.Parent=root
+
+part(props,"EntryMarker",Vector3.new(10,0.14,2.8),cf(-39,1.05,-90),C.amber,Enum.Material.Neon,0,false)
+local entryText=part(props,"EntryText",Vector3.new(9,2.2,0.35),cf(-39,3.1,-89.0),C.black,Enum.Material.Metal)
+surfaceText(entryText,Enum.NormalId.Front,"PLATFORM 01  →",C.amber,C.black)
+
+local function protectCharacter(char)
+    local hrp=char:WaitForChild("HumanoidRootPart",8)
+    if not hrp then return end
+    task.spawn(function()
+        while char.Parent do
+            if hrp.Position.Y < -18 then
+                hrp.CFrame = spawn.CFrame + Vector3.new(0,4,0)
+                hrp.AssemblyLinearVelocity = Vector3.zero
+            end
+            task.wait(1)
+        end
+    end)
+end
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(protectCharacter)
+end)
+for _,p in ipairs(Players:GetPlayers()) do
+    if p.Character then protectCharacter(p.Character) end
+    p.CharacterAdded:Connect(protectCharacter)
+end
+
+Workspace:SetAttribute("ACC_TRACK01_READY",true)
+Workspace:SetAttribute("ACC_TRACK01_VERSION",VERSION)
+print("[TRACK 01] World ready",VERSION)
+]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="TC"><Properties><string name="Name">TRACK01_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local root = Workspace:WaitForChild("ACC_TRACK01",20)
+if not root then return end
+
+local lights = root:WaitForChild("DynamicLights",10)
+if lights then
+    local pulseLights={}
+    for _,obj in ipairs(lights:GetDescendants()) do
+        if obj:IsA("PointLight") or obj:IsA("SpotLight") then
+            table.insert(pulseLights,obj)
+        end
+    end
+    local phase = 0
+    RunService.RenderStepped:Connect(function(dt)
+        phase = phase + dt
+        local pulse = 0.72 + (math.sin(phase*2.4)+1)*0.24
+        for _,obj in ipairs(pulseLights) do
+            if obj.Parent then
+                obj.Brightness = math.max(0.25, pulse * 1.45)
+            end
+        end
+    end)
+end
+
+-- Minimal arrival card; no gamey permanent HUD.
+local gui=Instance.new("ScreenGui")
+gui.Name="TRACK01_Arrival"
+gui.IgnoreGuiInset=true
+gui.ResetOnSpawn=false
+gui.DisplayOrder=20
+gui.Parent=player:WaitForChild("PlayerGui")
+local panel=Instance.new("Frame")
+panel.Size=UDim2.fromOffset(390,118)
+panel.Position=UDim2.new(0.5,-195,0,48)
+panel.BackgroundColor3=Color3.fromRGB(7,8,9)
+panel.BackgroundTransparency=0.12
+panel.BorderSizePixel=0
+panel.Parent=gui
+local title=Instance.new("TextLabel")
+title.Size=UDim2.new(1,-28,0,52)
+title.Position=UDim2.fromOffset(14,10)
+title.BackgroundTransparency=1
+title.Text="TRACK 01"
+title.TextColor3=Color3.fromRGB(239,237,229)
+title.TextXAlignment=Enum.TextXAlignment.Left
+title.Font=Enum.Font.GothamBlack
+title.TextSize=34
+title.Parent=panel
+local sub=Instance.new("TextLabel")
+sub.Size=UDim2.new(1,-28,0,34)
+sub.Position=UDim2.fromOffset(14,63)
+sub.BackgroundTransparency=1
+sub.Text="NO DESTINATION. JUST THE NIGHT."
+sub.TextColor3=Color3.fromRGB(255,169,72)
+sub.TextXAlignment=Enum.TextXAlignment.Left
+sub.Font=Enum.Font.GothamMedium
+sub.TextSize=15
+sub.Parent=panel
+local line=Instance.new("Frame")
+line.Size=UDim2.new(1,0,0,2)
+line.Position=UDim2.new(0,0,1,-2)
+line.BackgroundColor3=Color3.fromRGB(214,48,38)
+line.BorderSizePixel=0
+line.Parent=panel
+
+task.delay(4.5,function()
+    if not panel.Parent then return end
+    TweenService:Create(panel,TweenInfo.new(0.8,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{BackgroundTransparency=1,Position=UDim2.new(0.5,-195,0,28)}):Play()
+    TweenService:Create(title,TweenInfo.new(0.6),{TextTransparency=1}):Play()
+    TweenService:Create(sub,TweenInfo.new(0.6),{TextTransparency=1}):Play()
+    TweenService:Create(line,TweenInfo.new(0.6),{BackgroundTransparency=1}):Play()
+    task.wait(0.9)
+    gui:Destroy()
+end)
+]]></ProtectedString></Properties></Item></Item></Item></roblox>
