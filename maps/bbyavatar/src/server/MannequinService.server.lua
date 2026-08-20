@@ -26,10 +26,6 @@ if not openCatalog then
     openCatalog.Parent = remotes
 end
 
-local function getEnabledLooks()
-    return CatalogConfig.GetEnabledLooks()
-end
-
 local function buildDescription(look)
     local description = Instance.new("HumanoidDescription")
     if look then
@@ -50,6 +46,8 @@ local function createMannequin(pedestal, index, look)
     end
 
     model.Name = look and ("Look_" .. look.id) or ("Preview_" .. index)
+    model:SetAttribute("Category", pedestal:GetAttribute("Category") or "Featured")
+    model:SetAttribute("LookId", look and look.id or "")
     model.Parent = mannequins
 
     local rootPart = model:FindFirstChild("HumanoidRootPart")
@@ -66,7 +64,7 @@ local function createMannequin(pedestal, index, look)
     return model
 end
 
-local function ensurePrompt(pedestal, index, look)
+local function ensurePrompt(pedestal, index, look, category)
     local prompt = pedestal:FindFirstChildOfClass("ProximityPrompt")
     if not prompt then
         prompt = Instance.new("ProximityPrompt")
@@ -76,13 +74,14 @@ local function ensurePrompt(pedestal, index, look)
         prompt.Parent = pedestal
     end
 
-    prompt.ActionText = look and "Open Look" or "Browse Catalog"
-    prompt.ObjectText = look and look.name or "BBYAVATAR"
+    prompt.ActionText = look and "Open Look" or "Browse Category"
+    prompt.ObjectText = look and look.name or ("BBYAVATAR · " .. category)
 
     prompt.Triggered:Connect(function(player)
         openCatalog:FireClient(player, {
             displayIndex = index,
             lookId = look and look.id or nil,
+            category = category,
         })
     end)
 end
@@ -91,18 +90,28 @@ for _, child in ipairs(mannequins:GetChildren()) do
     child:Destroy()
 end
 
-local enabledLooks = getEnabledLooks()
+local categoryQueues = {}
+for _, category in ipairs(CatalogConfig.Categories) do
+    categoryQueues[category] = CatalogConfig.GetLooksByCategory(category)
+end
+
 local pedestals = displays:GetChildren()
 table.sort(pedestals, function(a, b)
     return a.Name < b.Name
 end)
 
+local placed = 0
 for index, pedestal in ipairs(pedestals) do
     if pedestal:IsA("BasePart") then
-        local look = enabledLooks[index]
+        local category = pedestal:GetAttribute("Category") or "Featured"
+        local queue = categoryQueues[category] or {}
+        local look = table.remove(queue, 1)
+        if look then
+            placed += 1
+        end
         createMannequin(pedestal, index, look)
-        ensurePrompt(pedestal, index, look)
+        ensurePrompt(pedestal, index, look, category)
     end
 end
 
-print(string.format("[BBYAVATAR] Mannequins ready: %d enabled looks across %d displays", #enabledLooks, #pedestals))
+print(string.format("[BBYAVATAR] Mannequins ready: %d mapped looks across %d displays", placed, #pedestals))
