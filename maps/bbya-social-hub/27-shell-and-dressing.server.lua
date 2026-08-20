@@ -17,7 +17,14 @@ p("L1EastFrontWall",Vector3.new(2,24,28),CFrame.new(44,12,-31),C.dark)
 p("L1WestClubWall",Vector3.new(2,24,54),CFrame.new(-59,12,7),C.dark)
 p("L1EastClubWall",Vector3.new(2,24,48),CFrame.new(59,12,10),C.dark)
 p("L1RearLeft",Vector3.new(28,24,2),CFrame.new(-42,12,42),C.dark)
-p("L1RearCenter",Vector3.new(64,24,2),CFrame.new(0,12,44),C.dark)
+
+-- Rear-center shell is now a structural frame, not a solid wall.
+-- The opening exactly matches the recessed DJ Wall mount (58 x 13.25, centered at X=3/Y=10),
+-- so the live wall at Z~47 is visible from the club while remaining architecturally recessed.
+p("L1RearCenterLeft",Vector3.new(6,24,2),CFrame.new(-29,12,44),C.dark)
+p("L1RearCenterTop",Vector3.new(58,7.375,2),CFrame.new(3,20.3125,44),C.dark)
+p("L1RearCenterBottom",Vector3.new(58,3.375,2),CFrame.new(3,1.6875,44),C.dark)
+
 p("L1RearRight",Vector3.new(28,24,2),CFrame.new(42,12,40),C.dark)
 
 -- Structural columns around club, never through center dance area.
@@ -41,4 +48,4 @@ for _,x in ipairs({-48,-24,24,48}) do
  neon("RoofPathLight"..x,Vector3.new(3,.18,.18),CFrame.new(x,45.9,-18),C.warm)
 end
 
-print("[BBYA] structural shell loaded; legacy Floor 1 dressing disabled to prevent duplicate furniture/DJ wall")
+print("[BBYA] structural shell loaded; rear-center DJ wall opening enabled")
