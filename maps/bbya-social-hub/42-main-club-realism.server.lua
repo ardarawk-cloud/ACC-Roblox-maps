@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — MAIN CLUB PREMIUM VENUE v2
--- Deterministic live geometry: no third-party runtime asset dependency and no placeholder NPC crowd.
+-- BBYA SOCIAL HUB — FLOOR 1 PREMIUM VENUE v3
+-- Deterministic Roblox-native geometry. No runtime third-party asset dependency.
+-- Goal: believable premium nightclub architecture, furniture, bar, stage, AV and lighting.
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -7,7 +8,7 @@ local Lighting = game:GetService("Lighting")
 local root = Workspace:WaitForChild("BBYA_ZERO_BUILD")
 local floor1 = root:WaitForChild("Floor1Core", 20)
 if not floor1 then
-    warn("[BBYA MainClub] Floor1Core unavailable")
+    warn("[BBYA Floor1 Premium] Floor1Core unavailable")
     return
 end
 
@@ -16,6 +17,7 @@ if old then old:Destroy() end
 
 local out = Instance.new("Model")
 out.Name = "MainClubRealism"
+out:SetAttribute("Pass", "FLOOR1_PREMIUM_V3")
 out.Parent = root
 
 local architecture = Instance.new("Folder")
@@ -30,25 +32,24 @@ av.Parent = out
 local dressing = Instance.new("Folder")
 dressing.Name = "Dressing"
 dressing.Parent = out
-local crowd = Instance.new("Folder")
-crowd.Name = "PlayerDrivenCrowd"
-crowd:SetAttribute("Mode", "NO_PLACEHOLDER_NPCS")
-crowd.Parent = out
 
 local C = {
-    black = Color3.fromRGB(8, 8, 11),
-    charcoal = Color3.fromRGB(20, 19, 24),
-    graphite = Color3.fromRGB(35, 33, 39),
-    metal = Color3.fromRGB(49, 47, 54),
-    stone = Color3.fromRGB(45, 42, 48),
-    fabric = Color3.fromRGB(35, 31, 39),
-    fabric2 = Color3.fromRGB(62, 49, 61),
-    glass = Color3.fromRGB(84, 92, 103),
-    marble = Color3.fromRGB(108, 102, 110),
-    pink = Color3.fromRGB(255, 38, 155),
-    cyan = Color3.fromRGB(0, 205, 235),
-    warm = Color3.fromRGB(255, 198, 144),
-    white = Color3.fromRGB(236, 232, 239),
+    black = Color3.fromRGB(7, 7, 9),
+    ink = Color3.fromRGB(13, 12, 16),
+    charcoal = Color3.fromRGB(23, 22, 27),
+    graphite = Color3.fromRGB(37, 35, 41),
+    metal = Color3.fromRGB(54, 52, 59),
+    stone = Color3.fromRGB(48, 45, 51),
+    fabric = Color3.fromRGB(35, 31, 38),
+    fabric2 = Color3.fromRGB(57, 45, 57),
+    glass = Color3.fromRGB(75, 82, 91),
+    marble = Color3.fromRGB(114, 108, 116),
+    wood = Color3.fromRGB(82, 61, 49),
+    pink = Color3.fromRGB(255, 39, 154),
+    cyan = Color3.fromRGB(0, 200, 230),
+    warm = Color3.fromRGB(255, 191, 132),
+    amber = Color3.fromRGB(233, 159, 78),
+    white = Color3.fromRGB(236, 233, 239),
 }
 
 local function part(name, size, cf, color, material, transparency, parent, collide)
@@ -70,14 +71,14 @@ local function part(name, size, cf, color, material, transparency, parent, colli
     return p
 end
 
-local function cylinder(name, size, cf, color, material, transparency, parent)
-    local p = part(name, size, cf, color, material, transparency, parent, false)
+local function cylinder(name, size, cf, color, material, transparency, parent, collide)
+    local p = part(name, size, cf, color, material, transparency, parent, collide)
     p.Shape = Enum.PartType.Cylinder
     return p
 end
 
-local function neon(name, size, cf, color, parent)
-    local p = part(name, size, cf, color or C.pink, Enum.Material.Neon, 0, parent, false)
+local function neon(name, size, cf, color, parent, transparency)
+    local p = part(name, size, cf, color or C.pink, Enum.Material.Neon, transparency or 0, parent, false)
     p.CastShadow = false
     return p
 end
@@ -92,14 +93,14 @@ local function pointLight(parent, color, brightness, range, shadows)
     return l
 end
 
-local function spotLight(parent, color, brightness, range, angle)
+local function spotLight(parent, face, color, brightness, range, angle, shadows)
     local l = Instance.new("SpotLight")
-    l.Face = Enum.NormalId.Bottom
+    l.Face = face or Enum.NormalId.Bottom
     l.Color = color
     l.Brightness = brightness
     l.Range = range
     l.Angle = angle
-    l.Shadows = true
+    l.Shadows = shadows == true
     l.Parent = parent
     return l
 end
@@ -111,75 +112,139 @@ local function model(name, parent)
     return m
 end
 
--- Remove the old Tron-like dance grid and primitive stage light bars.
+local function removeNamed(zoneName, names)
+    local zone = floor1:FindFirstChild(zoneName)
+    if not zone then return end
+    for _, name in ipairs(names) do
+        local obj = zone:FindFirstChild(name)
+        if obj then obj:Destroy() end
+    end
+end
+
+-- Strip primitive geometry replaced by this pass.
 local danceZone = floor1:FindFirstChild("05_MainDanceFloor")
 if danceZone then
     for _, obj in ipairs(danceZone:GetChildren()) do
-        if obj.Name:match("^DanceStrip") then obj:Destroy() end
+        if obj.Name:match("^DanceStrip") or obj.Name == "DanceFloor" then obj:Destroy() end
     end
 end
-local stageZone = floor1:FindFirstChild("07_StageLighting")
-if stageZone then
-    for _, obj in ipairs(stageZone:GetChildren()) do
-        if obj.Name:match("^StageBar") then obj:Destroy() end
+removeNamed("06_DJBooth", {"DJPlatform", "DJDesk", "DJDeskGlow"})
+removeNamed("07_StageLighting", {"StageDeck", "StageBack"})
+removeNamed("08_MainBar", {"BarFloor", "BarBack", "BarCounter", "BarCounterGlow"})
+
+-- FLOOR + ARCHITECTURAL ZONING ------------------------------------------------
+local shell = model("PremiumShell", architecture)
+local dance = part("DanceFloor", Vector3.new(58, .16, 42), CFrame.new(3, 1.01, 11), Color3.fromRGB(22, 22, 27), Enum.Material.SmoothPlastic, 0, shell, true)
+dance.Reflectance = .10
+
+-- Subtle brass threshold strips read like intentional floor inlays rather than a Tron grid.
+for i, z in ipairs({-8.8, 31.0}) do
+    local strip = part("Threshold"..i, Vector3.new(56, .035, .07), CFrame.new(3, 1.105, z), C.amber, Enum.Material.Metal, 0, shell, false)
+    strip.Reflectance = .22
+end
+for i, x in ipairs({-24.8, 30.8}) do
+    part("SideInlay"..i, Vector3.new(.07, .035, 39.5), CFrame.new(x, 1.105, 11), C.metal, Enum.Material.Metal, 0, shell, false)
+end
+
+-- Side architectural walls: layered acoustic panels, pilasters and warm sconces.
+local function wallBay(name, x, z, yaw, accent)
+    local bay = model(name, architecture)
+    local cf = CFrame.new(x, 7.0, z) * CFrame.Angles(0, math.rad(yaw), 0)
+    part("Recess", Vector3.new(10.5, 11.4, .5), cf, C.ink, Enum.Material.Slate, 0, bay, false)
+    part("Panel", Vector3.new(8.8, 9.5, .22), cf * CFrame.new(0,0,-.38), C.charcoal, Enum.Material.Fabric, 0, bay, false)
+    for i=-2,2 do
+        part("Rib"..i, Vector3.new(.11, 8.7, .18), cf * CFrame.new(i*1.65,0,-.55), C.metal, Enum.Material.Metal, 0, bay, false)
     end
+    local sconce = cylinder("Sconce", Vector3.new(.35, .95, .95), cf * CFrame.new(0,1.1,-.68) * CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, bay, false)
+    pointLight(sconce, accent or C.warm, .6, 10, true)
 end
 
--- DANCE FLOOR -----------------------------------------------------------------
-local dance = model("PremiumDanceFloor", architecture)
-local floor = part("PolishedFloor", Vector3.new(57.2, .12, 41.2), CFrame.new(3, .97, 11), Color3.fromRGB(24, 23, 29), Enum.Material.SmoothPlastic, 0, dance, true)
-floor.Reflectance = .08
--- Recessed perimeter light: subtle, not a glowing grid.
-neon("NorthEdge", Vector3.new(56.2, .035, .10), CFrame.new(3, 1.045, 31.35), C.pink, dance)
-neon("SouthEdge", Vector3.new(56.2, .035, .10), CFrame.new(3, 1.045, -9.35), C.cyan, dance)
-neon("WestEdge", Vector3.new(.10, .035, 40.6), CFrame.new(-25.1, 1.045, 11), C.cyan, dance)
-neon("EastEdge", Vector3.new(.10, .035, 40.6), CFrame.new(31.1, 1.045, 11), C.pink, dance)
+wallBay("WallBay_L1", -49.7, 4, 90, C.warm)
+wallBay("WallBay_L2", -49.7, 22, 90, C.pink)
+wallBay("WallBay_R1", 50.7, 4, -90, C.warm)
+wallBay("WallBay_R2", 50.7, 25, -90, C.cyan)
 
--- CEILING / TRUSS -------------------------------------------------------------
-local ceiling = model("CeilingRig", architecture)
-for _, z in ipairs({-3, 11, 25, 39}) do
-    part("CrossBeam", Vector3.new(66, .42, .62), CFrame.new(2, 19.7, z), C.black, Enum.Material.Metal, 0, ceiling, false)
+-- Column cladding gives the room structural rhythm.
+for i, spec in ipairs({{-27,-7},{-27,29},{33,-7},{33,29}}) do
+    local x,z = spec[1],spec[2]
+    part("ColumnCore"..i, Vector3.new(2.2, 18.5, 2.2), CFrame.new(x, 9.75, z), C.black, Enum.Material.Metal, 0, shell, false)
+    part("ColumnFace"..i, Vector3.new(2.35, 11.0, .16), CFrame.new(x, 7.1, z-1.18), C.graphite, Enum.Material.Slate, 0, shell, false)
+    local trim = neon("ColumnGlow"..i, Vector3.new(.055, 7.8, .06), CFrame.new(x, 7.2, z-1.29), (i%2==0) and C.cyan or C.pink, shell, .28)
+    pointLight(trim, trim.Color, .18, 5, false)
 end
-for _, x in ipairs({-24, 3, 30}) do
-    part("LongBeam", Vector3.new(.62, .42, 52), CFrame.new(x, 19.68, 18), C.black, Enum.Material.Metal, 0, ceiling, false)
+
+-- CEILING ---------------------------------------------------------------------
+local ceiling = model("CeilingArchitecture", architecture)
+part("CeilingField", Vector3.new(84, .55, 54), CFrame.new(3, 20.6, 17), Color3.fromRGB(13,12,15), Enum.Material.Slate, 0, ceiling, false)
+
+-- Coffered ceiling frame.
+for _, z in ipairs({-5, 8, 21, 34, 45}) do
+    part("CrossBeam"..z, Vector3.new(70, .85, .72), CFrame.new(3, 19.8, z), C.black, Enum.Material.Metal, 0, ceiling, false)
 end
--- Acoustic ceiling baffles add depth and remove the empty-box feel.
-for i, x in ipairs({-20,-12,-4,4,12,20,28}) do
-    local z = 11 + ((i % 2 == 0) and 3 or -3)
-    part("AcousticBaffle"..i, Vector3.new(5.8, .42, 11.5), CFrame.new(x, 18.85, z) * CFrame.Angles(0, math.rad((i%2==0) and 8 or -8), 0), Color3.fromRGB(26,23,29), Enum.Material.Fabric, 0, ceiling, false)
+for _, x in ipairs({-26,-12,3,18,32}) do
+    part("LongBeam"..x, Vector3.new(.72, .85, 52), CFrame.new(x, 19.8, 19), C.black, Enum.Material.Metal, 0, ceiling, false)
 end
--- Professional downlights: warm base + restrained club accents.
-local lightPoints = {
-    {-18,-2,C.warm}, {-6,-2,C.pink}, {6,-2,C.warm}, {18,-2,C.cyan},
-    {-18,12,C.cyan}, {-6,12,C.warm}, {6,12,C.pink}, {18,12,C.warm},
-    {-18,26,C.warm}, {-6,26,C.cyan}, {6,26,C.warm}, {18,26,C.pink},
+
+-- Hanging acoustic rafts add real ceiling depth.
+for i, x in ipairs({-21,-11,-1,9,19,29}) do
+    local z = (i%2==0) and 14 or 7
+    part("AcousticRaft"..i, Vector3.new(7.2, .45, 10.8), CFrame.new(x, 18.7, z) * CFrame.Angles(0, math.rad((i%2==0) and 7 or -7), 0), Color3.fromRGB(27,24,29), Enum.Material.Fabric, 0, ceiling, false)
+end
+
+-- Central box-truss.
+local truss = model("MainTruss", ceiling)
+for _, z in ipairs({4, 18, 32}) do
+    part("TrussCross"..z, Vector3.new(50,.32,.32), CFrame.new(3,17.7,z), C.metal, Enum.Material.Metal, 0, truss, false)
+end
+for _, x in ipairs({-20,26}) do
+    part("TrussSide"..x, Vector3.new(.32,.32,29), CFrame.new(x,17.7,18), C.metal, Enum.Material.Metal, 0, truss, false)
+end
+
+-- Downlights and pendants: warm ambient, club colors only as accents.
+local downlights = {
+    {-19,-1,C.warm},{-7,-1,C.warm},{5,-1,C.pink},{17,-1,C.warm},{29,-1,C.cyan},
+    {-19,13,C.warm},{-7,13,C.cyan},{5,13,C.warm},{17,13,C.pink},{29,13,C.warm},
+    {-19,27,C.pink},{-7,27,C.warm},{5,27,C.cyan},{17,27,C.warm},{29,27,C.warm},
 }
-for i, v in ipairs(lightPoints) do
-    local can = cylinder("CeilingCan"..i, Vector3.new(.34, 1.15, 1.15), CFrame.new(v[1]+3, 18.35, v[2]) * CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, ceiling)
-    spotLight(can, v[3], v[3] == C.warm and 1.35 or .8, 31, 54)
+for i,v in ipairs(downlights) do
+    local can = cylinder("Downlight"..i, Vector3.new(.42,1.05,1.05), CFrame.new(v[1],18.05,v[2])*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, ceiling, false)
+    spotLight(can, Enum.NormalId.Bottom, v[3], v[3] == C.warm and 1.15 or .58, 28, 48, true)
 end
 
--- STAGE -----------------------------------------------------------------------
+-- STAGE / LED ARCHITECTURE -----------------------------------------------------
 local stage = model("PremiumStage", architecture)
--- Layered rear panels create depth instead of one flat black wall.
-for i, x in ipairs({-21,-10.5,0,10.5,21}) do
-    local depth = (i % 2 == 0) and .42 or .72
-    part("StagePanel"..i, Vector3.new(9.4, 11.6, depth), CFrame.new(x+3, 8.8, 47.1), (i==3) and Color3.fromRGB(19,17,23) or C.charcoal, Enum.Material.Metal, 0, stage, false)
-end
-part("StagePortalTop", Vector3.new(55, .7, 1.1), CFrame.new(3, 14.7, 46.5), C.black, Enum.Material.Metal, 0, stage, false)
-part("StagePortalLeft", Vector3.new(.8, 12, 1.1), CFrame.new(-24.6, 8.8, 46.5), C.black, Enum.Material.Metal, 0, stage, false)
-part("StagePortalRight", Vector3.new(.8, 12, 1.1), CFrame.new(30.6, 8.8, 46.5), C.black, Enum.Material.Metal, 0, stage, false)
-for i, x in ipairs({-17,-8.5,8.5,17}) do
-    neon("RecessLight"..i, Vector3.new(.10, 7.4, .09), CFrame.new(x+3, 9.2, 46.65), (i%2==0) and C.cyan or C.pink, stage)
+part("StageDeck", Vector3.new(58, 2.1, 11.5), CFrame.new(3,2.05,43.0), C.charcoal, Enum.Material.Slate, 0, stage, true)
+part("StageLip", Vector3.new(58,.55,.7), CFrame.new(3,3.15,37.35), C.black, Enum.Material.Metal, 0, stage, false)
+local lip = neon("StageLipAccent", Vector3.new(48,.08,.08), CFrame.new(3,3.28,36.98), C.pink, stage, .18)
+pointLight(lip, C.pink, .35, 10, false)
+
+-- Multi-layer portal instead of one flat panel.
+part("PortalBack", Vector3.new(58,14.0,1.0), CFrame.new(3,10.0,48.0), C.black, Enum.Material.Metal, 0, stage, false)
+part("PortalTop", Vector3.new(58,1.1,2.1), CFrame.new(3,16.35,46.9), C.graphite, Enum.Material.Metal, 0, stage, false)
+part("PortalLeft", Vector3.new(1.2,13.0,2.1), CFrame.new(-25,9.9,46.9), C.graphite, Enum.Material.Metal, 0, stage, false)
+part("PortalRight", Vector3.new(1.2,13.0,2.1), CFrame.new(31,9.9,46.9), C.graphite, Enum.Material.Metal, 0, stage, false)
+
+-- LED wall tiles with restrained texture/depth.
+local led = model("LEDWall", stage)
+for row=1,3 do
+    for col=1,7 do
+        local x = -18 + (col-1)*7
+        local y = 6.2 + (row-1)*3.1
+        local panel = part("Tile_"..row.."_"..col, Vector3.new(6.25,2.65,.18), CFrame.new(x+3,y,46.75), Color3.fromRGB(15,14,19), Enum.Material.Glass, .04, led, false)
+        panel.Reflectance = .08
+        local edgeColor = ((row+col)%5==0) and C.cyan or (((row+col)%4==0) and C.pink or C.graphite)
+        part("TileTop_"..row.."_"..col, Vector3.new(5.7,.035,.05), CFrame.new(x+3,y+1.22,46.63), edgeColor, edgeColor == C.graphite and Enum.Material.Metal or Enum.Material.Neon, edgeColor == C.graphite and 0 or .35, led, false)
+    end
 end
 
-local logoPanel = part("StageLogoPanel", Vector3.new(15.5, 4.4, .16), CFrame.new(3, 9.2, 46.55), Color3.fromRGB(9,8,12), Enum.Material.Glass, .08, stage, false)
-local sg = Instance.new("SurfaceGui")
-sg.Face = Enum.NormalId.Front
-sg.AlwaysOnTop = false
-sg.LightInfluence = .25
-sg.PixelsPerStud = 60
-sg.Parent = logoPanel
+-- Center BBYA logo as physical integrated display.
+local logoPanel = part("LogoDisplay", Vector3.new(15.8,4.25,.16), CFrame.new(3,10.0,46.50), Color3.fromRGB(8,8,11), Enum.Material.Glass, .05, stage, false)
+local gui = Instance.new("SurfaceGui")
+gui.Face = Enum.NormalId.Front
+gui.AlwaysOnTop = false
+gui.LightInfluence = .4
+gui.PixelsPerStud = 70
+gui.Parent = logoPanel
 local logo = Instance.new("TextLabel")
 logo.BackgroundTransparency = 1
 logo.Size = UDim2.fromScale(1,1)
@@ -187,138 +252,178 @@ logo.Text = "BBYA"
 logo.TextColor3 = C.white
 logo.Font = Enum.Font.GothamBlack
 logo.TextScaled = true
-logo.Parent = sg
-local stroke = Instance.new("UIStroke")
-stroke.Color = C.pink
-stroke.Thickness = 2
-stroke.Transparency = .15
-stroke.Parent = logo
+logo.Parent = gui
+local logoStroke = Instance.new("UIStroke")
+logoStroke.Color = C.pink
+logoStroke.Thickness = 2
+logoStroke.Transparency = .18
+logoStroke.Parent = logo
 
--- DJ BOOTH + EQUIPMENT ---------------------------------------------------------
+-- DJ BOOTH --------------------------------------------------------------------
 local dj = model("DJBoothPremium", av)
-part("BoothBody", Vector3.new(18.5, 3.4, 4.8), CFrame.new(0, 3.0, 31.0), C.black, Enum.Material.Metal, 0, dj, true)
-part("BoothFrontInset", Vector3.new(15.8, 2.2, .18), CFrame.new(0, 3.05, 28.52), Color3.fromRGB(17,14,20), Enum.Material.Glass, .10, dj, false)
-part("BoothTop", Vector3.new(19.1, .28, 5.25), CFrame.new(0, 4.82, 31), C.marble, Enum.Material.Marble, 0, dj, false)
-neon("BoothUnderGlow", Vector3.new(15.8, .08, .08), CFrame.new(0, 4.36, 28.42), C.pink, dj)
+part("DJPlatform", Vector3.new(23, .65, 8.5), CFrame.new(3,3.45,34.3), C.black, Enum.Material.Metal, 0, dj, true)
 
+-- Faceted front gives a custom-built booth silhouette.
+part("BoothCenter", Vector3.new(13.2,3.4,4.6), CFrame.new(3,5.0,31.7), C.ink, Enum.Material.Metal, 0, dj, true)
+part("BoothWingL", Vector3.new(5.2,3.25,4.0), CFrame.new(-5.8,4.9,32.2)*CFrame.Angles(0,math.rad(-12),0), C.charcoal, Enum.Material.Metal, 0, dj, true)
+part("BoothWingR", Vector3.new(5.2,3.25,4.0), CFrame.new(11.8,4.9,32.2)*CFrame.Angles(0,math.rad(12),0), C.charcoal, Enum.Material.Metal, 0, dj, true)
+part("BoothTop", Vector3.new(20.5,.30,5.2), CFrame.new(3,6.76,31.7), C.marble, Enum.Material.Marble, 0, dj, false)
+local boothAccent = neon("BoothAccent", Vector3.new(12.2,.07,.07), CFrame.new(3,5.65,29.35), C.pink, dj, .08)
+pointLight(boothAccent, C.pink, .35, 8, false)
+
+-- Detailed decks and mixer.
 local gear = model("DJEquipment", dj)
-part("Mixer", Vector3.new(4.2, .34, 2.6), CFrame.new(0, 5.08, 31.1), C.charcoal, Enum.Material.Metal, 0, gear, false)
-for side, x in ipairs({-5.0, 5.0}) do
-    part("DeckBase"..side, Vector3.new(4.3, .34, 3.1), CFrame.new(x, 5.08, 31.1), C.charcoal, Enum.Material.Metal, 0, gear, false)
-    cylinder("Platter"..side, Vector3.new(.18, 2.3, 2.3), CFrame.new(x, 5.30, 31.05) * CFrame.Angles(0,0,math.rad(90)), Color3.fromRGB(57,55,61), Enum.Material.Metal, 0, gear)
-    neon("DeckDisplay"..side, Vector3.new(1.2, .07, .55), CFrame.new(x+1.2, 5.31, 30.4), side==1 and C.cyan or C.pink, gear)
+part("Mixer", Vector3.new(4.0,.30,2.6), CFrame.new(3,7.05,31.8), C.black, Enum.Material.Metal, 0, gear, false)
+for side,x in ipairs({-2.1,8.1}) do
+    part("Deck"..side, Vector3.new(4.2,.30,3.1), CFrame.new(x,7.05,31.8), C.charcoal, Enum.Material.Metal, 0, gear, false)
+    cylinder("Jog"..side, Vector3.new(.16,2.2,2.2), CFrame.new(x,7.29,31.8)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, gear, false)
+    neon("Display"..side, Vector3.new(1.05,.05,.52), CFrame.new(x+1.25,7.25,31.08), side==1 and C.cyan or C.pink, gear, .10)
 end
 for i=-4,4 do
-    cylinder("MixerKnob"..i, Vector3.new(.13,.20,.20), CFrame.new(i*.42,5.34,31.1)*CFrame.Angles(0,0,math.rad(90)), (i%2==0) and C.cyan or C.pink, Enum.Material.Neon, 0, gear)
+    cylinder("Knob"..i, Vector3.new(.10,.16,.16), CFrame.new(3+i*.38,7.27,31.65)*CFrame.Angles(0,0,math.rad(90)), (i%3==0) and C.pink or C.cyan, Enum.Material.Neon, 0, gear, false)
+end
+-- Two compact DJ monitors.
+for i,x in ipairs({-6.3,12.3}) do
+    part("MonitorCab"..i, Vector3.new(3.0,2.6,2.3), CFrame.new(x,7.3,35.1)*CFrame.Angles(math.rad(-8),0,0), C.black, Enum.Material.Metal, 0, av, false)
+    cylinder("MonitorDriver"..i, Vector3.new(.2,1.35,1.35), CFrame.new(x,7.3,33.9)*CFrame.Angles(0,math.rad(90),0), C.graphite, Enum.Material.SmoothPlastic, 0, av, false)
 end
 
--- SPEAKER ARRAYS: deterministic housings and visible drivers.
+-- SPEAKER ARRAYS ---------------------------------------------------------------
 local function speakerTower(name, x)
     local m = model(name, av)
-    part("Cabinet", Vector3.new(5.4, 11.2, 3.2), CFrame.new(x, 7.8, 43.4), C.black, Enum.Material.Metal, 0, m, false)
-    for i, y in ipairs({4.4,7.3,10.2}) do
-        cylinder("Driver"..i, Vector3.new(.30, 2.55, 2.55), CFrame.new(x, y, 41.72) * CFrame.Angles(0,math.rad(90),0), Color3.fromRGB(25,24,28), Enum.Material.SmoothPlastic, 0, m)
-        cylinder("DustCap"..i, Vector3.new(.34, .72, .72), CFrame.new(x, y, 41.53) * CFrame.Angles(0,math.rad(90),0), Color3.fromRGB(68,65,72), Enum.Material.Metal, 0, m)
+    part("FlyFrame", Vector3.new(6.0,.35,3.5), CFrame.new(x,14.2,42.9), C.metal, Enum.Material.Metal, 0, m, false)
+    for box=1,3 do
+        local y = 11.7 - (box-1)*3.25
+        part("Cabinet"..box, Vector3.new(5.8,2.95,3.2), CFrame.new(x,y,42.7)*CFrame.Angles(math.rad((box-2)*2),0,0), C.black, Enum.Material.Metal, 0, m, false)
+        cylinder("DriverA"..box, Vector3.new(.22,1.35,1.35), CFrame.new(x-1.45,y,41.02)*CFrame.Angles(0,math.rad(90),0), Color3.fromRGB(29,28,32), Enum.Material.SmoothPlastic, 0, m, false)
+        cylinder("DriverB"..box, Vector3.new(.22,1.35,1.35), CFrame.new(x+1.45,y,41.02)*CFrame.Angles(0,math.rad(90),0), Color3.fromRGB(29,28,32), Enum.Material.SmoothPlastic, 0, m, false)
     end
-    neon("Status", Vector3.new(1.4,.08,.08), CFrame.new(x,12.75,41.72), x<0 and C.cyan or C.pink, m)
 end
-speakerTower("SpeakerArray_L", -22.5)
-speakerTower("SpeakerArray_R", 22.5)
+speakerTower("LineArray_L", -20.5)
+speakerTower("LineArray_R", 26.5)
 
--- LOUNGE FURNITURE ------------------------------------------------------------
-local function sofa(name, pos, yaw, width, fabricColor)
-    local m = model(name, furniture)
-    local cf = CFrame.new(pos) * CFrame.Angles(0, math.rad(yaw), 0)
-    local w = width or 9
-    part("Plinth", Vector3.new(w, .42, 3.0), cf * CFrame.new(0,.48,0), C.black, Enum.Material.Metal, 0, m, false)
-    part("Seat", Vector3.new(w-.7, 1.0, 3.3), cf * CFrame.new(0,1.18,0), fabricColor or C.fabric, Enum.Material.Fabric, 0, m, false)
-    part("Back", Vector3.new(w-.6, 2.6, .85), cf * CFrame.new(0,2.25,1.35), fabricColor or C.fabric, Enum.Material.Fabric, 0, m, false)
-    part("ArmL", Vector3.new(.72, 1.7, 3.25), cf * CFrame.new(-(w/2-.35),1.55,0), C.fabric2, Enum.Material.Fabric, 0, m, false)
-    part("ArmR", Vector3.new(.72, 1.7, 3.25), cf * CFrame.new((w/2-.35),1.55,0), C.fabric2, Enum.Material.Fabric, 0, m, false)
-    -- Individual cushions break up the block silhouette.
-    local count = math.max(2, math.floor(w/3))
-    for i=1,count do
-        local x = -((count-1)*1.45)/2 + (i-1)*1.45
-        part("Cushion"..i, Vector3.new(1.25, .42, 1.35), cf * CFrame.new(x,1.78,.25) * CFrame.Angles(math.rad(-8),0,0), Color3.fromRGB(73,58,72), Enum.Material.Fabric, 0, m, false)
-    end
-    return m
-end
-
-local function tableRound(name, pos, diameter)
-    local m = model(name, furniture)
-    cylinder("Base", Vector3.new(.22, diameter*.62, diameter*.62), CFrame.new(pos.X,.22,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, m)
-    cylinder("Stem", Vector3.new(1.25,.25,.25), CFrame.new(pos.X,1.0,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m)
-    local top = cylinder("GlassTop", Vector3.new(.16,diameter,diameter), CFrame.new(pos.X,1.68,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.glass, Enum.Material.Glass, .18, m)
-    top.Reflectance = .12
-end
-
--- Raised left VIP bays face the dance floor.
-for i, z in ipairs({0, 14, 28}) do
-    local bay = model("VIPBay_L_"..i, furniture)
-    part("Platform", Vector3.new(17,.32,10.5), CFrame.new(-39,.95,z), Color3.fromRGB(31,28,34), Enum.Material.Slate, 0, bay, true)
-    sofa("Sofa_L_"..i, Vector3.new(-45,1.05,z), -90, 8.6, (i==2) and Color3.fromRGB(52,39,52) or C.fabric)
-    tableRound("Table_L_"..i, Vector3.new(-35.5,.5,z), 3.3)
-    neon("BayEdge", Vector3.new(.08,.08,8.5), CFrame.new(-30.7,1.16,z), (i%2==0) and C.cyan or C.pink, bay)
-end
-
--- BAR UPGRADE -----------------------------------------------------------------
+-- BAR -------------------------------------------------------------------------
 local bar = model("MainBarPremium", furniture)
-part("CounterTop", Vector3.new(4.7,.26,24.8), CFrame.new(34.35,3.66,11), C.marble, Enum.Material.Marble, 0, bar, false)
--- Vertical slatted front with warm under-light.
-for i, z in ipairs({0,3,6,9,12,15,18,21}) do
-    local zz = -.5 + z
-    part("FrontSlat"..i, Vector3.new(.18,2.3,1.55), CFrame.new(32.42,2.25,zz), Color3.fromRGB(73,59,54), Enum.Material.WoodPlanks, 0, bar, false)
+part("BarFloor", Vector3.new(22,.22,30), CFrame.new(42,.99,11), Color3.fromRGB(29,26,31), Enum.Material.Slate, 0, bar, true)
+part("BackBarWall", Vector3.new(1.1,12.5,28), CFrame.new(51.2,7.0,11), C.ink, Enum.Material.Slate, 0, bar, false)
+
+-- Counter carcass with stone top and wood front.
+part("CounterBody", Vector3.new(4.3,3.25,25), CFrame.new(35.0,2.55,11), C.charcoal, Enum.Material.Metal, 0, bar, true)
+part("CounterTop", Vector3.new(5.0,.32,25.6), CFrame.new(34.8,4.27,11), C.marble, Enum.Material.Marble, 0, bar, false)
+for i=1,14 do
+    local z = -1.0 + (i-1)*1.85
+    part("WoodSlat"..i, Vector3.new(.16,2.55,1.22), CFrame.new(32.78,2.52,z), C.wood, Enum.Material.WoodPlanks, 0, bar, false)
 end
-local under = neon("BarUnderGlow", Vector3.new(.08,.08,22.8), CFrame.new(32.29,1.35,11), C.warm, bar)
-pointLight(under, C.warm, .65, 8, false)
--- Bottle shelves on rear wall.
-for shelf, y in ipairs({3.3,6.0,8.7}) do
-    part("Shelf"..shelf, Vector3.new(.45,.16,23.0), CFrame.new(50.55,y,11), C.black, Enum.Material.Metal, 0, bar, false)
-    local strip = neon("ShelfLight"..shelf, Vector3.new(.08,.07,22.2), CFrame.new(50.28,y-.02,11), shelf==2 and C.pink or C.warm, bar)
-    pointLight(strip, strip.Color, .28, 5, false)
+local barUnder = neon("UnderBarWarm", Vector3.new(.07,.09,23.7), CFrame.new(32.66,1.28,11), C.warm, bar, .08)
+pointLight(barUnder, C.warm, .48, 9, false)
+
+-- Backbar illuminated niches.
+for shelf,y in ipairs({3.4,6.3,9.2}) do
+    part("Shelf"..shelf, Vector3.new(.65,.16,24.0), CFrame.new(50.48,y,11), C.black, Enum.Material.Metal, 0, bar, false)
+    local light = neon("ShelfLight"..shelf, Vector3.new(.07,.07,22.8), CFrame.new(50.08,y-.06,11), shelf==2 and C.pink or C.warm, bar, .20)
+    pointLight(light, light.Color, .22, 5, false)
 end
-local bottleColors = {Color3.fromRGB(174,120,65), Color3.fromRGB(76,125,102), Color3.fromRGB(112,91,135), Color3.fromRGB(194,158,78)}
-for row, y in ipairs({4.0,6.7,9.4}) do
-    for i=1,11 do
-        local z = 1.4 + (i-1)*1.9
-        local col = bottleColors[((i+row-2)%#bottleColors)+1]
-        cylinder("Bottle_"..row.."_"..i, Vector3.new(.78,.34,.34), CFrame.new(50.20,y,z)*CFrame.Angles(0,0,math.rad(90)), col, Enum.Material.Glass, .08, dressing)
+
+local bottleColors = {
+    Color3.fromRGB(179,123,65), Color3.fromRGB(68,113,94), Color3.fromRGB(105,82,126),
+    Color3.fromRGB(194,158,80), Color3.fromRGB(123,69,68), Color3.fromRGB(68,104,130),
+}
+for row,y in ipairs({4.05,6.95,9.85}) do
+    for i=1,12 do
+        local z = .6 + (i-1)*1.9
+        local color = bottleColors[((i+row-2)%#bottleColors)+1]
+        local bottle = cylinder("Bottle_"..row.."_"..i, Vector3.new(.75,.30,.30), CFrame.new(49.95,y,z)*CFrame.Angles(0,0,math.rad(90)), color, Enum.Material.Glass, .05, dressing, false)
+        bottle.Reflectance = .08
     end
+end
+
+-- Hanging bar pendants.
+for i,z in ipairs({2.5,8.2,13.9,19.6}) do
+    part("PendantCord"..i, Vector3.new(.06,3.0,.06), CFrame.new(41.5,16.1,z), C.black, Enum.Material.Metal, 0, bar, false)
+    local shade = cylinder("Pendant"..i, Vector3.new(.65,1.25,1.25), CFrame.new(41.5,14.45,z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, bar, false)
+    pointLight(shade, C.warm, .85, 12, true)
 end
 
 local function stool(name, z)
     local m = model(name, furniture)
-    cylinder("Base", Vector3.new(.16,2.0,2.0), CFrame.new(29.8,.18,z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, m)
-    cylinder("Stem", Vector3.new(2.1,.20,.20), CFrame.new(29.8,1.3,z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m)
-    cylinder("Seat", Vector3.new(.38,2.3,2.3), CFrame.new(29.8,2.5,z)*CFrame.Angles(0,0,math.rad(90)), Color3.fromRGB(48,39,48), Enum.Material.Fabric, 0, m)
-    cylinder("FootRing", Vector3.new(.10,1.25,1.25), CFrame.new(29.8,1.05,z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m)
+    cylinder("Base", Vector3.new(.15,1.9,1.9), CFrame.new(29.7,.18,z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, m, false)
+    cylinder("Stem", Vector3.new(2.15,.20,.20), CFrame.new(29.7,1.35,z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m, false)
+    cylinder("Seat", Vector3.new(.40,2.2,2.2), CFrame.new(29.7,2.58,z)*CFrame.Angles(0,0,math.rad(90)), C.fabric2, Enum.Material.Fabric, 0, m, false)
+    cylinder("FootRing", Vector3.new(.08,1.3,1.3), CFrame.new(29.7,1.10,z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m, false)
 end
-for i, z in ipairs({1,6,11,16,21}) do stool("BarStool_"..i, z) end
+for i,z in ipairs({1,6,11,16,21}) do stool("BarStool_"..i,z) end
 
--- Small cocktail islands create natural social pockets without blocking circulation.
-for i, pos in ipairs({Vector3.new(-18,.5,34), Vector3.new(-10,.5,37), Vector3.new(12,.5,37), Vector3.new(20,.5,34)}) do
-    tableRound("RearCocktail_"..i, pos, 2.7)
-end
-
--- Architectural planters soften the all-black interior without turning it into decoration clutter.
-local function planter(name, pos)
-    local m = model(name, dressing)
-    cylinder("Pot", Vector3.new(1.55,2.6,2.6), CFrame.new(pos.X,1.3,pos.Z)*CFrame.Angles(0,0,math.rad(90)), Color3.fromRGB(31,29,34), Enum.Material.Slate, 0, m)
-    part("Stem", Vector3.new(.28,4.0,.28), CFrame.new(pos.X,4.0,pos.Z), Color3.fromRGB(52,69,55), Enum.Material.SmoothPlastic, 0, m, false)
-    for i=1,4 do
-        local angle = math.rad((i-1)*90)
-        part("Leaf"..i, Vector3.new(.22,2.3,.7), CFrame.new(pos.X+math.cos(angle)*.8,5.2,pos.Z+math.sin(angle)*.8) * CFrame.Angles(math.rad(20),-angle,0), Color3.fromRGB(54,82,62), Enum.Material.SmoothPlastic, 0, m, false)
+-- LOUNGE / VIP ----------------------------------------------------------------
+local function sofa(name, pos, yaw, width, color)
+    local m = model(name, furniture)
+    local cf = CFrame.new(pos) * CFrame.Angles(0,math.rad(yaw),0)
+    local w = width or 9
+    part("Plinth", Vector3.new(w,.34,3.2), cf*CFrame.new(0,.45,0), C.black, Enum.Material.Metal, 0, m, false)
+    part("Seat", Vector3.new(w-.6,1.0,3.3), cf*CFrame.new(0,1.15,0), color or C.fabric, Enum.Material.Fabric, 0, m, false)
+    part("Back", Vector3.new(w-.55,2.65,.82), cf*CFrame.new(0,2.20,1.40), color or C.fabric, Enum.Material.Fabric, 0, m, false)
+    part("ArmL", Vector3.new(.70,1.72,3.25), cf*CFrame.new(-(w/2-.35),1.52,0), C.fabric2, Enum.Material.Fabric, 0, m, false)
+    part("ArmR", Vector3.new(.70,1.72,3.25), cf*CFrame.new((w/2-.35),1.52,0), C.fabric2, Enum.Material.Fabric, 0, m, false)
+    local cushions = math.max(2,math.floor(w/3))
+    for i=1,cushions do
+        local x = -((cushions-1)*1.55)/2 + (i-1)*1.55
+        part("Cushion"..i, Vector3.new(1.35,.38,1.25), cf*CFrame.new(x,1.75,.30)*CFrame.Angles(math.rad(-7),0,0), Color3.fromRGB(73,58,72), Enum.Material.Fabric, 0, m, false)
     end
 end
-planter("Planter_L1", Vector3.new(-49,.5,37))
-planter("Planter_L2", Vector3.new(-49,.5,-7))
-planter("Planter_R1", Vector3.new(48,.5,28))
 
--- Venue lighting baseline: keep reflections and shadows readable on mobile.
-Lighting.Brightness = 1.75
-Lighting.EnvironmentDiffuseScale = .38
-Lighting.EnvironmentSpecularScale = .92
-Lighting.ShadowSoftness = .34
-Lighting.ExposureCompensation = -.18
+local function tableRound(name,pos,diameter)
+    local m = model(name,furniture)
+    cylinder("Base", Vector3.new(.18,diameter*.60,diameter*.60), CFrame.new(pos.X,.20,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, m, false)
+    cylinder("Stem", Vector3.new(1.25,.22,.22), CFrame.new(pos.X,1.0,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.metal, Enum.Material.Metal, 0, m, false)
+    local top = cylinder("Top", Vector3.new(.15,diameter,diameter), CFrame.new(pos.X,1.68,pos.Z)*CFrame.Angles(0,0,math.rad(90)), C.glass, Enum.Material.Glass, .16, m, false)
+    top.Reflectance=.12
+end
 
-print("[BBYA] Main Club premium venue v2 loaded: deterministic architecture, lounge, bar, DJ rig, stage and AV; placeholder NPC crowd removed")
+-- Left lounge bays.
+for i,z in ipairs({0,14,28}) do
+    local bay = model("VIPBay_"..i,furniture)
+    part("Platform", Vector3.new(17,.30,10.5), CFrame.new(-39,.98,z), Color3.fromRGB(29,27,32), Enum.Material.Slate, 0, bay, true)
+    part("Rail", Vector3.new(.12,1.65,9.0), CFrame.new(-30.7,1.88,z), C.glass, Enum.Material.Glass, .40, bay, false)
+    part("RailTop", Vector3.new(.18,.12,9.0), CFrame.new(-30.7,2.72,z), C.metal, Enum.Material.Metal, 0, bay, false)
+    sofa("Sofa_"..i,Vector3.new(-44.3,1.1,z),-90,8.4,(i==2) and Color3.fromRGB(53,39,51) or C.fabric)
+    tableRound("Table_"..i,Vector3.new(-35.7,.5,z),3.3)
+end
+
+-- Rear cocktail pockets near stage.
+for i,pos in ipairs({Vector3.new(-15,.5,35),Vector3.new(-7,.5,37),Vector3.new(13,.5,37),Vector3.new(21,.5,35)}) do
+    tableRound("RearCocktail_"..i,pos,2.6)
+end
+
+-- Decorative floor lamps beside VIP bays.
+for i,spec in ipairs({{-47,7},{-47,21},{47,31}}) do
+    local x,z = spec[1],spec[2]
+    cylinder("LampBase"..i, Vector3.new(.16,1.25,1.25), CFrame.new(x,.18,z)*CFrame.Angles(0,0,math.rad(90)), C.black, Enum.Material.Metal, 0, dressing, false)
+    part("LampStem"..i, Vector3.new(.16,5.3,.16), CFrame.new(x,2.85,z), C.metal, Enum.Material.Metal, 0, dressing, false)
+    local shade = cylinder("LampShade"..i, Vector3.new(1.5,1.8,1.8), CFrame.new(x,5.55,z)*CFrame.Angles(0,0,math.rad(90)), Color3.fromRGB(45,37,42), Enum.Material.Fabric, 0, dressing, false)
+    pointLight(shade,C.warm,.55,10,true)
+end
+
+-- PLANTERS --------------------------------------------------------------------
+local function planter(name,pos)
+    local m = model(name,dressing)
+    cylinder("Pot",Vector3.new(1.55,2.6,2.6),CFrame.new(pos.X,1.3,pos.Z)*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(30,29,33),Enum.Material.Slate,0,m,false)
+    part("Stem",Vector3.new(.26,3.8,.26),CFrame.new(pos.X,3.9,pos.Z),Color3.fromRGB(49,65,53),Enum.Material.SmoothPlastic,0,m,false)
+    for i=1,5 do
+        local a=math.rad((i-1)*72)
+        part("Leaf"..i,Vector3.new(.20,2.1,.65),CFrame.new(pos.X+math.cos(a)*.78,5.0,pos.Z+math.sin(a)*.78)*CFrame.Angles(math.rad(18),-a,0),Color3.fromRGB(52,78,59),Enum.Material.SmoothPlastic,0,m,false)
+    end
+end
+planter("Planter_LFront",Vector3.new(-48,.5,-8))
+planter("Planter_LRear",Vector3.new(-48,.5,36))
+planter("Planter_RRear",Vector3.new(48,.5,34))
+
+-- LIGHTING BASELINE -----------------------------------------------------------
+-- Dark enough to feel like a club, bright enough to keep materials readable on mobile.
+Lighting.Brightness = 1.55
+Lighting.EnvironmentDiffuseScale = .34
+Lighting.EnvironmentSpecularScale = .88
+Lighting.ShadowSoftness = .32
+Lighting.ExposureCompensation = -.20
+Lighting.Ambient = Color3.fromRGB(30,27,34)
+Lighting.OutdoorAmbient = Color3.fromRGB(20,18,25)
+
+print("[BBYA] FLOOR 1 premium venue v3 loaded: architectural shell, coffered ceiling, custom stage/DJ, premium bar, VIP lounge and material-first lighting")
