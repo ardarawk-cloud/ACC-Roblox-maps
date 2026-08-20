@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "httpStatus": 400,
+  "universeId": "10744157359",
+  "placeId": "85866320744490",
+  "payload": {
+    "code": "InvalidRequest",
+    "message": "Invalid Content stream"
+  },
+  "at": "2026-08-20T14:07:07.416Z"
+}
