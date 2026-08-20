@@ -1,13 +1,13 @@
 SUCCESS
 Universe: 10744139279
 Place: 82661754996018
-Source commit: 7a6368efda5398c7c447697fcd330f5cd520ee55
-Run: 32363654882
+Source commit: 1de04c743a234fde353f1b5208b1cb6670ab2b34
+Run: 32364577134
 Inject: success
 Validate: success
 Publish: success
-UTC: 2026-08-20T11:24:45Z
+UTC: 2026-08-20T11:36:03Z
 --- inject log ---
-[Mountain] Injected compatible Mountain full runtime v1.6 into maps/mountain-social/place.rbxlx
+[Mountain] Injected compatible Mountain full runtime v1.7 into maps/mountain-social/place.rbxlx
 --- publish log ---
-Mountain closed-test publish success { versionNumber: 12 }
+Mountain closed-test publish success { versionNumber: 14 }
