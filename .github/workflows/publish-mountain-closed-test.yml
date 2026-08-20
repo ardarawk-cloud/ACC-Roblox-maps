@@ -7,18 +7,23 @@ on:
         description: 'Type MOUNTAIN-10744139279-82661754996018'
         required: true
         type: string
+  push:
+    branches: [main]
+    paths:
+      - 'maps/mountain-social/**'
+      - 'scripts/inject-mountain.js'
+      - 'scripts/publish-mountain-closed-test.js'
+      - '.github/workflows/publish-mountain-closed-test.yml'
 
 jobs:
   publish-mountain-closed-test:
-    if: inputs.confirm_target == 'MOUNTAIN-10744139279-82661754996018'
+    if: github.event_name == 'push' || inputs.confirm_target == 'MOUNTAIN-10744139279-82661754996018'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout Mountain branch
+      - name: Checkout current commit
         uses: actions/checkout@v4
-        with:
-          ref: agent/mountain-social-adventure-v1
 
       - name: Setup Node
         uses: actions/setup-node@v4
