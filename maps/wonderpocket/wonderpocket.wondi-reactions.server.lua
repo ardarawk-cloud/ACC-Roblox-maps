@@ -27,6 +27,9 @@ local function special(player)
 end
 
 local function trigger(player, preferred)
+    if player:GetAttribute("WP_DataLoaded") ~= true then return end
+    if player:GetAttribute("WP_DataReadOnly") == true or player:GetAttribute("WP_DataLoadFailed") == true then return end
+
     local now = os.clock()
     if now - (lastReactionAt[player] or 0) < .65 then return end
     lastReactionAt[player] = now
