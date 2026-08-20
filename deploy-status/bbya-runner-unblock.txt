@@ -1,0 +1,28 @@
+2026-08-20T13:33:50Z\n32374968460	BBYA Runner Unblock	in_progress		2026-08-20T13:33:43Z
+32374872845	BBYA Runner Unblock	completed	success	2026-08-20T13:32:43Z
+32374061196	BBYA Studio UI Tree Probe	completed	success	2026-08-20T13:24:08Z
+32373883864	BBYA MCP Log Probe	completed	success	2026-08-20T13:22:18Z
+32373778554	BBYA MCP Setting Probe	completed	success	2026-08-20T13:21:11Z
+32373696121	BBYA MCP List Studios	completed	success	2026-08-20T13:20:20Z
+32373635517	BBYA Studio MCP Job Bridge	completed	success	2026-08-20T13:19:42Z
+32373507470	BBYA Direct StudioMCP Tool Discovery	completed	success	2026-08-20T13:18:19Z
+32373435331	BBYA Direct Roblox Studio MCP Probe	completed	success	2026-08-20T13:17:32Z
+32373136848	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:14:22Z
+32373023142	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:13:09Z
+32372542504	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:07:56Z
+32372099900	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:03:10Z
+32372038148	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:02:30Z
+32371942381	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:01:29Z
+32371883287	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:00:51Z
+32366144600	BBYA Zero Live Publish	completed	success	2026-08-20T11:54:54Z
+32366054268	BBYA Zero Live Publish	completed	success	2026-08-20T11:53:50Z
+32366037800	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:53:37Z
+32365701523	BBYA Zero Live Publish	completed	success	2026-08-20T11:49:32Z
+32365539268	BBYA Zero Live Publish	completed	success	2026-08-20T11:47:34Z
+32365519039	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:47:18Z
+32364196362	BBYA Zero Live Publish	completed	success	2026-08-20T11:31:12Z
+32364181366	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:31:00Z
+32363548742	BBYA Zero Live Publish	completed	success	2026-08-20T11:23:14Z
+32363534406	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:23:04Z
+32362770854	BBYA Zero Live Publish	completed	success	2026-08-20T11:13:36Z
+32362741182	BBYA Zero Live Publish	completed	success	2026-08-20T11:13:15Z
