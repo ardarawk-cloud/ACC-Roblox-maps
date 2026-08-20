@@ -21,6 +21,7 @@ getOrCreate(remotes, "RemoteEvent", "OpenCatalog")
 local CatalogService = require(script.Parent:WaitForChild("CatalogService"))
 local TryOnService = require(script.Parent:WaitForChild("TryOnService"))
 local FavoritesService = require(script.Parent:WaitForChild("FavoritesService"))
+local PurchaseService = require(script.Parent:WaitForChild("PurchaseService"))
 
 catalogRequest.OnServerInvoke = function(player, action, payload)
     if action == "LIST_LOOKS" then
@@ -67,6 +68,43 @@ catalogRequest.OnServerInvoke = function(player, action, payload)
             return {ok = false, error = enabled}
         end
         return {ok = true, enabled = enabled, favorites = favorites}
+    end
+
+    if action == "GET_PURCHASE_ASSETS" then
+        local lookId = payload and payload.lookId
+        local ok, value = CatalogService.ValidateLookRequest(lookId)
+        if not ok then
+            return {ok = false, error = value}
+        end
+
+        local assets = PurchaseService.GetPurchasableAssets(value)
+        return {ok = true, assetIds = assets, enabled = #assets > 0}
+    end
+
+    if action == "PROMPT_PURCHASE" then
+        local lookId = payload and payload.lookId
+        local assetId = payload and payload.assetId
+        local ok, value = CatalogService.ValidateLookRequest(lookId)
+        if not ok then
+            return {ok = false, error = value}
+        end
+
+        local allowed = false
+        for _, candidate in ipairs(PurchaseService.GetPurchasableAssets(value)) do
+            if candidate == assetId then
+                allowed = true
+                break
+            end
+        end
+        if not allowed then
+            return {ok = false, error = "ASSET_NOT_IN_LOOK"}
+        end
+
+        local prompted, err = PurchaseService.PromptAsset(player, assetId)
+        if not prompted then
+            return {ok = false, error = err}
+        end
+        return {ok = true}
     end
 
     return {ok = false, error = "UNKNOWN_ACTION"}
