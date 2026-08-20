@@ -22,6 +22,7 @@ jobs:
         run: |
           $lines = @()
           $lines += "timestamp=$(Get-Date -Format o)"
+          $lines += "mode=administrator-session-retry"
           $lines += "whoami=$(whoami)"
           $lines += "USERPROFILE=$env:USERPROFILE"
 
