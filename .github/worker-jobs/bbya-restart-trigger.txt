@@ -1,1 +1,1 @@
-restart-latest-v292-2026-08-21T05:25+08:00
+restart-minimal-vip-v298-2026-08-21T05:47+08:00
