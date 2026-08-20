@@ -25,51 +25,16 @@ jobs:
           $env:PATH = 'C:\Users\Administrator\AppData\Roaming\npm;' + $env:PATH
           $codex = 'C:\Users\Administrator\AppData\Roaming\npm\codex.cmd'
           $outFile = Join-Path $env:RUNNER_TEMP 'bbya-floor1-audit.txt'
-          $prompt = @'
-You are operating on the currently open BBYA Social Hub place in Roblox Studio through the enabled MCP server named Roblox_Studio.
+          $promptFile = Join-Path $env:RUNNER_TEMP 'bbya-floor1-prompt.txt'
+          @'
+Inspect the currently open BBYA Social Hub place in Roblox Studio using the enabled Roblox_Studio MCP server. LIVE 3D AUDIT ONLY; do not modify anything. Focus only Floor 1: Main Club, Photo Area, and Salon/Look Studio. Read the actual Studio hierarchy and transforms, not repository scripts. Identify duplicates or legacy objects, overlapping or badly placed seating/tables, DJ booth versus background depth/sightline issues, Photo Area composition/spacing issues, Salon station/chair spacing issues, and list the important object paths with Position/CFrame/Size values needed for corrections. End with AUDIT_STATUS=VERIFIED if MCP inspection succeeds, otherwise AUDIT_STATUS=FAILED with the reason.
+'@ | Set-Content -Encoding UTF8 $promptFile
 
-TASK: LIVE 3D AUDIT ONLY. Do not modify anything yet.
-Focus ONLY Floor 1 and these three zones:
-1) Main Club: dance floor, DJ booth, DJ/stage background, lounge seating, bar and player sightlines.
-2) Photo Area.
-3) Salon / Look Studio.
-
-Use Roblox_Studio MCP tools to inspect the actual live Studio hierarchy and real object transforms. Do not infer positions from repository scripts. Read the scene that is open in Studio.
-
-Report:
-- exact models/folders/parts responsible for each zone;
-- obvious duplicates/legacy objects still present;
-- badly placed or overlapping chairs/sofas/tables;
-- DJ booth/background depth and collision/sightline problems;
-- Photo Area spacing/composition problems;
-- Salon chair/station spacing/composition problems;
-- key Position/CFrame/Size values needed to fix them;
-- recommended concrete edits, but DO NOT APPLY edits in this audit.
-
-Keep the response factual and concise. End with AUDIT_STATUS=VERIFIED if MCP inspection succeeded, otherwise AUDIT_STATUS=FAILED and state why.
-'@
-          $stdout = Join-Path $env:RUNNER_TEMP 'bbya-codex-stdout.txt'
-          $stderr = Join-Path $env:RUNNER_TEMP 'bbya-codex-stderr.txt'
-          $args = @('exec','--full-auto','--skip-git-repo-check','-o',$outFile,$prompt)
-          $p = Start-Process -FilePath $codex -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-          $lines = @()
-          $lines += "timestamp=$(Get-Date -Format o)"
-          $lines += "exit_code=$($p.ExitCode)"
-          if (Test-Path $outFile) {
-            $lines += 'CODEX_LAST_MESSAGE_BEGIN'
-            $lines += Get-Content $outFile -Raw
-            $lines += 'CODEX_LAST_MESSAGE_END'
-          }
-          if (Test-Path $stdout) {
-            $lines += 'STDOUT_BEGIN'
-            $lines += Get-Content $stdout -Raw
-            $lines += 'STDOUT_END'
-          }
-          if (Test-Path $stderr) {
-            $lines += 'STDERR_BEGIN'
-            $lines += Get-Content $stderr -Raw
-            $lines += 'STDERR_END'
-          }
+          $stream = Get-Content $promptFile -Raw | & $codex exec --full-auto --skip-git-repo-check -o $outFile - 2>&1 | Out-String
+          $exit = $LASTEXITCODE
+          $lines = @("timestamp=$(Get-Date -Format o)", "exit_code=$exit")
+          if (Test-Path $outFile) { $lines += 'CODEX_LAST_MESSAGE_BEGIN'; $lines += Get-Content $outFile -Raw; $lines += 'CODEX_LAST_MESSAGE_END' }
+          $lines += 'CODEX_STREAM_BEGIN'; $lines += $stream; $lines += 'CODEX_STREAM_END'
           $text = ($lines -join "`n") + "`n"
           $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
           $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-floor1-live-audit.txt"
