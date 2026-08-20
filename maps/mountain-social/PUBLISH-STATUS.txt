@@ -1,12 +1,12 @@
 SUCCESS
 Universe: 10744139279
 Place: 82661754996018
-Source commit: 57089f98aeeaf07c8eea8c22aa0b062c1a206a51
-Run: 32356356629
+Source commit: d6e2037232f9662564c325438808acd5c07e49bc
+Run: 32356384845
 Inject: success
 Validate: success
 Publish: success
-UTC: 2026-08-20T09:55:45Z
+UTC: 2026-08-20T09:56:03Z
 --- inject log ---
 [Mountain] Injected BBYA-compatible Mountain core bundle v1.2 into maps/mountain-social/place.rbxlx
 --- publish log ---
