@@ -1,17 +1,13 @@
-local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local TryOnService = {}
 
-local function applyIfValid(description, propertyName, assetId)
-    if type(assetId) == "number" and assetId > 0 then
-        pcall(function()
-            description[propertyName] = assetId
-        end)
-    end
-end
+local root = ReplicatedStorage:WaitForChild("BBYAVATAR")
+local shared = root:WaitForChild("Shared")
+local AvatarDescriptionBuilder = require(shared:WaitForChild("AvatarDescriptionBuilder"))
 
 function TryOnService.ApplyLook(player, look)
-    if not player or not look or not look.items then
+    if not player or not look or type(look.items) ~= "table" then
         return false, "INVALID_LOOK"
     end
 
@@ -28,17 +24,17 @@ function TryOnService.ApplyLook(player, look)
         return false, "DESCRIPTION_UNAVAILABLE"
     end
 
-    local items = look.items
-    applyIfValid(description, "HairAccessory", items.hair)
-    applyIfValid(description, "Face", items.face)
-    applyIfValid(description, "Shirt", items.top)
-    applyIfValid(description, "Pants", items.bottom)
+    local buildOk, buildError = AvatarDescriptionBuilder.ApplyLook(description, look)
+    if not buildOk then
+        return false, buildError
+    end
 
-    local success = pcall(function()
+    local success, applyError = pcall(function()
         humanoid:ApplyDescription(description)
     end)
 
     if not success then
+        warn("[BBYAVATAR] Try-on failed:", applyError)
         return false, "APPLY_FAILED"
     end
 
