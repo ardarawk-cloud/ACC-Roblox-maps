@@ -32,7 +32,8 @@
       "DJWallRandomVisuals": { "$path": "59-dj-wall-visuals.server.lua" },
       "VIPSkyLounge": { "$path": "60-vip-sky-lounge.server.lua" },
       "DJWallFinalMount": { "$path": "61-dj-wall-final-mount.server.lua" },
-      "DJWallRenderBridge": { "$path": "62-dj-wall-render-bridge.server.lua" }
+      "DJWallRenderBridge": { "$path": "62-dj-wall-render-bridge.server.lua" },
+      "SocialHangout": { "$path": "63-social-hangout.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -47,7 +48,8 @@
         "MenuMessageScrollPatch": { "$path": "51-menu-message-scroll.client.lua" },
         "CommunityTab": { "$path": "52-community-tab.client.lua" },
         "DockStability": { "$path": "56-dock-stability.client.lua" },
-        "DJWallClientRenderer": { "$path": "62-dj-wall-render.client.lua" }
+        "DJWallClientRenderer": { "$path": "62-dj-wall-render.client.lua" },
+        "SocialHangoutClient": { "$path": "63-social-hangout.client.lua" }
       }
     },
     "Lighting": {
