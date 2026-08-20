@@ -191,7 +191,7 @@ local function renderSearch()
     clearContent()
 
     local searchBox = Instance.new("TextBox")
-    searchBox.Size = UDim2.new(1,-110,0,48)
+    searchBox.Size = UDim2.new(1,-110,0,46)
     searchBox.BackgroundColor3 = Color3.fromRGB(29,31,39)
     searchBox.TextColor3 = Color3.new(1,1,1)
     searchBox.PlaceholderColor3 = Color3.fromRGB(135,139,155)
@@ -205,7 +205,7 @@ local function renderSearch()
     local searchButton = Instance.new("TextButton")
     searchButton.AnchorPoint = Vector2.new(1,0)
     searchButton.Position = UDim2.new(1,0,0,0)
-    searchButton.Size = UDim2.fromOffset(100,48)
+    searchButton.Size = UDim2.fromOffset(100,46)
     searchButton.BackgroundColor3 = Color3.fromRGB(70,76,110)
     searchButton.TextColor3 = Color3.new(1,1,1)
     searchButton.Font = Enum.Font.GothamBold
@@ -214,10 +214,20 @@ local function renderSearch()
     searchButton.Parent = content
     Instance.new("UICorner", searchButton).CornerRadius = UDim.new(0,12)
 
+    local chips = Instance.new("Frame")
+    chips.BackgroundTransparency = 1
+    chips.Position = UDim2.fromOffset(0,52)
+    chips.Size = UDim2.new(1,0,0,34)
+    chips.Parent = content
+    local chipLayout = Instance.new("UIListLayout")
+    chipLayout.FillDirection = Enum.FillDirection.Horizontal
+    chipLayout.Padding = UDim.new(0,6)
+    chipLayout.Parent = chips
+
     local results = Instance.new("ScrollingFrame")
     results.BackgroundTransparency = 1
-    results.Position = UDim2.fromOffset(0,60)
-    results.Size = UDim2.new(1,0,1,-100)
+    results.Position = UDim2.fromOffset(0,92)
+    results.Size = UDim2.new(1,0,1,-132)
     results.AutomaticCanvasSize = Enum.AutomaticSize.Y
     results.CanvasSize = UDim2.new()
     results.ScrollBarThickness = 4
@@ -234,15 +244,25 @@ local function renderSearch()
 
     local function addResult(item)
         local card = Instance.new("Frame")
-        card.Size = UDim2.new(1,-4,0,92)
+        card.Size = UDim2.new(1,-4,0,108)
         card.BackgroundColor3 = Color3.fromRGB(28,30,38)
         card.Parent = results
         Instance.new("UICorner", card).CornerRadius = UDim.new(0,12)
 
+        local itemId = tonumber(item.Id or item.AssetId or item.id)
+        local thumb = Instance.new("ImageLabel")
+        thumb.BackgroundColor3 = Color3.fromRGB(40,42,51)
+        thumb.Position = UDim2.fromOffset(10,10)
+        thumb.Size = UDim2.fromOffset(88,88)
+        thumb.ScaleType = Enum.ScaleType.Fit
+        if itemId then thumb.Image = "rbxthumb://type=Asset&id=" .. tostring(itemId) .. "&w=150&h=150" end
+        thumb.Parent = card
+        Instance.new("UICorner", thumb).CornerRadius = UDim.new(0,10)
+
         local name = Instance.new("TextLabel")
         name.BackgroundTransparency = 1
-        name.Position = UDim2.fromOffset(14,10)
-        name.Size = UDim2.new(1,-210,0,34)
+        name.Position = UDim2.fromOffset(110,10)
+        name.Size = UDim2.new(1,-310,0,30)
         name.Font = Enum.Font.GothamBold
         name.Text = tostring(item.Name or item.name or "Catalog Item")
         name.TextColor3 = Color3.new(1,1,1)
@@ -251,23 +271,25 @@ local function renderSearch()
         name.TextTruncate = Enum.TextTruncate.AtEnd
         name.Parent = card
 
-        local itemId = tonumber(item.Id or item.AssetId or item.id)
         local price = item.Price or item.LowestPrice or item.price
+        local assetType = tostring(item.AssetType or item.assetType or "Avatar item")
         local meta = Instance.new("TextLabel")
         meta.BackgroundTransparency = 1
-        meta.Position = UDim2.fromOffset(14,48)
-        meta.Size = UDim2.new(1,-210,0,26)
+        meta.Position = UDim2.fromOffset(110,43)
+        meta.Size = UDim2.new(1,-310,0,46)
         meta.Font = Enum.Font.Gotham
-        meta.Text = itemId and ((price and (tostring(price) .. " R$") or "Catalog item") .. "  •  ID " .. tostring(itemId)) or "Catalog item"
+        meta.Text = (price and (tostring(price) .. " R$") or "Catalog item") .. "  •  " .. assetType .. (itemId and ("\nID " .. tostring(itemId)) or "")
         meta.TextColor3 = Color3.fromRGB(165,169,183)
-        meta.TextSize = 13
+        meta.TextSize = 12
+        meta.TextWrapped = true
         meta.TextXAlignment = Enum.TextXAlignment.Left
+        meta.TextYAlignment = Enum.TextYAlignment.Top
         meta.Parent = card
 
         if itemId then
             local buy = Instance.new("TextButton")
-            buy.AnchorPoint = Vector2.new(1,0.5)
-            buy.Position = UDim2.new(1,-12,0.5,0)
+            buy.AnchorPoint = Vector2.new(1,0)
+            buy.Position = UDim2.new(1,-10,0,12)
             buy.Size = UDim2.fromOffset(82,36)
             buy.BackgroundColor3 = Color3.fromRGB(64,91,72)
             buy.Text = "BUY"
@@ -281,8 +303,8 @@ local function renderSearch()
             end)
 
             local fav = Instance.new("TextButton")
-            fav.AnchorPoint = Vector2.new(1,0.5)
-            fav.Position = UDim2.new(1,-102,0.5,0)
+            fav.AnchorPoint = Vector2.new(1,0)
+            fav.Position = UDim2.new(1,-10,0,58)
             fav.Size = UDim2.fromOffset(82,36)
             fav.BackgroundColor3 = Color3.fromRGB(67,61,91)
             fav.Text = "FAVORITE"
@@ -293,11 +315,16 @@ local function renderSearch()
             Instance.new("UICorner", fav).CornerRadius = UDim.new(0,10)
             fav.Activated:Connect(function()
                 status.Text = "Opening favorite prompt…"
-                pcall(function()
-                    AvatarEditorService:PromptSetFavorite(itemId, Enum.AvatarItemType.Asset, true)
-                end)
+                pcall(function() AvatarEditorService:PromptSetFavorite(itemId, Enum.AvatarItemType.Asset, true) end)
             end)
         end
+    end
+
+    local function appendCurrentPage()
+        if not pagesCache then return end
+        local current = pagesCache:GetCurrentPage()
+        for _, item in ipairs(current) do addResult(item) end
+        return #current
     end
 
     local function runSearch()
@@ -305,6 +332,7 @@ local function renderSearch()
         if query == "" then query = activeCategory ~= "FEATURED" and activeCategory or "avatar" end
         status.Text = "Searching Roblox Marketplace…"
         clearResults()
+        pagesCache = nil
         local ok, pages = pcall(function()
             local params = CatalogSearchParams.new()
             params.SearchKeyword = query
@@ -313,15 +341,41 @@ local function renderSearch()
             params.Limit = 20
             return AvatarEditorService:SearchCatalogAsync(params)
         end)
-        if not ok or not pages then
-            status.Text = "Marketplace search unavailable right now."
-            return
-        end
+        if not ok or not pages then status.Text = "Marketplace search unavailable right now." return end
         pagesCache = pages
-        local current = pages:GetCurrentPage()
-        for _, item in ipairs(current) do addResult(item) end
-        status.Text = string.format("%d results loaded", #current)
+        local count = appendCurrentPage() or 0
+        status.Text = string.format("%d results loaded • scroll down for more", count)
     end
+
+    for _, chip in ipairs({"HAIR","JACKETS","PANTS","ACCESSORIES","CUTE","CYBER"}) do
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.fromOffset(82,30)
+        b.BackgroundColor3 = Color3.fromRGB(36,38,48)
+        b.TextColor3 = Color3.fromRGB(220,222,230)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 10
+        b.Text = chip
+        b.Parent = chips
+        Instance.new("UICorner", b).CornerRadius = UDim.new(1,0)
+        b.Activated:Connect(function() searchBox.Text = string.lower(chip); runSearch() end)
+    end
+
+    local loadingMore = false
+    results:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+        if loadingMore or not pagesCache or pagesCache.IsFinished then return end
+        local nearBottom = results.CanvasPosition.Y + results.AbsoluteWindowSize.Y >= results.AbsoluteCanvasSize.Y - 180
+        if not nearBottom then return end
+        loadingMore = true
+        status.Text = "Loading more…"
+        local ok = pcall(function() pagesCache:AdvanceToNextPageAsync() end)
+        if ok then
+            local added = appendCurrentPage() or 0
+            status.Text = added > 0 and ("More looks loaded • keep scrolling") or "No more results"
+        else
+            status.Text = "Could not load more right now."
+        end
+        loadingMore = false
+    end)
 
     searchButton.Activated:Connect(runSearch)
     searchBox.FocusLost:Connect(function(enterPressed) if enterPressed then runSearch() end end)
@@ -363,9 +417,7 @@ local function renderStudio()
         pcall(function() AvatarEditorService:PromptCreateOutfit(desc, humanoid.RigType) end)
     end)
     makeAction(actions, "SEARCH MORE ITEMS", function()
-        for _, btn in ipairs(tabs:GetChildren()) do
-            if btn:IsA("TextButton") and btn.Text == "SEARCH" then btn:Activate() end
-        end
+        for _, btn in ipairs(tabs:GetChildren()) do if btn:IsA("TextButton") and btn.Text == "SEARCH" then btn:Activate() end end
     end)
 end
 
@@ -395,18 +447,9 @@ local function renderPhoto()
     d.Parent = content
 end
 
-local renderers = {
-    DISCOVER = renderDiscover,
-    SEARCH = renderSearch,
-    STUDIO = renderStudio,
-    PHOTO = renderPhoto,
-}
-
+local renderers = {DISCOVER=renderDiscover,SEARCH=renderSearch,STUDIO=renderStudio,PHOTO=renderPhoto}
 local function selectTab(name)
-    activeTab = name
-    status.Text = ""
-    local renderer = renderers[name] or renderDiscover
-    renderer()
+    activeTab=name;status.Text="";(renderers[name] or renderDiscover)()
 end
 
 for _, name in ipairs({"DISCOVER", "SEARCH", "STUDIO", "PHOTO"}) do
@@ -422,24 +465,11 @@ for _, name in ipairs({"DISCOVER", "SEARCH", "STUDIO", "PHOTO"}) do
     b.Activated:Connect(function() selectTab(name) end)
 end
 
-openButton.Activated:Connect(function()
-    activeCategory = "FEATURED"
-    frame.Visible = true
-    selectTab("DISCOVER")
-end)
-
-close.Activated:Connect(function() frame.Visible = false end)
-
+openButton.Activated:Connect(function() activeCategory="FEATURED";frame.Visible=true;selectTab("DISCOVER") end)
+close.Activated:Connect(function() frame.Visible=false end)
 openEvent.OnClientEvent:Connect(function(selectedCategory)
-    activeCategory = tostring(selectedCategory or "FEATURED")
-    frame.Visible = true
-    if activeCategory == "STUDIO" then
-        selectTab("STUDIO")
-    elseif activeCategory == "PHOTO" then
-        selectTab("PHOTO")
-    else
-        selectTab("DISCOVER")
-    end
+    activeCategory=tostring(selectedCategory or "FEATURED");frame.Visible=true
+    if activeCategory=="STUDIO" then selectTab("STUDIO") elseif activeCategory=="PHOTO" then selectTab("PHOTO") else selectTab("DISCOVER") end
 end)
 
 selectTab("DISCOVER")
