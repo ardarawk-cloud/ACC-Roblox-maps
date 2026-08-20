@@ -1,0 +1,25 @@
+{
+  "name": "BBYAVATAR",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "BBYAVATAR": {
+        "Shared": {
+          "$path": "src/shared"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "BBYAVATAR": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "BBYAVATAR": {
+          "$path": "src/client"
+        }
+      }
+    }
+  }
+}
