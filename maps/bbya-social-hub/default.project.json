@@ -29,7 +29,8 @@
       "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" },
       "DJWallVisibility": { "$path": "53-dj-wall-visibility.server.lua" },
       "DJWallTypography": { "$path": "54-dj-wall-typography.server.lua" },
-      "AudioWatchdog": { "$path": "55-audio-watchdog.server.lua" }
+      "AudioWatchdog": { "$path": "55-audio-watchdog.server.lua" },
+      "ProfessionalDJBooth": { "$path": "57-dj-booth-pro.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
