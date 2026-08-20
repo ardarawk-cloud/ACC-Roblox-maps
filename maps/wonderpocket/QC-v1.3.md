@@ -1,11 +1,14 @@
 # WONDERPOCKET QC — v1.3 Fail-Closed Data Safety
 
 ## Current closed-test baseline
-- Place version: **41**
+- Place version: **44**
 - Target: Universe `8805231520` → Place `124843214013484`
 - Public release: **closed** (`PublishAllowed = false`)
 - Registry: **disabled**
-- v41 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, save-health fail-closed protection, first-journey runtime checklist, at-a-glance `TEST OK / TEST... / TEST !` health state, and first-session timing bound to `GameConfig.Onboarding.FirstSessionTargetMinutes` (currently 10 minutes).
+- v44 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, save-health fail-closed protection, first-journey runtime checklist/timing, gameplay-first compact HUD, focused placement mode, and a one-button Android landscape `MENU` dock that expands only when needed.
+- v42 focused placement mode hides the normal dock, top HUD, and TEST button while positioning furniture; only ROTATE / PLACE / CANCEL plus a compact tutorial tracker remain.
+- v43 replaces the full-width top HUD with small identity/economy pills and reduces the normal Android landscape dock footprint.
+- v44 collapses SHOP / DEX / BUILD / SOCIAL into one `MENU` button during normal short-landscape play. Tutorial SHOP/BUILD steps auto-expand the dock so first-time guidance remains discoverable.
 - Live/runtime gates below remain intentionally unchecked until observed in Roblox; code-side review is not treated as a runtime pass.
 
 ## Code-side gate
@@ -32,6 +35,11 @@
 - [x] responsive premium UI has no invalid `Frame.PaddingTop`
 - [x] responsive panel content is isolated from header/close layout
 - [x] core HUD remains mobile-safe and shows canonical CarrotSeed
+- [x] short Android landscape top HUD is reduced to compact identity/economy pills
+- [x] short Android landscape normal dock collapses to one `MENU` button outside guided SHOP/BUILD tutorial steps
+- [x] opening MENU reveals SHOP / DEX / BUILD / SOCIAL; opening any panel or entering placement collapses/hides it again
+- [x] tutorial SHOP/BUILD steps auto-expand the action dock so guidance never targets an inaccessible hidden action
+- [x] placement mode hides top HUD, TEST button, and normal dock; only ROTATE / PLACE / CANCEL remain
 - [x] slow successful startup no longer false-times-out onboarding/tutorial/inventory/furniture/garden/Retention/Starter Quest/WonderDex
 - [x] `WP_TutorialStarted` is persisted in canonical main player data and critical-saved on first START
 - [x] v31-and-earlier persisted milestones migrate into resumed tutorial state, including purchase-only progress after inventory resolves
@@ -51,17 +59,19 @@
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
 
-## v41 Android clean first-session timing run — REQUIRED
-1. Use a fresh test account and join v41. `START MY POCKET` must be fully visible and TEST should move from `TEST...` to `TEST OK` after safe loading.
+## v44 Android clean first-session timing run — REQUIRED
+1. Use a fresh test account and join v44. `START MY POCKET` must be fully visible and TEST should move from `TEST...` to `TEST OK` after safe loading.
 2. Tap `START MY POCKET` and complete the six objectives **without rejoining**: Bubbi → Plant → SHOP/Buy → BUILD/Place → Harvest → Treasure.
 3. TEST panel journey bits must advance in order: `S/B/P/Buy/Pl/H/T/C`.
-4. SHOP guidance must highlight Star Lamp; BUILD guidance must highlight owned furniture; PLACE must pulse during placement.
-5. Android placement preview and server placement must agree on own Pocket ground/cottage floor; furniture must not sink or float.
-6. Treasure waypoint must switch from Adventure Gate to a chest after entering Treasure Island.
-7. On completion, TEST must report the journey time against the master target `10:00`; target result should be evaluated as `ON TARGET` or `OVER TARGET` from the runtime measurement, not assumed.
-8. No red runtime errors.
+4. During SHOP/BUILD tutorial steps, the compact dock may auto-expand so the guided action remains visible. Outside those steps, normal Android landscape play should show one bottom `MENU` button instead of four persistent action buttons.
+5. During placement, the top HUD, TEST button, and normal dock must be hidden; only ROTATE / PLACE / CANCEL and the compact tutorial tracker should remain.
+6. SHOP guidance must highlight Star Lamp; BUILD guidance must highlight owned furniture; PLACE must pulse during placement.
+7. Android placement preview and server placement must agree on own Pocket ground/cottage floor; furniture must not sink or float.
+8. Treasure waypoint must switch from Adventure Gate to a chest after entering Treasure Island.
+9. On completion, TEST must report the journey time against the master target `10:00`; target result should be evaluated as `ON TARGET` or `OVER TARGET` from the runtime measurement, not assumed.
+10. No red runtime errors.
 
-## v41 Android rejoin persistence run — REQUIRED
+## v44 Android rejoin persistence run — REQUIRED
 1. Fresh test account: START, then exit/rejoin before Say Hi. Welcome must not return; step 1/6 resumes.
 2. Say Hi → rejoin. Next unfinished objective resumes.
 3. Plant → rejoin. Crop state and CarrotSeed must persist.
@@ -69,7 +79,8 @@
 5. Place furniture → rejoin. Furniture must return relative to the newly assigned plot.
 6. Harvest → verify exactly +12 Coins and +1 CarrotSeed.
 7. Collect one Treasure → tutorial completion must survive immediate rejoin.
-8. Open TEST and confirm main/inventory/furniture/garden/WonderDex load/save states are healthy and the panel fits the Android viewport.
+8. After tutorial completion, Android landscape normal play should return to the compact one-button MENU state.
+9. Open TEST and confirm main/inventory/furniture/garden/WonderDex load/save states are healthy and the panel fits the Android viewport.
 
 ## Live Roblox failure/recovery gate — REQUIRED
 - [ ] normal DataStore availability loads exact prior Coins / Stars / CarrotSeed
