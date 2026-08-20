@@ -1,3 +1,4 @@
+# BBYA runner watchdog/report v2
 name: BBYA Runner Unblock
 
 on:
@@ -25,14 +26,12 @@ jobs:
           api="https://api.github.com/repos/$REPO/actions/runs?per_page=100"
           data=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$api")
           report="$(date -u +%FT%TZ)\n"
-          report+=$(echo "$data" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.created_at] | @tsv' | head -40)
+          report+=$(echo "$data" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.created_at] | @tsv' | head -50)
           report+=$'\n'
-
           echo "$data" | jq -r --arg self "$SELF_RUN_ID" '.workflow_runs[] | select((.id|tostring)!=$self) | select(.status=="in_progress") | select(.name=="BBYA Studio View Menu Probe" or .name=="BBYA Floor 1 Live Studio Audit" or .name=="BBYA Studio Command Bar Bridge Test") | .id' | while read -r id; do
             [ -z "$id" ] && continue
             curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/actions/runs/$id/cancel" || true
           done
-
           content=$(printf '%s' "$report" | base64 -w0)
           path='deploy-status/bbya-runner-unblock.txt'
           fileApi="https://api.github.com/repos/$REPO/contents/$path"
