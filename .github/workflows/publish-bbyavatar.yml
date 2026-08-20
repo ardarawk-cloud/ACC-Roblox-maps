@@ -1,0 +1,54 @@
+name: Publish BBYAVATAR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbyavatar/**'
+      - 'maps/registry.json'
+      - 'scripts/build-bbyavatar.js'
+      - '.github/workflows/publish-bbyavatar.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbyavatar-live-publish
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate target lock
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const r=require('./maps/registry.json');
+          const t=r.maps.bbyavatar;
+          if(!t) throw new Error('Missing bbyavatar registry target');
+          if(String(t.universeId)!=='10744157359') throw new Error('Wrong Universe ID');
+          if(String(t.placeId)!=='85866320744490') throw new Error('Wrong Place ID');
+          if(!t.enabled) throw new Error('BBYAVATAR target is disabled');
+          console.log('Target lock PASS');
+          NODE
+      - name: Build place
+        run: node scripts/build-bbyavatar.js
+      - name: Validate generated place
+        shell: bash
+        run: |
+          test -s maps/bbyavatar/place.rbxlx
+          grep -q 'BBYAVATAR_Runtime' maps/bbyavatar/place.rbxlx
+          grep -q 'BBYAVATAR_Client' maps/bbyavatar/place.rbxlx
+          echo 'Generated place validation PASS'
+      - name: Publish BBYAVATAR to Roblox
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: node scripts/publish-map.js bbyavatar
