@@ -1,0 +1,6 @@
+timestamp=2026-08-20T14:15:21.2819257+00:00
+STUDIO_TARGET_FOUND=true
+PID=4768 TITLE=Pusat Sosial BBYA  - Roblox Studio
+CLOSE_REQUESTED=True
+CLOSED=false
+NOTE=Studio remained open after graceful close; no force kill was used.
