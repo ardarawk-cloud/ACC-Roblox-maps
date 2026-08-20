@@ -33,6 +33,7 @@ local function load(player)
     local now = os.time()
     local offline = math.clamp(tonumber(player:GetAttribute("WP_OfflineSeconds")) or 0, 0, 8 * 60 * 60)
     local offlineCoins = math.floor(offline / 60)
+    player:SetAttribute("WP_RetentionOfflineSeconds", offline)
     if offlineCoins > 0 then
         addCoins(player, offlineCoins)
         player:SetAttribute("WP_OfflineReward", offlineCoins)
@@ -42,7 +43,10 @@ local function load(player)
     end
 
     local day = utcDay(now)
-    if tonumber(player:GetAttribute("WP_LastDailyDay")) ~= day then
+    local dailyReset = tonumber(player:GetAttribute("WP_LastDailyDay")) ~= day
+    player:SetAttribute("WP_RetentionDayKey", day)
+    player:SetAttribute("WP_RetentionDailyReset", dailyReset)
+    if dailyReset then
         player:SetAttribute("WP_LastDailyDay", day)
         addCoins(player, 50)
         addStars(player, 1)
@@ -54,7 +58,10 @@ local function load(player)
     end
 
     local week = utcWeek(now)
-    if tonumber(player:GetAttribute("WP_LastWeeklyWeek")) ~= week then
+    local weeklyReset = tonumber(player:GetAttribute("WP_LastWeeklyWeek")) ~= week
+    player:SetAttribute("WP_RetentionWeekKey", week)
+    player:SetAttribute("WP_RetentionWeeklyReset", weeklyReset)
+    if weeklyReset then
         player:SetAttribute("WP_LastWeeklyWeek", week)
         player:SetAttribute("WP_WeeklyQuestProgress", 0)
     end
@@ -66,4 +73,4 @@ end
 Players.PlayerAdded:Connect(function(player) task.spawn(load, player) end)
 for _, player in Players:GetPlayers() do task.spawn(load, player) end
 
-print("[WONDERPOCKET] State-driven canonical retention rewards loaded")
+print("[WONDERPOCKET] Observable state-driven canonical retention rewards loaded")
