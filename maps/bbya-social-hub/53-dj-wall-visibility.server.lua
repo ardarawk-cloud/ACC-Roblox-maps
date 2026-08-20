@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — DJ WALL VISIBILITY REINFORCEMENT v2
--- Keeps the prestige wall clearly visible without intersecting the DJ/avatar camera zone.
+-- BBYA SOCIAL HUB — DJ WALL VISIBILITY REINFORCEMENT v3
+-- Flushes the prestige wall into the architectural rear portal and restores real depth occlusion.
 
 local Workspace=game:GetService("Workspace")
 
@@ -10,27 +10,39 @@ if not system then warn("[BBYA] DJ Wall visibility: DJWallMessageSystem missing"
 local screen=system:FindFirstChild("PrestigeLED",true)
 if not screen or not screen:IsA("BasePart") then warn("[BBYA] DJ Wall visibility: PrestigeLED missing") return end
 
-local old=system:FindFirstChild("VisibilityReinforcement")
-if old then old:Destroy() end
+-- Remove presentation layers from earlier passes so the wall becomes one architectural surface.
+for _,name in ipairs({"VisibilityReinforcement","WallRecess","TopTrim","BottomTrim"}) do
+ local obj=system:FindFirstChild(name)
+ if obj then obj:Destroy() end
+end
+
+-- Remove the legacy tiled LED/logo directly behind the prestige wall. The portal structure remains.
+local club=root:FindFirstChild("MainClubRealism")
+if club then
+ for _,obj in ipairs(club:GetDescendants()) do
+  if obj.Name=="LEDWall" or obj.Name=="LogoDisplay" then
+   obj:Destroy()
+  end
+ end
+end
+
 local rig=Instance.new("Model")
 rig.Name="VisibilityReinforcement"
-rig:SetAttribute("Pass","DJ_WALL_VISIBILITY_V2")
+rig:SetAttribute("Pass","DJ_WALL_VISIBILITY_V3_FLUSH")
 rig.Parent=system
 
 local PINK=Color3.fromRGB(255,38,155)
 local CYAN=Color3.fromRGB(0,210,238)
-local GOLD=Color3.fromRGB(238,190,94)
-local WHITE=Color3.fromRGB(245,243,248)
-local DARK=Color3.fromRGB(7,6,10)
+local METAL=Color3.fromRGB(44,43,50)
 
--- Safe position: close to the architectural rear wall, behind the DJ booth/avatar.
--- Original stage LED tiles sit around Z=46.75, so this remains readable without entering the booth zone.
-screen.CFrame=CFrame.new(3,10,46.34)
-screen.Size=Vector3.new(57.2,12.8,.10)
-screen.Color=Color3.fromRGB(13,5,18)
+-- PortalBack is centered at Z=48 with 1 stud depth; its audience-facing surface is ~Z=47.5.
+-- Place the LED only a few hundredths in front of that surface so it reads as wall-mounted, not floating.
+screen.CFrame=CFrame.new(3,10,47.36)
+screen.Size=Vector3.new(56.8,12.55,.10)
+screen.Color=Color3.fromRGB(9,7,13)
 screen.Material=Enum.Material.SmoothPlastic
 screen.Transparency=0
-screen.Reflectance=.01
+screen.Reflectance=0
 screen.CastShadow=false
 screen.CanCollide=false
 screen.CanTouch=false
@@ -43,32 +55,32 @@ local function part(name,size,cf,color,material,transparency)
  return p
 end
 
--- Bezel stays nearly flush to the rear wall so it cannot hide player heads/cameras.
-part("BackPlate",Vector3.new(59.0,14.1,.10),CFrame.new(3,10,46.58),Color3.fromRGB(4,4,7),Enum.Material.Metal,0)
-part("TopBezel",Vector3.new(59.0,.34,.12),CFrame.new(3,16.58,46.22),PINK,Enum.Material.Neon,.02)
-part("BottomBezel",Vector3.new(59.0,.26,.12),CFrame.new(3,3.42,46.22),CYAN,Enum.Material.Neon,.02)
-part("LeftBezel",Vector3.new(.28,13.0,.12),CFrame.new(-25.72,10,46.22),Color3.fromRGB(65,48,67),Enum.Material.Metal,0)
-part("RightBezel",Vector3.new(.28,13.0,.12),CFrame.new(31.72,10,46.22),Color3.fromRGB(45,63,70),Enum.Material.Metal,0)
-part("LeftGlow",Vector3.new(.055,10.8,.06),CFrame.new(-25.88,10,46.14),PINK,Enum.Material.Neon,.14)
-part("RightGlow",Vector3.new(.055,10.8,.06),CFrame.new(31.88,10,46.14),CYAN,Enum.Material.Neon,.14)
+-- Thin recessed mounting plate and bezel, all within ~0.2 studs of the portal face.
+part("MountPlate",Vector3.new(57.6,13.25,.08),CFrame.new(3,10,47.45),Color3.fromRGB(3,3,5),Enum.Material.Metal,0)
+part("TopBezel",Vector3.new(57.5,.22,.10),CFrame.new(3,16.38,47.27),PINK,Enum.Material.Neon,.05)
+part("BottomBezel",Vector3.new(57.5,.18,.10),CFrame.new(3,3.62,47.27),CYAN,Enum.Material.Neon,.05)
+part("LeftBezel",Vector3.new(.20,12.65,.10),CFrame.new(-25.66,10,47.27),METAL,Enum.Material.Metal,0)
+part("RightBezel",Vector3.new(.20,12.65,.10),CFrame.new(31.66,10,47.27),METAL,Enum.Material.Metal,0)
 
-local topGlow=part("TopGlowSource",Vector3.new(42,.06,.06),CFrame.new(3,16.35,46.12),PINK,Enum.Material.Neon,.15)
-local light=Instance.new("PointLight");light.Color=PINK;light.Brightness=.28;light.Range=15;light.Shadows=false;light.Parent=topGlow
-
--- Force the live SurfaceGui to read clearly in the dark venue.
+-- Important: do NOT render through avatars/booth. LightInfluence 0 keeps it bright while real depth stays intact.
 local gui=screen:FindFirstChild("DJWallUI")
 if gui and gui:IsA("SurfaceGui") then
- gui.Enabled=true;gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=true;gui.LightInfluence=0
- gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;gui.PixelsPerStud=48
+ gui.Enabled=true
+ gui.Face=Enum.NormalId.Front
+ gui.AlwaysOnTop=false
+ gui.LightInfluence=0
+ gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+ gui.PixelsPerStud=48
  pcall(function() gui.MaxDistance=300 end)
+
  local oldMirror=screen:FindFirstChild("DJWallUI_OppositeFace")
  if oldMirror then oldMirror:Destroy() end
- local mirror=gui:Clone();mirror.Name="DJWallUI_OppositeFace";mirror.Face=Enum.NormalId.Back;mirror.AlwaysOnTop=true;mirror.LightInfluence=0;mirror.Parent=screen
+ local mirror=gui:Clone()
+ mirror.Name="DJWallUI_OppositeFace"
+ mirror.Face=Enum.NormalId.Back
+ mirror.AlwaysOnTop=false
+ mirror.LightInfluence=0
+ mirror.Parent=screen
 end
 
-local header=part("HeaderPlate",Vector3.new(20,.70,.10),CFrame.new(3,17.00,46.20),DARK,Enum.Material.SmoothPlastic,0)
-local headerGui=Instance.new("SurfaceGui");headerGui.Name="HeaderUI";headerGui.Face=Enum.NormalId.Front;headerGui.AlwaysOnTop=true;headerGui.LightInfluence=0;headerGui.PixelsPerStud=55;headerGui.Parent=header
-local headerText=Instance.new("TextLabel");headerText.Size=UDim2.fromScale(1,1);headerText.BackgroundTransparency=1;headerText.Text="BBYA  //  LIVE WALL";headerText.Font=Enum.Font.GothamBlack;headerText.TextScaled=true;headerText.TextColor3=WHITE;headerText.Parent=headerGui
-local hs=Instance.new("UIStroke");hs.Color=GOLD;hs.Thickness=1.2;hs.Transparency=.18;hs.Parent=headerText
-
-print("[BBYA] DJ Wall visibility v2 online: wall-safe position + dual-face UI")
+print("[BBYA] DJ Wall visibility v3 online: portal-flush mount + proper avatar depth")
