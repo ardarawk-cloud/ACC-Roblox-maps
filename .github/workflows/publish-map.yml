@@ -12,7 +12,11 @@ on:
     paths:
       - 'maps/**'
       - '!maps/a-club/**'
+      - '!maps/bbyavatar/**'
+      - '!maps/becak-e-bike/**'
       - 'scripts/**'
+      - '!scripts/build-becak-ebike.js'
+      - '!scripts/publish-becak-direct.js'
       - '.github/workflows/publish-map.yml'
 
 concurrency:
@@ -41,8 +45,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             case "${{ inputs.map_id }}" in
-              a-club|bbyavatar)
-                echo "${{ inputs.map_id }} is owned by its dedicated publisher"
+              a-club|bbyavatar|becak-e-bike)
+                echo "${{ inputs.map_id }} is owned exclusively by a dedicated publisher"
                 echo "maps=" >> "$GITHUB_OUTPUT"
                 exit 0
                 ;;
@@ -53,76 +57,26 @@ jobs:
 
           CHANGED=$(git diff --name-only HEAD^ HEAD || true)
           TARGETS=""
-          for MAP_ID in $(node -e "const r=require('./maps/registry.json'); console.log(Object.keys(r.maps).filter(k=>k!=='a-club' && k!=='bbyavatar').join(' '))"); do
+          for MAP_ID in $(node -e "const r=require('./maps/registry.json'); console.log(Object.keys(r.maps).filter(k=>!['a-club','bbyavatar','becak-e-bike'].includes(k)).join(' '))"); do
             if echo "$CHANGED" | grep -q "^maps/$MAP_ID/"; then
               TARGETS="$TARGETS $MAP_ID"
             fi
           done
 
-          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^scripts/\|^.github/workflows/publish-map.yml$'; then
-            TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([k,v])=>k!=='a-club' && k!=='bbyavatar' && v.enabled).map(([k])=>k).join(' '))")
+          if echo "$CHANGED" | grep -q '^maps/registry.json$\|^.github/workflows/publish-map.yml$'; then
+            TARGETS=$(node -e "const r=require('./maps/registry.json'); console.log(Object.entries(r.maps).filter(([k,v])=>!['a-club','bbyavatar','becak-e-bike'].includes(k) && v.enabled).map(([k])=>k).join(' '))")
           fi
 
           echo "maps=$(echo "$TARGETS" | xargs)" >> "$GITHUB_OUTPUT"
 
-      - name: Build validate and publish changed maps
-        if: steps.targets.outputs.maps != ''
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-          PUBLISH_RECEIPT_DIR: deploy-status
-        shell: bash
-        run: |
-          set -euo pipefail
-          for MAP_ID in ${{ steps.targets.outputs.maps }}; do
-            if [ "$MAP_ID" = "becak-e-bike" ]; then
-              echo "=== BUILD BECAK E-BIKE ==="
-              node scripts/build-becak-ebike.js
-              test -s maps/becak-e-bike/place.rbxlx
-              grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
-              node -e "const r=require('./maps/registry.json').maps['becak-e-bike']; if(!r.enabled||r.universeId!=='10745325613'||r.placeId!=='80994730522893') process.exit(1)"
-              echo "=== PUBLISH BECAK E-BIKE ==="
-              node scripts/publish-map.js becak-e-bike
-              continue
-            fi
-
-            echo "No generic assembler is defined for $MAP_ID; refusing to publish an unvalidated place."
-            exit 1
-          done
-
-      - name: Persist deploy receipts
+      - name: Refuse undefined generic assemblers
         if: steps.targets.outputs.maps != ''
         shell: bash
         run: |
-          set -euo pipefail
-          if [ ! -d deploy-status ]; then
-            echo "No deploy receipts produced."
-            exit 1
-          fi
-          mkdir -p /tmp/acc-deploy-status
-          cp -a deploy-status/. /tmp/acc-deploy-status/
-          if [ -f maps/becak-e-bike/place.rbxlx ]; then cp maps/becak-e-bike/place.rbxlx /tmp/acc-deploy-status/becak-e-bike.place.rbxlx; fi
-
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-
-          mkdir -p deploy-status maps/becak-e-bike
-          cp -a /tmp/acc-deploy-status/. deploy-status/
-          if [ -f deploy-status/becak-e-bike.place.rbxlx ]; then
-            cp deploy-status/becak-e-bike.place.rbxlx maps/becak-e-bike/place.rbxlx
-            rm deploy-status/becak-e-bike.place.rbxlx
-          fi
-
-          git config user.name "ACC Roblox Deploy Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add deploy-status maps/becak-e-bike/place.rbxlx 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "Deploy receipt already current."
-            exit 0
-          fi
-          git commit -m "Record Roblox deploy receipt [skip ci]"
-          git push origin HEAD:main
+          echo "Generic targets requested: ${{ steps.targets.outputs.maps }}"
+          echo "No generic assembler is currently defined; dedicated project pipelines own production maps."
+          exit 1
 
       - name: Nothing to publish
         if: steps.targets.outputs.maps == ''
-        run: echo "No generic map target changed."
+        run: echo "No generic target changed. Dedicated pipelines own BBYA, BBYAVATAR and BECAK E-BIKE."
