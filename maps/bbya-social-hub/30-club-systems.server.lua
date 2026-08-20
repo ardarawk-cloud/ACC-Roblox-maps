@@ -107,9 +107,10 @@ local function queueRequest(player,index)
  end
  requestCooldown[player.UserId]=now
  table.insert(requestQueue,{playerId=player.UserId,index=index})
- stateRemote:FireClient(player,"toast",string.format("Request masuk #%d: %s",#requestQueue,PLAYLIST[index].title))
- stateRemote:FireClient(player,"djQueue",{position=#requestQueue,count=#requestQueue,title=PLAYLIST[index].title,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
- if not masterSound.IsPlaying then nextTrack() end
+ local position=#requestQueue
+ stateRemote:FireClient(player,"toast",string.format("Request masuk antrean #%d: %s • diputar setelah track saat ini selesai.",position,PLAYLIST[index].title))
+ stateRemote:FireClient(player,"djQueue",{position=position,count=#requestQueue,title=PLAYLIST[index].title,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
+ fireMusicState(masterSound.IsPlaying)
  return true
 end
 masterSound.Ended:Connect(nextTrack)
@@ -154,4 +155,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)requestCooldown[player.UserId]=nil end)
 
 task.delay(2,function()if not masterSound.IsPlaying then playTrack(1) end end)
-print("[BBYA] Synced master club feed online; client zone-volume balancing enabled")
+print("[BBYA] Synced master club feed online; requests are queue-only until current track ends")
