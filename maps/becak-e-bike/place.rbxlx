@@ -422,7 +422,7 @@ Players.PlayerAdded:Connect(function(player)
     if ok and type(saved)=="table" then for k,v in pairs(DEFAULT) do if saved[k]~=nil then d[k]=saved[k] end end end
     playerData[player]=d
     player:SetAttribute("BecakTrips",d.Trips)
-    player:SetAttribute("BecakVersion","1.5.0")
+    player:SetAttribute("BecakVersion","1.6.0")
     local stats=Instance.new("Folder") stats.Name="leaderstats" stats.Parent=player
     local coins=Instance.new("IntValue") coins.Name="Rupiah" coins.Value=d.Coins coins.Parent=stats
     local level=Instance.new("IntValue") level.Name="Level" level.Value=d.Level level.Parent=stats
@@ -446,7 +446,7 @@ game:BindToClose(function()
 end)
 
 print("[BECAK E-BIKE] runtime v"..VERSION.." initialized | Universe 10745325613 | Place 80994730522893")
-Workspace:SetAttribute("ACC_BecakRuntime","v1.5")
+Workspace:SetAttribute("ACC_BecakRuntime","v1.6")
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="D"><Properties><string name="Name">BecakEBike_CityDetails</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Nusakarya visual/detail pass v1.1
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -945,6 +945,89 @@ end
 
 Workspace:SetAttribute('ACC_BecakWorldPolish','v1.5')
 print('[BECAK E-BIKE] World polish v1.5 ready')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — road access + drivability hotfix v1.6
+-- Removes curb-like collision from visual road slabs so the low e-bike chassis can enter/leave roads cleanly.
+-- Dedicated to maps/becak-e-bike only.
+
+local Workspace = game:GetService('Workspace')
+local RunService = game:GetService('RunService')
+
+local root = Workspace:WaitForChild('BecakEBike',30)
+if not root then return end
+local world = root:WaitForChild('Nusakarya',30)
+local vehicles = root:WaitForChild('Vehicles',30)
+if not world or not vehicles then return end
+
+local function flattenRoadPart(p)
+    if not p:IsA('BasePart') then return end
+    if not string.match(p.Name,'^Jalan_') then return end
+    if string.find(p.Name,'_Mark',1,true) then
+        p.CanCollide = false
+        p.CanTouch = false
+        p.CanQuery = true
+        p.CFrame = CFrame.new(p.Position.X,0.13,p.Position.Z) * (p.CFrame - p.CFrame.Position)
+        return
+    end
+    -- Road is a visual skin over the continuous ground, not a raised curb.
+    p.CanCollide = false
+    p.CanTouch = false
+    p.CanQuery = true
+    p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
+    p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
+end
+
+for _,x in ipairs(world:GetDescendants()) do flattenRoadPart(x) end
+world.DescendantAdded:Connect(function(x)
+    task.defer(function() flattenRoadPart(x) end)
+end)
+
+-- HQ driveway gives a clear visual route from spawn/garage area to Jalan Merdeka.
+local oldDriveway = world:FindFirstChild('HQ_Driveway')
+if oldDriveway then oldDriveway:Destroy() end
+local driveway = Instance.new('Part')
+driveway.Name='HQ_Driveway'
+driveway.Size=Vector3.new(18,0.08,58)
+driveway.CFrame=CFrame.new(-80,0.05,-50)
+driveway.Anchored=true
+driveway.CanCollide=false
+driveway.CanTouch=false
+driveway.Material=Enum.Material.Asphalt
+driveway.Color=Color3.fromRGB(52,54,57)
+driveway.Parent=world
+
+-- A low-friction, stable chassis tune. Movement remains owned by the existing runtime controller.
+local function tuneVehicle(model)
+    if not model:IsA('Model') then return end
+    local chassis=model:FindFirstChild('Chassis') or model.PrimaryPart
+    if not chassis or not chassis:IsA('BasePart') then return end
+    chassis.CustomPhysicalProperties=PhysicalProperties.new(1.15,0.28,0.08,1,1)
+    chassis.CanCollide=true
+    model:SetAttribute('RoadAccessTune','v1.6')
+end
+for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
+vehicles.ChildAdded:Connect(function(m)
+    task.wait(.35)
+    tuneVehicle(m)
+end)
+
+-- Conservative recovery: only rescue vehicles that actually fall below the playable ground.
+local acc=0
+RunService.Heartbeat:Connect(function(dt)
+    acc += dt
+    if acc < 0.5 then return end
+    acc=0
+    for _,m in ipairs(vehicles:GetChildren()) do
+        local ch=m:IsA('Model') and (m:FindFirstChild('Chassis') or m.PrimaryPart)
+        if ch and ch:IsA('BasePart') and ch.Position.Y < -6 then
+            ch.AssemblyLinearVelocity=Vector3.zero
+            ch.AssemblyAngularVelocity=Vector3.zero
+            ch.CFrame=CFrame.new(-80,2.8,-38) * CFrame.Angles(0,math.rad(180),0)
+        end
+    end
+end)
+
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.6')
+print('[BECAK E-BIKE] Road access v1.6 active: flat roads + HQ driveway + chassis tune')
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BecakEBike_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE client HUD v1.0
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1288,4 +1371,64 @@ if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(updateSca
 updateScale()
 
 Workspace:SetAttribute('ACC_BecakPhoneUI','v1.5')
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MS"><Properties><string name="Name">BecakEBike_MobileSafeArea</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — mobile safe-area controller v1.6
+-- Keeps the driver phone away from Roblox touch controls on portrait/landscape screens.
+
+local Players=game:GetService('Players')
+local Workspace=game:GetService('Workspace')
+local RunService=game:GetService('RunService')
+
+local player=Players.LocalPlayer
+local pg=player:WaitForChild('PlayerGui')
+local gui=pg:WaitForChild('BecakDriverPhone',20)
+if not gui then return end
+local phone=gui:WaitForChild('Phone',10)
+local launcher=gui:WaitForChild('PhoneLauncher',10)
+if not phone or not launcher then return end
+local scaler=phone:FindFirstChildOfClass('UIScale')
+
+local camera=Workspace.CurrentCamera
+local function applySafeArea()
+    camera=Workspace.CurrentCamera or camera
+    local v=camera and camera.ViewportSize or Vector2.new(800,600)
+    local portrait=v.Y>v.X
+
+    -- Launcher sits high on the right edge, clear of left thumbstick and right jump/vehicle controls.
+    launcher.AnchorPoint=Vector2.new(1,0)
+    launcher.Position=portrait and UDim2.new(1,-14,0,104) or UDim2.new(1,-18,0,92)
+    launcher.Size=UDim2.fromOffset(portrait and 48 or 50,portrait and 48 or 50)
+
+    -- Phone opens in the upper-right quadrant instead of occupying the bottom control zone.
+    phone.AnchorPoint=Vector2.new(1,0)
+    if scaler then
+        if portrait then
+            scaler.Scale=math.clamp(math.min((v.X-18)/326,(v.Y-190)/566),0.62,0.78)
+        else
+            scaler.Scale=math.clamp(math.min((v.X*0.34)/326,(v.Y-150)/566),0.68,0.90)
+        end
+    end
+    if phone.Visible then
+        phone.Position=portrait and UDim2.new(1,-12,0,72) or UDim2.new(1,-18,0,64)
+    end
+end
+
+applySafeArea()
+if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(applySafeArea) end
+Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
+    camera=Workspace.CurrentCamera
+    if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(applySafeArea) end
+    applySafeArea()
+end)
+
+-- The base UI has an open/close tween with bottom anchoring. Re-apply only while visible,
+-- at low frequency, so the phone never drifts back over touch controls.
+local acc=0
+RunService.RenderStepped:Connect(function(dt)
+    acc += dt
+    if acc < 0.08 then return end
+    acc=0
+    applySafeArea()
+end)
+
+Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.6')
 ]]></ProtectedString></Properties></Item></Item></Item></roblox>
