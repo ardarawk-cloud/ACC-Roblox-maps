@@ -22,7 +22,18 @@ local PLAYLIST={
  {title="Welcome",id="137350000972072"},
  {title="Store",id="1837393392"},
 }
-local SUPPORT_PRODUCTS={{label="10",productId=0},{label="25",productId=0},{label="50",productId=0},{label="100",productId=0},{label="250",productId=0}}
+
+-- Real Developer Products, verified through Roblox Open Cloud.
+local SUPPORT_PRODUCTS={
+ {label="10",amount=10,productId=3709047095},
+ {label="25",amount=25,productId=3709047097},
+ {label="50",amount=50,productId=3709047101},
+ {label="100",amount=100,productId=3709047104},
+ {label="250",amount=250,productId=3709047106},
+ {label="500",amount=500,productId=3709047107},
+ {label="1000",amount=1000,productId=3709047109},
+ {label="2000",amount=2000,productId=3709048779},
+}
 
 local CROSSFADE_SECONDS=1.2
 local PRELOAD_WINDOW=6
@@ -124,19 +135,12 @@ local function transitionToNext(forceImmediate)
  local nextIndex,wasRequest=consumeNextIndex()
  if not validTrack(nextIndex) then return false end
  transitioning=true;paused=false
- local oldDeck=activeDeck
- local newDeck=standbyDeck
- current=nextIndex
- preloadIndex=nil
- if newDeck.SoundId~=soundIdFor(nextIndex) then
-  newDeck:Stop();newDeck.SoundId=soundIdFor(nextIndex);newDeck.TimePosition=0
- end
- newDeck.Volume=forceImmediate and 1 or 0
- newDeck:Play()
- fireMusicState(true)
+ local oldDeck=activeDeck;local newDeck=standbyDeck
+ current=nextIndex;preloadIndex=nil
+ if newDeck.SoundId~=soundIdFor(nextIndex) then newDeck:Stop();newDeck.SoundId=soundIdFor(nextIndex);newDeck.TimePosition=0 end
+ newDeck.Volume=forceImmediate and 1 or 0;newDeck:Play();fireMusicState(true)
  if wasRequest then stateRemote:FireAllClients("toast",string.format("DJ request now playing: %s",PLAYLIST[nextIndex].title)) end
- if forceImmediate then
-  oldDeck:Stop();oldDeck.Volume=0
+ if forceImmediate then oldDeck:Stop();oldDeck.Volume=0
  else
   local ti=TweenInfo.new(CROSSFADE_SECONDS,Enum.EasingStyle.Linear)
   TweenService:Create(oldDeck,ti,{Volume=0}):Play()
@@ -197,9 +201,9 @@ end)
 supportRemote.OnServerEvent:Connect(function(player,action,arg)
  if action=="list" then stateRemote:FireClient(player,"supportProducts",SUPPORT_PRODUCTS);return end
  if action~="prompt" then return end
- local idx=tonumber(arg);local item=idx and SUPPORT_PRODUCTS[idx];if not item then return end
- if item.productId and item.productId>0 then MarketplaceService:PromptProductPurchase(player,item.productId)
- else stateRemote:FireClient(player,"toast","Support siap. Product ID experience belum dipasang.") end
+ local idx=tonumber(arg);local item=idx and SUPPORT_PRODUCTS[idx]
+ if not item then return end
+ MarketplaceService:PromptProductPurchase(player,item.productId)
 end)
 
 Players.PlayerAdded:Connect(function(player)
@@ -213,15 +217,12 @@ Players.PlayerAdded:Connect(function(player)
 end)
 Players.PlayerRemoving:Connect(function(player)requestCooldown[player.UserId]=nil end)
 
--- AutoDJ monitor: preload next track, then crossfade just before the current track ends.
 task.spawn(function()
  while task.wait(.20) do
   if not transitioning and not paused and activeDeck.IsPlaying then
-   local len=activeDeck.TimeLength
-   local pos=activeDeck.TimePosition
+   local len=activeDeck.TimeLength;local pos=activeDeck.TimePosition
    if len and len>5 then
-    local remain=len-pos
-    local ni=peekNextIndex()
+    local remain=len-pos;local ni=peekNextIndex()
     if ni and remain<=PRELOAD_WINDOW then preloadStandby(ni) end
     if remain<=CROSSFADE_SECONDS+.15 then task.spawn(function()transitionToNext(false)end) end
    end
@@ -230,4 +231,4 @@ task.spawn(function()
 end)
 
 task.delay(2,function()if not activeDeck.IsPlaying then playTrackImmediate(1) end end)
-print("[BBYA] AutoDJ v4 online: queue-only requests + preloaded 1.2s crossfade")
+print("[BBYA] AutoDJ v4 + real Support products online")
