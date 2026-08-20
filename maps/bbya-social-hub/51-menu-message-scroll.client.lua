@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — MENU MESSAGE + SUPPORT SCROLL PATCH v1.1
--- Adds DJ Message to the persistent top dock and makes Support genuinely swipeable on touch devices.
+-- BBYA SOCIAL HUB — MENU MESSAGE + SUPPORT SCROLL PATCH v1.2
+-- Adds DJ Message to the persistent top dock, keeps Community inside the same dock,
+-- and makes Support genuinely swipeable on touch devices.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -107,12 +108,15 @@ end)
 
 local function layoutDock()
  local vp=camera.ViewportSize
- local w=math.clamp(vp.X*.58,410,840)
+ local community=dock:FindFirstChild("CommunityTab")
+ local hasCommunity=community and community:IsA("TextButton")
+ local w=math.clamp(vp.X-16,360,hasCommunity and 940 or 840)
  dock.Size=UDim2.fromOffset(w,52)
- local pad=7
- local gap=6
- local brandW=math.clamp(w*.115,58,78)
- local rest=(w-pad*2-brandW-gap*4)/4
+ local pad=6
+ local gap=4
+ local brandW=math.clamp(w*.115,46,76)
+ local actionCount=hasCommunity and 5 or 4
+ local rest=(w-pad*2-brandW-gap*actionCount)/actionCount
  local x=pad
  local function place(btn,width)
   if not btn then return end
@@ -125,12 +129,18 @@ local function layoutDock()
  place(support,rest)
  place(travel,rest)
  place(message,rest)
- local compact=vp.X<1050
- if music then music.Text=compact and "MUSIC" or "♫  MUSIC";music.TextSize=compact and 10 or 12 end
- if support then support.Text=compact and "SUPPORT" or "◇  SUPPORT";support.TextSize=compact and 10 or 12 end
- if travel then travel.Text=compact and "TRAVEL" or "⌖  TRAVEL";travel.TextSize=compact and 10 or 12 end
+ if hasCommunity then place(community,rest) end
+
+ local compact=vp.X<760
+ if music then music.Text=compact and "MUSIC" or "♫  MUSIC";music.TextSize=compact and 9 or 12 end
+ if support then support.Text=compact and "SUPPORT" or "◇  SUPPORT";support.TextSize=compact and 9 or 12 end
+ if travel then travel.Text=compact and "TRAVEL" or "⌖  TRAVEL";travel.TextSize=compact and 9 or 12 end
  message.Text=compact and "MESSAGE" or "✦  MESSAGE"
- message.TextSize=compact and 9 or 12
+ message.TextSize=compact and 8 or 12
+ if hasCommunity then
+  community.Text=compact and "COMM" or "◆  COMMUNITY"
+  community.TextSize=compact and 8 or 11
+ end
 end
 
 local function fixSupportScroll()
@@ -174,5 +184,8 @@ camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
  layoutDock()
  fixSupportScroll()
 end)
+dock.ChildAdded:Connect(function(child)
+ if child.Name=="CommunityTab" then task.defer(layoutDock) end
+end)
 
-print("[BBYA] Message top-tab + touch-first Support scroll patch v1.1 online")
+print("[BBYA] Message + Community responsive dock + touch-first Support scroll v1.2 online")
