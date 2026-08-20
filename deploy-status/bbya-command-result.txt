@@ -1,4 +1,4 @@
-timestamp=2026-08-20T19:59:29.8694634+00:00
+timestamp=2026-08-20T20:07:44.1084320+00:00
 2026-08-20T19:36:54.325Z,327.325806,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:dj-wall-live-visual-audit-001]")
 local RunService=game:GetService("RunService")
 local Players=game:GetService("Players")
@@ -144,3 +144,44 @@ if shell then
 2026-08-20T19:59:34.750Z,1687.750122,23fc,12 [DFLog::HttpTraceError] HttpResponse(#2044 0x2231c1625d8) time:2238.2ms (net:2237.2ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
 2026-08-20T19:59:34.750Z,1687.750122,23fc,6 [DFLog::WebSocketTraceError] ws: 317 url: http://localhost:13469/studio error: HttpError: ConnectFail
 2026-08-20T19:59:34.762Z,1687.762085,1a50,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:dj-wall-rear-opening-qc-003]
+2026-08-20T20:07:45.175Z,2178.175049,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-audit-004]")
+local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+local upper=root and root:FindFirstChild("UpperLevels")
+local vip=upper and upper:FindFirstChild("L2_VIP_Level")
+local pass=vip and vip:FindFirstChild("PremiumVIPPass")
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|pass="..tostring(pass~=nil))
+local function report(name,obj)
+ if not obj then print("OBJ|"..name.."|missing") return end
+ local count=#obj:GetDescendants()
+ print("OBJ|"..name.."|"..obj.ClassName.."|desc="..tostring(count))
+end
+if pass then
+ for _,name in ipairs({"VIPEntry","GlassBalcony","NorthSkyLounge","VIPBar","PrivateSocialBooths",
+2026-08-20T20:07:45.177Z,2178.177002,06bc,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-live-audit-004]
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|pass=true
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] OBJ|VIPEntry|Model|desc=9
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] OBJ|GlassBalcony|Model|desc=8
+2026-08-20T20:07:45.184Z,2178.184082,06bc,6,Info [FLog::CreatorOutput] OBJ|NorthSkyLounge|Model|desc=48
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] OBJ|VIPBar|Model|desc=16
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] OBJ|PrivateSocialBooths|Model|desc=39
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] OBJ|VIPCeiling|Model|desc=23
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] COUNTS|parts=104|seats=0|lights=13
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T20:07:45.185Z,2178.185059,06bc,6,Info [FLog::CreatorOutput] CAMERA|overview=true|pos=0, 33, -34
+2026-08-20T20:07:47.649Z,2180.649658,1318,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T20:07:47.649Z,2180.649658,1318,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2212 ms: Error
+2026-08-20T20:07:47.649Z,2180.649658,1318,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T20:07:47.649Z,2180.649658,0ce0,12 [DFLog::HttpTraceError] HttpResponse(#2498 0x2232348ec58) time:2215.1ms (net:2213.0ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T20:07:47.649Z,2180.649658,0ce0,6 [DFLog::WebSocketTraceError] ws: 411 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T20:07:49.090Z,2182.090332,06bc,6 [DFLog::NamedMutex] NamedMutex(00000222856CF430, name:InstallerInfo.log)
+2026-08-20T20:07:49.090Z,2182.090332,06bc,6 [DFLog::NamedMutex] ~NamedMutex(00000222856CF430, name:InstallerInfo.log)
+2026-08-20T20:07:49.090Z,2182.090332,06bc,6 [DFLog::NamedMutex] NamedMutex(00000222856CF3F0, name:InstallerInfo.log)
+2026-08-20T20:07:49.090Z,2182.090332,06bc,6 [DFLog::NamedMutex] ~NamedMutex(00000222856CF3F0, name:InstallerInfo.log)
+2026-08-20T20:07:49.139Z,2182.139404,22e8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T20:07:49.197Z,2182.197021,06bc,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-live-audit-004]
