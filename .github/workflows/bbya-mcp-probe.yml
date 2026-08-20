@@ -1,0 +1,49 @@
+name: BBYA Direct Roblox Studio MCP Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mcp-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Inspect Roblox MCP launcher
+        shell: powershell
+        run: |
+          $env:USERPROFILE='C:\Users\Administrator'
+          $env:HOME='C:\Users\Administrator'
+          $env:LOCALAPPDATA='C:\Users\Administrator\AppData\Local'
+          $roblox = Join-Path $env:LOCALAPPDATA 'Roblox'
+          $mcp = Join-Path $roblox 'mcp.bat'
+          $lines=@()
+          $lines += "timestamp=$(Get-Date -Format o)"
+          $lines += "whoami=$(whoami)"
+          $lines += "MCP_BAT_EXISTS=$(Test-Path $mcp)"
+          $lines += "ROBLOX_STUDIO_VISIBLE=$([bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue))"
+          $lines += 'ROBLOX_DIR_BEGIN'
+          $lines += (Get-ChildItem $roblox -Force | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize | Out-String)
+          $lines += 'ROBLOX_DIR_END'
+          if (Test-Path $mcp) {
+            $lines += 'MCP_BAT_BEGIN'
+            $lines += (Get-Content $mcp -Raw)
+            $lines += 'MCP_BAT_END'
+          }
+          $text=($lines -join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-mcp-probe.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA MCP probe [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
