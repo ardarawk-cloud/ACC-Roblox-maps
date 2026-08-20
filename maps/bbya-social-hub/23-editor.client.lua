@@ -11,6 +11,7 @@ gui.Name="BBYAEditorUI"
 gui.ResetOnSpawn=false
 gui.IgnoreGuiInset=false
 gui.DisplayOrder=20
+gui.Enabled=false
 gui.Parent=player:WaitForChild("PlayerGui")
 
 local function round(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
@@ -67,6 +68,14 @@ local hl=Instance.new("Highlight");hl.FillTransparency=.8;hl.OutlineColor=Color3
 local function disableEdit()editOn=false;selected=nil;hl.Enabled=false;status.Text="OFF";toggle.Text="EDIT MODE" end
 local function setPanel(show)frame.Visible=show;if not show then disableEdit() end end
 local function move(v)if selected then remote:FireServer("move",selected,v)end end
+local function refreshVisibility()
+ local visible=player:GetAttribute("BBYAAdmin")==true and player:GetAttribute("BBYAEditorVisible")==true
+ gui.Enabled=visible
+ if not visible then setPanel(false) end
+end
+player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshVisibility)
+player:GetAttributeChangedSignal("BBYAEditorVisible"):Connect(refreshVisibility)
+refreshVisibility()
 
 openBtn.MouseButton1Click:Connect(function()setPanel(not frame.Visible)end)
 close.MouseButton1Click:Connect(function()setPanel(false)end)
@@ -85,7 +94,9 @@ down.MouseButton1Click:Connect(function()move(Vector3.new(0,-1,0))end)
 del.MouseButton1Click:Connect(function()if selected then remote:FireServer("delete",selected);selected=nil;hl.Enabled=false;status.Text="ON • TAP OBJECT" end end)
 undo.MouseButton1Click:Connect(function()remote:FireServer("undo")end)
 mouse.Button1Down:Connect(function()
- if not editOn or not frame.Visible then return end
+ if not editOn or not frame.Visible or not gui.Enabled then return end
  local t=mouse.Target;local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
  if t and root and t:IsDescendantOf(root) and not t:IsA("SpawnLocation") then selected=t;hl.Adornee=t;hl.Enabled=true;status.Text=t.Name end
 end)
+
+print("[BBYA] Editor UI hidden; admin toggle via /bbyaedit")
