@@ -29,7 +29,7 @@ const wrappedModules = moduleFiles.map(([name, file]) => {
   return `\ntask.spawn(function()\n  local ok, err = pcall(function()\n${src}\n  end)\n  if not ok then warn('[Mountain:${name}]', err) end\nend)\n`;
 }).join('\n');
 
-const bundledLua = `${worldLua}\n\n-- ACC Mountain runtime modules\n${wrappedModules}\nworkspace:SetAttribute('ACC_MountainCoreBundle', 'v1.4')\n`;
+const bundledLua = `${worldLua}\n\n-- ACC Mountain runtime modules\n${wrappedModules}\nworkspace:SetAttribute('ACC_MountainCoreBundle', 'v1.5')\n`;
 const clientLua = `${readLua('maps/mountain-social/mountain.client.lua')}\n\n${readLua('maps/mountain-social/mountain.performance.client.lua')}\n`;
 
 const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
@@ -48,4 +48,4 @@ const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="
 </roblox>`;
 
 fs.writeFileSync(placePath, xml);
-console.log('[Mountain] Injected compatible Mountain full runtime v1.4 into', target.file);
+console.log('[Mountain] Injected compatible Mountain full runtime v1.5 into', target.file);
