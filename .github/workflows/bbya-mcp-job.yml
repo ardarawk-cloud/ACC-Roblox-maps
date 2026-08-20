@@ -1,0 +1,93 @@
+name: BBYA Studio MCP Job Bridge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/worker-jobs/bbya-mcp-job.json'
+      - '.github/workflows/bbya-mcp-job.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-mcp-job:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Execute StudioMCP job
+        shell: powershell
+        run: |
+          $env:USERPROFILE='C:\Users\Administrator'
+          $env:HOME='C:\Users\Administrator'
+          $env:LOCALAPPDATA='C:\Users\Administrator\AppData\Local'
+          $jobPath=Join-Path $env:GITHUB_WORKSPACE '.github\worker-jobs\bbya-mcp-job.json'
+          $job=Get-Content $jobPath -Raw | ConvertFrom-Json
+          $mcpBat=Join-Path $env:LOCALAPPDATA 'Roblox\mcp.bat'
+
+          $psi=New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName='cmd.exe'
+          $psi.Arguments='/d /s /c ""'+$mcpBat+'""'
+          $psi.UseShellExecute=$false
+          $psi.RedirectStandardInput=$true
+          $psi.RedirectStandardOutput=$true
+          $psi.RedirectStandardError=$true
+          $psi.CreateNoWindow=$true
+          $p=New-Object System.Diagnostics.Process
+          $p.StartInfo=$psi
+          [void]$p.Start()
+
+          function Send-Mcp($obj){
+            $json=$obj | ConvertTo-Json -Compress -Depth 40
+            $p.StandardInput.WriteLine($json)
+            $p.StandardInput.Flush()
+          }
+          function Read-Mcp([int]$ms){
+            $task=$p.StandardOutput.ReadLineAsync()
+            if($task.Wait($ms)){ return $task.Result }
+            return '{"jsonrpc":"2.0","error":{"code":-32000,"message":"TIMEOUT"}}'
+          }
+
+          $result=[ordered]@{
+            jobId=$job.jobId
+            timestamp=(Get-Date -Format o)
+            studioVisible=[bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue)
+            initialize=$null
+            calls=@()
+          }
+
+          try{
+            Send-Mcp @{jsonrpc='2.0';id=1;method='initialize';params=@{protocolVersion='2025-06-18';capabilities=@{};clientInfo=@{name='bbya-mcp-job-bridge';version='1.0.0'}}}
+            $result.initialize=(Read-Mcp 8000 | ConvertFrom-Json)
+            Send-Mcp @{jsonrpc='2.0';method='notifications/initialized';params=@{}}
+            $id=2
+            foreach($call in $job.calls){
+              Send-Mcp @{jsonrpc='2.0';id=$id;method='tools/call';params=@{name=$call.name;arguments=$call.arguments}}
+              $raw=Read-Mcp 20000
+              $parsed=$null
+              try{$parsed=$raw|ConvertFrom-Json}catch{$parsed=@{raw=$raw}}
+              $result.calls += [ordered]@{id=$id;name=$call.name;response=$parsed}
+              $id++
+            }
+          }catch{
+            $result.error=$_.Exception.Message
+          }
+          try{$p.StandardInput.Close()}catch{}
+          if(-not $p.HasExited){try{$p.Kill()}catch{}}
+          try{$stderr=$p.StandardError.ReadToEnd();if($stderr){$result.stderr=$stderr}}catch{}
+
+          $text=$result | ConvertTo-Json -Depth 60
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-mcp-job-result.json"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message="Record BBYA MCP job $($job.jobId) [skip ci]";content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
