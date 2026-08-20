@@ -1,0 +1,110 @@
+name: BBYA Floor 1 Runtime Audit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/bbya-floor1-runtime-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Start Studio play, audit Floor 1, stop play
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $lines = @()
+          $lines += "timestamp=$(Get-Date -Format o)"
+          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $proc) { throw 'Roblox Studio not found' }
+          $ws = New-Object -ComObject WScript.Shell
+          $activated = $ws.AppActivate($proc.Id)
+          $lines += "APP_ACTIVATE=$activated"
+          Start-Sleep -Milliseconds 600
+          $ws.SendKeys('{F5}')
+          $lines += 'F5_SENT=true'
+          Start-Sleep -Seconds 9
+
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $editCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'commandBarScriptEditor')
+          $edit = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $editCondition)
+          $runCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'multiLineRunButtonContainer.commandBarRunButton')
+          $run = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $runCondition)
+          if (-not $edit -or -not $run) { throw 'Studio command bar controls not found after F5' }
+
+          $code = @'
+print("[BBYA_RT_BEGIN:floor1-v2]")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|client="..tostring(RunService:IsClient()).."|server="..tostring(RunService:IsServer()))
+local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
+print("ROOT|exists="..tostring(root~=nil))
+local function report(label,obj)
+ if not obj then print("OBJ|"..label.."|missing") return end
+ if obj:IsA("BasePart") then
+  local p=obj.Position local s=obj.Size
+  print(string.format("OBJ|%s|%s|P=%.2f,%.2f,%.2f|S=%.2f,%.2f,%.2f|C=%s",label,obj.ClassName,p.X,p.Y,p.Z,s.X,s.Y,s.Z,tostring(obj.CanCollide)))
+ else print("OBJ|"..label.."|"..obj.ClassName.."|D="..tostring(#obj:GetDescendants())) end
+end
+if root then
+ local club=root:FindFirstChild("MainClubRealism")
+ local front=root:FindFirstChild("Floor1FrontPremium")
+ report("MainClubRealism",club) report("Floor1FrontPremium",front)
+ if club then
+  local arch=club:FindFirstChild("Architecture") local av=club:FindFirstChild("AudioVisual") local furn=club:FindFirstChild("Furniture")
+  local stage=arch and arch:FindFirstChild("PremiumStage") local dj=av and av:FindFirstChild("DJBoothPremium") local bar=furn and furn:FindFirstChild("MainBarPremium")
+  report("Stage",stage) report("DJ",dj) report("Bar",bar)
+  for _,v in ipairs({{"StageDeck",stage and stage:FindFirstChild("StageDeck")},{"PortalBack",stage and stage:FindFirstChild("PortalBack")},{"PortalTop",stage and stage:FindFirstChild("PortalTop")},{"PortalLeft",stage and stage:FindFirstChild("PortalLeft")},{"PortalRight",stage and stage:FindFirstChild("PortalRight")},{"LogoDisplay",stage and stage:FindFirstChild("LogoDisplay")},{"DJPlatform",dj and dj:FindFirstChild("DJPlatform")},{"BoothCenter",dj and dj:FindFirstChild("BoothCenter")},{"BoothTop",dj and dj:FindFirstChild("BoothTop")}}) do report("Club."..v[1],v[2]) end
+ end
+ if front then
+  local photo=front:FindFirstChild("PhotoAreaPremium") local salon=front:FindFirstChild("SalonLookStudioPremium")
+  report("Photo",photo) report("Salon",salon)
+  for _,v in ipairs({{"PhotoFloor",photo and photo:FindFirstChild("PhotoInsetFloor")},{"PhotoWall",photo and photo:FindFirstChild("PhotoWall")},{"PhotoInnerPanel",photo and photo:FindFirstChild("PhotoInnerPanel")},{"PhotoBenchSeat",photo and photo:FindFirstChild("PhotoBenchSeat")},{"PhotoBenchBack",photo and photo:FindFirstChild("PhotoBenchBack")},{"SalonFloor",salon and salon:FindFirstChild("SalonInsetFloor")},{"SalonBack",salon and salon:FindFirstChild("SalonBackFeature")}}) do report("Front."..v[1],v[2]) end
+  if salon then for _,c in ipairs(salon:GetChildren()) do if c.Name:match("^SalonStation") then report("Salon."..c.Name,c) end end end
+ end
+end
+print("[BBYA_RT_END:floor1-v2]")
+'@
+          $valuePattern = $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $valuePattern.SetValue($code)
+          Start-Sleep -Milliseconds 300
+          $invoke = $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $invoke.Invoke()
+          Start-Sleep -Seconds 3
+
+          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 4
+          $capture = $false
+          foreach ($log in $logs) {
+            foreach ($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)) {
+              if ($line -match '\[BBYA_RT_BEGIN:floor1-v2\]') { $capture = $true }
+              if ($capture) { $lines += $line }
+              if ($capture -and $line -match '\[BBYA_RT_END:floor1-v2\]') { $capture = $false }
+            }
+          }
+
+          $ws.AppActivate($proc.Id) | Out-Null
+          Start-Sleep -Milliseconds 400
+          $ws.SendKeys('+{F5}')
+          $lines += 'SHIFT_F5_SENT=true'
+
+          $text = ($lines -join "`n") + "`n"
+          $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-floor1-runtime-audit.txt"
+          $headers = @{ Authorization="Bearer $env:GH_TOKEN"; Accept="application/vnd.github+json"; "X-GitHub-Api-Version"="2022-11-28"; "User-Agent"="BBYA-Studio-Worker" }
+          $sha = $null
+          try { $sha = (Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          $body = @{ message='Record BBYA Floor 1 runtime audit [skip ci]'; content=$content; branch='main' }
+          if ($sha) { $body.sha = $sha }
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body | ConvertTo-Json) -ContentType 'application/json'
