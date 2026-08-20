@@ -10,6 +10,10 @@ developer_products:
     description: "Teleport this visit to the BBYA VIP Level."
     price: 5
 
+  - name: "BBYA Skatepark Travel"
+    description: "Teleport this visit to the BBYA Skatepark."
+    price: 5
+
   - name: "BBYA Rooftop Travel"
     description: "Teleport this visit to the BBYA Rooftop."
     price: 10
