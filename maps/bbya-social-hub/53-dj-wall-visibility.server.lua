@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — DJ WALL VISIBILITY REINFORCEMENT v3
--- Flushes the prestige wall into the architectural rear portal and restores real depth occlusion.
+-- BBYA SOCIAL HUB — DJ WALL VISIBILITY REINFORCEMENT v4
+-- Final architectural flush mount. Does not touch the DJ booth.
 
 local Workspace=game:GetService("Workspace")
 
@@ -10,36 +10,34 @@ if not system then warn("[BBYA] DJ Wall visibility: DJWallMessageSystem missing"
 local screen=system:FindFirstChild("PrestigeLED",true)
 if not screen or not screen:IsA("BasePart") then warn("[BBYA] DJ Wall visibility: PrestigeLED missing") return end
 
--- Remove presentation layers from earlier passes so the wall becomes one architectural surface.
 for _,name in ipairs({"VisibilityReinforcement","WallRecess","TopTrim","BottomTrim"}) do
  local obj=system:FindFirstChild(name)
  if obj then obj:Destroy() end
 end
 
--- Remove the legacy tiled LED/logo directly behind the prestige wall. The portal structure remains.
+-- The prestige wall replaces only the old tile/logo surface. Portal structure stays intact.
 local club=root:FindFirstChild("MainClubRealism")
 if club then
  for _,obj in ipairs(club:GetDescendants()) do
-  if obj.Name=="LEDWall" or obj.Name=="LogoDisplay" then
-   obj:Destroy()
-  end
+  if obj.Name=="LEDWall" or obj.Name=="LogoDisplay" then obj:Destroy() end
  end
 end
 
 local rig=Instance.new("Model")
 rig.Name="VisibilityReinforcement"
-rig:SetAttribute("Pass","DJ_WALL_VISIBILITY_V3_FLUSH")
+rig:SetAttribute("Pass","DJ_WALL_VISIBILITY_V4_FINAL_FLUSH")
 rig.Parent=system
 
 local PINK=Color3.fromRGB(255,38,155)
 local CYAN=Color3.fromRGB(0,210,238)
-local METAL=Color3.fromRGB(44,43,50)
+local METAL=Color3.fromRGB(36,35,42)
+local BLACK=Color3.fromRGB(3,3,5)
 
--- PortalBack is centered at Z=48 with 1 stud depth; its audience-facing surface is ~Z=47.5.
--- Place the LED only a few hundredths in front of that surface so it reads as wall-mounted, not floating.
-screen.CFrame=CFrame.new(3,10,47.36)
-screen.Size=Vector3.new(56.8,12.55,.10)
-screen.Color=Color3.fromRGB(9,7,13)
+-- PortalBack center Z=48, depth=1 => audience face is ~47.50.
+-- LED face sits only ~0.07 studs forward: visually part of the wall, not a floating object.
+screen.CFrame=CFrame.new(3,10,47.43)
+screen.Size=Vector3.new(56.9,12.58,.055)
+screen.Color=Color3.fromRGB(8,6,12)
 screen.Material=Enum.Material.SmoothPlastic
 screen.Transparency=0
 screen.Reflectance=0
@@ -55,14 +53,16 @@ local function part(name,size,cf,color,material,transparency)
  return p
 end
 
--- Thin recessed mounting plate and bezel, all within ~0.2 studs of the portal face.
-part("MountPlate",Vector3.new(57.6,13.25,.08),CFrame.new(3,10,47.45),Color3.fromRGB(3,3,5),Enum.Material.Metal,0)
-part("TopBezel",Vector3.new(57.5,.22,.10),CFrame.new(3,16.38,47.27),PINK,Enum.Material.Neon,.05)
-part("BottomBezel",Vector3.new(57.5,.18,.10),CFrame.new(3,3.62,47.27),CYAN,Enum.Material.Neon,.05)
-part("LeftBezel",Vector3.new(.20,12.65,.10),CFrame.new(-25.66,10,47.27),METAL,Enum.Material.Metal,0)
-part("RightBezel",Vector3.new(.20,12.65,.10),CFrame.new(31.66,10,47.27),METAL,Enum.Material.Metal,0)
+-- Recess + bezel share the portal plane. Side reveals make the screen read as built-in architecture.
+part("Recess",Vector3.new(57.7,13.32,.055),CFrame.new(3,10,47.485),BLACK,Enum.Material.Metal,0)
+part("TopReveal",Vector3.new(57.7,.30,.16),CFrame.new(3,16.53,47.40),METAL,Enum.Material.Metal,0)
+part("BottomReveal",Vector3.new(57.7,.28,.16),CFrame.new(3,3.47,47.40),METAL,Enum.Material.Metal,0)
+part("LeftReveal",Vector3.new(.30,12.78,.16),CFrame.new(-25.82,10,47.40),METAL,Enum.Material.Metal,0)
+part("RightReveal",Vector3.new(.30,12.78,.16),CFrame.new(31.82,10,47.40),METAL,Enum.Material.Metal,0)
+part("TopAccent",Vector3.new(54,.055,.055),CFrame.new(3,16.35,47.305),PINK,Enum.Material.Neon,.07)
+part("BottomAccent",Vector3.new(54,.055,.055),CFrame.new(3,3.65,47.305),CYAN,Enum.Material.Neon,.07)
 
--- Important: do NOT render through avatars/booth. LightInfluence 0 keeps it bright while real depth stays intact.
+-- Real depth only. Never draw through avatar, DJ booth, or stage props.
 local gui=screen:FindFirstChild("DJWallUI")
 if gui and gui:IsA("SurfaceGui") then
  gui.Enabled=true
@@ -70,17 +70,10 @@ if gui and gui:IsA("SurfaceGui") then
  gui.AlwaysOnTop=false
  gui.LightInfluence=0
  gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
- gui.PixelsPerStud=48
- pcall(function() gui.MaxDistance=300 end)
-
+ gui.PixelsPerStud=50
+ pcall(function() gui.MaxDistance=320 end)
  local oldMirror=screen:FindFirstChild("DJWallUI_OppositeFace")
  if oldMirror then oldMirror:Destroy() end
- local mirror=gui:Clone()
- mirror.Name="DJWallUI_OppositeFace"
- mirror.Face=Enum.NormalId.Back
- mirror.AlwaysOnTop=false
- mirror.LightInfluence=0
- mirror.Parent=screen
 end
 
-print("[BBYA] DJ Wall visibility v3 online: portal-flush mount + proper avatar depth")
+print("[BBYA] DJ Wall visibility v4 online: final portal-flush architecture; booth untouched")
