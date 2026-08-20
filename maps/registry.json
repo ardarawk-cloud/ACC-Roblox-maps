@@ -11,8 +11,8 @@
     "mountain-social": {
       "name": "Mountain Social Adventure",
       "enabled": false,
-      "universeId": "PUT_UNIVERSE_ID_HERE",
-      "placeId": "PUT_PLACE_ID_HERE",
+      "universeId": "10744139279",
+      "placeId": "82661754996018",
       "file": "maps/mountain-social/place.rbxlx"
     },
     "bali-nightlife": {
