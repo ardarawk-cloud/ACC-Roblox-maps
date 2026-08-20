@@ -8,20 +8,63 @@ on:
       - '.github/workflows/bbya-mcp-job.yml'
   workflow_dispatch:
 
+concurrency:
+  group: bbya-studio-cloud
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   run-mcp-job:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 8
+    timeout-minutes: 25
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Execute StudioMCP job
+      - name: Ensure BBYA Studio is open in Edit mode
+        shell: powershell
+        run: |
+          $env:USERPROFILE='C:\Users\Administrator'
+          $env:HOME='C:\Users\Administrator'
+          $env:LOCALAPPDATA='C:\Users\Administrator\AppData\Local'
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class StudioBoot {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+          }
+          "@
+          function Get-BBYAStudio {
+            Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue |
+              Where-Object { $_.MainWindowHandle -ne 0 } |
+              Sort-Object StartTime -Descending | Select-Object -First 1
+          }
+          $proc=Get-BBYAStudio
+          if(-not $proc){
+            $roots=@((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')
+            $exe=$null
+            foreach($r in $roots){
+              if(-not (Test-Path $r)){continue}
+              $candidate=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+              if($candidate){$exe=$candidate.FullName;break}
+            }
+            if(-not $exe){throw 'RobloxStudioBeta.exe not found on BBYA cloud runner'}
+            Start-Process -FilePath $exe -ArgumentList '--task','EditPlace','--placeId','131894120482837','--universeId','8116636513'
+            $deadline=(Get-Date).AddSeconds(75)
+            do{Start-Sleep -Seconds 3;$proc=Get-BBYAStudio}while(-not $proc -and (Get-Date)-lt $deadline)
+            if(-not $proc){throw 'Studio launched but BBYA window did not appear'}
+            Start-Sleep -Seconds 22
+          }
+          [StudioBoot]::ShowWindow([IntPtr]$proc.MainWindowHandle,9)|Out-Null
+          [StudioBoot]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+          Start-Sleep -Seconds 3
+
+      - name: Execute StudioMCP 3D job
         shell: powershell
         run: |
           $env:USERPROFILE='C:\Users\Administrator'
@@ -30,6 +73,7 @@ jobs:
           $jobPath=Join-Path $env:GITHUB_WORKSPACE '.github\worker-jobs\bbya-mcp-job.json'
           $job=Get-Content $jobPath -Raw | ConvertFrom-Json
           $mcpBat=Join-Path $env:LOCALAPPDATA 'Roblox\mcp.bat'
+          if(-not (Test-Path $mcpBat)){throw "Studio MCP bridge missing: $mcpBat"}
 
           $psi=New-Object System.Diagnostics.ProcessStartInfo
           $psi.FileName='cmd.exe'
@@ -44,7 +88,7 @@ jobs:
           [void]$p.Start()
 
           function Send-Mcp($obj){
-            $json=$obj | ConvertTo-Json -Compress -Depth 40
+            $json=$obj | ConvertTo-Json -Compress -Depth 50
             $p.StandardInput.WriteLine($json)
             $p.StandardInput.Flush()
           }
@@ -53,23 +97,57 @@ jobs:
             if($task.Wait($ms)){ return $task.Result }
             return '{"jsonrpc":"2.0","error":{"code":-32000,"message":"TIMEOUT"}}'
           }
+          function Parse-TextPayload($response){
+            try{
+              $txt=$response.result.content[0].text
+              if($txt){return ($txt | ConvertFrom-Json)}
+            }catch{}
+            return $null
+          }
 
           $result=[ordered]@{
             jobId=$job.jobId
             timestamp=(Get-Date -Format o)
             studioVisible=[bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue)
             initialize=$null
+            studioId=$null
             calls=@()
           }
 
           try{
-            Send-Mcp @{jsonrpc='2.0';id=1;method='initialize';params=@{protocolVersion='2025-06-18';capabilities=@{};clientInfo=@{name='bbya-mcp-job-bridge';version='1.0.0'}}}
-            $result.initialize=(Read-Mcp 8000 | ConvertFrom-Json)
+            Send-Mcp @{jsonrpc='2.0';id=1;method='initialize';params=@{protocolVersion='2025-06-18';capabilities=@{};clientInfo=@{name='bbya-cloud-3d-worker';version='2.0.0'}}}
+            $result.initialize=(Read-Mcp 12000 | ConvertFrom-Json)
             Send-Mcp @{jsonrpc='2.0';method='notifications/initialized';params=@{}}
+
+            # Studio extension may need several seconds after Studio window appears.
+            $studioId=$null
+            for($attempt=1;$attempt -le 8 -and -not $studioId;$attempt++){
+              Send-Mcp @{jsonrpc='2.0';id=100+$attempt;method='tools/call';params=@{name='list_roblox_studios';arguments=@{}}}
+              $listRaw=Read-Mcp 12000
+              try{
+                $listResponse=$listRaw|ConvertFrom-Json
+                $payload=Parse-TextPayload $listResponse
+                if($payload -and $payload.studios -and $payload.studios.Count -gt 0){
+                  $first=$payload.studios[0]
+                  if($first.id){$studioId=[string]$first.id}
+                  elseif($first.studio_id){$studioId=[string]$first.studio_id}
+                  elseif($first.studioId){$studioId=[string]$first.studioId}
+                }
+              }catch{}
+              if(-not $studioId){Start-Sleep -Seconds 5}
+            }
+            if(-not $studioId){throw 'Roblox Studio is visible but MCP did not expose a studio_id'}
+            $result.studioId=$studioId
+
             $id=2
             foreach($call in $job.calls){
+              if($null -eq $call.arguments){$call | Add-Member -NotePropertyName arguments -NotePropertyValue ([pscustomobject]@{}) -Force}
+              $call.arguments | Add-Member -NotePropertyName studio_id -NotePropertyValue $studioId -Force
+              $timeout=45000
+              if($call.name -eq 'generate_mesh' -or $call.name -eq 'generate_procedural_model'){$timeout=240000}
+              elseif($call.name -eq 'screen_capture'){$timeout=90000}
               Send-Mcp @{jsonrpc='2.0';id=$id;method='tools/call';params=@{name=$call.name;arguments=$call.arguments}}
-              $raw=Read-Mcp 20000
+              $raw=Read-Mcp $timeout
               $parsed=$null
               try{$parsed=$raw|ConvertFrom-Json}catch{$parsed=@{raw=$raw}}
               $result.calls += [ordered]@{id=$id;name=$call.name;response=$parsed}
@@ -82,7 +160,7 @@ jobs:
           if(-not $p.HasExited){try{$p.Kill()}catch{}}
           try{$stderr=$p.StandardError.ReadToEnd();if($stderr){$result.stderr=$stderr}}catch{}
 
-          $text=$result | ConvertTo-Json -Depth 60
+          $text=$result | ConvertTo-Json -Depth 80
           $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
           $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-mcp-job-result.json"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
@@ -90,4 +168,6 @@ jobs:
           try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
           $body=@{message="Record BBYA MCP job $($job.jobId) [skip ci]";content=$content;branch='main'}
           if($sha){$body.sha=$sha}
-          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'|Out-Null
+
+          if($result.error){throw $result.error}
