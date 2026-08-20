@@ -1,236 +1,72 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 
 local ROOT = "BBYAVATAR_SHOWROOM"
+local old = Workspace:FindFirstChild(ROOT); if old then old:Destroy() end
+local oldRemote = ReplicatedStorage:FindFirstChild("BBYAVATAR"); if oldRemote then oldRemote:Destroy() end
+for _,n in ipairs({"BBYAVATAR_Color","BBYAVATAR_Atmosphere"}) do local x=Lighting:FindFirstChild(n); if x then x:Destroy() end end
+Lighting.ClockTime=18.1; Lighting.Brightness=2.4; Lighting.Ambient=Color3.fromRGB(78,82,96); Lighting.OutdoorAmbient=Color3.fromRGB(108,110,128)
+local cc=Instance.new("ColorCorrectionEffect"); cc.Name="BBYAVATAR_Color"; cc.Contrast=.1; cc.Saturation=-.04; cc.Parent=Lighting
+local atm=Instance.new("Atmosphere"); atm.Name="BBYAVATAR_Atmosphere"; atm.Density=.14; atm.Haze=.8; atm.Parent=Lighting
 
-local old = Workspace:FindFirstChild(ROOT)
-if old then old:Destroy() end
+local function part(parent,name,size,cf,mat,col)
+ local p=Instance.new("Part"); p.Name=name;p.Size=size;p.CFrame=cf;p.Anchored=true;p.Material=mat or Enum.Material.SmoothPlastic;p.Color=col or Color3.fromRGB(32,34,42);p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=parent;return p
+end
+local function sign(p,text,face)
+ local g=Instance.new("SurfaceGui");g.Face=face or Enum.NormalId.Front;g.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;g.PixelsPerStud=34;g.Parent=p
+ local l=Instance.new("TextLabel");l.Size=UDim2.fromScale(1,1);l.BackgroundTransparency=1;l.Font=Enum.Font.GothamBlack;l.Text=text;l.TextColor3=Color3.fromRGB(245,245,248);l.TextScaled=true;l.TextWrapped=true;l.Parent=g
+end
+local function prompt(p,action,obj,category,remote)
+ local q=Instance.new("ProximityPrompt");q.ActionText=action;q.ObjectText=obj;q.HoldDuration=0;q.MaxActivationDistance=12;q.RequiresLineOfSight=false;q.Parent=p;q.Triggered:Connect(function(plr) remote:FireClient(plr,category) end)
+end
+local root=Instance.new("Folder");root.Name=ROOT;root.Parent=Workspace;root:SetAttribute("BuildVersion","3.0");root:SetAttribute("Experience","BBYAVATAR");root:SetAttribute("UXRevision","MANNEQUIN_SOCIAL_HUB")
+local rem=Instance.new("Folder");rem.Name="BBYAVATAR";rem.Parent=ReplicatedStorage
+local open=Instance.new("RemoteEvent");open.Name="OpenCatalog";open.Parent=rem
 
-local oldRemote = ReplicatedStorage:FindFirstChild("BBYAVATAR")
-if oldRemote then oldRemote:Destroy() end
+-- architectural shell
+part(root,"Floor",Vector3.new(196,1,156),CFrame.new(0,0,0),Enum.Material.Concrete,Color3.fromRGB(23,24,29))
+part(root,"BackWall",Vector3.new(196,34,1),CFrame.new(0,17,-77.5),nil,Color3.fromRGB(16,17,22))
+part(root,"LeftWall",Vector3.new(1,34,156),CFrame.new(-97.5,17,0),nil,Color3.fromRGB(16,17,22))
+part(root,"RightWall",Vector3.new(1,34,156),CFrame.new(97.5,17,0),nil,Color3.fromRGB(16,17,22))
+local header=part(root,"BrandHeader",Vector3.new(54,7,2),CFrame.new(0,16,69),Enum.Material.Metal,Color3.fromRGB(36,39,50));sign(header,"BBYAVATAR  •  FIND YOUR NEXT LOOK")
+local spawn=Instance.new("SpawnLocation");spawn.Name="Spawn";spawn.Size=Vector3.new(10,1,10);spawn.CFrame=CFrame.new(0,1.5,63)*CFrame.Angles(0,math.rad(180),0);spawn.Anchored=true;spawn.Neutral=true;spawn.Transparency=.75;spawn.Parent=root
+local runway=part(root,"Runway",Vector3.new(30,1,112),CFrame.new(0,.7,4),Enum.Material.SmoothPlastic,Color3.fromRGB(43,46,57))
+for _,x in ipairs({-15,15}) do part(root,"RunwayGlow",Vector3.new(.3,.08,112),CFrame.new(x,.57,4),Enum.Material.Neon,Color3.fromRGB(105,116,165)) end
 
-for _, effectName in ipairs({"BBYAVATAR_Color", "BBYAVATAR_Atmosphere"}) do
-    local oldEffect = Lighting:FindFirstChild(effectName)
-    if oldEffect then oldEffect:Destroy() end
+-- central hero / featured area
+local hero=part(root,"HeroStage",Vector3.new(34,1.4,18),CFrame.new(0,1,-52),Enum.Material.Marble,Color3.fromRGB(225,225,230));prompt(hero,"DISCOVER","FEATURED LOOKS","FEATURED",open)
+local hs=part(root,"HeroSign",Vector3.new(42,8,1),CFrame.new(0,6,-61),nil,Color3.fromRGB(75,66,110));sign(hs,"FEATURED LOOKS\nCURATED DAILY")
+
+-- category boutiques with mannequin-like R15 preview silhouettes
+local categories={{"TRENDING",-66,38,Color3.fromRGB(101,72,170)},{"NEW DROPS",66,38,Color3.fromRGB(45,112,170)},{"STREETWEAR",-66,8,Color3.fromRGB(135,77,55)},{"CYBER",66,8,Color3.fromRGB(39,128,136)},{"LUXURY",-66,-22,Color3.fromRGB(142,112,49)},{"CUTE",66,-22,Color3.fromRGB(154,79,130)},{"BALI",-66,-52,Color3.fromRGB(116,84,52)},{"CREATORS",66,-52,Color3.fromRGB(61,105,75)}}
+local function mannequin(parent,x,z,idx)
+ local m=Instance.new("Model");m.Name="LookPreview_"..idx;m.Parent=parent
+ local col=Color3.fromRGB(205,207,216)
+ local torso=part(m,"Torso",Vector3.new(2.6,3.4,1.4),CFrame.new(x,4,z),Enum.Material.SmoothPlastic,col)
+ part(m,"Head",Vector3.new(2,2,2),CFrame.new(x,6.7,z),Enum.Material.SmoothPlastic,col).Shape=Enum.PartType.Ball
+ part(m,"LeftArm",Vector3.new(.9,3.2,.9),CFrame.new(x-1.75,4,z),nil,col);part(m,"RightArm",Vector3.new(.9,3.2,.9),CFrame.new(x+1.75,4,z),nil,col)
+ part(m,"LeftLeg",Vector3.new(1,3.4,1),CFrame.new(x-.7,1.2,z),nil,col);part(m,"RightLeg",Vector3.new(1,3.4,1),CFrame.new(x+.7,1.2,z),nil,col)
+ local halo=Instance.new("PointLight");halo.Color=Color3.fromRGB(180,190,255);halo.Brightness=.5;halo.Range=7;halo.Parent=torso
+end
+for i,c in ipairs(categories) do
+ local model=Instance.new("Model");model.Name="Boutique_"..c[1];model.Parent=root
+ local base=part(model,"Base",Vector3.new(34,1,22),CFrame.new(c[2],.7,c[3]),nil,Color3.fromRGB(30,32,39));prompt(base,"BROWSE",c[1],c[1],open)
+ local wall=part(model,"Header",Vector3.new(34,7,1),CFrame.new(c[2],5,c[3]-10.5),nil,c[4]);sign(wall,string.format("%02d  %s",i,c[1]))
+ for s=-1,1 do local px=c[2]+s*9;part(model,"Pod",Vector3.new(6,1,6),CFrame.new(px,1,c[3]+3),Enum.Material.Marble,Color3.fromRGB(218,218,223));mannequin(model,px,c[3]+3,tostring(s+2)) end
 end
 
-Lighting.ClockTime = 17.8
-Lighting.Brightness = 2.2
-Lighting.Ambient = Color3.fromRGB(78, 82, 96)
-Lighting.OutdoorAmbient = Color3.fromRGB(105, 108, 125)
+-- social utility area: avatar studio, photo studio, community board
+local studio=part(root,"AvatarStudio",Vector3.new(24,1,16),CFrame.new(-34,.7,58),nil,Color3.fromRGB(50,58,82));prompt(studio,"CREATE LOOK","AVATAR STUDIO","STUDIO",open)
+local ss=part(root,"AvatarStudioSign",Vector3.new(24,6,1),CFrame.new(-34,4.5,50.5),nil,Color3.fromRGB(55,67,105));sign(ss,"AVATAR STUDIO")
+local photo=part(root,"PhotoStudio",Vector3.new(24,1,16),CFrame.new(34,.7,58),nil,Color3.fromRGB(73,51,70));prompt(photo,"OPEN","PHOTO STUDIO","PHOTO",open)
+local ps=part(root,"PhotoStudioSign",Vector3.new(24,6,1),CFrame.new(34,4.5,50.5),nil,Color3.fromRGB(95,64,91));sign(ps,"PHOTO STUDIO")
+local community=part(root,"CommunityBoard",Vector3.new(28,9,1),CFrame.new(0,6,42),nil,Color3.fromRGB(42,48,58));sign(community,"COMMUNITY LOOKS\nCOMING NEXT • CREATOR SPOTLIGHT • SAVED OUTFITS")
 
-local color = Instance.new("ColorCorrectionEffect")
-color.Name = "BBYAVATAR_Color"
-color.Brightness = 0.02
-color.Contrast = 0.08
-color.Saturation = -0.06
-color.Parent = Lighting
+-- seating/social dwell points
+for _,x in ipairs({-24,24}) do for _,z in ipairs({28,-36}) do local bench=part(root,"SocialBench",Vector3.new(10,1.2,3),CFrame.new(x,1.2,z),Enum.Material.Wood,Color3.fromRGB(82,67,61));part(root,"BenchBack",Vector3.new(10,3,.6),CFrame.new(x,2.6,z+1.2),Enum.Material.Wood,Color3.fromRGB(82,67,61)) end end
 
-local atmosphere = Instance.new("Atmosphere")
-atmosphere.Name = "BBYAVATAR_Atmosphere"
-atmosphere.Density = 0.18
-atmosphere.Offset = 0.08
-atmosphere.Haze = 1.1
-atmosphere.Glare = 0.05
-atmosphere.Parent = Lighting
-
-local function makePart(parent, name, size, cframe, material, partColor)
-    local p = Instance.new("Part")
-    p.Name = name
-    p.Size = size
-    p.CFrame = cframe
-    p.Anchored = true
-    p.Material = material or Enum.Material.SmoothPlastic
-    p.Color = partColor or Color3.fromRGB(34, 36, 44)
-    p.TopSurface = Enum.SurfaceType.Smooth
-    p.BottomSurface = Enum.SurfaceType.Smooth
-    p.Parent = parent
-    return p
-end
-
-local function surfaceLabel(part, text, face, textSize, textColor)
-    local gui = Instance.new("SurfaceGui")
-    gui.Name = "Sign"
-    gui.Face = face or Enum.NormalId.Front
-    gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-    gui.PixelsPerStud = 40
-    gui.AlwaysOnTop = false
-    gui.Parent = part
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.fromScale(1, 1)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBlack
-    label.Text = text
-    label.TextColor3 = textColor or Color3.fromRGB(245, 245, 248)
-    label.TextWrapped = true
-    label.TextScaled = textSize == nil
-    if textSize then label.TextSize = textSize end
-    label.Parent = gui
-    return label
-end
-
-local function addSoftLight(part, lightColor, range, brightness)
-    local light = Instance.new("SurfaceLight")
-    light.Face = Enum.NormalId.Front
-    light.Angle = 110
-    light.Range = range or 12
-    light.Brightness = brightness or 0.8
-    light.Color = lightColor
-    light.Shadows = false
-    light.Parent = part
-end
-
-local root = Instance.new("Folder")
-root.Name = ROOT
-root.Parent = Workspace
-root:SetAttribute("BuildVersion", "2.1")
-root:SetAttribute("Experience", "BBYAVATAR")
-root:SetAttribute("UXRevision", "WAYFINDING_A")
-
-local shell = Instance.new("Folder")
-shell.Name = "Architecture"
-shell.Parent = root
-
-makePart(shell, "Floor", Vector3.new(180, 1, 140), CFrame.new(0, 0, 0), Enum.Material.Concrete, Color3.fromRGB(25, 26, 31))
-makePart(shell, "BackWall", Vector3.new(180, 32, 1), CFrame.new(0, 16, -69.5), Enum.Material.SmoothPlastic, Color3.fromRGB(18, 19, 24))
-makePart(shell, "LeftWall", Vector3.new(1, 32, 140), CFrame.new(-89.5, 16, 0), Enum.Material.SmoothPlastic, Color3.fromRGB(18, 19, 24))
-makePart(shell, "RightWall", Vector3.new(1, 32, 140), CFrame.new(89.5, 16, 0), Enum.Material.SmoothPlastic, Color3.fromRGB(18, 19, 24))
-
--- Entrance framing creates a clear first read on mobile without floating BillboardGui text.
-makePart(shell, "EntranceLeft", Vector3.new(3, 16, 3), CFrame.new(-17, 8, 64), Enum.Material.Metal, Color3.fromRGB(58, 61, 73))
-makePart(shell, "EntranceRight", Vector3.new(3, 16, 3), CFrame.new(17, 8, 64), Enum.Material.Metal, Color3.fromRGB(58, 61, 73))
-local entranceHeader = makePart(shell, "EntranceHeader", Vector3.new(37, 4, 3), CFrame.new(0, 15, 64), Enum.Material.SmoothPlastic, Color3.fromRGB(31, 33, 41))
-surfaceLabel(entranceHeader, "BBYAVATAR", Enum.NormalId.Front)
-
-local spawn = Instance.new("SpawnLocation")
-spawn.Name = "Spawn"
-spawn.Size = Vector3.new(10, 1, 10)
-spawn.CFrame = CFrame.new(0, 1.5, 58) * CFrame.Angles(0, math.rad(180), 0)
-spawn.Anchored = true
-spawn.Neutral = true
-spawn.Transparency = 0.55
-spawn.Color = Color3.fromRGB(80, 84, 102)
-spawn.Parent = root
-
-local hero = makePart(root, "HeroWall", Vector3.new(80, 18, 1), CFrame.new(0, 12, -67.8), Enum.Material.SmoothPlastic, Color3.fromRGB(26, 28, 36))
-surfaceLabel(hero, "BBYAVATAR\nDISCOVER • CREATE • SAVE • SHOP", Enum.NormalId.Front)
-addSoftLight(hero, Color3.fromRGB(210, 218, 255), 16, 0.7)
-
-local runway = makePart(root, "Runway", Vector3.new(28, 1, 68), CFrame.new(0, 0.7, 18), Enum.Material.SmoothPlastic, Color3.fromRGB(46, 48, 58))
-local runwayLight = Instance.new("PointLight")
-runwayLight.Brightness = 1.4
-runwayLight.Range = 24
-runwayLight.Color = Color3.fromRGB(210, 218, 255)
-runwayLight.Parent = runway
-
--- Low-profile aisle strips provide directional structure while staying mobile/performance safe.
-for _, x in ipairs({-17, 17}) do
-    makePart(shell, "RunwayGuide_" .. tostring(x), Vector3.new(0.35, 0.08, 92), CFrame.new(x, 0.57, 4), Enum.Material.Neon, Color3.fromRGB(90, 96, 122))
-end
-
-local directory = makePart(root, "Directory", Vector3.new(46, 9, 1), CFrame.new(0, 6, 48.5), Enum.Material.SmoothPlastic, Color3.fromRGB(33, 35, 43))
-surfaceLabel(directory, "LEFT WING  ←  TRENDING • STREETWEAR • LUXURY • BALI\nCENTER  ↓  FEATURED LOOKS\nRIGHT WING  →  NEW DROPS • CYBER • CUTE • CREATORS", Enum.NormalId.Front, 24, Color3.fromRGB(232, 234, 242))
-addSoftLight(directory, Color3.fromRGB(190, 198, 235), 10, 0.5)
-
-local remoteRoot = Instance.new("Folder")
-remoteRoot.Name = "BBYAVATAR"
-remoteRoot.Parent = ReplicatedStorage
-local openEvent = Instance.new("RemoteEvent")
-openEvent.Name = "OpenCatalog"
-openEvent.Parent = remoteRoot
-
-local function makeZone(index, category, pos, accent)
-    local model = Instance.new("Model")
-    model.Name = string.format("Zone_%02d_%s", index, category)
-    model:SetAttribute("Category", category)
-    model.Parent = root
-
-    local base = makePart(model, "Base", Vector3.new(30, 1, 18), CFrame.new(pos), Enum.Material.SmoothPlastic, Color3.fromRGB(31, 33, 40))
-    local back = makePart(model, "SignWall", Vector3.new(30, 8, 1), CFrame.new(pos.X, 5, pos.Z - 8.5), Enum.Material.SmoothPlastic, accent)
-    surfaceLabel(back, string.format("%02d  %s", index, category), Enum.NormalId.Front)
-    addSoftLight(back, accent, 10, 0.45)
-
-    local rail = makePart(model, "DisplayRail", Vector3.new(24, 0.6, 2), CFrame.new(pos.X, 2, pos.Z - 2.5), Enum.Material.Metal, Color3.fromRGB(110, 114, 128))
-    rail.CanCollide = false
-
-    for slot = -1, 1 do
-        local pedestal = makePart(model, "Pedestal_" .. tostring(slot + 2), Vector3.new(5, 1.2, 5), CFrame.new(pos.X + slot * 8, 1.1, pos.Z + 2.5), Enum.Material.Marble, Color3.fromRGB(220, 220, 225))
-        pedestal:SetAttribute("Category", category)
-    end
-
-    local prompt = Instance.new("ProximityPrompt")
-    prompt.ActionText = "OPEN CATALOG"
-    prompt.ObjectText = category
-    prompt.HoldDuration = 0
-    prompt.MaxActivationDistance = 12
-    prompt.RequiresLineOfSight = false
-    prompt.Parent = base
-    prompt.Triggered:Connect(function(player)
-        openEvent:FireClient(player, category)
-    end)
-end
-
-local zones = {
-    {"TRENDING", Vector3.new(-58, 0.7, 40), Color3.fromRGB(101, 72, 170)},
-    {"NEW DROPS", Vector3.new(58, 0.7, 40), Color3.fromRGB(45, 112, 170)},
-    {"STREETWEAR", Vector3.new(-58, 0.7, 14), Color3.fromRGB(135, 77, 55)},
-    {"CYBER", Vector3.new(58, 0.7, 14), Color3.fromRGB(39, 128, 136)},
-    {"LUXURY", Vector3.new(-58, 0.7, -12), Color3.fromRGB(142, 112, 49)},
-    {"CUTE", Vector3.new(58, 0.7, -12), Color3.fromRGB(154, 79, 130)},
-    {"BALI", Vector3.new(-58, 0.7, -38), Color3.fromRGB(116, 84, 52)},
-    {"CREATORS", Vector3.new(58, 0.7, -38), Color3.fromRGB(61, 105, 75)},
-}
-
-for i, z in ipairs(zones) do
-    makeZone(i, z[1], z[2], z[3])
-end
-
-local featured = makePart(root, "FeaturedStage", Vector3.new(34, 1.5, 20), CFrame.new(0, 1, -47), Enum.Material.Marble, Color3.fromRGB(225, 225, 230))
-featured:SetAttribute("Category", "FEATURED")
-local featuredSign = makePart(root, "FeaturedSign", Vector3.new(34, 7, 1), CFrame.new(0, 5, -56.5), Enum.Material.SmoothPlastic, Color3.fromRGB(70, 65, 100))
-surfaceLabel(featuredSign, "FEATURED LOOKS", Enum.NormalId.Front)
-addSoftLight(featuredSign, Color3.fromRGB(125, 115, 180), 11, 0.55)
-local fp = Instance.new("ProximityPrompt")
-fp.ActionText = "DISCOVER"
-fp.ObjectText = "FEATURED LOOKS"
-fp.HoldDuration = 0
-fp.MaxActivationDistance = 14
-fp.RequiresLineOfSight = false
-fp.Parent = featured
-fp.Triggered:Connect(function(player)
-    openEvent:FireClient(player, "FEATURED")
-end)
-
-local utility = Instance.new("Folder")
-utility.Name = "UtilityZones"
-utility.Parent = root
-
-local editor = makePart(utility, "AvatarStudio", Vector3.new(22, 1, 14), CFrame.new(-34, 0.7, 56), Enum.Material.SmoothPlastic, Color3.fromRGB(54, 57, 72))
-local editorSign = makePart(utility, "AvatarStudioSign", Vector3.new(22, 6, 1), CFrame.new(-34, 4.5, 49.5), Enum.Material.SmoothPlastic, Color3.fromRGB(55, 67, 105))
-surfaceLabel(editorSign, "AVATAR STUDIO", Enum.NormalId.Front)
-addSoftLight(editorSign, Color3.fromRGB(110, 135, 210), 9, 0.45)
-local ep = Instance.new("ProximityPrompt")
-ep.ActionText = "CREATE LOOK"
-ep.ObjectText = "AVATAR STUDIO"
-ep.HoldDuration = 0
-ep.MaxActivationDistance = 12
-ep.RequiresLineOfSight = false
-ep.Parent = editor
-ep.Triggered:Connect(function(player) openEvent:FireClient(player, "STUDIO") end)
-
-local photo = makePart(utility, "PhotoStudio", Vector3.new(22, 1, 14), CFrame.new(34, 0.7, 56), Enum.Material.SmoothPlastic, Color3.fromRGB(54, 57, 72))
-local photoSign = makePart(utility, "PhotoStudioSign", Vector3.new(22, 6, 1), CFrame.new(34, 4.5, 49.5), Enum.Material.SmoothPlastic, Color3.fromRGB(95, 64, 91))
-surfaceLabel(photoSign, "PHOTO STUDIO", Enum.NormalId.Front)
-addSoftLight(photoSign, Color3.fromRGB(190, 126, 181), 9, 0.45)
-local pp = Instance.new("ProximityPrompt")
-pp.ActionText = "OPEN"
-pp.ObjectText = "PHOTO STUDIO"
-pp.HoldDuration = 0
-pp.MaxActivationDistance = 12
-pp.RequiresLineOfSight = false
-pp.Parent = photo
-pp.Triggered:Connect(function(player) openEvent:FireClient(player, "PHOTO") end)
-
-print("[BBYAVATAR] Showroom v2.1 wayfinding ready")
+-- simple runtime health markers for future automated QC
+root:SetAttribute("ZoneCount",#categories+3);root:SetAttribute("MobileSafe","true");root:SetAttribute("CatalogRemoteReady",true)
+print("[BBYAVATAR] Showroom v3.0 mannequin + social hub ready")
