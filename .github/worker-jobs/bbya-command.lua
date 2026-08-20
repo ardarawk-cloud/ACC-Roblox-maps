@@ -1,4 +1,4 @@
-print("[BBYA_JOB_BEGIN:vip-minimal-standing-qc-008]")
+print("[BBYA_JOB_BEGIN:vip-live-visual-qc-009]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -8,52 +8,55 @@ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
 local upper=root and root:FindFirstChild("UpperLevels")
 local vip=upper and upper:FindFirstChild("L2_VIP_Level")
 local minimal=vip and vip:FindFirstChild("VIPMinimalStanding")
-local oldPremium=vip and vip:FindFirstChild("PremiumVIPPass")
-local oldCeiling=vip and vip:FindFirstChild("VIPCeiling")
-print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|oldPremium="..tostring(oldPremium~=nil).."|oldCeiling="..tostring(oldCeiling~=nil))
+local restore=minimal and minimal:FindFirstChild("VIPNeonRoofSoundRestore")
+local neonPass=restore and restore:FindFirstChild("PerimeterNeonTrim")
+local roofPass=restore and restore:FindFirstChild("RoofDownlights")
+local soundPass=restore and restore:FindFirstChild("SuspendedCornerSound")
 
-local parts,seats,neon,surfaces,prompts,sounds=0,0,0,0,0,0
-local soundPlaying=false
-local soundVolume=-1
-local soundMax=-1
-local named={}
-if minimal then
- for _,d in ipairs(minimal:GetDescendants()) do
-  if d:IsA("BasePart") then
-   parts+=1
-   if d:IsA("Seat") or d:IsA("VehicleSeat") then seats+=1 end
-   if d.Material==Enum.Material.Neon then neon+=1 end
-   named[d.Name]=true
-  elseif d:IsA("SurfaceGui") or d:IsA("BillboardGui") then
-   surfaces+=1
-  elseif d:IsA("ProximityPrompt") then
-   prompts+=1
-  elseif d:IsA("Sound") then
-   sounds+=1
-   if d.Name=="VIPAmbientSound" then
-    soundPlaying=d.IsPlaying
-    soundVolume=d.Volume
-    soundMax=d.RollOffMaxDistance
-   end
-  end
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|restore="..tostring(restore~=nil))
+
+local neonCount,downlightCount,clusterCount,speakerCount,soundCount=0,0,0,0,0
+if neonPass then
+ for _,d in ipairs(neonPass:GetDescendants()) do
+  if d:IsA("BasePart") and d.Material==Enum.Material.Neon then neonCount+=1 end
  end
- print("META|standingOnly="..tostring(minimal:GetAttribute("StandingOnly")).."|furniture="..tostring(minimal:GetAttribute("FurnitureCount")).."|decor="..tostring(minimal:GetAttribute("DecorCount")).."|floor1Untouched="..tostring(minimal:GetAttribute("Floor1Untouched")))
 end
-print("COUNTS|parts="..parts.."|seats="..seats.."|neon="..neon.."|gui="..surfaces.."|prompts="..prompts.."|sounds="..sounds)
-print("SOUND|playing="..tostring(soundPlaying).."|volume="..tostring(soundVolume).."|maxDistance="..tostring(soundMax))
-print("ESSENTIAL|north="..tostring(named.NorthStandingFloor==true).."|south="..tostring(named.SouthStandingFloor==true).."|west="..tostring(named.WestStandingFloor==true).."|east="..tostring(named.EastStandingFloor==true).."|speakerL="..tostring(named.VIPSpeakerL==true).."|speakerR="..tostring(named.VIPSpeakerR==true))
+if roofPass then
+ for _,d in ipairs(roofPass:GetDescendants()) do
+  if d:IsA("SurfaceLight") and d.Name=="RoofDownlight" then downlightCount+=1 end
+ end
+end
+if soundPass then
+ for _,d in ipairs(soundPass:GetChildren()) do
+  if d:IsA("Model") and d.Name:match("^CornerCluster_") then clusterCount+=1 end
+ end
+ for _,d in ipairs(soundPass:GetDescendants()) do
+  if d:IsA("BasePart") and (d.Name=="SpeakerUpper" or d.Name=="SpeakerLower") then speakerCount+=1 end
+  if d:IsA("Sound") and d.Name=="CornerSpatialAudio" then soundCount+=1 end
+ end
+end
+
+print("RESTORE|neon="..neonCount.."|downlights="..downlightCount.."|clusters="..clusterCount.."|speakers="..speakerCount.."|sounds="..soundCount)
+if restore then
+ print("ATTR|neonSegments="..tostring(restore:GetAttribute("NeonSegmentCount")).."|roofLights="..tostring(restore:GetAttribute("RoofDownlightCount")).."|speakerCabinets="..tostring(restore:GetAttribute("SpeakerCabinetCount")).."|speakerClusters="..tostring(restore:GetAttribute("SpeakerClusterCount")))
+end
 
 local ps=Players:GetPlayers();local p=ps[1]
 if p then
  local hrp=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
- if hrp then hrp.CFrame=CFrame.lookAt(Vector3.new(46,27,-5),Vector3.new(0,26,22));print("TELEPORT|ok=true") end
+ if hrp then
+  hrp.CFrame=CFrame.lookAt(Vector3.new(0,27,-31),Vector3.new(0,34,0))
+  print("TELEPORT|ok=true")
+ end
 end
+
 local cam=Workspace.CurrentCamera
 if cam then
  cam.CameraType=Enum.CameraType.Scriptable
- cam.FieldOfView=82
- cam.CFrame=CFrame.lookAt(Vector3.new(49,32,-22),Vector3.new(0,26,22))
- print("CAMERA|minimal_vip_overview=true|pos="..tostring(cam.CFrame.Position))
+ cam.FieldOfView=78
+ cam.CFrame=CFrame.lookAt(Vector3.new(0,34,-58),Vector3.new(0,38,2))
+ print("CAMERA|vip_neon_roof_sound=true|pos="..tostring(cam.CFrame.Position))
 end
-task.wait(5)
-print("[BBYA_JOB_END:vip-minimal-standing-qc-008]")
+
+task.wait(6)
+print("[BBYA_JOB_END:vip-live-visual-qc-009]")
