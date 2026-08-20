@@ -1,4 +1,12 @@
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local remotes = ReplicatedStorage:FindFirstChild("ACC_MountainRemotes") or Instance.new("Folder")
+remotes.Name = "ACC_MountainRemotes"
+remotes.Parent = ReplicatedStorage
+local weatherRemote = remotes:FindFirstChild("Weather") or Instance.new("RemoteEvent")
+weatherRemote.Name = "Weather"
+weatherRemote.Parent = remotes
 
 local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
 atmosphere.Name = "ACC_MountainAtmosphere"
@@ -29,6 +37,7 @@ local function applyWeather(mode)
         atmosphere.Haze = 1.4
     end
     workspace:SetAttribute("ACC_Weather", mode)
+    weatherRemote:FireAllClients(mode)
 end
 
 applyWeather("CLEAR")
