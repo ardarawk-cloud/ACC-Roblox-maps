@@ -1,0 +1,62 @@
+name: BBYA MCP Setting Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mcp-setting-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find Studio MCP settings
+        shell: powershell
+        run: |
+          $env:USERPROFILE='C:\Users\Administrator'
+          $env:HOME='C:\Users\Administrator'
+          $env:LOCALAPPDATA='C:\Users\Administrator\AppData\Local'
+          $lines=@("timestamp=$(Get-Date -Format o)")
+          $lines+='REGISTRY_BEGIN'
+          try{$lines+=(Get-ItemProperty 'HKCU:\Software\Roblox\RobloxStudio' | Format-List * | Out-String)}catch{$lines+=$_.Exception.Message}
+          $lines+='REGISTRY_END'
+
+          $patterns='MCP','Model Context','Assistant','StudioMCP','mcp'
+          $roots=@(
+            'C:\Users\Administrator\AppData\Local\Roblox',
+            'C:\Users\Administrator\AppData\LocalLow\Roblox',
+            'C:\Users\Administrator\AppData\Roaming\Roblox'
+          )
+          $lines+='TEXT_MATCHES_BEGIN'
+          foreach($root in $roots){
+            if(Test-Path $root){
+              Get-ChildItem $root -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object {$_.Extension -in '.xml','.json','.txt','.cfg','.log','.toml','.ini'} |
+                ForEach-Object {
+                  $f=$_
+                  foreach($pat in $patterns){
+                    try{
+                      $matches=Select-String -Path $f.FullName -Pattern $pat -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -First 4
+                      foreach($m in $matches){$lines+=("{0}:{1}:{2}" -f $f.FullName,$m.LineNumber,$m.Line.Trim())}
+                    }catch{}
+                  }
+                }
+            }
+          }
+          $lines+='TEXT_MATCHES_END'
+          $text=($lines-join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-mcp-setting-probe.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA MCP setting probe [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
