@@ -5,6 +5,7 @@
     "Workspace": { "$className": "Workspace" },
     "ServerScriptService": {
       "$className": "ServerScriptService",
+      "TravelPasses": { "$path": "monetization/passes.luau" },
       "Entrance": { "$path": "20-entrance.server.lua" },
       "SiteBasement": { "$path": "21-site-basement.server.lua" },
       "RuntimeEditorServer": { "$path": "22-editor.server.lua" },
@@ -38,7 +39,13 @@
       "RooftopResort": { "$path": "70-rooftop-resort.server.lua" },
       "DJWallFinalMount": { "$path": "61-dj-wall-final-mount.server.lua" },
       "DJWallRenderBridge": { "$path": "62-dj-wall-render-bridge.server.lua" },
-      "SocialHangout": { "$path": "63-social-hangout.server.lua" }
+      "SocialHangout": { "$path": "63-social-hangout.server.lua" },
+      "WorldPromptCleanup": { "$path": "71-world-prompt-cleanup.server.lua" },
+      "VIPFloorNeonFix": { "$path": "72-vip-floor-neon-fix.server.lua" },
+      "RearSkatepark": { "$path": "73-skatepark.server.lua" },
+      "BasementPremiumUpgrade": { "$path": "74-basement-premium-upgrade.server.lua" },
+      "ClubGear": { "$path": "75-club-gear.server.lua" },
+      "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -55,7 +62,7 @@
         "DockStability": { "$path": "56-dock-stability.client.lua" },
         "DJWallClientRenderer": { "$path": "62-dj-wall-render.client.lua" },
         "SocialHangoutClient": { "$path": "63-social-hangout.client.lua" },
-        "SocialSafeArea": { "$path": "68-social-safearea.client.lua" }
+        "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" }
       }
     },
     "Lighting": {
