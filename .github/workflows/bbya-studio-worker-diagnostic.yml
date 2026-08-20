@@ -23,8 +23,6 @@ jobs:
           $lines = @()
           $lines += "timestamp=$(Get-Date -Format o)"
           $lines += "whoami=$(whoami)"
-          $lines += "SESSIONNAME=$env:SESSIONNAME"
-          $lines += "USERNAME=$env:USERNAME"
           $lines += "USERPROFILE=$env:USERPROFILE"
 
           $studio = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue
@@ -38,26 +36,27 @@ jobs:
             $lines += "ROBLOX_STUDIO_VISIBLE=false"
           }
 
-          $codex = Get-Command codex -ErrorAction SilentlyContinue
-          if ($codex) {
-            $lines += "CODEX_VISIBLE=true"
-            $lines += "CODEX_PATH=$($codex.Source)"
-          } else {
-            $lines += "CODEX_VISIBLE=false"
+          $codexPath = 'C:\Users\Administrator\AppData\Roaming\npm\codex.cmd'
+          $lines += "CODEX_PATH_EXISTS=$(Test-Path $codexPath)"
+          if (Test-Path $codexPath) {
+            try {
+              $version = (& $codexPath --version 2>&1 | Out-String).Trim()
+              $lines += "CODEX_VERSION=$version"
+            } catch {
+              $lines += "CODEX_VERSION_ERROR=$($_.Exception.Message)"
+            }
+            try {
+              $env:USERPROFILE = 'C:\Users\Administrator'
+              $env:HOME = 'C:\Users\Administrator'
+              $env:PATH = 'C:\Users\Administrator\AppData\Roaming\npm;' + $env:PATH
+              $mcp = (& $codexPath mcp list 2>&1 | Out-String).Trim()
+              $lines += "CODEX_MCP_LIST_BEGIN"
+              $lines += $mcp
+              $lines += "CODEX_MCP_LIST_END"
+            } catch {
+              $lines += "CODEX_MCP_LIST_ERROR=$($_.Exception.Message)"
+            }
           }
-
-          $node = Get-Command node -ErrorAction SilentlyContinue
-          if ($node) {
-            $lines += "NODE_VISIBLE=true"
-            $lines += "NODE_PATH=$($node.Source)"
-          } else {
-            $lines += "NODE_VISIBLE=false"
-          }
-
-          $q = (quser 2>$null | Out-String).Trim()
-          $lines += "QUSER_BEGIN"
-          $lines += $q
-          $lines += "QUSER_END"
 
           $text = ($lines -join "`n") + "`n"
           $bytes = [Text.Encoding]::UTF8.GetBytes($text)
@@ -69,20 +68,12 @@ jobs:
             "X-GitHub-Api-Version" = "2022-11-28"
             "User-Agent" = "BBYA-Studio-Worker"
           }
-
-          $sha = $null
-          try {
-            $existing = Invoke-RestMethod -Method Get -Uri $api -Headers $headers
-            $sha = $existing.sha
-          } catch {
-            if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
-          }
-
+          $existing = Invoke-RestMethod -Method Get -Uri $api -Headers $headers
           $body = @{
             message = "Record BBYA Studio worker diagnostic [skip ci]"
             content = $content
             branch = "main"
+            sha = $existing.sha
           }
-          if ($sha) { $body.sha = $sha }
           $json = $body | ConvertTo-Json
           Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body $json -ContentType "application/json"
