@@ -1,5 +1,6 @@
-timestamp=2026-08-20T21:04:08.6086902+00:00
-2026-08-20T21:04:09.366Z,36.366833,1560,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
+timestamp=2026-08-20T21:07:13.9579326+00:00
+dialog_confirmed=Run
+2026-08-20T21:07:16.476Z,37.476234,2164,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -18,16 +19,53 @@ local emitters=0
 local downlights=0
 local nonWhite=0
 local minY,ma
-2026-08-20T21:04:09.415Z,36.415768,2084,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
-2026-08-20T21:04:09.505Z,36.505707,2084,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x21d860b1ac0 windowHandle=0x170438 dims=350x128
-2026-08-20T21:04:09.505Z,36.505707,2084,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x21d860b1ac0
-2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] NamedMutex(0000021DFA54F430, name:InstallerInfo.log)
-2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] ~NamedMutex(0000021DFA54F430, name:InstallerInfo.log)
-2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] NamedMutex(0000021DFA54F3F0, name:InstallerInfo.log)
-2026-08-20T21:04:12.332Z,39.332893,1560,6 [DFLog::NamedMutex] ~NamedMutex(0000021DFA54F3F0, name:InstallerInfo.log)
-2026-08-20T21:04:12.353Z,39.353989,2084,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:04:13.300Z,40.300800,1efc,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T21:04:13.300Z,40.300800,1efc,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2204 ms: Error
-2026-08-20T21:04:13.300Z,40.300800,1efc,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T21:04:13.300Z,40.300800,20b0,12 [DFLog::HttpTraceError] HttpResponse(#232 0x21dd810d8a8) time:2205.1ms (net:2205.0ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T21:04:13.300Z,40.300800,20b0,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:07:16.477Z,37.477242,2164,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=true|ceiling=true|geo=true
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] COUNTS|segments=25|emitters=27|downlights=15|nonWhite=0
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] HEIGHT|emitterY=43.82..43.82|roofUnderside=44.00|gap=0.18
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] BOUNDS|x=-55.5..56.5|z=-20.0..16.5
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] META|ceilingY=43.82|style=White Geometric Triangle Frames|whiteOnly=true|shape=Connected triangles and polygons
+2026-08-20T21:07:16.485Z,37.485279,2018,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:07:16.487Z,37.487289,2018,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
+2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] NamedMutex(000002C6209DF430, name:InstallerInfo.log)
+2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] ~NamedMutex(000002C6209DF430, name:InstallerInfo.log)
+2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] NamedMutex(000002C6209DF3F0, name:InstallerInfo.log)
+2026-08-20T21:07:17.511Z,38.511124,2164,6 [DFLog::NamedMutex] ~NamedMutex(000002C6209DF3F0, name:InstallerInfo.log)
+2026-08-20T21:07:17.540Z,38.540661,1750,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:07:18.296Z,39.296928,1328,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:07:18.296Z,39.296928,1328,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2231 ms: Error
+2026-08-20T21:07:18.296Z,39.296928,1328,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:07:18.296Z,39.296928,18f8,12 [DFLog::HttpTraceError] HttpResponse(#338 0x2c6adc59358) time:2232.1ms (net:2232.0ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:07:18.296Z,39.296928,18f8,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:07:20.691Z,41.691502,2164,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
+local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+
+local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+local upper=root and root:FindFirstChild("UpperLevels")
+local vip=upper and upper:FindFirstChild("L2_VIP_Level")
+local premium=vip and vip:FindFirstChild("PremiumVIPPass")
+local ceiling=premium and premium:FindFirstChild("VIPCeiling")
+local pass=ceiling and ceiling:FindFirstChild("GeometricWhiteCeiling")
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|premium="..tostring(premium~=nil).."|ceiling="..tostring(ceiling~=nil).."|geo="..tostring(pass~=nil))
+
+local segments=0
+local emitters=0
+local downlights=0
+local nonWhite=0
+local minY,ma
+2026-08-20T21:07:20.691Z,41.691502,0bf0,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=true|ceiling=true|geo=true
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] COUNTS|segments=25|emitters=27|downlights=15|nonWhite=0
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] HEIGHT|emitterY=43.82..43.82|roofUnderside=44.00|gap=0.18
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] BOUNDS|x=-55.5..56.5|z=-20.0..16.5
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] META|ceilingY=43.82|style=White Geometric Triangle Frames|whiteOnly=true|shape=Connected triangles and polygons
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:07:20.697Z,41.697487,2018,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
+2026-08-20T21:07:21.510Z,42.510288,2018,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-geometric-white-ceiling-qc-007]
