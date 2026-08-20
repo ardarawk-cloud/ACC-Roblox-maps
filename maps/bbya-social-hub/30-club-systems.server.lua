@@ -2,6 +2,7 @@ local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Workspace=game:GetService("Workspace")
+local SoundService=game:GetService("SoundService")
 
 local folder=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 folder.Name="BBYAClubRemotes";folder.Parent=ReplicatedStorage
@@ -29,8 +30,49 @@ local SUPPORT_PRODUCTS={
  {label="250",productId=0},
 }
 
-local sound=Workspace:FindFirstChild("BBYAClubSound") or Instance.new("Sound")
-sound.Name="BBYAClubSound";sound.Volume=.62;sound.Looped=false;sound.RollOffMode=Enum.RollOffMode.InverseTapered;sound.RollOffMinDistance=18;sound.RollOffMaxDistance=220;sound.EmitterSize=28;sound.Parent=Workspace
+-- Main Club audio is emitted physically from the DJ/stage instead of playing as a world-global sound.
+local emitter=Workspace:FindFirstChild("BBYAClubSoundEmitter")
+if not emitter then
+ emitter=Instance.new("Part")
+ emitter.Name="BBYAClubSoundEmitter"
+ emitter.Size=Vector3.new(.5,.5,.5)
+ emitter.CFrame=CFrame.new(0,7,35)
+ emitter.Anchored=true
+ emitter.CanCollide=false
+ emitter.CanTouch=false
+ emitter.CanQuery=false
+ emitter.Transparency=1
+ emitter.Parent=Workspace
+end
+
+local group=SoundService:FindFirstChild("BBYAClubMaster")
+if not group then
+ group=Instance.new("SoundGroup")
+ group.Name="BBYAClubMaster"
+ group.Volume=.95
+ group.Parent=SoundService
+end
+local eq=group:FindFirstChild("ClubEQ")
+if not eq then
+ eq=Instance.new("EqualizerSoundEffect")
+ eq.Name="ClubEQ"
+ eq.LowGain=2.5
+ eq.MidGain=-.5
+ eq.HighGain=1
+ eq.Parent=group
+end
+
+local sound=Workspace:FindFirstChild("BBYAClubSound",true) or Instance.new("Sound")
+sound.Name="BBYAClubSound"
+sound.Volume=.7
+sound.Looped=false
+sound.RollOffMode=Enum.RollOffMode.InverseTapered
+sound.RollOffMinDistance=28
+sound.RollOffMaxDistance=260
+sound.EmitterSize=34
+sound.SoundGroup=group
+sound.Parent=emitter
+
 local current=1
 local function validTrack(i)local t=PLAYLIST[i];return t and t.id and tostring(t.id)~="" end
 local function playTrack(i)
@@ -66,4 +108,4 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 task.delay(2,function()if not sound.IsPlaying then playTrack(1) end end)
-print("[BBYA] Hybrid DJ LIVE with Creator Store playlist")
+print("[BBYA] Main Club spatial DJ audio LIVE from stage emitter")
