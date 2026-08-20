@@ -90,7 +90,9 @@ local function markDirty(player) revision[player]=(revision[player] or 0)+1 end
 
 local function save(player,force)
     local data=state[player]
-    if not data or player:GetAttribute("WP_DexLoadFailed")==true then return false end
+    if not data
+        or player:GetAttribute("WP_DexLoadFailed")==true
+        or player:GetAttribute("WP_DataReadOnly")==true then return false end
     if saving[player] then if force then forcePending[player]=true end return false end
     local currentRevision=revision[player] or 0
     if not force and currentRevision<=(savedRevision[player] or 0) then return true end
@@ -109,7 +111,9 @@ local function save(player,force)
     player:SetAttribute("WP_DexSaveHealthy",ok)
     if ok then savedRevision[player]=math.max(savedRevision[player] or 0,targetRevision) end
 
-    local rerun=forcePending[player]==true or (revision[player] or 0)>(savedRevision[player] or 0)
+    -- Coalesce only after a successful write. Retry exhaustion trips protected
+    -- mode instead of recursively scheduling another DataStore write.
+    local rerun=ok and (forcePending[player]==true or (revision[player] or 0)>(savedRevision[player] or 0))
     local nextForce=forcePending[player]==true
     forcePending[player]=nil
     if rerun and player.Parent then task.defer(save,player,nextForce) end
