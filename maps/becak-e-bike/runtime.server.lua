@@ -73,19 +73,26 @@ end
 
 local function labelOn(partObj, text)
     local gui = Instance.new("BillboardGui")
-    gui.Size = UDim2.fromOffset(260, 70)
-    gui.StudsOffset = Vector3.new(0, 5, 0)
-    gui.AlwaysOnTop = true
+    gui.Size = UDim2.fromOffset(150, 38)
+    gui.StudsOffset = Vector3.new(0, 4, 0)
+    gui.AlwaysOnTop = false
+    gui.MaxDistance = 48
+    gui.LightInfluence = 0.3
     gui.Parent = partObj
     local t = Instance.new("TextLabel")
     t.Size = UDim2.fromScale(1,1)
-    t.BackgroundTransparency = 0.25
+    t.BackgroundTransparency = 0.18
     t.BackgroundColor3 = Color3.fromRGB(16,20,24)
     t.TextColor3 = Color3.new(1,1,1)
-    t.TextScaled = true
+    t.TextScaled = false
+    t.TextSize = 12
+    t.TextWrapped = true
     t.Font = Enum.Font.GothamBold
     t.Text = text
     t.Parent = gui
+    local corner=Instance.new("UICorner")
+    corner.CornerRadius=UDim.new(0,8)
+    corner.Parent=t
 end
 
 local function promptOn(parent, action, objectText, hold)
@@ -146,7 +153,7 @@ local districts = {
 }
 for _,d in ipairs(districts) do
     local marker = part(world,"District_"..d[1],Vector3.new(18,1,18),CFrame.new(d[2]),d[3],Enum.Material.Neon,false)
-    marker.Transparency = 0.15
+    marker.Transparency = 0.65
     labelOn(marker,d[1])
 end
 
@@ -191,7 +198,7 @@ labelOn(spawn,"BECAK E-BIKE HQ")
 
 -- Interactive landmarks
 local chargePad = part(interactives,"ChargingStation",Vector3.new(28,1,20),CFrame.new(-45,0.6,-85),Color3.fromRGB(60,190,220),Enum.Material.Neon,true)
-labelOn(chargePad,"CHARGING STATION")
+labelOn(chargePad,"CHARGING")
 local chargePrompt = promptOn(chargePad,"Charge Battery","E-Bike Charger",0.6)
 local garagePad = part(interactives,"Garage",Vector3.new(32,1,22),CFrame.new(-115,0.6,-85),Color3.fromRGB(235,170,55),Enum.Material.Neon,true)
 labelOn(garagePad,"GARASI PAK JAYA")
@@ -209,7 +216,7 @@ local destinations = {
 }
 for _,d in ipairs(destinations) do
     local p=part(interactives,"Destination_"..d.name,Vector3.new(14,0.5,14),CFrame.new(d.pos),Color3.fromRGB(70,220,135),Enum.Material.Neon,false)
-    p.Transparency=0.45
+    p.Transparency=0.7
     p:SetAttribute("DestinationName",d.name)
 end
 
@@ -266,43 +273,35 @@ local function createBecak(player)
     local wc=Instance.new("WeldConstraint") wc.Part0=chassis wc.Part1=cabin wc.Parent=chassis
     local canopy=part(m,"Canopy",Vector3.new(6.2,0.5,5.0),chassis.CFrame*CFrame.new(0,4.2,-2.1),Color3.fromRGB(235,220,170),Enum.Material.Fabric,false)
     canopy.Anchored=false local wcan=Instance.new("WeldConstraint") wcan.Part0=chassis wcan.Part1=canopy wcan.Parent=chassis
-    for i,offset in ipairs({Vector3.new(-3,-0.2,-2.7),Vector3.new(3,-0.2,-2.7),Vector3.new(0,-0.2,3.2)}) do
-        local wh=part(m,"Wheel"..i,Vector3.new(2.3,2.3,0.8),chassis.CFrame*CFrame.new(offset),Color3.fromRGB(25,25,27),Enum.Material.SmoothPlastic,false)
-        wh.Shape=Enum.PartType.Cylinder wh.Anchored=false wh.CFrame=wh.CFrame*CFrame.Angles(0,0,math.rad(90))
-        local ww=Instance.new("WeldConstraint") ww.Part0=chassis ww.Part1=wh ww.Parent=chassis
+    for _,x in ipairs({-2.7,2.7}) do
+        local wheel=part(m,"FrontWheel",Vector3.new(1.1,4.2,4.2),chassis.CFrame*CFrame.new(x,-0.5,-3.1)*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(24,25,26),Enum.Material.SmoothPlastic,false)
+        wheel.Shape=Enum.PartType.Cylinder wheel.Anchored=false local ww=Instance.new("WeldConstraint") ww.Part0=chassis ww.Part1=wheel ww.Parent=chassis
     end
-    local lamp=part(m,"HeadLamp",Vector3.new(1.1,1.1,0.4),chassis.CFrame*CFrame.new(0,1.1,-5.1),Color3.fromRGB(255,245,190),Enum.Material.Neon,false)
-    lamp.Anchored=false local wl=Instance.new("WeldConstraint") wl.Part0=chassis wl.Part1=lamp wl.Parent=chassis
-    local gyro=Instance.new("BodyGyro") gyro.MaxTorque=Vector3.new(0,9e6,0) gyro.P=9000 gyro.D=500 gyro.CFrame=chassis.CFrame gyro.Parent=chassis
-    local vel=Instance.new("BodyVelocity") vel.MaxForce=Vector3.new(1.2e6,0,1.2e6) vel.P=5000 vel.Velocity=Vector3.zero vel.Parent=chassis
+    local back=part(m,"RearWheel",Vector3.new(1.1,4.5,4.5),chassis.CFrame*CFrame.new(0,-0.5,3.5)*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(24,25,26),Enum.Material.SmoothPlastic,false)
+    back.Shape=Enum.PartType.Cylinder back.Anchored=false local wb=Instance.new("WeldConstraint") wb.Part0=chassis wb.Part1=back wb.Parent=chassis
+    local vel=Instance.new("BodyVelocity") vel.MaxForce=Vector3.new(80000,0,80000) vel.P=6000 vel.Velocity=Vector3.zero vel.Parent=chassis
+    local gyro=Instance.new("BodyGyro") gyro.MaxTorque=Vector3.new(0,150000,0) gyro.P=9000 gyro.D=600 gyro.CFrame=chassis.CFrame gyro.Parent=chassis
     playerVehicles[player]=m
-    m:SetAttribute("SpawnCFrameX",chassis.Position.X)
-    seat:GetPropertyChangedSignal("Occupant"):Connect(function()
-        if seat.Occupant then
-            local char=seat.Occupant.Parent
-            local p=Players:GetPlayerFromCharacter(char)
-            if p==player then pcall(function() chassis:SetNetworkOwner(nil) end) end
-        end
-    end)
-    return m,seat,chassis,gyro,vel
+    return m,seat,chassis,vel,gyro
 end
 
 local vehicleControllers={}
 local function registerVehicle(player)
-    local m,seat,chassis,gyro,vel=createBecak(player)
-    vehicleControllers[player]={model=m,seat=seat,chassis=chassis,gyro=gyro,vel=vel,heading=math.rad(180)}
+    local m,seat,chassis,vel,gyro=createBecak(player)
+    vehicleControllers[player]={model=m,seat=seat,chassis=chassis,vel=vel,gyro=gyro,heading=math.rad(180)}
 end
 
--- Passenger pickup nodes
+-- Passenger nodes
 local passengerSpawns={
-    Vector3.new(-120,2,20),Vector3.new(-260,2,300),Vector3.new(-300,2,-140),Vector3.new(70,2,20),
-    Vector3.new(260,2,-300),Vector3.new(360,2,20),Vector3.new(200,2,300),Vector3.new(-80,2,390),
+    Vector3.new(-250,2,25),Vector3.new(-370,2,285),Vector3.new(-295,2,-130),Vector3.new(120,2,25),
+    Vector3.new(250,2,210),Vector3.new(410,2,45),Vector3.new(280,2,-315),Vector3.new(-70,2,330),
 }
 local passengerNames={"Pak Budi","Bu Sari","Made","Rina","Pak Joko","Dewi","Agus","Komang"}
 local function createPassenger(index,pos)
     local node=part(passengers,"Passenger_"..index,Vector3.new(3,5,3),CFrame.new(pos),Color3.fromRGB(245,185-(index%3)*20,95+(index%4)*25),Enum.Material.SmoothPlastic,false)
     node.Shape=Enum.PartType.Cylinder
-    labelOn(node,passengerNames[index].."\nButuh Becak")
+    node.Transparency=0.82
+    labelOn(node,passengerNames[index])
     local pr=promptOn(node,"Pick Up",passengerNames[index],0.2)
     pr.Triggered:Connect(function(player)
         if activeTrips[player] then toast(player,"Selesaikan perjalanan aktif dulu.") return end
@@ -312,10 +311,10 @@ local function createPassenger(index,pos)
         end
         local dest=destinations[math.random(1,#destinations)]
         activeTrips[player]={passenger=passengerNames[index],destination=dest.name,pos=dest.pos,start=v.PrimaryPart.Position}
-        node.Transparency=0.75 pr.Enabled=false
+        node.Transparency=1 pr.Enabled=false
         toast(player,passengerNames[index].." naik. Antar ke "..dest.name..".")
         pushState(player)
-        task.delay(18,function() if node.Parent then node.Transparency=0 pr.Enabled=true end end)
+        task.delay(18,function() if node.Parent then node.Transparency=0.82 pr.Enabled=true end end)
     end)
 end
 for i,pos in ipairs(passengerSpawns) do createPassenger(i,pos) end
