@@ -1,7 +1,8 @@
 {
   "api_ok": true,
   "list_http": "200",
-  "created": [
+  "created": [],
+  "updated": [
     {
       "name": "BBYA DJ Wall Message",
       "price": 2,
@@ -26,25 +27,47 @@
       "name": "BBYA Support 100",
       "price": 100,
       "id": 3709047104
-    },
-    {
-      "name": "BBYA Support 250",
-      "price": 250,
-      "id": 3709047106
-    },
-    {
-      "name": "BBYA Support 500",
-      "price": 500,
-      "id": 3709047107
-    },
-    {
-      "name": "BBYA Support 1000",
-      "price": 1000,
-      "id": 3709047109
     }
   ],
-  "updated": [],
   "errors": [
+    {
+      "stage": "update",
+      "name": "BBYA Support 250",
+      "http": "429",
+      "body": {
+        "errors": [
+          {
+            "code": 0,
+            "message": ""
+          }
+        ]
+      },
+      "stderr": ""
+    },
+    {
+      "stage": "create",
+      "name": "BBYA Support 500",
+      "http": "400",
+      "body": {
+        "errorCode": "DuplicateProductName",
+        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
+        "field": "name",
+        "hint": null
+      },
+      "stderr": ""
+    },
+    {
+      "stage": "create",
+      "name": "BBYA Support 1000",
+      "http": "400",
+      "body": {
+        "errorCode": "DuplicateProductName",
+        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
+        "field": "name",
+        "hint": null
+      },
+      "stderr": ""
+    },
     {
       "stage": "create",
       "name": "BBYA Support 2000",
