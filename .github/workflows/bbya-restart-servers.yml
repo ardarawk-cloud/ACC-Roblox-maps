@@ -31,22 +31,14 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{}' "$url" || true)
           body=$(cat "$tmp")
-          python3 - <<'PY' "$http" "$body" > /tmp/bbya-restart.json
-import json,sys,datetime
-http=sys.argv[1]
-body=sys.argv[2]
-try:
-    parsed=json.loads(body) if body else None
-except Exception:
-    parsed=body
-print(json.dumps({
-  "requestedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-  "universeId":"8116636513",
-  "http":http,
-  "ok": http.startswith('2'),
-  "response":parsed
-},indent=2))
-PY
+          requested=$(date -u +%FT%TZ)
+          jq -n \
+            --arg requestedAt "$requested" \
+            --arg universeId '8116636513' \
+            --arg http "$http" \
+            --arg response "$body" \
+            '{requestedAt:$requestedAt,universeId:$universeId,http:$http,ok:($http|startswith("2")),response:$response}' \
+            > /tmp/bbya-restart.json
           cat /tmp/bbya-restart.json
           content=$(base64 -w0 /tmp/bbya-restart.json)
           api="https://api.github.com/repos/$REPO/contents/deploy-status/bbya-restart-servers.json"
