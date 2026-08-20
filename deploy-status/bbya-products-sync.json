@@ -1,11 +1,15 @@
 {
   "api_ok": true,
-  "complete": false,
-  "created": [],
-  "verified_by_price": [],
-  "duplicates": [
-    "BBYA Support 2000"
+  "complete": true,
+  "created": [
+    {
+      "name": "BBYA Prestige Support 2000",
+      "price": 2000,
+      "id": 3709048779
+    }
   ],
+  "verified_by_price": [],
+  "duplicates": [],
   "errors": [],
   "pages": [
     {
@@ -106,10 +110,10 @@
       "verified": true
     },
     {
-      "name": "BBYA Support 2000",
+      "name": "BBYA Prestige Support 2000",
       "price": 2000,
-      "id": 0,
-      "verified": false
+      "id": 3709048779,
+      "verified": true
     }
   ],
   "list_http": "200"
