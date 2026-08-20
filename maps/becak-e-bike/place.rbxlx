@@ -993,6 +993,7 @@ driveway.CanCollide=false
 driveway.CanTouch=false
 driveway.Material=Enum.Material.Asphalt
 driveway.Color=Color3.fromRGB(52,54,57)
+driveway:SetAttribute('Purpose','Seamless HQ road access')
 driveway.Parent=world
 
 -- A low-friction, stable chassis tune. Movement remains owned by the existing runtime controller.
@@ -1027,6 +1028,7 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakRoadAccess','v1.6')
+Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 print('[BECAK E-BIKE] Road access v1.6 active: flat roads + HQ driveway + chassis tune')
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BecakEBike_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE client HUD v1.0
 local Players = game:GetService("Players")
