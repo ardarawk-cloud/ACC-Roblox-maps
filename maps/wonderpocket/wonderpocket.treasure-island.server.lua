@@ -40,6 +40,7 @@ local collected={}
 local completed={}
 local lastTrigger={}
 local adventureConnections={}
+local protectionConnections={}
 local runToken={}
 local deadlines={}
 
@@ -56,6 +57,7 @@ local function clearRunState(player)
     player:SetAttribute("WP_TreasureProgress",0)
     player:SetAttribute("WP_TreasureIslandComplete",false)
     player:SetAttribute("WP_AdventureTimeExpired",false)
+    player:SetAttribute("WP_AdventureProtectedAbort",false)
 end
 
 local function expireRun(player,token)
@@ -76,6 +78,15 @@ local function beginRun(player)
     task.delay(DURATION_SECONDS+1,function()
         if player.Parent then expireRun(player,token) end
     end)
+end
+
+local function abortProtectedRun(player)
+    if not protected(player) or player:GetAttribute("WP_ActiveAdventure")~="TreasureIsland" then return end
+    local uid=player.UserId
+    runToken[uid]=(runToken[uid] or 0)+1
+    deadlines[uid]=nil
+    player:SetAttribute("WP_AdventureProtectedAbort",true)
+    player:SetAttribute("WP_ActiveAdventure","")
 end
 
 local function getState(player)
@@ -142,6 +153,12 @@ local function setupPlayer(player)
     adventureConnections[player]=player:GetAttributeChangedSignal("WP_AdventureStartedAt"):Connect(function()
         if player:GetAttribute("WP_ActiveAdventure")=="TreasureIsland" then beginRun(player) end
     end)
+    protectionConnections[player]={}
+    for _,attribute in ipairs({"WP_DataReadOnly","WP_DataLoadFailed","WP_DataLoaded"}) do
+        table.insert(protectionConnections[player],player:GetAttributeChangedSignal(attribute):Connect(function()
+            abortProtectedRun(player)
+        end))
+    end
 end
 
 Players.PlayerAdded:Connect(setupPlayer)
@@ -150,6 +167,8 @@ Players.PlayerRemoving:Connect(function(player)
     local uid=player.UserId
     collected[uid]=nil;completed[uid]=nil;runToken[uid]=nil;deadlines[uid]=nil
     if adventureConnections[player] then adventureConnections[player]:Disconnect();adventureConnections[player]=nil end
+    for _,connection in ipairs(protectionConnections[player] or {}) do connection:Disconnect() end
+    protectionConnections[player]=nil
     for key in pairs(lastTrigger) do
         if string.sub(key,1,#tostring(uid)+1)==tostring(uid)..":" then lastTrigger[key]=nil end
     end
