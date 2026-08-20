@@ -15,12 +15,12 @@ local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave", 20)
 local FIRST_SESSION_TARGET_SECONDS = math.max(60, math.floor(((Config.Onboarding and Config.Onboarding.FirstSessionTargetMinutes) or 10) * 60))
 
 local STEPS = {
-    {id="MeetWondi", text="Walk to Bubbi and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
-    {id="PlantCarrot", text="Go to your garden plot and plant your first carrot", done=function(p) return (tonumber(p:GetAttribute("WP_PlantedCount")) or 0) >= 1 end},
-    {id="BuyFurniture", text="Tap SHOP below, then buy one furniture item", done=function(p) return (tonumber(p:GetAttribute("WP_PurchasedFurnitureCount")) or 0) >= 1 end},
-    {id="PlaceFurniture", text="Close Shop → tap BUILD below → choose your furniture → PLACE it inside your Pocket plot", done=function(p) return (tonumber(p:GetAttribute("WP_PlacedCount")) or 0) >= 1 end},
-    {id="HarvestCarrot", text="Return to your garden when the carrot is ready, then HARVEST it", done=function(p) return (tonumber(p:GetAttribute("WP_HarvestCount")) or 0) >= 1 end},
-    {id="Treasure", text="Find the Adventure Gate → enter Treasure Island → collect one treasure", done=function(p) return (tonumber(p:GetAttribute("WP_TreasureProgress")) or 0) >= 1 or p:GetAttribute("WP_TreasureIslandComplete") == true end},
+    {id="MeetWondi", text="Meet Bubbi, your Wondi companion — walk over and tap SAY HI", done=function(p) return p:GetAttribute("WP_Tutorial_MetWondi") == true end},
+    {id="PlantCarrot", text="Grow your Pocket — go to your garden and plant the starter carrot", done=function(p) return (tonumber(p:GetAttribute("WP_PlantedCount")) or 0) >= 1 end},
+    {id="BuyFurniture", text="Decorate your Pocket — open SHOP below and buy one furniture item", done=function(p) return (tonumber(p:GetAttribute("WP_PurchasedFurnitureCount")) or 0) >= 1 end},
+    {id="PlaceFurniture", text="Make it yours — close Shop → BUILD → choose furniture → PLACE it inside your Pocket plot", done=function(p) return (tonumber(p:GetAttribute("WP_PlacedCount")) or 0) >= 1 end},
+    {id="HarvestCarrot", text="Care for your garden — return when the carrot is ready, then HARVEST it", done=function(p) return (tonumber(p:GetAttribute("WP_HarvestCount")) or 0) >= 1 end},
+    {id="Treasure", text="Discover beyond home — use Adventure Gate → Treasure Island → collect one treasure", done=function(p) return (tonumber(p:GetAttribute("WP_TreasureProgress")) or 0) >= 1 or p:GetAttribute("WP_TreasureIslandComplete") == true end},
 }
 
 local watchedAttributes = {
