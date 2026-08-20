@@ -39,3 +39,5 @@ developer_products:
     price: 2000
 
 output_path: maps/bbya-social-hub/monetization/products.luau
+
+# sync trigger after Developer Products scope update
