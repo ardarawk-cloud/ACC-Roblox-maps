@@ -1,0 +1,12 @@
+{
+  "http": "",
+  "ok": false,
+  "body": {
+    "errors": [
+      {
+        "code": 0,
+        "message": "Scope not authorized."
+      }
+    ]
+  }
+}
