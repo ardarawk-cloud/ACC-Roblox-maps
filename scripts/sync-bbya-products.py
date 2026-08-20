@@ -109,10 +109,22 @@ def by_name(items):
     return {str(item.get("name", "")).lower(): item for item in items if isinstance(item, dict) and item.get("name")}
 
 
+def get_product(pid):
+    return request("GET", f"{BASE}/{pid}/creator", retries=4)
+
+
+def verify_named_product(expected_name, pid):
+    status, body, _ = get_product(pid)
+    if status.startswith("2") and isinstance(body, dict) and str(body.get("name", "")).lower() == expected_name.lower():
+        return body
+    return None
+
+
 result = {
     "api_ok": False,
     "complete": False,
     "created": [],
+    "verified_by_id": [],
     "duplicates_waiting_visibility": [],
     "errors": [],
     "pages": [],
@@ -127,8 +139,30 @@ if error or not status.startswith("2"):
 else:
     result["api_ok"] = True
     remote = by_name(items)
-    created_ids = {}
 
+    # Validate IDs returned by the successful creation responses from the first direct sync.
+    known_hints = {
+        "BBYA Support 500": 3709047107,
+        "BBYA Support 1000": 3709047109,
+    }
+    for name, hint in known_hints.items():
+        if name.lower() not in remote:
+            body = verify_named_product(name, hint)
+            if body:
+                remote[name.lower()] = body
+                result["verified_by_id"].append({"name": name, "id": hint})
+
+    # Support 2000 was created by a concurrent legacy sync. Resolve its exact ID through
+    # the official universe-scoped GET endpoint; accept an ID only when the returned name matches.
+    if "bbya support 2000" not in remote:
+        for candidate in range(3709047110, 3709047121):
+            body = verify_named_product("BBYA Support 2000", candidate)
+            if body:
+                remote["bbya support 2000"] = body
+                result["verified_by_id"].append({"name": "BBYA Support 2000", "id": candidate})
+                break
+
+    created_ids = {}
     for name, price, description in DESIRED:
         if name.lower() in remote:
             continue
@@ -142,28 +176,30 @@ else:
         else:
             result["errors"].append({"stage": "create", "name": name, "http": http, "body": body, "stderr": stderr})
 
-    # Roblox Developer Products can be eventually consistent after creation.
-    # Re-list several times until every desired product becomes visible.
-    final_items = items
+    # Short eventual-consistency reconciliation after any new creations.
+    final_remote = dict(remote)
     final_pages = pages
-    for attempt in range(8):
-        visible = by_name(final_items)
-        if all(name.lower() in visible for name, _, _ in DESIRED):
+    for attempt in range(5):
+        if all(name.lower() in final_remote or name in created_ids for name, _, _ in DESIRED):
             break
         time.sleep(2 + attempt)
         st, listed, pg, err = list_all()
         final_pages = pg
-        if st.startswith("2") and listed:
-            final_items = listed
-        if err and attempt == 7:
+        if st.startswith("2"):
+            final_remote.update(by_name(listed))
+        if err and attempt == 4:
             result["errors"].append({"stage": "relist", "http": st, **err})
 
     result["pages"] = final_pages
-    visible = by_name(final_items)
     for name, price, _ in DESIRED:
-        remote_id = product_id(visible.get(name.lower(), {}))
+        remote_id = product_id(final_remote.get(name.lower(), {}))
         pid = remote_id or created_ids.get(name, 0)
-        result["products"].append({"name": name, "price": price, "id": pid, "visible": bool(remote_id)})
+        result["products"].append({
+            "name": name,
+            "price": price,
+            "id": pid,
+            "verified": bool(remote_id) or bool(created_ids.get(name, 0)),
+        })
 
 result["complete"] = result["api_ok"] and not result["errors"] and len(result["products"]) == len(DESIRED) and all(p["id"] > 0 for p in result["products"])
 STATUS_PATH.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
