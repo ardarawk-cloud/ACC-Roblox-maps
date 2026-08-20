@@ -1,11 +1,11 @@
-FAILED
+SUCCESS
 Action: MOUNTAIN PLACE WIPED
 Universe: 10744139279
 Place: 82661754996018
-Source commit: 698b12560f45107edaf5b68206eb8b6d45fcbfd9
-Run: 32429150603
+Source commit: cd1421d7363b31a8c974f4a8aeba7e7a5c3c8a1e
+Run: 32429291470
 Validate: success
-Publish: failure
-UTC: 2026-08-20T23:33:52Z
+Publish: success
+UTC: 2026-08-20T23:35:46Z
 --- publish log ---
-Mountain closed-test publish failed 400 { code: 'InvalidRequest', message: 'Invalid Content stream' }
+Mountain closed-test publish success { versionNumber: 27 }
