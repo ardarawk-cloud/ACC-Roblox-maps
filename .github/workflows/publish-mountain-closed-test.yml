@@ -31,9 +31,13 @@ jobs:
           node-version: '20'
 
       - name: Inject isolated Mountain runtime
-        run: node scripts/inject-mountain.js mountain-social
+        id: inject
+        continue-on-error: true
+        run: node scripts/inject-mountain.js mountain-social > mountain-inject.log 2>&1
 
       - name: Validate target lock and package
+        id: validate
+        continue-on-error: true
         shell: bash
         run: |
           grep -q '10744139279' maps/registry.json
@@ -43,16 +47,40 @@ jobs:
           grep -q 'ACC_Mountain_QC' maps/mountain-social/place.rbxlx
 
       - name: Publish closed-test build
+        id: publish
+        if: steps.inject.outcome == 'success' && steps.validate.outcome == 'success'
+        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-        run: node scripts/publish-mountain-closed-test.js
+        run: node scripts/publish-mountain-closed-test.js > mountain-publish.log 2>&1
 
-      - name: Record successful publish receipt
+      - name: Record publish diagnostic receipt
+        if: always()
         shell: bash
         run: |
-          printf 'SUCCESS\nUniverse: 10744139279\nPlace: 82661754996018\nSource commit: %s\nRun: %s\nUTC: %s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > maps/mountain-social/PUBLISH-STATUS.txt
+          STATUS='FAILED'
+          if [ '${{ steps.inject.outcome }}' = 'success' ] && [ '${{ steps.validate.outcome }}' = 'success' ] && [ '${{ steps.publish.outcome }}' = 'success' ]; then STATUS='SUCCESS'; fi
+          {
+            echo "$STATUS"
+            echo 'Universe: 10744139279'
+            echo 'Place: 82661754996018'
+            echo "Source commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_RUN_ID"
+            echo "Inject: ${{ steps.inject.outcome }}"
+            echo "Validate: ${{ steps.validate.outcome }}"
+            echo "Publish: ${{ steps.publish.outcome }}"
+            echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo '--- inject log ---'
+            cat mountain-inject.log 2>/dev/null || true
+            echo '--- publish log ---'
+            cat mountain-publish.log 2>/dev/null || true
+          } > maps/mountain-social/PUBLISH-STATUS.txt
           git config user.name 'ACC Mountain Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add maps/mountain-social/PUBLISH-STATUS.txt
-          git commit -m 'Record Mountain closed-test publish success [skip ci]'
+          git commit -m 'Record Mountain publish diagnostic [skip ci]' || true
           git push
+
+      - name: Fail run when publish failed
+        if: steps.inject.outcome != 'success' || steps.validate.outcome != 'success' || steps.publish.outcome != 'success'
+        run: exit 1
