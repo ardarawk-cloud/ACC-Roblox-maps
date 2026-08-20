@@ -422,7 +422,7 @@ Players.PlayerAdded:Connect(function(player)
     if ok and type(saved)=="table" then for k,v in pairs(DEFAULT) do if saved[k]~=nil then d[k]=saved[k] end end end
     playerData[player]=d
     player:SetAttribute("BecakTrips",d.Trips)
-    player:SetAttribute("BecakVersion","1.8.0")
+    player:SetAttribute("BecakVersion","1.9.0")
     local stats=Instance.new("Folder") stats.Name="leaderstats" stats.Parent=player
     local coins=Instance.new("IntValue") coins.Name="Rupiah" coins.Value=d.Coins coins.Parent=stats
     local level=Instance.new("IntValue") level.Name="Level" level.Value=d.Level level.Parent=stats
@@ -446,7 +446,7 @@ game:BindToClose(function()
 end)
 
 print("[BECAK E-BIKE] runtime v"..VERSION.." initialized | Universe 10745325613 | Place 80994730522893")
-Workspace:SetAttribute("ACC_BecakRuntime","v1.8")
+Workspace:SetAttribute("ACC_BecakRuntime","v1.9")
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="D"><Properties><string name="Name">BecakEBike_CityDetails</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Nusakarya visual/detail pass v1.1
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -945,8 +945,8 @@ end
 
 Workspace:SetAttribute('ACC_BecakWorldPolish','v1.5')
 print('[BECAK E-BIKE] World polish v1.5 ready')
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — road access + drivability hotfix v1.8
--- Makes roads and sidewalks traversable by the low Cargo E-Bike 01 chassis.
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — road access + drivability hotfix v1.9
+-- Makes road/grass/sidewalk transitions seamless for the low Cargo E-Bike 01 chassis.
 -- Dedicated to maps/becak-e-bike only.
 
 local Workspace = game:GetService('Workspace')
@@ -969,23 +969,26 @@ local function tuneRoadSurface(p)
             p.CFrame = CFrame.new(p.Position.X,0.13,p.Position.Z) * (p.CFrame - p.CFrame.Position)
             return
         end
-        -- Road is only a visual skin over the continuous playable ground.
+        -- Road is a visual skin over the continuous playable ground.
         p.CanCollide = false
         p.CanTouch = false
         p.CanQuery = true
         p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
         p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
+        p:SetAttribute('BecakDriveSurface',true)
         return
     end
 
-    -- The original 1-stud sidewalks formed a hard curb that trapped the low e-bike.
-    -- Keep the sidewalk visible, but reduce it to a shallow mountable lip.
+    -- v1.9: sidewalks are visual-only. Even a shallow physical curb could still catch
+    -- the low chassis at oblique angles on mobile steering. The continuous ground below
+    -- now owns collision, so every grass -> sidewalk -> road transition is step-free.
     if string.match(p.Name,'^Sidewalk_') then
-        p.Size = Vector3.new(p.Size.X,0.16,p.Size.Z)
-        p.CFrame = CFrame.new(p.Position.X,0.085,p.Position.Z) * (p.CFrame - p.CFrame.Position)
-        p.CanCollide = true
+        p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
+        p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
+        p.CanCollide = false
         p.CanTouch = false
         p.CanQuery = true
+        p:SetAttribute('BecakSeamlessSidewalk',true)
         p:SetAttribute('BecakMountableCurb',true)
     end
 end
@@ -1000,8 +1003,8 @@ local oldDriveway = world:FindFirstChild('HQ_Driveway')
 if oldDriveway then oldDriveway:Destroy() end
 local driveway = Instance.new('Part')
 driveway.Name='HQ_Driveway'
-driveway.Size=Vector3.new(24,0.08,72)
-driveway.CFrame=CFrame.new(-80,0.05,-50)
+driveway.Size=Vector3.new(30,0.08,82)
+driveway.CFrame=CFrame.new(-80,0.05,-47)
 driveway.Anchored=true
 driveway.CanCollide=false
 driveway.CanTouch=false
@@ -1009,9 +1012,10 @@ driveway.CanQuery=true
 driveway.Material=Enum.Material.Asphalt
 driveway.Color=Color3.fromRGB(52,54,57)
 driveway:SetAttribute('Purpose','Seamless HQ road access')
+driveway:SetAttribute('BecakDriveSurface',true)
 driveway.Parent=world
 
--- Add explicit curb-cut strips at the four central sidewalk approaches.
+-- Visible curb-cut strips remain as navigation/readability cues, but never block physics.
 local curbCuts = world:FindFirstChild('BecakCurbCuts')
 if curbCuts then curbCuts:Destroy() end
 curbCuts=Instance.new('Folder')
@@ -1029,21 +1033,22 @@ local function curbCut(name,size,cf)
     p.Material=Enum.Material.Concrete
     p.Color=Color3.fromRGB(150,150,145)
     p:SetAttribute('BecakCurbCut',true)
+    p:SetAttribute('BecakDriveSurface',true)
     p.Parent=curbCuts
 end
-curbCut('CurbCut_Merdeka_N',Vector3.new(18,0.10,8),CFrame.new(-80,0.06,-25))
-curbCut('CurbCut_Merdeka_S',Vector3.new(18,0.10,8),CFrame.new(-80,0.06,25))
-curbCut('CurbCut_Nusantara_W',Vector3.new(8,0.10,18),CFrame.new(-25,0.06,-40))
-curbCut('CurbCut_Nusantara_E',Vector3.new(8,0.10,18),CFrame.new(25,0.06,-40))
+curbCut('CurbCut_Merdeka_N',Vector3.new(22,0.08,10),CFrame.new(-80,0.05,-25))
+curbCut('CurbCut_Merdeka_S',Vector3.new(22,0.08,10),CFrame.new(-80,0.05,25))
+curbCut('CurbCut_Nusantara_W',Vector3.new(10,0.08,22),CFrame.new(-25,0.05,-40))
+curbCut('CurbCut_Nusantara_E',Vector3.new(10,0.08,22),CFrame.new(25,0.05,-40))
 
 -- Low-friction, stable chassis tune. Movement remains owned by the existing runtime controller.
 local function tuneVehicle(model)
     if not model:IsA('Model') then return end
     local chassis=model:FindFirstChild('Chassis') or model.PrimaryPart
     if not chassis or not chassis:IsA('BasePart') then return end
-    chassis.CustomPhysicalProperties=PhysicalProperties.new(1.15,0.22,0.06,1,1)
+    chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.18,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.8')
+    model:SetAttribute('RoadAccessTune','v1.9')
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m)
@@ -1067,9 +1072,10 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakRoadAccess','v1.8')
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.9')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
-print('[BECAK E-BIKE] Road access v1.8 active: shallow sidewalks + curb cuts + HQ driveway')
+Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
+print('[BECAK E-BIKE] Road access v1.9 active: collision-free sidewalks + seamless curb transitions')
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="WQ"><Properties><string name="Name">BecakEBike_WorldQC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — world readability/performance QC v1.7
 -- Prevents billboard clutter and removes avoidable collision/query cost from decorative parts.
 
