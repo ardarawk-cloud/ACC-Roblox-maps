@@ -1,51 +1,53 @@
 {
-  "project": "Mountain Social Adventure",
-  "version": "1.0.0",
-  "enabled": false,
+  "project": "ACC Mountain Master",
+  "version": "3.0.0",
+  "enabled": true,
   "publishTarget": {
-    "universeId": "PUT_UNIVERSE_ID_HERE",
-    "placeId": "PUT_PLACE_ID_HERE"
+    "universeId": "10744139279",
+    "placeId": "82661754996018"
   },
   "world": {
     "size": 1800,
     "summitHeight": 620,
-    "routeLength": 12,
+    "routeCount": 3,
     "mobileFriendly": true,
-    "streamingReady": true
+    "streamingReady": true,
+    "targetSessionMinutes": "45-90"
   },
-  "journey": [
-    "Basecamp ACC",
-    "Gerbang Hutan",
-    "Sungai Batu",
-    "Air Terjun Lumina",
-    "Camp Rimba",
-    "Tebing Angin",
-    "Hutan Kabut",
-    "Jembatan Awan",
-    "Camp Atas",
-    "Ridge Batu",
-    "Lautan Awan",
-    "Summit ACC"
+  "routes": [
+    {"id":"GREEN","name":"Scenic Trail","difficulty":1,"focus":"casual/social/photo"},
+    {"id":"RED","name":"Expedition Trail","difficulty":2,"focus":"survival/exploration"},
+    {"id":"BLACK","name":"Extreme Trail","difficulty":3,"focus":"climbing/hardcore"}
   ],
   "biomes": [
     {"name":"Basecamp","heightMin":0,"heightMax":70},
     {"name":"LowerForest","heightMin":70,"heightMax":220},
     {"name":"MistForest","heightMin":220,"heightMax":390},
     {"name":"AlpineRidge","heightMin":390,"heightMax":540},
-    {"name":"SummitCloud","heightMin":540,"heightMax":680}
+    {"name":"DeathZone","heightMin":540,"heightMax":680}
   ],
+  "survival": {
+    "stamina": true,
+    "hydration": true,
+    "hunger": true,
+    "temperature": true,
+    "oxygen": true,
+    "progressiveByAltitude": true
+  },
+  "weather": ["CLEAR","FOG","RAIN","STORM","BLIZZARD"],
   "systems": {
     "dayNight": true,
     "sunriseSunset": true,
-    "fog": true,
-    "rain": true,
-    "campfire": true,
+    "dynamicWeather": true,
+    "campRecovery": true,
     "photoSpots": true,
     "hiddenTrail": true,
     "secretSummit": true,
     "checkpointSaveReady": true,
     "carryReady": true,
     "summitCounterReady": true,
-    "leaderboardReady": true
+    "leaderboardReady": true,
+    "vitalsHUD": true,
+    "threeRouteNetwork": true
   }
 }

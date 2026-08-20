@@ -9,8 +9,8 @@
       "file": "maps/bbya-social-hub/place.rbxlx"
     },
     "mountain-social": {
-      "name": "Mountain Social Adventure",
-      "enabled": false,
+      "name": "ACC Mountain Master",
+      "enabled": true,
       "universeId": "10744139279",
       "placeId": "82661754996018",
       "file": "maps/mountain-social/place.rbxlx"
