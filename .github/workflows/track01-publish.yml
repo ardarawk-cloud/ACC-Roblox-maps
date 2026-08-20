@@ -37,8 +37,9 @@ jobs:
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
+          if(String(c.version)!=='2.0.0') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
-          console.log('TRACK 01 target lock PASS');
+          console.log('TRACK 01 target lock PASS',c.version,c.artDirection);
           NODE
 
       - name: Build TRACK 01 masterplan place
@@ -50,12 +51,17 @@ jobs:
           set -euo pipefail
           test -s maps/track-01/place.rbxlx
           grep -q 'TRACK01_Runtime' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_Upgrade' maps/track-01/place.rbxlx
           grep -q 'TRACK01_Client' maps/track-01/place.rbxlx
           grep -q 'ACC_TRACK01_READY' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_UPGRADE_READY' maps/track-01/place.rbxlx
+          grep -q 'Faded rusty-red railway' maps/track-01/place.rbxlx
+          grep -q 'RustPatch' maps/track-01/place.rbxlx
+          grep -q 'PLATFORM 01' maps/track-01/place.rbxlx
           grep -q 'END OF LINE' maps/track-01/place.rbxlx
           grep -q 'THE YARD' maps/track-01/place.rbxlx
-          grep -q 'PLATFORM 01' maps/track-01/place.rbxlx
-          echo 'TRACK 01 masterplan validation PASS'
+          grep -q 'FireBarrel' maps/track-01/place.rbxlx
+          echo 'TRACK 01 v2 rusty-red masterplan validation PASS'
 
       - name: Publish TRACK 01 to Roblox
         id: publish
@@ -76,7 +82,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/track01-direct.json maps/track-01/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record TRACK 01 live publish [skip ci]"
+            git commit -m "Record TRACK 01 v2 live publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
