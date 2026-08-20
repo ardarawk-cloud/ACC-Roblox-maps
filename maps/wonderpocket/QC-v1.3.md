@@ -1,16 +1,25 @@
 # WONDERPOCKET QC — v1.3 Fail-Closed Data Safety
 
 ## Current closed-test baseline
-- Place version: **45**
+- Place version: **46**
 - Target: Universe `8805231520` → Place `124843214013484`
 - Public release: **closed** (`PublishAllowed = false`)
 - Registry: **disabled**
-- v45 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, save-health fail-closed protection, first-journey runtime checklist/timing, gameplay-first compact HUD, focused placement mode, one-button Android landscape `MENU`, and tutorial guidance fallback that points to MENU whenever SHOP/BUILD is temporarily hidden.
+- v46 includes persistent tutorial resume, Android placement/UI polish, low-part Wonder Square ambience, state-driven Retention/Starter Quest/WonderDex startup, save-health fail-closed protection, first-journey runtime checklist/timing, gameplay-first compact HUD, focused placement mode, one-button Android landscape `MENU`, tutorial MENU fallback, and an auto-collapsing tutorial objective pill for short Android landscape play.
 - v42 focused placement mode hides the normal dock, top HUD, and TEST button while positioning furniture; only ROTATE / PLACE / CANCEL plus a compact tutorial tracker remain.
 - v43 replaces the full-width top HUD with small identity/economy pills and reduces the normal Android landscape dock footprint.
 - v44 collapses SHOP / DEX / BUILD / SOCIAL into one `MENU` button during normal short-landscape play. Tutorial SHOP/BUILD steps auto-expand the dock so first-time guidance remains discoverable.
 - v45 hardens guidance against UI timing races: if the intended SHOP/BUILD action is not visible yet, the pulse moves to `MENU` with `OPEN MENU`, then switches to the intended action once visible.
+- v46 shows a full tutorial objective briefly after a step change, then collapses it to an approximately 236×44 px pill. Tapping the pill temporarily expands it again. Placement keeps the tracker compact.
 - Live/runtime gates below remain intentionally unchecked until observed in Roblox; code-side review is not treated as a runtime pass.
+
+## Observed Android evidence
+- [x] User-provided Android landscape screenshot showed a live WONDERPOCKET session reaching tutorial **4/6**.
+- [x] The same screenshot showed **TEST OK**, providing evidence that the core health indicator reached healthy state in that observed session.
+- [x] The screenshot showed BUILD placement controls available during step 4/6.
+- [ ] The screenshot does **not** prove that furniture placement completed successfully; keep placement runtime gate open.
+- [ ] The screenshot does **not** prove Harvest, Treasure Island, tutorial completion, or rejoin persistence; keep those gates open.
+- [ ] v46 compact MENU/tutorial-pill presentation still requires a fresh screenshot/runtime observation because the available screenshot predates these UI reductions.
 
 ## Code-side gate
 - [x] main player DataStore fails closed after retry exhaustion
@@ -41,6 +50,8 @@
 - [x] opening MENU reveals SHOP / DEX / BUILD / SOCIAL; opening any panel or entering placement collapses/hides it again
 - [x] tutorial SHOP/BUILD steps auto-expand the action dock so guidance never targets an inaccessible hidden action
 - [x] tutorial guidance falls back to pulsing `MENU` if SHOP/BUILD is hidden during a timing race
+- [x] short Android landscape tutorial objective auto-collapses after step-change emphasis and can be expanded again by tapping it
+- [x] placement mode keeps the tutorial objective compact while top HUD, TEST button, and normal dock are hidden
 - [x] placement mode hides top HUD, TEST button, and normal dock; only ROTATE / PLACE / CANCEL remain
 - [x] slow successful startup no longer false-times-out onboarding/tutorial/inventory/furniture/garden/Retention/Starter Quest/WonderDex
 - [x] `WP_TutorialStarted` is persisted in canonical main player data and critical-saved on first START
@@ -61,20 +72,21 @@
 - [x] registry remains disabled
 - [x] `PublishAllowed = false`
 
-## v45 Android clean first-session timing run — REQUIRED
-1. Use a fresh test account and join v45. `START MY POCKET` must be fully visible and TEST should move from `TEST...` to `TEST OK` after safe loading.
+## v46 Android clean first-session timing run — REQUIRED
+1. Use a fresh test account and join v46. `START MY POCKET` must be fully visible and TEST should move from `TEST...` to `TEST OK` after safe loading.
 2. Tap `START MY POCKET` and complete the six objectives **without rejoining**: Bubbi → Plant → SHOP/Buy → BUILD/Place → Harvest → Treasure.
 3. TEST panel journey bits must advance in order: `S/B/P/Buy/Pl/H/T/C`.
-4. During SHOP/BUILD tutorial steps, the compact dock may auto-expand so the guided action remains visible. If it is temporarily hidden due to timing, guidance must pulse `MENU` with `OPEN MENU`, then switch to SHOP/BUILD after opening.
-5. Outside guided SHOP/BUILD steps, normal Android landscape play should show one bottom `MENU` button instead of four persistent action buttons.
-6. During placement, the top HUD, TEST button, and normal dock must be hidden; only ROTATE / PLACE / CANCEL and the compact tutorial tracker should remain.
-7. SHOP guidance must highlight Star Lamp; BUILD guidance must highlight owned furniture; PLACE must pulse during placement.
-8. Android placement preview and server placement must agree on own Pocket ground/cottage floor; furniture must not sink or float.
-9. Treasure waypoint must switch from Adventure Gate to a chest after entering Treasure Island.
-10. On completion, TEST must report the journey time against the master target `10:00`; target result should be evaluated as `ON TARGET` or `OVER TARGET` from the runtime measurement, not assumed.
-11. No red runtime errors.
+4. After each objective change, the tutorial tracker should show the full instruction briefly, then collapse to a small pill on short Android landscape. Tapping the pill should temporarily expand the full instruction again.
+5. During SHOP/BUILD tutorial steps, the compact dock may auto-expand so the guided action remains visible. If it is temporarily hidden due to timing, guidance must pulse `MENU` with `OPEN MENU`, then switch to SHOP/BUILD after opening.
+6. Outside guided SHOP/BUILD steps, normal Android landscape play should show one bottom `MENU` button instead of four persistent action buttons.
+7. During placement, the top HUD, TEST button, and normal dock must be hidden; only ROTATE / PLACE / CANCEL and the compact tutorial pill should remain.
+8. SHOP guidance must highlight Star Lamp; BUILD guidance must highlight owned furniture; PLACE must pulse during placement.
+9. Android placement preview and server placement must agree on own Pocket ground/cottage floor; furniture must not sink or float.
+10. Treasure waypoint must switch from Adventure Gate to a chest after entering Treasure Island.
+11. On completion, TEST must report the journey time against the master target `10:00`; target result should be evaluated as `ON TARGET` or `OVER TARGET` from the runtime measurement, not assumed.
+12. No red runtime errors.
 
-## v45 Android rejoin persistence run — REQUIRED
+## v46 Android rejoin persistence run — REQUIRED
 1. Fresh test account: START, then exit/rejoin before Say Hi. Welcome must not return; step 1/6 resumes.
 2. Say Hi → rejoin. Next unfinished objective resumes.
 3. Plant → rejoin. Crop state and CarrotSeed must persist.
@@ -82,7 +94,7 @@
 5. Place furniture → rejoin. Furniture must return relative to the newly assigned plot.
 6. Harvest → verify exactly +12 Coins and +1 CarrotSeed.
 7. Collect one Treasure → tutorial completion must survive immediate rejoin.
-8. After tutorial completion, Android landscape normal play should return to the compact one-button MENU state.
+8. After tutorial completion, Android landscape normal play should return to the compact one-button MENU state and tutorial pill should disappear.
 9. Open TEST and confirm main/inventory/furniture/garden/WonderDex load/save states are healthy and the panel fits the Android viewport.
 
 ## Live Roblox failure/recovery gate — REQUIRED
