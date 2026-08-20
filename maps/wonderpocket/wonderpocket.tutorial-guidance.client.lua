@@ -252,6 +252,20 @@ local function findOwnedBuildButton(buildPanel)
     return nil
 end
 
+local function guideDockAction(premium, actionText)
+    local actionButton = findButton(premium, actionText)
+    if actionButton and actionButton.Visible then
+        attachButtonGuide(actionButton, "TAP ME")
+        return
+    end
+    local menuButton = findButton(premium, "MENU")
+    if menuButton and menuButton.Visible then
+        attachButtonGuide(menuButton, "OPEN MENU")
+        return
+    end
+    clearButtonGuide()
+end
+
 local function refreshButtonGuide(stepId)
     local premium = playerGui:FindFirstChild("WonderPocketPremiumUI")
     if not premium then
@@ -267,7 +281,7 @@ local function refreshButtonGuide(stepId)
             attachButtonGuide(findButtonContaining(shopPanel, "Star Lamp"), "BUY THIS")
             return
         end
-        attachButtonGuide(findButton(premium, "SHOP"), "TAP ME")
+        guideDockAction(premium, "SHOP")
         return
     end
 
@@ -280,7 +294,7 @@ local function refreshButtonGuide(stepId)
             attachButtonGuide(findOwnedBuildButton(buildPanel), "SELECT")
             return
         end
-        attachButtonGuide(findButton(premium, "BUILD"), "TAP ME")
+        guideDockAction(premium, "BUILD")
         return
     end
 
@@ -346,4 +360,4 @@ task.spawn(function()
     end
 end)
 
-print("[WONDERPOCKET] Guided tutorial buttons + contextual world waypoints ready")
+print("[WONDERPOCKET] Guided tutorial + compact MENU fallback + world waypoints ready")
