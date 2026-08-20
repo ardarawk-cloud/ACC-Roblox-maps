@@ -1,0 +1,7 @@
+timestamp=2026-08-20T13:20:27.0904634+00:00
+INIT_BEGIN
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"listChanged":true}},"serverInfo":{"name":"RobloxStudio","version":"1.0.0"},"instructions":"Studio MCP Proxy - bridges MCP clients with Roblox Studio"}}
+INIT_END
+LIST_STUDIOS_BEGIN
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\"studios\":[]}"}],"isError":false}}
+LIST_STUDIOS_END
