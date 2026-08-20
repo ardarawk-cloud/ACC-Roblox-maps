@@ -57,11 +57,17 @@ jobs:
           grep -q 'BecakEBike_CityDetails' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Masterplan' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_MasterplanClient' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_DriverPhone' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_MobileSafeArea' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_DriverNavigation' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_WorldQC' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakRuntime' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakMasterplanSystems' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike masterplan validation PASS'
+          grep -q 'ACC_BecakDriverNavigation' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakWorldQC' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.7 validation PASS'
 
       - name: Publish Becak E-Bike to Roblox
         id: publish
