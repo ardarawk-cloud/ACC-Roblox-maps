@@ -1,0 +1,38 @@
+name: BBYA Developer Products Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/monetization/rblxsync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-products:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync Roblox developer products
+        uses: dig1t/rblxsync@0f9565d5397cd52ecb42fd96678c39969ca0a0cd
+        with:
+          api_key: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          command: run
+          config: maps/bbya-social-hub/monetization/rblxsync.yml
+
+      - name: Persist generated product IDs
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main
+          git add maps/bbya-social-hub/monetization/rblxsync.yml \
+                  maps/bbya-social-hub/monetization/rblxsync-lock.yml \
+                  maps/bbya-social-hub/monetization/products.luau 2>/dev/null || true
+          git commit -m 'Update BBYA developer product IDs' || exit 0
+          git push
