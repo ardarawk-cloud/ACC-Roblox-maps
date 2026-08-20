@@ -7,30 +7,63 @@ on:
       - '.github/workflows/bbya-studio-worker-diagnostic.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   diagnose:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 5
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Inspect EC2 worker session
         shell: powershell
         run: |
-          Write-Host "=== IDENTITY ==="
-          whoami
-          Write-Host "SESSIONNAME=$env:SESSIONNAME"
-          Write-Host "USERNAME=$env:USERNAME"
-          Write-Host "USERPROFILE=$env:USERPROFILE"
-          Write-Host "=== ROBLOX STUDIO PROCESS ==="
+          New-Item -ItemType Directory -Force -Path deploy-status | Out-Null
+          $out = @()
+          $out += "timestamp=$(Get-Date -Format o)"
+          $out += "whoami=$(whoami)"
+          $out += "SESSIONNAME=$env:SESSIONNAME"
+          $out += "USERNAME=$env:USERNAME"
+          $out += "USERPROFILE=$env:USERPROFILE"
           $studio = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue
           if ($studio) {
-            $studio | Select-Object Id,ProcessName,SessionId,Path | Format-List
+            foreach ($p in $studio) {
+              $out += "ROBLOX_STUDIO_VISIBLE=true"
+              $out += "ROBLOX_STUDIO_PID=$($p.Id)"
+              $out += "ROBLOX_STUDIO_SESSION=$($p.SessionId)"
+              $out += "ROBLOX_STUDIO_PATH=$($p.Path)"
+            }
           } else {
-            Write-Host "ROBLOX_STUDIO_NOT_VISIBLE"
+            $out += "ROBLOX_STUDIO_VISIBLE=false"
           }
-          Write-Host "=== CODEX ==="
           $codex = Get-Command codex -ErrorAction SilentlyContinue
-          if ($codex) { $codex | Format-List Name,Source,Path,CommandType } else { Write-Host "CODEX_NOT_VISIBLE" }
-          Write-Host "=== NODE ==="
-          node --version 2>$null
-          Write-Host "=== ACTIVE USER SESSIONS ==="
-          quser 2>$null
+          if ($codex) {
+            $out += "CODEX_VISIBLE=true"
+            $out += "CODEX_PATH=$($codex.Source)"
+          } else {
+            $out += "CODEX_VISIBLE=false"
+          }
+          $node = Get-Command node -ErrorAction SilentlyContinue
+          if ($node) {
+            $out += "NODE_VISIBLE=true"
+            $out += "NODE_PATH=$($node.Source)"
+          } else {
+            $out += "NODE_VISIBLE=false"
+          }
+          $sessions = (quser 2>$null | Out-String).Trim()
+          $out += "QUSER_BEGIN"
+          $out += $sessions
+          $out += "QUSER_END"
+          $out | Set-Content -Encoding UTF8 deploy-status/bbya-studio-worker.txt
+
+      - name: Commit diagnostic result
+        shell: powershell
+        run: |
+          git config user.name "BBYA Studio Worker"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status/bbya-studio-worker.txt
+          git commit -m "Record BBYA Studio worker diagnostic [skip ci]" || exit 0
+          git push
