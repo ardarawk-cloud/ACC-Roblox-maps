@@ -55,7 +55,9 @@ end
 
 local function save(player, force)
     local data = state[player]
-    if not data or player:GetAttribute("WP_GardenLoadFailed")==true then return false end
+    if not data
+        or player:GetAttribute("WP_GardenLoadFailed")==true
+        or player:GetAttribute("WP_DataReadOnly")==true then return false end
     if saving[player] then
         if force then forcePending[player] = true end
         return false
@@ -85,7 +87,9 @@ local function save(player, force)
         player:SetAttribute("WP_GardenSaveHealthy", false)
     end
 
-    local rerun = forcePending[player] == true or (revision[player] or 0) > (savedRevision[player] or 0)
+    -- Coalesce only after a successful write. Retry exhaustion trips protected
+    -- mode instead of recursively scheduling another DataStore write.
+    local rerun = ok and (forcePending[player] == true or (revision[player] or 0) > (savedRevision[player] or 0))
     local nextForce = forcePending[player] == true
     forcePending[player] = nil
     if rerun and player.Parent and state[player] then task.defer(save, player, nextForce) end
