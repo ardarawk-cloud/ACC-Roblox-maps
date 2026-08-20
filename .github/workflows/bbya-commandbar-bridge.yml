@@ -1,0 +1,77 @@
+name: BBYA CommandBar Bridge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/bbya-commandbar-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Run harmless command in Studio
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $lines = @()
+          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          $lines += "timestamp=$(Get-Date -Format o)"
+          if (-not $proc) {
+            $lines += 'STUDIO_FOUND=false'
+          } else {
+            $lines += 'STUDIO_FOUND=true'
+            $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+            $editCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'commandBarScriptEditor')
+            $edit = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $editCondition)
+            $runCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'multiLineRunButtonContainer.commandBarRunButton')
+            $run = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $runCondition)
+            $lines += "EDIT_FOUND=$([bool]$edit)"
+            $lines += "RUN_FOUND=$([bool]$run)"
+            if ($edit) {
+              try {
+                $valuePattern = $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $valuePattern.SetValue('print("[BBYA_COMMAND_BRIDGE_OK]")')
+                $lines += 'SET_VALUE=true'
+              } catch {
+                $lines += "SET_VALUE_ERROR=$($_.Exception.Message)"
+              }
+            }
+            Start-Sleep -Milliseconds 300
+            if ($run) {
+              try {
+                $invoke = $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                $invoke.Invoke()
+                $lines += 'RUN_INVOKED=true'
+              } catch {
+                $lines += "RUN_ERROR=$($_.Exception.Message)"
+              }
+            }
+            Start-Sleep -Seconds 1
+            $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+            foreach ($log in $logs) {
+              $matches = Select-String -Path $log.FullName -Pattern 'BBYA_COMMAND_BRIDGE_OK' -SimpleMatch -ErrorAction SilentlyContinue
+              foreach ($m in $matches) { $lines += "LOG_MATCH=$($log.Name):$($m.LineNumber):$($m.Line)" }
+            }
+          }
+          $text = ($lines -join "`n") + "`n"
+          $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-commandbar-bridge.txt"
+          $headers = @{ Authorization="Bearer $env:GH_TOKEN"; Accept="application/vnd.github+json"; "X-GitHub-Api-Version"="2022-11-28"; "User-Agent"="BBYA-Studio-Worker" }
+          $sha = $null
+          try { $sha = (Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          $body = @{ message='Record BBYA command bar bridge [skip ci]'; content=$content; branch='main' }
+          if ($sha) { $body.sha = $sha }
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body | ConvertTo-Json) -ContentType 'application/json'
