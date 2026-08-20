@@ -1,11 +1,22 @@
+-- BBYA SOCIAL HUB — TRAVEL / PAID TELEPORT v2
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
-local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder",ReplicatedStorage)
-remotes.Name="BBYAClubRemotes"
-local tp=remotes:FindFirstChild("Teleport") or Instance.new("RemoteEvent",remotes)
-tp.Name="Teleport"
+local MarketplaceService=game:GetService("MarketplaceService")
 
--- Only destinations with known walkable geometry are exposed in the unified UI.
--- QueenSkybox is intentionally omitted for now: the current upper-level asset is still a solid placeholder shell.
+local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
+remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
+local tp=remotes:FindFirstChild("Teleport") or Instance.new("RemoteEvent")
+tp.Name="Teleport";tp.Parent=remotes
+local state=remotes:FindFirstChild("State")
+local internal=remotes:FindFirstChild("InternalTeleport") or Instance.new("BindableEvent")
+internal.Name="InternalTeleport";internal.Parent=remotes
+
+local productModule=script.Parent:FindFirstChild("MonetizationProducts")
+local PRODUCTS={TRAVEL={}}
+if productModule and productModule:IsA("ModuleScript") then
+ local ok,data=pcall(require,productModule)
+ if ok and type(data)=="table" then PRODUCTS=data end
+end
+
 local destinations={
  Arrival=CFrame.new(0,4,-58),
  Photo=CFrame.new(-39,3,-25),
@@ -16,14 +27,52 @@ local destinations={
  Pool=CFrame.new(0,47,-12),
  Basement=CFrame.new(0,-12,0),
 }
+local PAID={VIP=5,Rooftop=10,Basement=20}
 
-tp.OnServerEvent:Connect(function(player,key)
+local function isAdmin(player)
+ if not player then return false end
+ if player:GetAttribute("BBYAAdmin")==true then return true end
+ return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
+end
+
+local function toast(player,msg)
+ if state and state:IsA("RemoteEvent") then state:FireClient(player,"toast",msg) end
+end
+
+local function doTeleport(player,key)
  local cf=destinations[key]
- if not cf then return end
- local char=player.Character
- if not char then return end
- local root=char:FindFirstChild("HumanoidRootPart")
- if root then root.CFrame=cf end
+ if not cf then return false end
+ local char=player and player.Character
+ local hrp=char and char:FindFirstChild("HumanoidRootPart")
+ if not hrp then return false end
+ hrp.CFrame=cf
+ hrp.AssemblyLinearVelocity=Vector3.zero
+ hrp.AssemblyAngularVelocity=Vector3.zero
+ return true
+end
+
+internal.Event:Connect(function(player,key)
+ if doTeleport(player,key) then
+  local price=PAID[key]
+  if price then toast(player,string.format("%s access granted • %d R$",key,price)) end
+ end
 end)
 
-print("[BBYA] Verified travel destinations online; invalid Queen placeholder removed")
+tp.OnServerEvent:Connect(function(player,key)
+ key=tostring(key or "")
+ if not destinations[key] then return end
+ local price=PAID[key]
+ if not price or isAdmin(player) then
+  doTeleport(player,key)
+  return
+ end
+ local productId=PRODUCTS.TRAVEL and tonumber(PRODUCTS.TRAVEL[key]) or 0
+ if productId<=0 then
+  toast(player,"Travel purchase sedang sinkron. Coba lagi sebentar.")
+  return
+ end
+ player:SetAttribute("BBYATravelPurchase",key)
+ MarketplaceService:PromptProductPurchase(player,productId)
+end)
+
+print("[BBYA] Travel v2 online: Basement restored / VIP 5R / Rooftop 10R / Basement 20R")
