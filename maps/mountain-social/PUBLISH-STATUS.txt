@@ -1,13 +1,13 @@
-FAILED
+SUCCESS
 Universe: 10744139279
 Place: 82661754996018
-Source commit: 2d179738864c14364c328769266a6b29b872a752
-Run: 32353467179
+Source commit: 81076530e32cb45fa88695d60bcce37aeb255720
+Run: 32353526409
 Inject: success
 Validate: success
-Publish: failure
-UTC: 2026-08-20T09:21:43Z
+Publish: success
+UTC: 2026-08-20T09:22:25Z
 --- inject log ---
-[Mountain] Injected isolated runtime into maps/mountain-social/place.rbxlx
+[Mountain] Injected minimal BBYA-compatible Mountain runtime into maps/mountain-social/place.rbxlx
 --- publish log ---
-Mountain closed-test publish failed 400 { code: 'InvalidRequest', message: 'Invalid Content stream' }
+Mountain closed-test publish success { versionNumber: 4 }
