@@ -9,24 +9,37 @@ on:
 
 permissions:
   actions: write
-  contents: read
+  contents: write
 
 jobs:
   unblock:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel stuck BBYA self-hosted probes
+      - name: Cancel stuck BBYA self-hosted probes and report
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           SELF_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
-          api="https://api.github.com/repos/$REPO/actions/runs?status=in_progress&per_page=100"
+          api="https://api.github.com/repos/$REPO/actions/runs?per_page=100"
           data=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$api")
-          echo "$data" | jq -r '.workflow_runs[] | [.id,.name,.status,.created_at] | @tsv'
-          echo "$data" | jq -r --arg self "$SELF_RUN_ID" '.workflow_runs[] | select((.id|tostring)!=$self) | select(.name=="BBYA Studio View Menu Probe" or .name=="BBYA Floor 1 Live Studio Audit" or .name=="BBYA Studio Command Bar Bridge Test") | .id' | while read -r id; do
+          report="$(date -u +%FT%TZ)\n"
+          report+=$(echo "$data" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.created_at] | @tsv' | head -40)
+          report+=$'\n'
+
+          echo "$data" | jq -r --arg self "$SELF_RUN_ID" '.workflow_runs[] | select((.id|tostring)!=$self) | select(.status=="in_progress") | select(.name=="BBYA Studio View Menu Probe" or .name=="BBYA Floor 1 Live Studio Audit" or .name=="BBYA Studio Command Bar Bridge Test") | .id' | while read -r id; do
             [ -z "$id" ] && continue
-            echo "Cancelling stuck run $id"
             curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/actions/runs/$id/cancel" || true
           done
+
+          content=$(printf '%s' "$report" | base64 -w0)
+          path='deploy-status/bbya-runner-unblock.txt'
+          fileApi="https://api.github.com/repos/$REPO/contents/$path"
+          sha=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$fileApi" | jq -r '.sha // empty')
+          if [ -n "$sha" ]; then
+            body=$(jq -n --arg m 'Record BBYA runner unblock status [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}')
+          else
+            body=$(jq -n --arg m 'Record BBYA runner unblock status [skip ci]' --arg c "$content" '{message:$m,content:$c,branch:"main"}')
+          fi
+          curl -fsSL -X PUT -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" -d "$body" "$fileApi" >/dev/null
