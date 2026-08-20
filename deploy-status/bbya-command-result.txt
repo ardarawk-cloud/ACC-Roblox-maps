@@ -1,17 +1,26 @@
-timestamp=2026-08-20T21:20:44.4022289+00:00
+timestamp=2026-08-20T21:22:15.9478771+00:00
 mode=VIP_SOURCE_QC
 dialog_confirmed=Run
-2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
-2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=false|ceiling=false|geo=false
-2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
-2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] NamedMutex(00000247457DF430, name:InstallerInfo.log)
-2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] ~NamedMutex(00000247457DF430, name:InstallerInfo.log)
-2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] NamedMutex(00000247457DF3F0, name:InstallerInfo.log)
-2026-08-20T21:20:48.425Z,39.425667,06dc,6 [DFLog::NamedMutex] ~NamedMutex(00000247457DF3F0, name:InstallerInfo.log)
-2026-08-20T21:20:48.457Z,39.457443,1594,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:20:50.378Z,41.378410,06dc,6,Info [FLog::CreatorOutput] > -- BBYA SOCIAL HUB Ã¢â‚¬â€ VIP MINIMAL STANDING LOUNGE v3
+2026-08-20T21:22:18.151Z,38.151138,1560,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-minimal-standing-qc-008]
+2026-08-20T21:22:18.151Z,38.151138,1560,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:22:18.151Z,38.151138,1560,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|minimal=true|oldPremium=false|oldCeiling=false
+2026-08-20T21:22:18.152Z,38.152138,1560,6,Info [FLog::CreatorOutput] META|standingOnly=true|furniture=0|decor=0|floor1Untouched=true
+2026-08-20T21:22:18.152Z,38.152138,1560,6,Info [FLog::CreatorOutput] COUNTS|parts=14|seats=0|neon=0|gui=0|prompts=1|sounds=1
+2026-08-20T21:22:18.152Z,38.152138,1560,6,Info [FLog::CreatorOutput] SOUND|playing=true|volume=0.23999999463558197|maxDistance=105
+2026-08-20T21:22:18.152Z,38.152138,1560,6,Info [FLog::CreatorOutput] ESSENTIAL|north=true|south=true|west=true|east=true|speakerL=true|speakerR=true
+2026-08-20T21:22:18.152Z,38.152138,1560,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:22:18.153Z,38.153133,1560,6,Info [FLog::CreatorOutput] CAMERA|minimal_vip_overview=true|pos=49, 32, -22
+2026-08-20T21:22:20.005Z,40.005581,0568,6 [DFLog::NamedMutex] NamedMutex(00000178AF3DF430, name:InstallerInfo.log)
+2026-08-20T21:22:20.005Z,40.005581,0568,6 [DFLog::NamedMutex] ~NamedMutex(00000178AF3DF430, name:InstallerInfo.log)
+2026-08-20T21:22:20.005Z,40.005581,0568,6 [DFLog::NamedMutex] NamedMutex(00000178AF3DF3F0, name:InstallerInfo.log)
+2026-08-20T21:22:20.005Z,40.005581,0568,6 [DFLog::NamedMutex] ~NamedMutex(00000178AF3DF3F0, name:InstallerInfo.log)
+2026-08-20T21:22:20.058Z,40.058819,03a4,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:22:20.227Z,40.227421,232c,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:22:20.227Z,40.227421,232c,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2231 ms: Error
+2026-08-20T21:22:20.227Z,40.227421,232c,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:22:20.228Z,40.228413,1750,12 [DFLog::HttpTraceError] HttpResponse(#335 0x1793787a3c8) time:2232.2ms (net:2231.1ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:22:20.228Z,40.228413,1750,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:22:20.500Z,40.500706,0568,6,Info [FLog::CreatorOutput] > -- BBYA SOCIAL HUB Ã¢â‚¬â€ VIP MINIMAL STANDING LOUNGE v3
 -- Owner request: empty VIP. Standing/social space + sound only.
 -- No sofas, booths, bar, plants, gates, signs, ceiling art or decorative clutter.
 -- Floor 1 / DJ systems / monetization are untouched.
@@ -36,11 +45,15 @@ out.Name="VIPMinimalStanding"
 out:SetAttribute("Pass","VIP_MINIMAL_STANDING_V3")
 out:SetAttribute("FurnitureCount",0)
 out:SetAttribute("DecorCount",0
-2026-08-20T21:20:50.380Z,41.380409,06dc,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] [BBYA] VIP Minimal Standing v3 online: empty floor + safety rail + spatial sound
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=false|ceiling=false|geo=false
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
-2026-08-20T21:20:50.749Z,41.749142,06dc,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:22:20.503Z,40.503712,0568,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] [BBYA] VIP Minimal Standing v3 online: empty floor + safety rail + spatial sound
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-minimal-standing-qc-008]
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|minimal=true|oldPremium=false|oldCeiling=false
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] META|standingOnly=true|furniture=0|decor=0|floor1Untouched=true
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] COUNTS|parts=14|seats=0|neon=0|gui=0|prompts=1|sounds=1
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] SOUND|playing=true|volume=0.23999999463558197|maxDistance=105
+2026-08-20T21:22:20.510Z,40.510735,0568,6,Info [FLog::CreatorOutput] ESSENTIAL|north=true|south=true|west=true|east=true|speakerL=true|speakerR=true
+2026-08-20T21:22:20.512Z,40.512741,0568,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:22:20.512Z,40.512741,0568,6,Info [FLog::CreatorOutput] CAMERA|minimal_vip_overview=true|pos=49, 32, -22
+2026-08-20T21:22:23.193Z,43.193081,0568,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-minimal-standing-qc-008]
