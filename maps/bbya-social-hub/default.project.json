@@ -23,7 +23,8 @@
       "MainClubRealism": { "$path": "42-main-club-realism.server.lua" },
       "Floor1FrontPremium": { "$path": "43-floor1-front-premium.server.lua" },
       "Floor1VisualCleanup": { "$path": "44-floor1-visual-cleanup.server.lua" },
-      "Floor1LuxuryFinish": { "$path": "45-floor1-luxury-finish.server.lua" }
+      "Floor1LuxuryFinish": { "$path": "45-floor1-luxury-finish.server.lua" },
+      "Floor1UltraPremium": { "$path": "46-floor1-ultra-premium.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
