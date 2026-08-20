@@ -47,23 +47,35 @@ jobs:
         run: rojo --version
 
       - name: Sync permanent BBYA Travel Game Passes
+        id: gamepass_sync
+        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
         shell: bash
         run: python3 scripts/sync-bbya-gamepasses.py
 
-      - name: Persist Travel Game Pass IDs before build
+      - name: Persist Travel Game Pass IDs and diagnostics before build
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add maps/bbya-social-hub/monetization/passes.luau deploy-status/bbya-gamepasses-sync.json
+          if [ -f deploy-status/bbya-gamepasses-sync.json ]; then
+            git add deploy-status/bbya-gamepasses-sync.json
+          fi
+          git add maps/bbya-social-hub/monetization/passes.luau
           if ! git diff --cached --quiet; then
-            git commit -m "Update BBYA permanent travel pass IDs [skip ci]"
+            git commit -m "Update BBYA permanent travel pass IDs and diagnostics [skip ci]"
             git push origin HEAD:main
           fi
+
+      - name: Report Game Pass scope warning
+        if: steps.gamepass_sync.outcome == 'failure'
+        shell: bash
+        run: |
+          echo '::warning::BBYA Game Pass sync is incomplete. Map publish will continue. Check deploy-status/bbya-gamepasses-sync.json; the Open Cloud key may need game-pass:write for universe 8116636513.'
 
       - name: Build canonical BBYA preview place
         shell: bash
