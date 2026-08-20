@@ -1,5 +1,5 @@
-timestamp=2026-08-20T20:43:34.5043104+00:00
-2026-08-20T20:43:35.731Z,35.731819,0b10,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-linear-ceiling-qc-006]")
+timestamp=2026-08-20T21:04:08.6086902+00:00
+2026-08-20T21:04:09.366Z,36.366833,1560,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -10,24 +10,24 @@ local upper=root and root:FindFirstChild("UpperLevels")
 local vip=upper and upper:FindFirstChild("L2_VIP_Level")
 local premium=vip and vip:FindFirstChild("PremiumVIPPass")
 local ceiling=premium and premium:FindFirstChild("VIPCeiling")
-local pass=ceiling and ceiling:FindFirstChild("LinearCeilingPass")
-print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|premium="..tostring(premium~=nil).."|ceiling="..tostring(ceiling~=nil).."|linear="..tostring(pass~=nil))
+local pass=ceiling and ceiling:FindFirstChild("GeometricWhiteCeiling")
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|premium="..tostring(premium~=nil).."|ceiling="..tostring(ceiling~=nil).."|geo="..tostring(pass~=nil))
 
-local fixtures=0
-local surfaceLights=0
-local pointLights=0
+local segments=0
 local emitters=0
-local minX,maxX,m
-2026-08-20T20:43:35.767Z,35.767708,2300,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
-2026-08-20T20:43:35.876Z,35.876686,2300,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x21c29049760 windowHandle=0x3401b4 dims=350x128
-2026-08-20T20:43:35.876Z,35.876686,2300,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x21c29049760
-2026-08-20T20:43:38.862Z,38.862934,0b10,6 [DFLog::NamedMutex] NamedMutex(0000021C7C49F430, name:InstallerInfo.log)
-2026-08-20T20:43:38.862Z,38.862934,0b10,6 [DFLog::NamedMutex] ~NamedMutex(0000021C7C49F430, name:InstallerInfo.log)
-2026-08-20T20:43:38.862Z,38.862934,0b10,6 [DFLog::NamedMutex] NamedMutex(0000021C7C49F3F0, name:InstallerInfo.log)
-2026-08-20T20:43:38.862Z,38.862934,0b10,6 [DFLog::NamedMutex] ~NamedMutex(0000021C7C49F3F0, name:InstallerInfo.log)
-2026-08-20T20:43:38.885Z,38.885010,2300,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T20:43:39.214Z,39.214993,1fb8,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T20:43:39.214Z,39.214993,1fb8,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2220 ms: Error
-2026-08-20T20:43:39.214Z,39.214993,1fb8,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T20:43:39.214Z,39.214993,16f8,12 [DFLog::HttpTraceError] HttpResponse(#229 0x21c60cbf6f8) time:2220.8ms (net:2219.8ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T20:43:39.214Z,39.214993,16f8,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+local downlights=0
+local nonWhite=0
+local minY,ma
+2026-08-20T21:04:09.415Z,36.415768,2084,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
+2026-08-20T21:04:09.505Z,36.505707,2084,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x21d860b1ac0 windowHandle=0x170438 dims=350x128
+2026-08-20T21:04:09.505Z,36.505707,2084,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x21d860b1ac0
+2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] NamedMutex(0000021DFA54F430, name:InstallerInfo.log)
+2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] ~NamedMutex(0000021DFA54F430, name:InstallerInfo.log)
+2026-08-20T21:04:12.331Z,39.331890,1560,6 [DFLog::NamedMutex] NamedMutex(0000021DFA54F3F0, name:InstallerInfo.log)
+2026-08-20T21:04:12.332Z,39.332893,1560,6 [DFLog::NamedMutex] ~NamedMutex(0000021DFA54F3F0, name:InstallerInfo.log)
+2026-08-20T21:04:12.353Z,39.353989,2084,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:04:13.300Z,40.300800,1efc,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:04:13.300Z,40.300800,1efc,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2204 ms: Error
+2026-08-20T21:04:13.300Z,40.300800,1efc,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:04:13.300Z,40.300800,20b0,12 [DFLog::HttpTraceError] HttpResponse(#232 0x21dd810d8a8) time:2205.1ms (net:2205.0ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:04:13.300Z,40.300800,20b0,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
