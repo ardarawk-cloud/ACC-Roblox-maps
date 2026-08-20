@@ -20,8 +20,17 @@ local PLAYLIST={
  {title="Welcome",id="137350000972072"},
  {title="Store",id="1837393392"},
 }
-
 local SUPPORT_PRODUCTS={{label="10",productId=0},{label="25",productId=0},{label="50",productId=0},{label="100",productId=0},{label="250",productId=0}}
+
+local function isAdmin(player)
+ if not player then return false end
+ if player:GetAttribute("BBYAAdmin")==true then return true end
+ if game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId then return true end
+ return false
+end
+local function denyTransport(player)
+ stateRemote:FireClient(player,"toast","DJ transport controls khusus admin. Gunakan Request untuk antrean lagu.")
+end
 
 local group=SoundService:FindFirstChild("BBYAClubMaster")
 if not group then group=Instance.new("SoundGroup");group.Name="BBYAClubMaster";group.Parent=SoundService end
@@ -69,9 +78,7 @@ local function setAllTrack(i)
  local soundId="rbxassetid://"..tostring(PLAYLIST[i].id)
  for _,s in ipairs(sounds) do s.SoundId=soundId;s.TimePosition=0 end
 end
-local function playAll()
- for _,s in ipairs(sounds) do s:Play() end
-end
+local function playAll()for _,s in ipairs(sounds) do s:Play() end end
 local function pauseAll()for _,s in ipairs(sounds) do s:Pause() end end
 local function resumeAll()for _,s in ipairs(sounds) do s:Resume() end end
 local function playTrack(i)
@@ -107,14 +114,23 @@ end
 masterSound.Ended:Connect(nextTrack)
 
 musicRemote.OnServerEvent:Connect(function(player,action,arg)
- if action=="list" then stateRemote:FireClient(player,"playlist",PLAYLIST)
- elseif action=="play" then playTrack(tonumber(arg) or current)
- elseif action=="request" then queueRequest(player,arg)
- elseif action=="queue" then stateRemote:FireClient(player,"djQueue",{position=0,count=#requestQueue,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
- elseif action=="pause" then pauseAll();fireMusicState(false)
- elseif action=="resume" then resumeAll();fireMusicState(true)
- elseif action=="next" then nextTrack() end
+ if action=="list" then
+  stateRemote:FireClient(player,"playlist",PLAYLIST)
+ elseif action=="request" then
+  queueRequest(player,arg)
+ elseif action=="queue" then
+  stateRemote:FireClient(player,"djQueue",{position=0,count=#requestQueue,now=PLAYLIST[current] and PLAYLIST[current].title or ""})
+ elseif action=="play" then
+  if isAdmin(player) then playTrack(tonumber(arg) or current) else denyTransport(player) end
+ elseif action=="pause" then
+  if isAdmin(player) then pauseAll();fireMusicState(false) else denyTransport(player) end
+ elseif action=="resume" then
+  if isAdmin(player) then resumeAll();fireMusicState(true) else denyTransport(player) end
+ elseif action=="next" then
+  if isAdmin(player) then nextTrack() else denyTransport(player) end
+ end
 end)
+
 internalMusic.Event:Connect(function(action,player,arg)
  if action=="request" then queueRequest(player,arg)
  elseif action=="next" then nextTrack()
@@ -142,7 +158,6 @@ Players.PlayerAdded:Connect(function(player)
 end)
 Players.PlayerRemoving:Connect(function(player)requestCooldown[player.UserId]=nil end)
 
--- Keep secondary emitters tightly aligned to the stage master without restarting music.
 task.spawn(function()
  while task.wait(6) do
   if masterSound and masterSound.Parent and masterSound.IsPlaying then
@@ -158,4 +173,4 @@ task.spawn(function()
 end)
 
 task.delay(2,function()if not masterSound.IsPlaying then playTrack(1) end end)
-print("[BBYA] Multi-zone synchronized club audio online: stage, bar, VIP, transition and front hall")
+print("[BBYA] Multi-zone audio + secure admin transport controls online")
