@@ -65,5 +65,12 @@ jobs:
           git config user.name "BBYA Studio Worker"
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/bbya-studio-worker.txt
-          git commit -m "Record BBYA Studio worker diagnostic [skip ci]" || exit 0
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "No diagnostic change to commit"
+            exit 0
+          }
+          git commit -m "Record BBYA Studio worker diagnostic [skip ci]"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git push
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
