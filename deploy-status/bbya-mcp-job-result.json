@@ -1,0 +1,41 @@
+{
+    "jobId":  "list-studios-001",
+    "timestamp":  "2026-08-20T13:19:57.5126030+00:00",
+    "studioVisible":  true,
+    "initialize":  {
+                       "jsonrpc":  "2.0",
+                       "id":  1,
+                       "result":  {
+                                      "protocolVersion":  "2025-06-18",
+                                      "capabilities":  {
+                                                           "tools":  {
+                                                                         "listChanged":  true
+                                                                     }
+                                                       },
+                                      "serverInfo":  {
+                                                         "name":  "RobloxStudio",
+                                                         "version":  "1.0.0"
+                                                     },
+                                      "instructions":  "Studio MCP Proxy - bridges MCP clients with Roblox Studio"
+                                  }
+                   },
+    "calls":  [
+                  {
+                      "id":  2,
+                      "name":  "list_roblox_studios",
+                      "response":  {
+                                       "jsonrpc":  "2.0",
+                                       "id":  2,
+                                       "result":  {
+                                                      "content":  [
+                                                                      {
+                                                                          "type":  "text",
+                                                                          "text":  "{\"studios\":[]}"
+                                                                      }
+                                                                  ],
+                                                      "isError":  false
+                                                  }
+                                   }
+                  }
+              ]
+}
