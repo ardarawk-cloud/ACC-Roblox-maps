@@ -1,6 +1,7 @@
-timestamp=2026-08-20T21:42:56.2478421+00:00
+timestamp=2026-08-20T21:59:46.2719800+00:00
+dialog_confirmed=Continue
 dialog_confirmed=Run
-2026-08-20T21:42:57.623Z,36.623962,1c18,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-visual-qc-009]")
+2026-08-20T21:59:46.974Z,34.974995,22fc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-visual-qc-009]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -16,25 +17,22 @@ local roofPass=restore and restore:FindFirstChild("RoofDownlights")
 local soundPass=restore and restore:FindFirstChild("SuspendedCornerSound")
 
 print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|
-2026-08-20T21:42:57.625Z,36.625961,1c18,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T21:42:57.630Z,36.630962,1c18,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-live-visual-qc-009]
-2026-08-20T21:42:57.630Z,36.630962,1c18,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:42:57.630Z,36.630962,1c18,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|minimal=true|restore=true
-2026-08-20T21:42:57.630Z,36.630962,1c18,6,Info [FLog::CreatorOutput] RESTORE|neon=6|downlights=16|clusters=4|speakers=8|sounds=4
-2026-08-20T21:42:57.630Z,36.630962,1c18,6,Info [FLog::CreatorOutput] ATTR|neonSegments=6|roofLights=16|speakerCabinets=8|speakerClusters=4
-2026-08-20T21:42:57.631Z,36.631962,1c18,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:42:57.632Z,36.632961,1c18,6,Info [FLog::CreatorOutput] CAMERA|vip_neon_roof_sound=true|pos=0, 34, -58
-2026-08-20T21:43:02.315Z,41.315174,1580,6 [DFLog::NamedMutex] NamedMutex(0000023FBC1FF430, name:InstallerInfo.log)
-2026-08-20T21:43:02.316Z,41.316181,1580,6 [DFLog::NamedMutex] ~NamedMutex(0000023FBC1FF430, name:InstallerInfo.log)
-2026-08-20T21:43:02.316Z,41.316181,1580,6 [DFLog::NamedMutex] NamedMutex(0000023FBC1FF3F0, name:InstallerInfo.log)
-2026-08-20T21:43:02.316Z,41.316181,1580,6 [DFLog::NamedMutex] ~NamedMutex(0000023FBC1FF3F0, name:InstallerInfo.log)
-2026-08-20T21:43:02.330Z,41.330238,1cc8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:43:02.695Z,41.695629,14b4,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T21:43:02.695Z,41.695629,14b4,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2216 ms: Error
-2026-08-20T21:43:02.695Z,41.695629,14b4,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T21:43:02.695Z,41.695629,100c,12 [DFLog::HttpTraceError] HttpResponse(#330 0x240304956a8) time:2218.2ms (net:2216.5ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T21:43:02.695Z,41.695629,100c,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
-2026-08-20T21:43:03.040Z,42.040356,1580,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-visual-qc-009]")
+2026-08-20T21:59:47.026Z,35.026833,23ec,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
+2026-08-20T21:59:47.126Z,35.126495,23ec,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x18d8563be80 windowHandle=0x2202f0 dims=350x1
+2026-08-20T21:59:47.126Z,35.126495,23ec,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x1 swapChain=0x18d8563be80
+2026-08-20T21:59:47.148Z,35.148514,23ec,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x18d8563be80 windowHandle=0x2202f0 dims=350x128
+2026-08-20T21:59:47.148Z,35.148514,23ec,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x18d8563be80
+2026-08-20T21:59:51.271Z,39.271015,22fc,6 [DFLog::NamedMutex] NamedMutex(0000018D75B4F430, name:InstallerInfo.log)
+2026-08-20T21:59:51.272Z,39.272015,22fc,6 [DFLog::NamedMutex] ~NamedMutex(0000018D75B4F430, name:InstallerInfo.log)
+2026-08-20T21:59:51.272Z,39.272015,22fc,6 [DFLog::NamedMutex] NamedMutex(0000018D75B4F3F0, name:InstallerInfo.log)
+2026-08-20T21:59:51.272Z,39.272015,22fc,6 [DFLog::NamedMutex] ~NamedMutex(0000018D75B4F3F0, name:InstallerInfo.log)
+2026-08-20T21:59:51.287Z,39.287998,23ec,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:59:51.320Z,39.320961,02bc,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:59:51.320Z,39.320961,02bc,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2204 ms: Error
+2026-08-20T21:59:51.320Z,39.320961,02bc,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:59:51.320Z,39.320961,1e20,12 [DFLog::HttpTraceError] HttpResponse(#234 0x18d5dfa5af8) time:2205.4ms (net:2205.1ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:59:51.320Z,39.320961,1e20,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:59:53.466Z,41.466431,22fc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-visual-qc-009]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -50,12 +48,16 @@ local roofPass=restore and restore:FindFirstChild("RoofDownlights")
 local soundPass=restore and restore:FindFirstChild("SuspendedCornerSound")
 
 print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|
-2026-08-20T21:43:03.041Z,42.041359,1580,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
-2026-08-20T21:43:03.049Z,42.049377,1580,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-live-visual-qc-009]
-2026-08-20T21:43:03.049Z,42.049377,1580,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
-2026-08-20T21:43:03.049Z,42.049377,1580,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|minimal=true|restore=true
-2026-08-20T21:43:03.050Z,42.050381,1580,6,Info [FLog::CreatorOutput] RESTORE|neon=6|downlights=16|clusters=4|speakers=8|sounds=4
-2026-08-20T21:43:03.050Z,42.050381,1580,6,Info [FLog::CreatorOutput] ATTR|neonSegments=6|roofLights=16|speakerCabinets=8|speakerClusters=4
-2026-08-20T21:43:03.050Z,42.050381,1580,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
-2026-08-20T21:43:03.050Z,42.050381,1580,6,Info [FLog::CreatorOutput] CAMERA|vip_neon_roof_sound=true|pos=0, 34, -58
-2026-08-20T21:43:03.643Z,42.643482,1580,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-live-visual-qc-009]
+2026-08-20T21:59:53.468Z,41.468430,0ac0,6,Error [FLog::DialogManagerUIBridge] Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:59:53.468Z,41.468430,22fc,6,Error [FLog::DialogManager] Command DialogManager/ShowDialogAsync failed. Error: Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:59:56.291Z,44.291454,22fc,6 [DFLog::NamedMutex] NamedMutex(0000018D6D93F430, name:InstallerInfo.log)
+2026-08-20T21:59:56.291Z,44.291454,22fc,6 [DFLog::NamedMutex] ~NamedMutex(0000018D6D93F430, name:InstallerInfo.log)
+2026-08-20T21:59:56.291Z,44.291454,22fc,6 [DFLog::NamedMutex] NamedMutex(0000018D6D93F3F0, name:InstallerInfo.log)
+2026-08-20T21:59:56.292Z,44.292465,22fc,6 [DFLog::NamedMutex] ~NamedMutex(0000018D6D93F3F0, name:InstallerInfo.log)
+2026-08-20T21:59:56.312Z,44.312653,23ec,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:59:56.537Z,44.537090,02bc,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:59:56.537Z,44.537090,02bc,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2208 ms: Error
+2026-08-20T21:59:56.537Z,44.537090,02bc,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:59:56.538Z,44.538094,07a0,12 [DFLog::HttpTraceError] HttpResponse(#237 0x18d5dfa7538) time:2209.5ms (net:2209.1ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:59:56.538Z,44.538094,07a0,6 [DFLog::WebSocketTraceError] ws: 7 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:59:57.768Z,45.768951,22fc,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 2 cur_l2ts 0 elapsed_l2b 0
