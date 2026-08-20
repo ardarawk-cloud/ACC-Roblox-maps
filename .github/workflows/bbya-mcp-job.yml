@@ -104,39 +104,70 @@ jobs:
             }catch{}
             return $null
           }
-
-          $result=[ordered]@{
-            jobId=$job.jobId
-            timestamp=(Get-Date -Format o)
-            studioVisible=[bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue)
-            initialize=$null
-            studioId=$null
-            calls=@()
-          }
-
-          try{
-            Send-Mcp @{jsonrpc='2.0';id=1;method='initialize';params=@{protocolVersion='2025-06-18';capabilities=@{};clientInfo=@{name='bbya-cloud-3d-worker';version='2.0.0'}}}
-            $result.initialize=(Read-Mcp 12000 | ConvertFrom-Json)
-            Send-Mcp @{jsonrpc='2.0';method='notifications/initialized';params=@{}}
-
-            # Studio extension may need several seconds after Studio window appears.
-            $studioId=$null
-            for($attempt=1;$attempt -le 8 -and -not $studioId;$attempt++){
-              Send-Mcp @{jsonrpc='2.0';id=100+$attempt;method='tools/call';params=@{name='list_roblox_studios';arguments=@{}}}
+          function Find-StudioId([int]$startId,[int]$attempts){
+            for($n=1;$n -le $attempts;$n++){
+              Send-Mcp @{jsonrpc='2.0';id=$startId+$n;method='tools/call';params=@{name='list_roblox_studios';arguments=@{}}}
               $listRaw=Read-Mcp 12000
               try{
                 $listResponse=$listRaw|ConvertFrom-Json
                 $payload=Parse-TextPayload $listResponse
                 if($payload -and $payload.studios -and $payload.studios.Count -gt 0){
                   $first=$payload.studios[0]
-                  if($first.id){$studioId=[string]$first.id}
-                  elseif($first.studio_id){$studioId=[string]$first.studio_id}
-                  elseif($first.studioId){$studioId=[string]$first.studioId}
+                  if($first.id){return [string]$first.id}
+                  elseif($first.studio_id){return [string]$first.studio_id}
+                  elseif($first.studioId){return [string]$first.studioId}
                 }
               }catch{}
-              if(-not $studioId){Start-Sleep -Seconds 5}
+              Start-Sleep -Seconds 5
             }
-            if(-not $studioId){throw 'Roblox Studio is visible but MCP did not expose a studio_id'}
+            return $null
+          }
+          function Restart-BBYAStudioForMcp {
+            Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 5
+            $roots=@((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')
+            $exe=$null
+            foreach($r in $roots){
+              if(-not (Test-Path $r)){continue}
+              $candidate=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+              if($candidate){$exe=$candidate.FullName;break}
+            }
+            if(-not $exe){throw 'RobloxStudioBeta.exe not found during MCP self-heal'}
+            Start-Process -FilePath $exe -ArgumentList '--task','EditPlace','--placeId','131894120482837','--universeId','8116636513'
+            $deadline=(Get-Date).AddSeconds(90)
+            $visible=$false
+            do{
+              Start-Sleep -Seconds 3
+              $visible=[bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Select-Object -First 1)
+            }while(-not $visible -and (Get-Date)-lt $deadline)
+            if(-not $visible){throw 'MCP self-heal relaunched Studio but no window appeared'}
+            Start-Sleep -Seconds 24
+          }
+
+          $result=[ordered]@{
+            jobId=$job.jobId
+            timestamp=(Get-Date -Format o)
+            studioVisible=[bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue)
+            initialize=$null
+            selfHealRestartedStudio=$false
+            studioId=$null
+            calls=@()
+          }
+
+          try{
+            Send-Mcp @{jsonrpc='2.0';id=1;method='initialize';params=@{protocolVersion='2025-06-18';capabilities=@{};clientInfo=@{name='bbya-cloud-3d-worker';version='2.1.0'}}}
+            $result.initialize=(Read-Mcp 12000 | ConvertFrom-Json)
+            Send-Mcp @{jsonrpc='2.0';method='notifications/initialized';params=@{}}
+
+            $studioId=Find-StudioId 100 6
+            if(-not $studioId){
+              # Studio can stay visually open after its MCP plugin has lost localhost connection.
+              # Restarting Studio while this MCP proxy is already listening lets the plugin reconnect.
+              $result.selfHealRestartedStudio=$true
+              Restart-BBYAStudioForMcp
+              $studioId=Find-StudioId 200 12
+            }
+            if(-not $studioId){throw 'MCP self-heal failed: Studio reopened but no studio_id was exposed'}
             $result.studioId=$studioId
 
             $id=2
