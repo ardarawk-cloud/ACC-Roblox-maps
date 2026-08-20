@@ -1,4 +1,61 @@
-timestamp=2026-08-20T21:32:10.6477806+00:00
-mode=VIP_SOURCE_QC
+timestamp=2026-08-20T21:41:30.6482344+00:00
 dialog_confirmed=Continue
 dialog_confirmed=Run
+2026-08-20T21:41:31.424Z,35.424084,10b0,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-minimal-standing-qc-008]")
+local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+
+local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+local upper=root and root:FindFirstChild("UpperLevels")
+local vip=upper and upper:FindFirstChild("L2_VIP_Level")
+local minimal=vip and vip:FindFirstChild("VIPMinimalStanding")
+local oldPremium=vip and vip:FindFirstChild("PremiumVIPPass")
+local oldCeiling=vip and vip:FindFirstChild("VIPCeiling")
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|oldPremium="..tostring(oldPremium~=nil).."|oldCeiling="..tostring(oldCeiling~=nil))
+
+local parts,seats,neon,surfaces,prompts,sounds=0,0,0,0,0,0
+local soundPlaying=fal
+2026-08-20T21:41:31.452Z,35.452953,1460,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
+2026-08-20T21:41:31.546Z,35.546558,1460,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x21a56417050 windowHandle=0x21028e dims=350x128
+2026-08-20T21:41:31.546Z,35.546558,1460,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x21a56417050
+2026-08-20T21:41:35.208Z,39.208668,17c0,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:41:35.208Z,39.208668,17c0,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2205 ms: Error
+2026-08-20T21:41:35.208Z,39.208668,17c0,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:41:35.208Z,39.208668,10cc,12 [DFLog::HttpTraceError] HttpResponse(#223 0x21a84802a28) time:2206.2ms (net:2206.2ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:41:35.208Z,39.208668,10cc,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:41:35.241Z,39.241428,10b0,6 [DFLog::NamedMutex] NamedMutex(0000021A76CAF430, name:InstallerInfo.log)
+2026-08-20T21:41:35.241Z,39.241428,10b0,6 [DFLog::NamedMutex] ~NamedMutex(0000021A76CAF430, name:InstallerInfo.log)
+2026-08-20T21:41:35.241Z,39.241428,10b0,6 [DFLog::NamedMutex] NamedMutex(0000021A76CAF3F0, name:InstallerInfo.log)
+2026-08-20T21:41:35.241Z,39.241428,10b0,6 [DFLog::NamedMutex] ~NamedMutex(0000021A76CAF3F0, name:InstallerInfo.log)
+2026-08-20T21:41:35.256Z,39.256481,1460,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:41:37.400Z,41.400829,10b0,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-minimal-standing-qc-008]")
+local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+
+local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+local upper=root and root:FindFirstChild("UpperLevels")
+local vip=upper and upper:FindFirstChild("L2_VIP_Level")
+local minimal=vip and vip:FindFirstChild("VIPMinimalStanding")
+local oldPremium=vip and vip:FindFirstChild("PremiumVIPPass")
+local oldCeiling=vip and vip:FindFirstChild("VIPCeiling")
+print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|minimal="..tostring(minimal~=nil).."|oldPremium="..tostring(oldPremium~=nil).."|oldCeiling="..tostring(oldCeiling~=nil))
+
+local parts,seats,neon,surfaces,prompts,sounds=0,0,0,0,0,0
+local soundPlaying=fal
+2026-08-20T21:41:37.402Z,41.402836,10b0,6,Error [FLog::DialogManagerUIBridge] Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:41:37.402Z,41.402836,10b0,6,Error [FLog::DialogManager] Command DialogManager/ShowDialogAsync failed. Error: Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
+2026-08-20T21:41:40.241Z,44.241650,10b0,6 [DFLog::NamedMutex] NamedMutex(0000021A7F55F430, name:InstallerInfo.log)
+2026-08-20T21:41:40.242Z,44.242649,10b0,6 [DFLog::NamedMutex] ~NamedMutex(0000021A7F55F430, name:InstallerInfo.log)
+2026-08-20T21:41:40.242Z,44.242649,10b0,6 [DFLog::NamedMutex] NamedMutex(0000021A7F55F3F0, name:InstallerInfo.log)
+2026-08-20T21:41:40.242Z,44.242649,10b0,6 [DFLog::NamedMutex] ~NamedMutex(0000021A7F55F3F0, name:InstallerInfo.log)
+2026-08-20T21:41:40.261Z,44.261620,1460,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:41:40.438Z,44.438381,17c0,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T21:41:40.438Z,44.438381,17c0,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2209 ms: Error
+2026-08-20T21:41:40.438Z,44.438381,17c0,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T21:41:40.438Z,44.438381,224c,12 [DFLog::HttpTraceError] HttpResponse(#226 0x21a847da078) time:2210.0ms (net:2209.6ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T21:41:40.439Z,44.439384,224c,6 [DFLog::WebSocketTraceError] ws: 7 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T21:41:41.570Z,45.570736,1dd0,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 2 cur_l2ts 0 elapsed_l2b 0
