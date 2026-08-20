@@ -3,6 +3,11 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local CriticalSave = ServerStorage:WaitForChild("WONDERPOCKET_CriticalSave",20)
 
+local function triggerVisibleWave(player)
+    player:SetAttribute("WP_LastWondiEmote","Wave")
+    player:SetAttribute("WP_WondiEmoteSeq",(tonumber(player:GetAttribute("WP_WondiEmoteSeq")) or 0)+1)
+end
+
 local function attachPrompt(model)
     if not model:IsA("Model") or model:GetAttribute("WP_MeetPromptAttached") then return end
     local ownerUserId=tonumber(model:GetAttribute("OwnerUserId"))
@@ -43,7 +48,7 @@ local function attachPrompt(model)
             player:SetAttribute("WP_Tutorial_MetWondi",true)
             if CriticalSave then CriticalSave:Fire(player) end
         end
-        player:SetAttribute("WP_LastWondiEmote","Wave")
+        triggerVisibleWave(player)
         prompt.Enabled=false
     end)
 
@@ -101,4 +106,4 @@ Players.PlayerAdded:Connect(function(player)
     end)
 end)
 
-print("[WONDERPOCKET] Tutorial-aware state-driven Wondi meet interaction loaded")
+print("[WONDERPOCKET] Tutorial-aware Wondi meet + visible Wave loaded")
