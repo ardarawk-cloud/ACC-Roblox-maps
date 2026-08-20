@@ -7,6 +7,7 @@ on:
       - 'maps/bbyavatar/**'
       - 'maps/registry.json'
       - 'scripts/build-bbyavatar.js'
+      - 'scripts/publish-bbyavatar-direct.js'
       - '.github/workflows/publish-bbyavatar.yml'
   workflow_dispatch:
 
@@ -24,10 +25,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Validate target lock
         shell: bash
         run: |
@@ -40,8 +43,10 @@ jobs:
           if(!t.enabled) throw new Error('BBYAVATAR target is disabled');
           console.log('Target lock PASS');
           NODE
+
       - name: Build place
         run: node scripts/build-bbyavatar.js
+
       - name: Validate generated place
         shell: bash
         run: |
@@ -49,21 +54,41 @@ jobs:
           grep -q 'BBYAVATAR_Runtime' maps/bbyavatar/place.rbxlx
           grep -q 'BBYAVATAR_Client' maps/bbyavatar/place.rbxlx
           echo 'Generated place validation PASS'
+
       - name: Publish BBYAVATAR to Roblox
+        id: publish
+        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-          PUBLISH_RECEIPT_DIR: deploy-status
-        run: node scripts/publish-map.js bbyavatar
-      - name: Persist deploy receipt
+        run: node scripts/publish-bbyavatar-direct.js
+
+      - name: Persist BBYAVATAR publish result
+        if: always()
         shell: bash
         run: |
-          test -s deploy-status/bbyavatar.json
+          if [ ! -s deploy-status/bbyavatar-direct.json ]; then
+            mkdir -p deploy-status
+            printf '{"ok":false,"httpStatus":"NO_RESULT","at":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy-status/bbyavatar-direct.json
+          fi
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deploy-status/bbyavatar.json
-          if git diff --cached --quiet; then
-            echo "Receipt already current"
-            exit 0
+          git add deploy-status/bbyavatar-direct.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BBYAVATAR direct publish result [skip ci]"
+            git push origin HEAD:main
           fi
-          git commit -m "Record BBYAVATAR deploy receipt [skip ci]"
-          git push origin HEAD:main
+
+      - name: Enforce publish success
+        if: always()
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const p='deploy-status/bbyavatar-direct.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(!r.ok) {
+            console.error('BBYAVATAR publish did not succeed:', r);
+            process.exit(1);
+          }
+          console.log('BBYAVATAR publish verified:', r.payload);
+          NODE
