@@ -1,0 +1,51 @@
+{
+  "project": "Mountain Social Adventure",
+  "version": "1.0.0",
+  "enabled": false,
+  "publishTarget": {
+    "universeId": "PUT_UNIVERSE_ID_HERE",
+    "placeId": "PUT_PLACE_ID_HERE"
+  },
+  "world": {
+    "size": 1800,
+    "summitHeight": 620,
+    "routeLength": 12,
+    "mobileFriendly": true,
+    "streamingReady": true
+  },
+  "journey": [
+    "Basecamp ACC",
+    "Gerbang Hutan",
+    "Sungai Batu",
+    "Air Terjun Lumina",
+    "Camp Rimba",
+    "Tebing Angin",
+    "Hutan Kabut",
+    "Jembatan Awan",
+    "Camp Atas",
+    "Ridge Batu",
+    "Lautan Awan",
+    "Summit ACC"
+  ],
+  "biomes": [
+    {"name":"Basecamp","heightMin":0,"heightMax":70},
+    {"name":"LowerForest","heightMin":70,"heightMax":220},
+    {"name":"MistForest","heightMin":220,"heightMax":390},
+    {"name":"AlpineRidge","heightMin":390,"heightMax":540},
+    {"name":"SummitCloud","heightMin":540,"heightMax":680}
+  ],
+  "systems": {
+    "dayNight": true,
+    "sunriseSunset": true,
+    "fog": true,
+    "rain": true,
+    "campfire": true,
+    "photoSpots": true,
+    "hiddenTrail": true,
+    "secretSummit": true,
+    "checkpointSaveReady": true,
+    "carryReady": true,
+    "summitCounterReady": true,
+    "leaderboardReady": true
+  }
+}

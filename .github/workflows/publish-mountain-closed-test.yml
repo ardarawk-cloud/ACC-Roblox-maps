@@ -1,0 +1,48 @@
+name: Publish Mountain Closed Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: 'Type MOUNTAIN-10744139279-82661754996018'
+        required: true
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - 'maps/mountain-social/**'
+      - 'scripts/inject-mountain.js'
+      - 'scripts/publish-mountain-closed-test.js'
+      - '.github/workflows/publish-mountain-closed-test.yml'
+
+jobs:
+  publish-mountain-closed-test:
+    if: github.event_name == 'push' || inputs.confirm_target == 'MOUNTAIN-10744139279-82661754996018'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Inject isolated Mountain runtime
+        run: node scripts/inject-mountain.js mountain-social
+
+      - name: Validate target lock and package
+        shell: bash
+        run: |
+          grep -q '10744139279' maps/registry.json
+          grep -q '82661754996018' maps/registry.json
+          test -s maps/mountain-social/place.rbxlx
+          grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
+          grep -q 'ACC_Mountain_QC' maps/mountain-social/place.rbxlx
+
+      - name: Publish closed-test build
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: node scripts/publish-mountain-closed-test.js
