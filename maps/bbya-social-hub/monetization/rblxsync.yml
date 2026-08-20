@@ -1,0 +1,41 @@
+universe:
+  id: 8116636513
+
+developer_products:
+  - name: "BBYA DJ Wall Message"
+    description: "Display one filtered custom message on the BBYA DJ wall. Messages enter a queue and are shown for a limited time."
+    price: 2
+
+  - name: "BBYA Support 10"
+    description: "Support BBYA Social Hub with 10 Robux."
+    price: 10
+
+  - name: "BBYA Support 25"
+    description: "Support BBYA Social Hub with 25 Robux."
+    price: 25
+
+  - name: "BBYA Support 50"
+    description: "Support BBYA Social Hub with 50 Robux."
+    price: 50
+
+  - name: "BBYA Support 100"
+    description: "Support BBYA Social Hub with 100 Robux."
+    price: 100
+
+  - name: "BBYA Support 250"
+    description: "Support BBYA Social Hub with 250 Robux."
+    price: 250
+
+  - name: "BBYA Support 500"
+    description: "Support BBYA Social Hub with 500 Robux."
+    price: 500
+
+  - name: "BBYA Support 1000"
+    description: "Support BBYA Social Hub with 1000 Robux."
+    price: 1000
+
+  - name: "BBYA Support 2000"
+    description: "Support BBYA Social Hub with 2000 Robux."
+    price: 2000
+
+output_path: maps/bbya-social-hub/monetization/products.luau
