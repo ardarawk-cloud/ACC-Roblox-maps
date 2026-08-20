@@ -4,32 +4,32 @@ local Workspace = game:GetService("Workspace")
 local failures = {}
 local warnings = {}
 
-local function requireChild(parent, name, kind)
-    local child = parent:FindFirstChild(name)
+local function waitChild(parent, name, kind, timeout)
+    local child = parent:WaitForChild(name, timeout or 10)
     if not child then
-        table.insert(failures, string.format("Missing %s: %s.%s", kind or "instance", parent:GetFullName(), name))
+        table.insert(failures, string.format("Missing %s after timeout: %s.%s", kind or "instance", parent:GetFullName(), name))
         return nil
     end
     return child
 end
 
-local root = requireChild(ReplicatedStorage, "BBYAVATAR", "folder")
+local root = waitChild(ReplicatedStorage, "BBYAVATAR", "folder", 10)
 if root then
-    local shared = requireChild(root, "Shared", "folder")
-    requireChild(root, "Remotes", "folder")
+    local shared = waitChild(root, "Shared", "folder", 10)
+    waitChild(root, "Remotes", "folder", 10)
     if shared then
-        requireChild(shared, "CatalogConfig", "module")
-        requireChild(shared, "AvatarDescriptionBuilder", "module")
+        waitChild(shared, "CatalogConfig", "module", 10)
+        waitChild(shared, "AvatarDescriptionBuilder", "module", 10)
     end
 end
 
-local showroom = requireChild(Workspace, "BBYAVATAR_SHOWROOM", "showroom")
+local showroom = waitChild(Workspace, "BBYAVATAR_SHOWROOM", "showroom", 15)
 if showroom then
-    local displays = requireChild(showroom, "DisplayPoints", "folder")
+    local displays = waitChild(showroom, "DisplayPoints", "folder", 10)
     if displays and #displays:GetChildren() < 6 then
         table.insert(warnings, "Fewer than 6 catalog display points")
     end
-    requireChild(showroom, "Mannequins", "folder")
+    waitChild(showroom, "Mannequins", "folder", 10)
 end
 
 if game.PlaceId ~= 0 and game.PlaceId ~= 85866320744490 then
