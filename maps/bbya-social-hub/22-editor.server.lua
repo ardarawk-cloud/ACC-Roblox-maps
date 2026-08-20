@@ -22,6 +22,17 @@ local function isAdmin(player)
  return player:GetAttribute("BBYAAdmin")==true
 end
 
+local function bindHiddenEditorToggle(player)
+ player:SetAttribute("BBYAEditorVisible",false)
+ player.Chatted:Connect(function(message)
+  if not isAdmin(player) then return end
+  local text=string.lower((message or ""):gsub("%s+",""))
+  if text=="/bbyaedit" or text=="!bbyaedit" then
+   player:SetAttribute("BBYAEditorVisible",not player:GetAttribute("BBYAEditorVisible"))
+  end
+ end)
+end
+
 local function applyAdminFlags(player)
  if isAdmin(player) then
   player:SetAttribute("BBYAAdmin",true)
@@ -30,6 +41,7 @@ local function applyAdminFlags(player)
   player:SetAttribute("BBYARooftopBypass",true)
   player:SetAttribute("BBYASecretRoomBypass",true)
  end
+ bindHiddenEditorToggle(player)
 end
 
 for _,player in ipairs(Players:GetPlayers()) do applyAdminFlags(player) end
@@ -134,4 +146,4 @@ remote.OnServerEvent:Connect(function(player,action,target,arg)
  end
 end)
 
-print("[BBYA] Runtime editor: persistent delete tombstones enabled")
+print("[BBYA] Runtime editor hidden by default; admin chat toggle /bbyaedit")
