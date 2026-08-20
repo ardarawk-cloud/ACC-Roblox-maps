@@ -97,6 +97,24 @@ jobs:
           Start-Sleep -Milliseconds 350
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
           $invoke.Invoke()
+          Start-Sleep -Milliseconds 850
+
+          # Roblox Studio can show a Dangerous Command confirmation dialog.
+          # Auto-confirm only known affirmative buttons inside the current Studio window.
+          $buttonType=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Button)
+          $buttons=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$buttonType)
+          foreach($b in $buttons){
+            $n=$b.Current.Name
+            if($n -match 'Run Anyway|Run|Execute|Continue|Allow|Yes|OK'){
+              try{
+                $bp=$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                $bp.Invoke()
+                $lines += "dialog_confirmed=$n"
+                Start-Sleep -Milliseconds 500
+              }catch{}
+            }
+          }
+
           Start-Sleep -Seconds 6
           $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 6
           $capturing=$false
