@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VIP LINEAR CEILING v1
+-- BBYA SOCIAL HUB — VIP LINEAR CEILING v1.1
 -- Premium staggered warm-white/gold ceiling bars inspired by modern luxury lounges.
 -- Owns VIP ceiling lighting only. Does not touch Floor 1.
 
@@ -32,7 +32,7 @@ end
 
 local pass=Instance.new("Model")
 pass.Name="LinearCeilingPass"
-pass:SetAttribute("Pass","VIP_LINEAR_CEILING_V1")
+pass:SetAttribute("Pass","VIP_LINEAR_CEILING_V1_1")
 pass.Parent=ceiling
 
 local WARM_WHITE=Color3.fromRGB(255,235,201)
@@ -59,6 +59,7 @@ local function part(name,size,cf,color,material,transparency,parent,collide)
  return p
 end
 
+local dynamicLights=0
 local function addStrip(i,x,z,length,tone,drop)
  local y=35.28-(drop or 0)
  local unit=Instance.new("Model")
@@ -69,24 +70,20 @@ local function addStrip(i,x,z,length,tone,drop)
  part("Housing",Vector3.new(length+.35,.18,.34),CFrame.new(x,y+.11,z),HOUSING,Enum.Material.Metal,0,unit,false)
  local emitter=part("Emitter",Vector3.new(length,.08,.18),CFrame.new(x,y,z),tone,Enum.Material.Neon,.02,unit,false)
 
- local light=Instance.new("SurfaceLight")
- light.Name="Downlight"
- light.Face=Enum.NormalId.Bottom
- light.Color=tone
- light.Brightness=1.05
- light.Range=18
- light.Angle=118
- light.Shadows=false
- light.Parent=emitter
-
- -- Very soft secondary fill avoids harsh dark gaps between strips.
- local fill=Instance.new("PointLight")
- fill.Name="AmbientFill"
- fill.Color=tone
- fill.Brightness=.14
- fill.Range=9
- fill.Shadows=false
- fill.Parent=emitter
+ -- Half the fixtures cast real light; all forty remain visually illuminated.
+ -- This keeps the ceiling dense while protecting mobile GPU performance.
+ if i%2==0 then
+  local light=Instance.new("SurfaceLight")
+  light.Name="Downlight"
+  light.Face=Enum.NormalId.Bottom
+  light.Color=tone
+  light.Brightness=.95
+  light.Range=16
+  light.Angle=112
+  light.Shadows=false
+  light.Parent=emitter
+  dynamicLights+=1
+ end
 end
 
 -- Deterministic staggered layout: long and short bars, all aligned like the reference.
@@ -99,7 +96,7 @@ local layout={
  {-28,8,18,SOFT_GOLD,.10},{-4,8,11,WARM_WHITE,.00},{14,8,9,AMBER,.13},{31,8,17,WARM_WHITE,.04},{50,8,8,WARM_WHITE,.11},
  {-35,17,10,WARM_WHITE,.03},{-19,17,15,SOFT_GOLD,.13},{2,17,8,WARM_WHITE,.00},{17,17,18,WARM_WHITE,.08},{40,17,12,AMBER,.02},
  {-26,27,14,WARM_WHITE,.10},{-7,27,9,SOFT_GOLD,.00},{10,27,16,WARM_WHITE,.13},{31,27,10,WARM_WHITE,.03},{48,27,13,SOFT_GOLD,.09},
- { -31,37,9,SOFT_GOLD,.02},{-15,37,17,WARM_WHITE,.12},{8,37,12,WARM_WHITE,.00},{27,37,15,AMBER,.09},{47,37,8,WARM_WHITE,.03},
+ {-31,37,9,SOFT_GOLD,.02},{-15,37,17,WARM_WHITE,.12},{8,37,12,WARM_WHITE,.00},{27,37,15,AMBER,.09},{47,37,8,WARM_WHITE,.03},
 }
 
 for i,d in ipairs(layout) do
@@ -107,7 +104,8 @@ for i,d in ipairs(layout) do
 end
 
 pass:SetAttribute("FixtureCount",#layout)
+pass:SetAttribute("DynamicLightCount",dynamicLights)
 pass:SetAttribute("LightingStyle","Warm Linear Staggered")
 pass:SetAttribute("Floor1Untouched",true)
 
-print(string.format("[BBYA] VIP Linear Ceiling v1 online: %d warm staggered fixtures",#layout))
+print(string.format("[BBYA] VIP Linear Ceiling v1.1 online: %d fixtures / %d dynamic lights",#layout,dynamicLights))
