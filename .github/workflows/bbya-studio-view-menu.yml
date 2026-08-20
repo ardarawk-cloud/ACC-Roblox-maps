@@ -1,0 +1,78 @@
+name: BBYA Studio View Menu Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-studio-view-menu.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Open Studio View menu and dump UI
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class Win32Focus {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+'@
+          $lines=New-Object System.Collections.Generic.List[string]
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){$lines.Add('STUDIO_NOT_FOUND')} else {
+            [Win32Focus]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle) | Out-Null
+            Start-Sleep -Milliseconds 500
+            $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+            $cond=New-Object System.Windows.Automation.AndCondition(
+              (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::MenuItem)),
+              (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'View'))
+            )
+            $view=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond)
+            if($view){
+              $lines.Add('VIEW_FOUND=true')
+              try{
+                $pat=$view.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                $pat.Invoke()
+              }catch{
+                try{$pat=$view.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern);$pat.Expand()}catch{$lines.Add("VIEW_OPEN_ERROR=$($_.Exception.Message)")}
+              }
+              Start-Sleep -Milliseconds 800
+            } else {$lines.Add('VIEW_FOUND=false')}
+
+            $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+            $all=$desktop.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+            $lines.Add("DESKTOP_ELEMENT_COUNT=$($all.Count)")
+            for($i=0;$i -lt [Math]::Min($all.Count,2500);$i++){
+              $el=$all.Item($i)
+              try{
+                $name=$el.Current.Name;$aid=$el.Current.AutomationId;$ct=$el.Current.ControlType.ProgrammaticName
+                if($name -or $aid){
+                  if($name -match 'Assistant|MCP|Manage|View|AI|Server|Context|Studio' -or $ct -match 'MenuItem'){
+                    $r=$el.Current.BoundingRectangle
+                    $lines.Add(("{0}|Name={1}|Id={2}|Enabled={3}|Offscreen={4}|Rect={5},{6},{7},{8}" -f $ct,$name,$aid,$el.Current.IsEnabled,$el.Current.IsOffscreen,[int]$r.X,[int]$r.Y,[int]$r.Width,[int]$r.Height))
+                  }
+                }
+              }catch{}
+            }
+          }
+          $text=($lines-join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-view-menu.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA Studio View menu [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
