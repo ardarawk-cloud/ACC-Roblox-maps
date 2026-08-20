@@ -1,96 +1,97 @@
-name: Becak E-Bike Build and Publish
+name: Publish Becak E-Bike
 
 on:
   push:
     branches: [main]
     paths:
-      - 'maps/becak-e-bike/runtime.server.lua'
-      - 'maps/becak-e-bike/runtime.client.lua'
-      - 'maps/becak-e-bike/README.md'
+      - 'maps/becak-e-bike/**'
       - 'maps/registry.json'
       - 'scripts/build-becak-ebike.js'
+      - 'scripts/publish-becak-direct.js'
       - '.github/workflows/becak-ebike-publish.yml'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
-  group: becak-ebike-publish
-  cancel-in-progress: false
+  group: becak-ebike-live-publish
+  cancel-in-progress: true
 
 jobs:
-  publish:
+  build-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-      PUBLISH_RECEIPT_DIR: deploy-status
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Build validate publish and capture result
-        id: deploy
+
+      - name: Validate target lock
         shell: bash
         run: |
-          set +e
-          mkdir -p deploy-status
-          STATUS=BUILDING
-          DETAIL=''
-          node scripts/build-becak-ebike.js > /tmp/becak-build.log 2>&1
-          BUILD_RC=$?
-          if [ $BUILD_RC -ne 0 ]; then
-            STATUS=BUILD_FAILED
-            DETAIL=$(tail -n 20 /tmp/becak-build.log | tr '\n' ' ')
-          else
-            test -s maps/becak-e-bike/place.rbxlx
-            V1=$?
-            grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
-            V2=$?
-            node -e "const r=require('./maps/registry.json').maps['becak-e-bike']; if(r.universeId!=='10745325613'||r.placeId!=='80994730522893'||!r.enabled) process.exit(1)"
-            V3=$?
-            if [ $V1 -ne 0 ] || [ $V2 -ne 0 ] || [ $V3 -ne 0 ]; then
-              STATUS=VALIDATION_FAILED
-              DETAIL="validation=$V1/$V2/$V3"
-            else
-              node scripts/publish-map.js becak-e-bike > /tmp/becak-publish.log 2>&1
-              PUB_RC=$?
-              if [ $PUB_RC -eq 0 ]; then
-                STATUS=PUBLISHED
-                DETAIL=$(tail -n 8 /tmp/becak-publish.log | tr '\n' ' ')
-              else
-                STATUS=PUBLISH_FAILED
-                DETAIL=$(tail -n 20 /tmp/becak-publish.log | tr '\n' ' ')
-              fi
-            fi
-          fi
-          printf 'status=%s\nuniverseId=10745325613\nplaceId=80994730522893\ncommit=%s\ndetail=%s\n' "$STATUS" "$GITHUB_SHA" "$DETAIL" > deploy-status/becak-ebike-pipeline.txt
-          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
-          cat deploy-status/becak-ebike-pipeline.txt
-      - name: Persist build and deployment evidence
+          node - <<'NODE'
+          const r=require('./maps/registry.json');
+          const t=r.maps['becak-e-bike'];
+          if(!t) throw new Error('Missing becak-e-bike registry target');
+          if(String(t.universeId)!=='10745325613') throw new Error('Wrong Universe ID');
+          if(String(t.placeId)!=='80994730522893') throw new Error('Wrong Place ID');
+          if(!t.enabled) throw new Error('BECAK E-BIKE target is disabled');
+          console.log('Target lock PASS');
+          NODE
+
+      - name: Build place
+        run: node scripts/build-becak-ebike.js
+
+      - name: Validate generated place
+        shell: bash
+        run: |
+          test -s maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_Client' maps/becak-e-bike/place.rbxlx
+          grep -q '10745325613' maps/becak-e-bike/runtime.server.lua
+          grep -q '80994730522893' maps/becak-e-bike/runtime.server.lua
+          echo 'Generated place validation PASS'
+
+      - name: Publish Becak E-Bike to Roblox
+        id: publish
+        continue-on-error: true
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: node scripts/publish-becak-direct.js
+
+      - name: Persist Becak E-Bike publish result
         if: always()
         shell: bash
         run: |
-          set -e
-          mkdir -p /tmp/becak-output
-          cp deploy-status/becak-ebike-pipeline.txt /tmp/becak-output/
-          if [ -f deploy-status/becak-e-bike.json ]; then cp deploy-status/becak-e-bike.json /tmp/becak-output/; fi
-          if [ -f maps/becak-e-bike/place.rbxlx ]; then cp maps/becak-e-bike/place.rbxlx /tmp/becak-output/; fi
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-          mkdir -p deploy-status maps/becak-e-bike
-          cp /tmp/becak-output/becak-ebike-pipeline.txt deploy-status/
-          if [ -f /tmp/becak-output/becak-e-bike.json ]; then cp /tmp/becak-output/becak-e-bike.json deploy-status/; fi
-          if [ -f /tmp/becak-output/place.rbxlx ]; then cp /tmp/becak-output/place.rbxlx maps/becak-e-bike/; fi
-          git config user.name 'ACC Roblox Publisher'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/becak-ebike-pipeline.txt deploy-status/becak-e-bike.json maps/becak-e-bike/place.rbxlx 2>/dev/null || true
+          if [ ! -s deploy-status/becak-e-bike-direct.json ]; then
+            mkdir -p deploy-status
+            printf '{"ok":false,"httpStatus":"NO_RESULT","universeId":"10745325613","placeId":"80994730522893","at":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy-status/becak-e-bike-direct.json
+          fi
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m 'Record Becak E-Bike deployment evidence [skip ci]'
+            git commit -m "Record Becak E-Bike direct publish result [skip ci]"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
+
+      - name: Enforce publish success
+        if: always()
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const p='deploy-status/becak-e-bike-direct.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(!r.ok) {
+            console.error('BECAK E-BIKE publish did not succeed:', r);
+            process.exit(1);
+          }
+          console.log('BECAK E-BIKE publish verified:', r.payload);
+          NODE
