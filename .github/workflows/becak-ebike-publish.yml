@@ -75,6 +75,12 @@ jobs:
           grep -q 'BecakVersion","1.9.0' maps/becak-e-bike/place.rbxlx
           echo 'Final Becak E-Bike v1.9 validation PASS'
 
+      - name: Reset publish evidence
+        shell: bash
+        run: |
+          rm -f deploy-status/becak-e-bike-direct.json
+          mkdir -p deploy-status
+
       - name: Publish Becak E-Bike to Roblox
         id: publish
         continue-on-error: true
@@ -108,6 +114,11 @@ jobs:
           const r=JSON.parse(fs.readFileSync('deploy-status/becak-e-bike-direct.json','utf8'));
           if(!r.ok || String(r.universeId)!=='10745325613' || String(r.placeId)!=='80994730522893') {
             console.error('BECAK E-BIKE final publish did not succeed:',r);
+            process.exit(1);
+          }
+          const ageMs=Date.now()-Date.parse(r.at);
+          if(!Number.isFinite(ageMs) || ageMs<0 || ageMs>20*60*1000) {
+            console.error('BECAK E-BIKE publish evidence is stale:',r.at);
             process.exit(1);
           }
           console.log('BECAK E-BIKE FINAL PUBLISH VERIFIED:',r.payload);
