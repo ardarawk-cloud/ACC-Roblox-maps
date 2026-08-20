@@ -44,18 +44,24 @@ jobs:
           console.log('Target lock PASS');
           NODE
 
-      - name: Build place
+      - name: Build final masterplan place
         run: node scripts/build-becak-ebike.js
 
-      - name: Validate generated place
+      - name: Validate final generated place
         shell: bash
         run: |
+          set -euo pipefail
           test -s maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Client' maps/becak-e-bike/place.rbxlx
-          grep -q '10745325613' maps/becak-e-bike/runtime.server.lua
-          grep -q '80994730522893' maps/becak-e-bike/runtime.server.lua
-          echo 'Generated place validation PASS'
+          grep -q 'BecakEBike_CityDetails' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_Masterplan' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_MasterplanClient' maps/becak-e-bike/place.rbxlx
+          grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakRuntime' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakMasterplanSystems' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike masterplan validation PASS'
 
       - name: Publish Becak E-Bike to Roblox
         id: publish
@@ -64,7 +70,7 @@ jobs:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: node scripts/publish-becak-direct.js
 
-      - name: Persist Becak E-Bike publish result
+      - name: Persist final Becak E-Bike publish result
         if: always()
         shell: bash
         run: |
@@ -76,7 +82,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike direct publish result [skip ci]"
+            git commit -m "Record Becak E-Bike final masterplan publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -87,11 +93,10 @@ jobs:
         run: |
           node - <<'NODE'
           const fs=require('fs');
-          const p='deploy-status/becak-e-bike-direct.json';
-          const r=JSON.parse(fs.readFileSync(p,'utf8'));
-          if(!r.ok) {
-            console.error('BECAK E-BIKE publish did not succeed:', r);
+          const r=JSON.parse(fs.readFileSync('deploy-status/becak-e-bike-direct.json','utf8'));
+          if(!r.ok || String(r.universeId)!=='10745325613' || String(r.placeId)!=='80994730522893') {
+            console.error('BECAK E-BIKE final publish did not succeed:',r);
             process.exit(1);
           }
-          console.log('BECAK E-BIKE publish verified:', r.payload);
+          console.log('BECAK E-BIKE FINAL PUBLISH VERIFIED:',r.payload);
           NODE
