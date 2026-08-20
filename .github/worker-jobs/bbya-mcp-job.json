@@ -1,42 +1,15 @@
 {
-  "jobId": "bbya-premium-mesh-batch-001",
+  "jobId": "bbya-premium-mesh-inspect-002",
   "calls": [
-    {
-      "name": "generate_mesh",
-      "arguments": {
-        "textPrompt": "A premium modern exotic sports coupe for a luxury nightclub entrance photo spot, glossy deep red automotive paint, low wide stance, realistic aerodynamic body, sculpted fenders, glass cabin, detailed alloy wheels and tires, realistic headlights and tail lights, clean brandless design, game-ready textured mesh, no logos, no text",
-        "size": {"x": 11, "y": 4, "z": 5},
-        "maxTriangles": 16000,
-        "segmentation": "auto"
-      }
-    },
-    {
-      "name": "generate_mesh",
-      "arguments": {
-        "textPrompt": "A premium modern exotic sports coupe for a luxury nightclub entrance photo spot, glossy rich blue automotive paint, low wide stance, realistic aerodynamic body, sculpted fenders, glass cabin, detailed alloy wheels and tires, realistic headlights and tail lights, clean brandless design, game-ready textured mesh, no logos, no text",
-        "size": {"x": 11, "y": 4, "z": 5},
-        "maxTriangles": 16000,
-        "segmentation": "auto"
-      }
-    },
-    {
-      "name": "generate_mesh",
-      "arguments": {
-        "textPrompt": "Professional nightclub DJ equipment setup, brandless club-standard layout with two digital media player decks, large jog wheels, central four-channel mixer, faders, knobs, performance pads, small displays and realistic cables, premium black metal and matte polymer construction, detailed game-ready textured 3D mesh, realistic proportions, no logos, no text, not a blocky toy",
-        "size": {"x": 10, "y": 2.8, "z": 4.2},
-        "maxTriangles": 18000,
-        "segmentation": "explicit",
-        "partNames": "left media deck, right media deck, central mixer, left jog wheel, right jog wheel, controls, displays, cables"
-      }
-    },
     {
       "name": "search_game_tree",
       "arguments": {
         "datamodel_type": "Edit",
         "path": "Workspace",
-        "instance_type": "Model",
-        "max_depth": 3,
-        "head_limit": 160
+        "instance_type": "MeshPart",
+        "keywords": "body wheel media deck mixer jog controls displays cables",
+        "max_depth": 6,
+        "head_limit": 260
       }
     }
   ]
