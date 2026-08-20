@@ -22,7 +22,8 @@
       "MeshAssetPass": { "$path": "41-mesh-assets.server.lua" },
       "MainClubRealism": { "$path": "42-main-club-realism.server.lua" },
       "Floor1FrontPremium": { "$path": "43-floor1-front-premium.server.lua" },
-      "Floor1VisualCleanup": { "$path": "44-floor1-visual-cleanup.server.lua" }
+      "Floor1VisualCleanup": { "$path": "44-floor1-visual-cleanup.server.lua" },
+      "DJBackgroundCorrection": { "$path": "45-dj-background-correction.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
