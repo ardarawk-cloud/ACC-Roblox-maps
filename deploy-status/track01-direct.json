@@ -1,11 +1,14 @@
 {
-  "ok": true,
-  "httpStatus": 200,
+  "ok": false,
+  "httpStatus": 500,
   "universeId": "10745349805",
   "placeId": "79748872921213",
   "payload": {
-    "versionNumber": 4
+    "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+    "title": "An error occurred while processing your request.",
+    "status": 500,
+    "traceId": "00-bf22048fa8d4267c54a8e66918b12048-bbabf04fe1be7ca4-00"
   },
-  "at": "2026-08-20T15:01:11.056Z",
+  "at": "2026-08-20T16:44:55.882Z",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
