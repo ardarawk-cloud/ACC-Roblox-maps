@@ -28,27 +28,69 @@ jobs:
       PUBLISH_RECEIPT_DIR: deploy-status
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Build Roblox place
-        run: node scripts/build-becak-ebike.js
-      - name: Validate build target
+      - name: Build validate publish and capture result
+        id: deploy
+        shell: bash
         run: |
-          test -s maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
-          grep -q '80994730522893' maps/becak-e-bike/runtime.server.lua
-          node -e "const r=require('./maps/registry.json').maps['becak-e-bike']; if(r.universeId!=='10745325613'||r.placeId!=='80994730522893'||!r.enabled) process.exit(1)"
-      - name: Publish Becak E-Bike to Roblox
-        run: node scripts/publish-map.js becak-e-bike
-      - name: Record generated place and deploy receipt
-        if: success()
+          set +e
+          mkdir -p deploy-status
+          STATUS=BUILDING
+          DETAIL=''
+          node scripts/build-becak-ebike.js > /tmp/becak-build.log 2>&1
+          BUILD_RC=$?
+          if [ $BUILD_RC -ne 0 ]; then
+            STATUS=BUILD_FAILED
+            DETAIL=$(tail -n 20 /tmp/becak-build.log | tr '\n' ' ')
+          else
+            test -s maps/becak-e-bike/place.rbxlx
+            V1=$?
+            grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
+            V2=$?
+            node -e "const r=require('./maps/registry.json').maps['becak-e-bike']; if(r.universeId!=='10745325613'||r.placeId!=='80994730522893'||!r.enabled) process.exit(1)"
+            V3=$?
+            if [ $V1 -ne 0 ] || [ $V2 -ne 0 ] || [ $V3 -ne 0 ]; then
+              STATUS=VALIDATION_FAILED
+              DETAIL="validation=$V1/$V2/$V3"
+            else
+              node scripts/publish-map.js becak-e-bike > /tmp/becak-publish.log 2>&1
+              PUB_RC=$?
+              if [ $PUB_RC -eq 0 ]; then
+                STATUS=PUBLISHED
+                DETAIL=$(tail -n 8 /tmp/becak-publish.log | tr '\n' ' ')
+              else
+                STATUS=PUBLISH_FAILED
+                DETAIL=$(tail -n 20 /tmp/becak-publish.log | tr '\n' ' ')
+              fi
+            fi
+          fi
+          printf 'status=%s\nuniverseId=10745325613\nplaceId=80994730522893\ncommit=%s\ndetail=%s\n' "$STATUS" "$GITHUB_SHA" "$DETAIL" > deploy-status/becak-ebike-pipeline.txt
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          cat deploy-status/becak-ebike-pipeline.txt
+      - name: Persist build and deployment evidence
+        if: always()
+        shell: bash
         run: |
+          set -e
+          mkdir -p /tmp/becak-output
+          cp deploy-status/becak-ebike-pipeline.txt /tmp/becak-output/
+          if [ -f deploy-status/becak-e-bike.json ]; then cp deploy-status/becak-e-bike.json /tmp/becak-output/; fi
+          if [ -f maps/becak-e-bike/place.rbxlx ]; then cp maps/becak-e-bike/place.rbxlx /tmp/becak-output/; fi
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status maps/becak-e-bike
+          cp /tmp/becak-output/becak-ebike-pipeline.txt deploy-status/
+          if [ -f /tmp/becak-output/becak-e-bike.json ]; then cp /tmp/becak-output/becak-e-bike.json deploy-status/; fi
+          if [ -f /tmp/becak-output/place.rbxlx ]; then cp /tmp/becak-output/place.rbxlx maps/becak-e-bike/; fi
           git config user.name 'ACC Roblox Publisher'
           git config user.email 'actions@users.noreply.github.com'
-          git add maps/becak-e-bike/place.rbxlx deploy-status/becak-e-bike.json
+          git add deploy-status/becak-ebike-pipeline.txt deploy-status/becak-e-bike.json maps/becak-e-bike/place.rbxlx 2>/dev/null || true
           if ! git diff --cached --quiet; then
-            git commit -m 'Record Becak E-Bike published build [skip ci]'
-            git pull --rebase origin main
+            git commit -m 'Record Becak E-Bike deployment evidence [skip ci]'
             git push origin HEAD:main
           fi
