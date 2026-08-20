@@ -1,4 +1,4 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.2
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.3
 const fs = require('fs');
 const path = require('path');
 
@@ -41,6 +41,12 @@ if (!fs.existsSync(placePath)) {
 const body = fs.readFileSync(placePath);
 const contentType = selectedFile.endsWith('.rbxl') ? 'application/octet-stream' : 'application/xml';
 const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
+const retryableStatuses = new Set([409, 429, 500, 502, 503, 504]);
+const retryDelaysMs = [20_000, 45_000, 90_000, 180_000];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function safePayload(payload) {
   if (!payload || typeof payload !== 'object') return payload;
@@ -70,28 +76,72 @@ function writeReceipt(payload, status) {
   console.log(`Deploy receipt written: ${receiptDir}/${mapId}.json`);
 }
 
-(async () => {
-  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType}...`);
+async function publishOnce(attempt, maxAttempts) {
+  console.log(`Publish attempt ${attempt}/${maxAttempts}...`);
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
-      'Content-Type': contentType
+      'Content-Type': contentType,
     },
-    body
+    body,
   });
 
   const text = await response.text();
   let payload;
   try { payload = JSON.parse(text); } catch { payload = { raw: text }; }
 
-  if (!response.ok) {
-    console.error('Roblox publish failed:', response.status, payload);
-    process.exit(1);
+  return { response, payload };
+}
+
+(async () => {
+  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType}...`);
+
+  const maxAttempts = retryDelaysMs.length + 1;
+  let lastFailure = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const { response, payload } = await publishOnce(attempt, maxAttempts);
+
+      if (response.ok) {
+        writeReceipt(payload, 'PUBLISHED');
+        console.log('Publish success:', payload);
+        return;
+      }
+
+      lastFailure = { status: response.status, payload };
+      console.error('Roblox publish failed:', response.status, payload);
+
+      if (!retryableStatuses.has(response.status) || attempt >= maxAttempts) {
+        break;
+      }
+
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterSeconds = Number(retryAfterHeader);
+      const fallbackDelay = retryDelaysMs[attempt - 1];
+      const delayMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? Math.max(fallbackDelay, retryAfterSeconds * 1000)
+        : fallbackDelay;
+
+      console.log(`Transient Roblox response ${response.status}; retrying in ${Math.round(delayMs / 1000)}s...`);
+      await sleep(delayMs);
+    } catch (err) {
+      lastFailure = { status: 'NETWORK_ERROR', payload: { message: err?.message || String(err) } };
+      console.error('Roblox publish request error:', err?.message || err);
+
+      if (attempt >= maxAttempts) {
+        break;
+      }
+
+      const delayMs = retryDelaysMs[attempt - 1];
+      console.log(`Transient network error; retrying in ${Math.round(delayMs / 1000)}s...`);
+      await sleep(delayMs);
+    }
   }
 
-  writeReceipt(payload, 'PUBLISHED');
-  console.log('Publish success:', payload);
+  console.error('Roblox publish exhausted retries:', lastFailure);
+  process.exit(1);
 })().catch((err) => {
   console.error('Unexpected Roblox publish error:', err);
   process.exit(1);
