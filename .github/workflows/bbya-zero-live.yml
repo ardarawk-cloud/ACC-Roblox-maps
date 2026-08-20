@@ -10,6 +10,7 @@ on:
       - '.github/workflows/bbya-zero-live.yml'
       - 'scripts/publish-map.js'
       - 'scripts/sync-bbya-products.py'
+      - 'scripts/sync-bbya-gamepasses.py'
 
 concurrency:
   group: bbya-zero-live-${{ github.ref }}
@@ -45,6 +46,25 @@ jobs:
       - name: Verify Rojo
         run: rojo --version
 
+      - name: Sync permanent BBYA Travel Game Passes
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          UNIVERSE_ID: '8116636513'
+        shell: bash
+        run: python3 scripts/sync-bbya-gamepasses.py
+
+      - name: Persist Travel Game Pass IDs before build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add maps/bbya-social-hub/monetization/passes.luau deploy-status/bbya-gamepasses-sync.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update BBYA permanent travel pass IDs [skip ci]"
+            git push origin HEAD:main
+          fi
+
       - name: Build canonical BBYA preview place
         shell: bash
         run: |
@@ -79,7 +99,7 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Sync BBYA Developer Products
+      - name: Sync BBYA repeatable Developer Products
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
@@ -91,7 +111,7 @@ jobs:
         run: |
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add maps/bbya-social-hub/monetization/products.luau deploy-status/bbya-products-sync.json
           if ! git diff --cached --quiet; then
             git commit -m "Update BBYA developer product IDs and status [skip ci]"
