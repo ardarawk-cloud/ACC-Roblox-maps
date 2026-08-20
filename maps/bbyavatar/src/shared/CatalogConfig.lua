@@ -1,6 +1,6 @@
 local CatalogConfig = {}
 
-CatalogConfig.Version = 1
+CatalogConfig.Version = 2
 CatalogConfig.Project = "BBYAVATAR"
 
 CatalogConfig.Categories = {
@@ -11,28 +11,102 @@ CatalogConfig.Categories = {
     "Cute",
     "Bali",
     "Seasonal",
+    "Creators",
+    "Trending",
 }
 
--- Asset IDs are intentionally placeholders until approved Roblox assets exist.
+-- Asset IDs intentionally remain placeholders until approved Roblox assets exist.
+-- Looks stay disabled until every required asset has been validated.
 CatalogConfig.Looks = {
     {
-        id = "featured_001",
-        name = "Starter Look",
-        category = "Featured",
+        id = "street_001",
+        name = "Midnight Street",
+        category = "Streetwear",
         enabled = false,
         featured = true,
-        tags = {"starter", "full-look"},
+        tags = {"streetwear", "black", "urban", "full-look"},
         thumbnailAssetId = 0,
         items = {
-            hair = 0,
-            head = 0,
-            face = 0,
-            top = 0,
-            bottom = 0,
-            shoes = 0,
-            accessory1 = 0,
-            accessory2 = 0,
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
         },
+        purchase = {enabled = false, assetIds = {}},
+    },
+    {
+        id = "cyber_001",
+        name = "Neon Runner",
+        category = "Cyber",
+        enabled = false,
+        featured = true,
+        tags = {"cyber", "neon", "techwear", "full-look"},
+        thumbnailAssetId = 0,
+        items = {
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
+        },
+        purchase = {enabled = false, assetIds = {}},
+    },
+    {
+        id = "luxury_001",
+        name = "Velvet Gold",
+        category = "Luxury",
+        enabled = false,
+        featured = false,
+        tags = {"luxury", "formal", "gold", "full-look"},
+        thumbnailAssetId = 0,
+        items = {
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
+        },
+        purchase = {enabled = false, assetIds = {}},
+    },
+    {
+        id = "cute_001",
+        name = "Cloud Pop",
+        category = "Cute",
+        enabled = false,
+        featured = false,
+        tags = {"cute", "soft", "pastel", "full-look"},
+        thumbnailAssetId = 0,
+        items = {
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
+        },
+        purchase = {enabled = false, assetIds = {}},
+    },
+    {
+        id = "bali_001",
+        name = "Island Afterdark",
+        category = "Bali",
+        enabled = false,
+        featured = true,
+        tags = {"bali", "island", "nightlife", "full-look"},
+        thumbnailAssetId = 0,
+        items = {
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
+        },
+        purchase = {enabled = false, assetIds = {}},
+    },
+    {
+        id = "seasonal_001",
+        name = "Rain Season",
+        category = "Seasonal",
+        enabled = false,
+        featured = false,
+        tags = {"seasonal", "rain", "layered", "full-look"},
+        thumbnailAssetId = 0,
+        items = {
+            hair = 0, face = 0, shirt = 0, pants = 0,
+            hatAccessory = {}, hairAccessory = {}, faceAccessory = {},
+            neckAccessory = {}, frontAccessory = {}, backAccessory = {}, waistAccessory = {},
+        },
+        purchase = {enabled = false, assetIds = {}},
     },
 }
 
@@ -49,6 +123,16 @@ function CatalogConfig.GetEnabledLooks()
     local result = {}
     for _, look in ipairs(CatalogConfig.Looks) do
         if look.enabled then
+            table.insert(result, look)
+        end
+    end
+    return result
+end
+
+function CatalogConfig.GetLooksByCategory(category)
+    local result = {}
+    for _, look in ipairs(CatalogConfig.Looks) do
+        if look.enabled and look.category == category then
             table.insert(result, look)
         end
     end
