@@ -1,46 +1,45 @@
-print("[BBYA_JOB_BEGIN:dj-wall-render-deep-audit-002]")
-local RunService=game:GetService("RunService")
+print("[BBYA_JOB_BEGIN:dj-wall-rear-opening-qc-003]")
 local Players=game:GetService("Players")
 local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
 print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
 local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
 print("ROOT|exists="..tostring(root~=nil))
-local wall=nil
-if root then
- local sys=root:FindFirstChild("DJWallMessageSystem")
- local final=sys and sys:FindFirstChild("FinalMountedWall")
- wall=final and final:FindFirstChild("PrestigeLED")
- print("SYSTEM|"..tostring(sys~=nil).."|FINAL="..tostring(final~=nil).."|WALL="..tostring(wall~=nil))
- if wall then
-  local p,s=wall.Position,wall.Size
-  print(string.format("WALL|pos=%.2f,%.2f,%.2f|size=%.2f,%.2f,%.2f|trans=%.2f|localTrans=%.2f",p.X,p.Y,p.Z,s.X,s.Y,s.Z,wall.Transparency,wall.LocalTransparencyModifier))
-  print("WALLCF|look="..tostring(wall.CFrame.LookVector).."|right="..tostring(wall.CFrame.RightVector).."|up="..tostring(wall.CFrame.UpVector))
-  for _,c in ipairs(wall:GetChildren()) do
-   if c:IsA("SurfaceGui") then
-    local first=c:FindFirstChildWhichIsA("GuiObject")
-    local abs=first and first.AbsoluteSize or Vector2.new(-1,-1)
-    local pos2=first and first.AbsolutePosition or Vector2.new(-1,-1)
-    print("GUI|"..c.Name.."|enabled="..tostring(c.Enabled).."|face="..tostring(c.Face).."|always="..tostring(c.AlwaysOnTop).."|adornee="..tostring(c.Adornee and c.Adornee:GetFullName() or "nil").."|pps="..tostring(c.PixelsPerStud).."|maxdist="..tostring(c.MaxDistance).."|desc="..tostring(#c:GetDescendants()))
-    print(string.format("GUIABS|%s|first=%s|visible=%s|abs=%.1f,%.1f|pos=%.1f,%.1f",c.Name,first and first.Name or "nil",tostring(first and first.Visible),abs.X,abs.Y,pos2.X,pos2.Y))
-    for _,name in ipairs({"BBYARandomVisuals","MessageMode","IdleVisuals"}) do
-     local o=c:FindFirstChild(name,true)
-     if o and o:IsA("GuiObject") then
-      print("GUINODE|"..c.Name.."|"..name.."|visible="..tostring(o.Visible).."|abs="..tostring(o.AbsoluteSize))
-     end
-    end
-   elseif c:IsA("ProximityPrompt") then
-    print("PROMPT|"..c.Name.."|enabled="..tostring(c.Enabled).."|dist="..tostring(c.MaxActivationDistance))
-   end
+local shell=root and root:FindFirstChild("ShellAndDressing")
+if shell then
+ for _,name in ipairs({"L1RearCenter","L1RearCenterLeft","L1RearCenterTop","L1RearCenterBottom"}) do
+  local o=shell:FindFirstChild(name)
+  if o then o:Destroy() end
+ end
+ local function p(n,s,cf)
+  local x=Instance.new("Part")
+  x.Name=n;x.Anchored=true;x.Size=s;x.CFrame=cf;x.Color=Color3.fromRGB(10,9,13);x.Material=Enum.Material.SmoothPlastic;x.Parent=shell
+  return x
+ end
+ p("L1RearCenterLeft",Vector3.new(6,24,2),CFrame.new(-29,12,44))
+ p("L1RearCenterTop",Vector3.new(58,7.375,2),CFrame.new(3,20.3125,44))
+ p("L1RearCenterBottom",Vector3.new(58,3.375,2),CFrame.new(3,1.6875,44))
+ print("REAR_OPENING|applied=true")
+else
+ print("REAR_OPENING|applied=false|reason=shell_missing")
+end
+local sys=root and root:FindFirstChild("DJWallMessageSystem")
+local final=sys and sys:FindFirstChild("FinalMountedWall")
+local wall=final and final:FindFirstChild("PrestigeLED")
+print("WALL|exists="..tostring(wall~=nil))
+if wall then
+ local enabled=0
+ for _,c in ipairs(wall:GetChildren()) do
+  if c:IsA("SurfaceGui") then
+   print("GUI|"..c.Name.."|enabled="..tostring(c.Enabled).."|face="..tostring(c.Face).."|desc="..tostring(#c:GetDescendants()))
+   if c.Enabled then enabled+=1 end
   end
  end
+ print("GUI_ENABLED|count="..tostring(enabled))
 end
-local ps=Players:GetPlayers()
-print("PLAYERS|count="..tostring(#ps))
-local p=ps[1]
-if p then
- local pg=p:FindFirstChildOfClass("PlayerGui")
- print("PLAYER|"..p.Name.."|PlayerGui="..tostring(pg~=nil).."|Composer="..tostring(pg and pg:FindFirstChild("BBYADJWallUI")~=nil))
- local hrp=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+local ps=Players:GetPlayers();local player=ps[1]
+if player then
+ local hrp=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
  if hrp then hrp.CFrame=CFrame.lookAt(Vector3.new(3,4,14),Vector3.new(3,9,47));print("TELEPORT|ok=true") end
 end
 local cam=Workspace.CurrentCamera
@@ -49,18 +48,16 @@ if cam and wall then
  cam.CFrame=CFrame.lookAt(Vector3.new(3,9,10),wall.Position)
  local origin=cam.CFrame.Position
  local direction=wall.Position-origin
- local params=RaycastParams.new()
- params.FilterType=Enum.RaycastFilterType.Exclude
- local exclude={}
- if p and p.Character then table.insert(exclude,p.Character) end
- params.FilterDescendantsInstances=exclude
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
+ local ex={};if player and player.Character then table.insert(ex,player.Character) end;params.FilterDescendantsInstances=ex
  local hit=Workspace:Raycast(origin,direction,params)
- print("CAMERA|pos="..tostring(origin).."|dist="..string.format("%.2f",direction.Magnitude))
  if hit then
-  print("RAYHIT|"..hit.Instance:GetFullName().."|material="..tostring(hit.Material).."|pos="..tostring(hit.Position).."|distance="..string.format("%.2f",(hit.Position-origin).Magnitude))
+  print("RAYHIT|"..hit.Instance:GetFullName().."|distance="..string.format("%.2f",(hit.Position-origin).Magnitude))
+  print("RAY_PASS|"..tostring(hit.Instance==wall or hit.Instance:IsDescendantOf(final)))
  else
   print("RAYHIT|none")
+  print("RAY_PASS|false")
  end
 end
-task.wait(3)
-print("[BBYA_JOB_END:dj-wall-render-deep-audit-002]")
+task.wait(4)
+print("[BBYA_JOB_END:dj-wall-rear-opening-qc-003]")
