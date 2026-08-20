@@ -1,4 +1,4 @@
-timestamp=2026-08-20T19:48:10.6405208+00:00
+timestamp=2026-08-20T19:59:29.8694634+00:00
 2026-08-20T19:36:54.325Z,327.325806,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:dj-wall-live-visual-audit-001]")
 local RunService=game:GetService("RunService")
 local Players=game:GetService("Players")
@@ -99,3 +99,48 @@ if root then
 2026-08-20T19:48:14.165Z,1007.165833,22e8,6,Warning [FLog::Graphics] WARNING: D3D Frame query much longer than expected (102.0 ms).
 2026-08-20T19:48:14.167Z,1007.167786,22e8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
 2026-08-20T19:48:14.632Z,1007.632812,0690,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:dj-wall-render-deep-audit-002]
+2026-08-20T19:59:30.752Z,1683.752686,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:dj-wall-rear-opening-qc-003]")
+local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
+local RunService=game:GetService("RunService")
+print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+print("ROOT|exists="..tostring(root~=nil))
+local shell=root and root:FindFirstChild("ShellAndDressing")
+if shell then
+ for _,name in ipairs({"L1RearCenter","L1RearCenterLeft","L1RearCenterTop","L1RearCenterBottom"}) do
+  local o=shell:FindFirstChild(name)
+  if o then o:Destroy() end
+ end
+ local function p(n,s,cf)
+  local x=Instance.new("Part")
+  x.Name=n;x.Anchored=true;x.Size=s;x.CFrame=cf;x.Color=Color3.fromRGB(10,9,13);x.Material=Enum.Material.SmoothPlastic;x.Parent=shell
+  return x
+ end
+ p("L1RearCenterLeft",Vector3.new(6,24,2),CFrame.new(-29,12,44))
+ p("L1RearCenterTop",Vector3.new(58,7.375,2
+2026-08-20T19:59:30.756Z,1683.756714,06bc,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T19:59:30.760Z,1683.760742,06bc,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:dj-wall-rear-opening-qc-003]
+2026-08-20T19:59:30.760Z,1683.760742,06bc,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T19:59:30.760Z,1683.760742,06bc,6,Info [FLog::CreatorOutput] ROOT|exists=true
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] REAR_OPENING|applied=true
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] WALL|exists=true
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] GUI|DJWallUI|enabled=false|face=Enum.NormalId.Front|desc=245
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] GUI|DJWallUI_OppositeFace|enabled=false|face=Enum.NormalId.Back|desc=245
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] GUI|BBYAClientWallFront|enabled=true|face=Enum.NormalId.Front|desc=266
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] GUI|BBYAClientWallBack|enabled=true|face=Enum.NormalId.Back|desc=266
+2026-08-20T19:59:30.761Z,1683.761719,06bc,6,Info [FLog::CreatorOutput] GUI_ENABLED|count=2
+2026-08-20T19:59:30.762Z,1683.762695,06bc,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T19:59:30.762Z,1683.762695,06bc,6,Info [FLog::CreatorOutput] RAYHIT|Workspace.BBYA_ZERO_BUILD.DJWallMessageSystem.FinalMountedWall.PrestigeLED|distance=37.25
+2026-08-20T19:59:30.762Z,1683.762695,06bc,6,Info [FLog::CreatorOutput] RAY_PASS|true
+2026-08-20T19:59:34.120Z,1687.120972,06bc,6 [DFLog::NamedMutex] NamedMutex(00000222D597F430, name:InstallerInfo.log)
+2026-08-20T19:59:34.120Z,1687.120972,06bc,6 [DFLog::NamedMutex] ~NamedMutex(00000222D597F430, name:InstallerInfo.log)
+2026-08-20T19:59:34.121Z,1687.121948,06bc,6 [DFLog::NamedMutex] NamedMutex(00000222D597F3F0, name:InstallerInfo.log)
+2026-08-20T19:59:34.121Z,1687.121948,06bc,6 [DFLog::NamedMutex] ~NamedMutex(00000222D597F3F0, name:InstallerInfo.log)
+2026-08-20T19:59:34.137Z,1687.137207,22e8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T19:59:34.750Z,1687.750122,1318,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T19:59:34.750Z,1687.750122,1318,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2237 ms: Error
+2026-08-20T19:59:34.750Z,1687.750122,1318,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T19:59:34.750Z,1687.750122,23fc,12 [DFLog::HttpTraceError] HttpResponse(#2044 0x2231c1625d8) time:2238.2ms (net:2237.2ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T19:59:34.750Z,1687.750122,23fc,6 [DFLog::WebSocketTraceError] ws: 317 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T19:59:34.762Z,1687.762085,1a50,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:dj-wall-rear-opening-qc-003]
