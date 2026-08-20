@@ -1,33 +1,45 @@
-timestamp=2026-08-20T20:34:39.7773619+00:00
-2026-08-20T20:34:40.787Z,34.787727,09b8,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-live-audit-004]")
+timestamp=2026-08-20T20:35:59.7487778+00:00
+2026-08-20T20:36:01.149Z,37.149582,1e00,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:social-live-qc-005]")
 local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
 print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
+local social=remotes and remotes:FindFirstChild("SocialHangout")
+print("REMOTE|folder="..tostring(remotes~=nil).."|social="..tostring(social~=nil).."|class="..tostring(social and social.ClassName or "nil"))
 local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
-local upper=root and root:FindFirstChild("UpperLevels")
-local vip=upper and upper:FindFirstChild("L2_VIP_Level")
-local pass=vip and vip:FindFirstChild("PremiumVIPPass")
-print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|pass="..tostring(pass~=nil))
-local function report(name,obj)
- if not obj then print("OBJ|"..name.."|missing") return end
- local count=#obj:GetDescendants()
- print("OBJ|"..name.."|"..obj.ClassName.."|desc="..tostring(count))
+local floor=root and root:FindFirstChild("Floor1Features")
+local dance=0
+if floor then
+ for i=1,3 do if floor:FindFirstChild("DanceInteract"..i) then dance+=1 end end
 end
-if pass then
- for _,name in ipairs({"VIPEntry","GlassBalcony","NorthSkyLounge","VIPBar","PrivateSocialBooths","V
-2026-08-20T20:34:40.822Z,34.822826,1d80,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
-2026-08-20T20:34:40.908Z,34.908844,1d80,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1d448942070 windowHandle=0x110408 dims=350x1
-2026-08-20T20:34:40.908Z,34.908844,1d80,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x1 swapChain=0x1d448942070
-2026-08-20T20:34:40.932Z,34.932877,1d80,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1d448942070 windowHandle=0x110408 dims=350x128
-2026-08-20T20:34:40.932Z,34.932877,1d80,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x1d448942070
-2026-08-20T20:34:45.012Z,39.012398,22ec,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T20:34:45.013Z,39.013397,22ec,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2209 ms: Error
-2026-08-20T20:34:45.013Z,39.013397,22ec,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T20:34:45.013Z,39.013397,224c,12 [DFLog::HttpTraceError] HttpResponse(#224 0x1d43748cda8) time:2209.3ms (net:2208.8ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T20:34:45.013Z,39.013397,224c,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
-2026-08-20T20:34:45.698Z,39.698807,09b8,6 [DFLog::NamedMutex] NamedMutex(000001D43913F430, name:InstallerInfo.log)
-2026-08-20T20:34:45.698Z,39.698807,09b8,6 [DFLog::NamedMutex] ~NamedMutex(000001D43913F430, name:InstallerInfo.log)
-2026-08-20T20:34:45.698Z,39.698807,09b8,6 [DFLog::NamedMutex] NamedMutex(000001D43913F3F0, name:InstallerInfo.log)
-2026-08-20T20:34:45.698Z,39.698807,09b8,6 [DFLog::NamedMutex] ~NamedMutex(000001D43913F3F0, name:InstallerInfo.log)
-2026-08-20T20:34:45.698Z,39.698807,1d80,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+print("DANCE_PROMPTS|count="..tostring(dance))
+local ps=Players:GetPlayers();local p=ps[1]
+print("PLAYERS|coun
+2026-08-20T20:36:01.150Z,37.150578,1e00,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:social-live-qc-005]
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] REMOTE|folder=true|social=true|class=RemoteEvent
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] DANCE_PROMPTS|count=0
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] PLAYERS|count=1
+2026-08-20T20:36:01.158Z,37.158562,1e00,6,Info [FLog::CreatorOutput] CLIENT_UI|gui=true
+2026-08-20T20:36:01.159Z,37.159557,1e00,6,Info [FLog::CreatorOutput] CLIENT_UI|launcher=true|panel=true
+2026-08-20T20:36:01.159Z,37.159557,1e00,6,Info [FLog::CreatorOutput] LAUNCHER|text=âœ¦  SOCIAL|visible=true|abs=118, 42
+2026-08-20T20:36:01.159Z,37.159557,1e00,6,Info [FLog::CreatorOutput] PANEL|forced_open=true|abs=310, 442
+2026-08-20T20:36:01.160Z,37.160557,1e00,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T20:36:01.160Z,37.160557,1e00,6,Info [FLog::CreatorOutput] CAMERA|set=true
+2026-08-20T20:36:02.542Z,38.542870,0c80,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T20:36:02.543Z,38.543865,0c80,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2231 ms: Error
+2026-08-20T20:36:02.543Z,38.543865,0c80,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T20:36:02.544Z,38.544865,205c,12 [DFLog::HttpTraceError] HttpResponse(#345 0x1c3e1693088) time:2234.4ms (net:2232.5ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T20:36:02.544Z,38.544865,205c,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T20:36:03.945Z,39.945015,1e00,6 [DFLog::NamedMutex] NamedMutex(000001C3FE5DF430, name:InstallerInfo.log)
+2026-08-20T20:36:03.945Z,39.945015,1e00,6 [DFLog::NamedMutex] ~NamedMutex(000001C3FE5DF430, name:InstallerInfo.log)
+2026-08-20T20:36:03.945Z,39.945015,1e00,6 [DFLog::NamedMutex] NamedMutex(000001C3FE5DF3F0, name:InstallerInfo.log)
+2026-08-20T20:36:03.945Z,39.945015,1e00,6 [DFLog::NamedMutex] ~NamedMutex(000001C3FE5DF3F0, name:InstallerInfo.log)
+2026-08-20T20:36:04.019Z,40.019203,1fb8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T20:36:04.224Z,40.224991,1fb8,6,Warning [FLog::Graphics] WARNING: D3D Frame query much longer than expected (109.9 ms).
+2026-08-20T20:36:05.107Z,41.107983,1fb8,6,Warning [FLog::Graphics] WARNING: D3D Frame query much longer than expected (112.2 ms).
+2026-08-20T20:36:05.250Z,41.250622,1fb8,6,Warning [FLog::Graphics] WARNING: D3D Frame query much longer than expected (115.7 ms).
+2026-08-20T20:36:05.256Z,41.256603,1fc8,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:social-live-qc-005]
