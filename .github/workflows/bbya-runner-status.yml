@@ -24,12 +24,12 @@ jobs:
           set -euo pipefail
           headers=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
           runners=$(curl -fsSL "${headers[@]}" "https://api.github.com/repos/$REPO/actions/runners?per_page=100")
-          runs=$(curl -fsSL "${headers[@]}" "https://api.github.com/repos/$REPO/actions/runs?per_page=30")
+          runs=$(curl -fsSL "${headers[@]}" "https://api.github.com/repos/$REPO/actions/runs?per_page=50")
           report="timestamp=$(date -u +%FT%TZ)\n"
           report+="RUNNERS\n"
           report+=$(echo "$runners" | jq -r '.runners[] | [.id,.name,.os,.status,.busy,([.labels[].name]|join(","))] | @tsv')
           report+=$'\nRUNS\n'
-          report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -20)
+          report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -30)
           report+=$'\n'
           content=$(printf '%s' "$report" | base64 -w0)
           path='deploy-status/bbya-runner-status.txt'
