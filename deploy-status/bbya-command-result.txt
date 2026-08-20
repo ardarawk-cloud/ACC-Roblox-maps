@@ -1,69 +1,46 @@
-timestamp=2026-08-20T21:19:22.6594782+00:00
-dialog_confirmed=Continue
+timestamp=2026-08-20T21:20:44.4022289+00:00
+mode=VIP_SOURCE_QC
 dialog_confirmed=Run
-2026-08-20T21:19:23.346Z,35.346897,1914,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
-local Players=game:GetService("Players")
+2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=false|ceiling=false|geo=false
+2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:20:45.740Z,36.740398,1e2c,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
+2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] NamedMutex(00000247457DF430, name:InstallerInfo.log)
+2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] ~NamedMutex(00000247457DF430, name:InstallerInfo.log)
+2026-08-20T21:20:48.423Z,39.423683,06dc,6 [DFLog::NamedMutex] NamedMutex(00000247457DF3F0, name:InstallerInfo.log)
+2026-08-20T21:20:48.425Z,39.425667,06dc,6 [DFLog::NamedMutex] ~NamedMutex(00000247457DF3F0, name:InstallerInfo.log)
+2026-08-20T21:20:48.457Z,39.457443,1594,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
+2026-08-20T21:20:50.378Z,41.378410,06dc,6,Info [FLog::CreatorOutput] > -- BBYA SOCIAL HUB Ã¢â‚¬â€ VIP MINIMAL STANDING LOUNGE v3
+-- Owner request: empty VIP. Standing/social space + sound only.
+-- No sofas, booths, bar, plants, gates, signs, ceiling art or decorative clutter.
+-- Floor 1 / DJ systems / monetization are untouched.
+
 local Workspace=game:GetService("Workspace")
-local RunService=game:GetService("RunService")
-print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
 
-local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
-local upper=root and root:FindFirstChild("UpperLevels")
-local vip=upper and upper:FindFirstChild("L2_VIP_Level")
-local premium=vip and vip:FindFirstChild("PremiumVIPPass")
-local ceiling=premium and premium:FindFirstChild("VIPCeiling")
-local pass=ceiling and ceiling:FindFirstChild("GeometricWhiteCeiling")
-print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|premium="..tostring(premium~=nil).."|ceiling="..tostring(ceiling~=nil).."|geo="..tostring(pass~=nil))
+local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",20)
+if not root then return end
+local upper=root:WaitForChild("UpperLevels",20)
+if not upper then return end
+local vip=upper:WaitForChild("L2_VIP_Level",20)
+if not vip then return end
 
-local segments=0
-local emitters=0
-local downlights=0
-local nonWhite=0
-local minY,ma
-2026-08-20T21:19:23.382Z,35.382832,0bf0,6,Warning [FLog::StudioPluginRelay] PluginQWidgetRelay::onResizeEvent: rplg_sabuiltin_Dialog.rbxm_Dialog_DataModel:Standalone,_PluginId:CommandBarController/DangerousCommandDialog - Failed Empty
-2026-08-20T21:19:23.477Z,35.477180,0bf0,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1749e438150 windowHandle=0x170284 dims=350x1
-2026-08-20T21:19:23.477Z,35.477180,0bf0,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x1 swapChain=0x1749e438150
-2026-08-20T21:19:23.503Z,35.503231,0bf0,6,Info [FLog::D3D11SwapChain] resizeWindowData: swapChain=0x1749e438150 windowHandle=0x170284 dims=350x128
-2026-08-20T21:19:23.504Z,35.504234,0bf0,6,Info [FLog::D3D11SwapChain] resizeSwapchain: ResizeBuffers explicit 350x128 swapChain=0x1749e438150
-2026-08-20T21:19:26.778Z,38.778763,1c30,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T21:19:26.778Z,38.778763,1c30,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2209 ms: Error
-2026-08-20T21:19:26.778Z,38.778763,1c30,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T21:19:26.779Z,38.779770,04d4,12 [DFLog::HttpTraceError] HttpResponse(#225 0x1750dd1f118) time:2208.8ms (net:2208.4ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T21:19:26.779Z,38.779770,04d4,6 [DFLog::WebSocketTraceError] ws: 6 url: http://localhost:13469/studio error: HttpError: ConnectFail
-2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] NamedMutex(00000174B5EDF430, name:InstallerInfo.log)
-2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174B5EDF430, name:InstallerInfo.log)
-2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] NamedMutex(00000174B5EDF3F0, name:InstallerInfo.log)
-2026-08-20T21:19:27.159Z,39.159035,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174B5EDF3F0, name:InstallerInfo.log)
-2026-08-20T21:19:27.178Z,39.178997,0bf0,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:19:28.756Z,40.756741,1914,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]")
-local Players=game:GetService("Players")
-local Workspace=game:GetService("Workspace")
-local RunService=game:GetService("RunService")
-print("STATE|running="..tostring(RunService:IsRunning()).."|studio="..tostring(RunService:IsStudio()))
+-- Hard reset L2 VIP only. UpperLevels creates the old placeholder first;
+-- this pass deliberately replaces ALL of it with the minimal owner-approved layout.
+for _,child in ipairs(vip:GetChildren()) do
+ child:Destroy()
+end
 
-local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
-local upper=root and root:FindFirstChild("UpperLevels")
-local vip=upper and upper:FindFirstChild("L2_VIP_Level")
-local premium=vip and vip:FindFirstChild("PremiumVIPPass")
-local ceiling=premium and premium:FindFirstChild("VIPCeiling")
-local pass=ceiling and ceiling:FindFirstChild("GeometricWhiteCeiling")
-print("VIP|root="..tostring(root~=nil).."|upper="..tostring(upper~=nil).."|level="..tostring(vip~=nil).."|premium="..tostring(premium~=nil).."|ceiling="..tostring(ceiling~=nil).."|geo="..tostring(pass~=nil))
-
-local segments=0
-local emitters=0
-local downlights=0
-local nonWhite=0
-local minY,ma
-2026-08-20T21:19:28.758Z,40.758739,0660,6,Error [FLog::DialogManagerUIBridge] Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
-2026-08-20T21:19:28.758Z,40.758739,0660,6,Error [FLog::DialogManager] Command DialogManager/ShowDialogAsync failed. Error: Dialog with the same URI already exists: DataModel:Standalone, PluginId:CommandBarController/DangerousCommandDialog
-2026-08-20T21:19:32.002Z,44.002762,1c30,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
-2026-08-20T21:19:32.002Z,44.002762,1c30,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2219 ms: Error
-2026-08-20T21:19:32.002Z,44.002762,1c30,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
-2026-08-20T21:19:32.002Z,44.002762,04d4,12 [DFLog::HttpTraceError] HttpResponse(#228 0x1750dd1c328) time:2219.8ms (net:2219.4ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
-2026-08-20T21:19:32.002Z,44.002762,04d4,6 [DFLog::WebSocketTraceError] ws: 7 url: http://localhost:13469/studio error: HttpError: ConnectFail
-2026-08-20T21:19:32.162Z,44.162605,1914,6 [DFLog::NamedMutex] NamedMutex(00000174919DF430, name:InstallerInfo.log)
-2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174919DF430, name:InstallerInfo.log)
-2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] NamedMutex(00000174919DF3F0, name:InstallerInfo.log)
-2026-08-20T21:19:32.163Z,44.163597,1914,6 [DFLog::NamedMutex] ~NamedMutex(00000174919DF3F0, name:InstallerInfo.log)
-2026-08-20T21:19:32.182Z,44.182465,0bf0,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
-2026-08-20T21:19:33.724Z,45.724693,238c,6,Info [FLog::SessionL2ValidationHelper] onSessionHeartbeat sc_count 1 sh_count 2 cur_l2ts 0 elapsed_l2b 0
+local out=Instance.new("Model")
+out.Name="VIPMinimalStanding"
+out:SetAttribute("Pass","VIP_MINIMAL_STANDING_V3")
+out:SetAttribute("FurnitureCount",0)
+out:SetAttribute("DecorCount",0
+2026-08-20T21:20:50.380Z,41.380409,06dc,6 [FLog::StudioDebuggerV2] DAPClient: Invoking method: evaluate
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] [BBYA] VIP Minimal Standing v3 online: empty floor + safety rail + spatial sound
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-geometric-white-ceiling-qc-007]
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|premium=false|ceiling=false|geo=false
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T21:20:50.388Z,41.388405,06dc,6,Info [FLog::CreatorOutput] CAMERA|ceiling_reference_view=true|pos=0, 29, -27
+2026-08-20T21:20:50.749Z,41.749142,06dc,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-geometric-white-ceiling-qc-007]
