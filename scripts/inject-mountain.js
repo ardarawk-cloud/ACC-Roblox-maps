@@ -15,16 +15,29 @@ if (String(target.universeId) !== '10744139279' || String(target.placeId) !== '8
 const placePath = path.join(root, target.file);
 const readLua = (file) => fs.readFileSync(path.join(root, file), 'utf8').replaceAll(']]>', ']]]]><![CDATA[>');
 const worldLua = readLua('maps/mountain-social/mountain.world.server.lua');
+const moduleFiles = [
+  ['checkpoint', 'maps/mountain-social/systems/checkpoint.server.lua'],
+  ['ambience', 'maps/mountain-social/systems/ambience.server.lua'],
+  ['summit', 'maps/mountain-social/systems/summit.server.lua'],
+  ['interactions', 'maps/mountain-social/mountain.interactions.server.lua'],
+];
+
+const wrappedModules = moduleFiles.map(([name, file]) => {
+  const src = readLua(file);
+  return `\ntask.spawn(function()\n  local ok, err = pcall(function()\n${src}\n  end)\n  if not ok then warn('[Mountain:${name}]', err) end\nend)\n`;
+}).join('\n');
+
+const bundledLua = `${worldLua}\n\n-- ACC Mountain core server modules\n${wrappedModules}\nworkspace:SetAttribute('ACC_MountainCoreBundle', 'v1.2')\n`;
 
 const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
 <External>null</External><External>nil</External>
 <Item class="Workspace" referent="RBXMOUNTAINWORKSPACE"><Properties><string name="Name">Workspace</string></Properties></Item>
 <Item class="Lighting" referent="RBXMOUNTAINLIGHTING"><Properties><float name="Brightness">2</float><double name="ClockTime">6.2</double><string name="Name">Lighting</string></Properties></Item>
 <Item class="ServerScriptService" referent="RBXMOUNTAINSSS"><Properties><string name="Name">ServerScriptService</string></Properties>
-<Item class="Script" referent="RBXMOUNTAINBUILD"><Properties><string name="Name">ACC_Mountain_World</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${worldLua}]]></ProtectedString></Properties></Item>
-<Item class="Script" referent="RBXMOUNTAINQC"><Properties><string name="Name">ACC_Mountain_QC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[task.delay(8,function() workspace:SetAttribute('ACC_MountainReady', workspace:FindFirstChild('ACC_MountainSocial') ~= nil) end)]]></ProtectedString></Properties></Item>
+<Item class="Script" referent="RBXMOUNTAINBUILD"><Properties><string name="Name">ACC_Mountain_World</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${bundledLua}]]></ProtectedString></Properties></Item>
+<Item class="Script" referent="RBXMOUNTAINQC"><Properties><string name="Name">ACC_Mountain_QC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[task.delay(10,function() local r=workspace:FindFirstChild('ACC_MountainSocial'); workspace:SetAttribute('ACC_MountainReady', r ~= nil and r:GetAttribute('BuildVersion') ~= nil) end)]]></ProtectedString></Properties></Item>
 </Item>
 </roblox>`;
 
 fs.writeFileSync(placePath, xml);
-console.log('[Mountain] Injected minimal BBYA-compatible Mountain runtime into', target.file);
+console.log('[Mountain] Injected BBYA-compatible Mountain core bundle v1.2 into', target.file);
