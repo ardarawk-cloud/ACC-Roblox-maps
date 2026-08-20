@@ -1,12 +1,12 @@
 FAILED
 Universe: 10744139279
 Place: 82661754996018
-Source commit: d10895b3cd03d4b9b79e319ac9e5c9fa7595b58e
-Run: 32353399345
+Source commit: 2d179738864c14364c328769266a6b29b872a752
+Run: 32353467179
 Inject: success
 Validate: success
 Publish: failure
-UTC: 2026-08-20T09:20:53Z
+UTC: 2026-08-20T09:21:43Z
 --- inject log ---
 [Mountain] Injected isolated runtime into maps/mountain-social/place.rbxlx
 --- publish log ---
