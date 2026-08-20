@@ -1,4 +1,4 @@
--- WONDERPOCKET Contextual Wondi Reactions v1.1
+-- WONDERPOCKET Contextual Wondi Reactions v1.2
 local Players = game:GetService("Players")
 
 local specialByWondi = {
@@ -22,15 +22,47 @@ local pending = {}
 local lastValues = {}
 local lastReactionAt = {}
 
+local function special(player)
+    return specialByWondi[tostring(player:GetAttribute("ActiveWondi") or "Bubbi")] or "Wave"
+end
+
 local function trigger(player, preferred)
     local now = os.clock()
     if now - (lastReactionAt[player] or 0) < .65 then return end
     lastReactionAt[player] = now
 
-    local wondi = tostring(player:GetAttribute("ActiveWondi") or "Bubbi")
-    local action = preferred or specialByWondi[wondi] or "Wave"
+    local action = preferred or special(player)
     player:SetAttribute("WP_LastWondiEmote", action)
     player:SetAttribute("WP_WondiEmoteSeq", (tonumber(player:GetAttribute("WP_WondiEmoteSeq")) or 0) + 1)
+end
+
+local function watchIncrease(player, attribute, preferred)
+    lastValues[player][attribute] = tonumber(player:GetAttribute(attribute)) or 0
+    table.insert(connections[player], player:GetAttributeChangedSignal(attribute):Connect(function()
+        local previous = lastValues[player] and (lastValues[player][attribute] or 0) or 0
+        local current = tonumber(player:GetAttribute(attribute)) or 0
+        if lastValues[player] then lastValues[player][attribute] = current end
+        if current <= previous then return end
+        trigger(player, preferred == "SPECIAL" and special(player) or preferred)
+    end))
+end
+
+local function watchTrue(player, attribute, preferred)
+    local previous = player:GetAttribute(attribute) == true
+    table.insert(connections[player], player:GetAttributeChangedSignal(attribute):Connect(function()
+        local current = player:GetAttribute(attribute) == true
+        if current and not previous then
+            trigger(player, preferred == "SPECIAL" and special(player) or preferred)
+        end
+        previous = current
+    end))
+end
+
+local function armInventoryPurchase(player)
+    if player:GetAttribute("WP_WondiPurchaseReactionArmed") == true then return end
+    if player:GetAttribute("WP_InventoryLoaded") ~= true then return end
+    player:SetAttribute("WP_WondiPurchaseReactionArmed", true)
+    watchIncrease(player, "WP_PurchasedFurnitureCount", "SPECIAL")
 end
 
 local function arm(player)
@@ -39,20 +71,19 @@ local function arm(player)
     lastValues[player] = {}
 
     for _, attribute in ipairs(watched) do
-        lastValues[player][attribute] = tonumber(player:GetAttribute(attribute)) or 0
-        table.insert(connections[player], player:GetAttributeChangedSignal(attribute):Connect(function()
-            local previous = lastValues[player] and (lastValues[player][attribute] or 0) or 0
-            local current = tonumber(player:GetAttribute(attribute)) or 0
-            if lastValues[player] then lastValues[player][attribute] = current end
-            if current <= previous then return end
-
-            if attribute == "WP_TreasureProgress" then
-                trigger(player, "Wave")
-            else
-                trigger(player, specialByWondi[tostring(player:GetAttribute("ActiveWondi") or "Bubbi")])
-            end
-        end))
+        watchIncrease(player, attribute, attribute == "WP_TreasureProgress" and "Wave" or "SPECIAL")
     end
+
+    -- Session-only retention signals are created after the safe main load, so they
+    -- cannot celebrate historical rewards from previous joins.
+    watchIncrease(player, "WP_OfflineReward", "Happy")
+    watchTrue(player, "WP_DailyRewardClaimed", "SPECIAL")
+    watchTrue(player, "WP_QuestStarterRewarded", "SPECIAL")
+
+    table.insert(connections[player], player:GetAttributeChangedSignal("WP_InventoryLoaded"):Connect(function()
+        armInventoryPurchase(player)
+    end))
+    armInventoryPurchase(player)
 end
 
 local function bind(player)
@@ -86,4 +117,4 @@ Players.PlayerRemoving:Connect(function(player)
     lastReactionAt[player] = nil
 end)
 
-print("[WONDERPOCKET] safe-load contextual Wondi milestone reactions loaded")
+print("[WONDERPOCKET] safe-load contextual Wondi progression reactions loaded")
