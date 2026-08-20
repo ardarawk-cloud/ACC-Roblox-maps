@@ -1,4 +1,4 @@
-# BBYA runner watchdog/report v6
+# BBYA runner watchdog/report v7
 name: BBYA Runner Unblock
 
 on:
@@ -26,21 +26,12 @@ jobs:
           auth=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
           runs=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/$REPO/actions/runs?per_page=100")
           report="$(date -u +%FT%TZ)\nRUNS\n"
-          report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -60)
+          report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -80)
           report+=$'\n'
-
-          echo "$runs" | jq -r --arg self "$SELF_RUN_ID" '.workflow_runs[] | select((.id|tostring)!=$self) | select(.status=="in_progress") | select(.name=="BBYA Studio View Menu Probe" or .name=="BBYA Floor 1 Live Studio Audit" or .name=="BBYA Studio Command Bar Bridge Test") | .id' | while read -r id; do
-            [ -z "$id" ] && continue
-            curl -fsSL -X POST "${auth[@]}" "https://api.github.com/repos/$REPO/actions/runs/$id/cancel" || true
-          done
 
           content=$(printf '%s' "$report" | base64 -w0)
           path='deploy-status/bbya-runner-unblock.txt'
           fileApi="https://api.github.com/repos/$REPO/contents/$path"
           sha=$(curl -sS "${auth[@]}" "$fileApi" | jq -r '.sha // empty')
-          if [ -n "$sha" ]; then
-            body=$(jq -n --arg m 'Record BBYA workflow queue [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}')
-          else
-            body=$(jq -n --arg m 'Record BBYA workflow queue [skip ci]' --arg c "$content" '{message:$m,content:$c,branch:"main"}')
-          fi
+          body=$(jq -n --arg m 'Record BBYA workflow queue [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}')
           curl -fsSL -X PUT "${auth[@]}" -H "Content-Type: application/json" -d "$body" "$fileApi" >/dev/null
