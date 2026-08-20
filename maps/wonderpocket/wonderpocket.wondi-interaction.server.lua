@@ -30,13 +30,18 @@ local function canUse(player)
     return true
 end
 
+local function triggerVisibleEmote(player,action)
+    player:SetAttribute("WP_LastWondiEmote",action)
+    player:SetAttribute("WP_WondiEmoteSeq",(tonumber(player:GetAttribute("WP_WondiEmoteSeq")) or 0)+1)
+end
+
 WondiAction.OnServerEvent:Connect(function(player, action)
     if not canUse(player) then return end
     local wondi=tostring(player:GetAttribute("ActiveWondi") or "Bubbi")
     action=tostring(action or "")
     if not (allowed[wondi] and allowed[wondi][action]) then return end
 
-    player:SetAttribute("WP_LastWondiEmote",action)
+    triggerVisibleEmote(player,action)
 
     -- Tutorial progress is server-authoritative and only mutates in a safe loaded session.
     if player:GetAttribute("WP_TutorialStarted")==true
@@ -53,4 +58,4 @@ WondiAction.OnServerEvent:Connect(function(player, action)
 end)
 
 Players.PlayerRemoving:Connect(function(player) cooldown[player.UserId]=nil end)
-print("[WONDERPOCKET] Canonical Wondi interaction + tutorial save guard loaded")
+print("[WONDERPOCKET] Canonical Wondi interaction + visible emote trigger loaded")
