@@ -8,13 +8,6 @@
       "placeId": "131894120482837",
       "file": "maps/bbya-social-hub/place.rbxlx"
     },
-    "mountain-social": {
-      "name": "ACC Mountain Master",
-      "enabled": true,
-      "universeId": "10744139279",
-      "placeId": "82661754996018",
-      "file": "maps/mountain-social/place.rbxlx"
-    },
     "bali-nightlife": {
       "name": "Bali Virtual Nightlife 24/7",
       "enabled": false,
