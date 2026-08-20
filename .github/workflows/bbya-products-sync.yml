@@ -19,20 +19,55 @@ jobs:
           fetch-depth: 0
 
       - name: Sync Roblox developer products
+        id: sync
+        continue-on-error: true
         uses: dig1t/rblxsync@0f9565d5397cd52ecb42fd96678c39969ca0a0cd
         with:
           api_key: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           command: run
           config: maps/bbya-social-hub/monetization/rblxsync.yml
 
-      - name: Persist generated product IDs
+      - name: Record API and sync status
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          UNIVERSE_ID: '8116636513'
+        shell: bash
+        run: |
+          set +e
+          mkdir -p deploy-status
+          http=$(curl -sS -o /tmp/products.json -w '%{http_code}' \
+            -H "x-api-key: $ROBLOX_API_KEY" \
+            "https://apis.roblox.com/developer-products/v2/universes/$UNIVERSE_ID/developer-products/creator?pageSize=50")
+          HTTP_CODE="$http" python3 - <<'PY'
+          import json, os
+          try:
+              body=json.load(open('/tmp/products.json'))
+          except Exception:
+              body={"raw":open('/tmp/products.json').read()[:1200]}
+          out={
+            "sync_outcome": os.environ.get("SYNC_OUTCOME",""),
+            "http": os.environ.get("HTTP_CODE",""),
+            "api_ok": os.environ.get("HTTP_CODE","").startswith("2"),
+            "body": body,
+          }
+          open('deploy-status/bbya-products-sync.json','w').write(json.dumps(out,indent=2))
+          PY
+
+      - name: Persist product IDs and status
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git pull --rebase origin main
           git add maps/bbya-social-hub/monetization/rblxsync.yml \
                   maps/bbya-social-hub/monetization/rblxsync-lock.yml \
-                  maps/bbya-social-hub/monetization/products.luau 2>/dev/null || true
-          git commit -m 'Update BBYA developer product IDs' || exit 0
+                  maps/bbya-social-hub/monetization/products.luau \
+                  deploy-status/bbya-products-sync.json 2>/dev/null || true
+          git commit -m 'Update BBYA developer product IDs and status' || true
+          git pull --rebase origin main
           git push
+
+      - name: Fail if sync failed
+        if: steps.sync.outcome != 'success'
+        shell: bash
+        run: exit 1
