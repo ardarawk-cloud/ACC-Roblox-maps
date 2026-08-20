@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VIP LUXURY POLISH v1
+-- BBYA SOCIAL HUB — VIP LUXURY POLISH v1.1
 -- Finishing layer for L2 VIP only: arrival ceremony, warm wayfinding, lounge detail and premium decor.
 -- Does not touch Floor 1, DJ booth, DJ wall or monetization.
 
@@ -17,7 +17,7 @@ local old=premium:FindFirstChild("VIPLuxuryPolish")
 if old then old:Destroy() end
 local out=Instance.new("Model")
 out.Name="VIPLuxuryPolish"
-out:SetAttribute("Pass","VIP_LUXURY_POLISH_V1")
+out:SetAttribute("Pass","VIP_LUXURY_POLISH_V1_1")
 out.Parent=premium
 
 local C={
@@ -48,9 +48,8 @@ end
 -- ARRIVAL CEREMONY -------------------------------------------------------------
 local arrival=model("ArrivalCeremony")
 for i,x in ipairs({41.5,45.0,49.0,52.5}) do
- local side=(i<=2) and -1 or 1
  local z=-7.2+((i%2)*2.2)
- local stem=cylinder("Stanchion"..i,Vector3.new(2.2,.26,.26),CFrame.new(x,26.1,z)*CFrame.Angles(0,0,math.rad(90)),C.brass,Enum.Material.Metal,arrival)
+ cylinder("Stanchion"..i,Vector3.new(2.2,.26,.26),CFrame.new(x,26.1,z)*CFrame.Angles(0,0,math.rad(90)),C.brass,Enum.Material.Metal,arrival)
  cylinder("Base"..i,Vector3.new(.18,1.45,1.45),CFrame.new(x,25.2,z)*CFrame.Angles(0,0,math.rad(90)),C.brass,Enum.Material.Metal,arrival)
  local cap=part("Cap"..i,Vector3.new(.45,.45,.45),CFrame.new(x,27.2,z),C.gold,Enum.Material.Metal,0,arrival,false);cap.Shape=Enum.PartType.Ball
  if i==1 or i==3 then
@@ -59,7 +58,7 @@ for i,x in ipairs({41.5,45.0,49.0,52.5}) do
  end
 end
 
--- CENTRAL WARM GUIDE: low-profile floor accents from arrival toward overlook. --
+-- CENTRAL WARM GUIDE -----------------------------------------------------------
 local guide=model("WarmFloorGuide")
 for i,z in ipairs({-10,-3,4,11,18,25,32}) do
  local len=(i%2==0) and 8 or 5
@@ -67,7 +66,7 @@ for i,z in ipairs({-10,-3,4,11,18,25,32}) do
  neon("GuideR"..i,Vector3.new(len,.035,.08),CFrame.new(6,25.16,z),C.warm,guide,.22)
 end
 
--- WALL SCONCES: sparse warm pools, not nightclub strobes. ---------------------
+-- WALL SCONCES ----------------------------------------------------------------
 local sconces=model("WarmWallSconces")
 local sconceData={
  {-36,30,-18,0},{-36,30,-5,0},{-36,30,8,0},{36,30,-18,180},{36,30,-5,180},{36,30,8,180},
@@ -75,7 +74,7 @@ local sconceData={
 }
 for i,d in ipairs(sconceData) do
  local cf=CFrame.new(d[1],d[2],d[3])*CFrame.Angles(0,math.rad(d[4]),0)
- local base=part("SconceBase"..i,Vector3.new(1.3,2.5,.24),cf,C.ink,Enum.Material.Metal,0,sconces,false)
+ part("SconceBase"..i,Vector3.new(1.3,2.5,.24),cf,C.ink,Enum.Material.Metal,0,sconces,false)
  local glow=neon("SconceGlow"..i,Vector3.new(.18,1.45,.08),cf*CFrame.new(0,0,-.14),(i%4==0) and C.gold or C.warm,sconces,.06)
  light(glow,glow.Color,.32,9)
 end
@@ -85,10 +84,10 @@ local decor=model("SignatureDecor")
 local function planter(name,x,z)
  local m=model(name,decor)
  cylinder("Pot",Vector3.new(2.4,2.8,2.8),CFrame.new(x,26.1,z)*CFrame.Angles(0,0,math.rad(90)),C.graphite,Enum.Material.Slate,m)
- local stem=part("Stem",Vector3.new(.28,3.6,.28),CFrame.new(x,28.4,z),Color3.fromRGB(45,78,55),Enum.Material.SmoothPlastic,0,m,false)
+ part("Stem",Vector3.new(.28,3.6,.28),CFrame.new(x,28.4,z),Color3.fromRGB(45,78,55),Enum.Material.SmoothPlastic,0,m,false)
  for j=1,5 do
   local a=(j-1)*math.pi*2/5
-  local leaf=part("Leaf"..j,Vector3.new(.55,2.2,1.1),CFrame.new(x+math.cos(a)*.7,29.7,z+math.sin(a)*.7)*CFrame.Angles(math.rad(18),-a,math.rad(12)),Color3.fromRGB(58,96,70),Enum.Material.SmoothPlastic,0,m,false)
+  part("Leaf"..j,Vector3.new(.55,2.2,1.1),CFrame.new(x+math.cos(a)*.7,29.7,z+math.sin(a)*.7)*CFrame.Angles(math.rad(18),-a,math.rad(12)),Color3.fromRGB(58,96,70),Enum.Material.SmoothPlastic,0,m,false)
  end
 end
 planter("ArrivalPlantL",34,-8)
@@ -101,7 +100,7 @@ local cocktails=model("CocktailDetails")
 local function cocktailTable(name,x,z)
  local m=model(name,cocktails)
  cylinder("Stem",Vector3.new(1.4,.30,.30),CFrame.new(x,25.8,z)*CFrame.Angles(0,0,math.rad(90)),C.brass,Enum.Material.Metal,m)
- local top=cylinder("Top",Vector3.new(.20,3.2,3.2),CFrame.new(x,26.55,z)*CFrame.Angles(0,0,math.rad(90)),C.marble,Enum.Material.Marble,m)
+ cylinder("Top",Vector3.new(.20,3.2,3.2),CFrame.new(x,26.55,z)*CFrame.Angles(0,0,math.rad(90)),C.marble,Enum.Material.Marble,m)
  local bottle=cylinder("Bottle",Vector3.new(1.25,.38,.38),CFrame.new(x,27.25,z)*CFrame.Angles(0,0,math.rad(90)),C.gold,Enum.Material.Glass,m);bottle.Transparency=.12
  for j,dx in ipairs({-.75,.75}) do
   local glass=cylinder("Glass"..j,Vector3.new(.52,.46,.46),CFrame.new(x+dx,27.0,z+.45)*CFrame.Angles(0,0,math.rad(90)),C.glass,Enum.Material.Glass,m);glass.Transparency=.25
@@ -114,7 +113,8 @@ cocktailTable("PrivateHallTable",47,7)
 -- PRIVATE CORRIDOR ACCENTS -----------------------------------------------------
 local corridor=model("PrivateCorridorFinish")
 for i,z in ipairs({13,25,37}) do
- local plaque=part("PrivatePlaque"..i,Vector3.new(5.5,1.2,.14),CFrame.new(37.9,30.2,z),C.black,Enum.Material.Metal,0,corridor,false)
+ -- Thin panel runs along Z and faces +X toward the private corridor.
+ local plaque=part("PrivatePlaque"..i,Vector3.new(.14,1.2,5.5),CFrame.new(37.9,30.2,z),C.black,Enum.Material.Metal,0,corridor,false)
  local g=Instance.new("SurfaceGui");g.Face=Enum.NormalId.Right;g.LightInfluence=.05;g.PixelsPerStud=50;g.Parent=plaque
  local t=Instance.new("TextLabel");t.Size=UDim2.fromScale(1,1);t.BackgroundTransparency=1;t.Text=string.format("PRIVATE  %02d",i);t.TextColor3=C.gold;t.Font=Enum.Font.GothamBold;t.TextScaled=true;t.Parent=g
  neon("PrivateLine"..i,Vector3.new(.08,.08,6.0),CFrame.new(37.72,28.8,z),C.gold,corridor,.16)
@@ -129,4 +129,4 @@ local center=cylinder("EmblemCenter",Vector3.new(.08,6.9,6.9),CFrame.new(0,25.18
 out:SetAttribute("Floor1Untouched",true)
 out:SetAttribute("Style","Warm Luxury Lounge")
 out:SetAttribute("FunctionalGeometryPreserved",true)
-print("[BBYA] VIP Luxury Polish v1 online: arrival + guide + sconces + decor + private corridor finish")
+print("[BBYA] VIP Luxury Polish v1.1 online: arrival + guide + sconces + decor + private corridor finish")
