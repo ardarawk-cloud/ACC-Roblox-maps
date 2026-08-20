@@ -45,6 +45,8 @@ jobs:
           test -s maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_QC' maps/mountain-social/place.rbxlx
+          grep -q 'ACC_MountainCoreBundle' maps/mountain-social/place.rbxlx
+          grep -q "v3.0" maps/mountain-social/place.rbxlx
 
       - name: Publish closed-test build
         id: publish
@@ -62,6 +64,7 @@ jobs:
           if [ '${{ steps.inject.outcome }}' = 'success' ] && [ '${{ steps.validate.outcome }}' = 'success' ] && [ '${{ steps.publish.outcome }}' = 'success' ]; then STATUS='SUCCESS'; fi
           {
             echo "$STATUS"
+            echo 'Build: ACC Mountain Master v3.0'
             echo 'Universe: 10744139279'
             echo 'Place: 82661754996018'
             echo "Source commit: $GITHUB_SHA"
@@ -74,12 +77,27 @@ jobs:
             cat mountain-inject.log 2>/dev/null || true
             echo '--- publish log ---'
             cat mountain-publish.log 2>/dev/null || true
-          } > maps/mountain-social/PUBLISH-STATUS.txt
+          } > /tmp/mountain-publish-status.txt
+
           git config user.name 'ACC Mountain Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
+          git fetch origin main
+          git checkout -B mountain-receipt origin/main
+          cp /tmp/mountain-publish-status.txt maps/mountain-social/PUBLISH-STATUS.txt
           git add maps/mountain-social/PUBLISH-STATUS.txt
           git commit -m 'Record Mountain publish diagnostic [skip ci]' || true
-          git push
+
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            sleep 2
+          done
+          test "$PUSHED" = '1'
 
       - name: Fail run when publish failed
         if: steps.inject.outcome != 'success' || steps.validate.outcome != 'success' || steps.publish.outcome != 'success'
