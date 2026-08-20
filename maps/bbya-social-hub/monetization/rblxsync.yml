@@ -40,5 +40,5 @@ developer_products:
 
 output_path: maps/bbya-social-hub/monetization/products.luau
 
-# sync trigger after Developer Products scope update
-# self-reporting retry 2026-08-21
+# canonical direct sync enabled
+# reconciliation retry after propagation
