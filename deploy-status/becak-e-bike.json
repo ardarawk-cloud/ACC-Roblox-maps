@@ -1,0 +1,13 @@
+{
+  "status": "PUBLISHED",
+  "mapId": "becak-e-bike",
+  "name": "BECAK E-BIKE — Nusakarya Simulator",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "d6f78aea322fa95c3af948de2d96776d23dc72df",
+  "publishedAt": "2026-08-20T14:22:44.689Z",
+  "publishedFile": "maps/becak-e-bike/place.rbxlx",
+  "response": {
+    "versionNumber": 4
+  }
+}
