@@ -1,0 +1,17 @@
+timestamp=2026-08-20T13:37:19.3618482+00:00
+2026-08-20T13:37:20.078Z,5178.078613,090c,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:audit-runtime-001]")
+local RunService = game:GetService("RunService")
+print("STATE|running=" .. tostring(RunService:IsRunning()) .. "|studio=" .. tostring(RunService:IsStudio()))
+local root = workspace:FindFirstChild("BBYA_ZERO_BUILD")
+print("ROOT|exists=" .. tostring(root ~= nil))
+if root then
+    for _, name in ipairs({"Floor1Core","MainClubRealism","Floor1FrontPremium"}) do
+        local obj = root:FindFirstChild(name)
+        print("MODEL|" .. name .. "|exists=" .. tostring(obj ~= nil) .. (obj and ("|desc=" .. tostring(#obj:GetDescendants())) or ""))
+    end
+end
+print("[BBYA_JOB_END:audit-runtime-001]")
+2026-08-20T13:37:20.094Z,5178.094727,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:audit-runtime-001]
+2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] STATE|running=false|studio=true
+2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] ROOT|exists=false
+2026-08-20T13:37:20.095Z,5178.095703,090c,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:audit-runtime-001]
