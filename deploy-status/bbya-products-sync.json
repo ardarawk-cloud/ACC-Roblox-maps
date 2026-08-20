@@ -1,0 +1,110 @@
+{
+  "api_ok": true,
+  "list_http": "200",
+  "created": [
+    {
+      "name": "BBYA DJ Wall Message",
+      "price": 2,
+      "id": 3709047092
+    },
+    {
+      "name": "BBYA Support 10",
+      "price": 10,
+      "id": 3709047095
+    },
+    {
+      "name": "BBYA Support 25",
+      "price": 25,
+      "id": 3709047097
+    },
+    {
+      "name": "BBYA Support 50",
+      "price": 50,
+      "id": 3709047101
+    },
+    {
+      "name": "BBYA Support 100",
+      "price": 100,
+      "id": 3709047104
+    },
+    {
+      "name": "BBYA Support 250",
+      "price": 250,
+      "id": 3709047106
+    },
+    {
+      "name": "BBYA Support 500",
+      "price": 500,
+      "id": 3709047107
+    },
+    {
+      "name": "BBYA Support 1000",
+      "price": 1000,
+      "id": 3709047109
+    }
+  ],
+  "updated": [],
+  "errors": [
+    {
+      "stage": "create",
+      "name": "BBYA Support 2000",
+      "http": "400",
+      "body": {
+        "errorCode": "DuplicateProductName",
+        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
+        "field": "name",
+        "hint": null
+      },
+      "stderr": ""
+    }
+  ],
+  "products": [
+    {
+      "name": "BBYA DJ Wall Message",
+      "price": 2,
+      "id": 3709047092
+    },
+    {
+      "name": "BBYA Support 10",
+      "price": 10,
+      "id": 3709047095
+    },
+    {
+      "name": "BBYA Support 25",
+      "price": 25,
+      "id": 3709047097
+    },
+    {
+      "name": "BBYA Support 50",
+      "price": 50,
+      "id": 3709047101
+    },
+    {
+      "name": "BBYA Support 100",
+      "price": 100,
+      "id": 3709047104
+    },
+    {
+      "name": "BBYA Support 250",
+      "price": 250,
+      "id": 3709047106
+    },
+    {
+      "name": "BBYA Support 500",
+      "price": 500,
+      "id": 0
+    },
+    {
+      "name": "BBYA Support 1000",
+      "price": 1000,
+      "id": 0
+    },
+    {
+      "name": "BBYA Support 2000",
+      "price": 2000,
+      "id": 0
+    }
+  ],
+  "relist_http": "200",
+  "complete": false
+}
