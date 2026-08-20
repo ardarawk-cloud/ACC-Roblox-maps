@@ -20,7 +20,8 @@
       "RuntimeQC": { "$path": "33-runtime-qc.server.lua" },
       "SupportDashboard": { "$path": "34-support-dashboard.server.lua" },
       "MeshAssetPass": { "$path": "41-mesh-assets.server.lua" },
-      "MainClubRealism": { "$path": "42-main-club-realism.server.lua" }
+      "MainClubRealism": { "$path": "42-main-club-realism.server.lua" },
+      "Floor1FrontPremium": { "$path": "43-floor1-front-premium.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
