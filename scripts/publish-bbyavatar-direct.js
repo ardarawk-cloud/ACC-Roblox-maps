@@ -15,6 +15,8 @@ const placePath = path.join(process.cwd(), target.file);
 if (!fs.existsSync(placePath)) throw new Error(`Place file missing: ${target.file}`);
 const body = fs.readFileSync(placePath);
 const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
+const resultDir = path.join(process.cwd(), 'deploy-status');
+fs.mkdirSync(resultDir, { recursive: true });
 
 (async()=>{
   const response = await fetch(url, {
@@ -32,7 +34,7 @@ const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${
     payload,
     at: new Date().toISOString()
   };
-  fs.writeFileSync(path.join(process.cwd(),'maps/bbyavatar/PUBLISH-RESULT.json'), JSON.stringify(status,null,2)+'\n');
+  fs.writeFileSync(path.join(resultDir,'bbyavatar-direct.json'), JSON.stringify(status,null,2)+'\n');
   if (!response.ok) {
     console.error('BBYAVATAR publish failed', response.status, payload);
     process.exitCode = 1;
