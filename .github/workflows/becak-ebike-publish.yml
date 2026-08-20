@@ -68,10 +68,12 @@ jobs:
           grep -q 'ACC_BecakMasterplanSystems' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakDriverNavigation' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakWorldQC' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakRoadAccess','v1.8" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRoadAccess','v1.9" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.8 validation PASS'
+          grep -q 'BecakVersion","1.9.0' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.9 validation PASS'
 
       - name: Publish Becak E-Bike to Roblox
         id: publish
