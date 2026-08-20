@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
 local STORE = DataStoreService:GetDataStore("ACC_MountainSummits_v1")
-local ROOT = workspace:FindFirstChild("ACC_MountainSocial")
+local ROOT = workspace:WaitForChild("ACC_MountainSocial", 15)
 
 local function ensureStats(player)
     local leaderstats = player:FindFirstChild("leaderstats") or Instance.new("Folder")
@@ -12,6 +12,10 @@ local function ensureStats(player)
     local summits = leaderstats:FindFirstChild("Summits") or Instance.new("IntValue")
     summits.Name = "Summits"
     summits.Parent = leaderstats
+
+    local discoveries = leaderstats:FindFirstChild("Discoveries") or Instance.new("IntValue")
+    discoveries.Name = "Discoveries"
+    discoveries.Parent = leaderstats
     return summits
 end
 
@@ -37,7 +41,8 @@ Players.PlayerAdded:Connect(function(player)
     end)
 end)
 
-local summit = ROOT and (ROOT:FindFirstChild("Summit", true) or ROOT:FindFirstChild("MainSummit", true))
+if not ROOT then return end
+local summit = ROOT:FindFirstChild("ACC_SummitMonument", true)
 if summit and summit:IsA("BasePart") then
     local debounce = {}
     summit.Touched:Connect(function(hit)
