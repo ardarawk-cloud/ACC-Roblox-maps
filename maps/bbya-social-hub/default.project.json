@@ -38,7 +38,8 @@
         "DJRequestCompactPatch": { "$path": "48-dj-request-compact.client.lua" },
         "UIClarityPatch": { "$path": "49-ui-clarity-patch.client.lua" },
         "DJWallPrestigeClient": { "$path": "50-dj-wall-message.client.lua" },
-        "MenuMessageScrollPatch": { "$path": "51-menu-message-scroll.client.lua" }
+        "MenuMessageScrollPatch": { "$path": "51-menu-message-scroll.client.lua" },
+        "CommunityTab": { "$path": "52-community-tab.client.lua" }
       }
     },
     "Lighting": {
