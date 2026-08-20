@@ -24,11 +24,17 @@ local function attachPrompt(model)
     prompt.Enabled=false
     prompt.Parent=body
 
-    local ownerConnection
+    local ownerConnections={}
+    local function disconnectOwner()
+        for _,connection in ipairs(ownerConnections) do connection:Disconnect() end
+        table.clear(ownerConnections)
+    end
+
     local function syncPrompt()
         local owner=Players:GetPlayerByUserId(ownerUserId)
         prompt.Enabled = owner ~= nil
             and owner:GetAttribute("WP_DataLoaded")==true
+            and owner:GetAttribute("WP_DataReadOnly")~=true
             and owner:GetAttribute("WP_DataLoadFailed")~=true
             and owner:GetAttribute("WP_Tutorial_MetWondi") ~= true
     end
@@ -36,8 +42,10 @@ local function attachPrompt(model)
     local function bindOwner()
         local owner=Players:GetPlayerByUserId(ownerUserId)
         if not owner then return end
-        if ownerConnection then ownerConnection:Disconnect() end
-        ownerConnection=owner:GetAttributeChangedSignal("WP_Tutorial_MetWondi"):Connect(syncPrompt)
+        disconnectOwner()
+        for _,attribute in ipairs({"WP_Tutorial_MetWondi","WP_DataLoaded","WP_DataReadOnly","WP_DataLoadFailed"}) do
+            table.insert(ownerConnections,owner:GetAttributeChangedSignal(attribute):Connect(syncPrompt))
+        end
         syncPrompt()
     end
 
@@ -71,10 +79,7 @@ local function attachPrompt(model)
     end)
 
     prompt.AncestryChanged:Connect(function(_,parent)
-        if parent==nil and ownerConnection then
-            ownerConnection:Disconnect()
-            ownerConnection=nil
-        end
+        if parent==nil then disconnectOwner() end
     end)
 
     model:SetAttribute("WP_MeetPromptAttached",true)
@@ -106,4 +111,4 @@ Players.PlayerAdded:Connect(function(player)
     end)
 end)
 
-print("[WONDERPOCKET] Tutorial-aware Wondi meet + visible Wave loaded")
+print("[WONDERPOCKET] Read-only synchronized tutorial Wondi meet + visible Wave loaded")
