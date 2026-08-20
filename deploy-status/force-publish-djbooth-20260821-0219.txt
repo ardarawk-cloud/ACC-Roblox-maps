@@ -1,0 +1,2 @@
+Force canonical BBYA publish after ProfessionalDJBooth wiring.
+Target commit: 2e7655ad8fafac4a81ef3fbb86e49321dca00ac1
