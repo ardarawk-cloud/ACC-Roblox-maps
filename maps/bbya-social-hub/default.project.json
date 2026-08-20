@@ -33,9 +33,7 @@
       "VIPSkyLounge": { "$path": "60-vip-sky-lounge.server.lua" },
       "DJWallFinalMount": { "$path": "61-dj-wall-final-mount.server.lua" },
       "DJWallRenderBridge": { "$path": "62-dj-wall-render-bridge.server.lua" },
-      "SocialHangout": { "$path": "63-social-hangout.server.lua" },
-      "VIPLinearCeiling": { "$path": "64-vip-linear-ceiling.server.lua" },
-      "VIPLuxuryPolish": { "$path": "65-vip-luxury-polish.server.lua" }
+      "SocialHangout": { "$path": "63-social-hangout.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
