@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes", 15)
@@ -23,6 +24,8 @@ card.Size = UDim2.new(1,-24,0,84)
 card.BackgroundColor3 = Color3.fromRGB(30,39,78)
 card.BackgroundTransparency = .08
 card.Visible = false
+card.Active = true
+card:SetAttribute("WP_CompactMode", false)
 card.Parent = gui
 local sizeConstraint = Instance.new("UISizeConstraint")
 sizeConstraint.MaxSize = Vector2.new(320,84)
@@ -59,7 +62,26 @@ objective.TextXAlignment = Enum.TextXAlignment.Left
 objective.TextYAlignment = Enum.TextYAlignment.Top
 objective.Parent = card
 
+local tapArea = Instance.new("TextButton")
+tapArea.Name = "ExpandObjective"
+tapArea.Size = UDim2.fromScale(1,1)
+tapArea.BackgroundTransparency = 1
+tapArea.Text = ""
+tapArea.AutoButtonColor = false
+tapArea.ZIndex = 5
+tapArea.Parent = card
+
 local panelNames = {"ShopPanel","DexPanel","BuildPanel","SocialPanel"}
+local collapseToken = 0
+local expandedUntil = 0
+
+local function shortLandscape()
+    local camera = Workspace.CurrentCamera
+    if not camera then return false end
+    local size = camera.ViewportSize
+    return size.Y <= 480 and size.X > size.Y
+end
+
 local function modalOpen()
     local premium = playerGui:FindFirstChild("WonderPocketPremiumUI")
     if not premium then return false end
@@ -70,6 +92,24 @@ local function modalOpen()
         end
     end
     return false
+end
+
+local function setCompact(compact)
+    if not shortLandscape() then compact = false end
+    card:SetAttribute("WP_CompactMode", compact == true)
+end
+
+local function scheduleCollapse(delaySeconds)
+    collapseToken += 1
+    local token = collapseToken
+    local delayValue = tonumber(delaySeconds) or 3.2
+    expandedUntil = os.clock() + delayValue
+    setCompact(false)
+    task.delay(delayValue, function()
+        if token ~= collapseToken or not card.Parent then return end
+        if player:GetAttribute("WP_OnboardingComplete") == true then return end
+        if not modalOpen() then setCompact(true) end
+    end)
 end
 
 local function applyVisibility(forceComplete)
@@ -90,7 +130,7 @@ local function resolvedObjectiveText(text)
     return tostring(text or "Start your Pocket journey")
 end
 
-local function refresh()
+local function refresh(autoExpand)
     local complete = player:GetAttribute("WP_OnboardingComplete") == true
     if complete then
         card.Visible = false
@@ -102,10 +142,21 @@ local function refresh()
     kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/6", math.clamp(step,1,6))
     objective.Text = text
     applyVisibility(false)
+    if autoExpand then scheduleCollapse(3.2) end
 end
 
+local lastStepId = tostring(player:GetAttribute("WP_TutorialStepId") or "")
 for _, attr in ipairs({"WP_OnboardingComplete","WP_TutorialStarted","WP_TutorialStep","WP_TutorialStepId","WP_TutorialObjective","WP_BuildActive"}) do
-    player:GetAttributeChangedSignal(attr):Connect(refresh)
+    player:GetAttributeChangedSignal(attr):Connect(function()
+        local stepId = tostring(player:GetAttribute("WP_TutorialStepId") or "")
+        local changedStep = stepId ~= lastStepId
+        lastStepId = stepId
+        refresh(changedStep)
+        if attr == "WP_BuildActive" and player:GetAttribute("WP_BuildActive") == true and shortLandscape() then
+            collapseToken += 1
+            setCompact(true)
+        end
+    end)
 end
 
 Tutorial.OnClientEvent:Connect(function(action, step, total, _, text)
@@ -113,13 +164,24 @@ Tutorial.OnClientEvent:Connect(function(action, step, total, _, text)
         kicker.Text = string.format("FIRST POCKET JOURNEY  •  %d/%d", step, total)
         objective.Text = resolvedObjectiveText(text)
         applyVisibility(false)
+        scheduleCollapse(3.2)
     elseif action == "COMPLETE" then
+        collapseToken += 1
+        setCompact(false)
         kicker.Text = "FIRST POCKET JOURNEY  •  COMPLETE"
         objective.Text = text or "Your Pocket journey has begun!"
         applyVisibility(true)
         task.delay(3.5, function()
             if card.Parent then card.Visible = false end
         end)
+    end
+end)
+
+tapArea.Activated:Connect(function()
+    if card:GetAttribute("WP_CompactMode") == true then
+        scheduleCollapse(3.6)
+    elseif shortLandscape() and os.clock() >= expandedUntil then
+        setCompact(true)
     end
 end)
 
@@ -133,5 +195,9 @@ task.spawn(function()
     end
 end)
 
-refresh()
-print("[WONDERPOCKET] compact contextual tutorial tracker ready")
+refresh(false)
+if shortLandscape() and player:GetAttribute("WP_TutorialStarted") == true and player:GetAttribute("WP_OnboardingComplete") ~= true then
+    scheduleCollapse(2.8)
+end
+
+print("[WONDERPOCKET] Android auto-collapsing contextual tutorial tracker ready")
