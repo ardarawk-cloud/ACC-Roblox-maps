@@ -17,51 +17,24 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Inspect and report EC2 worker session
+      - name: Inspect Codex execution mode
         shell: powershell
         run: |
+          $env:USERPROFILE = 'C:\Users\Administrator'
+          $env:HOME = 'C:\Users\Administrator'
+          $env:PATH = 'C:\Users\Administrator\AppData\Roaming\npm;' + $env:PATH
+          $codexPath = 'C:\Users\Administrator\AppData\Roaming\npm\codex.cmd'
           $lines = @()
           $lines += "timestamp=$(Get-Date -Format o)"
-          $lines += "mode=administrator-session-retry"
           $lines += "whoami=$(whoami)"
-          $lines += "USERPROFILE=$env:USERPROFILE"
-
-          $studio = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue
-          if ($studio) {
-            foreach ($p in $studio) {
-              $lines += "ROBLOX_STUDIO_VISIBLE=true"
-              $lines += "ROBLOX_STUDIO_PID=$($p.Id)"
-              $lines += "ROBLOX_STUDIO_SESSION=$($p.SessionId)"
-            }
-          } else {
-            $lines += "ROBLOX_STUDIO_VISIBLE=false"
-          }
-
-          $codexPath = 'C:\Users\Administrator\AppData\Roaming\npm\codex.cmd'
-          $lines += "CODEX_PATH_EXISTS=$(Test-Path $codexPath)"
-          if (Test-Path $codexPath) {
-            try {
-              $version = (& $codexPath --version 2>&1 | Out-String).Trim()
-              $lines += "CODEX_VERSION=$version"
-            } catch {
-              $lines += "CODEX_VERSION_ERROR=$($_.Exception.Message)"
-            }
-            try {
-              $env:USERPROFILE = 'C:\Users\Administrator'
-              $env:HOME = 'C:\Users\Administrator'
-              $env:PATH = 'C:\Users\Administrator\AppData\Roaming\npm;' + $env:PATH
-              $mcp = (& $codexPath mcp list 2>&1 | Out-String).Trim()
-              $lines += "CODEX_MCP_LIST_BEGIN"
-              $lines += $mcp
-              $lines += "CODEX_MCP_LIST_END"
-            } catch {
-              $lines += "CODEX_MCP_LIST_ERROR=$($_.Exception.Message)"
-            }
-          }
+          $lines += "ROBLOX_STUDIO_VISIBLE=$([bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue))"
+          $lines += "CODEX_VERSION=$((& $codexPath --version 2>&1 | Out-String).Trim())"
+          $lines += "CODEX_EXEC_HELP_BEGIN"
+          $lines += ((& $codexPath exec --help 2>&1 | Out-String).Trim())
+          $lines += "CODEX_EXEC_HELP_END"
 
           $text = ($lines -join "`n") + "`n"
-          $bytes = [Text.Encoding]::UTF8.GetBytes($text)
-          $content = [Convert]::ToBase64String($bytes)
+          $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
           $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-worker.txt"
           $headers = @{
             Authorization = "Bearer $env:GH_TOKEN"
@@ -75,6 +48,5 @@ jobs:
             content = $content
             branch = "main"
             sha = $existing.sha
-          }
-          $json = $body | ConvertTo-Json
-          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body $json -ContentType "application/json"
+          } | ConvertTo-Json
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body $body -ContentType "application/json"
