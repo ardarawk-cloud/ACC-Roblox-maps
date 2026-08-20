@@ -103,6 +103,7 @@ local function refresh()
     local lastDelta=tonumber(player:GetAttribute("WP_LastEconomyDeltaCoins")) or 0
     local deadline=tonumber(player:GetAttribute("WP_AdventureDeadline")) or 0
     local secondsLeft=deadline>0 and math.max(0,deadline-os.time()) or 0
+    local protectedAbort=player:GetAttribute("WP_AdventureProtectedAbort")==true
     local readOnly=player:GetAttribute("WP_DataReadOnly")==true
     local saveFreeze=player:GetAttribute("WP_SaveHealthReadOnly")==true
     local saveFailure=tostring(player:GetAttribute("WP_SaveHealthFailure") or "-")
@@ -145,7 +146,7 @@ local function refresh()
     }) do if player:GetAttribute(attr)==true then dexFound+=1 end end
 
     panel.Text=string.format(
-        " WONDERPOCKET v1.3 CLOSED TEST\n\n DATA SAFETY: %s\n Read Only: %s  Save Freeze: %s\n Freeze Cause: %s\n Load Fail M/I/F/G/D: %s/%s/%s/%s/%s\n\n Data Load: %s\n Player Save: %s\n Inventory: %s / Save %s\n Furniture: %s / Save %s\n Garden: %s / Save %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n\n JOURNEY S:%s B:%s P:%s Buy:%s Pl:%s H:%s T:%s C:%s\n Step: %s (%s)\n Time: %s / %s  %s\n\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Adventure: %s (%ss)\n Players: %s / Peak %s",
+        " WONDERPOCKET v1.3 CLOSED TEST\n\n DATA SAFETY: %s\n Read Only: %s  Save Freeze: %s\n Freeze Cause: %s\n Load Fail M/I/F/G/D: %s/%s/%s/%s/%s\n\n Data Load: %s\n Player Save: %s\n Inventory: %s / Save %s\n Furniture: %s / Save %s\n Garden: %s / Save %s\n WonderDex: %s / Save %s (%s/21)\n Remotes: %s\n Plot/Home: %s / %s\n\n JOURNEY S:%s B:%s P:%s Buy:%s Pl:%s H:%s T:%s C:%s\n Step: %s (%s)\n Time: %s / %s  %s\n\n Economy: %sC / %sS / %s seeds\n Txn #%s: %s %s (%+dC)\n Harvests: %s\n Starter Quest: %s\n Adventure: %s (%ss) Abort:%s\n Players: %s / Peak %s",
         dataSafe and "OK" or "READ-ONLY",
         readOnly and "YES" or "NO",
         saveFreeze and "YES" or "NO",
@@ -166,7 +167,7 @@ local function refresh()
         tostring(txnSeq),lastAction,lastItem,lastDelta,
         tostring(tonumber(player:GetAttribute("WP_HarvestCount")) or 0),
         tostring(player:GetAttribute("WP_Quest_Starter") or "-"),
-        tostring(player:GetAttribute("WP_ActiveAdventure") or "-"),tostring(secondsLeft),
+        tostring(player:GetAttribute("WP_ActiveAdventure") or "-"),tostring(secondsLeft),bit(protectedAbort),
         tostring(workspace:GetAttribute("WP_CurrentPlayers") or 0),
         tostring(workspace:GetAttribute("WP_PeakPlayers") or 0)
     )
