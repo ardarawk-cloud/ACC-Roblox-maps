@@ -1,13 +1,12 @@
-SUCCESS
+FAILED
 Universe: 10744139279
 Place: 82661754996018
-Source commit: 05d9c4ae9107fb20b84b856cca90b4bf373c6e0e
-Run: 32378553091
+Source commit: 9ddae4a2bb9b4378cd607d961f74fc3617131048
+Run: 32385324934
 Inject: success
-Validate: success
-Publish: success
-UTC: 2026-08-20T14:10:57Z
+Validate: failure
+Publish: skipped
+UTC: 2026-08-20T15:18:32Z
 --- inject log ---
-[Mountain] Injected compatible Mountain full runtime v1.9 into maps/mountain-social/place.rbxlx
+[Mountain] Injected Mountain v2.1 Basecamp ACC rebuild into maps/mountain-social/place.rbxlx
 --- publish log ---
-Mountain closed-test publish success { versionNumber: 21 }
