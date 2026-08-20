@@ -1,0 +1,52 @@
+name: Becak E-Bike Build and Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/becak-e-bike/runtime.server.lua'
+      - 'maps/becak-e-bike/runtime.client.lua'
+      - 'maps/becak-e-bike/README.md'
+      - 'maps/registry.json'
+      - 'scripts/build-becak-ebike.js'
+      - '.github/workflows/becak-ebike-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: becak-ebike-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+      PUBLISH_RECEIPT_DIR: deploy-status
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build Roblox place
+        run: node scripts/build-becak-ebike.js
+      - name: Validate build target
+        run: |
+          test -s maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
+          grep -q '80994730522893' maps/becak-e-bike/runtime.server.lua
+      - name: Publish Becak E-Bike to Roblox
+        run: node scripts/publish-map.js becak-e-bike
+      - name: Record generated place and deploy receipt
+        if: success()
+        run: |
+          git config user.name 'ACC Roblox Publisher'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/becak-e-bike/place.rbxlx deploy-status/becak-e-bike.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record Becak E-Bike published build [skip ci]'
+            git push
+          fi
