@@ -3,6 +3,7 @@ return {
     DJ_MESSAGE = 3709047092,
     TRAVEL = {
         VIP = 0,
+        Skatepark = 0,
         Rooftop = 0,
         Basement = 0,
     },
