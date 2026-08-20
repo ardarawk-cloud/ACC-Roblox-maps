@@ -1,0 +1,39 @@
+name: BBYA Runner Status
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/bbya-runner-status.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report self-hosted runner status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          headers=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
+          runners=$(curl -fsSL "${headers[@]}" "https://api.github.com/repos/$REPO/actions/runners?per_page=100")
+          runs=$(curl -fsSL "${headers[@]}" "https://api.github.com/repos/$REPO/actions/runs?per_page=30")
+          report="timestamp=$(date -u +%FT%TZ)\n"
+          report+="RUNNERS\n"
+          report+=$(echo "$runners" | jq -r '.runners[] | [.id,.name,.os,.status,.busy,([.labels[].name]|join(","))] | @tsv')
+          report+=$'\nRUNS\n'
+          report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -20)
+          report+=$'\n'
+          content=$(printf '%s' "$report" | base64 -w0)
+          path='deploy-status/bbya-runner-status.txt'
+          api="https://api.github.com/repos/$REPO/contents/$path"
+          sha=$(curl -sS "${headers[@]}" "$api" | jq -r '.sha // empty')
+          if [ -n "$sha" ]; then body=$(jq -n --arg m 'Record BBYA runner status [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}'); else body=$(jq -n --arg m 'Record BBYA runner status [skip ci]' --arg c "$content" '{message:$m,content:$c,branch:"main"}'); fi
+          curl -fsSL -X PUT "${headers[@]}" -H 'Content-Type: application/json' -d "$body" "$api" >/dev/null
