@@ -1,4 +1,4 @@
--- WONDERPOCKET Contextual Wondi Reactions v1.0
+-- WONDERPOCKET Contextual Wondi Reactions v1.1
 local Players = game:GetService("Players")
 
 local specialByWondi = {
@@ -18,6 +18,7 @@ local watched = {
 }
 
 local connections = {}
+local pending = {}
 local lastValues = {}
 local lastReactionAt = {}
 
@@ -32,7 +33,7 @@ local function trigger(player, preferred)
     player:SetAttribute("WP_WondiEmoteSeq", (tonumber(player:GetAttribute("WP_WondiEmoteSeq")) or 0) + 1)
 end
 
-local function bind(player)
+local function arm(player)
     if connections[player] then return end
     connections[player] = {}
     lastValues[player] = {}
@@ -45,15 +46,31 @@ local function bind(player)
             if lastValues[player] then lastValues[player][attribute] = current end
             if current <= previous then return end
 
-            if attribute == "WP_AdventureCompletions" then
-                trigger(player, specialByWondi[tostring(player:GetAttribute("ActiveWondi") or "Bubbi")])
-            elseif attribute == "WP_TreasureProgress" then
+            if attribute == "WP_TreasureProgress" then
                 trigger(player, "Wave")
             else
                 trigger(player, specialByWondi[tostring(player:GetAttribute("ActiveWondi") or "Bubbi")])
             end
         end))
     end
+end
+
+local function bind(player)
+    if connections[player] or pending[player] then return end
+    pending[player] = true
+    task.spawn(function()
+        while player.Parent and player:GetAttribute("WP_DataLoaded") ~= true do
+            if player:GetAttribute("WP_DataLoadFailed") == true then
+                pending[player] = nil
+                return
+            end
+            task.wait(.25)
+        end
+        pending[player] = nil
+        if player.Parent and player:GetAttribute("WP_DataLoaded") == true then
+            arm(player)
+        end
+    end)
 end
 
 Players.PlayerAdded:Connect(bind)
@@ -64,8 +81,9 @@ Players.PlayerRemoving:Connect(function(player)
         for _, connection in ipairs(connections[player]) do connection:Disconnect() end
     end
     connections[player] = nil
+    pending[player] = nil
     lastValues[player] = nil
     lastReactionAt[player] = nil
 end)
 
-print("[WONDERPOCKET] contextual Wondi milestone reactions loaded")
+print("[WONDERPOCKET] safe-load contextual Wondi milestone reactions loaded")
