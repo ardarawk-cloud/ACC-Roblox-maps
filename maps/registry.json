@@ -35,6 +35,13 @@
       "universeId": "10744157359",
       "placeId": "85866320744490",
       "file": "maps/bbyavatar/place.rbxlx"
+    },
+    "becak-e-bike": {
+      "name": "BECAK E-BIKE — Nusakarya Simulator",
+      "enabled": true,
+      "universeId": "10745325613",
+      "placeId": "80994730522893",
+      "file": "maps/becak-e-bike/place.rbxlx"
     }
   }
 }
