@@ -23,25 +23,24 @@ local function mkButton(name, text, pos)
     local b = Instance.new("TextButton")
     b.Name = name
     b.Text = text
-    b.Size = UDim2.fromOffset(150, 46)
+    b.Size = UDim2.fromOffset(132, 42)
     b.Position = pos
     b.AnchorPoint = Vector2.new(1,1)
-    b.BackgroundTransparency = 0.18
+    b.BackgroundTransparency = 0.2
     b.TextScaled = true
     b.Parent = gui
     return b
 end
 
-local carryBtn = mkButton("CarryButton", "Carry", UDim2.new(1,-18,1,-72))
+local carryBtn = mkButton("CarryButton", "Carry", UDim2.new(1,-18,1,-66))
 local dropBtn = mkButton("DropButton", "Drop", UDim2.new(1,-18,1,-18))
-local photoBtn = mkButton("PhotoButton", "Photo", UDim2.new(0,168,1,-18))
-photoBtn.AnchorPoint = Vector2.new(1,1)
+local photoBtn = mkButton("PhotoButton", "Photo", UDim2.new(0,150,1,-18))
 
 local weatherLabel = Instance.new("TextLabel")
 weatherLabel.Name = "WeatherLabel"
-weatherLabel.Size = UDim2.fromOffset(170,34)
-weatherLabel.Position = UDim2.new(0,16,0,16)
-weatherLabel.BackgroundTransparency = 0.25
+weatherLabel.Size = UDim2.fromOffset(165,32)
+weatherLabel.Position = UDim2.new(0,14,0,14)
+weatherLabel.BackgroundTransparency = 0.28
 weatherLabel.TextScaled = true
 weatherLabel.Text = "Weather: CLEAR"
 weatherLabel.Parent = gui
@@ -70,21 +69,20 @@ dropBtn.Activated:Connect(function()
 end)
 
 local inPhoto = false
-local previous = {}
+local previousFov = 70
 local function setPhotoMode(on)
     if on == inPhoto then return end
     inPhoto = on
     local cam = workspace.CurrentCamera
     if on then
-        previous.fov = cam.FieldOfView
-        previous.core = gui.Enabled
+        previousFov = cam.FieldOfView
         cam.FieldOfView = 62
         weatherLabel.Visible = false
         carryBtn.Visible = false
         dropBtn.Visible = false
         photoBtn.Text = "Exit Photo"
     else
-        cam.FieldOfView = previous.fov or 70
+        cam.FieldOfView = previousFov
         weatherLabel.Visible = true
         carryBtn.Visible = true
         dropBtn.Visible = true
@@ -96,8 +94,9 @@ photoBtn.Activated:Connect(function() setPhotoMode(not inPhoto) end)
 
 local rainEmitter
 local function ensureRain()
-    if rainEmitter then return rainEmitter end
+    if rainEmitter and rainEmitter.Parent then return rainEmitter end
     local cam = workspace.CurrentCamera
+    if not cam then return nil end
     local att = Instance.new("Attachment")
     att.Name = "ACC_RainAttachment"
     att.Position = Vector3.new(0,22,-8)
@@ -133,20 +132,18 @@ local function applyWeather(state)
         end
     end
     local rain = ensureRain()
-    rain.Rate = state == "RAIN" and 650 or 0
+    if rain then rain.Rate = state == "RAIN" and 650 or 0 end
 end
 weatherRemote.OnClientEvent:Connect(applyWeather)
+applyWeather(workspace:GetAttribute("ACC_Weather") or "CLEAR")
 
--- Mobile-friendly: no mandatory keyboard input, but P toggles photo mode on desktop.
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.P then setPhotoMode(not inPhoto) end
 end)
 
--- Keep rain attachment tracking current camera after respawn/camera replacement.
 RunService.RenderStepped:Connect(function()
-    if rainEmitter and rainEmitter.Parent and rainEmitter.Parent.Parent ~= workspace.CurrentCamera then
-        local old = rainEmitter.Parent
-        old.Parent = workspace.CurrentCamera
+    if rainEmitter and rainEmitter.Parent and workspace.CurrentCamera and rainEmitter.Parent.Parent ~= workspace.CurrentCamera then
+        rainEmitter.Parent.Parent = workspace.CurrentCamera
     end
 end)
