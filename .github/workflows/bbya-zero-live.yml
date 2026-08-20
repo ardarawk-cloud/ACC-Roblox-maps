@@ -9,6 +9,7 @@ on:
       - 'maps/registry.json'
       - '.github/workflows/bbya-zero-live.yml'
       - 'scripts/publish-map.js'
+      - 'scripts/sync-bbya-products.py'
 
 concurrency:
   group: bbya-zero-live-${{ github.ref }}
@@ -78,109 +79,12 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Direct-sync BBYA Developer Products
+      - name: Sync BBYA Developer Products
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
         shell: bash
-        run: |
-          set +e
-          mkdir -p deploy-status maps/bbya-social-hub/monetization
-          python3 - <<'PY'
-          import json, os, subprocess
-
-          key=os.environ['ROBLOX_API_KEY']
-          universe=os.environ['UNIVERSE_ID']
-          list_url=f"https://apis.roblox.com/developer-products/v2/universes/{universe}/developer-products/creator?pageSize=50"
-          create_url=f"https://apis.roblox.com/developer-products/v2/universes/{universe}/developer-products"
-
-          desired=[
-            ("BBYA DJ Wall Message",2,"Display one filtered custom message on the BBYA DJ wall. Messages enter a queue and are shown for a limited time."),
-            ("BBYA Support 10",10,"Support BBYA Social Hub with 10 Robux."),
-            ("BBYA Support 25",25,"Support BBYA Social Hub with 25 Robux."),
-            ("BBYA Support 50",50,"Support BBYA Social Hub with 50 Robux."),
-            ("BBYA Support 100",100,"Support BBYA Social Hub with 100 Robux."),
-            ("BBYA Support 250",250,"Support BBYA Social Hub with 250 Robux."),
-            ("BBYA Support 500",500,"Support BBYA Social Hub with 500 Robux."),
-            ("BBYA Support 1000",1000,"Support BBYA Social Hub with 1000 Robux."),
-            ("BBYA Support 2000",2000,"Support BBYA Social Hub with 2000 Robux."),
-          ]
-
-          def request(method,url,fields=None):
-            cmd=['curl','-sS','-w','\n%{http_code}','-X',method,'-H',f'x-api-key: {key}']
-            for k,v in (fields or {}).items():
-              cmd += ['-F',f'{k}={v}']
-            cmd.append(url)
-            p=subprocess.run(cmd,capture_output=True,text=True)
-            raw=p.stdout
-            if '\n' in raw:
-              body_text,status=raw.rsplit('\n',1)
-            else:
-              body_text,status=raw,''
-            try: body=json.loads(body_text) if body_text.strip() else {}
-            except Exception: body={'raw':body_text[:1500]}
-            return status,body,p.stderr[:1000]
-
-          def items_from(body):
-            if isinstance(body,dict):
-              for k in ('data','developerProducts','products'):
-                if isinstance(body.get(k),list): return body[k]
-            return []
-
-          def pid(item):
-            for k in ('id','productId','developerProductId','ProductId'):
-              v=item.get(k) if isinstance(item,dict) else None
-              try:
-                if v is not None: return int(v)
-              except Exception: pass
-            return 0
-
-          result={'api_ok':False,'list_http':'','created':[],'updated':[],'errors':[],'products':[]}
-          status,body,stderr=request('GET',list_url)
-          result['list_http']=status
-          if not status.startswith('2'):
-            result['errors'].append({'stage':'list','http':status,'body':body,'stderr':stderr})
-          else:
-            result['api_ok']=True
-            existing={str(x.get('name','')).lower():x for x in items_from(body) if isinstance(x,dict)}
-            for name,price,desc in desired:
-              item=existing.get(name.lower())
-              if not item:
-                st,b,er=request('POST',create_url,{'name':name,'price':price,'description':desc})
-                if st.startswith('2'):
-                  result['created'].append({'name':name,'price':price,'id':pid(b)})
-                else:
-                  result['errors'].append({'stage':'create','name':name,'http':st,'body':b,'stderr':er})
-              else:
-                product_id=pid(item)
-                if product_id:
-                  st,b,er=request('PATCH',f"{create_url}/{product_id}",{'name':name,'price':price,'description':desc})
-                  if st.startswith('2'):
-                    result['updated'].append({'name':name,'price':price,'id':product_id})
-                  else:
-                    result['errors'].append({'stage':'update','name':name,'http':st,'body':b,'stderr':er})
-
-            st2,b2,er2=request('GET',list_url)
-            result['relist_http']=st2
-            if st2.startswith('2'):
-              remote={str(x.get('name','')).lower():x for x in items_from(b2) if isinstance(x,dict)}
-              for name,price,desc in desired:
-                item=remote.get(name.lower(),{})
-                result['products'].append({'name':name,'price':price,'id':pid(item)})
-            else:
-              result['errors'].append({'stage':'relist','http':st2,'body':b2,'stderr':er2})
-
-          result['complete']=result['api_ok'] and not result['errors'] and all(x.get('id',0)>0 for x in result['products']) and len(result['products'])==len(desired)
-          open('deploy-status/bbya-products-sync.json','w').write(json.dumps(result,indent=2))
-
-          ids={x['name']:x.get('id',0) for x in result.get('products',[])}
-          support={price:ids.get(f'BBYA Support {price}',0) for price in (10,25,50,100,250,500,1000,2000)}
-          lines=['-- Generated by BBYA Developer Products sync','return {',f"    DJ_MESSAGE = {ids.get('BBYA DJ Wall Message',0)},",'    SUPPORT = {']
-          for price in (10,25,50,100,250,500,1000,2000):
-            lines.append(f'        [{price}] = {support[price]},')
-          lines += ['    },','}']
-          open('maps/bbya-social-hub/monetization/products.luau','w').write('\n'.join(lines)+'\n')
-          PY
+        run: python3 scripts/sync-bbya-products.py
 
       - name: Persist Developer Product IDs and status
         shell: bash
