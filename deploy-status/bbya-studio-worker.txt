@@ -1,15 +1,15 @@
-timestamp=2026-08-20T13:03:15.5898191+00:00
-whoami=nt authority\network service
-SESSIONNAME=
-USERNAME=EC2AMAZ-4R0T5GO$
-USERPROFILE=C:\Windows\ServiceProfiles\NetworkService
+timestamp=2026-08-20T13:13:16.0481905+00:00
+mode=administrator-session-retry
+whoami=ec2amaz-4r0t5go\administrator
+USERPROFILE=C:\Users\Administrator
 ROBLOX_STUDIO_VISIBLE=true
 ROBLOX_STUDIO_PID=4768
 ROBLOX_STUDIO_SESSION=2
-CODEX_VISIBLE=false
-NODE_VISIBLE=true
-NODE_PATH=C:\Program Files\nodejs\node.exe
-QUSER_BEGIN
-USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
- administrator         rdp-tcp#0           2  Active          .  8/20/2026 12:08 PM
-QUSER_END
+CODEX_PATH_EXISTS=True
+CODEX_VERSION=codex-cli 0.148.0
+CODEX_MCP_LIST_BEGIN
+Name           Command                                                                                                 Args                                                                 Env                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Cwd                                                                                 Status    Auth       
+Roblox_Studio  cmd.exe                                                                                                 /c cd /d %LOCALAPPDATA%\Roblox && .\mcp.bat                          -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               -                                                                                   enabled   Unsupported
+codex_app      cmd.exe                                                                                                 /d /s /c call ./scripts/launch_codex_app_tools_mcp.cmd ./server.mjs  CODEX_MCP_NODE_PATH=*****, CODEX_BROWSER_USE_NODE_PATH=*****, CODEX_ELECTRON_RESOURCES_PATH=*****, CODEX_CLI_PATH=*****, XDG_CACHE_HOME=*****, HOME=*****, USERPROFILE=*****, LOCALAPPDATA=*****, PATH=*****                                                                                                                                                                                                                                                                                                                                    C:\Users\Administrator\.codex\plugins\cache\openai-bundled\codex-app-tools\0.1.0\.  disabled  Unsupported
+node_repl      C:\Users\Administrator\AppData\Local\OpenAI\Codex\runtimes\cua_node\e0c305cbb434431d\bin\node_repl.exe  -                                                                    BROWSER_USE_AVAILABLE_BACKENDS=*****, BROWSER_USE_CODEX_APP_BUILD_FLAVOR=*****, BROWSER_USE_CODEX_APP_VERSION=*****, BROWSER_USE_TINYSKY_ENABLED=*****, CODEX_CLI_PATH=*****, CODEX_HOME=*****, NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER=*****, NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME=*****, NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS=*****, NODE_REPL_NODE_MODULE_DIRS=*****, NODE_REPL_NODE_PATH=*****, NODE_REPL_TRUSTED_CODE_PATHS=*****, NODE_REPL_TRUSTED_SERVICES=*****, SKY_CUA_NATIVE_PIPE=*****, SKY_CUA_NATIVE_PIPE_DIRECTORY=*****  -                                                                                   enabled   Unsupported
+CODEX_MCP_LIST_END
