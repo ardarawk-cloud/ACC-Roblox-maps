@@ -1,4 +1,4 @@
-# BBYA runner watchdog/report v9
+# BBYA runner watchdog/report v10
 name: BBYA Runner Unblock
 
 on:
@@ -20,7 +20,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          SELF_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           auth=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
