@@ -1,0 +1,15 @@
+timestamp=2026-08-20T13:03:15.5898191+00:00
+whoami=nt authority\network service
+SESSIONNAME=
+USERNAME=EC2AMAZ-4R0T5GO$
+USERPROFILE=C:\Windows\ServiceProfiles\NetworkService
+ROBLOX_STUDIO_VISIBLE=true
+ROBLOX_STUDIO_PID=4768
+ROBLOX_STUDIO_SESSION=2
+CODEX_VISIBLE=false
+NODE_VISIBLE=true
+NODE_PATH=C:\Program Files\nodejs\node.exe
+QUSER_BEGIN
+USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+ administrator         rdp-tcp#0           2  Active          .  8/20/2026 12:08 PM
+QUSER_END
