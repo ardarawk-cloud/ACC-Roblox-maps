@@ -46,6 +46,7 @@ driveway.CanCollide=false
 driveway.CanTouch=false
 driveway.Material=Enum.Material.Asphalt
 driveway.Color=Color3.fromRGB(52,54,57)
+driveway:SetAttribute('Purpose','Seamless HQ road access')
 driveway.Parent=world
 
 -- A low-friction, stable chassis tune. Movement remains owned by the existing runtime controller.
@@ -80,4 +81,5 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakRoadAccess','v1.6')
+Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 print('[BECAK E-BIKE] Road access v1.6 active: flat roads + HQ driveway + chassis tune')
