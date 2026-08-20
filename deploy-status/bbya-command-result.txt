@@ -1,4 +1,5 @@
-timestamp=2026-08-20T20:07:44.1084320+00:00
+timestamp=2026-08-20T20:12:52.7732674+00:00
+mode=VIP_SOURCE_QC
 2026-08-20T19:36:54.325Z,327.325806,06bc,6,Info [FLog::CreatorOutput] > print("[BBYA_JOB_BEGIN:dj-wall-live-visual-audit-001]")
 local RunService=game:GetService("RunService")
 local Players=game:GetService("Players")
@@ -185,3 +186,21 @@ if pass then
 2026-08-20T20:07:49.090Z,2182.090332,06bc,6 [DFLog::NamedMutex] ~NamedMutex(00000222856CF3F0, name:InstallerInfo.log)
 2026-08-20T20:07:49.139Z,2182.139404,22e8,6,Info [FLog::UpdateManager] StatusEntry has VersionGuid: 'version-dcbeee682ce74ee0' and channel: 'production'
 2026-08-20T20:07:49.197Z,2182.197021,06bc,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-live-audit-004]
+2026-08-20T20:12:54.431Z,2487.431885,1a50,6,Info [FLog::CreatorOutput] [BBYA_JOB_BEGIN:vip-live-audit-004]
+2026-08-20T20:12:54.431Z,2487.431885,1a50,6,Info [FLog::CreatorOutput] STATE|running=true|studio=true
+2026-08-20T20:12:54.431Z,2487.431885,1a50,6,Info [FLog::CreatorOutput] VIP|root=true|upper=true|level=true|pass=true
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|VIPEntry|Model|desc=9
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|GlassBalcony|Model|desc=8
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|NorthSkyLounge|Model|desc=39
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|VIPBar|Model|desc=28
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|PrivateSocialBooths|Model|desc=48
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] OBJ|VIPCeiling|Model|desc=29
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] COUNTS|parts=147|seats=18|lights=18
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] TELEPORT|ok=true
+2026-08-20T20:12:54.432Z,2487.432861,1a50,6,Info [FLog::CreatorOutput] CAMERA|overview=true|pos=0, 33, -34
+2026-08-20T20:12:57.353Z,2490.353271,1318,12 [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: 10061 Unknown error
+2026-08-20T20:12:57.353Z,2490.353271,1318,12 [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: Failed to connect to localhost port 13469 after 2222 ms: Error
+2026-08-20T20:12:57.353Z,2490.353271,1318,12,Warning [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is -1, limit -1
+2026-08-20T20:12:57.353Z,2490.353271,23fc,12 [DFLog::HttpTraceError] HttpResponse(#2825 0x22321d6e148) time:2224.7ms (net:2223.3ms timeInRetryQueue:0.0ms) error:3 message:HttpError: ConnectFail url:{ "http://localhost:13469/studio" } ip: external:0 numberOfTimesRetried:0
+2026-08-20T20:12:57.353Z,2490.353271,23fc,6 [DFLog::WebSocketTraceError] ws: 470 url: http://localhost:13469/studio error: HttpError: ConnectFail
+2026-08-20T20:12:58.486Z,2491.486816,06bc,6,Info [FLog::CreatorOutput] [BBYA_JOB_END:vip-live-audit-004]
