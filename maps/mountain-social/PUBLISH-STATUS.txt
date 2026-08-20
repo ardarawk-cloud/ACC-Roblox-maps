@@ -1,12 +1,11 @@
 FAILED
+Action: MOUNTAIN PLACE WIPED
 Universe: 10744139279
 Place: 82661754996018
-Source commit: bb61337890ae6247db8889ddedddb5c8cfaae680
-Run: 32385966581
-Inject: success
-Validate: failure
-Publish: skipped
-UTC: 2026-08-20T15:24:55Z
---- inject log ---
-[Mountain] Injected Mountain v2.1 Basecamp ACC rebuild into maps/mountain-social/place.rbxlx
+Source commit: 698b12560f45107edaf5b68206eb8b6d45fcbfd9
+Run: 32429150603
+Validate: success
+Publish: failure
+UTC: 2026-08-20T23:33:52Z
 --- publish log ---
+Mountain closed-test publish failed 400 { code: 'InvalidRequest', message: 'Invalid Content stream' }
