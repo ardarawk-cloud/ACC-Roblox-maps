@@ -1,6 +1,6 @@
 {
     "jobId":  "bbya-premium-mesh-inspect-002",
-    "timestamp":  "2026-08-20T22:34:27.8212518+00:00",
+    "timestamp":  "2026-08-20T22:39:03.9513477+00:00",
     "studioVisible":  true,
     "initialize":  {
                        "jsonrpc":  "2.0",
@@ -19,9 +19,10 @@
                                       "instructions":  "Studio MCP Proxy - bridges MCP clients with Roblox Studio"
                                   }
                    },
+    "selfHealRestartedStudio":  true,
     "studioId":  null,
     "calls":  [
 
               ],
-    "error":  "Roblox Studio is visible but MCP did not expose a studio_id"
+    "error":  "MCP self-heal failed: Studio reopened but no studio_id was exposed"
 }
