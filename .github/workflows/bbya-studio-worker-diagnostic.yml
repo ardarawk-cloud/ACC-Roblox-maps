@@ -1,0 +1,36 @@
+name: BBYA Studio Worker Diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-studio-worker-diagnostic.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect EC2 worker session
+        shell: powershell
+        run: |
+          Write-Host "=== IDENTITY ==="
+          whoami
+          Write-Host "SESSIONNAME=$env:SESSIONNAME"
+          Write-Host "USERNAME=$env:USERNAME"
+          Write-Host "USERPROFILE=$env:USERPROFILE"
+          Write-Host "=== ROBLOX STUDIO PROCESS ==="
+          $studio = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue
+          if ($studio) {
+            $studio | Select-Object Id,ProcessName,SessionId,Path | Format-List
+          } else {
+            Write-Host "ROBLOX_STUDIO_NOT_VISIBLE"
+          }
+          Write-Host "=== CODEX ==="
+          $codex = Get-Command codex -ErrorAction SilentlyContinue
+          if ($codex) { $codex | Format-List Name,Source,Path,CommandType } else { Write-Host "CODEX_NOT_VISIBLE" }
+          Write-Host "=== NODE ==="
+          node --version 2>$null
+          Write-Host "=== ACTIVE USER SESSIONS ==="
+          quser 2>$null
