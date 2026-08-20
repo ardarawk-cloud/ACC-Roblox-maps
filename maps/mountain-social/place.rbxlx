@@ -1,21 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="4">
-  <External>null</External>
-  <External>nil</External>
-  <Item class="Workspace" referent="RBXMOUNTAINWORKSPACE000000000000001">
-    <Properties>
-      <string name="Name">Workspace</string>
-    </Properties>
-  </Item>
-  <Item class="Lighting" referent="RBXMOUNTAINLIGHTING000000000000001">
-    <Properties>
-      <string name="Name">Lighting</string>
-      <float name="Brightness">2</float>
-      <double name="ClockTime">6.2</double>
-      <bool name="GlobalShadows">true</bool>
-    </Properties>
-  </Item>
-  <!-- ACC_MOUNTAIN_RUNTIME_BEGIN -->
-  <!-- Runtime scripts are injected by scripts/inject-mountain.js -->
-  <!-- ACC_MOUNTAIN_RUNTIME_END -->
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+<External>null</External><External>nil</External>
+<Item class="Workspace" referent="RBXMOUNTAINWORKSPACE"><Properties><string name="Name">Workspace</string></Properties></Item>
+<Item class="Lighting" referent="RBXMOUNTAINLIGHTING"><Properties><float name="Brightness">2</float><double name="ClockTime">6.2</double><bool name="GlobalShadows">true</bool><string name="Name">Lighting</string></Properties></Item>
+<!-- ACC_MOUNTAIN_RUNTIME_BEGIN -->
+<!-- Runtime scripts are injected by scripts/inject-mountain.js -->
+<!-- ACC_MOUNTAIN_RUNTIME_END -->
 </roblox>
