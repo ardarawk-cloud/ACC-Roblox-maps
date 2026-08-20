@@ -28,7 +28,7 @@ jobs:
           http=$(curl -sS -o /tmp/products.json -w '%{http_code}' \
             -H "x-api-key: $ROBLOX_API_KEY" \
             "https://apis.roblox.com/developer-products/v2/universes/$UNIVERSE_ID/developer-products/creator?pageSize=50")
-          python3 - <<'PY'
+          HTTP_CODE="$http" python3 - <<'PY'
           import json, os
           http=os.environ.get('HTTP_CODE','')
           try:
@@ -38,12 +38,12 @@ jobs:
           safe={"http":http,"ok":str(http).startswith('2'),"body":body}
           open('deploy-status/bbya-products-probe.json','w').write(json.dumps(safe,indent=2))
           PY
-          echo "HTTP_CODE=$http" >> "$GITHUB_ENV"
       - name: Persist probe result
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main
           git add deploy-status/bbya-products-probe.json
           git commit -m 'Update BBYA developer products probe' || exit 0
           git push
