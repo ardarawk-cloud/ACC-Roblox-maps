@@ -30,7 +30,8 @@
       "DJWallVisibility": { "$path": "53-dj-wall-visibility.server.lua" },
       "DJWallTypography": { "$path": "54-dj-wall-typography.server.lua" },
       "AudioWatchdog": { "$path": "55-audio-watchdog.server.lua" },
-      "ProfessionalDJBooth": { "$path": "57-dj-booth-pro.server.lua" }
+      "ProfessionalDJBooth": { "$path": "57-dj-booth-pro.server.lua" },
+      "DJBoothOrientation": { "$path": "58-dj-booth-orientation.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
