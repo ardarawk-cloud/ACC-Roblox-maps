@@ -1,37 +1,129 @@
-local W=game:GetService("Workspace")
-local Lighting=game:GetService("Lighting")
-local root=W:FindFirstChild("BBYA_ZERO_BUILD") or Instance.new("Folder",W);root.Name="BBYA_ZERO_BUILD"
-local old=root:FindFirstChild("ClubAmbience");if old then old:Destroy() end
-local m=Instance.new("Model",root);m.Name="ClubAmbience"
-local C={pink=Color3.fromRGB(255,42,157),blue=Color3.fromRGB(0,174,255),violet=Color3.fromRGB(152,80,255),warm=Color3.fromRGB(255,188,122)}
-local function rigPart(n,pos,col)
- local p=Instance.new("Part");p.Name=n;p.Anchored=true;p.CanCollide=false;p.Transparency=1;p.Size=Vector3.new(.5,.5,.5);p.CFrame=CFrame.new(pos);p.Parent=m
- local s=Instance.new("SpotLight");s.Name="Beam";s.Color=col;s.Brightness=4;s.Range=58;s.Angle=38;s.Face=Enum.NormalId.Bottom;s.Shadows=false;s.Parent=p
- return p,s
+-- BBYA SOCIAL HUB — VENUE LIGHTING v2
+-- Material-first nightclub lighting: warm architectural base with restrained moving club accents.
+
+local W = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+
+local root = W:FindFirstChild("BBYA_ZERO_BUILD") or Instance.new("Folder", W)
+root.Name = "BBYA_ZERO_BUILD"
+local old = root:FindFirstChild("ClubAmbience")
+if old then old:Destroy() end
+
+local m = Instance.new("Model")
+m.Name = "ClubAmbience"
+m.Parent = root
+
+local C = {
+    pink = Color3.fromRGB(255,39,154),
+    cyan = Color3.fromRGB(0,200,230),
+    warm = Color3.fromRGB(255,191,132),
+    neutral = Color3.fromRGB(224,214,207),
+}
+
+local function emitter(name, pos)
+    local p = Instance.new("Part")
+    p.Name = name
+    p.Size = Vector3.new(.3,.3,.3)
+    p.CFrame = CFrame.new(pos)
+    p.Anchored = true
+    p.CanCollide = false
+    p.CanTouch = false
+    p.CanQuery = false
+    p.Transparency = 1
+    p.Parent = m
+    return p
 end
-local rigs={}
-for i,x in ipairs({-24,-12,0,12,24}) do local p,s=rigPart("StageBeam"..i,Vector3.new(x,19,27),i%2==0 and C.blue or C.pink);table.insert(rigs,{p=p,s=s,phase=i*.8}) end
-for i,x in ipairs({-22,-7,7,22}) do local p,s=rigPart("DanceBeam"..i,Vector3.new(x,18,-4),i%2==0 and C.violet or C.blue);s.Angle=46;s.Range=48;table.insert(rigs,{p=p,s=s,phase=i*1.1}) end
--- ambient accents around bar/VIP/roof
-local function point(n,pos,col,b,r)
- local p=Instance.new("Part");p.Name=n;p.Anchored=true;p.CanCollide=false;p.Transparency=1;p.Size=Vector3.new(.2,.2,.2);p.CFrame=CFrame.new(pos);p.Parent=m
- local l=Instance.new("PointLight");l.Color=col;l.Brightness=b;l.Range=r;l.Shadows=false;l.Parent=p
+
+local function spot(name, pos, color, brightness, range, angle, phase)
+    local p = emitter(name, pos)
+    local s = Instance.new("SpotLight")
+    s.Name = "Beam"
+    s.Face = Enum.NormalId.Bottom
+    s.Color = color
+    s.Brightness = brightness
+    s.Range = range
+    s.Angle = angle
+    s.Shadows = false
+    s.Parent = p
+    return {p=p, s=s, phase=phase or 0, base=brightness}
 end
-for _,v in ipairs({{-46,8,-10,C.warm},{46,8,2,C.warm},{-45,30,20,C.pink},{45,30,20,C.blue},{0,49,12,C.blue},{0,49,-12,C.pink}}) do point("Ambient",Vector3.new(v[1],v[2],v[3]),v[4],1.7,24) end
-Lighting.ClockTime=21.2;Lighting.Brightness=2.4;Lighting.Ambient=Color3.fromRGB(48,37,55);Lighting.OutdoorAmbient=Color3.fromRGB(30,24,40)
-local at=Lighting:FindFirstChild("BBYAAtmosphere") or Instance.new("Atmosphere");at.Name="BBYAAtmosphere";at.Density=.28;at.Offset=.05;at.Color=Color3.fromRGB(178,156,210);at.Decay=Color3.fromRGB(68,45,86);at.Glare=.12;at.Haze=1.25;at.Parent=Lighting
--- slow moving light show, intentionally lightweight
- task.spawn(function()
-  local t=0
-  while m.Parent do
-   t+=.08
-   for _,r in ipairs(rigs) do
-    local yaw=math.sin(t+r.phase)*22
-    local roll=math.cos(t*.7+r.phase)*9
-    r.p.CFrame=CFrame.new(r.p.Position)*CFrame.Angles(math.rad(roll),math.rad(yaw),0)
-    r.s.Brightness=3.2+math.abs(math.sin(t*1.7+r.phase))*2.4
-   end
-   task.wait(.08)
-  end
- end)
-print("[BBYA] dynamic lighting + ambience online")
+
+local function point(name, pos, color, brightness, range, shadows)
+    local p = emitter(name, pos)
+    local l = Instance.new("PointLight")
+    l.Color = color
+    l.Brightness = brightness
+    l.Range = range
+    l.Shadows = shadows == true
+    l.Parent = p
+    return l
+end
+
+-- Only six moving beams across the main room; the architecture provides most of the light now.
+local rigs = {
+    spot("StageBeam_L", Vector3.new(-15,17.4,31), C.pink, 1.65, 44, 27, .2),
+    spot("StageBeam_C", Vector3.new(3,17.4,31), C.neutral, 1.35, 44, 24, 1.1),
+    spot("StageBeam_R", Vector3.new(21,17.4,31), C.cyan, 1.65, 44, 27, 2.0),
+    spot("DanceBeam_L", Vector3.new(-12,17.2,7), C.cyan, 1.10, 35, 30, 2.7),
+    spot("DanceBeam_C", Vector3.new(3,17.2,7), C.warm, .95, 35, 28, 3.4),
+    spot("DanceBeam_R", Vector3.new(18,17.2,7), C.pink, 1.10, 35, 30, 4.1),
+}
+
+-- Warm architectural pools: entrance transition, lounge and bar.
+point("EntranceWarm", Vector3.new(0,8,-13), C.warm, .75, 19, true)
+point("VIPWarmFront", Vector3.new(-40,7,1), C.warm, .65, 16, true)
+point("VIPWarmRear", Vector3.new(-40,7,27), C.warm, .65, 16, true)
+point("BarWarmFront", Vector3.new(40,7,3), C.warm, .78, 16, true)
+point("BarWarmRear", Vector3.new(40,7,20), C.warm, .72, 16, true)
+point("StageWash", Vector3.new(3,12,39), Color3.fromRGB(190,173,196), .48, 18, false)
+
+Lighting.ClockTime = 21.2
+Lighting.Brightness = 1.55
+Lighting.Ambient = Color3.fromRGB(29,26,33)
+Lighting.OutdoorAmbient = Color3.fromRGB(19,17,24)
+Lighting.EnvironmentDiffuseScale = .34
+Lighting.EnvironmentSpecularScale = .88
+Lighting.ShadowSoftness = .32
+Lighting.ExposureCompensation = -.20
+
+local at = Lighting:FindFirstChild("BBYAAtmosphere") or Instance.new("Atmosphere")
+at.Name = "BBYAAtmosphere"
+at.Density = .19
+at.Offset = .03
+at.Color = Color3.fromRGB(151,139,166)
+at.Decay = Color3.fromRGB(50,39,59)
+at.Glare = .04
+at.Haze = .55
+at.Parent = Lighting
+
+local bloom = Lighting:FindFirstChild("BBYABloom") or Instance.new("BloomEffect")
+bloom.Name = "BBYABloom"
+bloom.Intensity = .28
+bloom.Size = 22
+bloom.Threshold = 1.65
+bloom.Parent = Lighting
+
+local cc = Lighting:FindFirstChild("BBYAColor") or Instance.new("ColorCorrectionEffect")
+cc.Name = "BBYAColor"
+cc.Brightness = -.015
+cc.Contrast = .08
+cc.Saturation = -.035
+cc.TintColor = Color3.fromRGB(244,236,248)
+cc.Parent = Lighting
+
+-- Slow subtle movement. No rapid nightclub laser sweep on the whole room.
+task.spawn(function()
+    local t = 0
+    while m.Parent do
+        t += .035
+        for i,r in ipairs(rigs) do
+            local yaw = math.sin(t + r.phase) * ((i <= 3) and 10 or 7)
+            local pitch = math.cos(t*.72 + r.phase) * ((i <= 3) and 4 or 3)
+            r.p.CFrame = CFrame.new(r.p.Position) * CFrame.Angles(math.rad(pitch), math.rad(yaw), 0)
+            r.s.Brightness = r.base * (.88 + math.abs(math.sin(t*.85+r.phase))*.20)
+        end
+        task.wait(.12)
+    end
+end)
+
+print("[BBYA] venue lighting v2 online: warm architectural base + restrained club movement")
