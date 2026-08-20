@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — MENU MESSAGE + SUPPORT SCROLL PATCH v1
+-- BBYA SOCIAL HUB — MENU MESSAGE + SUPPORT SCROLL PATCH v1.1
 -- Adds DJ Message to the persistent top dock and makes Support genuinely swipeable on touch devices.
 
 local Players=game:GetService("Players")
@@ -52,7 +52,6 @@ if not message then
  stroke(message,Color3.fromRGB(247,55,158),1,.48)
 end
 
--- Hide the old live-status pill to make room for a useful action tab.
 for _,obj in ipairs(dock:GetChildren()) do
  if obj:IsA("Frame") then
   for _,d in ipairs(obj:GetDescendants()) do
@@ -88,6 +87,7 @@ local function openComposer()
  if wallShade then wallShade.Visible=true end
  wallPanel.Visible=true
  wallPanel.Position=UDim2.fromScale(.5,.53)
+ message.BackgroundColor3=Color3.fromRGB(102,25,73)
 end
 
 wallRemote.OnClientEvent:Connect(function(action,data)
@@ -175,4 +175,4 @@ camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
  fixSupportScroll()
 end)
 
-print("[BBYA] Message top-tab + touch-first Support scroll patch online")
+print("[BBYA] Message top-tab + touch-first Support scroll patch v1.1 online")
