@@ -18,14 +18,14 @@ jobs:
       - self-hosted
       - windows
       - x64
-    timeout-minutes: 6
+    timeout-minutes: 8
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout command job
         uses: actions/checkout@v4
 
-      - name: Start clean Studio Play session
+      - name: Ensure BBYA Studio is open and start Play
         shell: powershell
         run: |
           Add-Type -AssemblyName System.Windows.Forms
@@ -37,17 +37,51 @@ jobs:
             [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
           }
           "@
-          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $proc) { throw 'Roblox Studio not found' }
+
+          function Get-StudioWindow {
+            Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue |
+              Where-Object { $_.MainWindowHandle -ne 0 } |
+              Sort-Object StartTime -Descending |
+              Select-Object -First 1
+          }
+
+          $proc = Get-StudioWindow
+          if (-not $proc) {
+            $roots = @(
+              (Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),
+              'C:\Program Files\Roblox\Versions',
+              'C:\Program Files (x86)\Roblox\Versions'
+            )
+            $exe = $null
+            foreach ($r in $roots) {
+              if (-not (Test-Path $r)) { continue }
+              $candidate = Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1
+              if ($candidate) { $exe = $candidate.FullName; break }
+            }
+            if (-not $exe) { throw 'RobloxStudioBeta.exe not found on EC2' }
+            Write-Host "Launching Studio: $exe"
+            Start-Process -FilePath $exe -ArgumentList '--task','EditPlace','--placeId','131894120482837','--universeId','8116636513'
+            $deadline = (Get-Date).AddSeconds(55)
+            do {
+              Start-Sleep -Seconds 2
+              $proc = Get-StudioWindow
+            } while (-not $proc -and (Get-Date) -lt $deadline)
+            if (-not $proc) { throw 'Studio launched but no main window appeared' }
+            Write-Host "Studio window ready pid=$($proc.Id)"
+            Start-Sleep -Seconds 15
+          }
+
           $hwnd=[IntPtr]$proc.MainWindowHandle
           [StudioWin]::ShowWindow($hwnd,9) | Out-Null
           [StudioWin]::SetForegroundWindow($hwnd) | Out-Null
-          Start-Sleep -Milliseconds 500
+          Start-Sleep -Milliseconds 700
+          # Normalize to edit mode, then start a fresh Play session.
           [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
           Start-Sleep -Seconds 2
           [StudioWin]::SetForegroundWindow($hwnd) | Out-Null
           [System.Windows.Forms.SendKeys]::SendWait('{F5}')
-          Start-Sleep -Seconds 9
+          Start-Sleep -Seconds 12
 
       - name: Execute command in Roblox Studio
         shell: powershell
@@ -55,9 +89,9 @@ jobs:
           Add-Type -AssemblyName UIAutomationClient
           Add-Type -AssemblyName UIAutomationTypes
           $lines = @()
-          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Sort-Object StartTime -Descending | Select-Object -First 1
           $lines += "timestamp=$(Get-Date -Format o)"
-          if (-not $proc) { throw 'Roblox Studio not found' }
+          if (-not $proc) { throw 'Roblox Studio not found after launch' }
           $jobPath = Join-Path $env:GITHUB_WORKSPACE '.github\worker-jobs\bbya-command.lua'
           $code = Get-Content $jobPath -Raw
           $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
@@ -68,12 +102,12 @@ jobs:
           if (-not $edit -or -not $run) { throw 'Studio command bar controls not found' }
           $valuePattern = $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $valuePattern.SetValue($code)
-          Start-Sleep -Milliseconds 250
+          Start-Sleep -Milliseconds 300
           $invoke = $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
           $invoke.Invoke()
-          Start-Sleep -Seconds 4
+          Start-Sleep -Seconds 5
 
-          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 6
           $capturing = $false
           foreach ($log in $logs) {
             $raw = Get-Content $log.FullName -ErrorAction SilentlyContinue
@@ -107,7 +141,7 @@ jobs:
             public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
           }
           "@
-          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Sort-Object StartTime -Descending | Select-Object -First 1
           if(-not $proc){throw 'Roblox Studio not found for screenshot'}
           $hwnd=[IntPtr]$proc.MainWindowHandle
           [CapWin]::SetForegroundWindow($hwnd) | Out-Null
@@ -153,5 +187,5 @@ jobs:
           using System.Runtime.InteropServices;
           public class StopWin { [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); }
           "@
-          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Sort-Object StartTime -Descending | Select-Object -First 1
           if($proc){[StopWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null;Start-Sleep -Milliseconds 300;[System.Windows.Forms.SendKeys]::SendWait('+{F5}');Start-Sleep -Seconds 2}
