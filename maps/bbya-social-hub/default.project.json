@@ -31,7 +31,6 @@
       "AudioWatchdog": { "$path": "55-audio-watchdog.server.lua" },
       "DJWallRandomVisuals": { "$path": "59-dj-wall-visuals.server.lua" },
       "VIPSkyLounge": { "$path": "60-vip-sky-lounge.server.lua" },
-      "VIPNeonRoofSoundRestore": { "$path": "66-vip-neon-roof-sound.server.lua" },
       "DJWallFinalMount": { "$path": "61-dj-wall-final-mount.server.lua" },
       "DJWallRenderBridge": { "$path": "62-dj-wall-render-bridge.server.lua" },
       "SocialHangout": { "$path": "63-social-hangout.server.lua" }
