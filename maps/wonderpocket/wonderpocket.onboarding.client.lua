@@ -7,7 +7,7 @@ if not remotes then return end
 local tutorial = remotes:WaitForChild("Tutorial", 10)
 
 local function waitForData()
-    -- Do not let a slow-but-successful DataStore load skip first-session onboarding.
+    -- Do not let a slow-but-successful DataStore load skip the opening dedication.
     -- The server is authoritative: continue waiting until it explicitly reports
     -- a safe load or a fail-closed load failure.
     while player.Parent do
@@ -19,8 +19,8 @@ local function waitForData()
 end
 
 local function waitForResumeState()
-    -- Furniture purchase progress is persisted separately, so resolve that store
-    -- before deciding whether this is a genuine first Welcome or a resumed journey.
+    -- Furniture purchase progress is persisted separately. Resolve it before
+    -- deciding whether the player is genuinely new or returning mid-journey.
     while player.Parent do
         if player:GetAttribute("WP_InventoryLoadFailed") == true then return false end
         if player:GetAttribute("WP_InventoryLoaded") == true then return true end
@@ -39,9 +39,11 @@ local function hasTutorialProgress()
 end
 
 if not waitForData() then return end
-if player:GetAttribute("WP_OnboardingComplete") == true then return end
-if not waitForResumeState() then return end
-if player:GetAttribute("WP_OnboardingComplete") == true or hasTutorialProgress() then return end
+local onboardingComplete = player:GetAttribute("WP_OnboardingComplete") == true
+if not onboardingComplete and not waitForResumeState() then return end
+onboardingComplete = player:GetAttribute("WP_OnboardingComplete") == true
+local tutorialProgress = not onboardingComplete and hasTutorialProgress()
+local firstJourney = not onboardingComplete and not tutorialProgress
 
 local playerGui = player:WaitForChild("PlayerGui")
 local old = playerGui:FindFirstChild("WP_Onboarding")
@@ -85,7 +87,7 @@ title.Font = Enum.Font.GothamBlack
 title.TextSize = 23
 title.TextWrapped = true
 title.TextColor3 = Color3.fromRGB(42,56,105)
-title.Text = "Welcome to WONDERPOCKET"
+title.Text = onboardingComplete and "Welcome back to WONDERPOCKET" or "Welcome to WONDERPOCKET"
 title.Parent = card
 
 local dedication = Instance.new("TextLabel")
@@ -107,7 +109,14 @@ body.Font = Enum.Font.GothamMedium
 body.TextSize = 15
 body.TextWrapped = true
 body.TextColor3 = Color3.fromRGB(65,73,110)
-body.Text = "Your first Pocket journey:\n\n• Say hi to Bubbi\n• Plant a carrot\n• Buy & place furniture\n• Harvest your carrot\n• Find treasure on Treasure Island"
+if firstJourney then
+    body.Text = "Your first Pocket journey:\n\n• Say hi to Bubbi\n• Plant a carrot\n• Buy & place furniture\n• Harvest your carrot\n• Find treasure on Treasure Island"
+elseif tutorialProgress then
+    local objective = tostring(player:GetAttribute("WP_TutorialObjective") or "Continue your first Pocket journey")
+    body.Text = "Your Pocket journey is waiting.\n\nNext objective:\n" .. objective
+else
+    body.Text = "Your little world is waiting.\n\nVisit your Pocket, spend time with your Wondi, decorate, garden, explore, and keep building your world."
+end
 body.Parent = card
 
 local start = Instance.new("TextButton")
@@ -118,23 +127,33 @@ start.BackgroundColor3 = Color3.fromRGB(74,100,205)
 start.TextColor3 = Color3.new(1,1,1)
 start.Font = Enum.Font.GothamBold
 start.TextSize = 17
-start.Text = "START MY POCKET"
+if firstJourney then
+    start.Text = "START MY POCKET"
+elseif tutorialProgress then
+    start.Text = "CONTINUE JOURNEY"
+else
+    start.Text = "ENTER MY POCKET"
+end
 start.Parent = card
 local startConstraint = Instance.new("UISizeConstraint")
 startConstraint.MaxSize = Vector2.new(240,50)
 startConstraint.Parent = start
 Instance.new("UICorner",start).CornerRadius = UDim.new(0,16)
 
-local started = false
+local entered = false
 start.Activated:Connect(function()
-    if started then return end
-    started = true
+    if entered then return end
+    entered = true
     start.Active = false
-    start.Text = "STARTING..."
-    if tutorial then tutorial:FireServer("START") end
+    if firstJourney then
+        start.Text = "STARTING..."
+        if tutorial then tutorial:FireServer("START") end
+    else
+        start.Text = "ENTERING..."
+    end
     task.delay(.15,function()
         if gui.Parent then gui:Destroy() end
     end)
 end)
 
-print("[WONDERPOCKET] v1.3 dedication onboarding mobile-fit + persistent resume aware")
+print("[WONDERPOCKET] dedication opening restored for every safe join")
