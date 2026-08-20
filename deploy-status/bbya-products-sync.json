@@ -2,6 +2,7 @@
   "api_ok": true,
   "complete": false,
   "created": [],
+  "verified_by_id": [],
   "duplicates_waiting_visibility": [
     "BBYA Support 500",
     "BBYA Support 1000",
@@ -20,55 +21,55 @@
       "name": "BBYA DJ Wall Message",
       "price": 2,
       "id": 3709047092,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 10",
       "price": 10,
       "id": 3709047095,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 25",
       "price": 25,
       "id": 3709047097,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 50",
       "price": 50,
       "id": 3709047101,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 100",
       "price": 100,
       "id": 3709047104,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 250",
       "price": 250,
       "id": 3709047106,
-      "visible": true
+      "verified": true
     },
     {
       "name": "BBYA Support 500",
       "price": 500,
       "id": 0,
-      "visible": false
+      "verified": false
     },
     {
       "name": "BBYA Support 1000",
       "price": 1000,
       "id": 0,
-      "visible": false
+      "verified": false
     },
     {
       "name": "BBYA Support 2000",
       "price": 2000,
       "id": 0,
-      "visible": false
+      "verified": false
     }
   ],
   "list_http": "200"
