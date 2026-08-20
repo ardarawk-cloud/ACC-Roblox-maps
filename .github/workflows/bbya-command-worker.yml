@@ -18,12 +18,36 @@ jobs:
       - self-hosted
       - windows
       - x64
-    timeout-minutes: 4
+    timeout-minutes: 6
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout command job
         uses: actions/checkout@v4
+
+      - name: Start clean Studio Play session
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class StudioWin {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+          }
+          "@
+          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $proc) { throw 'Roblox Studio not found' }
+          $hwnd=[IntPtr]$proc.MainWindowHandle
+          [StudioWin]::ShowWindow($hwnd,9) | Out-Null
+          [StudioWin]::SetForegroundWindow($hwnd) | Out-Null
+          Start-Sleep -Milliseconds 500
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
+          Start-Sleep -Seconds 2
+          [StudioWin]::SetForegroundWindow($hwnd) | Out-Null
+          [System.Windows.Forms.SendKeys]::SendWait('{F5}')
+          Start-Sleep -Seconds 9
 
       - name: Execute command in Roblox Studio
         shell: powershell
@@ -47,9 +71,9 @@ jobs:
           Start-Sleep -Milliseconds 250
           $invoke = $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
           $invoke.Invoke()
-          Start-Sleep -Seconds 2
+          Start-Sleep -Seconds 4
 
-          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 4
+          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5
           $capturing = $false
           foreach ($log in $logs) {
             $raw = Get-Content $log.FullName -ErrorAction SilentlyContinue
@@ -68,4 +92,66 @@ jobs:
           try { $sha = (Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
           $body = @{ message='Record BBYA Studio command result [skip ci]'; content=$content; branch='main' }
           if ($sha) { $body.sha = $sha }
-          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body | ConvertTo-Json) -ContentType 'application/json'
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body | ConvertTo-Json) -ContentType 'application/json' | Out-Null
+
+      - name: Capture actual Studio window
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Drawing
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class CapWin {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+            public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+          }
+          "@
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){throw 'Roblox Studio not found for screenshot'}
+          $hwnd=[IntPtr]$proc.MainWindowHandle
+          [CapWin]::SetForegroundWindow($hwnd) | Out-Null
+          Start-Sleep -Seconds 1
+          $r=New-Object CapWin+RECT
+          [CapWin]::GetWindowRect($hwnd,[ref]$r) | Out-Null
+          $w=$r.Right-$r.Left; $h=$r.Bottom-$r.Top
+          if($w -lt 300 -or $h -lt 200){throw "Invalid Studio window size $w x $h"}
+          $bmp=New-Object System.Drawing.Bitmap($w,$h)
+          $g=[System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+          $tw=900; $th=[int]($h*$tw/$w)
+          $small=New-Object System.Drawing.Bitmap($tw,$th)
+          $g2=[System.Drawing.Graphics]::FromImage($small)
+          $g2.DrawImage($bmp,0,0,$tw,$th)
+          $jpg=Join-Path $env:GITHUB_WORKSPACE 'bbya-studio-view.jpg'
+          $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object {$_.MimeType -eq 'image/jpeg'} | Select-Object -First 1
+          $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
+          $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]60)
+          $small.Save($jpg,$codec,$ep)
+          $g.Dispose();$g2.Dispose();$bmp.Dispose();$small.Dispose()
+
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          function PutBytes($path,$bytes,$msg){
+            $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+            $sha=$null
+            try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+            $body=@{message=$msg;content=[Convert]::ToBase64String($bytes);branch='main'}
+            if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json' | Out-Null
+          }
+          PutBytes 'deploy-status/bbya-studio-view.jpg' ([IO.File]::ReadAllBytes($jpg)) 'Record BBYA Studio screenshot [skip ci]'
+          $meta=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;width=$w;height=$h}|ConvertTo-Json
+          PutBytes 'deploy-status/bbya-studio-view.json' ([Text.Encoding]::UTF8.GetBytes($meta)) 'Record BBYA Studio screenshot status [skip ci]'
+
+      - name: Stop Studio Play session
+        if: always()
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class StopWin { [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); }
+          "@
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if($proc){[StopWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null;Start-Sleep -Milliseconds 300;[System.Windows.Forms.SendKeys]::SendWait('+{F5}');Start-Sleep -Seconds 2}
