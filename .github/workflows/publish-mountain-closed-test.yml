@@ -1,23 +1,16 @@
-name: Publish Mountain Closed Test
+name: Wipe Mountain Place
 
 on:
-  workflow_dispatch:
-    inputs:
-      confirm_target:
-        description: 'Type MOUNTAIN-10744139279-82661754996018'
-        required: true
-        type: string
   push:
     branches: [main]
     paths:
-      - 'maps/mountain-social/**'
-      - 'scripts/inject-mountain.js'
+      - 'maps/mountain-social/place.rbxlx'
       - 'scripts/publish-mountain-closed-test.js'
       - '.github/workflows/publish-mountain-closed-test.yml'
+  workflow_dispatch:
 
 jobs:
-  publish-mountain-closed-test:
-    if: github.event_name == 'push' || inputs.confirm_target == 'MOUNTAIN-10744139279-82661754996018'
+  wipe-mountain-place:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,75 +23,55 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Inject isolated Mountain runtime
-        id: inject
-        continue-on-error: true
-        run: node scripts/inject-mountain.js mountain-social > mountain-inject.log 2>&1
-
-      - name: Validate target lock and package
+      - name: Validate empty Mountain package
         id: validate
-        continue-on-error: true
         shell: bash
         run: |
+          set -euo pipefail
           grep -q '10744139279' maps/registry.json
           grep -q '82661754996018' maps/registry.json
           test -s maps/mountain-social/place.rbxlx
-          grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'ACC_Mountain_QC' maps/mountain-social/place.rbxlx
-          grep -q 'ACC_MountainCoreBundle' maps/mountain-social/place.rbxlx
-          grep -q "v3.0" maps/mountain-social/place.rbxlx
+          grep -q 'ACC_MOUNTAIN_WIPED' maps/mountain-social/place.rbxlx
+          ! grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
+          ! grep -q 'ACC_MountainCoreBundle' maps/mountain-social/place.rbxlx
 
-      - name: Publish closed-test build
+      - name: Publish empty Mountain place
         id: publish
-        if: steps.inject.outcome == 'success' && steps.validate.outcome == 'success'
-        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-        run: node scripts/publish-mountain-closed-test.js > mountain-publish.log 2>&1
+        run: node scripts/publish-mountain-closed-test.js > mountain-wipe-publish.log 2>&1
 
-      - name: Record publish diagnostic receipt
+      - name: Record wipe receipt
         if: always()
         shell: bash
         run: |
           STATUS='FAILED'
-          if [ '${{ steps.inject.outcome }}' = 'success' ] && [ '${{ steps.validate.outcome }}' = 'success' ] && [ '${{ steps.publish.outcome }}' = 'success' ]; then STATUS='SUCCESS'; fi
+          if [ '${{ steps.validate.outcome }}' = 'success' ] && [ '${{ steps.publish.outcome }}' = 'success' ]; then STATUS='SUCCESS'; fi
           {
             echo "$STATUS"
-            echo 'Build: ACC Mountain Master v3.0'
+            echo 'Action: MOUNTAIN PLACE WIPED'
             echo 'Universe: 10744139279'
             echo 'Place: 82661754996018'
             echo "Source commit: $GITHUB_SHA"
             echo "Run: $GITHUB_RUN_ID"
-            echo "Inject: ${{ steps.inject.outcome }}"
             echo "Validate: ${{ steps.validate.outcome }}"
             echo "Publish: ${{ steps.publish.outcome }}"
             echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo '--- inject log ---'
-            cat mountain-inject.log 2>/dev/null || true
             echo '--- publish log ---'
-            cat mountain-publish.log 2>/dev/null || true
-          } > /tmp/mountain-publish-status.txt
+            cat mountain-wipe-publish.log 2>/dev/null || true
+          } > /tmp/mountain-wipe-status.txt
 
-          git config user.name 'ACC Mountain Deploy Bot'
+          git config user.name 'ACC Mountain Cleanup Bot'
           git config user.email 'actions@users.noreply.github.com'
           git fetch origin main
-          git checkout -B mountain-receipt origin/main
-          cp /tmp/mountain-publish-status.txt maps/mountain-social/PUBLISH-STATUS.txt
+          git checkout -B mountain-wipe-receipt origin/main
+          cp /tmp/mountain-wipe-status.txt maps/mountain-social/PUBLISH-STATUS.txt
           git add maps/mountain-social/PUBLISH-STATUS.txt
-          git commit -m 'Record Mountain publish diagnostic [skip ci]' || true
-
-          PUSHED=0
+          git commit -m 'Record Mountain wipe receipt [skip ci]' || true
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git rebase origin/main
-            if git push origin HEAD:main; then
-              PUSHED=1
-              break
-            fi
+            if git push origin HEAD:main; then exit 0; fi
             sleep 2
           done
-          test "$PUSHED" = '1'
-
-      - name: Fail run when publish failed
-        if: steps.inject.outcome != 'success' || steps.validate.outcome != 'success' || steps.publish.outcome != 'success'
-        run: exit 1
+          exit 1
