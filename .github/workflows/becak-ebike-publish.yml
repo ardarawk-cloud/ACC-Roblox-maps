@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
       PUBLISH_RECEIPT_DIR: deploy-status
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +38,7 @@ jobs:
           test -s maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
           grep -q '80994730522893' maps/becak-e-bike/runtime.server.lua
+          node -e "const r=require('./maps/registry.json').maps['becak-e-bike']; if(r.universeId!=='10745325613'||r.placeId!=='80994730522893'||!r.enabled) process.exit(1)"
       - name: Publish Becak E-Bike to Roblox
         run: node scripts/publish-map.js becak-e-bike
       - name: Record generated place and deploy receipt
@@ -48,5 +49,6 @@ jobs:
           git add maps/becak-e-bike/place.rbxlx deploy-status/becak-e-bike.json
           if ! git diff --cached --quiet; then
             git commit -m 'Record Becak E-Bike published build [skip ci]'
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
