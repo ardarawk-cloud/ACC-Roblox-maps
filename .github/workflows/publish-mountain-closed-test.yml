@@ -20,7 +20,7 @@ jobs:
     if: github.event_name == 'push' || inputs.confirm_target == 'MOUNTAIN-10744139279-82661754996018'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout current commit
         uses: actions/checkout@v4
@@ -46,3 +46,13 @@ jobs:
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: node scripts/publish-mountain-closed-test.js
+
+      - name: Record successful publish receipt
+        shell: bash
+        run: |
+          printf 'SUCCESS\nUniverse: 10744139279\nPlace: 82661754996018\nSource commit: %s\nRun: %s\nUTC: %s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > maps/mountain-social/PUBLISH-STATUS.txt
+          git config user.name 'ACC Mountain Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/mountain-social/PUBLISH-STATUS.txt
+          git commit -m 'Record Mountain closed-test publish success [skip ci]'
+          git push
