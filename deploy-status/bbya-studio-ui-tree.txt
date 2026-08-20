@@ -1,0 +1,111 @@
+timestamp=2026-08-20T13:24:15.5059990+00:00
+PID=4768
+WINDOW_HANDLE=262692
+WINDOW_TITLE=Pusat Sosial BBYA  - Roblox Studio
+ELEMENT_COUNT=179
+ControlType.StatusBar|Name=|Id=RibbonMainWindow.statusbar|Enabled=True|Offscreen=False|Rect=0,1552,768,32
+ControlType.ToolBar|Name=Command|Id=RibbonMainWindow.commandToolBar|Enabled=True|Offscreen=False|Rect=0,1515,768,37
+ControlType.Edit|Name=|Id=commandBarScriptEditor|Enabled=True|Offscreen=False|Rect=11,1520,619,27
+ControlType.Group|Name=|Id=commandBarScriptEditor.qt_scrollarea_viewport|Enabled=True|Offscreen=False|Rect=12,1521,617,25
+ControlType.Custom|Name=|Id=multiLineRunButtonContainer|Enabled=True|Offscreen=False|Rect=632,1516,135,35
+ControlType.Button|Name=|Id=multiLineRunButtonContainer.commandBarContainerSaveButton|Enabled=False|Offscreen=False|Rect=636,1520,27,27
+ControlType.Button|Name=|Id=multiLineRunButtonContainer.commandBarContainerHistoryButton|Enabled=True|Offscreen=False|Rect=671,1520,27,27
+ControlType.Button|Name=Run|Id=multiLineRunButtonContainer.commandBarRunButton|Enabled=False|Offscreen=False|Rect=706,1520,57,27
+ControlType.Group|Name=|Id=RibbonMainWindow.studioTopBar|Enabled=True|Offscreen=False|Rect=0,23,768,115
+ControlType.MenuItem|Name=File|Id=|Enabled=True|Offscreen=False|Rect=0,23,34,20
+ControlType.MenuItem|Name=Edit|Id=|Enabled=True|Offscreen=False|Rect=34,23,36,20
+ControlType.MenuItem|Name=View|Id=|Enabled=True|Offscreen=False|Rect=70,23,40,20
+ControlType.MenuItem|Name=Plugins|Id=|Enabled=True|Offscreen=False|Rect=110,23,54,20
+ControlType.MenuItem|Name=Test|Id=|Enabled=True|Offscreen=False|Rect=164,23,36,20
+ControlType.MenuItem|Name=Window|Id=|Enabled=True|Offscreen=False|Rect=200,23,58,20
+ControlType.MenuItem|Name=Help|Id=|Enabled=True|Offscreen=False|Rect=258,23,40,20
+ControlType.Group|Name=|Id=RibbonMainWindow.studioTopBar.rplg_sabuiltin_Ribbon.rbxm_Ribbon|Enabled=True|Offscreen=False|Rect=0,43,768,95
+ControlType.Group|Name=|Id=RibbonMainWindow.studioTopBar.rplg_sabuiltin_Ribbon.rbxm_Ribbon.rplg_sabuiltin_Ribbon.rbxm_Ribbon|Enabled=True|Offscreen=False|Rect=0,43,768,95
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget|Enabled=True|Offscreen=False|Rect=0,138,768,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel|Enabled=True|Offscreen=False|Rect=0,138,768,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3|Enabled=True|Offscreen=False|Rect=0,138,768,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6|Enabled=True|Offscreen=False|Rect=0,138,768,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0|Enabled=True|Offscreen=False|Rect=0,138,280,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.Layout25|Enabled=True|Offscreen=False|Rect=0,138,280,686
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.Layout25.edit_builtin_TerrainEditor.rbxm_TerrainEditor|Enabled=True|Offscreen=False|Rect=0,138,280,687
+ControlType.Button|Name=Collapse|Id=|Enabled=True|Offscreen=False|Rect=240,143,16,16
+ControlType.Button|Name=Close|Id=|Enabled=True|Offscreen=False|Rect=257,143,16,16
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.Layout25.edit_builtin_TerrainEditor.rbxm_TerrainEditor.edit_builtin_TerrainEditor.rbxm_TerrainEditor|Enabled=True|Offscreen=False|Rect=1,162,278,662
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.Layout26|Enabled=True|Offscreen=False|Rect=0,827,280,688
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.Layout26.edit_builtin_Toolbox.rbxm_Toolbox|Enabled=True|Offscreen=False|Rect=0,827,280,689
+ControlType.Button|Name=Collapse|Id=|Enabled=True|Offscreen=False|Rect=240,832,16,16
+ControlType.Button|Name=Close|Id=|Enabled=True|Offscreen=False|Rect=257,832,16,16
+ControlType.Group|Name=|Id=edit_builtin_Toolbox.rbxm_Toolbox|Enabled=True|Offscreen=False|Rect=1,851,278,664
+ControlType.Pane|Name=Models - Creator Store|Id=|Enabled=True|Offscreen=False|Rect=1,887,278,628
+ControlType.Pane|Name=Models - Creator Store - Web content - Profile 2|Id=|Enabled=True|Offscreen=False|Rect=1,887,278,628
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutWest0.DockPanelSplitter_57|Enabled=True|Offscreen=False|Rect=0,823,280,4
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.Layout15|Enabled=True|Offscreen=False|Rect=283,138,304,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.Layout15.Layout1|Enabled=True|Offscreen=False|Rect=283,138,304,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.Layout15.Layout1.Layout22|Enabled=True|Offscreen=False|Rect=283,138,304,1377
+ControlType.Tab|Name=Pusat Sosial BBYA |Id=|Enabled=True|Offscreen=False|Rect=283,138,279,26
+ControlType.TabItem|Name=Pusat Sosial BBYA |Id=|Enabled=True|Offscreen=False|Rect=283,138,155,24
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.Layout15.Layout1.Layout22.ideDocDocumentPanel|Enabled=True|Offscreen=False|Rect=283,164,304,1351
+ControlType.Group|Name=|Id=WrapperScrollArea|Enabled=True|Offscreen=False|Rect=284,165,302,1349
+ControlType.Group|Name=|Id=WrapperScrollArea.qt_scrollarea_viewport|Enabled=True|Offscreen=False|Rect=286,167,298,1345
+ControlType.Group|Name=|Id=QEngineWidget|Enabled=True|Offscreen=False|Rect=286,167,298,1345
+ControlType.CheckBox|Name=Visualization Modes|Id=|Enabled=True|Offscreen=False|Rect=562,138,25,25
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0|Enabled=True|Offscreen=False|Rect=590,138,178,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout23|Enabled=True|Offscreen=False|Rect=590,138,178,753
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout23.rplg_sabuiltin_ExplorerPlugin.rbxm_ExplorerPlugin|Enabled=True|Offscreen=False|Rect=590,138,178,754
+ControlType.Button|Name=Collapse|Id=|Enabled=True|Offscreen=False|Rect=728,143,16,16
+ControlType.Button|Name=Close|Id=|Enabled=True|Offscreen=False|Rect=745,143,16,16
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout23.rplg_sabuiltin_ExplorerPlugin.rbxm_ExplorerPlugin.rplg_sabuiltin_ExplorerPlugin.rbxm_ExplorerPlugin|Enabled=True|Offscreen=False|Rect=591,162,176,729
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout24|Enabled=True|Offscreen=False|Rect=590,894,178,621
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout24.propertiesWidgetPanel|Enabled=True|Offscreen=False|Rect=590,894,178,622
+ControlType.Button|Name=Collapse|Id=|Enabled=True|Offscreen=False|Rect=728,899,16,16
+ControlType.Button|Name=Close|Id=|Enabled=True|Offscreen=False|Rect=745,899,16,16
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout24.propertiesWidgetPanel.RobloxPropertiesWidget|Enabled=True|Offscreen=False|Rect=591,918,176,597
+ControlType.ComboBox|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.Layout24.propertiesWidgetPanel.RobloxPropertiesWidget.propertyWidgetFilterEdit|Enabled=True|Offscreen=False|Rect=591,918,176,21
+ControlType.TreeItem|Name=Appearance|Id=|Enabled=True|Offscreen=False|Rect=592,944,180,25
+ControlType.TreeItem|Name=Ambient|Id=|Enabled=True|Offscreen=False|Rect=612,969,60,23
+ControlType.TreeItem|Name=[127, 127, 127]|Id=|Enabled=True|Offscreen=False|Rect=672,969,100,23
+ControlType.TreeItem|Name=Brightness|Id=|Enabled=True|Offscreen=False|Rect=612,992,60,21
+ControlType.TreeItem|Name=3.135|Id=|Enabled=True|Offscreen=False|Rect=672,992,100,21
+ControlType.TreeItem|Name=ColorShift_Bottom|Id=|Enabled=True|Offscreen=False|Rect=612,1013,60,23
+ControlType.TreeItem|Name=[0, 0, 0]|Id=|Enabled=True|Offscreen=False|Rect=672,1013,100,23
+ControlType.TreeItem|Name=ColorShift_Top|Id=|Enabled=True|Offscreen=False|Rect=612,1036,60,23
+ControlType.TreeItem|Name=[0, 0, 0]|Id=|Enabled=True|Offscreen=False|Rect=672,1036,100,23
+ControlType.TreeItem|Name=EnvironmentDiffuseScale|Id=|Enabled=True|Offscreen=False|Rect=612,1059,60,21
+ControlType.TreeItem|Name=0|Id=|Enabled=True|Offscreen=False|Rect=672,1059,100,21
+ControlType.TreeItem|Name=EnvironmentSpecularScale|Id=|Enabled=True|Offscreen=False|Rect=612,1080,60,21
+ControlType.TreeItem|Name=0|Id=|Enabled=True|Offscreen=False|Rect=672,1080,100,21
+ControlType.TreeItem|Name=GlobalShadows|Id=|Enabled=True|Offscreen=False|Rect=612,1101,60,24
+ControlType.TreeItem|Name=LightingStyle|Id=|Enabled=True|Offscreen=False|Rect=612,1125,60,21
+ControlType.TreeItem|Name=Soft|Id=|Enabled=True|Offscreen=False|Rect=672,1125,100,21
+ControlType.TreeItem|Name=OutdoorAmbient|Id=|Enabled=True|Offscreen=False|Rect=612,1146,60,23
+ControlType.TreeItem|Name=[127, 127, 127]|Id=|Enabled=True|Offscreen=False|Rect=672,1146,100,23
+ControlType.TreeItem|Name=PrioritizeLightingQuality|Id=|Enabled=True|Offscreen=False|Rect=612,1169,60,24
+ControlType.TreeItem|Name=Data|Id=|Enabled=True|Offscreen=False|Rect=592,1193,180,25
+ControlType.TreeItem|Name=Archivable|Id=|Enabled=True|Offscreen=False|Rect=612,1218,60,24
+ControlType.TreeItem|Name=ClassName|Id=|Enabled=True|Offscreen=False|Rect=612,1242,60,21
+ControlType.TreeItem|Name=Lighting|Id=|Enabled=True|Offscreen=False|Rect=672,1242,100,21
+ControlType.TreeItem|Name=ClockTime|Id=|Enabled=True|Offscreen=False|Rect=612,1263,60,21
+ControlType.TreeItem|Name=21|Id=|Enabled=True|Offscreen=False|Rect=672,1263,100,21
+ControlType.TreeItem|Name=GeographicLatitude|Id=|Enabled=True|Offscreen=False|Rect=612,1284,60,21
+ControlType.TreeItem|Name=41.733|Id=|Enabled=True|Offscreen=False|Rect=672,1284,100,21
+ControlType.TreeItem|Name=Name|Id=|Enabled=True|Offscreen=False|Rect=612,1305,60,21
+ControlType.TreeItem|Name=Lighting|Id=|Enabled=True|Offscreen=False|Rect=672,1305,100,21
+ControlType.TreeItem|Name=Parent|Id=|Enabled=True|Offscreen=False|Rect=612,1326,60,21
+ControlType.TreeItem|Name=Place1|Id=|Enabled=True|Offscreen=False|Rect=672,1326,100,21
+ControlType.TreeItem|Name=TimeOfDay|Id=|Enabled=True|Offscreen=False|Rect=612,1347,60,21
+ControlType.TreeItem|Name=21:00:00|Id=|Enabled=True|Offscreen=False|Rect=672,1347,100,21
+ControlType.TreeItem|Name=UniqueId|Id=|Enabled=True|Offscreen=False|Rect=612,1368,60,21
+ControlType.TreeItem|Name=68b0587da507940f0a9888e400000e0e|Id=|Enabled=True|Offscreen=False|Rect=672,1368,100,21
+ControlType.TreeItem|Name=Exposure|Id=|Enabled=True|Offscreen=False|Rect=592,1389,180,25
+ControlType.TreeItem|Name=ExposureCompensation|Id=|Enabled=True|Offscreen=False|Rect=612,1414,60,21
+ControlType.TreeItem|Name=0|Id=|Enabled=True|Offscreen=False|Rect=672,1414,100,21
+ControlType.TreeItem|Name=Fog|Id=|Enabled=True|Offscreen=False|Rect=592,1435,180,25
+ControlType.TreeItem|Name=FogColor|Id=|Enabled=True|Offscreen=False|Rect=612,1460,60,23
+ControlType.TreeItem|Name=[191, 191, 191]|Id=|Enabled=True|Offscreen=False|Rect=672,1460,100,23
+ControlType.TreeItem|Name=FogEnd|Id=|Enabled=True|Offscreen=False|Rect=612,1483,60,21
+ControlType.TreeItem|Name=100000|Id=|Enabled=True|Offscreen=False|Rect=672,1483,100,21
+ControlType.TreeItem|Name=FogStart|Id=|Enabled=True|Offscreen=False|Rect=612,1504,60,21
+ControlType.TreeItem|Name=0|Id=|Enabled=True|Offscreen=False|Rect=672,1504,100,21
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.FixedSplitLayoutEast0.DockPanelSplitter_52|Enabled=True|Offscreen=False|Rect=590,890,178,4
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.DockPanelSplitter_55|Enabled=True|Offscreen=False|Rect=279,138,4,1377
+ControlType.Group|Name=|Id=RibbonMainWindow.RootWidget.RootDockSplitLayoutPanel.Layout3.Layout6.DockPanelSplitter_56|Enabled=True|Offscreen=False|Rect=586,138,4,1377
