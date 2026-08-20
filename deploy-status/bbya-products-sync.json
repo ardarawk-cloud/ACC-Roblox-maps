@@ -2,10 +2,8 @@
   "api_ok": true,
   "complete": false,
   "created": [],
-  "verified_by_id": [],
+  "verified_by_price": [],
   "duplicates": [
-    "BBYA Support 500",
-    "BBYA Support 1000",
     "BBYA Support 2000"
   ],
   "errors": [],
@@ -98,14 +96,14 @@
     {
       "name": "BBYA Support 500",
       "price": 500,
-      "id": 0,
-      "verified": false
+      "id": 3709047107,
+      "verified": true
     },
     {
       "name": "BBYA Support 1000",
       "price": 1000,
-      "id": 0,
-      "verified": false
+      "id": 3709047109,
+      "verified": true
     },
     {
       "name": "BBYA Support 2000",
