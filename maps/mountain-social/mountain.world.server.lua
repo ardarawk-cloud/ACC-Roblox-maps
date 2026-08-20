@@ -1,6 +1,5 @@
--- Mountain Social Adventure v1.0
--- Isolated ACC world generator. This script only creates/updates Workspace.ACC_MountainSocial.
--- It intentionally does not touch other map roots.
+-- Mountain Social Adventure v1.1 REALISM PASS
+-- Isolated ACC world generator. Only creates/updates Workspace.ACC_MountainSocial.
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -39,189 +38,240 @@ local function part(name, size, cf, material, color, parent, transparency, canCo
 end
 
 local function anchor(name, pos, parent)
-    local p = part(name, Vector3.new(8,1,8), CFrame.new(pos), Enum.Material.Neon, Color3.fromRGB(255,190,65), parent, 0.2, true)
+    local p = part(name, Vector3.new(7,0.8,7), CFrame.new(pos), Enum.Material.SmoothPlastic, Color3.fromRGB(244,186,72), parent, 0.78, false)
     p:SetAttribute("ACCAnchor", true)
     return p
 end
 
--- Lighting / ambience foundation
-Lighting.ClockTime = 5.6
-Lighting.Brightness = 2
-Lighting.EnvironmentDiffuseScale = 0.35
+local function terrainBall(pos, radius, material)
+    Terrain:FillBall(pos, radius, material)
+end
+
+local function trailSegment(name, a, b, width)
+    local delta = b-a
+    local dist = delta.Magnitude
+    local mid = (a+b)/2
+    local trail = part(name, Vector3.new(width,1.15,dist), CFrame.lookAt(mid,b), Enum.Material.Ground, Color3.fromRGB(100,84,64), root, 0.06, false)
+    trail:SetAttribute("RouteSegment", true)
+    return trail
+end
+
+-- Cinematic natural lighting base.
+Lighting.ClockTime = 5.45
+Lighting.Brightness = 2.15
+Lighting.EnvironmentDiffuseScale = 0.4
 Lighting.EnvironmentSpecularScale = 0.3
-Lighting.OutdoorAmbient = Color3.fromRGB(120,130,145)
-Lighting.Ambient = Color3.fromRGB(85,95,110)
+Lighting.OutdoorAmbient = Color3.fromRGB(126,136,149)
+Lighting.Ambient = Color3.fromRGB(82,91,103)
 
 local atmosphere = Lighting:FindFirstChild("ACC_MountainAtmosphere") or Instance.new("Atmosphere")
 atmosphere.Name = "ACC_MountainAtmosphere"
-atmosphere.Density = 0.32
-atmosphere.Offset = 0.1
-atmosphere.Color = Color3.fromRGB(195,215,225)
-atmosphere.Decay = Color3.fromRGB(110,125,145)
-atmosphere.Glare = 0.08
-atmosphere.Haze = 1.7
+atmosphere.Density = 0.29
+atmosphere.Offset = 0.08
+atmosphere.Color = Color3.fromRGB(199,217,225)
+atmosphere.Decay = Color3.fromRGB(105,118,132)
+atmosphere.Glare = 0.06
+atmosphere.Haze = 1.45
 atmosphere.Parent = Lighting
 
 local colorCorrection = Lighting:FindFirstChild("ACC_MountainColor") or Instance.new("ColorCorrectionEffect")
 colorCorrection.Name = "ACC_MountainColor"
-colorCorrection.Brightness = 0.02
-colorCorrection.Contrast = 0.08
-colorCorrection.Saturation = -0.04
+colorCorrection.Brightness = 0.01
+colorCorrection.Contrast = 0.07
+colorCorrection.Saturation = -0.025
 colorCorrection.Parent = Lighting
 
--- World proportions
+-- Route identity stays locked to the master plan.
 local summitY = 620
 local route = {
-    {"Basecamp ACC", Vector3.new(0, 22, 690)},
-    {"Gerbang Hutan", Vector3.new(-130, 72, 560)},
-    {"Sungai Batu", Vector3.new(90, 125, 430)},
-    {"Air Terjun Lumina", Vector3.new(215, 180, 300)},
-    {"Camp Rimba", Vector3.new(75, 235, 160)},
-    {"Tebing Angin", Vector3.new(-115, 300, 35)},
-    {"Hutan Kabut", Vector3.new(-225, 355, -105)},
-    {"Jembatan Awan", Vector3.new(-70, 415, -240)},
-    {"Camp Atas", Vector3.new(115, 470, -335)},
-    {"Ridge Batu", Vector3.new(205, 525, -430)},
-    {"Lautan Awan", Vector3.new(95, 575, -540)},
-    {"Summit ACC", Vector3.new(0, summitY, -650)},
+    {"Basecamp ACC", Vector3.new(0,22,690)},
+    {"Gerbang Hutan", Vector3.new(-132,75,555)},
+    {"Sungai Batu", Vector3.new(88,126,430)},
+    {"Air Terjun Lumina", Vector3.new(212,182,300)},
+    {"Camp Rimba", Vector3.new(78,236,158)},
+    {"Tebing Angin", Vector3.new(-118,300,34)},
+    {"Hutan Kabut", Vector3.new(-224,356,-106)},
+    {"Jembatan Awan", Vector3.new(-74,414,-242)},
+    {"Camp Atas", Vector3.new(116,470,-336)},
+    {"Ridge Batu", Vector3.new(204,526,-432)},
+    {"Lautan Awan", Vector3.new(94,575,-540)},
+    {"Summit ACC", Vector3.new(0,summitY,-650)},
 }
 
--- Terrain: layered organic mountain mass using overlapping terrain balls/blocks.
--- This is intentionally coarse enough for mobile and can be refined later with meshes/assets.
 Terrain:Clear()
-Terrain:FillBlock(CFrame.new(0,-18,0), Vector3.new(1800,40,1800), Enum.Material.Ground)
+Terrain:FillBlock(CFrame.new(0,-30,0), Vector3.new(1900,60,1900), Enum.Material.Ground)
 
-local mountainNodes = {
-    {Vector3.new(0,70,120), 430},
-    {Vector3.new(-45,145,10), 350},
-    {Vector3.new(35,230,-115), 295},
-    {Vector3.new(-30,315,-245), 235},
-    {Vector3.new(30,405,-370), 185},
-    {Vector3.new(0,500,-500), 135},
-    {Vector3.new(0,585,-630), 85},
+-- Main mountain mass: asymmetrical overlap for natural silhouette.
+local nodes = {
+    {Vector3.new(0,54,140),420,Enum.Material.Rock},
+    {Vector3.new(-72,118,65),335,Enum.Material.Rock},
+    {Vector3.new(84,168,-5),315,Enum.Material.Rock},
+    {Vector3.new(-48,228,-125),280,Enum.Material.Rock},
+    {Vector3.new(66,292,-245),236,Enum.Material.Rock},
+    {Vector3.new(-35,365,-345),198,Enum.Material.Rock},
+    {Vector3.new(28,445,-455),158,Enum.Material.Rock},
+    {Vector3.new(-12,520,-550),122,Enum.Material.Rock},
+    {Vector3.new(0,585,-630),84,Enum.Material.Rock},
 }
-for _, node in ipairs(mountainNodes) do
-    Terrain:FillBall(node[1], node[2], Enum.Material.Rock)
+for _,n in ipairs(nodes) do terrainBall(n[1],n[2],n[3]) end
+
+-- Natural shoulders and forest soil, denser low altitude and broken higher up.
+math.randomseed(26082026)
+for i=1,44 do
+    local ang = math.random()*math.pi*2
+    local r = math.random(260,690)
+    local baseY = 42 + math.max(0,210-r)*0.12 + math.random(-8,16)
+    local pos = Vector3.new(math.cos(ang)*r, baseY, 80 + math.sin(ang)*r)
+    terrainBall(pos, math.random(55,115), r < 470 and Enum.Material.Grass or Enum.Material.Rock)
 end
 
--- Softer forest shoulders around lower elevations
-for i=1,14 do
-    local angle = i * math.pi * 2 / 14
-    local r = 380 + (i%3)*35
-    local y = 48 + (i%4)*16
-    Terrain:FillBall(Vector3.new(math.cos(angle)*r, y, 90 + math.sin(angle)*r), 145, Enum.Material.Grass)
+-- Small erosion/rock variation around middle and upper zones.
+for i=1,38 do
+    local t = math.random()
+    local z = 210 - t*840
+    local x = math.random(-260,260) * (1 - t*0.45)
+    local y = 110 + t*455 + math.random(-25,30)
+    terrainBall(Vector3.new(x,y,z), math.random(18,42), Enum.Material.Rock)
 end
 
--- Carve route-friendly terraces / scenic clearings using anchored natural-material pads.
-for i, info in ipairs(route) do
-    local name, pos = info[1], info[2]
-    local padSize = (i==1 and Vector3.new(100,4,80)) or (i==12 and Vector3.new(90,4,70)) or Vector3.new(42,3,34)
-    local pad = part("TrailTerrace_"..i, padSize, CFrame.new(pos - Vector3.new(0,3,0)), Enum.Material.Rock, Color3.fromRGB(90,96,91), root)
-    pad:SetAttribute("LocationName", name)
-end
-
--- Visible trail segments between memorable locations.
+-- Organic hiking trail: each route leg gets 4 gently offset sub-segments instead of one straight runway.
 for i=1,#route-1 do
     local a = route[i][2]
     local b = route[i+1][2]
-    local mid = (a+b)/2 - Vector3.new(0,2,0)
-    local dist = (b-a).Magnitude
-    local trail = part("Trail_"..i, Vector3.new(18,2,dist), CFrame.lookAt(mid,b), Enum.Material.Ground, Color3.fromRGB(94,78,58), root)
-    trail:SetAttribute("RouteSegment", i)
+    local dir = (b-a)
+    local side = Vector3.new(-dir.Z,0,dir.X)
+    if side.Magnitude > 0 then side = side.Unit end
+    local points = {a}
+    for s=1,3 do
+        local t = s/4
+        local base = a:Lerp(b,t)
+        local sway = math.sin((i*1.7+s)*1.2) * (14 + (i%3)*4)
+        table.insert(points, base + side*sway + Vector3.new(0, math.sin(t*math.pi)*3, 0))
+    end
+    table.insert(points,b)
+    for j=1,#points-1 do
+        trailSegment(string.format("Trail_%02d_%02d",i,j), points[j]-Vector3.new(0,2.6,0), points[j+1]-Vector3.new(0,2.6,0), i < 5 and 12 or 9)
+    end
 end
 
--- Spawn/basecamp
+-- Small natural clearings only where needed; no large floating terraces.
+for i,info in ipairs(route) do
+    local pos = info[2]
+    local radius = (i==1 and 38) or (i==12 and 28) or (i==5 or i==9) and 20 or 12
+    terrainBall(pos-Vector3.new(0,8,0), radius, i < 7 and Enum.Material.Ground or Enum.Material.Rock)
+end
+
+-- Spawn blended into basecamp.
 local spawn = Instance.new("SpawnLocation")
 spawn.Name = "MountainSpawn"
 spawn.Anchored = true
-spawn.Size = Vector3.new(16,1,16)
-spawn.CFrame = CFrame.new(route[1][2] + Vector3.new(0,4,0))
-spawn.Material = Enum.Material.WoodPlanks
-spawn.Color = Color3.fromRGB(100,78,55)
+spawn.Size = Vector3.new(14,1,14)
+spawn.CFrame = CFrame.new(route[1][2] + Vector3.new(0,3,0))
+spawn.Material = Enum.Material.Ground
+spawn.Color = Color3.fromRGB(105,88,68)
+spawn.Transparency = 0.25
 spawn.Neutral = true
 spawn.Parent = root
 
--- Checkpoints with identity metadata, not just numbers.
-for i, info in ipairs(route) do
-    local cp = anchor(string.format("CP%02d_%s",i,info[1]:gsub(" ","_")), info[2] + Vector3.new(0,2,0), folders.Checkpoints)
-    cp:SetAttribute("CheckpointIndex", i)
-    cp:SetAttribute("CheckpointName", info[1])
-    cp:SetAttribute("SaveReady", true)
+for i,info in ipairs(route) do
+    local cp = anchor(string.format("CP%02d_%s",i,info[1]:gsub(" ","_")), info[2]+Vector3.new(0,1.6,0), folders.Checkpoints)
+    cp:SetAttribute("CheckpointIndex",i)
+    cp:SetAttribute("CheckpointName",info[1])
+    cp:SetAttribute("SaveReady",true)
 end
 
--- Camps
-local campIndexes = {1,5,9}
-for _, idx in ipairs(campIndexes) do
+-- Camps use small grounded footprint, not deck-like platforms.
+for _,idx in ipairs({1,5,9}) do
     local pos = route[idx][2]
     local camp = Instance.new("Model")
     camp.Name = "Camp_"..route[idx][1]:gsub(" ","_")
     camp.Parent = folders.Camps
-    part("Deck", Vector3.new(36,2,28), CFrame.new(pos + Vector3.new(22,0,5)), Enum.Material.WoodPlanks, Color3.fromRGB(92,67,47), camp)
-    local fire = part("Campfire", Vector3.new(5,2,5), CFrame.new(pos + Vector3.new(22,2,5)), Enum.Material.Slate, Color3.fromRGB(75,75,75), camp)
-    fire:SetAttribute("CampfireReady", true)
+    terrainBall(pos+Vector3.new(18,-5,5), 15, Enum.Material.Ground)
+    local fire = part("Campfire",Vector3.new(4.5,1.2,4.5),CFrame.new(pos+Vector3.new(18,1,5)),Enum.Material.Slate,Color3.fromRGB(72,70,66),camp,0,false)
+    fire.Shape = Enum.PartType.Cylinder
+    fire:SetAttribute("CampfireReady",true)
     local light = Instance.new("PointLight")
-    light.Range = 22
-    light.Brightness = 2
-    light.Color = Color3.fromRGB(255,177,90)
+    light.Range = 20
+    light.Brightness = 1.7
+    light.Color = Color3.fromRGB(255,178,96)
+    light.Shadows = true
     light.Parent = fire
 end
 
--- Waterfall landmark foundation
-local waterfallPos = route[4][2] + Vector3.new(45,34,-10)
-local water = part("LuminaWaterfall", Vector3.new(16,70,5), CFrame.new(waterfallPos), Enum.Material.Glass, Color3.fromRGB(120,190,220), folders.Decor, 0.25, false)
-water:SetAttribute("Landmark", "Waterfall")
+-- Waterfall built as terrain water channel + thin misty face.
+local wp = route[4][2] + Vector3.new(42,24,-8)
+Terrain:FillBlock(CFrame.new(wp + Vector3.new(0,18,0)), Vector3.new(14,58,10), Enum.Material.Water)
+local mist = part("LuminaWaterfallMist",Vector3.new(16,62,1.6),CFrame.new(wp+Vector3.new(0,16,-5)),Enum.Material.Glass,Color3.fromRGB(185,220,230),folders.Decor,0.72,false)
+mist:SetAttribute("Landmark","Waterfall")
 
--- Photo spots
-local photoIndexes = {4,8,11,12}
-for _, idx in ipairs(photoIndexes) do
-    local p = anchor("PhotoSpot_"..idx, route[idx][2] + Vector3.new(24,3,0), folders.PhotoSpots)
-    p.Color = Color3.fromRGB(100,205,255)
-    p:SetAttribute("PhotoSpot", true)
-    p:SetAttribute("LocationName", route[idx][1])
+-- Photo spots are nearly invisible markers only.
+for _,idx in ipairs({4,8,11,12}) do
+    local p = anchor("PhotoSpot_"..idx,route[idx][2]+Vector3.new(20,2,0),folders.PhotoSpots)
+    p.Transparency = 0.92
+    p:SetAttribute("PhotoSpot",true)
+    p:SetAttribute("LocationName",route[idx][1])
 end
 
--- Summit payoff
+-- Summit uses natural rock cap; monument kept subtle.
 local summit = route[12][2]
-part("SummitPlatform", Vector3.new(95,4,75), CFrame.new(summit - Vector3.new(0,4,0)), Enum.Material.Slate, Color3.fromRGB(105,108,110), root)
-local monument = part("ACC_SummitMonument", Vector3.new(10,34,10), CFrame.new(summit + Vector3.new(0,17,-8)), Enum.Material.Granite, Color3.fromRGB(75,78,82), root)
-monument:SetAttribute("SummitTriggerReady", true)
-monument:SetAttribute("SummitCounterReady", true)
+terrainBall(summit-Vector3.new(0,10,0),34,Enum.Material.Rock)
+local monument = part("ACC_SummitMonument",Vector3.new(7,20,7),CFrame.new(summit+Vector3.new(0,10,-9)),Enum.Material.Granite,Color3.fromRGB(82,83,84),root)
+monument:SetAttribute("SummitTriggerReady",true)
+monument:SetAttribute("SummitCounterReady",true)
 
--- Secret route and secret summit are deliberately optional discovery content.
+-- Secret route stays hidden and narrow.
 local secretStart = Vector3.new(-235,365,-135)
 local secretEnd = Vector3.new(-390,555,-600)
-local secretMid = (secretStart+secretEnd)/2
-local secretTrail = part("HiddenTrail", Vector3.new(11,2,(secretEnd-secretStart).Magnitude), CFrame.lookAt(secretMid,secretEnd), Enum.Material.Ground, Color3.fromRGB(67,61,52), folders.Secrets)
-secretTrail:SetAttribute("Hidden", true)
-secretTrail:SetAttribute("DiscoveryId", "SECRET_TRAIL_01")
-local secretSummit = anchor("SecretSummit", secretEnd + Vector3.new(0,4,0), folders.Secrets)
-secretSummit.Color = Color3.fromRGB(180,120,255)
-secretSummit:SetAttribute("SecretSummit", true)
+local secretMid = (secretStart+secretEnd)/2 + Vector3.new(-25,0,18)
+trailSegment("HiddenTrail_A",secretStart-Vector3.new(0,2,0),secretMid-Vector3.new(0,2,0),6)
+trailSegment("HiddenTrail_B",secretMid-Vector3.new(0,2,0),secretEnd-Vector3.new(0,2,0),5)
+local secretSummit = anchor("SecretSummit",secretEnd+Vector3.new(0,3,0),folders.Secrets)
+secretSummit.Transparency = 0.9
+secretSummit:SetAttribute("SecretSummit",true)
+secretSummit:SetAttribute("DiscoveryId","SECRET_TRAIL_01")
 
--- Decorative forest proxies; kept lightweight for mobile.
-math.randomseed(240819)
-for i=1,90 do
-    local angle = math.random()*math.pi*2
-    local r = math.random(250,690)
-    local x = math.cos(angle)*r
-    local z = 100 + math.sin(angle)*r
-    local y = math.max(24, 70 - r*0.025 + math.random(0,25))
-    local trunk = part("TreeTrunk_"..i, Vector3.new(3,math.random(14,22),3), CFrame.new(x,y,z), Enum.Material.Wood, Color3.fromRGB(78,57,40), folders.Decor)
+-- More realistic lightweight vegetation: tapered trunks + layered foliage, density reduces with altitude.
+local function makeTree(i,pos,scale)
+    local trunkH = 11*scale + math.random()*7*scale
+    local trunk = part("TreeTrunk_"..i,Vector3.new(2.2*scale,trunkH,2.2*scale),CFrame.new(pos+Vector3.new(0,trunkH/2,0)),Enum.Material.Wood,Color3.fromRGB(72,55,40),folders.Decor,0,false)
     trunk.CanCollide = false
-    local crown = part("TreeCrown_"..i, Vector3.new(math.random(10,16),math.random(12,20),math.random(10,16)), CFrame.new(x,y+12,z), Enum.Material.Grass, Color3.fromRGB(45,83,55), folders.Decor)
-    crown.Shape = Enum.PartType.Ball
-    crown.CanCollide = false
+    local lower = part("TreeFoliageA_"..i,Vector3.new(10*scale,8*scale,10*scale),CFrame.new(pos+Vector3.new(0,trunkH*0.82,0)),Enum.Material.Grass,Color3.fromRGB(50,79,54),folders.Decor,0,false)
+    lower.Shape = Enum.PartType.Ball; lower.CanCollide=false
+    local upper = part("TreeFoliageB_"..i,Vector3.new(7*scale,7*scale,7*scale),CFrame.new(pos+Vector3.new(0,trunkH+3*scale,0)),Enum.Material.Grass,Color3.fromRGB(57,88,60),folders.Decor,0,false)
+    upper.Shape = Enum.PartType.Ball; upper.CanCollide=false
 end
 
--- System readiness attributes consumed by future modules.
-root:SetAttribute("Project", "Mountain Social Adventure")
-root:SetAttribute("MasterPlanLocked", true)
-root:SetAttribute("DayNightReady", true)
-root:SetAttribute("WeatherReady", true)
-root:SetAttribute("CheckpointSaveReady", true)
-root:SetAttribute("CarrySystemReady", true)
-root:SetAttribute("LeaderboardReady", true)
-root:SetAttribute("MobileFriendly", true)
-root:SetAttribute("BuildVersion", "1.0.0")
+for i=1,130 do
+    local ang = math.random()*math.pi*2
+    local r = math.random(250,690)
+    local altitudeBias = math.max(0,1-(r-250)/500)
+    if math.random() < 0.45 + altitudeBias*0.45 then
+        local x = math.cos(ang)*r
+        local z = 90 + math.sin(ang)*r
+        local y = math.max(20,55 + altitudeBias*35 + math.random(-5,15))
+        makeTree(i,Vector3.new(x,y,z),0.75+math.random()*0.45)
+    end
+end
 
-print("[ACC] Mountain Social Adventure v1 generated safely under Workspace."..ROOT_NAME)
+-- Loose rocks around route for natural reading without blocking traversal.
+for i=1,65 do
+    local seg = math.random(1,#route)
+    local base = route[seg][2]
+    local offset = Vector3.new(math.random(-38,38),math.random(-5,8),math.random(-38,38))
+    local size = math.random(2,7)
+    local rock = part("LooseRock_"..i,Vector3.new(size,size*0.7,size*1.1),CFrame.new(base+offset)*CFrame.Angles(math.random(),math.random(),math.random()),Enum.Material.Rock,Color3.fromRGB(89,91,88),folders.Decor)
+    rock.Shape = Enum.PartType.Ball
+end
+
+root:SetAttribute("Project","Mountain Social Adventure")
+root:SetAttribute("MasterPlanLocked",true)
+root:SetAttribute("DayNightReady",true)
+root:SetAttribute("WeatherReady",true)
+root:SetAttribute("CheckpointSaveReady",true)
+root:SetAttribute("CarrySystemReady",true)
+root:SetAttribute("LeaderboardReady",true)
+root:SetAttribute("MobileFriendly",true)
+root:SetAttribute("RealismPass","1.1")
+root:SetAttribute("BuildVersion","1.1.0-realism")
+
+print("[ACC] Mountain Social Adventure realism pass generated safely under Workspace."..ROOT_NAME)
