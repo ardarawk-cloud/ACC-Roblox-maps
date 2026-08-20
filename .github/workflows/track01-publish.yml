@@ -37,7 +37,7 @@ jobs:
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='2.3.1') throw new Error('Wrong TRACK 01 version');
+          if(String(c.version)!=='2.4.0') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
           console.log('TRACK 01 target lock PASS',c.version,c.artDirection);
           NODE
@@ -56,14 +56,18 @@ jobs:
           grep -q 'TRACK01_RedTrainCorrection' maps/track-01/place.rbxlx
           grep -q 'TRACK01_VenueDepth' maps/track-01/place.rbxlx
           grep -q 'TRACK01_RespawnLighting' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_DEPTH_READY' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_RailcarProfile' maps/track-01/place.rbxlx
           grep -q 'ACC_TRACK01_RESPAWN_LIGHT_READY' maps/track-01/place.rbxlx
-          grep -q 'RespawnCeilingFixture' maps/track-01/place.rbxlx
-          grep -q 'RespawnHaloFixture' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_PROFILE_READY' maps/track-01/place.rbxlx
+          grep -q 'RoofShoulderL' maps/track-01/place.rbxlx
+          grep -q 'LowerBevelL' maps/track-01/place.rbxlx
+          grep -q 'VestibuleDoor' maps/track-01/place.rbxlx
+          grep -q 'GangwayFloor' maps/track-01/place.rbxlx
+          grep -q 'NightServiceHeadboard' maps/track-01/place.rbxlx
           grep -q 'BOARDING  /  PLATFORM 01' maps/track-01/place.rbxlx
           grep -q 'END OF LINE' maps/track-01/place.rbxlx
           grep -q 'THE YARD' maps/track-01/place.rbxlx
-          echo 'TRACK 01 v2.3.1 respawn-lighting validation PASS'
+          echo 'TRACK 01 v2.4 railcar-profile validation PASS'
 
       - name: Publish TRACK 01 to Roblox
         id: publish
@@ -84,7 +88,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/track01-direct.json maps/track-01/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record TRACK 01 v2.3.1 live publish [skip ci]"
+            git commit -m "Record TRACK 01 v2.4 live publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
