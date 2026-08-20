@@ -14,7 +14,6 @@ if not vip then warn("[BBYA VIP] L2_VIP_Level missing");return end
 local old=vip:FindFirstChild("PremiumVIPPass")
 if old then old:Destroy() end
 
--- Remove only known placeholder solids/rails from the old blockout.
 for _,obj in ipairs(vip:GetChildren()) do
  if obj.Name=="QueenSkybox" or obj.Name:match("^PrivateRoom") or obj.Name:match("^BalconyRail") or obj.Name=="VIPLoungeBack" then
   obj:Destroy()
@@ -125,7 +124,6 @@ for i,z in ipairs(boothZ) do
  part("BackWall",Vector3.new(19,7,.45),CFrame.new(48,28.5,z+4.3),C.panel,Enum.Material.Fabric,0,b,false)
  part("SideL",Vector3.new(.45,7,8),CFrame.new(38.7,28.5,z),C.ink,Enum.Material.Slate,0,b,false)
  part("SideR",Vector3.new(.45,7,8),CFrame.new(57.3,28.5,z),C.ink,Enum.Material.Slate,0,b,false)
- sofa("BoothSofaDummy",0,0,0,1) -- create helper-owned model, moved below is not used
  local s1=model("Banquette",b)
  part("Seat",Vector3.new(14,1.0,2.6),CFrame.new(48,26.0,z+2.6),C.velvet2,Enum.Material.Fabric,0,s1,false)
  part("Back",Vector3.new(14,2.8,.7),CFrame.new(48,27.2,z+3.55),C.velvet,Enum.Material.Fabric,0,s1,false)
@@ -134,9 +132,6 @@ for i,z in ipairs(boothZ) do
  local plate=part("Number",Vector3.new(4,1.1,.12),CFrame.new(48,30.7,z+4.04),C.black,Enum.Material.SmoothPlastic,0,b,false)
  surfaceText(plate,string.format("VIP %02d",i),i==2 and C.cyan or C.gold)
 end
--- Remove helper dummy created by sofa() above if present.
-local helper=lounge:FindFirstChild("BoothSofaDummy")
-if helper then helper:Destroy() end
 
 -- CEILING / LIGHTING -----------------------------------------------------------
 local ceiling=model("VIPCeiling")
@@ -150,7 +145,6 @@ for i,z in ipairs({-18,-6,6,18}) do
  light(lamp,lamp.Color,.35,12)
 end
 
--- Ambient identity markers -----------------------------------------------------
 local status=part("StatusPanel",Vector3.new(8,1.6,.12),CFrame.new(46,30.0,8.45),C.black,Enum.Material.SmoothPlastic,0,out,false)
 surfaceText(status,"●  VIP OPEN",C.green)
 
