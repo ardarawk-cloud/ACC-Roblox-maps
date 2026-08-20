@@ -6,6 +6,18 @@ developer_products:
     description: "Display one filtered custom message on the BBYA DJ wall. Messages enter a queue and are shown for a limited time."
     price: 2
 
+  - name: "BBYA VIP Travel"
+    description: "Teleport this visit to the BBYA VIP Level."
+    price: 5
+
+  - name: "BBYA Rooftop Travel"
+    description: "Teleport this visit to the BBYA Rooftop."
+    price: 10
+
+  - name: "BBYA Basement Travel"
+    description: "Teleport this visit to the BBYA Basement / Underground."
+    price: 20
+
   - name: "BBYA Support 10"
     description: "Support BBYA Social Hub with 10 Robux."
     price: 10
