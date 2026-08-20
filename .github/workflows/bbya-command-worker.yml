@@ -1,0 +1,71 @@
+name: BBYA Studio Command Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/worker-jobs/bbya-command.lua'
+      - '.github/workflows/bbya-command-worker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  execute:
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout command job
+        uses: actions/checkout@v4
+
+      - name: Execute command in Roblox Studio
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $lines = @()
+          $proc = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          $lines += "timestamp=$(Get-Date -Format o)"
+          if (-not $proc) { throw 'Roblox Studio not found' }
+          $jobPath = Join-Path $env:GITHUB_WORKSPACE '.github\worker-jobs\bbya-command.lua'
+          $code = Get-Content $jobPath -Raw
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $editCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'commandBarScriptEditor')
+          $edit = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $editCondition)
+          $runCondition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'multiLineRunButtonContainer.commandBarRunButton')
+          $run = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $runCondition)
+          if (-not $edit -or -not $run) { throw 'Studio command bar controls not found' }
+          $valuePattern = $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $valuePattern.SetValue($code)
+          Start-Sleep -Milliseconds 250
+          $invoke = $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $invoke.Invoke()
+          Start-Sleep -Seconds 2
+
+          $logs = Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 4
+          $capturing = $false
+          foreach ($log in $logs) {
+            $raw = Get-Content $log.FullName -ErrorAction SilentlyContinue
+            foreach ($line in $raw) {
+              if ($line -match '\[BBYA_JOB_BEGIN:') { $capturing = $true }
+              if ($capturing) { $lines += $line }
+              if ($capturing -and $line -match '\[BBYA_JOB_END:') { $capturing = $false }
+            }
+            if ($lines.Count -gt 1) { break }
+          }
+          $text = ($lines -join "`n") + "`n"
+          $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-command-result.txt"
+          $headers = @{ Authorization="Bearer $env:GH_TOKEN"; Accept="application/vnd.github+json"; "X-GitHub-Api-Version"="2022-11-28"; "User-Agent"="BBYA-Studio-Worker" }
+          $sha = $null
+          try { $sha = (Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          $body = @{ message='Record BBYA Studio command result [skip ci]'; content=$content; branch='main' }
+          if ($sha) { $body.sha = $sha }
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body | ConvertTo-Json) -ContentType 'application/json'
