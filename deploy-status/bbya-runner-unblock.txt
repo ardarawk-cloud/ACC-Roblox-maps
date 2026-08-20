@@ -1,31 +1,29 @@
-2026-08-20T13:37:44Z\n32375339650	BBYA Runner Unblock	in_progress		2026-08-20T13:37:37Z
-32375184082	BBYA Studio Command Worker	completed	success	2026-08-20T13:35:58Z
-32375059033	BBYA CommandBar Bridge	completed	success	2026-08-20T13:34:38Z
-32374968460	BBYA Runner Unblock	completed	success	2026-08-20T13:33:43Z
-32374872845	BBYA Runner Unblock	completed	success	2026-08-20T13:32:43Z
-32374061196	BBYA Studio UI Tree Probe	completed	success	2026-08-20T13:24:08Z
-32373883864	BBYA MCP Log Probe	completed	success	2026-08-20T13:22:18Z
-32373778554	BBYA MCP Setting Probe	completed	success	2026-08-20T13:21:11Z
-32373696121	BBYA MCP List Studios	completed	success	2026-08-20T13:20:20Z
-32373635517	BBYA Studio MCP Job Bridge	completed	success	2026-08-20T13:19:42Z
-32373507470	BBYA Direct StudioMCP Tool Discovery	completed	success	2026-08-20T13:18:19Z
-32373435331	BBYA Direct Roblox Studio MCP Probe	completed	success	2026-08-20T13:17:32Z
-32373136848	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:14:22Z
-32373023142	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:13:09Z
-32372542504	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:07:56Z
-32372099900	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:03:10Z
-32372038148	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:02:30Z
-32371942381	BBYA Studio Worker Diagnostic	completed	failure	2026-08-20T13:01:29Z
-32371883287	BBYA Studio Worker Diagnostic	completed	success	2026-08-20T13:00:51Z
-32366144600	BBYA Zero Live Publish	completed	success	2026-08-20T11:54:54Z
-32366054268	BBYA Zero Live Publish	completed	success	2026-08-20T11:53:50Z
-32366037800	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:53:37Z
-32365701523	BBYA Zero Live Publish	completed	success	2026-08-20T11:49:32Z
-32365539268	BBYA Zero Live Publish	completed	success	2026-08-20T11:47:34Z
-32365519039	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:47:18Z
-32364196362	BBYA Zero Live Publish	completed	success	2026-08-20T11:31:12Z
-32364181366	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:31:00Z
-32363548742	BBYA Zero Live Publish	completed	success	2026-08-20T11:23:14Z
-32363534406	BBYA Zero Live Publish	completed	cancelled	2026-08-20T11:23:04Z
-32362770854	BBYA Zero Live Publish	completed	success	2026-08-20T11:13:36Z
-32362741182	BBYA Zero Live Publish	completed	success	2026-08-20T11:13:15Z
+2026-08-20T13:48:28Z\nRUNS\n32376363747	BBYA Runner Unblock	in_progress		829a7963a0a7db6d720e1f55d69054884cdcddc2	2026-08-20T13:48:20Z
+32376270353	BBYA Runner Unblock	completed	failure	f8e6a79b584ec28c4f453921cefd60921b9f107e	2026-08-20T13:47:22Z
+32375881994	BBYA Runner Status	completed	failure	c05952085b1d791905502dc8ecdc309404cf2d2f	2026-08-20T13:43:19Z
+32375571200	BBYA Studio Command Worker	completed	success	7b88105c2791aa55635a96b0c349afd8469ef8c3	2026-08-20T13:40:03Z
+32375339650	BBYA Runner Unblock	completed	success	85a1edb055cbcb86ee11108c228072c5de7e585b	2026-08-20T13:37:37Z
+32375184082	BBYA Studio Command Worker	completed	success	3d08955827f95d7e6a39cedc5732fd02fc78fee1	2026-08-20T13:35:58Z
+32375059033	BBYA CommandBar Bridge	completed	success	55694d92b40929ff4dc2c9c48bf36ec1730a1d7d	2026-08-20T13:34:38Z
+32374968460	BBYA Runner Unblock	completed	success	dcc9b4a7210cafe528065ea52afe574e484d98ad	2026-08-20T13:33:43Z
+32374872845	BBYA Runner Unblock	completed	success	c5506c78f554d24b6dc0f59572b316657607059e	2026-08-20T13:32:43Z
+32374061196	BBYA Studio UI Tree Probe	completed	success	84fb485042b335898ad431e03a4c4f4674d2d660	2026-08-20T13:24:08Z
+32373883864	BBYA MCP Log Probe	completed	success	a34fa73a5639a44b68f014382b4b03aa0eeddbff	2026-08-20T13:22:18Z
+32373778554	BBYA MCP Setting Probe	completed	success	8cf07f7624699b729fa36cf337dcc3ec413b494a	2026-08-20T13:21:11Z
+32373696121	BBYA MCP List Studios	completed	success	960b0adaa783da1df12f2392e20d9bb68666e75e	2026-08-20T13:20:20Z
+32373635517	BBYA Studio MCP Job Bridge	completed	success	67c1cf1ffd012db997cc14dee23504459e20ecd0	2026-08-20T13:19:42Z
+32373507470	BBYA Direct StudioMCP Tool Discovery	completed	success	741dc083deb8d5dc187117a84f279239b481fabf	2026-08-20T13:18:19Z
+32373435331	BBYA Direct Roblox Studio MCP Probe	completed	success	49482d171c27b20bec8fc0fae228f13c418bf755	2026-08-20T13:17:32Z
+32373136848	BBYA Studio Worker Diagnostic	completed	success	073a7dbd8278e3162bd4bb50c88e8e573ebb99d5	2026-08-20T13:14:22Z
+32373023142	BBYA Studio Worker Diagnostic	completed	success	badb2770823ade41182d3b120c4a57e39f291f30	2026-08-20T13:13:09Z
+32372542504	BBYA Studio Worker Diagnostic	completed	failure	e22c8c6185cfcf2fc1050b413f7332d75ce61211	2026-08-20T13:07:56Z
+32372099900	BBYA Studio Worker Diagnostic	completed	success	3d5bd4a84be453774a3de1b91eed43c1ea1f5c9e	2026-08-20T13:03:10Z
+32372038148	BBYA Studio Worker Diagnostic	completed	failure	af267af9aae844f24ebade1aa970cc411d7a3057	2026-08-20T13:02:30Z
+32371942381	BBYA Studio Worker Diagnostic	completed	failure	9c7d8179feeeab2ab5b1111b79a75205064c6466	2026-08-20T13:01:29Z
+32371883287	BBYA Studio Worker Diagnostic	completed	success	c779628302028b8e201817914250a9a5aa883027	2026-08-20T13:00:51Z
+32366144600	BBYA Zero Live Publish	completed	success	3097099c23aab2b45adae6fa95d90774280e37eb	2026-08-20T11:54:54Z
+32366054268	BBYA Zero Live Publish	completed	success	27b813a937f4c7ef251b45de1ede206de2f9e968	2026-08-20T11:53:50Z
+32366037800	BBYA Zero Live Publish	completed	cancelled	cfeb2721ba5bfcad59583664234b5f18577a4583	2026-08-20T11:53:37Z
+32365701523	BBYA Zero Live Publish	completed	success	91d5e69b48f31e99bb69c59f2b427ca78a29588e	2026-08-20T11:49:32Z
+32365539268	BBYA Zero Live Publish	completed	success	8b1f77019a3a04f530035c98dfed9047303ff527	2026-08-20T11:47:34Z
+32365519039	BBYA Zero Live Publish	completed	cancelled	431daa6c36a639400370eca0ed6e19c93e83ad44	2026-08-20T11:47:18Z
