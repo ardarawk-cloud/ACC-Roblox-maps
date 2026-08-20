@@ -47,3 +47,5 @@ jobs:
           git add deploy-status/bbya-products-probe.json
           git commit -m 'Update BBYA developer products probe' || exit 0
           git push
+
+# scope recheck 2026-08-21
