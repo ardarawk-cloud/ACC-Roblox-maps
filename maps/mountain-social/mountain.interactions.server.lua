@@ -3,9 +3,10 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local BadgeService = game:GetService("BadgeService")
 
-local root = workspace:WaitForChild("ACC_MountainSocial")
+local root = workspace:WaitForChild("ACC_MountainSocial", 15)
+if not root then return end
+
 local remotes = ReplicatedStorage:FindFirstChild("ACC_MountainRemotes") or Instance.new("Folder")
 remotes.Name = "ACC_MountainRemotes"
 remotes.Parent = ReplicatedStorage
@@ -44,8 +45,8 @@ local function setupSecrets()
     local secrets = root:FindFirstChild("Secrets")
     if not secrets then return end
     for _,node in ipairs(secrets:GetDescendants()) do
-        if node:IsA("BasePart") and (node.Name == "SecretReward" or node:GetAttribute("SecretReward")) then
-            local pr = prompt(node, "Discover", "Hidden Route", 0.8)
+        if node:IsA("BasePart") and (node.Name == "SecretSummit" or node.Name == "SecretReward" or node:GetAttribute("SecretReward") or node:GetAttribute("SecretSummit")) then
+            local pr = prompt(node, "Discover", "Hidden Summit", 0.8)
             pr.Triggered:Connect(function(player)
                 if player:GetAttribute("ACC_SecretFound") then return end
                 player:SetAttribute("ACC_SecretFound", true)
