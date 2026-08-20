@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VIP NEON / ROOF LIGHT / HANGING SOUND RESTORE v1.0
+-- BBYA SOCIAL HUB — VIP NEON / ROOF LIGHT / HANGING SOUND RESTORE v1.1
 -- Restores the active L2 VIP lighting language after VIPMinimalStanding reset.
 -- Linear neon trim only (no geometric/triangle ceiling), practical roof downlights,
 -- and four suspended corner speaker clusters with restrained spatial audio.
@@ -24,7 +24,7 @@ if old then old:Destroy() end
 
 local out = Instance.new("Model")
 out.Name = "VIPNeonRoofSoundRestore"
-out:SetAttribute("Pass", "VIP_NEON_ROOF_SOUND_RESTORE_V1_0")
+out:SetAttribute("Pass", "VIP_NEON_ROOF_SOUND_RESTORE_V1_1")
 out:SetAttribute("LinearNeonOnly", true)
 out:SetAttribute("GeometricCeiling", false)
 out:SetAttribute("Floor1Untouched", true)
@@ -127,8 +127,6 @@ for _, x in ipairs({-45, -15, 15, 45}) do
             C.white,
             roofLights
         )
-        lens.Shape = Enum.PartType.Cylinder
-        lens.CFrame = lens.CFrame * CFrame.Angles(0, 0, math.rad(90))
 
         local light = Instance.new("SurfaceLight")
         light.Name = "RoofDownlight"
@@ -160,10 +158,10 @@ if oldEmitter then
 end
 
 local corners = {
-    {name="NW", pos=Vector3.new(-49, 37.2, 32)},
-    {name="NE", pos=Vector3.new(49, 37.2, 32)},
-    {name="SW", pos=Vector3.new(-49, 37.2, -32)},
-    {name="SE", pos=Vector3.new(49, 37.2, -32)},
+    {name="NW", pos=Vector3.new(-49, 35.0, 32)},
+    {name="NE", pos=Vector3.new(49, 35.0, 32)},
+    {name="SW", pos=Vector3.new(-49, 35.0, -32)},
+    {name="SE", pos=Vector3.new(49, 35.0, -32)},
 }
 
 local speakerCount = 0
@@ -201,9 +199,8 @@ for _, c in ipairs(corners) do
     local upperCab = addCabinet(cluster, "SpeakerUpper", c.pos, target, 2.65)
     local lowerCab = addCabinet(cluster, "SpeakerLower", c.pos, target, -2.65)
 
-    -- two slim ceiling suspension rods per cluster
-    local topY = c.pos.Y + 2.65 + 2.8
-    local hangerBottomY = math.min(40.4, topY)
+    -- two slim ceiling suspension rods per cluster, visibly hanging below the roof.
+    local hangerBottomY = c.pos.Y + 2.65 + 2.8
     local hangerTopY = 43.72
     local hangerLen = hangerTopY - hangerBottomY
     for i, dx in ipairs({-1.35, 1.35}) do
