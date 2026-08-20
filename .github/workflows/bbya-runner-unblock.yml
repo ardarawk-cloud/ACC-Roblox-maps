@@ -1,0 +1,32 @@
+name: BBYA Runner Unblock
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-runner-unblock.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  unblock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel stuck BBYA self-hosted probes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SELF_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/$REPO/actions/runs?status=in_progress&per_page=100"
+          data=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$api")
+          echo "$data" | jq -r '.workflow_runs[] | [.id,.name,.status,.created_at] | @tsv'
+          echo "$data" | jq -r --arg self "$SELF_RUN_ID" '.workflow_runs[] | select((.id|tostring)!=$self) | select(.name=="BBYA Studio View Menu Probe" or .name=="BBYA Floor 1 Live Studio Audit" or .name=="BBYA Studio Command Bar Bridge Test") | .id' | while read -r id; do
+            [ -z "$id" ] && continue
+            echo "Cancelling stuck run $id"
+            curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/actions/runs/$id/cancel" || true
+          done
