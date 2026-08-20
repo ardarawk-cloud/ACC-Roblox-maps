@@ -11,7 +11,6 @@
       "RuntimeEditorServer": { "$path": "22-editor.server.lua" },
       "Floor1Core": { "$path": "24-floor1-core.server.lua" },
       "UpperLevels": { "$path": "25-upper-levels.server.lua" },
-      "BasementBOH": { "$path": "26-basement-backofhouse.server.lua" },
       "ShellAndDressing": { "$path": "27-shell-and-dressing.server.lua" },
       "LightingAmbience": { "$path": "28-lighting-ambience.server.lua" },
       "SocialInteractions": { "$path": "29-social-interactions.server.lua" },
