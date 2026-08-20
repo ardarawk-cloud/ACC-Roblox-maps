@@ -1,4 +1,4 @@
-# BBYA runner watchdog/report v3
+# BBYA runner watchdog/report v4
 name: BBYA Runner Unblock
 
 on:
@@ -16,7 +16,7 @@ jobs:
   unblock:
     runs-on: ubuntu-latest
     steps:
-      - name: Report runner state and cancel stale probes
+      - name: Report BBYA workflow queue
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -25,10 +25,7 @@ jobs:
           set -euo pipefail
           auth=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
           runs=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/$REPO/actions/runs?per_page=100")
-          runners=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/$REPO/actions/runners?per_page=100")
-          report="$(date -u +%FT%TZ)\nRUNNERS\n"
-          report+=$(echo "$runners" | jq -r '.runners[] | [.id,.name,.os,.status,.busy,([.labels[].name]|join(","))] | @tsv')
-          report+=$'\nRUNS\n'
+          report="$(date -u +%FT%TZ)\nRUNS\n"
           report+=$(echo "$runs" | jq -r '.workflow_runs[] | select(.name|startswith("BBYA")) | [.id,.name,.status,.conclusion,.head_sha,.created_at] | @tsv' | head -60)
           report+=$'\n'
 
@@ -42,8 +39,8 @@ jobs:
           fileApi="https://api.github.com/repos/$REPO/contents/$path"
           sha=$(curl -sS "${auth[@]}" "$fileApi" | jq -r '.sha // empty')
           if [ -n "$sha" ]; then
-            body=$(jq -n --arg m 'Record BBYA runner state [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}')
+            body=$(jq -n --arg m 'Record BBYA workflow queue [skip ci]' --arg c "$content" --arg s "$sha" '{message:$m,content:$c,branch:"main",sha:$s}')
           else
-            body=$(jq -n --arg m 'Record BBYA runner state [skip ci]' --arg c "$content" '{message:$m,content:$c,branch:"main"}')
+            body=$(jq -n --arg m 'Record BBYA workflow queue [skip ci]' --arg c "$content" '{message:$m,content:$c,branch:"main"}')
           fi
           curl -fsSL -X PUT "${auth[@]}" -H "Content-Type: application/json" -d "$body" "$fileApi" >/dev/null
