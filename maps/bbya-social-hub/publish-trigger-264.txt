@@ -1,0 +1,2 @@
+BBYA publish trigger: wall-safe position, adaptive typography, AutoDJ watchdog, six-tab dock.
+Target canonical commit includes default.project.json wiring through 0e036e02dd5640b21ffced12c5476b3b5501a90d.
