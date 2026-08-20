@@ -1,133 +1,75 @@
 {
   "api_ok": true,
-  "list_http": "200",
+  "complete": false,
   "created": [],
-  "updated": [
-    {
-      "name": "BBYA DJ Wall Message",
-      "price": 2,
-      "id": 3709047092
-    },
-    {
-      "name": "BBYA Support 10",
-      "price": 10,
-      "id": 3709047095
-    },
-    {
-      "name": "BBYA Support 25",
-      "price": 25,
-      "id": 3709047097
-    },
-    {
-      "name": "BBYA Support 50",
-      "price": 50,
-      "id": 3709047101
-    },
-    {
-      "name": "BBYA Support 100",
-      "price": 100,
-      "id": 3709047104
-    }
+  "duplicates_waiting_visibility": [
+    "BBYA Support 500",
+    "BBYA Support 1000",
+    "BBYA Support 2000"
   ],
-  "errors": [
+  "errors": [],
+  "pages": [
     {
-      "stage": "update",
-      "name": "BBYA Support 250",
-      "http": "429",
-      "body": {
-        "errors": [
-          {
-            "code": 0,
-            "message": ""
-          }
-        ]
-      },
-      "stderr": ""
-    },
-    {
-      "stage": "create",
-      "name": "BBYA Support 500",
-      "http": "400",
-      "body": {
-        "errorCode": "DuplicateProductName",
-        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
-        "field": "name",
-        "hint": null
-      },
-      "stderr": ""
-    },
-    {
-      "stage": "create",
-      "name": "BBYA Support 1000",
-      "http": "400",
-      "body": {
-        "errorCode": "DuplicateProductName",
-        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
-        "field": "name",
-        "hint": null
-      },
-      "stderr": ""
-    },
-    {
-      "stage": "create",
-      "name": "BBYA Support 2000",
-      "http": "400",
-      "body": {
-        "errorCode": "DuplicateProductName",
-        "errorMessage": "The request parameter name was invalid. Developer product name already exists in the universe.",
-        "field": "name",
-        "hint": null
-      },
-      "stderr": ""
+      "http": "200",
+      "count": 8,
+      "token": null
     }
   ],
   "products": [
     {
       "name": "BBYA DJ Wall Message",
       "price": 2,
-      "id": 3709047092
+      "id": 3709047092,
+      "visible": true
     },
     {
       "name": "BBYA Support 10",
       "price": 10,
-      "id": 3709047095
+      "id": 3709047095,
+      "visible": true
     },
     {
       "name": "BBYA Support 25",
       "price": 25,
-      "id": 3709047097
+      "id": 3709047097,
+      "visible": true
     },
     {
       "name": "BBYA Support 50",
       "price": 50,
-      "id": 3709047101
+      "id": 3709047101,
+      "visible": true
     },
     {
       "name": "BBYA Support 100",
       "price": 100,
-      "id": 3709047104
+      "id": 3709047104,
+      "visible": true
     },
     {
       "name": "BBYA Support 250",
       "price": 250,
-      "id": 3709047106
+      "id": 3709047106,
+      "visible": true
     },
     {
       "name": "BBYA Support 500",
       "price": 500,
-      "id": 0
+      "id": 0,
+      "visible": false
     },
     {
       "name": "BBYA Support 1000",
       "price": 1000,
-      "id": 0
+      "id": 0,
+      "visible": false
     },
     {
       "name": "BBYA Support 2000",
       "price": 2000,
-      "id": 0
+      "id": 0,
+      "visible": false
     }
   ],
-  "relist_http": "200",
-  "complete": false
+  "list_http": "200"
 }
