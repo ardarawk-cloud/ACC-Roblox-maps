@@ -95,8 +95,51 @@ local function modalOpen()
 end
 
 local function setCompact(compact)
-    if not shortLandscape() then compact = false end
-    card:SetAttribute("WP_CompactMode", compact == true)
+    local short = shortLandscape()
+    compact = short and compact == true
+    card:SetAttribute("WP_CompactMode", compact)
+
+    if short then
+        card.Position = UDim2.fromOffset(10,54)
+        if compact then
+            card.Size = UDim2.fromOffset(236,44)
+            sizeConstraint.MinSize = Vector2.new(210,44)
+            sizeConstraint.MaxSize = Vector2.new(236,44)
+            kicker.Position = UDim2.fromOffset(10,4)
+            kicker.Size = UDim2.new(1,-20,0,12)
+            kicker.TextSize = 8
+            objective.Position = UDim2.fromOffset(10,17)
+            objective.Size = UDim2.new(1,-20,0,21)
+            objective.TextSize = 10
+            objective.TextWrapped = false
+            objective.TextTruncate = Enum.TextTruncate.AtEnd
+        else
+            card.Size = UDim2.fromOffset(282,66)
+            sizeConstraint.MinSize = Vector2.new(240,66)
+            sizeConstraint.MaxSize = Vector2.new(282,66)
+            kicker.Position = UDim2.fromOffset(12,5)
+            kicker.Size = UDim2.new(1,-24,0,15)
+            kicker.TextSize = 9
+            objective.Position = UDim2.fromOffset(12,21)
+            objective.Size = UDim2.new(1,-24,0,39)
+            objective.TextSize = 12
+            objective.TextWrapped = true
+            objective.TextTruncate = Enum.TextTruncate.None
+        end
+    else
+        card.Position = UDim2.fromOffset(12,70)
+        card.Size = UDim2.new(1,-24,0,84)
+        sizeConstraint.MinSize = Vector2.new(250,84)
+        sizeConstraint.MaxSize = Vector2.new(320,84)
+        kicker.Position = UDim2.fromOffset(14,8)
+        kicker.Size = UDim2.new(1,-28,0,20)
+        kicker.TextSize = 11
+        objective.Position = UDim2.fromOffset(14,29)
+        objective.Size = UDim2.new(1,-28,0,43)
+        objective.TextSize = 15
+        objective.TextWrapped = true
+        objective.TextTruncate = Enum.TextTruncate.None
+    end
 end
 
 local function scheduleCollapse(delaySeconds)
@@ -154,7 +197,9 @@ for _, attr in ipairs({"WP_OnboardingComplete","WP_TutorialStarted","WP_Tutorial
         refresh(changedStep)
         if attr == "WP_BuildActive" and player:GetAttribute("WP_BuildActive") == true and shortLandscape() then
             collapseToken += 1
-            setCompact(true)
+            task.defer(function()
+                if card.Parent and player:GetAttribute("WP_BuildActive") == true then setCompact(true) end
+            end)
         end
     end)
 end
@@ -195,9 +240,23 @@ task.spawn(function()
     end
 end)
 
+local cameraConnection
+local function bindCamera()
+    if cameraConnection then cameraConnection:Disconnect() end
+    local camera = Workspace.CurrentCamera
+    if camera then
+        cameraConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+            setCompact(card:GetAttribute("WP_CompactMode") == true)
+        end)
+    end
+    setCompact(card:GetAttribute("WP_CompactMode") == true)
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
+bindCamera()
+
 refresh(false)
 if shortLandscape() and player:GetAttribute("WP_TutorialStarted") == true and player:GetAttribute("WP_OnboardingComplete") ~= true then
     scheduleCollapse(2.8)
 end
 
-print("[WONDERPOCKET] Android auto-collapsing contextual tutorial tracker ready")
+print("[WONDERPOCKET] Android auto-collapsing contextual tutorial pill ready")
