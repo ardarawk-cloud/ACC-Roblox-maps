@@ -33,6 +33,7 @@ local tutorialCard
 local tutorialConstraint
 local tutorialKicker
 local tutorialObjective
+local coreTop
 
 local function findBuildControls()
     for _, instance in ipairs(premium:GetDescendants()) do
@@ -54,6 +55,11 @@ local function findBuildControls()
 end
 
 local buildControls = findBuildControls()
+
+local function bindCoreHud(gui)
+    if not gui or gui.Name ~= "WONDERPOCKET_UI" then return end
+    coreTop = gui:FindFirstChild("TopBar")
+end
 
 local function bindHealthGui(gui)
     if not gui or gui.Name ~= "WP_ClosedTestHealth" then return end
@@ -103,9 +109,11 @@ local function anyPanelOpen()
 end
 
 local function syncModalDock()
-    if dock then dock.Visible = not anyPanelOpen() and not buildActive() end
-    if healthButton then healthButton.Visible = not buildActive() end
-    if buildActive() and healthPanel then healthPanel.Visible = false end
+    local placing = buildActive()
+    if dock then dock.Visible = not anyPanelOpen() and not placing end
+    if coreTop then coreTop.Visible = not placing end
+    if healthButton then healthButton.Visible = not placing end
+    if placing and healthPanel then healthPanel.Visible = false end
 end
 
 local function applyResponsiveLayout()
@@ -125,6 +133,31 @@ local function applyResponsiveLayout()
 
     if shopGrid then
         shopGrid.CellSize = shortScreen and UDim2.new(.5, -4, 0, 66) or UDim2.new(.5, -4, 0, 82)
+    end
+
+    if dock and dock.Parent then
+        local dockConstraint = dock:FindFirstChildOfClass("UISizeConstraint")
+        if shortScreen then
+            dock.Size = UDim2.new(1,-28,0,46)
+            dock.Position = UDim2.new(.5,0,1,-8)
+            if dockConstraint then dockConstraint.MaxSize = Vector2.new(330,46) end
+            for _, child in ipairs(dock:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(.23,0,0,36)
+                    child.TextSize = 11
+                end
+            end
+        else
+            dock.Size = UDim2.new(1,-20,0,60)
+            dock.Position = UDim2.new(.5,0,1,-12)
+            if dockConstraint then dockConstraint.MaxSize = Vector2.new(390,60) end
+            for _, child in ipairs(dock:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(.23,0,0,44)
+                    child.TextSize = 13
+                end
+            end
+        end
     end
 
     if toast then
@@ -199,7 +232,7 @@ local function applyResponsiveLayout()
     if healthButton and healthButton.Parent then
         if shortScreen then
             healthButton.Size = UDim2.fromOffset(64, 28)
-            healthButton.Position = UDim2.new(1, -8, 0, 66)
+            healthButton.Position = UDim2.new(1, -8, 0, 52)
             healthButton.TextSize = 11
         else
             healthButton.Size = UDim2.fromOffset(82, 34)
@@ -243,9 +276,15 @@ playerGui.ChildAdded:Connect(function(child)
             bindTutorialGui(child)
             applyResponsiveLayout()
         end)
+    elseif child.Name == "WONDERPOCKET_UI" then
+        task.defer(function()
+            bindCoreHud(child)
+            applyResponsiveLayout()
+        end)
     end
 end)
 
+bindCoreHud(playerGui:FindFirstChild("WONDERPOCKET_UI"))
 bindHealthGui(playerGui:FindFirstChild("WP_ClosedTestHealth"))
 bindTutorialGui(playerGui:FindFirstChild("WP_TutorialObjective"))
 
@@ -262,4 +301,4 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
 bindCamera()
 
-print("[WONDERPOCKET] Android focused placement-mode UI loaded")
+print("[WONDERPOCKET] Android gameplay-first compact HUD + focused placement UI loaded")
