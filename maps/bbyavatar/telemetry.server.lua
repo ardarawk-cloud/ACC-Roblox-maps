@@ -1,4 +1,4 @@
--- BBYAVATAR analytics-ready foundation v6.
+-- BBYAVATAR analytics-ready foundation v7.
 -- Privacy posture: aggregate session counters only; no external endpoint, no PII persistence,
 -- no arbitrary client event names, and no per-user metrics exposed as attributes.
 
@@ -35,10 +35,11 @@ local ALLOWED = {
     WARDROBE_RESTORE_FAILED = true,
     DISCOVERY_OPEN = true,
     DISCOVERY_CATEGORY = true,
+    RECOMMEND_OPEN = true,
+    RECOMMEND_RESULT = true,
+    RECOMMEND_FAILED = true,
 }
 
--- Per-player, per-event throttling avoids a noisy event suppressing an unrelated funnel event
--- that happens in the same frame (for example TRY_ON_SUCCESS followed by PICK_SAVE).
 local lastEventAt = {}
 local counters = {}
 local THROTTLE_SECONDS = 0.12
@@ -61,6 +62,8 @@ local function refreshDerivedMetrics()
     local favorites = metric("FAVORITE_SUCCESS")
     local outfitSaves = metric("CREATE_OUTFIT_SUCCESS") + metric("SAVE_AVATAR_SUCCESS")
     local purchases = metric("PURCHASE_SUCCESS")
+    local recommendationOpens = metric("RECOMMEND_OPEN")
+    local recommendationResults = metric("RECOMMEND_RESULT")
 
     root:SetAttribute("Funnel_OpenPerSessionPct", safeRate(opens, sessions))
     root:SetAttribute("Funnel_TryOnPerOpenPct", safeRate(tries, opens))
@@ -70,6 +73,8 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Funnel_SavePerTryOnPct", safeRate(outfitSaves, tries))
     root:SetAttribute("Funnel_PurchasePerOpenPct", safeRate(purchases, opens))
     root:SetAttribute("Funnel_PurchasePerTryOnPct", safeRate(purchases, tries))
+    root:SetAttribute("Funnel_RecommendPerPickPct", safeRate(recommendationOpens, picks))
+    root:SetAttribute("Funnel_RecommendResultPct", safeRate(recommendationResults, recommendationOpens))
 end
 
 local function bump(key)
@@ -98,10 +103,9 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     lastEventAt[player.UserId] = nil
 end)
 
--- Stable schema markers make production receipts/audits able to distinguish telemetry revisions.
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V6_PERSISTED_PICKS_FUNNEL")
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V7_RECOMMENDATION_FUNNEL")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle", "PER_USER_PER_EVENT")
-root:SetAttribute("TelemetrySchema", 6)
+root:SetAttribute("TelemetrySchema", 7)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v6 + persisted-picks funnel ready")
+print("[BBYAVATAR] Privacy-safe telemetry v7 + recommendation funnel ready")
