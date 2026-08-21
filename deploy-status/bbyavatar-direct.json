@@ -1,10 +1,15 @@
 {
-  "ok": true,
-  "httpStatus": 200,
+  "ok": false,
+  "httpStatus": 403,
   "universeId": "10744157359",
   "placeId": "85866320744490",
   "payload": {
-    "versionNumber": 24
+    "errors": [
+      {
+        "code": 0,
+        "message": "User is moderated"
+      }
+    ]
   },
-  "at": "2026-08-21T05:15:32.284Z"
+  "at": "2026-08-21T06:18:54.093Z"
 }
