@@ -1,5 +1,5 @@
--- BECAK E-BIKE — Daily Contracts Mission UI v1.18
--- Adds a lightweight mission overlay to the existing left-side driver phone without replacing vehicle controls.
+-- BECAK E-BIKE — Daily Contracts + Story Mission UI v1.19
+-- Lightweight mission overlay integrated into the existing left-side driver phone.
 
 local Players = game:GetService('Players')
 local Workspace = game:GetService('Workspace')
@@ -12,7 +12,6 @@ local DARK = Color3.fromRGB(12,16,19)
 local CARD = Color3.fromRGB(24,30,34)
 local MUTED = Color3.fromRGB(155,167,174)
 local WHITE = Color3.fromRGB(246,248,249)
-local PURPLE = Color3.fromRGB(111,67,161)
 
 local function corner(obj, radius)
     local c = Instance.new('UICorner')
@@ -47,7 +46,6 @@ if not phone or not phoneGui then return end
 
 local panel = Instance.new('Frame')
 panel.Name = 'DailyContractsPanel'
-panel.AnchorPoint = Vector2.new(0,0)
 panel.Position = UDim2.fromOffset(18,94)
 panel.Size = UDim2.new(1,-36,1,-176)
 panel.BackgroundColor3 = DARK
@@ -115,20 +113,37 @@ for i,d in ipairs(defs) do
     bar.Parent = barBack
     corner(bar,3)
 
-    rows[d.id] = {progress=progress,bar=bar,row=row,title=title}
+    rows[d.id] = {progress=progress,bar=bar,row=row}
 end
 
 local storyCard = Instance.new('Frame')
 storyCard.Position = UDim2.fromOffset(12,398)
-storyCard.Size = UDim2.new(1,-24,0,86)
+storyCard.Size = UDim2.new(1,-24,0,116)
 storyCard.BackgroundColor3 = Color3.fromRGB(35,25,52)
 storyCard.ZIndex = 81
 storyCard.Parent = panel
 corner(storyCard,13)
-local st1 = label(storyCard,'STORY • CHAPTER 1',UDim2.fromOffset(12,8),UDim2.new(1,-24,0,20),11,true,Color3.fromRGB(201,171,239)); st1.ZIndex=82
-local st2 = label(storyCard,'Awal Perjalanan',UDim2.fromOffset(12,31),UDim2.new(1,-24,0,22),14,true,WHITE); st2.ZIndex=82
-local st3 = label(storyCard,'Bangun reputasi lewat penumpang, cargo, dan layanan kota.',UDim2.fromOffset(12,54),UDim2.new(1,-24,0,25),9,false,MUTED); st3.ZIndex=82
-st3.TextWrapped = true
+
+local storyHeader = label(storyCard,'STORY • CHAPTER 1/5',UDim2.fromOffset(12,7),UDim2.new(1,-24,0,18),10,true,Color3.fromRGB(201,171,239)); storyHeader.ZIndex=82
+local storyTitle = label(storyCard,'Awal Perjalanan',UDim2.fromOffset(12,27),UDim2.new(1,-24,0,21),14,true,WHITE); storyTitle.ZIndex=82
+local storyRep = label(storyCard,'REPUTASI • Pendatang',UDim2.fromOffset(12,49),UDim2.new(1,-24,0,18),9,true,Color3.fromRGB(124,235,151)); storyRep.ZIndex=82
+local storyObjective = label(storyCard,'Selesaikan trip untuk membangun reputasi.',UDim2.fromOffset(12,66),UDim2.new(1,-24,0,28),9,false,MUTED); storyObjective.ZIndex=82; storyObjective.TextWrapped=true
+local storyProgress = label(storyCard,'0 / 10 trip',UDim2.new(0,12,1,-22),UDim2.new(1,-24,0,16),9,true,WHITE); storyProgress.ZIndex=82
+
+local storyBarBack = Instance.new('Frame')
+storyBarBack.Position = UDim2.new(0,12,1,-5)
+storyBarBack.AnchorPoint = Vector2.new(0,1)
+storyBarBack.Size = UDim2.new(1,-24,0,5)
+storyBarBack.BackgroundColor3 = Color3.fromRGB(63,48,79)
+storyBarBack.ZIndex = 82
+storyBarBack.Parent = storyCard
+corner(storyBarBack,3)
+local storyBar = Instance.new('Frame')
+storyBar.Size = UDim2.new(0,0,1,0)
+storyBar.BackgroundColor3 = Color3.fromRGB(160,110,219)
+storyBar.ZIndex = 83
+storyBar.Parent = storyBarBack
+corner(storyBar,3)
 
 local function refresh()
     local completed = tonumber(player:GetAttribute('DailyContractsCompleted')) or 0
@@ -144,6 +159,25 @@ local function refresh()
         ui.bar.Size = UDim2.new(math.clamp(p/g,0,1),0,1,0)
         ui.row.BackgroundColor3 = claimed and Color3.fromRGB(24,48,34) or CARD
     end
+
+    local chapter = tonumber(player:GetAttribute('StoryChapter')) or 1
+    local maxChapter = tonumber(player:GetAttribute('StoryMaxChapter')) or 5
+    local title = tostring(player:GetAttribute('StoryChapterTitle') or 'Awal Perjalanan')
+    local rep = tostring(player:GetAttribute('StoryReputation') or 'Pendatang')
+    local objective = tostring(player:GetAttribute('StoryObjective') or 'Bangun reputasi lewat layanan kota.')
+    local trips = tonumber(player:GetAttribute('BecakTrips')) or 0
+    local startTrips = tonumber(player:GetAttribute('StoryProgressStart')) or 0
+    local nextGoal = tonumber(player:GetAttribute('StoryNextTripGoal')) or trips
+    local complete = player:GetAttribute('StoryComplete') == true
+    local denom = math.max(1,nextGoal-startTrips)
+    local storyRatio = complete and 1 or math.clamp((trips-startTrips)/denom,0,1)
+
+    storyHeader.Text = string.format('STORY • CHAPTER %d/%d',chapter,maxChapter)
+    storyTitle.Text = title
+    storyRep.Text = 'REPUTASI • '..rep
+    storyObjective.Text = objective
+    storyProgress.Text = complete and 'STORY UTAMA SELESAI ✓' or string.format('%d / %d trip',trips,nextGoal)
+    storyBar.Size = UDim2.new(storyRatio,0,1,0)
 end
 
 for _,d in ipairs(defs) do
@@ -151,8 +185,9 @@ for _,d in ipairs(defs) do
         player:GetAttributeChangedSignal('DailyContract_'..d.id..'_'..suffix):Connect(refresh)
     end
 end
-player:GetAttributeChangedSignal('DailyContractsCompleted'):Connect(refresh)
-player:GetAttributeChangedSignal('DailyContractsTotal'):Connect(refresh)
+for _,attr in ipairs({'DailyContractsCompleted','DailyContractsTotal','BecakTrips','StoryChapter','StoryChapterTitle','StoryReputation','StoryObjective','StoryProgressStart','StoryNextTripGoal','StoryMaxChapter','StoryComplete'}) do
+    player:GetAttributeChangedSignal(attr):Connect(refresh)
+end
 
 local function bindMissionButton()
     for _,obj in ipairs(phoneGui:GetDescendants()) do
@@ -177,6 +212,7 @@ phoneGui.DescendantAdded:Connect(function(obj)
 end)
 refresh()
 
-Workspace:SetAttribute('ACC_BecakDailyContractsUI','v1.18')
+Workspace:SetAttribute('ACC_BecakDailyContractsUI','v1.19')
 Workspace:SetAttribute('BecakMissionUIPhoneIntegrated','ON')
-print('[BECAK E-BIKE] daily contracts mission UI v1.18 ready')
+Workspace:SetAttribute('BecakStoryUIIntegrated','ON')
+print('[BECAK E-BIKE] mission + story UI v1.19 ready')
