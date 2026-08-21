@@ -1,6 +1,6 @@
-BBYAVATAR publish trigger v4
+BBYAVATAR publish trigger v5
 Universe: 10744157359
 Place: 85866320744490
 Requested: 2026-08-21
-Feature: privacy-safe derived funnel telemetry v5
-SourceCommit: fc8a06a995304b38ca7ca776dccb37647583b8b5
+Feature: Roblox-native contextual recommendations + telemetry v7
+SourceCommit: 57348bc85081a2f4cfe982f1fe586c266918f059
