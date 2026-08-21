@@ -1,5 +1,6 @@
--- BBYAVATAR Recently Viewed v1.
+-- BBYAVATAR Recently Viewed v2.
 -- Persists only catalog asset IDs through the server module; details are resolved from Roblox on demand.
+-- v2 exposes a privacy-minimal recommendation seed so SIMILAR can work after browsing even before a user saves a pick.
 
 local recentRequest = root:WaitForChild("RecentViewsRequest")
 local recentIds = {}
@@ -71,6 +72,19 @@ local function resolveRecentItem(id)
     details.ItemType = details.ItemType or Enum.AvatarItemType.Asset
     recentItemCache[id] = details
     return details
+end
+
+-- Shared locally with recommendations.client.lua. It returns only Roblox catalog data already
+-- present in the user's recent history; no extra profile or identifier is introduced.
+function getRecentRecommendationSeed()
+    loadRecent()
+    for _, id in ipairs(recentIds) do
+        local item = resolveRecentItem(id)
+        if item and not isBundleItem(item) then
+            return item, id
+        end
+    end
+    return nil, nil
 end
 
 local function renderRecent()
@@ -166,4 +180,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Persistent Recently Viewed v1 ready")
+print("[BBYAVATAR] Persistent Recently Viewed v2 + recommendation seed ready")
