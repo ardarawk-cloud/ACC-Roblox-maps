@@ -1,7 +1,7 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v4.2-scenic-lowlands
+build=v4.3-expedition
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 5 }
+log=Mountain AM STUDIO publish success { versionNumber: 6 }
