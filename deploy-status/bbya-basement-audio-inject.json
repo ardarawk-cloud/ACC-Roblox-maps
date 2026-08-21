@@ -1,0 +1,42 @@
+{
+  "universeId": "8116636513",
+  "complete": false,
+  "required_permission": "Assets: Read + Write",
+  "tracks": [
+    {
+      "file": "ADXL_SEXY_PAPI_2025.mp3",
+      "title": "ADXL - SEXY PAPI 2025",
+      "style": "adxl-breakbeat",
+      "error": "staging file missing"
+    },
+    {
+      "file": "ADXL_BANG_BANG_WIRO_SABLENG.mp3",
+      "title": "ADXL - BANG BANG WIRO SABLENG",
+      "style": "adxl-breakbeat",
+      "error": "staging file missing"
+    },
+    {
+      "file": "ADXL_SEMATA_KARENAMU_2023.mp3",
+      "title": "ADXL - SEMATA KARENAMU 2023",
+      "style": "jakarta-bounce",
+      "error": "staging file missing"
+    },
+    {
+      "file": "ADXL_CINTA_KITA_2023.mp3",
+      "title": "ADXL - CINTA KITA 2023",
+      "style": "adxl-breakbeat",
+      "error": "staging file missing"
+    },
+    {
+      "file": "ADXL_BUTA_HATI_2023.mp3",
+      "title": "ADXL - BUTA HATI 2023",
+      "style": "adxl-breakbeat",
+      "error": "staging file missing"
+    }
+  ],
+  "creator": {
+    "type": "user",
+    "id": "8878884630",
+    "name": "RidhooMauKamu"
+  }
+}
