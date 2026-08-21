@@ -1,14 +1,15 @@
--- BBYAVATAR persistent Saved Picks v1.
+-- BBYAVATAR persistent Saved Picks v2.
 -- Stores only Roblox catalog asset IDs keyed by UserId. No item names, prices, inventory,
 -- chat text, creator data, or external identifiers are persisted.
--- Mutations use UpdateAsync so simultaneous servers cannot silently overwrite each other.
+-- v2 protects same-user mutations from response-order races and preserves a safe cache fallback.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 
 local STORE_NAME = "BBYAVATAR_SavedPicks_v1"
 local MAX_PICKS = 24
-local REQUEST_COOLDOWN = 0.30
+local LOAD_COOLDOWN = 0.75
+local MUTATION_COOLDOWN = 0.30
 local MAX_ASSET_ID = 9007199254740991 -- exact integer ceiling for Lua number / JSON interoperability
 
 local store = DataStoreService:GetDataStore(STORE_NAME)
@@ -21,6 +22,7 @@ end
 
 local cache = {}
 local lastRequestAt = {}
+local mutationInFlight = {}
 
 local function cleanId(value)
     local id = tonumber(value)
@@ -57,21 +59,27 @@ end
 
 local function load(player)
     local existing = cache[player.UserId]
-    if existing then return cloneIds(existing), true end
+    if existing then return cloneIds(existing), true, nil, true end
 
     local ok, value = pcall(function()
         return store:GetAsync(keyFor(player))
     end)
-    if not ok then return {}, false, "DATASTORE_READ_FAILED" end
+    if not ok then return {}, false, "DATASTORE_READ_FAILED", false end
 
     local ids = normalize(value)
     cache[player.UserId] = ids
-    return cloneIds(ids), true
+    return cloneIds(ids), true, nil, false
 end
 
 local function update(player, action, assetId)
     local id = cleanId(assetId)
     if not id then return false, nil, "INVALID_ASSET_ID" end
+
+    local userId = player.UserId
+    if mutationInFlight[userId] then
+        return false, cloneIds(cache[userId] or {}), "THROTTLED"
+    end
+    mutationInFlight[userId] = true
 
     local updatedIds = nil
     local ok = pcall(function()
@@ -82,13 +90,7 @@ local function update(player, action, assetId)
                 for _, existing in ipairs(ids) do
                     if existing == id then found = true break end
                 end
-                if not found then
-                    if #ids >= MAX_PICKS then
-                        updatedIds = ids
-                        return {schema = 1, ids = ids}
-                    end
-                    table.insert(ids, id)
-                end
+                if not found and #ids < MAX_PICKS then table.insert(ids, id) end
             elseif action == "REMOVE" then
                 for index = #ids, 1, -1 do
                     if ids[index] == id then table.remove(ids, index) end
@@ -99,40 +101,62 @@ local function update(player, action, assetId)
         end)
     end)
 
-    if not ok or not updatedIds then return false, nil, "DATASTORE_WRITE_FAILED" end
-    cache[player.UserId] = normalize(updatedIds)
-    return true, cloneIds(cache[player.UserId])
+    mutationInFlight[userId] = nil
+
+    if not ok or not updatedIds then
+        -- Do not destroy a previously-good session cache on a transient DataStore failure.
+        return false, cloneIds(cache[userId] or {}), "DATASTORE_WRITE_FAILED"
+    end
+
+    cache[userId] = normalize(updatedIds)
+    return true, cloneIds(cache[userId])
+end
+
+local function requestGap(action)
+    return action == "LOAD" and LOAD_COOLDOWN or MUTATION_COOLDOWN
 end
 
 request.OnServerInvoke = function(player, action, assetId)
-    if typeof(action) ~= "string" then
+    if typeof(action) ~= "string" or #action > 12 then
         return {ok = false, code = "INVALID_ACTION"}
     end
 
-    local now = os.clock()
-    local last = lastRequestAt[player.UserId] or 0
-    if now - last < REQUEST_COOLDOWN then
-        return {ok = false, code = "THROTTLED"}
+    if action ~= "LOAD" and action ~= "ADD" and action ~= "REMOVE" then
+        return {ok = false, code = "INVALID_ACTION"}
     end
-    lastRequestAt[player.UserId] = now
+
+    local userId = player.UserId
+    local now = os.clock()
+    local byAction = lastRequestAt[userId]
+    if not byAction then
+        byAction = {}
+        lastRequestAt[userId] = byAction
+    end
+    local last = byAction[action] or 0
+    if now - last < requestGap(action) then
+        return {ok = false, code = "THROTTLED", ids = cloneIds(cache[userId] or {})}
+    end
+    byAction[action] = now
 
     if action == "LOAD" then
-        local ids, persisted, code = load(player)
-        return {ok = persisted, persisted = persisted, ids = ids, code = code}
-    elseif action == "ADD" or action == "REMOVE" then
-        local ok, ids, code = update(player, action, assetId)
-        return {ok = ok, persisted = ok, ids = ids or {}, code = code}
+        local ids, persisted, code, cacheHit = load(player)
+        return {ok = persisted, persisted = persisted, ids = ids, code = code, cacheHit = cacheHit == true}
     end
 
-    return {ok = false, code = "INVALID_ACTION"}
+    local ok, ids, code = update(player, action, assetId)
+    return {ok = ok, persisted = ok, ids = ids or {}, code = code}
 end
 
 Players.PlayerRemoving:Connect(function(player)
-    cache[player.UserId] = nil
-    lastRequestAt[player.UserId] = nil
+    local userId = player.UserId
+    cache[userId] = nil
+    lastRequestAt[userId] = nil
+    mutationInFlight[userId] = nil
 end)
 
-root:SetAttribute("SavedPicksPersistence", "DATASTORE_V1_ASSET_IDS_ONLY")
+root:SetAttribute("SavedPicksPersistence", "DATASTORE_V2_CONCURRENCY_SAFE")
 root:SetAttribute("SavedPicksMax", MAX_PICKS)
 root:SetAttribute("SavedPicksPrivacy", "USERID_KEY_PLUS_ASSET_IDS_ONLY")
-print("[BBYAVATAR] Persistent Saved Picks v1 ready")
+root:SetAttribute("SavedPicksMutationGuard", true)
+root:SetAttribute("SavedPicksCacheFallback", true)
+print("[BBYAVATAR] Persistent Saved Picks v2 concurrency-safe sync ready")
