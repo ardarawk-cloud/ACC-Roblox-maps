@@ -1,5 +1,5 @@
--- BECAK E-BIKE — Vehicle Recovery Assist v1.25
--- Automatic owner-only self-righting, low-curb stall assist, and hill-start anti-rollback.
+-- BECAK E-BIKE — Vehicle Recovery Assist v1.26
+-- Automatic owner-only self-righting, multi-probe curb assist, and hill-start anti-rollback.
 -- Designed to improve mobile drivability without changing the core VehicleSeat controller.
 
 local Players = game:GetService('Players')
@@ -17,12 +17,17 @@ local toast = remotes and remotes:FindFirstChild('Toast')
 
 local FLIP_UP_Y = 0.38
 local FLIP_HOLD_SECONDS = 1.35
-local STALL_HOLD_SECONDS = 1.65
-local STALL_SPEED = 1.6
+local STALL_HOLD_SECONDS = 1.35
+local STALL_SPEED = 1.8
 local THROTTLE_THRESHOLD = 0.55
 local RECOVERY_COOLDOWN = 6
 local ASSIST_FORWARD_SPEED = 7
 local ASSIST_UP_SPEED = 5
+local CURB_PROBE_DISTANCE = 4.5
+local CURB_SIDE_OFFSET = 1.35
+local CURB_LOW_HEIGHT = 0.35
+local CURB_CLEAR_HEIGHT = 2.15
+local CURB_MAX_TOP_HEIGHT = 1.35
 
 -- Hill-start assist is intentionally conservative: it only fights rollback while the owner
 -- is actively requesting forward throttle at very low speed. This avoids changing normal handling.
@@ -80,23 +85,57 @@ local function recoverFlip(model, chassis, player, state)
     notify(player, 'Becak otomatis dibalikkan ke posisi aman.')
 end
 
-local function tryLowCurbAssist(model, chassis, player, state)
+local function desiredTravelDirection(chassis, seat)
     local look = safeLook(chassis)
-    rayParams.FilterDescendantsInstances = {model}
+    local throttleSign = seat.ThrottleFloat < 0 and -1 or 1
+    local travel = look * throttleSign
+    local right = horizontal(chassis.CFrame.RightVector)
+    if right.Magnitude > 0.05 then
+        travel += right.Unit * math.clamp(seat.SteerFloat, -1, 1) * 0.28 * throttleSign
+    end
+    if travel.Magnitude < 0.05 then return look * throttleSign end
+    return travel.Unit
+end
 
-    -- Detect a small obstacle near wheel/chassis height with clear space above it.
-    local lowOrigin = chassis.Position + Vector3.new(0, 0.35, 0)
-    local highOrigin = chassis.Position + Vector3.new(0, 2.15, 0)
-    local lowHit = Workspace:Raycast(lowOrigin, look * 4.2, rayParams)
-    local highHit = Workspace:Raycast(highOrigin, look * 4.2, rayParams)
-    if not lowHit or highHit then return false end
+local function curbProbe(model, chassis, travel, lateralOffset)
+    local right = horizontal(chassis.CFrame.RightVector)
+    if right.Magnitude < 0.05 then right = Vector3.new(1,0,0) else right = right.Unit end
+    local base = chassis.Position + right * lateralOffset
+    local lowOrigin = base + Vector3.new(0, CURB_LOW_HEIGHT, 0)
+    local highOrigin = base + Vector3.new(0, CURB_CLEAR_HEIGHT, 0)
+    local lowHit = Workspace:Raycast(lowOrigin, travel * CURB_PROBE_DISTANCE, rayParams)
+    if not lowHit then return nil end
+    local highHit = Workspace:Raycast(highOrigin, travel * CURB_PROBE_DISTANCE, rayParams)
+    if highHit then return nil end
+
+    -- Reject walls/tall obstacles: sample downward from above the contact point and require
+    -- a low top surface. This keeps assist focused on curbs/sidewalk lips rather than buildings.
+    local contact = lowHit.Position
+    local topOrigin = contact + Vector3.new(0, CURB_MAX_TOP_HEIGHT + 1.0, 0) - travel * 0.2
+    local topHit = Workspace:Raycast(topOrigin, Vector3.new(0, -(CURB_MAX_TOP_HEIGHT + 1.4), 0), rayParams)
+    if not topHit then return nil end
+    local topRise = topHit.Position.Y - chassis.Position.Y
+    if topRise > CURB_MAX_TOP_HEIGHT then return nil end
+    return lowHit
+end
+
+local function tryLowCurbAssist(model, chassis, seat, player, state)
+    rayParams.FilterDescendantsInstances = {model}
+    local travel = desiredTravelDirection(chassis, seat)
+
+    -- Three probes cover center + both front wheel tracks, so diagonal approaches to a curb
+    -- are detected reliably on mobile. Direction follows throttle sign, fixing reverse-stall cases.
+    local hit = curbProbe(model, chassis, travel, 0)
+        or curbProbe(model, chassis, travel, CURB_SIDE_OFFSET)
+        or curbProbe(model, chassis, travel, -CURB_SIDE_OFFSET)
+    if not hit then return false end
 
     local velocity = chassis.AssemblyLinearVelocity
-    chassis.AssemblyLinearVelocity = look * math.max(ASSIST_FORWARD_SPEED, horizontal(velocity).Magnitude) + Vector3.new(0, ASSIST_UP_SPEED, 0)
-    state.cooldownUntil = os.clock() + 2.5
+    chassis.AssemblyLinearVelocity = travel * math.max(ASSIST_FORWARD_SPEED, horizontal(velocity).Magnitude) + Vector3.new(0, ASSIST_UP_SPEED, 0)
+    state.cooldownUntil = os.clock() + 2.2
     state.stallSince = nil
     model:SetAttribute('CurbAssistCount', (tonumber(model:GetAttribute('CurbAssistCount')) or 0) + 1)
-    model:SetAttribute('LastRecoveryMode', 'LOW_CURB_ASSIST')
+    model:SetAttribute('LastRecoveryMode', 'MULTI_PROBE_CURB_ASSIST')
     notify(player, 'Curb Assist aktif — becak dibantu melewati bibir jalan.')
     return true
 end
@@ -176,7 +215,7 @@ local function stepVehicle(model, dt)
     if throttle >= THROTTLE_THRESHOLD and speed <= STALL_SPEED then
         state.stallSince = state.stallSince or now
         if now - state.stallSince >= STALL_HOLD_SECONDS then
-            if not tryLowCurbAssist(model, chassis, player, state) then
+            if not tryLowCurbAssist(model, chassis, seat, player, state) then
                 -- Do not teleport through walls; simply reset the detector and wait for a better geometry match.
                 state.stallSince = now
             end
@@ -199,9 +238,11 @@ end)
 
 vehicles.ChildRemoved:Connect(function(model) states[model]=nil end)
 
-Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.25')
+Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.26')
 Workspace:SetAttribute('BecakSelfRighting','ON')
 Workspace:SetAttribute('BecakLowCurbAssist','ON')
+Workspace:SetAttribute('BecakMultiProbeCurbAssist','ON')
+Workspace:SetAttribute('BecakReverseCurbAssist','ON')
 Workspace:SetAttribute('BecakHillStartAssist','ON')
 Workspace:SetAttribute('BecakRecoveryTickHz',10)
-print('[BECAK E-BIKE] vehicle recovery v1.25 ready • self-righting + low-curb + hill-start anti-rollback')
+print('[BECAK E-BIKE] vehicle recovery v1.26 ready • self-righting + multi-probe curb + reverse assist + hill-start')
