@@ -1,0 +1,56 @@
+name: BBYA Basement Drive Audio Inject
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-basement-drive-inject.yml'
+      - 'scripts/inject-bbya-basement-from-drive.py'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-basement-drive-inject
+  cancel-in-progress: false
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install audio and Drive tools
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip gdown
+
+      - name: Pull owner Drive audio and upload to Roblox
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          UNIVERSE_ID: '8116636513'
+        shell: bash
+        run: python3 scripts/inject-bbya-basement-from-drive.py
+
+      - name: Commit injected Basement Asset IDs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add maps/bbya-social-hub/85-basement-autodj.server.lua deploy-status/bbya-basement-drive-inject.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Inject ADXL owner audio into BBYA Basement"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
