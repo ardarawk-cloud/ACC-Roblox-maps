@@ -1,6 +1,11 @@
--- BBYAVATAR context-aware recommendation lane.
+-- BBYAVATAR context-aware recommendation lane v2.
 -- Uses Roblox-native recommendation APIs from a Saved Pick as the context seed.
 -- No external profiling, no PII, and no fabricated ranking signals.
+-- v2 normalizes Roblox recommendation response wrappers and caches per-seed results
+-- to reduce duplicate endpoint pressure when players reopen the SIMILAR tab.
+
+local RECOMMEND_CACHE_TTL = 90
+local recommendationCache = {}
 
 local function recommendationTrack(eventName)
     local remote = root:FindFirstChild("TrackEvent")
@@ -36,6 +41,52 @@ local function newestRecommendationSeed()
     return nil, nil, nil
 end
 
+local function normalizeRecommendedAsset(entry)
+    if typeof(entry) ~= "table" then return nil end
+
+    -- Roblox recommendation responses may expose the catalog item under Item,
+    -- while SearchCatalogAsync-style responses expose fields at the top level.
+    local source = entry.Item or entry.item or entry
+    if typeof(source) ~= "table" then return nil end
+
+    local item = {}
+    for key, value in pairs(source) do
+        item[key] = value
+    end
+
+    -- Preserve useful outer metadata when it is not already present.
+    for _, key in ipairs({"Price", "LowestPrice", "ProductId", "ItemStatus", "ItemRestrictions", "CreatorName", "CreatorType"}) do
+        if item[key] == nil and entry[key] ~= nil then
+            item[key] = entry[key]
+        end
+    end
+
+    local id = tonumber(item.Id or item.AssetId or item.id)
+    if not id then return nil end
+    item.Id = id
+    if item.ItemType == nil and item.itemType == nil then
+        item.ItemType = Enum.AvatarItemType.Asset
+    end
+    return item
+end
+
+local function cachedRecommendations(seedId)
+    local cached = recommendationCache[seedId]
+    if not cached then return nil end
+    if os.clock() - cached.at > RECOMMEND_CACHE_TTL then
+        recommendationCache[seedId] = nil
+        return nil
+    end
+    return cached.items
+end
+
+local function saveRecommendationCache(seedId, items)
+    recommendationCache[seedId] = {
+        at = os.clock(),
+        items = items,
+    }
+end
+
 local function renderRecommendations()
     clearContent()
     recommendationTrack("RECOMMEND_OPEN")
@@ -57,7 +108,7 @@ local function renderRecommendations()
         empty.Size = UDim2.new(1, 0, 0, 120)
         empty.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
         empty.Font = Enum.Font.Gotham
-        empty.Text = "Save at least one wearable item to PICKS first.\nBBYAVATAR will then ask Roblox for visually/category-related catalog recommendations from that item."
+        empty.Text = "Save at least one wearable item to PICKS first.\nBBYAVATAR will then ask Roblox for related catalog recommendations from that item."
         empty.TextWrapped = true
         empty.TextColor3 = Color3.fromRGB(205, 208, 219)
         empty.TextSize = 14
@@ -92,6 +143,33 @@ local function renderRecommendations()
     layout.Padding = UDim.new(0, 8)
     layout.Parent = list
 
+    local function renderItems(items, cacheHit)
+        if not list.Parent then return end
+        local shown = 0
+        for _, raw in ipairs(items) do
+            if shown >= 18 then break end
+            local item = normalizeRecommendedAsset(raw)
+            local id = item and tonumber(item.Id)
+            if item and id and id ~= seedId then
+                catalogCard(list, item)
+                shown += 1
+            end
+        end
+
+        if shown > 0 then
+            recommendationTrack(cacheHit and "RECOMMEND_CACHE_HIT" or "RECOMMEND_RESULT")
+            status.Text = string.format("%d Roblox recommendations loaded%s", shown, cacheHit and " • cached" or "")
+        else
+            status.Text = "No similar items returned for this pick yet."
+        end
+    end
+
+    local cached = cachedRecommendations(seedId)
+    if cached then
+        renderItems(cached, true)
+        return
+    end
+
     status.Text = "Loading Roblox recommendations…"
     task.spawn(function()
         local ok, recommended = pcall(function()
@@ -99,30 +177,12 @@ local function renderRecommendations()
         end)
         if not ok or typeof(recommended) ~= "table" then
             recommendationTrack("RECOMMEND_FAILED")
-            if list.Parent then
-                status.Text = "Recommendations are temporarily unavailable."
-            end
+            if list.Parent then status.Text = "Recommendations are temporarily unavailable." end
             return
         end
 
-        local shown = 0
-        for _, item in ipairs(recommended) do
-            if shown >= 18 then break end
-            local id = tonumber(item.Id or item.AssetId or item.id)
-            if id and id ~= seedId then
-                catalogCard(list, item)
-                shown += 1
-            end
-        end
-
-        if list.Parent then
-            if shown > 0 then
-                recommendationTrack("RECOMMEND_RESULT")
-                status.Text = tostring(shown) .. " Roblox recommendations loaded • seed ID " .. tostring(seedId)
-            else
-                status.Text = "No similar items returned for this pick yet."
-            end
-        end
+        saveRecommendationCache(seedId, recommended)
+        renderItems(recommended, false)
     end)
 end
 
@@ -140,4 +200,4 @@ recommendationTab.Parent = tabs
 Instance.new("UICorner", recommendationTab).CornerRadius = UDim.new(0, 10)
 recommendationTab.Activated:Connect(function() selectTab("RECOMMEND") end)
 
-print("[BBYAVATAR] Roblox-native contextual recommendations ready")
+print("[BBYAVATAR] Roblox-native contextual recommendations v2 ready")
