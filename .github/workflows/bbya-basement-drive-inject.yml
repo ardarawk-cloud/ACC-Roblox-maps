@@ -36,21 +36,46 @@ jobs:
           python -m pip install --upgrade pip gdown
 
       - name: Pull owner Drive audio and upload to Roblox
+        id: inject
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
         shell: bash
-        run: python3 scripts/inject-bbya-basement-from-drive.py
+        run: |
+          set +e
+          python3 scripts/inject-bbya-basement-from-drive.py
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if [ ! -f deploy-status/bbya-basement-drive-inject.json ]; then
+            mkdir -p deploy-status
+            printf '{"complete":false,"error":"injector exited before writing status","exitCode":%s}\n' "$code" > deploy-status/bbya-basement-drive-inject.json
+          fi
+          exit 0
 
-      - name: Commit injected Basement Asset IDs
+      - name: Persist injector result
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add maps/bbya-social-hub/85-basement-autodj.server.lua deploy-status/bbya-basement-drive-inject.json
+          git add deploy-status/bbya-basement-drive-inject.json
+          if [ -f maps/bbya-social-hub/85-basement-autodj.server.lua ]; then
+            git add maps/bbya-social-hub/85-basement-autodj.server.lua
+          fi
           if ! git diff --cached --quiet; then
-            git commit -m "Inject ADXL owner audio into BBYA Basement"
+            git commit -m "Record BBYA Basement Drive audio injection"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
+
+      - name: Require completed injection
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          p='deploy-status/bbya-basement-drive-inject.json'
+          d=json.load(open(p,encoding='utf-8'))
+          if not d.get('complete'):
+              raise SystemExit('Basement audio injection incomplete: '+str(d.get('error') or d.get('tracks')))
+          print('Basement audio injection complete:', d.get('injectedCount'))
+          PY
