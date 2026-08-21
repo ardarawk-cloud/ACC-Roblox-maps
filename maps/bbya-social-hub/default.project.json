@@ -15,6 +15,7 @@
       "LightingAmbience": { "$path": "28-lighting-ambience.server.lua" },
       "SocialInteractions": { "$path": "29-social-interactions.server.lua" },
       "ClubSystems": { "$path": "30-club-systems.server.lua" },
+      "BasementIndoAutoDJ": { "$path": "85-basement-autodj.server.lua" },
       "TeleportSystem": { "$path": "32-teleport.server.lua" },
       "FinalPolish": { "$path": "32-final-polish.server.lua" },
       "RuntimeQC": { "$path": "33-runtime-qc.server.lua" },
@@ -67,7 +68,7 @@
         "SocialHangoutClient": { "$path": "63-social-hangout.client.lua" },
         "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" },
         "MobileUIPolishV5": { "$path": "78-mobile-ui-polish.client.lua" },
-        "BasementAudioUIPatchV3": { "$path": "81-basement-audio-ui.client.lua" },
+        "BasementAudioUIPatchV4": { "$path": "81-basement-audio-ui.client.lua" },
         "MobileUIFinalOverrideV1": { "$path": "84-mobile-ui-final-override.client.lua" }
       }
     },
