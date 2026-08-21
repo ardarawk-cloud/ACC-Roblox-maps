@@ -55,6 +55,7 @@ jobs:
       - name: Upload checkpoint batches and route playlists
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_CREATOR_USER_ID: '8878884630'
           UNIVERSE_ID: '8116636513'
           AUDIO_UPLOAD_WORKERS: '5'
         shell: bash
@@ -66,7 +67,7 @@ jobs:
           for batch in $(seq 1 30); do
             echo "===== BATCH ${batch} ====="
             export MAX_NEW_AUDIO_UPLOADS=20
-            python3 scripts/inject-bbya-basement-from-drive.py
+            python3 scripts/run-bbya-audio-batch.py
             python3 scripts/route-bbya-drive-audio.py
 
             git add -- \
@@ -86,13 +87,16 @@ jobs:
           import json
           i=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
           r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          print('Error=',i.get('error'))
           print('Discovered=',i.get('discoveredCount'))
           print('Registered=',i.get('registeredDiscoveredCount'))
-          print('Remaining=',i.get('remainingCount',0))
+          print('Remaining=',i.get('remainingCount'))
           print('Quota=',i.get('quotaOrRateLimitSeen'))
           print('MainProgressive=',r.get('mainProgressiveCount'))
           print('BasementDrive=',r.get('basementDriveCount'))
           print('RoutingValid=',r.get('valid'))
+          if i.get('error'):
+              raise SystemExit('Injector error: '+str(i.get('error')))
           PY
 
             remaining="$(python3 -c "import json; d=json.load(open('deploy-status/bbya-basement-drive-inject.json')); print(int(d.get('remainingCount',0) or 0))")"
