@@ -80,4 +80,4 @@ jobs:
           print('Basement audio injection complete:', d.get('injectedCount'))
           PY
 
-# retrigger-after-audio-secret-2026-08-21
+# retrigger-after-assets-permission-2026-08-21-1324
