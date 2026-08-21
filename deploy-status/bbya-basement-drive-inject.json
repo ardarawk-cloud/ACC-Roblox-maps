@@ -9,12 +9,27 @@
       "cut": false,
       "preparedDuration": 295.079,
       "preparedBytes": 4721927,
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "api-key-owner-fallback"
+          },
+          "http": 403,
+          "response": {
+            "code": "PERMISSION_DENIED",
+            "message": "User not authenticated"
+          }
+        }
+      ],
       "createHttp": 403,
+      "assetCreator": null,
       "createResponse": {
         "code": "PERMISSION_DENIED",
         "message": "User not authenticated"
       },
-      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
+      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
     },
     {
       "title": "ADXL - BANG BANG WIRO SABLENG",
@@ -22,12 +37,27 @@
       "cut": false,
       "preparedDuration": 367.491,
       "preparedBytes": 5880550,
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "api-key-owner-fallback"
+          },
+          "http": 403,
+          "response": {
+            "code": "PERMISSION_DENIED",
+            "message": "User not authenticated"
+          }
+        }
+      ],
       "createHttp": 403,
+      "assetCreator": null,
       "createResponse": {
         "code": "PERMISSION_DENIED",
         "message": "User not authenticated"
       },
-      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
+      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
     },
     {
       "title": "ADXL - SEMATA KARENAMU 2023",
@@ -35,12 +65,27 @@
       "cut": true,
       "preparedDuration": 410.044,
       "preparedBytes": 6561474,
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "api-key-owner-fallback"
+          },
+          "http": 403,
+          "response": {
+            "code": "PERMISSION_DENIED",
+            "message": "User not authenticated"
+          }
+        }
+      ],
       "createHttp": 403,
+      "assetCreator": null,
       "createResponse": {
         "code": "PERMISSION_DENIED",
         "message": "User not authenticated"
       },
-      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
+      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
     },
     {
       "title": "ADXL - CINTA KITA 2023",
@@ -48,12 +93,27 @@
       "cut": true,
       "preparedDuration": 410.044,
       "preparedBytes": 6561469,
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "api-key-owner-fallback"
+          },
+          "http": 403,
+          "response": {
+            "code": "PERMISSION_DENIED",
+            "message": "User not authenticated"
+          }
+        }
+      ],
       "createHttp": 403,
+      "assetCreator": null,
       "createResponse": {
         "code": "PERMISSION_DENIED",
         "message": "User not authenticated"
       },
-      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
+      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
     },
     {
       "title": "ADXL - BUTA HATI 2023",
@@ -61,17 +121,47 @@
       "cut": true,
       "preparedDuration": 410.044,
       "preparedBytes": 6561444,
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "api-key-owner-fallback"
+          },
+          "http": 403,
+          "response": {
+            "code": "PERMISSION_DENIED",
+            "message": "User not authenticated"
+          }
+        }
+      ],
       "createHttp": 403,
+      "assetCreator": null,
       "createResponse": {
         "code": "PERMISSION_DENIED",
         "message": "User not authenticated"
       },
-      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
+      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
     }
   ],
-  "creator": {
+  "apiKey": {
+    "name": "Arda universe 02",
+    "authorizedUserId": "8878884630",
+    "enabled": true,
+    "expired": false,
+    "expirationTimeUtc": null,
+    "scopes": []
+  },
+  "universeCreator": {
     "type": "user",
     "id": "8878884630",
     "name": "RidhooMauKamu"
-  }
+  },
+  "creatorCandidates": [
+    {
+      "type": "user",
+      "id": "8878884630",
+      "name": "api-key-owner-fallback"
+    }
+  ]
 }
