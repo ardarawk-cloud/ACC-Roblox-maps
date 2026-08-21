@@ -27,10 +27,10 @@ ALLOWED_EXTENSIONS = {".mp3", ".ogg", ".wav", ".flac"}
 
 # Priority order: the four genre folders first, then the remaining owner library.
 SOURCE_FOLDERS = [
+    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},
     {"name": "FUNKOT", "id": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS", "style": "funkot"},
     {"name": "BREAKBEAT CAMPUR", "id": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs", "style": "breakbeat"},
     {"name": "TEMBAK LANGIT REMIX", "id": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE", "style": "tembak-langit"},
-    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},
     {"name": "ADXL", "id": "1iEejJxtEUfT0aZOdO95qLfrNRiKQS-SN", "style": "adxl-breakbeat"},
     {"name": "AGUS ZERO NINE", "id": "1YVEHy5zquX2JoOfqTQwQq-ybwrVOQT2u", "style": "indo-dj"},
     {"name": "BLB", "id": "1R32-IgWMnLiPZkgwSG37EfdUFKsL3yB7", "style": "indo-dj"},

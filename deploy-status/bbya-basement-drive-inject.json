@@ -1,64 +1,142 @@
 {
   "universeId": "8116636513",
-  "source": "CONNECTED_GOOGLE_DRIVE",
-  "complete": true,
-  "tracks": [
+  "source": "CONNECTED_GOOGLE_DRIVE_FULL_LIBRARY",
+  "target": "BASEMENT_ONLY",
+  "complete": false,
+  "startedAt": "2026-08-21T05:45:31.128292+00:00",
+  "workers": 5,
+  "sources": [
     {
-      "title": "ADXL - SEXY PAPI 2025",
-      "driveId": "1pp6GHnoLs-wkmlLcoo33cOou2-uFO4XF",
-      "cut": false,
-      "preparedDuration": 295.079,
-      "preparedBytes": 4721927,
-      "createAttempts": [
-        {
-          "creator": {
-            "type": "user",
-            "id": "8878884630",
-            "name": "RidhooMauKamu"
-          },
-          "http": 200,
-          "response": null
-        }
-      ],
-      "createHttp": 200,
-      "assetCreator": {
-        "type": "user",
-        "id": "8878884630",
-        "name": "RidhooMauKamu"
-      },
-      "operation": "operations/c0a93200-273d-4c66-8203-2c8cc333e7bc",
-      "operationResult": {
-        "path": "operations/c0a93200-273d-4c66-8203-2c8cc333e7bc",
-        "operationId": "c0a93200-273d-4c66-8203-2c8cc333e7bc",
-        "done": true,
-        "response": {
-          "path": "assets/86653303854897",
-          "revisionId": "1",
-          "revisionCreateTime": "2026-08-21T05:26:14.159176300Z",
-          "assetId": "86653303854897",
-          "displayName": "#####################",
-          "description": "BBYA Basement Indo / owner Drive upload",
-          "assetType": "Audio",
-          "creationContext": {
-            "creator": {
-              "userId": "8878884630"
-            }
-          },
-          "moderationResult": {
-            "moderationState": "Rejected"
-          },
-          "state": "Active"
-        }
-      },
-      "assetId": "86653303854897",
-      "moderationState": "Rejected"
+      "name": "PROGRESIVE",
+      "folderId": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
+      "style": "progressive",
+      "audioFiles": 68
     },
     {
-      "title": "ADXL - BANG BANG WIRO SABLENG",
-      "driveId": "1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA",
-      "cut": false,
-      "preparedDuration": 367.491,
-      "preparedBytes": 5880550,
+      "name": "FUNKOT",
+      "folderId": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS",
+      "style": "funkot",
+      "audioFiles": 43
+    },
+    {
+      "name": "BREAKBEAT CAMPUR",
+      "folderId": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs",
+      "style": "breakbeat",
+      "audioFiles": 93
+    },
+    {
+      "name": "TEMBAK LANGIT REMIX",
+      "folderId": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE",
+      "style": "tembak-langit",
+      "audioFiles": 11
+    },
+    {
+      "name": "ADXL",
+      "folderId": "1iEejJxtEUfT0aZOdO95qLfrNRiKQS-SN",
+      "style": "adxl-breakbeat",
+      "audioFiles": 5
+    },
+    {
+      "name": "AGUS ZERO NINE",
+      "folderId": "1YVEHy5zquX2JoOfqTQwQq-ybwrVOQT2u",
+      "style": "indo-dj",
+      "audioFiles": 22
+    },
+    {
+      "name": "BLB",
+      "folderId": "1R32-IgWMnLiPZkgwSG37EfdUFKsL3yB7",
+      "style": "indo-dj",
+      "audioFiles": 15
+    },
+    {
+      "name": "DINAR KONAY",
+      "folderId": "1SZ-zVws-QnYkysS8zncckt058KQDB1Q7",
+      "style": "indo-dj",
+      "audioFiles": 15
+    },
+    {
+      "name": "EVERT EVRAIN",
+      "folderId": "1DxBHntae-bkrAtBdURwvUacqgIGVhhkc",
+      "style": "indo-dj",
+      "audioFiles": 10
+    },
+    {
+      "name": "EXEL SACK",
+      "folderId": "1-8_GFHcCi9-LmSEquEJ5T1_XbYrHJWT1",
+      "style": "indo-dj",
+      "audioFiles": 8
+    },
+    {
+      "name": "HARRY PANGALILA",
+      "folderId": "1TN_ZzrS1zhim6PXa5DOKMdhHTHBdKL49",
+      "style": "indo-dj",
+      "audioFiles": 16
+    },
+    {
+      "name": "IVAN CELLO",
+      "folderId": "1SmcUU34b5Qi_XVjVfXxLpNj0K6kHkXVh",
+      "style": "indo-dj",
+      "audioFiles": 15
+    },
+    {
+      "name": "IANMUSICK",
+      "folderId": "1tL1IxyyBglFTyB5YD4FPYf93dnFj0G_4",
+      "style": "indo-dj",
+      "audioFiles": 37
+    },
+    {
+      "name": "MIXTAPE FAZAR FADILLAH",
+      "folderId": "17fB5-fuTYJ3koh9oc7kBarendYFGGLGJ",
+      "style": "indo-dj",
+      "audioFiles": 8
+    },
+    {
+      "name": "RENAL ALVARO",
+      "folderId": "17nmfj9VVJ0eelLyJ1NwFGwiEqixNG2H3",
+      "style": "indo-dj",
+      "audioFiles": 6
+    },
+    {
+      "name": "REY LIMITLESS",
+      "folderId": "1Qx_SBSWi8u68MnKemNdvZzczQWh15kC1",
+      "style": "indo-dj",
+      "audioFiles": 70
+    },
+    {
+      "name": "RONALD 3D",
+      "folderId": "1x71Db6dC-pBBWJS_yhKZ1kxkPJZZxdJB",
+      "style": "indo-dj",
+      "audioFiles": 37
+    },
+    {
+      "name": "RR",
+      "folderId": "1uhhPEO3lMdV9ptGqqDt923q_d7-GuJX5",
+      "style": "indo-dj",
+      "audioFiles": 90
+    },
+    {
+      "name": "SET LIST FAZAR FADILLAH",
+      "folderId": "1ukwoQNlDl7VMhA0BSg_DVUe3qwojfTJk",
+      "style": "indo-dj",
+      "audioFiles": 255
+    },
+    {
+      "name": "KHOIR WIRAWINATA",
+      "folderId": "1vhVGvH2wyRcRSMuyFH3MapPxp8_WEOfw",
+      "style": "indo-dj",
+      "audioFiles": 19
+    }
+  ],
+  "tracks": [
+    {
+      "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
+      "title": "07 I Know You Want Me (Calle Ocho) (Intro Dirty)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "07 I Know You Want Me (Calle Ocho) (Intro Dirty).mp3",
+      "preparedDuration": 230.635,
+      "preparedBytes": 3691128,
+      "sha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba",
       "createAttempts": [
         {
           "creator": {
@@ -76,18 +154,18 @@
         "id": "8878884630",
         "name": "RidhooMauKamu"
       },
-      "operation": "operations/cd24115a-daec-4add-8fd3-27363b1172de",
+      "operation": "operations/70483546-4fa4-4b2f-af35-2bce448f4f71",
       "operationResult": {
-        "path": "operations/cd24115a-daec-4add-8fd3-27363b1172de",
-        "operationId": "cd24115a-daec-4add-8fd3-27363b1172de",
+        "path": "operations/70483546-4fa4-4b2f-af35-2bce448f4f71",
+        "operationId": "70483546-4fa4-4b2f-af35-2bce448f4f71",
         "done": true,
         "response": {
-          "path": "assets/130820965331543",
+          "path": "assets/92702917431354",
           "revisionId": "1",
-          "revisionCreateTime": "2026-08-21T05:26:35.524035800Z",
-          "assetId": "130820965331543",
-          "displayName": "ADXL - BANG BANG WIRO SABLENG",
-          "description": "BBYA Basement Indo / owner Drive upload",
+          "revisionCreateTime": "2026-08-21T05:46:06.576537700Z",
+          "assetId": "92702917431354",
+          "displayName": "07 I Know You Want Me (Calle Ocho) (Intro Dirty)",
+          "description": "BBYA Basement owner Drive library",
           "assetType": "Audio",
           "creationContext": {
             "creator": {
@@ -100,15 +178,261 @@
           "state": "Active"
         }
       },
-      "assetId": "130820965331543",
+      "assetId": "92702917431354",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj",
+      "title": "10. CHRISYE - PERGILAH KASIH",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10. CHRISYE - PERGILAH KASIH.mp3",
+      "preparedDuration": 232.96,
+      "preparedBytes": 3727969,
+      "sha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/f9aceffa-cecd-4d3d-af73-52093e9b3ac6",
+      "operationResult": {
+        "path": "operations/f9aceffa-cecd-4d3d-af73-52093e9b3ac6",
+        "operationId": "f9aceffa-cecd-4d3d-af73-52093e9b3ac6",
+        "done": true,
+        "response": {
+          "path": "assets/81067975196024",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:46:26.679629500Z",
+          "assetId": "81067975196024",
+          "displayName": "10. CHRISYE - PERGILAH KASIH",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "81067975196024",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1lMvfE0OeruVp7jPSaigwrU_vQya5vT8X",
+      "title": "10B - 128 - 10B - 128 - Taylor swift  - love story (Hendry al remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10B - 128 - 10B - 128 - Taylor swift  - love story (Hendry al remix).mp3",
+      "preparedDuration": 367.595,
+      "preparedBytes": 5882186,
+      "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/82d9fc34-afcb-4021-80ba-c5faad62d868",
+      "operationResult": {
+        "path": "operations/82d9fc34-afcb-4021-80ba-c5faad62d868",
+        "operationId": "82d9fc34-afcb-4021-80ba-c5faad62d868",
+        "done": true,
+        "response": {
+          "path": "assets/118117585511088",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:46:29.325381800Z",
+          "assetId": "118117585511088",
+          "displayName": "10B - 128 - 10B - 128 - Taylor swift  - love story",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "118117585511088",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1zzTqAMvcpmstVXVbg4USyY9m6VrdqlqB",
+      "title": "10A - 130 - 10A - 130 - Always Loving You",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10A - 130 - 10A - 130 - Always Loving You.mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561244,
+      "sha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/5612f843-c8d2-47ee-bd31-28edd77b11f9",
+      "operationResult": {
+        "path": "operations/5612f843-c8d2-47ee-bd31-28edd77b11f9",
+        "operationId": "5612f843-c8d2-47ee-bd31-28edd77b11f9",
+        "done": true,
+        "response": {
+          "path": "assets/76999503317939",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:46:29.748766500Z",
+          "assetId": "76999503317939",
+          "displayName": "10A - 130 - 10A - 130 - Always Loving You",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "76999503317939",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta",
+      "title": "1.Walking On Air",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "1.Walking On Air.mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6599471,
+      "sha256": "e9958dd47c6426f8eadda1512d24bc9d226847678fe147bcd55a9d5e63592361",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/d4892d7b-66a8-4041-baec-373f7d3e47e7",
+      "operationResult": {
+        "path": "operations/d4892d7b-66a8-4041-baec-373f7d3e47e7",
+        "operationId": "d4892d7b-66a8-4041-baec-373f7d3e47e7",
+        "done": true,
+        "response": {
+          "path": "assets/115888429247140",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:46:28.051688500Z",
+          "assetId": "115888429247140",
+          "displayName": "1.Walking On Air",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "115888429247140",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW",
+      "title": "10B - 128 - Somewhere  10b",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10B - 128 - Somewhere  10b.mp3",
+      "preparedDuration": 398.942,
+      "preparedBytes": 6383610,
+      "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
+      "result": "duplicate-pending",
+      "error": "identical audio is already being uploaded in this run"
+    },
+    {
+      "driveId": "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7",
+      "title": "10B - 128 - Taylor swift  - love story (Hendry al remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10B - 128 - Taylor swift  - love story (Hendry al remix).mp3",
+      "preparedDuration": 367.595,
+      "preparedBytes": 5882186,
+      "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
+      "result": "deduplicated",
+      "assetId": "118117585511088",
+      "duplicateOfDriveId": "1lMvfE0OeruVp7jPSaigwrU_vQya5vT8X",
       "moderationState": "Reviewing"
     },
     {
-      "title": "ADXL - SEMATA KARENAMU 2023",
-      "driveId": "13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV",
-      "cut": true,
-      "preparedDuration": 410.044,
-      "preparedBytes": 6561474,
+      "driveId": "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK",
+      "title": "10B - 128 - Somewhere  10b (1)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "10B - 128 - Somewhere  10b (1).mp3",
+      "preparedDuration": 398.942,
+      "preparedBytes": 6383610,
+      "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
       "createAttempts": [
         {
           "creator": {
@@ -126,18 +450,18 @@
         "id": "8878884630",
         "name": "RidhooMauKamu"
       },
-      "operation": "operations/8787f44c-7ec9-4ee5-8b0f-334cc5a078bd",
+      "operation": "operations/e3f1aac3-7c3b-4a9c-847e-3be2e2284602",
       "operationResult": {
-        "path": "operations/8787f44c-7ec9-4ee5-8b0f-334cc5a078bd",
-        "operationId": "8787f44c-7ec9-4ee5-8b0f-334cc5a078bd",
+        "path": "operations/e3f1aac3-7c3b-4a9c-847e-3be2e2284602",
+        "operationId": "e3f1aac3-7c3b-4a9c-847e-3be2e2284602",
         "done": true,
         "response": {
-          "path": "assets/93401669454178",
+          "path": "assets/100105336048945",
           "revisionId": "1",
-          "revisionCreateTime": "2026-08-21T05:27:02.418699800Z",
-          "assetId": "93401669454178",
-          "displayName": "ADXL - SEMATA KARENAMU 2023",
-          "description": "BBYA Basement Indo / owner Drive upload",
+          "revisionCreateTime": "2026-08-21T05:46:49.894738Z",
+          "assetId": "100105336048945",
+          "displayName": "10B - 128 - Somewhere  10b (1)",
+          "description": "BBYA Basement owner Drive library",
           "assetType": "Audio",
           "creationContext": {
             "creator": {
@@ -145,20 +469,24 @@
             }
           },
           "moderationResult": {
-            "moderationState": "Approved"
+            "moderationState": "Reviewing"
           },
           "state": "Active"
         }
       },
-      "assetId": "93401669454178",
-      "moderationState": "Approved"
+      "assetId": "100105336048945",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
     },
     {
-      "title": "ADXL - CINTA KITA 2023",
-      "driveId": "1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx",
-      "cut": true,
-      "preparedDuration": 410.044,
-      "preparedBytes": 6561469,
+      "driveId": "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX",
+      "title": "11A - 126 - Shadows (Stoopit mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 126 - Shadows (Stoopit mix).mp3",
+      "preparedDuration": 368.509,
+      "preparedBytes": 6020805,
+      "sha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1",
       "createAttempts": [
         {
           "creator": {
@@ -176,18 +504,18 @@
         "id": "8878884630",
         "name": "RidhooMauKamu"
       },
-      "operation": "operations/4d951bbb-4e92-4754-abf7-5b6aeb5fd6fe",
+      "operation": "operations/795eb3a8-9d71-483f-a9fc-a01eed12d10f",
       "operationResult": {
-        "path": "operations/4d951bbb-4e92-4754-abf7-5b6aeb5fd6fe",
-        "operationId": "4d951bbb-4e92-4754-abf7-5b6aeb5fd6fe",
+        "path": "operations/795eb3a8-9d71-483f-a9fc-a01eed12d10f",
+        "operationId": "795eb3a8-9d71-483f-a9fc-a01eed12d10f",
         "done": true,
         "response": {
-          "path": "assets/104573695864719",
+          "path": "assets/133637574696828",
           "revisionId": "1",
-          "revisionCreateTime": "2026-08-21T05:27:59.971864400Z",
-          "assetId": "104573695864719",
-          "displayName": "ADXL - CINTA KITA 2023",
-          "description": "BBYA Basement Indo / owner Drive upload",
+          "revisionCreateTime": "2026-08-21T05:47:11.108765Z",
+          "assetId": "133637574696828",
+          "displayName": "11A - 126 - Shadows (Stoopit mix)",
+          "description": "BBYA Basement owner Drive library",
           "assetType": "Audio",
           "creationContext": {
             "creator": {
@@ -195,20 +523,24 @@
             }
           },
           "moderationResult": {
-            "moderationState": "Approved"
+            "moderationState": "Reviewing"
           },
           "state": "Active"
         }
       },
-      "assetId": "104573695864719",
-      "moderationState": "Approved"
+      "assetId": "133637574696828",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
     },
     {
-      "title": "ADXL - BUTA HATI 2023",
-      "driveId": "1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX",
-      "cut": true,
-      "preparedDuration": 410.044,
-      "preparedBytes": 6561444,
+      "driveId": "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y",
+      "title": "11A - 128 - 08.Shadow (Black Rework 2009)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 128 - 08.Shadow (Black Rework 2009).mp3",
+      "preparedDuration": 363.833,
+      "preparedBytes": 5821899,
+      "sha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a",
       "createAttempts": [
         {
           "creator": {
@@ -226,18 +558,18 @@
         "id": "8878884630",
         "name": "RidhooMauKamu"
       },
-      "operation": "operations/080a5898-27b3-4f41-813c-6cc068bbf664",
+      "operation": "operations/14ed3379-96e0-4830-b365-17cdd359fe3d",
       "operationResult": {
-        "path": "operations/080a5898-27b3-4f41-813c-6cc068bbf664",
-        "operationId": "080a5898-27b3-4f41-813c-6cc068bbf664",
+        "path": "operations/14ed3379-96e0-4830-b365-17cdd359fe3d",
+        "operationId": "14ed3379-96e0-4830-b365-17cdd359fe3d",
         "done": true,
         "response": {
-          "path": "assets/87433323955726",
+          "path": "assets/115630349269312",
           "revisionId": "1",
-          "revisionCreateTime": "2026-08-21T05:28:38.902396700Z",
-          "assetId": "87433323955726",
-          "displayName": "ADXL - BUTA HATI 2023",
-          "description": "BBYA Basement Indo / owner Drive upload",
+          "revisionCreateTime": "2026-08-21T05:47:13.787000200Z",
+          "assetId": "115630349269312",
+          "displayName": "11A - 128 - 08.Shadow (Black Rework 2009)",
+          "description": "BBYA Basement owner Drive library",
           "assetType": "Audio",
           "creationContext": {
             "creator": {
@@ -245,13 +577,554 @@
             }
           },
           "moderationResult": {
-            "moderationState": "Approved"
+            "moderationState": "Reviewing"
           },
           "state": "Active"
         }
       },
-      "assetId": "87433323955726",
-      "moderationState": "Approved"
+      "assetId": "115630349269312",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1oQTQ3q6pUxXFqW2rCBR1MbvjomuLFnA6",
+      "title": "11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix).mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6694275,
+      "sha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/d77ee94f-f3b5-483d-a629-568de2e38c36",
+      "operationResult": {
+        "path": "operations/d77ee94f-f3b5-483d-a629-568de2e38c36",
+        "operationId": "d77ee94f-f3b5-483d-a629-568de2e38c36",
+        "done": true,
+        "response": {
+          "path": "assets/103311122364729",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:15.204447100Z",
+          "assetId": "103311122364729",
+          "displayName": "11A - 128 - 11A - 128 - Rihanna - russian Roullete",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "103311122364729",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1lxYXlyA2vDS5MvqiVOaHTi-PLEaK6oiW",
+      "title": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix.mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561264,
+      "sha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/7d1cd01e-5d53-429a-94d4-ae931bee0be9",
+      "operationResult": {
+        "path": "operations/7d1cd01e-5d53-429a-94d4-ae931bee0be9",
+        "operationId": "7d1cd01e-5d53-429a-94d4-ae931bee0be9",
+        "done": true,
+        "response": {
+          "path": "assets/81269753705199",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:31.184226900Z",
+          "assetId": "81269753705199",
+          "displayName": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "81269753705199",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1sMF2Q0VvTAxKG-LUA-vjbvOOX2lFuQ9_",
+      "title": "11A - 130 - 01.runaway (mumu remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 130 - 01.runaway (mumu remix).mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561294,
+      "sha256": "9ded6b427a16432baae480a05b7e061a3039208054d8c7c1a7245804165fcece",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/5c3932eb-e2ad-4a53-a5a8-ccf55a225dd1",
+      "operationResult": {
+        "path": "operations/5c3932eb-e2ad-4a53-a5a8-ccf55a225dd1",
+        "operationId": "5c3932eb-e2ad-4a53-a5a8-ccf55a225dd1",
+        "done": true,
+        "response": {
+          "path": "assets/127279442599331",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:30.251292100Z",
+          "assetId": "127279442599331",
+          "displayName": "11A - 130 - 01.runaway (mumu remix)",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "127279442599331",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6",
+      "title": "11A - 130 - RUN AWAY - Unknown Artist",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11A - 130 - RUN AWAY - Unknown Artist.mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6625810,
+      "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/2ef44e9e-1323-4da8-8547-9d4015f75821",
+      "operationResult": {
+        "path": "operations/2ef44e9e-1323-4da8-8547-9d4015f75821",
+        "operationId": "2ef44e9e-1323-4da8-8547-9d4015f75821",
+        "done": true,
+        "response": {
+          "path": "assets/107310072452368",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:49.219961200Z",
+          "assetId": "107310072452368",
+          "displayName": "11A - 130 - RUN AWAY - Unknown Artist",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "107310072452368",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "170mzbIE6yxtWF8YvQHomns6HIoW_WV0J",
+      "title": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix).mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561278,
+      "sha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/9a96ccd9-95cf-488f-9963-ce1a3e898e3c",
+      "operationResult": {
+        "path": "operations/9a96ccd9-95cf-488f-9963-ce1a3e898e3c",
+        "operationId": "9a96ccd9-95cf-488f-9963-ce1a3e898e3c",
+        "done": true,
+        "response": {
+          "path": "assets/130628759763851",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:50.290870300Z",
+          "assetId": "130628759763851",
+          "displayName": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_Peopl",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "130628759763851",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5",
+      "title": "11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix).mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561282,
+      "sha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/b450fd94-1dab-4b83-8920-56a13895ba72",
+      "operationResult": {
+        "path": "operations/b450fd94-1dab-4b83-8920-56a13895ba72",
+        "operationId": "b450fd94-1dab-4b83-8920-56a13895ba72",
+        "done": true,
+        "response": {
+          "path": "assets/79404897034350",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:50.244466400Z",
+          "assetId": "79404897034350",
+          "displayName": "11B - 126 - People (Eelke Kleijn People of the Sun",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "79404897034350",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1f5QbInMNeMcrqwkUCpnVrJda-IDHmEGa",
+      "title": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza For Dreams (Mark Voxx Remix) - www.spaceclubbingdancefloor.com",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza For Dreams (Mark Voxx Remix) - www.spaceclubbingdancefloor.com.mp3",
+      "preparedDuration": 377.992,
+      "preparedBytes": 6085440,
+      "sha256": "c08a323fe5bb4bee088942ddd64a7c0cce98c126992c866f6ab0d1e57310b090",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/805688ea-c8ee-4e94-a468-9911381a7f62",
+      "operationResult": {
+        "path": "operations/805688ea-c8ee-4e94-a468-9911381a7f62",
+        "operationId": "805688ea-c8ee-4e94-a468-9911381a7f62",
+        "done": true,
+        "response": {
+          "path": "assets/139912119687420",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:53.781614100Z",
+          "assetId": "139912119687420",
+          "displayName": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "139912119687420",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "148552AZ2VqbQGvNqReqfrYBk_jxJis5N",
+      "title": "12A - 128 - Stereo Love            12a",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "12A - 128 - Stereo Love            12a.mp3",
+      "preparedDuration": 409.313,
+      "preparedBytes": 6549553,
+      "sha256": "fde7dc6d779bae8e688d9b74eed8f58c4a2be851a9df316d5fd966c2988228cb",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/ffb8d98a-3545-4c19-b8ca-80a54c7e0342",
+      "operationResult": {
+        "path": "operations/ffb8d98a-3545-4c19-b8ca-80a54c7e0342",
+        "operationId": "ffb8d98a-3545-4c19-b8ca-80a54c7e0342",
+        "done": true,
+        "response": {
+          "path": "assets/80712330348006",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:47:54.845845100Z",
+          "assetId": "80712330348006",
+          "displayName": "12A - 128 - Stereo Love            12a",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "80712330348006",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC",
+      "title": "1A - 128 - Dreaming (Original Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "1A - 128 - Dreaming (Original Mix).mp3",
+      "preparedDuration": 354.273,
+      "preparedBytes": 5668913,
+      "sha256": "b103bd72f36f5f4e1e103eefb4507262dc83208dc6c506510a4d434a18446e90",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/ba68197c-d328-45f4-a111-831e2a4703c7",
+      "operationResult": {
+        "path": "operations/ba68197c-d328-45f4-a111-831e2a4703c7",
+        "operationId": "ba68197c-d328-45f4-a111-831e2a4703c7",
+        "done": true,
+        "response": {
+          "path": "assets/88482943108864",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:48:10.907734500Z",
+          "assetId": "88482943108864",
+          "displayName": "1A - 128 - Dreaming (Original Mix)",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "88482943108864",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
+    },
+    {
+      "driveId": "1UHvz7yNB8FrJ-0KtqJDE4hmUXMIXBe86",
+      "title": "1B - 130 - RIGHT NOW - Unknown Artist.mp3",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "1B - 130 - RIGHT NOW - Unknown Artist.mp3 .mp3",
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561277,
+      "sha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686",
+      "createAttempts": [
+        {
+          "creator": {
+            "type": "user",
+            "id": "8878884630",
+            "name": "RidhooMauKamu"
+          },
+          "http": 200,
+          "response": null
+        }
+      ],
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
+      },
+      "operation": "operations/de1a2245-0a6f-49cc-896b-9f07860b6771",
+      "operationResult": {
+        "path": "operations/de1a2245-0a6f-49cc-896b-9f07860b6771",
+        "operationId": "de1a2245-0a6f-49cc-896b-9f07860b6771",
+        "done": true,
+        "response": {
+          "path": "assets/131113336118215",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:48:14.593408400Z",
+          "assetId": "131113336118215",
+          "displayName": "1B - 130 - RIGHT NOW - Unknown Artist.mp3",
+          "description": "BBYA Basement owner Drive library",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "131113336118215",
+      "moderationState": "Reviewing",
+      "result": "uploaded"
     }
   ],
   "apiKey": {
@@ -289,5 +1162,16 @@
       "name": "RidhooMauKamu"
     }
   ],
-  "injectedCount": 5
+  "discoveredCount": 843,
+  "alreadyRegisteredCount": 5,
+  "localUploadCap": 20,
+  "newlyUploadedCount": 18,
+  "deduplicatedCount": 1,
+  "failedCount": 1,
+  "injectedLibraryCount": 19,
+  "quotaOrRateLimitSeen": false,
+  "registeredDiscoveredCount": 24,
+  "remainingCount": 819,
+  "mainClubUntouched": true,
+  "finishedAt": "2026-08-21T05:48:17.490107+00:00"
 }

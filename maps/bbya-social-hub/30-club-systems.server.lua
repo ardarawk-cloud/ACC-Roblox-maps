@@ -20,6 +20,27 @@ local internalMusic=folder:FindFirstChild("InternalMusic") or Instance.new("Bind
 local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("BindableEvent");basementMusic.Name="BasementMusic";basementMusic.Parent=folder
 
 local PLAYLIST={
+-- MAIN_PROGRESSIVE_UPLOAD_BEGIN
+ {title="07 I Know You Want Me (Calle Ocho) (Intro Dirty)",id="92702917431354",style="progressive"},
+ {title="1.Walking On Air",id="115888429247140",style="progressive"},
+ {title="10. CHRISYE - PERGILAH KASIH",id="81067975196024",style="progressive"},
+ {title="10A - 130 - 10A - 130 - Always Loving You",id="76999503317939",style="progressive"},
+ {title="10B - 128 - 10B - 128 - Taylor swift  - love story (Hendry al remix)",id="118117585511088",style="progressive"},
+ {title="10B - 128 - Somewhere  10b (1)",id="100105336048945",style="progressive"},
+ {title="10B - 128 - Taylor swift  - love story (Hendry al remix)",id="118117585511088",style="progressive"},
+ {title="11A - 126 - Shadows (Stoopit mix)",id="133637574696828",style="progressive"},
+ {title="11A - 128 - 08.Shadow (Black Rework 2009)",id="115630349269312",style="progressive"},
+ {title="11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix)",id="103311122364729",style="progressive"},
+ {title="11A - 130 - 01.runaway (mumu remix)",id="127279442599331",style="progressive"},
+ {title="11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",id="81269753705199",style="progressive"},
+ {title="11A - 130 - RUN AWAY - Unknown Artist",id="107310072452368",style="progressive"},
+ {title="11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix)",id="79404897034350",style="progressive"},
+ {title="11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix)",id="130628759763851",style="progressive"},
+ {title="12A - 128 - Stereo Love            12a",id="80712330348006",style="progressive"},
+ {title="1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza For Dreams (Mark Voxx Remix) - www.spaceclubbingdancefloor.com",id="139912119687420",style="progressive"},
+ {title="1A - 128 - Dreaming (Original Mix)",id="88482943108864",style="progressive"},
+ {title="1B - 130 - RIGHT NOW - Unknown Artist.mp3",id="131113336118215",style="progressive"},
+-- MAIN_PROGRESSIVE_UPLOAD_END
  {title="Pumpin' And Bumpin' D",id="9040442826",style="club"},
  {title="DJ Party Time",id="90337553112855",style="club"},
  {title="Electronic Music",id="1846869595",style="electronic"},
