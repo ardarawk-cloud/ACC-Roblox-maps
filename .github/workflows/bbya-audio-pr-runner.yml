@@ -1,0 +1,149 @@
+name: BBYA Audio Observable Runner
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-audio-observable-runner
+  cancel-in-progress: true
+
+jobs:
+  route_audio:
+    if: startsWith(github.event.pull_request.title, 'RUN BBYA AUDIO')
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout live main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install audio and Drive tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip 'gdown>=6.1.0'
+
+      - name: Prioritize Progressive source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/inject-bbya-basement-from-drive.py')
+          s=p.read_text(encoding='utf-8')
+          old='''    {"name": "FUNKOT", "id": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS", "style": "funkot"},\n    {"name": "BREAKBEAT CAMPUR", "id": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs", "style": "breakbeat"},\n    {"name": "TEMBAK LANGIT REMIX", "id": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE", "style": "tembak-langit"},\n    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},'''
+          new='''    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},\n    {"name": "FUNKOT", "id": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS", "style": "funkot"},\n    {"name": "BREAKBEAT CAMPUR", "id": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs", "style": "breakbeat"},\n    {"name": "TEMBAK LANGIT REMIX", "id": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE", "style": "tembak-langit"},'''
+          if old in s:
+              p.write_text(s.replace(old,new,1),encoding='utf-8')
+          elif new not in s:
+              raise SystemExit('Unable to locate source priority block')
+          PY
+
+      - name: Upload checkpoint batches and route playlists
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          UNIVERSE_ID: '8116636513'
+          AUDIO_UPLOAD_WORKERS: '5'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          for batch in $(seq 1 30); do
+            echo "===== BATCH ${batch} ====="
+            export MAX_NEW_AUDIO_UPLOADS=20
+            python3 scripts/inject-bbya-basement-from-drive.py
+            python3 scripts/route-bbya-drive-audio.py
+
+            git add -- \
+              scripts/inject-bbya-basement-from-drive.py \
+              maps/bbya-social-hub/30-club-systems.server.lua \
+              maps/bbya-social-hub/85-basement-autodj.server.lua \
+              deploy-status/bbya-basement-drive-inject.json \
+              deploy-status/bbya-basement-drive-registry.json \
+              deploy-status/bbya-audio-routing.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Checkpoint BBYA Drive audio batch ${batch}: Progressive Main, others Basement [skip ci]"
+              git pull --rebase origin main
+              git push origin HEAD:main
+            fi
+
+            python3 - <<'PY'
+          import json
+          i=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
+          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          print('Discovered=',i.get('discoveredCount'))
+          print('Registered=',i.get('registeredDiscoveredCount'))
+          print('Remaining=',i.get('remainingCount',0))
+          print('Quota=',i.get('quotaOrRateLimitSeen'))
+          print('MainProgressive=',r.get('mainProgressiveCount'))
+          print('BasementDrive=',r.get('basementDriveCount'))
+          print('RoutingValid=',r.get('valid'))
+          PY
+
+            remaining="$(python3 -c "import json; d=json.load(open('deploy-status/bbya-basement-drive-inject.json')); print(int(d.get('remainingCount',0) or 0))")"
+            quota="$(python3 -c "import json; d=json.load(open('deploy-status/bbya-basement-drive-inject.json')); print('1' if d.get('quotaOrRateLimitSeen') else '0')")"
+            if [ "$remaining" -eq 0 ] || [ "$quota" -eq 1 ]; then
+              break
+            fi
+          done
+
+      - name: Verify routed playlists
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/route-bbya-drive-audio.py
+          python3 - <<'PY'
+          import json
+          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          assert r.get('valid'), r
+          print(json.dumps(r,indent=2))
+          PY
+
+      - name: Install Rojo
+        shell: bash
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build and publish BBYA live
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-routed-audio.rbxl
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-routed-audio.rbxl
+          test -s /tmp/bbya-routed-audio.rbxl
+          node scripts/publish-map.js a-club
+
+      - name: Persist deploy receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp deploy-status/a-club.json /tmp/a-club-audio.json
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/a-club-audio.json deploy-status/a-club.json
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- deploy-status/a-club.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BBYA routed audio deploy [skip ci]"
+            git push origin HEAD:main
+          fi
