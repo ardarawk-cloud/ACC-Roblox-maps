@@ -1,0 +1,6 @@
+status=PUBLISHED
+secret=AM_STUDIO
+universeId=4187755690
+placeId=11832985967
+exitCode=0
+log=Mountain AM STUDIO publish success { versionNumber: 2 }
