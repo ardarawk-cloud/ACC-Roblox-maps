@@ -52,6 +52,7 @@
       "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" },
       "VIPEnclosureSoundV6": { "$path": "82-vip-enclosure-sound.server.lua" },
       "VenueLightingBoostV1": { "$path": "86-vip-skate-lighting-boost.server.lua" },
+      "VIPPrivateClubUpgradeV2": { "$path": "90-vip-private-club-upgrade.server.lua" },
       "SkateparkExposureFixV2": { "$path": "88-skatepark-exposure-fix.server.lua" }
     },
     "StarterPlayer": {
