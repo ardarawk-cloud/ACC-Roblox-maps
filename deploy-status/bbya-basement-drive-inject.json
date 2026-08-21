@@ -1,7 +1,7 @@
 {
   "universeId": "8116636513",
   "source": "CONNECTED_GOOGLE_DRIVE",
-  "complete": false,
+  "complete": true,
   "tracks": [
     {
       "title": "ADXL - SEXY PAPI 2025",
@@ -14,22 +14,44 @@
           "creator": {
             "type": "user",
             "id": "8878884630",
-            "name": "api-key-owner-fallback"
+            "name": "RidhooMauKamu"
           },
-          "http": 403,
-          "response": {
-            "code": "PERMISSION_DENIED",
-            "message": "User not authenticated"
-          }
+          "http": 200,
+          "response": null
         }
       ],
-      "createHttp": 403,
-      "assetCreator": null,
-      "createResponse": {
-        "code": "PERMISSION_DENIED",
-        "message": "User not authenticated"
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
       },
-      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
+      "operation": "operations/b8c9fa4c-d960-432d-b1da-2b62be84ce4a",
+      "operationResult": {
+        "path": "operations/b8c9fa4c-d960-432d-b1da-2b62be84ce4a",
+        "operationId": "b8c9fa4c-d960-432d-b1da-2b62be84ce4a",
+        "done": true,
+        "response": {
+          "path": "assets/140514006350666",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:22:33.051230800Z",
+          "assetId": "140514006350666",
+          "displayName": "#####################",
+          "description": "BBYA Basement Indo / owner Drive upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "140514006350666",
+      "moderationState": "Reviewing"
     },
     {
       "title": "ADXL - BANG BANG WIRO SABLENG",
@@ -42,22 +64,44 @@
           "creator": {
             "type": "user",
             "id": "8878884630",
-            "name": "api-key-owner-fallback"
+            "name": "RidhooMauKamu"
           },
-          "http": 403,
-          "response": {
-            "code": "PERMISSION_DENIED",
-            "message": "User not authenticated"
-          }
+          "http": 200,
+          "response": null
         }
       ],
-      "createHttp": 403,
-      "assetCreator": null,
-      "createResponse": {
-        "code": "PERMISSION_DENIED",
-        "message": "User not authenticated"
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
       },
-      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
+      "operation": "operations/45780a61-f115-44e1-928c-6707fc1f630d",
+      "operationResult": {
+        "path": "operations/45780a61-f115-44e1-928c-6707fc1f630d",
+        "operationId": "45780a61-f115-44e1-928c-6707fc1f630d",
+        "done": true,
+        "response": {
+          "path": "assets/129311447065112",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:23:05.716774300Z",
+          "assetId": "129311447065112",
+          "displayName": "ADXL - BANG BANG WIRO SABLENG",
+          "description": "BBYA Basement Indo / owner Drive upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "129311447065112",
+      "moderationState": "Reviewing"
     },
     {
       "title": "ADXL - SEMATA KARENAMU 2023",
@@ -70,22 +114,44 @@
           "creator": {
             "type": "user",
             "id": "8878884630",
-            "name": "api-key-owner-fallback"
+            "name": "RidhooMauKamu"
           },
-          "http": 403,
-          "response": {
-            "code": "PERMISSION_DENIED",
-            "message": "User not authenticated"
-          }
+          "http": 200,
+          "response": null
         }
       ],
-      "createHttp": 403,
-      "assetCreator": null,
-      "createResponse": {
-        "code": "PERMISSION_DENIED",
-        "message": "User not authenticated"
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
       },
-      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
+      "operation": "operations/ab619729-ba3f-4552-b1d7-2a3e4e671c84",
+      "operationResult": {
+        "path": "operations/ab619729-ba3f-4552-b1d7-2a3e4e671c84",
+        "operationId": "ab619729-ba3f-4552-b1d7-2a3e4e671c84",
+        "done": true,
+        "response": {
+          "path": "assets/113513851570966",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:23:35.805325100Z",
+          "assetId": "113513851570966",
+          "displayName": "ADXL - SEMATA KARENAMU 2023",
+          "description": "BBYA Basement Indo / owner Drive upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "113513851570966",
+      "moderationState": "Reviewing"
     },
     {
       "title": "ADXL - CINTA KITA 2023",
@@ -98,22 +164,44 @@
           "creator": {
             "type": "user",
             "id": "8878884630",
-            "name": "api-key-owner-fallback"
+            "name": "RidhooMauKamu"
           },
-          "http": 403,
-          "response": {
-            "code": "PERMISSION_DENIED",
-            "message": "User not authenticated"
-          }
+          "http": 200,
+          "response": null
         }
       ],
-      "createHttp": 403,
-      "assetCreator": null,
-      "createResponse": {
-        "code": "PERMISSION_DENIED",
-        "message": "User not authenticated"
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
       },
-      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
+      "operation": "operations/7c8baabb-7576-41b0-b7bd-909594b55dee",
+      "operationResult": {
+        "path": "operations/7c8baabb-7576-41b0-b7bd-909594b55dee",
+        "operationId": "7c8baabb-7576-41b0-b7bd-909594b55dee",
+        "done": true,
+        "response": {
+          "path": "assets/103346687856740",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:23:59.793137700Z",
+          "assetId": "103346687856740",
+          "displayName": "ADXL - CINTA KITA 2023",
+          "description": "BBYA Basement Indo / owner Drive upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "103346687856740",
+      "moderationState": "Reviewing"
     },
     {
       "title": "ADXL - BUTA HATI 2023",
@@ -126,31 +214,68 @@
           "creator": {
             "type": "user",
             "id": "8878884630",
-            "name": "api-key-owner-fallback"
+            "name": "RidhooMauKamu"
           },
-          "http": 403,
-          "response": {
-            "code": "PERMISSION_DENIED",
-            "message": "User not authenticated"
-          }
+          "http": 200,
+          "response": null
         }
       ],
-      "createHttp": 403,
-      "assetCreator": null,
-      "createResponse": {
-        "code": "PERMISSION_DENIED",
-        "message": "User not authenticated"
+      "createHttp": 200,
+      "assetCreator": {
+        "type": "user",
+        "id": "8878884630",
+        "name": "RidhooMauKamu"
       },
-      "scopeHint": "Check introspected asset write scope and creator target; API key secret itself is still valid."
+      "operation": "operations/d4e0168b-fb31-4de5-b62b-5f2d32b4a4c5",
+      "operationResult": {
+        "path": "operations/d4e0168b-fb31-4de5-b62b-5f2d32b4a4c5",
+        "operationId": "d4e0168b-fb31-4de5-b62b-5f2d32b4a4c5",
+        "done": true,
+        "response": {
+          "path": "assets/78901521795281",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-21T05:24:23.080397200Z",
+          "assetId": "78901521795281",
+          "displayName": "ADXL - BUTA HATI 2023",
+          "description": "BBYA Basement Indo / owner Drive upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "8878884630"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "78901521795281",
+      "moderationState": "Reviewing"
     }
   ],
   "apiKey": {
-    "name": "Arda universe 02",
+    "name": "ROBLOX_AUDIO_API_KEY",
     "authorizedUserId": "8878884630",
     "enabled": true,
     "expired": false,
     "expirationTimeUtc": null,
-    "scopes": []
+    "scopes": [
+      {
+        "name": "asset",
+        "operations": [
+          "read",
+          "write"
+        ],
+        "userIds": [
+          "*"
+        ],
+        "groupIds": [
+          "*"
+        ],
+        "universeIds": []
+      }
+    ]
   },
   "universeCreator": {
     "type": "user",
@@ -161,7 +286,8 @@
     {
       "type": "user",
       "id": "8878884630",
-      "name": "api-key-owner-fallback"
+      "name": "RidhooMauKamu"
     }
-  ]
+  ],
+  "injectedCount": 5
 }
