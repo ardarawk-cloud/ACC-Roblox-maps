@@ -1,6 +1,6 @@
-Run BBYA Drive audio ingestion with routing policy:
+Publish current BBYA registered audio library only.
 PROGRESIVE -> Main Club
-All other Drive music folders -> Basement
-Checkpoint Asset IDs and publish live.
+All other registered Drive music -> Basement
+No new audio uploads in this run.
 
-Retry generation 3: Roblox creator moderation detected; preserve existing Asset IDs, skip new uploads, route and publish current safe library.
+Generation 4: publish-only after Roblox moderation and Drive public-link throttling.
