@@ -66,8 +66,9 @@
         "DJWallClientRenderer": { "$path": "62-dj-wall-render.client.lua" },
         "SocialHangoutClient": { "$path": "63-social-hangout.client.lua" },
         "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" },
-        "MobileUIPolishV4": { "$path": "78-mobile-ui-polish.client.lua" },
-        "BasementAudioUIPatchV3": { "$path": "81-basement-audio-ui.client.lua" }
+        "MobileUIPolishV5": { "$path": "78-mobile-ui-polish.client.lua" },
+        "BasementAudioUIPatchV3": { "$path": "81-basement-audio-ui.client.lua" },
+        "MobileUIFinalOverrideV1": { "$path": "84-mobile-ui-final-override.client.lua" }
       }
     },
     "Lighting": {
