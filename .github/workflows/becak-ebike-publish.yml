@@ -60,6 +60,7 @@ jobs:
           grep -q 'BecakEBike_TrafficNPC' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_ChargingNetwork' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_DailyContracts' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_StoryProgression' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_DailyContractsUI' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_MasterplanClient' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_DriverPhone' maps/becak-e-bike/place.rbxlx
@@ -68,7 +69,7 @@ jobs:
           grep -q 'BecakEBike_WorldQC' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_RoadAccess' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakRuntime\",\"v1.18" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRuntime\",\"v1.19" maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMasterplanSystems','v1.3" maps/becak-e-bike/place.rbxlx
           grep -q "BecakLegacyTrafficDisabled','ON" maps/becak-e-bike/place.rbxlx
@@ -77,8 +78,12 @@ jobs:
           grep -q "ACC_BecakTrafficNPC','v1.14" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakChargingNetwork','v1.16" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakDailyContracts','v1.17" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakDailyContractsUI','v1.18" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakStoryProgression','v1.19" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakStoryChapterCount',#CHAPTERS" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakReputationSystem','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakDailyContractsUI','v1.19" maps/becak-e-bike/place.rbxlx
           grep -q "BecakMissionUIPhoneIntegrated','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakStoryUIIntegrated','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakDailyContractCount',3" maps/becak-e-bike/place.rbxlx
           grep -q "BecakDailyContractsPersistent','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakChargingStationCount',#stations" maps/becak-e-bike/place.rbxlx
@@ -98,8 +103,8 @@ jobs:
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion","1.18.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.18 validation PASS'
+          grep -q 'BecakVersion","1.19.0' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.19 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -126,7 +131,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.18 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.19 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
