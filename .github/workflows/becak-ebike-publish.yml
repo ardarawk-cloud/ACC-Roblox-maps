@@ -58,6 +58,7 @@ jobs:
           grep -q 'BecakEBike_Masterplan' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_CityEvents' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_TrafficNPC' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakEBike_VehicleRecovery' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_ChargingNetwork' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_DailyContracts' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_StoryProgression' maps/becak-e-bike/place.rbxlx
@@ -72,7 +73,11 @@ jobs:
           grep -q 'BecakEBike_WorldQC' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_RoadAccess' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakRuntime\",\"v1.23" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRuntime\",\"v1.24" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakVehicleRecovery','v1.24" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakSelfRighting','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakLowCurbAssist','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakRecoveryTickHz',10" maps/becak-e-bike/place.rbxlx
           grep -q 'BecakPassengerFareTelemetry' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakLastTripBaseReward' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
@@ -123,8 +128,8 @@ jobs:
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion","1.23.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.23 validation PASS'
+          grep -q 'BecakVersion","1.24.0' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.24 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -151,7 +156,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.23 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.24 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
