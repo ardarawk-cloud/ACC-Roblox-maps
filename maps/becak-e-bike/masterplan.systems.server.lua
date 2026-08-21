@@ -1,5 +1,6 @@
--- BECAK E-BIKE — masterplan systems v1.2
--- Weather, cargo, damage/repair, session challenge, story progression and ambient traffic.
+-- BECAK E-BIKE — masterplan systems v1.3
+-- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
+-- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
 local Lighting=game:GetService('Lighting')
@@ -106,6 +107,7 @@ end)
 
 -- Session challenge and story progression based on persistent trip total.
 local joinTrips={}
+local lastProgressTrips={}
 local function syncProgress(player)
  local total=player:GetAttribute('BecakTrips') or 0
  local chapter=1
@@ -117,24 +119,14 @@ local function syncProgress(player)
   player:SetAttribute('Session10Claimed',true)
   if transact(player,50000,100,'session10') then toast:FireClient(player,'Tantangan 10 trip selesai • +Rp50.000 +100 XP') end
  end
+ lastProgressTrips[player]=total
 end
 
--- Lightweight ambient traffic.
-local traffic=Instance.new('Folder');traffic.Name='AmbientTraffic';traffic.Parent=systems
-local cars={}
-for i=1,12 do
- local body=part(traffic,'Traffic_'..i,Vector3.new(6,2.5,10),CFrame.new(-480+(i-1)*80,2,(i%2==0 and 10 or -10)),i%3==0 and Color3.fromRGB(65,105,175) or (i%3==1 and Color3.fromRGB(185,65,55) or Color3.fromRGB(185,185,180)),Enum.Material.Metal,false)
- cars[i]={part=body,t=(i-1)/12,axis=(i<=6 and 'x' or 'z'),dir=i%2==0 and 1 or -1}
-end
-
+-- Gameplay maintenance loop. Traffic simulation lives only in traffic.npc.server.lua.
+-- Run cargo completion + progression at 5 Hz instead of the legacy 12.5 Hz loop.
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
- accum+=dt;if accum<.08 then return end;local step=accum;accum=0
- for _,c in ipairs(cars) do
-  c.t=(c.t+step*.018*c.dir)%1
-  if c.axis=='x' then local x=-520+c.t*1040;c.part.CFrame=CFrame.new(x,2,c.dir>0 and 10 or -10)*CFrame.Angles(0,c.dir>0 and math.rad(90) or math.rad(-90),0)
-  else local z=-520+c.t*1040;c.part.CFrame=CFrame.new(c.dir>0 and 10 or -10,2,z)*CFrame.Angles(0,c.dir>0 and 0 or math.pi,0) end
- end
+ accum+=dt;if accum<.2 then return end;accum=0
  for player,d in pairs(cargoActive) do
   if player.Parent then
    local b=playerBecak(player)
@@ -144,7 +136,10 @@ RunService.Heartbeat:Connect(function(dt)
    end
   end
  end
- for _,player in ipairs(Players:GetPlayers()) do syncProgress(player) end
+ for _,player in ipairs(Players:GetPlayers()) do
+  local total=player:GetAttribute('BecakTrips') or 0
+  if lastProgressTrips[player]~=total then syncProgress(player) end
+ end
 end)
 
 local function setupPlayer(player)
@@ -154,7 +149,9 @@ local function setupPlayer(player)
 end
 for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;cargoActive[player]=nil end)
+Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil end)
 
-Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.2')
-print('[BECAK E-BIKE] masterplan systems v1.2 ready')
+Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.3')
+Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
+Workspace:SetAttribute('BecakSystemsTickHz',5)
+print('[BECAK E-BIKE] masterplan systems v1.3 ready: duplicate traffic removed + 5 Hz gameplay maintenance')
