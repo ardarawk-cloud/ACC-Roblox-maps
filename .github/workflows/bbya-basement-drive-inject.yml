@@ -79,3 +79,5 @@ jobs:
               raise SystemExit('Basement audio injection incomplete: '+str(d.get('error') or d.get('tracks')))
           print('Basement audio injection complete:', d.get('injectedCount'))
           PY
+
+# retrigger-after-audio-secret-2026-08-21
