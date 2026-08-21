@@ -30,6 +30,37 @@ def get_json(url, headers=None, timeout=30):
         return r.status,json.loads(r.read().decode('utf-8','replace'))
 
 
+def post_json(url, payload, headers=None, timeout=30):
+    body=json.dumps(payload).encode('utf-8')
+    h={'Content-Type':'application/json'}
+    if headers: h.update(headers)
+    req=urllib.request.Request(url,data=body,headers=h,method='POST')
+    with urllib.request.urlopen(req,timeout=timeout) as r:
+        return r.status,json.loads(r.read().decode('utf-8','replace'))
+
+
+def introspect_key():
+    _,data=post_json('https://apis.roblox.com/api-keys/v1/introspect',{'apiKey':API_KEY})
+    safe={
+        'name':data.get('name'),
+        'authorizedUserId':str(data.get('authorizedUserId')) if data.get('authorizedUserId') is not None else None,
+        'enabled':data.get('enabled'),
+        'expired':data.get('expired'),
+        'expirationTimeUtc':data.get('expirationTimeUtc'),
+        'scopes':[],
+    }
+    for scope in data.get('scopes') or []:
+        if scope.get('name') in ('asset','asset-permissions:write'):
+            safe['scopes'].append({
+                'name':scope.get('name'),
+                'operations':scope.get('operations') or [],
+                'userIds':[str(x) for x in (scope.get('userIds') or [])],
+                'groupIds':[str(x) for x in (scope.get('groupIds') or [])],
+                'universeIds':[str(x) for x in (scope.get('universeIds') or [])],
+            })
+    return safe
+
+
 def resolve_creator():
     _,data=get_json(f'https://games.roblox.com/v1/games?universeIds={UNIVERSE_ID}')
     rows=data.get('data') or []
@@ -63,6 +94,37 @@ def prepare_audio(raw, track):
     if duration>419.5: raise RuntimeError(f'Prepared audio over 7-minute limit: {duration}')
     if size>=20*1024*1024: raise RuntimeError(f'Prepared audio over 20MB limit: {size}')
     return out,duration,size
+
+
+def creator_candidates(universe_creator, key_info):
+    out=[]
+    seen=set()
+    asset_scopes=[s for s in key_info.get('scopes',[]) if s.get('name')=='asset' and 'write' in (s.get('operations') or [])]
+    allowed_users=set()
+    allowed_groups=set()
+    for s in asset_scopes:
+        allowed_users.update(s.get('userIds') or [])
+        allowed_groups.update(s.get('groupIds') or [])
+
+    def add(kind,cid,label):
+        if not cid: return
+        k=(kind,str(cid))
+        if k in seen: return
+        seen.add(k); out.append({'type':kind,'id':str(cid),'name':label})
+
+    if universe_creator['type']=='user' and (universe_creator['id'] in allowed_users or '*' in allowed_users):
+        add('user',universe_creator['id'],universe_creator.get('name') or 'universe-owner')
+    if universe_creator['type']=='group' and (universe_creator['id'] in allowed_groups or '*' in allowed_groups):
+        add('group',universe_creator['id'],universe_creator.get('name') or 'universe-owner')
+
+    auth=key_info.get('authorizedUserId')
+    if auth and (auth in allowed_users or '*' in allowed_users):
+        add('user',auth,'api-key-owner')
+
+    if not out:
+        if auth: add('user',auth,'api-key-owner-fallback')
+        add(universe_creator['type'],universe_creator['id'],universe_creator.get('name') or 'universe-owner-fallback')
+    return out
 
 
 def create_asset(file_path,title,creator):
@@ -111,7 +173,11 @@ def main():
     if not API_KEY:
         report['error']='ROBLOX_API_KEY missing'; STATUS.write_text(json.dumps(report,indent=2)); return 2
     try:
-        creator=resolve_creator(); report['creator']=creator
+        key_info=introspect_key()
+        report['apiKey']=key_info
+        creator=resolve_creator(); report['universeCreator']=creator
+        candidates=creator_candidates(creator,key_info)
+        report['creatorCandidates']=candidates
         completed=[]
         for t in TRACKS:
             row={'title':t['title'],'driveId':t['drive_id'],'cut':t['cut']}
@@ -119,11 +185,20 @@ def main():
                 raw=download_drive(t)
                 prepared,duration,size=prepare_audio(raw,t)
                 row.update({'preparedDuration':round(duration,3),'preparedBytes':size})
-                code,created=create_asset(prepared,t['title'],creator)
+                created=None; code=0; chosen=None; attempts=[]
+                for candidate in candidates:
+                    code,created=create_asset(prepared,t['title'],candidate)
+                    attempts.append({'creator':candidate,'http':code,'response':created if code not in (200,201,202) else None})
+                    if code in (200,201,202):
+                        chosen=candidate
+                        break
+                row['createAttempts']=attempts
                 row['createHttp']=code
+                row['assetCreator']=chosen
                 if code not in (200,201,202):
                     row['createResponse']=created
-                    if code==403: row['scopeHint']='API key needs asset:read + asset:write for the universe creator'
+                    if code==403:
+                        row['scopeHint']='Check introspected asset write scope and creator target; API key secret itself is still valid.'
                     report['tracks'].append(row); continue
                 op_path=created.get('path'); row['operation']=op_path
                 if not op_path:
