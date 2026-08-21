@@ -69,7 +69,9 @@ jobs:
           grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakMasterplanSystems' maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakCityEvents','v1.10" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakTrafficNPC','v1.11" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakTrafficNPC','v1.12" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakTrafficPlayerYield','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakTrafficAdaptiveTick','ON" maps/becak-e-bike/place.rbxlx
           grep -q 'BecakTrafficVehicleCount' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakPedestrianCount' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakDriverNavigation' maps/becak-e-bike/place.rbxlx
@@ -78,8 +80,8 @@ jobs:
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion","1.11.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.11 validation PASS'
+          grep -q 'BecakVersion","1.12.0' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.12 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -106,7 +108,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.11 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.12 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
