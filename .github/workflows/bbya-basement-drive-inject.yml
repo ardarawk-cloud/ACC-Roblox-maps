@@ -38,40 +38,76 @@ jobs:
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip 'gdown>=6.1.0'
 
-      - name: Snapshot Main Club before upload stage
-        shell: bash
-        run: |
-          set -euo pipefail
-          sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}' > /tmp/bbya-main-before.sha
-
-      - name: Pull full owner Drive library and create Roblox Audio IDs
-        id: inject
+      - name: Upload and checkpoint routed audio batches
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
           AUDIO_UPLOAD_WORKERS: '5'
-          MAX_NEW_AUDIO_UPLOADS: '0'
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/inject-bbya-basement-from-drive.py
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
 
-      - name: Verify uploader did not alter Main Club directly
-        shell: bash
-        run: |
-          set -euo pipefail
-          before="$(cat /tmp/bbya-main-before.sha)"
-          after="$(sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}')"
-          test "$before" = "$after"
-          echo "Uploader stage left Main Club untouched: $after"
+          for batch in $(seq 1 30); do
+            echo "=== BBYA AUDIO CHECKPOINT BATCH ${batch} ==="
+            export MAX_NEW_AUDIO_UPLOADS=40
 
-      - name: Route Progressive to Main Club and all others to Basement
+            python3 scripts/inject-bbya-basement-from-drive.py
+            python3 scripts/route-bbya-drive-audio.py
+
+            git add \
+              maps/bbya-social-hub/30-club-systems.server.lua \
+              maps/bbya-social-hub/85-basement-autodj.server.lua \
+              deploy-status/bbya-basement-drive-inject.json \
+              deploy-status/bbya-basement-drive-registry.json \
+              deploy-status/bbya-audio-routing.json
+
+            if ! git diff --cached --quiet; then
+              git commit -m "Checkpoint BBYA Drive audio batch ${batch}: Progressive Main, others Basement [skip ci]"
+              git pull --rebase origin main
+              git push origin HEAD:main
+            fi
+
+            remaining="$(python3 - <<'PY'
+          import json
+          d=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
+          print(int(d.get('remainingCount',0) or 0))
+          PY
+          )"
+            quota="$(python3 - <<'PY'
+          import json
+          d=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
+          print('1' if d.get('quotaOrRateLimitSeen') else '0')
+          PY
+          )"
+            echo "Remaining after batch ${batch}: ${remaining}; quota/rate-limit=${quota}"
+
+            if [ "$remaining" -eq 0 ]; then
+              echo "All discovered Drive audio has an Asset ID."
+              break
+            fi
+            if [ "$quota" -eq 1 ]; then
+              echo "Roblox quota/rate limit encountered; checkpoint is safely persisted."
+              break
+            fi
+          done
+
+      - name: Verify final routing policy
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/route-bbya-drive-audio.py
+          python3 - <<'PY'
+          import json
+          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          if not r.get('valid'):
+              raise SystemExit('BBYA audio routing invalid')
+          print('PROGRESIVE -> MAIN_CLUB:', r.get('mainProgressiveCount'))
+          print('ALL OTHER DRIVE -> BASEMENT:', r.get('basementDriveCount'))
+          PY
 
-      - name: Persist routed playlists registry and Asset IDs
+      - name: Persist final routing state
         shell: bash
         run: |
           set -euo pipefail
@@ -84,7 +120,7 @@ jobs:
             deploy-status/bbya-basement-drive-registry.json \
             deploy-status/bbya-audio-routing.json
           if ! git diff --cached --quiet; then
-            git commit -m "Route BBYA Drive audio: Progressive Main, others Basement [skip ci]"
+            git commit -m "Finalize BBYA Drive audio routing [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -98,7 +134,7 @@ jobs:
           r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
           print('Discovered:', i.get('discoveredCount'))
           print('Registered:', i.get('registeredDiscoveredCount'))
-          print('New uploads:', i.get('newlyUploadedCount'))
+          print('New uploads this checkpoint:', i.get('newlyUploadedCount'))
           print('Deduplicated:', i.get('deduplicatedCount'))
           print('Failed:', i.get('failedCount'))
           print('Remaining:', i.get('remainingCount', 0))
@@ -151,5 +187,3 @@ jobs:
             git commit -m "Record BBYA routed audio deploy [skip ci]"
             git push origin HEAD:main
           fi
-
-# manual-retrigger-progressive-routing-2026-08-21-1339
