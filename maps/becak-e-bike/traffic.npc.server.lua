@@ -1,6 +1,6 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.12
--- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player-aware yielding,
--- bounded counts, deterministic routes, distance culling, and adaptive simulation cadence.
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.13
+-- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
+-- traffic headway, bounded counts, deterministic routes, distance culling, and adaptive cadence.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -9,6 +9,8 @@ local root=Workspace:WaitForChild('BecakEBike',20)
 if not root then return end
 local world=root:WaitForChild('Nusakarya',20)
 if not world then return end
+local playerVehicles=root:WaitForChild('Vehicles',20)
+if not playerVehicles then return end
 
 local trafficFolder=world:FindFirstChild('AmbientTraffic') or Instance.new('Folder')
 trafficFolder.Name='AmbientTraffic';trafficFolder.Parent=world
@@ -29,6 +31,8 @@ local function makeVehicle(name,color)
  for _,o in ipairs({Vector3.new(-2.4,-.75,-2.7),Vector3.new(2.4,-.75,-2.7),Vector3.new(-2.4,-.75,2.7),Vector3.new(2.4,-.75,2.7)}) do
   local w=p(m,'Wheel',Vector3.new(1.1,1.1,.7),Color3.fromRGB(24,24,24));w.Shape=Enum.PartType.Cylinder;w.CFrame=body.CFrame*CFrame.new(o)*CFrame.Angles(0,0,math.rad(90))
  end
+ local brakeL=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeL.CFrame=body.CFrame*CFrame.new(-1.65,.1,4.55)
+ local brakeR=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeR.CFrame=body.CFrame*CFrame.new(1.65,.1,4.55)
  return m
 end
 
@@ -80,6 +84,40 @@ local function nearestPlayerInfo(pos)
  end
  return best,bestHrp
 end
+
+local function nearestOwnedVehicleInfo(pos)
+ local best=math.huge
+ local bestPart=nil
+ for _,model in ipairs(playerVehicles:GetChildren()) do
+  local primary=model:IsA('Model') and model.PrimaryPart
+  if primary then
+   local d=(primary.Position-pos).Magnitude
+   if d<best then best=d;bestPart=primary end
+  end
+ end
+ return best,bestPart
+end
+
+local function trafficAhead(selfActor,pos,travel)
+ local nearest=math.huge
+ for _,other in ipairs(actors) do
+  if other~=selfActor and other.model.PrimaryPart then
+   local relative=other.model.PrimaryPart.Position-pos
+   local ahead=relative:Dot(travel)
+   if ahead>0 and ahead<24 then
+    local lateral=(relative-travel*ahead).Magnitude
+    if lateral<7 then nearest=math.min(nearest,ahead) end
+   end
+  end
+ end
+ return nearest
+end
+
+local function setBrakeLights(model,on)
+ local c=on and Color3.fromRGB(255,40,28) or Color3.fromRGB(90,15,15)
+ for _,x in ipairs(model:GetChildren()) do if x.Name=='BrakeLight' and x:IsA('BasePart') then x.Color=c end end
+end
+
 local function setVisible(model,visible)
  if model:GetAttribute('Visible')==visible then return end
  model:SetAttribute('Visible',visible)
@@ -90,21 +128,31 @@ local accum=0
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt
  local playerCount=#Players:GetPlayers()
- local targetStep=playerCount>0 and .05 or .25 -- 20 Hz while occupied, 4 Hz when server is empty
+ local targetStep=playerCount>0 and .05 or .25 -- 20 Hz occupied, 4 Hz empty
  if accum<targetStep then return end
  dt=math.min(accum,.25);accum=0
 
  for _,a in ipairs(actors) do
   local from=a.route[a.seg];local to=a.route[a.seg%#a.route+1];local len=(to-from).Magnitude
   local pos=from:Lerp(to,a.t)
+  local travel=(to-from).Unit
   local playerDist,hrp=nearestPlayerInfo(pos)
+  local vehicleDist,vehiclePart=nearestOwnedVehicleInfo(pos)
   local yieldNow=false
-  if hrp and playerDist<28 then
-   local travel=(to-from).Unit
+
+  if hrp and playerDist<26 then
    local relative=hrp.Position-pos
    local ahead=relative:Dot(travel)
-   if ahead>-6 and ahead<24 then yieldNow=true end
+   if ahead>-5 and ahead<22 then yieldNow=true end
   end
+  if vehiclePart and vehicleDist<36 then
+   local relative=vehiclePart.Position-pos
+   local ahead=relative:Dot(travel)
+   local lateral=(relative-travel*ahead).Magnitude
+   if ahead>-8 and ahead<30 and lateral<10 then yieldNow=true end
+  end
+  if trafficAhead(a,pos,travel)<15 then yieldNow=true end
+
   a.yielding=yieldNow
   if not yieldNow then
    a.t+=a.speed*dt/math.max(len,1)
@@ -114,24 +162,29 @@ RunService.Heartbeat:Connect(function(dt)
   local cf=CFrame.lookAt(pos,to)
   a.model:PivotTo(cf)
   a.model:SetAttribute('Yielding',yieldNow)
-  setVisible(a.model,playerDist<430)
+  setBrakeLights(a.model,yieldNow)
+  setVisible(a.model,playerDist<430 or vehicleDist<430)
  end
 
  for _,w in ipairs(walkers) do
   local len=(w.b-w.a).Magnitude
   local pos=w.a:Lerp(w.b,w.t)
   local playerDist=nearestPlayerInfo(pos)
-  local walkScale=playerDist<7 and 0 or 1 -- pedestrians pause instead of clipping through the player
+  local vehicleDist=nearestOwnedVehicleInfo(pos)
+  local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1 -- pause before clipping through player/becak
   w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
   if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
   pos=w.a:Lerp(w.b,w.t);local target=w.dir>0 and w.b or w.a
-  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,playerDist<240)
+  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,playerDist<240 or vehicleDist<240)
  end
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.12')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.13')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
+Workspace:SetAttribute('BecakTrafficVehicleYield','ON')
+Workspace:SetAttribute('BecakTrafficHeadway','ON')
+Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.12 ready: player yield + adaptive tick')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.13 ready: becak-aware yield + headway + brake lights')
