@@ -1,5 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.28
+-- BECAK E-BIKE — mobile safe-area controller v1.29
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
+-- v1.29 also owns the final open-phone position so legacy right-side tweens cannot pull it back across the screen.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -18,6 +19,7 @@ local scaler=phone:FindFirstChildOfClass('UIScale')
 
 local camera=Workspace.CurrentCamera
 local lastKey=''
+local enforcing=false
 
 local function readInset()
     local ok,topLeft,bottomRight=pcall(function()
@@ -29,7 +31,7 @@ local function readInset()
     return Vector2.zero,Vector2.zero
 end
 
-local function applySafeArea(force)
+local function layoutMetrics()
     camera=Workspace.CurrentCamera or camera
     local v=camera and camera.ViewportSize or Vector2.new(800,600)
     local topLeft,bottomRight=readInset()
@@ -37,9 +39,29 @@ local function applySafeArea(force)
     local touch=UserInputService.TouchEnabled
     local topBand=math.max(104,math.floor(topLeft.Y+64))
     local leftPad=math.max(12,math.floor(topLeft.X+12))
+    return v,topLeft,bottomRight,portrait,touch,topBand,leftPad
+end
+
+local function pinOpenPhone()
+    if enforcing or not phone.Visible then return end
+    enforcing=true
+    local _,_,_,_,_,topBand,leftPad=layoutMetrics()
+    local desired=UDim2.fromOffset(leftPad,topBand)
+    if phone.AnchorPoint~=Vector2.new(0,0) then phone.AnchorPoint=Vector2.new(0,0) end
+    if phone.Position~=desired then phone.Position=desired end
+    enforcing=false
+end
+
+local function applySafeArea(force)
+    local v,topLeft,bottomRight,portrait,touch,topBand,leftPad=layoutMetrics()
 
     local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),portrait and 1 or 0,touch and 1 or 0,phone.Visible and 1 or 0},':')
-    if not force and key==lastKey then return end
+    if not force and key==lastKey then
+        -- Position is intentionally re-asserted even when dimensions did not change.
+        -- This defeats the old phone UI's right-edge TweenService animation without a busy loop.
+        pinOpenPhone()
+        return
+    end
     lastKey=key
 
     -- Closed launcher stays on the left edge, below CoreGui. On touch landscape it sits
@@ -67,14 +89,16 @@ local function applySafeArea(force)
             scaler.Scale=math.clamp(math.min((usableW*0.34)/326,usableH/566),0.62,0.88)
         end
     end
-    if phone.Visible then
-        phone.Position=UDim2.fromOffset(leftPad,topBand)
-    end
+    pinOpenPhone()
 end
 
 applySafeArea(true)
 launcher:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
+phone:GetPropertyChangedSignal('Position'):Connect(function()
+    -- Legacy phone.ui v1.5 still animates toward the right edge. Reclaim the left-safe-area immediately.
+    if phone.Visible then task.defer(pinOpenPhone) end
+end)
 if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     camera=Workspace.CurrentCamera
@@ -93,7 +117,8 @@ end)
 
 -- Keep the established publish marker stable while exposing the adaptive implementation separately.
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.28')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.29')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
+Workspace:SetAttribute('BecakPhoneLeftPin','ON')
