@@ -1,6 +1,6 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.13
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.14
 -- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
--- traffic headway, bounded counts, deterministic routes, distance culling, and adaptive cadence.
+-- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, and adaptive cadence.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -56,6 +56,9 @@ local walkRoutes={
  {Vector3.new(-360,2.1,-115),Vector3.new(-250,2.1,-115)},
  {Vector3.new(330,2.1,-255),Vector3.new(430,2.1,-255)},
 }
+local intersections={
+ Vector3.new(0,1.45,0),Vector3.new(150,1.45,300),Vector3.new(-150,1.45,-300)
+}
 local colors={Color3.fromRGB(196,66,62),Color3.fromRGB(65,112,172),Color3.fromRGB(224,185,67),Color3.fromRGB(62,139,91),Color3.fromRGB(185,185,190),Color3.fromRGB(78,78,82)}
 local shirts={Color3.fromRGB(57,111,173),Color3.fromRGB(177,78,67),Color3.fromRGB(69,143,91),Color3.fromRGB(185,132,54),Color3.fromRGB(113,82,157)}
 
@@ -104,13 +107,28 @@ local function trafficAhead(selfActor,pos,travel)
   if other~=selfActor and other.model.PrimaryPart then
    local relative=other.model.PrimaryPart.Position-pos
    local ahead=relative:Dot(travel)
-   if ahead>0 and ahead<24 then
+   if ahead>0 and ahead<28 then
     local lateral=(relative-travel*ahead).Magnitude
     if lateral<7 then nearest=math.min(nearest,ahead) end
    end
   end
  end
  return nearest
+end
+
+local function intersectionScale(pos,travel)
+ local scale=1
+ for _,center in ipairs(intersections) do
+  local rel=center-pos
+  local ahead=rel:Dot(travel)
+  local lateral=(rel-travel*ahead).Magnitude
+  if ahead>0 and ahead<52 and lateral<18 then
+   scale=math.min(scale,.48+.52*math.clamp((52-ahead)/52,0,1))
+  elseif (pos-center).Magnitude<20 then
+   scale=math.min(scale,.58)
+  end
+ end
+ return scale
 end
 
 local function setBrakeLights(model,on)
@@ -153,16 +171,18 @@ RunService.Heartbeat:Connect(function(dt)
   end
   if trafficAhead(a,pos,travel)<15 then yieldNow=true end
 
+  local speedScale=intersectionScale(pos,travel)
   a.yielding=yieldNow
   if not yieldNow then
-   a.t+=a.speed*dt/math.max(len,1)
+   a.t+=a.speed*speedScale*dt/math.max(len,1)
    if a.t>=1 then a.t-=1;a.seg=a.seg%#a.route+1;from=a.route[a.seg];to=a.route[a.seg%#a.route+1] end
    pos=from:Lerp(to,a.t)
   end
   local cf=CFrame.lookAt(pos,to)
   a.model:PivotTo(cf)
   a.model:SetAttribute('Yielding',yieldNow)
-  setBrakeLights(a.model,yieldNow)
+  a.model:SetAttribute('IntersectionSpeedScale',speedScale)
+  setBrakeLights(a.model,yieldNow or speedScale<.7)
   setVisible(a.model,playerDist<430 or vehicleDist<430)
  end
 
@@ -179,12 +199,13 @@ RunService.Heartbeat:Connect(function(dt)
  end
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.13')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.14')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
 Workspace:SetAttribute('BecakTrafficVehicleYield','ON')
 Workspace:SetAttribute('BecakTrafficHeadway','ON')
 Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
+Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
 Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.13 ready: becak-aware yield + headway + brake lights')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.14 ready: intersection pacing + becak-aware yield + headway')
