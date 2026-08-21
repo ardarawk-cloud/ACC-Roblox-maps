@@ -91,7 +91,9 @@ RunService.RenderStepped:Connect(function(dt)
     applySafeArea(false)
 end)
 
-Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.28-adaptive-left')
+-- Keep the established publish marker stable while exposing the adaptive implementation separately.
+Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.28')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
