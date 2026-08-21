@@ -111,10 +111,10 @@ local function buildTryOnDescription(item, assetId, humanoid)
     return description
 end
 
-local function fireTryOnTelemetry(typeName)
-    local remote = root:FindFirstChild("Telemetry")
+local function fireTryOnTelemetry(eventName)
+    local remote = root:FindFirstChild("TrackEvent")
     if remote and remote:IsA("RemoteEvent") then
-        pcall(function() remote:FireServer("try_on", typeName or "unknown") end)
+        pcall(function() remote:FireServer(eventName) end)
     end
 end
 
@@ -142,6 +142,7 @@ local function applyTryOn(item)
         local description, reason = buildTryOnDescription(item, assetId, humanoid)
         if not description then
             status.Text = reason or "Try-on unavailable for this item."
+            fireTryOnTelemetry("TRY_ON_FAILED")
             tryOnBusy = false
             return
         end
@@ -157,9 +158,10 @@ local function applyTryOn(item)
         if ok then
             undoTryOn.Visible = true
             status.Text = "Preview applied • use UNDO TRY-ON to restore your join look."
-            fireTryOnTelemetry(assetTypeName(item))
+            fireTryOnTelemetry("TRY_ON_SUCCESS")
         else
             status.Text = "Try-on failed: " .. tostring(err)
+            fireTryOnTelemetry("TRY_ON_FAILED")
         end
         tryOnBusy = false
     end)
@@ -220,4 +222,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Live wearable try-on preview ready")
+print("[BBYAVATAR] Live wearable try-on preview + funnel telemetry ready")
