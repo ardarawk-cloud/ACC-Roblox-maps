@@ -1,4 +1,4 @@
-name: BBYA Basement Drive Audio Inject
+name: BBYA Basement Full Drive Audio Inject
 
 on:
   push:
@@ -9,12 +9,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: bbya-basement-drive-inject
+  group: bbya-basement-drive-full-library
   cancel-in-progress: false
 
 jobs:
   inject:
     runs-on: ubuntu-latest
+    timeout-minutes: 330
     permissions:
       contents: write
     steps:
@@ -31,53 +32,118 @@ jobs:
       - name: Install audio and Drive tools
         shell: bash
         run: |
+          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          python -m pip install --upgrade pip gdown
+          python -m pip install --upgrade pip 'gdown>=6.1.0'
 
-      - name: Pull owner Drive audio and upload to Roblox
+      - name: Snapshot Main Club hard guard
+        id: main_guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}' > /tmp/bbya-main-before.sha
+
+      - name: Pull full owner Drive library and upload to Roblox Basement
         id: inject
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
+          AUDIO_UPLOAD_WORKERS: '5'
+          MAX_NEW_AUDIO_UPLOADS: '0'
         shell: bash
         run: |
-          set +e
+          set -euo pipefail
           python3 scripts/inject-bbya-basement-from-drive.py
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          if [ ! -f deploy-status/bbya-basement-drive-inject.json ]; then
-            mkdir -p deploy-status
-            printf '{"complete":false,"error":"injector exited before writing status","exitCode":%s}\n' "$code" > deploy-status/bbya-basement-drive-inject.json
-          fi
-          exit 0
 
-      - name: Persist injector result
+      - name: Enforce Basement-only target
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$(cat /tmp/bbya-main-before.sha)"
+          after="$(sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}')"
+          test "$before" = "$after"
+          if ! git diff --quiet -- maps/bbya-social-hub/30-club-systems.server.lua; then
+            echo "::error::Main Club file changed during Basement injection."
+            exit 1
+          fi
+          echo "Main Club untouched: $after"
+
+      - name: Persist Basement registry and Asset IDs
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deploy-status/bbya-basement-drive-inject.json
-          if [ -f maps/bbya-social-hub/85-basement-autodj.server.lua ]; then
-            git add maps/bbya-social-hub/85-basement-autodj.server.lua
-          fi
+          git add \
+            maps/bbya-social-hub/85-basement-autodj.server.lua \
+            deploy-status/bbya-basement-drive-inject.json \
+            deploy-status/bbya-basement-drive-registry.json
           if ! git diff --cached --quiet; then
-            git commit -m "Record BBYA Basement Drive audio injection"
+            git commit -m "Expand BBYA Basement owner Drive audio library [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Require completed injection
+      - name: Report injection state
         shell: bash
         run: |
           python3 - <<'PY'
           import json
           p='deploy-status/bbya-basement-drive-inject.json'
           d=json.load(open(p,encoding='utf-8'))
-          if not d.get('complete'):
-              raise SystemExit('Basement audio injection incomplete: '+str(d.get('error') or d.get('tracks')))
-          print('Basement audio injection complete:', d.get('injectedCount'))
+          print('Basement-only:', d.get('target'))
+          print('Discovered:', d.get('discoveredCount'))
+          print('Registered:', d.get('registeredDiscoveredCount'))
+          print('New uploads:', d.get('newlyUploadedCount'))
+          print('Deduplicated:', d.get('deduplicatedCount'))
+          print('Failed:', d.get('failedCount'))
+          print('Remaining:', d.get('remainingCount', 0))
+          print('Complete:', d.get('complete'))
+          print('Main Club untouched:', d.get('mainClubUntouched'))
           PY
 
-# retrigger-after-assets-permission-2026-08-21-1324
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install canonical Roblox serializer
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build BBYA with Basement library
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-basement-library.rbxl
+          test -s /tmp/bbya-basement-library.rbxl
+          ls -lh /tmp/bbya-basement-library.rbxl
+
+      - name: Publish BBYA Basement library live
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-basement-library.rbxl
+        run: node scripts/publish-map.js a-club
+
+      - name: Persist deploy receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy-status/a-club.json
+          cp deploy-status/a-club.json /tmp/a-club-basement-library.json
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/a-club-basement-library.json deploy-status/a-club.json
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add deploy-status/a-club.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BBYA Basement full Drive deploy [skip ci]"
+            git push origin HEAD:main
+          fi
