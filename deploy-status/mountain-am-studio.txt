@@ -1,6 +1,7 @@
 status=PUBLISHED
 secret=AM_STUDIO
+build=v4.1-realistic-scenery
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 3 }
+log=Mountain AM STUDIO publish success { versionNumber: 4 }
