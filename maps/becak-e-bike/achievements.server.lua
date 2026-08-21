@@ -1,6 +1,7 @@
--- BECAK E-BIKE — persistent achievements v1.22
+-- BECAK E-BIKE — persistent achievements v1.23
 -- One-time trip milestones backed by a dedicated Becak-only DataStore.
 -- Rewards are persisted before payout to prevent rejoin farming.
+-- v1.23 exposes live milestone progress for the left-side mission/story phone UI.
 
 local Players = game:GetService('Players')
 local DataStoreService = game:GetService('DataStoreService')
@@ -30,11 +31,30 @@ local function key(player)
     return 'u_'..player.UserId
 end
 
-local function setSummary(player,data)
+local function setSummary(player,awarded)
     local count=0
-    for _,a in ipairs(ACHIEVEMENTS) do if data[a.id] then count+=1 end end
+    local trips=tonumber(player:GetAttribute('BecakTrips')) or 0
+    local nextAchievement=nil
+    for _,a in ipairs(ACHIEVEMENTS) do
+        local unlocked = awarded[a.id] == true or awarded[a.id] ~= nil
+        player:SetAttribute('BecakAchievement_'..a.id..'_Unlocked',unlocked)
+        if unlocked then
+            count+=1
+        elseif not nextAchievement then
+            nextAchievement=a
+        end
+    end
     player:SetAttribute('BecakAchievementsUnlocked',count)
     player:SetAttribute('BecakAchievementsTotal',#ACHIEVEMENTS)
+    if nextAchievement then
+        player:SetAttribute('BecakAchievementNextTitle',nextAchievement.title)
+        player:SetAttribute('BecakAchievementNextTrips',nextAchievement.trips)
+        player:SetAttribute('BecakAchievementNextRemaining',math.max(0,nextAchievement.trips-trips))
+    else
+        player:SetAttribute('BecakAchievementNextTitle','Semua Prestasi Selesai')
+        player:SetAttribute('BecakAchievementNextTrips',trips)
+        player:SetAttribute('BecakAchievementNextRemaining',0)
+    end
 end
 
 local function persistUnlock(player,achievement)
@@ -79,9 +99,9 @@ local function check(player)
             end
             data.awarded[a.id]=true
             if newUnlock then reward(player,a) end
-            setSummary(player,data.awarded)
         end
     end
+    setSummary(player,data.awarded)
     checking[player]=nil
 end
 
@@ -106,8 +126,9 @@ for _,player in ipairs(Players:GetPlayers()) do task.spawn(setup,player) end
 Players.PlayerAdded:Connect(function(player) task.spawn(setup,player) end)
 Players.PlayerRemoving:Connect(function(player) state[player]=nil;checking[player]=nil end)
 
-Workspace:SetAttribute('ACC_BecakAchievements','v1.22')
+Workspace:SetAttribute('ACC_BecakAchievements','v1.23')
 Workspace:SetAttribute('BecakAchievementCount',#ACHIEVEMENTS)
 Workspace:SetAttribute('BecakAchievementsPersistent','ON')
 Workspace:SetAttribute('BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT')
-print('[BECAK E-BIKE] achievements v1.22 ready • '..#ACHIEVEMENTS..' persistent trip milestones')
+Workspace:SetAttribute('BecakAchievementUIProgress','ON')
+print('[BECAK E-BIKE] achievements v1.23 ready • persistent milestones + live UI progress')

@@ -1,4 +1,4 @@
--- BECAK E-BIKE — Daily Contracts + Story Mission UI v1.19
+-- BECAK E-BIKE — Daily Contracts + Story + Achievement UI v1.23
 -- Lightweight mission overlay integrated into the existing left-side driver phone.
 
 local Players = game:GetService('Players')
@@ -60,7 +60,7 @@ stroke.Transparency = .2
 stroke.Parent = panel
 
 label(panel,'MISI & STORY',UDim2.fromOffset(14,8),UDim2.new(1,-60,0,28),16,true,WHITE)
-local summary = label(panel,'Kontrak harian 0/3',UDim2.fromOffset(14,36),UDim2.new(1,-28,0,22),11,false,MUTED)
+local summary = label(panel,'Kontrak 0/3 • Prestasi 0/5',UDim2.fromOffset(14,36),UDim2.new(1,-28,0,22),11,false,MUTED)
 
 local close = Instance.new('TextButton')
 close.Text = '×'
@@ -118,7 +118,7 @@ end
 
 local storyCard = Instance.new('Frame')
 storyCard.Position = UDim2.fromOffset(12,398)
-storyCard.Size = UDim2.new(1,-24,0,116)
+storyCard.Size = UDim2.new(1,-24,0,140)
 storyCard.BackgroundColor3 = Color3.fromRGB(35,25,52)
 storyCard.ZIndex = 81
 storyCard.Parent = panel
@@ -128,6 +128,7 @@ local storyHeader = label(storyCard,'STORY • CHAPTER 1/5',UDim2.fromOffset(12,
 local storyTitle = label(storyCard,'Awal Perjalanan',UDim2.fromOffset(12,27),UDim2.new(1,-24,0,21),14,true,WHITE); storyTitle.ZIndex=82
 local storyRep = label(storyCard,'REPUTASI • Pendatang',UDim2.fromOffset(12,49),UDim2.new(1,-24,0,18),9,true,Color3.fromRGB(124,235,151)); storyRep.ZIndex=82
 local storyObjective = label(storyCard,'Selesaikan trip untuk membangun reputasi.',UDim2.fromOffset(12,66),UDim2.new(1,-24,0,28),9,false,MUTED); storyObjective.ZIndex=82; storyObjective.TextWrapped=true
+local achievementProgress = label(storyCard,'PRESTASI • 0/5 • Berikutnya: Perjalanan Pertama',UDim2.fromOffset(12,94),UDim2.new(1,-24,0,18),9,true,Color3.fromRGB(245,201,92)); achievementProgress.ZIndex=82
 local storyProgress = label(storyCard,'0 / 10 trip',UDim2.new(0,12,1,-22),UDim2.new(1,-24,0,16),9,true,WHITE); storyProgress.ZIndex=82
 
 local storyBarBack = Instance.new('Frame')
@@ -148,7 +149,9 @@ corner(storyBar,3)
 local function refresh()
     local completed = tonumber(player:GetAttribute('DailyContractsCompleted')) or 0
     local total = tonumber(player:GetAttribute('DailyContractsTotal')) or 3
-    summary.Text = string.format('Kontrak harian %d/%d',completed,total)
+    local achievementsUnlocked = tonumber(player:GetAttribute('BecakAchievementsUnlocked')) or 0
+    local achievementsTotal = tonumber(player:GetAttribute('BecakAchievementsTotal')) or 5
+    summary.Text = string.format('Kontrak %d/%d • Prestasi %d/%d',completed,total,achievementsUnlocked,achievementsTotal)
     for _,d in ipairs(defs) do
         local p = tonumber(player:GetAttribute('DailyContract_'..d.id..'_Progress')) or 0
         local g = math.max(1,tonumber(player:GetAttribute('DailyContract_'..d.id..'_Goal')) or 1)
@@ -178,6 +181,14 @@ local function refresh()
     storyObjective.Text = objective
     storyProgress.Text = complete and 'STORY UTAMA SELESAI ✓' or string.format('%d / %d trip',trips,nextGoal)
     storyBar.Size = UDim2.new(storyRatio,0,1,0)
+
+    local nextAchievement = tostring(player:GetAttribute('BecakAchievementNextTitle') or 'Perjalanan Pertama')
+    local remaining = tonumber(player:GetAttribute('BecakAchievementNextRemaining')) or 0
+    if achievementsUnlocked >= achievementsTotal and achievementsTotal > 0 then
+        achievementProgress.Text = string.format('PRESTASI • %d/%d • SEMUA SELESAI ✓',achievementsUnlocked,achievementsTotal)
+    else
+        achievementProgress.Text = string.format('PRESTASI • %d/%d • %s (%d trip lagi)',achievementsUnlocked,achievementsTotal,nextAchievement,remaining)
+    end
 end
 
 for _,d in ipairs(defs) do
@@ -185,7 +196,7 @@ for _,d in ipairs(defs) do
         player:GetAttributeChangedSignal('DailyContract_'..d.id..'_'..suffix):Connect(refresh)
     end
 end
-for _,attr in ipairs({'DailyContractsCompleted','DailyContractsTotal','BecakTrips','StoryChapter','StoryChapterTitle','StoryReputation','StoryObjective','StoryProgressStart','StoryNextTripGoal','StoryMaxChapter','StoryComplete'}) do
+for _,attr in ipairs({'DailyContractsCompleted','DailyContractsTotal','BecakTrips','StoryChapter','StoryChapterTitle','StoryReputation','StoryObjective','StoryProgressStart','StoryNextTripGoal','StoryMaxChapter','StoryComplete','BecakAchievementsUnlocked','BecakAchievementsTotal','BecakAchievementNextTitle','BecakAchievementNextRemaining'}) do
     player:GetAttributeChangedSignal(attr):Connect(refresh)
 end
 
@@ -212,7 +223,8 @@ phoneGui.DescendantAdded:Connect(function(obj)
 end)
 refresh()
 
-Workspace:SetAttribute('ACC_BecakDailyContractsUI','v1.19')
+Workspace:SetAttribute('ACC_BecakDailyContractsUI','v1.23')
 Workspace:SetAttribute('BecakMissionUIPhoneIntegrated','ON')
 Workspace:SetAttribute('BecakStoryUIIntegrated','ON')
-print('[BECAK E-BIKE] mission + story UI v1.19 ready')
+Workspace:SetAttribute('BecakAchievementUIIntegrated','ON')
+print('[BECAK E-BIKE] mission + story + achievement UI v1.23 ready')
