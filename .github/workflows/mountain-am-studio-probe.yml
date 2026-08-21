@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v4.2-scenic-lowlands-20260822
+# trigger: mountain-v4.3-expedition-20260822
 
 on:
   push:
@@ -35,7 +35,11 @@ jobs:
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'v4.2-scenic-lowlands' maps/mountain-social/place.rbxlx
+          grep -q 'v4.3-expedition' maps/mountain-social/place.rbxlx
+          grep -q 'LowerForestReady' maps/mountain-social/place.rbxlx
+          grep -q 'RiverCrossingReady' maps/mountain-social/place.rbxlx
+          grep -q 'MidCampReady' maps/mountain-social/place.rbxlx
+          grep -q 'CliffZoneReady' maps/mountain-social/place.rbxlx
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
       - name: Publish mountain with AM STUDIO
@@ -52,7 +56,7 @@ jobs:
           {
             if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
             echo 'secret=AM_STUDIO'
-            echo 'build=v4.2-scenic-lowlands'
+            echo 'build=v4.3-expedition'
             echo 'universeId=4187755690'
             echo 'placeId=11832985967'
             echo "exitCode=$code"
@@ -66,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v4.2-scenic-lowlands\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v4.3-expedition\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
