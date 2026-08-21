@@ -52,7 +52,33 @@ jobs:
               raise SystemExit('Unable to locate source priority block')
           PY
 
+      - name: Detect Roblox creator moderation block
+        id: moderation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib
+          p=pathlib.Path('deploy-status/bbya-basement-drive-inject.json')
+          blocked=False
+          failed=0
+          if p.exists():
+              try:
+                  d=json.loads(p.read_text(encoding='utf-8'))
+                  rows=d.get('tracks') or []
+                  failures=[r for r in rows if r.get('result')=='failed']
+                  failed=len(failures)
+                  messages=' '.join(str(r.get('createResponse') or r.get('error') or '') for r in failures)
+                  blocked=failed >= 5 and 'User is moderated' in messages
+              except Exception as exc:
+                  print('Moderation detector warning:', exc)
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
+              f.write('blocked=' + ('true' if blocked else 'false') + '\n')
+          print('Roblox creator moderation blocked=',blocked,'failedRows=',failed)
+          PY
+
       - name: Upload checkpoint batches and route playlists
+        if: ${{ steps.moderation.outputs.blocked != 'true' || contains(github.event.pull_request.title, 'FORCE') }}
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           ROBLOX_CREATOR_USER_ID: '8878884630'
@@ -63,48 +89,39 @@ jobs:
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
-
           for batch in $(seq 1 30); do
             echo "===== BATCH ${batch} ====="
             export MAX_NEW_AUDIO_UPLOADS=20
             python3 scripts/run-bbya-audio-batch.py
             python3 scripts/route-bbya-drive-audio.py
-
-            git add -- \
-              scripts/inject-bbya-basement-from-drive.py \
-              maps/bbya-social-hub/30-club-systems.server.lua \
-              maps/bbya-social-hub/85-basement-autodj.server.lua \
-              deploy-status/bbya-basement-drive-inject.json \
-              deploy-status/bbya-basement-drive-registry.json \
-              deploy-status/bbya-audio-routing.json
+            git add -- scripts/inject-bbya-basement-from-drive.py maps/bbya-social-hub/30-club-systems.server.lua maps/bbya-social-hub/85-basement-autodj.server.lua deploy-status/bbya-basement-drive-inject.json deploy-status/bbya-basement-drive-registry.json deploy-status/bbya-audio-routing.json
             if ! git diff --cached --quiet; then
               git commit -m "Checkpoint BBYA Drive audio batch ${batch}: Progressive Main, others Basement [skip ci]"
               git pull --rebase origin main
               git push origin HEAD:main
             fi
-
             python3 - <<'PY'
           import json
-          i=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
-          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
-          print('Error=',i.get('error'))
-          print('Discovered=',i.get('discoveredCount'))
-          print('Registered=',i.get('registeredDiscoveredCount'))
-          print('Remaining=',i.get('remainingCount'))
-          print('Quota=',i.get('quotaOrRateLimitSeen'))
-          print('MainProgressive=',r.get('mainProgressiveCount'))
-          print('BasementDrive=',r.get('basementDriveCount'))
-          print('RoutingValid=',r.get('valid'))
-          if i.get('error'):
-              raise SystemExit('Injector error: '+str(i.get('error')))
+          d=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
+          failures=[r for r in (d.get('tracks') or []) if r.get('result')=='failed']
+          messages=' '.join(str(r.get('createResponse') or r.get('error') or '') for r in failures)
+          if len(failures)>=5 and 'User is moderated' in messages:
+              raise SystemExit('STOP_USER_MODERATED')
+          if d.get('error'):
+              raise SystemExit('Injector error: '+str(d.get('error')))
           PY
-
             remaining="$(python3 -c "import json; d=json.load(open('deploy-status/bbya-basement-drive-inject.json')); print(int(d.get('remainingCount',0) or 0))")"
             quota="$(python3 -c "import json; d=json.load(open('deploy-status/bbya-basement-drive-inject.json')); print('1' if d.get('quotaOrRateLimitSeen') else '0')")"
-            if [ "$remaining" -eq 0 ] || [ "$quota" -eq 1 ]; then
-              break
-            fi
+            if [ "$remaining" -eq 0 ] || [ "$quota" -eq 1 ]; then break; fi
           done
+
+      - name: Preserve registered IDs while creator is moderated
+        if: ${{ steps.moderation.outputs.blocked == 'true' && !contains(github.event.pull_request.title, 'FORCE') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Roblox Create Asset is blocked by account moderation; skipping new uploads.'
+          python3 scripts/route-bbya-drive-audio.py
 
       - name: Verify routed playlists
         shell: bash
@@ -117,6 +134,19 @@ jobs:
           assert r.get('valid'), r
           print(json.dumps(r,indent=2))
           PY
+
+      - name: Persist routing before build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- maps/bbya-social-hub/30-club-systems.server.lua maps/bbya-social-hub/85-basement-autodj.server.lua deploy-status/bbya-audio-routing.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Preserve BBYA routed audio during Roblox moderation [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - name: Install Rojo
         shell: bash
