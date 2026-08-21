@@ -1,6 +1,7 @@
--- BBYAVATAR persistent Recent Views v1.
+-- BBYAVATAR persistent Recent Views v2.
 -- Stores only Roblox catalog asset IDs keyed by UserId. This is intentionally minimal:
 -- no item names, creator metadata, prices, search terms, chat text, or external identifiers.
+-- v2 adds an explicit CLEAR action so players can delete this history at any time.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -9,6 +10,7 @@ local STORE_NAME = "BBYAVATAR_RecentViews_v1"
 local MAX_RECENT = 12
 local LOAD_COOLDOWN = 1.0
 local TOUCH_COOLDOWN = 0.45
+local CLEAR_COOLDOWN = 2.0
 local MAX_ASSET_ID = 9007199254740991
 
 local store = DataStoreService:GetDataStore(STORE_NAME)
@@ -62,12 +64,21 @@ local function load(player)
     return cloneIds(ids), true, nil, false
 end
 
+local function beginMutation(userId)
+    if mutationInFlight[userId] then return false end
+    mutationInFlight[userId] = true
+    return true
+end
+
+local function finishMutation(userId)
+    mutationInFlight[userId] = nil
+end
+
 local function touch(player, assetId)
     local id = cleanId(assetId)
     if not id then return false, cloneIds(cache[player.UserId] or {}), "INVALID_ASSET_ID" end
     local userId = player.UserId
-    if mutationInFlight[userId] then return false, cloneIds(cache[userId] or {}), "THROTTLED" end
-    mutationInFlight[userId] = true
+    if not beginMutation(userId) then return false, cloneIds(cache[userId] or {}), "THROTTLED" end
 
     local updated
     local ok = pcall(function()
@@ -82,7 +93,7 @@ local function touch(player, assetId)
             return {schema = 1, ids = ids}
         end)
     end)
-    mutationInFlight[userId] = nil
+    finishMutation(userId)
 
     if not ok or not updated then
         return false, cloneIds(cache[userId] or {}), "DATASTORE_WRITE_FAILED"
@@ -91,12 +102,32 @@ local function touch(player, assetId)
     return true, cloneIds(cache[userId])
 end
 
+local function clear(player)
+    local userId = player.UserId
+    if not beginMutation(userId) then return false, cloneIds(cache[userId] or {}), "THROTTLED" end
+
+    local ok = pcall(function()
+        store:UpdateAsync(keyFor(player), function()
+            return {schema = 1, ids = {}}
+        end)
+    end)
+    finishMutation(userId)
+
+    if not ok then
+        return false, cloneIds(cache[userId] or {}), "DATASTORE_WRITE_FAILED"
+    end
+    cache[userId] = {}
+    return true, {}
+end
+
 local function requestGap(action)
-    return action == "LOAD" and LOAD_COOLDOWN or TOUCH_COOLDOWN
+    if action == "LOAD" then return LOAD_COOLDOWN end
+    if action == "CLEAR" then return CLEAR_COOLDOWN end
+    return TOUCH_COOLDOWN
 end
 
 request.OnServerInvoke = function(player, action, assetId)
-    if typeof(action) ~= "string" or #action > 8 or (action ~= "LOAD" and action ~= "TOUCH") then
+    if typeof(action) ~= "string" or #action > 8 or (action ~= "LOAD" and action ~= "TOUCH" and action ~= "CLEAR") then
         return {ok = false, code = "INVALID_ACTION", ids = {}}
     end
 
@@ -114,6 +145,11 @@ request.OnServerInvoke = function(player, action, assetId)
         return {ok = persisted, persisted = persisted, ids = ids, code = code, cacheHit = cacheHit == true}
     end
 
+    if action == "CLEAR" then
+        local ok, ids, code = clear(player)
+        return {ok = ok, persisted = ok, ids = ids or {}, code = code}
+    end
+
     local ok, ids, code = touch(player, assetId)
     return {ok = ok, persisted = ok, ids = ids or {}, code = code}
 end
@@ -127,5 +163,6 @@ end)
 
 root:SetAttribute("RecentViewsPersistence", "DATASTORE_V1_ASSET_IDS_ONLY")
 root:SetAttribute("RecentViewsMax", MAX_RECENT)
-root:SetAttribute("RecentViewsPrivacy", "USERID_KEY_PLUS_ASSET_IDS_ONLY")
-print("[BBYAVATAR] Persistent Recent Views v1 ready")
+root:SetAttribute("RecentViewsPrivacy", "USERID_KEY_PLUS_ASSET_IDS_ONLY_CLEARABLE")
+root:SetAttribute("RecentViewsUserClear", true)
+print("[BBYAVATAR] Persistent Recent Views v2 + user clear ready")
