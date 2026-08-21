@@ -1,6 +1,6 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.11
--- Dedicated to maps/becak-e-bike. Mobile-first ambient AI: anchored/non-colliding actors,
--- bounded counts, deterministic routes, distance culling, and no cross-project dependencies.
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.12
+-- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player-aware yielding,
+-- bounded counts, deterministic routes, distance culling, and adaptive simulation cadence.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -59,7 +59,7 @@ local actors={}
 for i=1,6 do
  local route=routes[((i-1)%#routes)+1]
  local m=makeVehicle('Traffic_'..i,colors[((i-1)%#colors)+1])
- actors[#actors+1]={model=m,route=route,seg=((i-1)%#route)+1,t=(i*.13)%1,speed=18+(i%3)*3}
+ actors[#actors+1]={model=m,route=route,seg=((i-1)%#route)+1,t=(i*.13)%1,speed=18+(i%3)*3,yielding=false}
 end
 local walkers={}
 for i=1,8 do
@@ -68,13 +68,17 @@ for i=1,8 do
  walkers[#walkers+1]={model=m,a=route[1],b=route[2],t=(i*.17)%1,dir=(i%2==0) and 1 or -1,speed=4+(i%2)}
 end
 
-local function nearestPlayerDistance(pos)
+local function nearestPlayerInfo(pos)
  local best=math.huge
+ local bestHrp=nil
  for _,plr in ipairs(Players:GetPlayers()) do
   local ch=plr.Character;local hrp=ch and ch:FindFirstChild('HumanoidRootPart')
-  if hrp then best=math.min(best,(hrp.Position-pos).Magnitude) end
+  if hrp then
+   local d=(hrp.Position-pos).Magnitude
+   if d<best then best=d;bestHrp=hrp end
+  end
  end
- return best
+ return best,bestHrp
 end
 local function setVisible(model,visible)
  if model:GetAttribute('Visible')==visible then return end
@@ -85,24 +89,49 @@ end
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt
- if accum<.05 then return end -- cap ambient simulation near 20 Hz
- dt=math.min(accum,.12);accum=0
+ local playerCount=#Players:GetPlayers()
+ local targetStep=playerCount>0 and .05 or .25 -- 20 Hz while occupied, 4 Hz when server is empty
+ if accum<targetStep then return end
+ dt=math.min(accum,.25);accum=0
+
  for _,a in ipairs(actors) do
   local from=a.route[a.seg];local to=a.route[a.seg%#a.route+1];local len=(to-from).Magnitude
-  a.t+=a.speed*dt/math.max(len,1)
-  if a.t>=1 then a.t-=1;a.seg=a.seg%#a.route+1;from=a.route[a.seg];to=a.route[a.seg%#a.route+1] end
-  local pos=from:Lerp(to,a.t);local cf=CFrame.lookAt(pos,to)
-  a.model:PivotTo(cf);setVisible(a.model,nearestPlayerDistance(pos)<430)
+  local pos=from:Lerp(to,a.t)
+  local playerDist,hrp=nearestPlayerInfo(pos)
+  local yieldNow=false
+  if hrp and playerDist<28 then
+   local travel=(to-from).Unit
+   local relative=hrp.Position-pos
+   local ahead=relative:Dot(travel)
+   if ahead>-6 and ahead<24 then yieldNow=true end
+  end
+  a.yielding=yieldNow
+  if not yieldNow then
+   a.t+=a.speed*dt/math.max(len,1)
+   if a.t>=1 then a.t-=1;a.seg=a.seg%#a.route+1;from=a.route[a.seg];to=a.route[a.seg%#a.route+1] end
+   pos=from:Lerp(to,a.t)
+  end
+  local cf=CFrame.lookAt(pos,to)
+  a.model:PivotTo(cf)
+  a.model:SetAttribute('Yielding',yieldNow)
+  setVisible(a.model,playerDist<430)
  end
+
  for _,w in ipairs(walkers) do
-  local len=(w.b-w.a).Magnitude;w.t+=w.dir*w.speed*dt/math.max(len,1)
+  local len=(w.b-w.a).Magnitude
+  local pos=w.a:Lerp(w.b,w.t)
+  local playerDist=nearestPlayerInfo(pos)
+  local walkScale=playerDist<7 and 0 or 1 -- pedestrians pause instead of clipping through the player
+  w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
   if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
-  local pos=w.a:Lerp(w.b,w.t);local target=w.dir>0 and w.b or w.a
-  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,nearestPlayerDistance(pos)<240)
+  pos=w.a:Lerp(w.b,w.t);local target=w.dir>0 and w.b or w.a
+  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,playerDist<240)
  end
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.11')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.12')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.11 ready')
+Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
+Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.12 ready: player yield + adaptive tick')
