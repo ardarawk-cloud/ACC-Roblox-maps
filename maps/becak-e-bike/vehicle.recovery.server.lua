@@ -1,5 +1,5 @@
--- BECAK E-BIKE — Vehicle Recovery Assist v1.24
--- Automatic owner-only self-righting plus low-curb stall assist.
+-- BECAK E-BIKE — Vehicle Recovery Assist v1.25
+-- Automatic owner-only self-righting, low-curb stall assist, and hill-start anti-rollback.
 -- Designed to improve mobile drivability without changing the core VehicleSeat controller.
 
 local Players = game:GetService('Players')
@@ -23,6 +23,15 @@ local THROTTLE_THRESHOLD = 0.55
 local RECOVERY_COOLDOWN = 6
 local ASSIST_FORWARD_SPEED = 7
 local ASSIST_UP_SPEED = 5
+
+-- Hill-start assist is intentionally conservative: it only fights rollback while the owner
+-- is actively requesting forward throttle at very low speed. This avoids changing normal handling.
+local HILL_CHECK_DISTANCE = 5.5
+local HILL_MIN_RISE = 0.55
+local HILL_MAX_SPEED = 5.0
+local ROLLBACK_TRIGGER_SPEED = 0.7
+local HILL_ASSIST_FORWARD_SPEED = 4.2
+local HILL_ASSIST_COOLDOWN = 1.1
 
 local states = {}
 local rayParams = RaycastParams.new()
@@ -92,6 +101,35 @@ local function tryLowCurbAssist(model, chassis, player, state)
     return true
 end
 
+local function tryHillStartAssist(model, chassis, seat, state)
+    if seat.ThrottleFloat < THROTTLE_THRESHOLD then return false end
+
+    local look = safeLook(chassis)
+    local velocity = chassis.AssemblyLinearVelocity
+    local horizontalVelocity = horizontal(velocity)
+    if horizontalVelocity.Magnitude > HILL_MAX_SPEED then return false end
+
+    -- Only activate when the vehicle is actually rolling backwards relative to its facing direction.
+    local signedForwardSpeed = horizontalVelocity:Dot(look)
+    if signedForwardSpeed > -ROLLBACK_TRIGGER_SPEED then return false end
+
+    rayParams.FilterDescendantsInstances = {model}
+    local down = Vector3.new(0, -8, 0)
+    local hereHit = Workspace:Raycast(chassis.Position + Vector3.new(0, 2.0, 0), down, rayParams)
+    local aheadHit = Workspace:Raycast(chassis.Position + look * HILL_CHECK_DISTANCE + Vector3.new(0, 3.5, 0), down, rayParams)
+    if not hereHit or not aheadHit then return false end
+
+    local rise = aheadHit.Position.Y - hereHit.Position.Y
+    if rise < HILL_MIN_RISE then return false end
+
+    -- Preserve vertical motion, cancel rollback, and give a small forward start impulse.
+    chassis.AssemblyLinearVelocity = look * HILL_ASSIST_FORWARD_SPEED + Vector3.new(0, velocity.Y, 0)
+    state.cooldownUntil = os.clock() + HILL_ASSIST_COOLDOWN
+    model:SetAttribute('HillStartAssistCount', (tonumber(model:GetAttribute('HillStartAssistCount')) or 0) + 1)
+    model:SetAttribute('LastRecoveryMode', 'HILL_START_ASSIST')
+    return true
+end
+
 local function stepVehicle(model, dt)
     if not model:IsA('Model') or not model.Parent then states[model] = nil return end
     local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
@@ -126,6 +164,13 @@ local function stepVehicle(model, dt)
         state.flipSince = nil
     end
 
+    -- Address the common mobile case where a loaded becak rolls backward on a ramp/slope
+    -- even though the player is holding forward throttle.
+    if tryHillStartAssist(model, chassis, seat, state) then
+        state.stallSince = nil
+        return
+    end
+
     local throttle = math.abs(seat.ThrottleFloat)
     local speed = horizontal(chassis.AssemblyLinearVelocity).Magnitude
     if throttle >= THROTTLE_THRESHOLD and speed <= STALL_SPEED then
@@ -154,8 +199,9 @@ end)
 
 vehicles.ChildRemoved:Connect(function(model) states[model]=nil end)
 
-Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.24')
+Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.25')
 Workspace:SetAttribute('BecakSelfRighting','ON')
 Workspace:SetAttribute('BecakLowCurbAssist','ON')
+Workspace:SetAttribute('BecakHillStartAssist','ON')
 Workspace:SetAttribute('BecakRecoveryTickHz',10)
-print('[BECAK E-BIKE] vehicle recovery v1.24 ready • self-righting + low-curb stall assist')
+print('[BECAK E-BIKE] vehicle recovery v1.25 ready • self-righting + low-curb + hill-start anti-rollback')
