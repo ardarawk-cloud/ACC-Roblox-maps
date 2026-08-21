@@ -11,12 +11,11 @@ p("VIPNorth",Vector3.new(120,1,20),CFrame.new(0,24.5,34),C.floor,Enum.Material.S
 p("VIPSouth",Vector3.new(120,1,18),CFrame.new(0,24.5,-36),C.floor,Enum.Material.Slate,0,vip)
 p("VIPWest",Vector3.new(22,1,52),CFrame.new(-49,24.5,-1),C.floor,Enum.Material.Slate,0,vip)
 p("VIPEast",Vector3.new(22,1,52),CFrame.new(49,24.5,-1),C.floor,Enum.Material.Slate,0,vip)
-for _,z in ipairs({-26,25}) do neon("BalconyRailZ"..z,Vector3.new(78,.22,.22),CFrame.new(0,28,z),C.pink,vip) end
-for _,x in ipairs({-38,38}) do neon("BalconyRailX"..x,Vector3.new(.22,.22,50),CFrame.new(x,28,0),C.pink,vip) end
+-- VIP inner-edge safety neon is owned by the late precise floor-neon pass.
+-- Do not spawn the old floating BalconyRail / QueenCrown neon here.
 p("VIPLoungeFloor",Vector3.new(30,.4,26),CFrame.new(-43,25,27),C.floor,Enum.Material.Slate,0,vip)
 p("VIPLoungeBack",Vector3.new(30,10,1),CFrame.new(-43,30,40),C.wall,Enum.Material.Metal,0,vip)
 p("QueenSkybox",Vector3.new(26,10,16),CFrame.new(-43,30,10),C.wall,Enum.Material.Metal,0,vip)
-neon("QueenCrownLine",Vector3.new(16,.25,.25),CFrame.new(-43,34,1.8),C.pink,vip)
 p("VIPBalcony",Vector3.new(22,.5,42),CFrame.new(46,25,2),C.floor,Enum.Material.Slate,0,vip)
 for i,z in ipairs({17,29,39}) do p("PrivateRoom"..i,Vector3.new(20,9,10),CFrame.new(48,29.5,z),C.wall,Enum.Material.Metal,0,vip) end
 local circ=zone("VerticalCirculation")
