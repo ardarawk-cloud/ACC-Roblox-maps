@@ -1,4 +1,5 @@
 name: Mountain AM STUDIO Publish
+# trigger: mountain-v4-long-journey-20260822
 
 on:
   push:
@@ -30,7 +31,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sed -i 's/10744139279/4187755690/g; s/82661754996018/11832985967/g' scripts/inject-mountain.js
           node scripts/inject-mountain.js mountain-social
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
