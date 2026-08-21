@@ -1,0 +1,31 @@
+name: Mountain AM STUDIO Publish Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/mountain-am-studio-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load mountain test source
+        shell: bash
+        run: |
+          git fetch origin agent/mountain-master-v3
+          git checkout origin/agent/mountain-master-v3 -- maps/mountain-social/place.rbxlx maps/registry.json scripts/publish-mountain-closed-test.js
+
+      - name: Publish mountain test
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: node scripts/publish-mountain-closed-test.js
