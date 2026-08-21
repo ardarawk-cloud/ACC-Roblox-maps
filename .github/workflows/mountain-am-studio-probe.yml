@@ -7,6 +7,9 @@ on:
       - '.github/workflows/mountain-am-studio-probe.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -35,10 +38,47 @@ jobs:
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
       - name: Publish mountain with AM STUDIO
+        id: publish
+        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
         shell: bash
         run: |
+          set +e
+          node scripts/publish-mountain-closed-test.js > /tmp/mountain-publish.log 2>&1
+          code=$?
+          set -e
+          {
+            if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
+            echo 'secret=AM_STUDIO'
+            echo 'universeId=4187755690'
+            echo 'placeId=11832985967'
+            echo "exitCode=$code"
+            tail -n 12 /tmp/mountain-publish.log | sed 's/^/log=/'
+          } > /tmp/mountain-am-studio.txt
+          cat /tmp/mountain-publish.log || true
+          exit "$code"
+
+      - name: Persist publish receipt
+        if: always()
+        shell: bash
+        run: |
           set -euo pipefail
-          test -n "$ROBLOX_API_KEY"
-          node scripts/publish-mountain-closed-test.js
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/mountain-am-studio.txt deploy-status/mountain-am-studio.txt
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- deploy-status/mountain-am-studio.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record AM STUDIO mountain publish receipt [skip ci]'
+            git push origin HEAD:main
+          fi
+
+      - name: Enforce publish success
+        if: always()
+        shell: bash
+        run: grep -q '^status=PUBLISHED$' /tmp/mountain-am-studio.txt
