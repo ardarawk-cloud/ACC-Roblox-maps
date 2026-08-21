@@ -1,10 +1,13 @@
--- BBYAVATAR session Saved Picks shortlist.
--- Keeps a lightweight client-only shortlist so users can compare items before saving an outfit or buying.
--- Nothing here persists after the player leaves; persistent final looks remain Roblox-native saved outfits.
+-- BBYAVATAR Saved Picks shortlist with privacy-safe cloud sync.
+-- Server persistence stores only Roblox asset IDs. Catalog metadata remains transient on the client.
+-- If DataStore access is temporarily unavailable, the shortlist gracefully falls back to session-only behavior.
 
 local savedPicks = {}
 local savedPickOrder = {}
 local MAX_SAVED_PICKS = 24
+local picksRemote = root:FindFirstChild("SavedPicksRequest")
+local picksCloudReady = picksRemote and picksRemote:IsA("RemoteFunction") or false
+local picksLoading = false
 
 local function picksTrack(eventName)
     local remote = root:FindFirstChild("TrackEvent")
@@ -17,36 +20,138 @@ local function pickId(item)
     return tonumber(item and (item.Id or item.AssetId or item.id))
 end
 
+local function cloudRequest(action, id)
+    if not picksCloudReady then return false, nil, "NO_REMOTE" end
+    local ok, response = pcall(function()
+        return picksRemote:InvokeServer(action, id)
+    end)
+    if not ok or typeof(response) ~= "table" then return false, nil, "REMOTE_FAILED" end
+    return response.ok == true, response, response.code
+end
+
+local function addLocalPick(item)
+    local id = pickId(item)
+    if not id or savedPicks[id] then return false end
+    if #savedPickOrder >= MAX_SAVED_PICKS then return false end
+    savedPicks[id] = {
+        Id = id,
+        AssetId = id,
+        Name = item.Name or item.name or ("Catalog Item " .. tostring(id)),
+        Price = item.Price or item.LowestPrice or item.price,
+        ItemType = item.ItemType or item.itemType,
+        AssetType = item.AssetType or item.assetType,
+    }
+    table.insert(savedPickOrder, id)
+    return true
+end
+
+local function hydratePick(id)
+    local item = savedPicks[id]
+    if not item then return end
+    local ok, info = pcall(function()
+        return MarketplaceService:GetProductInfo(id, Enum.InfoType.Asset)
+    end)
+    if not ok or typeof(info) ~= "table" or not savedPicks[id] then return end
+    item.Name = info.Name or item.Name
+    item.Price = info.PriceInRobux or item.Price
+    item.AssetType = info.AssetTypeId or item.AssetType
+end
+
+local function replaceFromCloud(ids)
+    if typeof(ids) ~= "table" then return end
+    savedPicks = {}
+    savedPickOrder = {}
+    for _, rawId in ipairs(ids) do
+        local id = tonumber(rawId)
+        if id and id > 0 and not savedPicks[id] and #savedPickOrder < MAX_SAVED_PICKS then
+            savedPicks[id] = {Id = id, AssetId = id, Name = "Loading catalog item…"}
+            table.insert(savedPickOrder, id)
+        end
+    end
+    for _, id in ipairs(savedPickOrder) do task.spawn(hydratePick, id) end
+end
+
+local function loadCloudPicks()
+    if picksLoading or not picksCloudReady then return end
+    picksLoading = true
+    task.spawn(function()
+        local ok, response = cloudRequest("LOAD")
+        if ok and response then
+            replaceFromCloud(response.ids)
+            picksTrack("PICK_CLOUD_LOAD")
+        else
+            picksCloudReady = false
+        end
+        picksLoading = false
+    end)
+end
+
 local function savePick(item)
     local id = pickId(item)
     if not id then return false, "This catalog item cannot be shortlisted." end
     if savedPicks[id] then return false, "Already in Saved Picks." end
     if #savedPickOrder >= MAX_SAVED_PICKS then return false, "Saved Picks is full • remove one before adding another." end
 
-    savedPicks[id] = {
-        Id = id,
-        AssetId = id,
-        Name = item.Name or item.name or "Catalog Item",
-        Price = item.Price or item.LowestPrice or item.price,
-        ItemType = item.ItemType or item.itemType,
-        AssetType = item.AssetType or item.assetType,
-    }
-    table.insert(savedPickOrder, id)
+    local persisted = false
+    if picksCloudReady then
+        local ok, response, code = cloudRequest("ADD", id)
+        if ok and response then
+            persisted = true
+            if typeof(response.ids) == "table" then
+                -- Preserve current metadata while honoring authoritative order from the server.
+                local previous = savedPicks
+                local previousOrder = savedPickOrder
+                savedPicks = {}
+                savedPickOrder = {}
+                for _, cloudId in ipairs(response.ids) do
+                    cloudId = tonumber(cloudId)
+                    if cloudId and #savedPickOrder < MAX_SAVED_PICKS then
+                        savedPicks[cloudId] = previous[cloudId] or {Id = cloudId, AssetId = cloudId, Name = "Loading catalog item…"}
+                        table.insert(savedPickOrder, cloudId)
+                    end
+                end
+            end
+        elseif code ~= "THROTTLED" then
+            picksCloudReady = false
+        end
+    end
+
+    if not savedPicks[id] then addLocalPick(item) else
+        local existing = savedPicks[id]
+        existing.Name = item.Name or item.name or existing.Name
+        existing.Price = item.Price or item.LowestPrice or item.price or existing.Price
+        existing.ItemType = item.ItemType or item.itemType or existing.ItemType
+        existing.AssetType = item.AssetType or item.assetType or existing.AssetType
+    end
+
     picksTrack("PICK_SAVE")
-    return true, "Saved to Picks • " .. tostring(#savedPickOrder) .. "/" .. tostring(MAX_SAVED_PICKS)
+    if persisted then
+        return true, "Saved to Picks • synced across sessions • " .. tostring(#savedPickOrder) .. "/" .. tostring(MAX_SAVED_PICKS)
+    end
+    return true, "Saved for this session • cloud sync unavailable • " .. tostring(#savedPickOrder) .. "/" .. tostring(MAX_SAVED_PICKS)
 end
 
 local function removePick(id)
     id = tonumber(id)
-    if not id or not savedPicks[id] then return end
-    savedPicks[id] = nil
-    for index, value in ipairs(savedPickOrder) do
-        if value == id then
-            table.remove(savedPickOrder, index)
-            break
+    if not id or not savedPicks[id] then return false, "Pick not found." end
+
+    local persisted = false
+    if picksCloudReady then
+        local ok, response, code = cloudRequest("REMOVE", id)
+        if ok and response then
+            persisted = true
+        elseif code ~= "THROTTLED" then
+            picksCloudReady = false
         end
     end
+
+    savedPicks[id] = nil
+    for index, value in ipairs(savedPickOrder) do
+        if value == id then table.remove(savedPickOrder, index) break end
+    end
     picksTrack("PICK_REMOVE")
+    if persisted then return true, "Removed from Saved Picks and cloud sync." end
+    return true, "Removed for this session • cloud sync unavailable."
 end
 
 local basePickCatalogCard = catalogCard
@@ -74,6 +179,7 @@ catalogCard = function(parent, item)
             status.Text = "Already in Saved Picks. Open PICKS to review it."
             return
         end
+        status.Text = "Saving pick…"
         local ok, message = savePick(item)
         status.Text = message
         if ok then
@@ -104,7 +210,7 @@ local function renderSavedPicks()
     sub.Position = UDim2.fromOffset(0, 37)
     sub.Size = UDim2.new(1, 0, 0, 30)
     sub.Font = Enum.Font.Gotham
-    sub.Text = "Shortlist while you browse • session only • final outfits stay in Roblox Wardrobe"
+    sub.Text = picksCloudReady and "Shortlist while you browse • synced across sessions • final outfits stay in Roblox Wardrobe" or "Shortlist while you browse • session fallback • final outfits stay in Roblox Wardrobe"
     sub.TextColor3 = Color3.fromRGB(156, 162, 182)
     sub.TextSize = 11
     sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -134,7 +240,7 @@ local function renderSavedPicks()
         empty.TextSize = 14
         empty.Parent = list
         Instance.new("UICorner", empty).CornerRadius = UDim.new(0, 12)
-        status.Text = "Saved Picks is empty."
+        status.Text = picksLoading and "Syncing Saved Picks…" or "Saved Picks is empty."
         return
     end
 
@@ -191,8 +297,9 @@ local function renderSavedPicks()
             remove.Parent = card
             Instance.new("UICorner", remove).CornerRadius = UDim.new(0, 10)
             remove.Activated:Connect(function()
-                removePick(id)
-                status.Text = "Removed from Saved Picks."
+                status.Text = "Removing pick…"
+                local _, message = removePick(id)
+                status.Text = message
                 renderSavedPicks()
             end)
 
@@ -213,7 +320,7 @@ local function renderSavedPicks()
         end
     end
 
-    status.Text = tostring(#savedPickOrder) .. " Saved Picks • shortlist resets when you leave"
+    status.Text = tostring(#savedPickOrder) .. " Saved Picks • " .. (picksCloudReady and "cloud sync active" or "session fallback")
 end
 
 renderers.PICKS = renderSavedPicks
@@ -230,4 +337,5 @@ picksTab.Parent = tabs
 Instance.new("UICorner", picksTab).CornerRadius = UDim.new(0, 10)
 picksTab.Activated:Connect(function() selectTab("PICKS") end)
 
-print("[BBYAVATAR] Session Saved Picks shortlist ready")
+loadCloudPicks()
+print("[BBYAVATAR] Saved Picks persistent sync + safe session fallback ready")
