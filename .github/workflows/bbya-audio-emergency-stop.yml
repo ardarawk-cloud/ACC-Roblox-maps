@@ -1,0 +1,28 @@
+name: BBYA Audio Emergency Stop
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-audio-emergency-stop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cancel-main-audio-router:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: bbya-basement-drive-full-library
+      cancel-in-progress: true
+    steps:
+      - run: echo 'BBYA audio upload pipeline is on SAFETY HOLD. No Roblox API audio upload is performed.'
+
+  cancel-observable-audio-runner:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: bbya-audio-observable-runner
+      cancel-in-progress: true
+    steps:
+      - run: echo 'BBYA observable audio runner is on SAFETY HOLD. No Roblox API audio upload is performed.'
