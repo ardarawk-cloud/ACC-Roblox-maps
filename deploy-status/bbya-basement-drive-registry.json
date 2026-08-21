@@ -397,8 +397,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "4A - 130 - In and Out of Love    4a.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:49:56.804168+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:02.447621+00:00"
     },
     "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76": {
       "driveId": "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76",
@@ -407,8 +414,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "4B - 128 - Fly Away (Main Mix).mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:49:58.558816+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:05.227084+00:00"
     },
     "15zniFaf8ruhOJW52P440PDSJZNfsU7QI": {
       "driveId": "15zniFaf8ruhOJW52P440PDSJZNfsU7QI",
@@ -417,8 +431,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_15zniFaf8ruhOJW52P440PDSJZNfsU7QI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:03.179178+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:04.746844+00:00"
     },
     "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe": {
       "driveId": "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe",
@@ -439,8 +460,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya).mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:06.139519+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:04.436422+00:00"
     },
     "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB": {
       "driveId": "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB",
@@ -473,8 +501,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5A - 130 - 01.dj riri - rusty guitar.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:13.549271+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:31.442437+00:00"
     },
     "1Pt4_oAMEmieku7n8xQz_bi539PcePSER": {
       "driveId": "1Pt4_oAMEmieku7n8xQz_bi539PcePSER",
@@ -483,8 +518,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5A - 128 - Walkin On Air (Matthew)   5a.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Pt4_oAMEmieku7n8xQz_bi539PcePSER.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:14.201430+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:05.767471+00:00"
     },
     "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ": {
       "driveId": "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ",
@@ -493,8 +535,15 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5A - 130 - 05 belum ada judul.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:15.578097+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:32.523285+00:00"
     },
     "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1": {
       "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
@@ -503,9 +552,220 @@
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "5A - 130 - PULSE OF JAKARTA - Unknown Artist.mp3",
-      "lastError": "command failed: gdown https://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1\n\nbut Gdown can't. Please check connections and permissions.\n",
-      "lastAttemptAt": "2026-08-21T05:50:16.870677+00:00"
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:34.439409+00:00"
+    },
+    "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ": {
+      "driveId": "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ",
+      "title": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:33.846211+00:00"
+    },
+    "1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs": {
+      "driveId": "1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs",
+      "title": "5A - 131 - High Revolution - Studio 51 (So-1",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 131 - High Revolution - Studio 51 (So-1.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:34.305406+00:00"
+    },
+    "12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI": {
+      "driveId": "12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI",
+      "title": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:54.112383+00:00"
+    },
+    "1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD": {
+      "driveId": "1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD",
+      "title": "6.Sebastian Ingrosso, Tommy Trash & John Martin - Reload (Reid Stefan Remix) RedMusic.pl",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "6.Sebastian Ingrosso, Tommy Trash & John Martin - Reload (Reid Stefan Remix) RedMusic.pl.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:55.780281+00:00"
+    },
+    "1DutiLvvEX5nP-vmKSBAqk-WUlrGirWIA": {
+      "driveId": "1DutiLvvEX5nP-vmKSBAqk-WUlrGirWIA",
+      "title": "6A - 130 - brand new day",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "6A - 130 - brand new day.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:54:59.516778+00:00"
+    },
+    "11StJVOolkSNHE787BCWaHL61TlXRSzSX": {
+      "driveId": "11StJVOolkSNHE787BCWaHL61TlXRSzSX",
+      "title": "7A - 128 - D - Wet Dreams feat. Marisa Machad",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7A - 128 - D - Wet Dreams feat. Marisa Machad.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:05.154936+00:00"
+    },
+    "1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o": {
+      "driveId": "1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o",
+      "title": "7. Beggin' You (Armin van Buuren Remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7. Beggin' You (Armin van Buuren Remix).mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:05.626553+00:00"
+    },
+    "1Foafx0qgAxTn77GDLlTtMgex6vB0zD50": {
+      "driveId": "1Foafx0qgAxTn77GDLlTtMgex6vB0zD50",
+      "title": "7A - 130 - LA SERENADA - Unknown Artist",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7A - 130 - LA SERENADA - Unknown Artist.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:14.068774+00:00"
+    },
+    "1J1rtNzPCwJHCnc05-LAfw96bXKpZw97b": {
+      "driveId": "1J1rtNzPCwJHCnc05-LAfw96bXKpZw97b",
+      "title": "7B - 130 - FREAK MASHUP - -KIN AMP- EDIT 2024",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7B - 130 - FREAK MASHUP - -KIN AMP- EDIT 2024.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:23.804057+00:00"
+    },
+    "1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4": {
+      "driveId": "1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4",
+      "title": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix).mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:24.175539+00:00"
+    },
+    "19LGvW06VF3FeXRJiMcHZfT3QYnDhAuB9": {
+      "driveId": "19LGvW06VF3FeXRJiMcHZfT3QYnDhAuB9",
+      "title": "7B - 130 - 10.first time (break beat mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7B - 130 - 10.first time (break beat mix).mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:24.882654+00:00"
+    },
+    "1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5": {
+      "driveId": "1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5",
+      "title": "7B - 131 - 09.freak",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "7B - 131 - 09.freak.mp3",
+      "lastError": {
+        "errors": [
+          {
+            "code": 0,
+            "message": "User is moderated"
+          }
+        ]
+      },
+      "lastAttemptAt": "2026-08-21T05:55:25.971507+00:00"
     }
   },
-  "updatedAt": "2026-08-21T05:50:18.555377+00:00"
+  "updatedAt": "2026-08-21T05:55:25.973467+00:00"
 }
