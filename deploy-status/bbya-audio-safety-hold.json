@@ -1,0 +1,34 @@
+{
+  "status": "SAFETY_HOLD",
+  "reason": "Roblox account received a 1-day suspension after clustered audio moderation actions on 2026-08-21.",
+  "policy": {
+    "newAudioUploads": false,
+    "retryRejectedAudio": false,
+    "reuploadModifiedRejectedAudio": false,
+    "publishDriveAudioToMap": false,
+    "allowedNextStep": "Owner review/appeal only; resume only after explicit owner decision and account restoration."
+  },
+  "moderationViolationAssetIds": {
+    "112832967036966": {
+      "reason": "Dating",
+      "asset": "Dodox Rmx - Ketahuan [ AYEP MACAN ]"
+    },
+    "139912119687420": {
+      "reason": "Sexual Content",
+      "asset": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza"
+    },
+    "82224703787534": {
+      "reason": "Disruptive Audio",
+      "asset": "Dian Peceng - Mehabur Kasih Menuai Perih New"
+    },
+    "75731218112000": {
+      "reason": "Disruptive Audio",
+      "asset": "Ayyy ( D Bagindas )"
+    },
+    "132591734808945": {
+      "reason": "Dangerous Content/Behavior",
+      "asset": "GARAM CINA NEW HARD - DENNIE RMX 2025"
+    }
+  },
+  "playlistAction": "All Drive/API-created audio blocks quarantined from Main Club and Basement source."
+}

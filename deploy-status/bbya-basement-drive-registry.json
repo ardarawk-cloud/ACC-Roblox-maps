@@ -10,7 +10,10 @@
       "sourceFolder": "ADXL",
       "legacy": true,
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:24:23+00:00"
+      "uploadedAt": "2026-08-21T05:24:23+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA": {
       "assetId": "129311447065112",
@@ -20,7 +23,10 @@
       "sourceFolder": "ADXL",
       "legacy": true,
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:24:23+00:00"
+      "uploadedAt": "2026-08-21T05:24:23+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV": {
       "assetId": "113513851570966",
@@ -30,7 +36,10 @@
       "sourceFolder": "ADXL",
       "legacy": true,
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:24:23+00:00"
+      "uploadedAt": "2026-08-21T05:24:23+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx": {
       "assetId": "103346687856740",
@@ -40,7 +49,10 @@
       "sourceFolder": "ADXL",
       "legacy": true,
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:24:23+00:00"
+      "uploadedAt": "2026-08-21T05:24:23+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX": {
       "assetId": "78901521795281",
@@ -50,7 +62,10 @@
       "sourceFolder": "ADXL",
       "legacy": true,
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:24:23+00:00"
+      "uploadedAt": "2026-08-21T05:24:23+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -62,7 +77,10 @@
       "path": "07 I Know You Want Me (Calle Ocho) (Intro Dirty).mp3",
       "sha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:07.099670+00:00"
+      "uploadedAt": "2026-08-21T05:46:07.099670+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj": {
       "driveId": "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj",
@@ -74,7 +92,10 @@
       "path": "10. CHRISYE - PERGILAH KASIH.mp3",
       "sha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:28.259356+00:00"
+      "uploadedAt": "2026-08-21T05:46:28.259356+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1lMvfE0OeruVp7jPSaigwrU_vQya5vT8X": {
       "driveId": "1lMvfE0OeruVp7jPSaigwrU_vQya5vT8X",
@@ -86,7 +107,10 @@
       "path": "10B - 128 - 10B - 128 - Taylor swift  - love story (Hendry al remix).mp3",
       "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:29.896272+00:00"
+      "uploadedAt": "2026-08-21T05:46:29.896272+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1zzTqAMvcpmstVXVbg4USyY9m6VrdqlqB": {
       "driveId": "1zzTqAMvcpmstVXVbg4USyY9m6VrdqlqB",
@@ -98,7 +122,10 @@
       "path": "10A - 130 - 10A - 130 - Always Loving You.mp3",
       "sha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:30.303267+00:00"
+      "uploadedAt": "2026-08-21T05:46:30.303267+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta": {
       "driveId": "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta",
@@ -110,7 +137,10 @@
       "path": "1.Walking On Air.mp3",
       "sha256": "e9958dd47c6426f8eadda1512d24bc9d226847678fe147bcd55a9d5e63592361",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:30.690552+00:00"
+      "uploadedAt": "2026-08-21T05:46:30.690552+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW": {
       "driveId": "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW",
@@ -123,7 +153,10 @@
       "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
       "moderationState": "Reviewing",
       "duplicateOfDriveId": "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK",
-      "deduplicatedAt": "2026-08-21T05:48:55.307479+00:00"
+      "deduplicatedAt": "2026-08-21T05:48:55.307479+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7": {
       "driveId": "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7",
@@ -136,7 +169,10 @@
       "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
       "moderationState": "Reviewing",
       "duplicateOfDriveId": "1lMvfE0OeruVp7jPSaigwrU_vQya5vT8X",
-      "deduplicatedAt": "2026-08-21T05:46:47.637322+00:00"
+      "deduplicatedAt": "2026-08-21T05:46:47.637322+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK": {
       "driveId": "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK",
@@ -148,7 +184,10 @@
       "path": "10B - 128 - Somewhere  10b (1).mp3",
       "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:46:50.761793+00:00"
+      "uploadedAt": "2026-08-21T05:46:50.761793+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX": {
       "driveId": "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX",
@@ -160,7 +199,10 @@
       "path": "11A - 126 - Shadows (Stoopit mix).mp3",
       "sha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:13.724816+00:00"
+      "uploadedAt": "2026-08-21T05:47:13.724816+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y": {
       "driveId": "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y",
@@ -172,7 +214,10 @@
       "path": "11A - 128 - 08.Shadow (Black Rework 2009).mp3",
       "sha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:16.969833+00:00"
+      "uploadedAt": "2026-08-21T05:47:16.969833+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1oQTQ3q6pUxXFqW2rCBR1MbvjomuLFnA6": {
       "driveId": "1oQTQ3q6pUxXFqW2rCBR1MbvjomuLFnA6",
@@ -184,7 +229,10 @@
       "path": "11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix).mp3",
       "sha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:17.503937+00:00"
+      "uploadedAt": "2026-08-21T05:47:17.503937+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1lxYXlyA2vDS5MvqiVOaHTi-PLEaK6oiW": {
       "driveId": "1lxYXlyA2vDS5MvqiVOaHTi-PLEaK6oiW",
@@ -196,7 +244,10 @@
       "path": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix.mp3",
       "sha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:31.927749+00:00"
+      "uploadedAt": "2026-08-21T05:47:31.927749+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1sMF2Q0VvTAxKG-LUA-vjbvOOX2lFuQ9_": {
       "driveId": "1sMF2Q0VvTAxKG-LUA-vjbvOOX2lFuQ9_",
@@ -208,7 +259,10 @@
       "path": "11A - 130 - 01.runaway (mumu remix).mp3",
       "sha256": "9ded6b427a16432baae480a05b7e061a3039208054d8c7c1a7245804165fcece",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:32.614673+00:00"
+      "uploadedAt": "2026-08-21T05:47:32.614673+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6": {
       "driveId": "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6",
@@ -220,7 +274,10 @@
       "path": "11A - 130 - RUN AWAY - Unknown Artist.mp3",
       "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:52.112067+00:00"
+      "uploadedAt": "2026-08-21T05:47:52.112067+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "170mzbIE6yxtWF8YvQHomns6HIoW_WV0J": {
       "driveId": "170mzbIE6yxtWF8YvQHomns6HIoW_WV0J",
@@ -232,7 +289,10 @@
       "path": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix).mp3",
       "sha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:52.580046+00:00"
+      "uploadedAt": "2026-08-21T05:47:52.580046+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5": {
       "driveId": "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5",
@@ -244,7 +304,10 @@
       "path": "11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix).mp3",
       "sha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:52.781040+00:00"
+      "uploadedAt": "2026-08-21T05:47:52.781040+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1f5QbInMNeMcrqwkUCpnVrJda-IDHmEGa": {
       "driveId": "1f5QbInMNeMcrqwkUCpnVrJda-IDHmEGa",
@@ -256,7 +319,14 @@
       "path": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza For Dreams (Mark Voxx Remix) - www.spaceclubbingdancefloor.com.mp3",
       "sha256": "c08a323fe5bb4bee088942ddd64a7c0cce98c126992c866f6ab0d1e57310b090",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:55.792044+00:00"
+      "uploadedAt": "2026-08-21T05:47:55.792044+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21",
+      "moderationAction": {
+        "reason": "Sexual Content",
+        "asset": "1A - 127 - 03. Diego Miranda feat. Liliana - Ibiza"
+      }
     },
     "148552AZ2VqbQGvNqReqfrYBk_jxJis5N": {
       "driveId": "148552AZ2VqbQGvNqReqfrYBk_jxJis5N",
@@ -268,7 +338,10 @@
       "path": "12A - 128 - Stereo Love            12a.mp3",
       "sha256": "fde7dc6d779bae8e688d9b74eed8f58c4a2be851a9df316d5fd966c2988228cb",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:47:56.247134+00:00"
+      "uploadedAt": "2026-08-21T05:47:56.247134+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC": {
       "driveId": "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC",
@@ -280,7 +353,10 @@
       "path": "1A - 128 - Dreaming (Original Mix).mp3",
       "sha256": "b103bd72f36f5f4e1e103eefb4507262dc83208dc6c506510a4d434a18446e90",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:48:12.244822+00:00"
+      "uploadedAt": "2026-08-21T05:48:12.244822+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1UHvz7yNB8FrJ-0KtqJDE4hmUXMIXBe86": {
       "driveId": "1UHvz7yNB8FrJ-0KtqJDE4hmUXMIXBe86",
@@ -292,7 +368,10 @@
       "path": "1B - 130 - RIGHT NOW - Unknown Artist.mp3 .mp3",
       "sha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:48:17.488562+00:00"
+      "uploadedAt": "2026-08-21T05:48:17.488562+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv": {
       "driveId": "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv",
@@ -304,7 +383,10 @@
       "path": "2A - 132 - Stadium - The Time.mp3",
       "sha256": "0f73862060f477244ff5da296df8f549aac29ef493bf66a70b9f3bd5ed43d92a",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:10.399549+00:00"
+      "uploadedAt": "2026-08-21T05:49:10.399549+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR": {
       "driveId": "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR",
@@ -316,7 +398,10 @@
       "path": "2A - 130 - Beggin You (Harto Remix).mp3",
       "sha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:10.442198+00:00"
+      "uploadedAt": "2026-08-21T05:49:10.442198+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1RGKuXqmWGihHvSHDeKdGzDClA2wFMJe_": {
       "driveId": "1RGKuXqmWGihHvSHDeKdGzDClA2wFMJe_",
@@ -328,7 +413,10 @@
       "path": "2.Feels So Good ( Jerome Isma Ae Mix DRM ) (www.MusicDjsMp3.com).mp3",
       "sha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:15.991683+00:00"
+      "uploadedAt": "2026-08-21T05:49:15.991683+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv": {
       "driveId": "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv",
@@ -340,7 +428,10 @@
       "path": "2A - 130 - 2A - 130 -tru love  - Viemix Remix.mp3",
       "sha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:17.459612+00:00"
+      "uploadedAt": "2026-08-21T05:49:17.459612+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5": {
       "driveId": "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5",
@@ -352,7 +443,10 @@
       "path": "3A - 128 - Desert Rose - Stadium Mix 2011.mp3",
       "sha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:36.036777+00:00"
+      "uploadedAt": "2026-08-21T05:49:36.036777+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP": {
       "driveId": "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP",
@@ -364,7 +458,10 @@
       "path": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100.mp3",
       "sha256": "6b7aa3c225c630655394e0a1d684fea7834ca6eca5668fcc5de949f1de066666",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:38.975151+00:00"
+      "uploadedAt": "2026-08-21T05:49:38.975151+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn": {
       "driveId": "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn",
@@ -376,7 +473,10 @@
       "path": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist.mp3",
       "sha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:49.375838+00:00"
+      "uploadedAt": "2026-08-21T05:49:49.375838+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1LkmzPXccLdUoMan460Uc0TAMObSdAqC2": {
       "driveId": "1LkmzPXccLdUoMan460Uc0TAMObSdAqC2",
@@ -388,7 +488,10 @@
       "path": "3A - 130 - Feels So Good 3a.mp3",
       "sha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:49:51.245716+00:00"
+      "uploadedAt": "2026-08-21T05:49:51.245716+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI": {
       "driveId": "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI",
@@ -430,7 +533,10 @@
       "path": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1.mp3",
       "sha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:50:05.928004+00:00"
+      "uploadedAt": "2026-08-21T05:50:05.928004+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi": {
       "driveId": "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi",
@@ -452,7 +558,10 @@
       "path": "4. Stadium Club Remix - Stars of Edger.mp3",
       "sha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:50:08.076537+00:00"
+      "uploadedAt": "2026-08-21T05:50:08.076537+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA": {
       "driveId": "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA",
@@ -464,7 +573,10 @@
       "path": "4A - 130 - because of u 4.mp3",
       "sha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370",
       "moderationState": "Reviewing",
-      "uploadedAt": "2026-08-21T05:50:10.169063+00:00"
+      "uploadedAt": "2026-08-21T05:50:10.169063+00:00",
+      "quarantined": true,
+      "eligibleForPlaylist": false,
+      "quarantineReason": "ACCOUNT_SAFETY_HOLD_2026_08_21"
     },
     "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju": {
       "driveId": "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju",
@@ -627,5 +739,7 @@
       "lastAttemptAt": "2026-08-21T05:58:52.940636+00:00"
     }
   },
-  "updatedAt": "2026-08-21T05:58:52.942888+00:00"
+  "updatedAt": "2026-08-21T05:58:52.942888+00:00",
+  "safetyHold": true,
+  "safetyHoldReason": "ACCOUNT_SUSPENSION_AUDIO_MODERATION_2026_08_21"
 }
