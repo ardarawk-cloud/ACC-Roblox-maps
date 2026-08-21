@@ -1,6 +1,6 @@
--- BBYAVATAR Recently Viewed v2.
+-- BBYAVATAR Recently Viewed v3.
 -- Persists only catalog asset IDs through the server module; details are resolved from Roblox on demand.
--- v2 exposes a privacy-minimal recommendation seed so SIMILAR can work after browsing even before a user saves a pick.
+-- v3 adds an explicit player-facing CLEAR HISTORY control and keeps recommendation seeding privacy-minimal.
 
 local recentRequest = root:WaitForChild("RecentViewsRequest")
 local recentIds = {}
@@ -74,8 +74,6 @@ local function resolveRecentItem(id)
     return details
 end
 
--- Shared locally with recommendations.client.lua. It returns only Roblox catalog data already
--- present in the user's recent history; no extra profile or identifier is introduced.
 function getRecentRecommendationSeed()
     loadRecent()
     for _, id in ipairs(recentIds) do
@@ -87,6 +85,25 @@ function getRecentRecommendationSeed()
     return nil, nil
 end
 
+local function clearRecentHistory()
+    status.Text = "Clearing recent history…"
+    local ok, response = pcall(function() return recentRequest:InvokeServer("CLEAR") end)
+    if not ok or typeof(response) ~= "table" then
+        status.Text = "Could not clear history right now."
+        return false
+    end
+    if not response.ok then
+        status.Text = response.code == "THROTTLED" and "Please wait a moment and try again." or "Could not clear history right now."
+        return false
+    end
+    recentIds = {}
+    recentItemCache = {}
+    recentLoaded = true
+    recentTrack("RECENT_CLEAR")
+    status.Text = "Recent history cleared."
+    return true
+end
+
 local function renderRecent()
     clearContent()
     recentTrack("RECENT_OPEN")
@@ -94,7 +111,7 @@ local function renderRecent()
 
     local heading = Instance.new("TextLabel")
     heading.BackgroundTransparency = 1
-    heading.Size = UDim2.new(1, 0, 0, 38)
+    heading.Size = UDim2.new(1, -132, 0, 38)
     heading.Font = Enum.Font.GothamBlack
     heading.Text = "RECENTLY VIEWED"
     heading.TextColor3 = Color3.new(1, 1, 1)
@@ -102,12 +119,24 @@ local function renderRecent()
     heading.TextXAlignment = Enum.TextXAlignment.Left
     heading.Parent = content
 
+    local clearButton = Instance.new("TextButton")
+    clearButton.AnchorPoint = Vector2.new(1, 0)
+    clearButton.Position = UDim2.new(1, 0, 0, 0)
+    clearButton.Size = UDim2.fromOffset(124, 34)
+    clearButton.BackgroundColor3 = Color3.fromRGB(47, 49, 60)
+    clearButton.TextColor3 = Color3.fromRGB(224, 226, 234)
+    clearButton.Font = Enum.Font.GothamBold
+    clearButton.TextSize = 11
+    clearButton.Text = "CLEAR HISTORY"
+    clearButton.Parent = content
+    Instance.new("UICorner", clearButton).CornerRadius = UDim.new(0, 9)
+
     local note = Instance.new("TextLabel")
     note.BackgroundTransparency = 1
     note.Position = UDim2.fromOffset(0, 38)
     note.Size = UDim2.new(1, 0, 0, 32)
     note.Font = Enum.Font.Gotham
-    note.Text = "Jump back into catalog items you inspected recently."
+    note.Text = "Jump back into catalog items you inspected recently. Stored as Roblox asset IDs only."
     note.TextColor3 = Color3.fromRGB(157, 164, 184)
     note.TextSize = 12
     note.TextXAlignment = Enum.TextXAlignment.Left
@@ -125,6 +154,14 @@ local function renderRecent()
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 8)
     layout.Parent = list
+
+    clearButton.Activated:Connect(function()
+        if clearRecentHistory() and list.Parent then
+            for _, child in ipairs(list:GetChildren()) do
+                if child ~= layout then child:Destroy() end
+            end
+        end
+    end)
 
     task.spawn(function()
         if not recentLoaded then
@@ -166,8 +203,6 @@ recentTab.Parent = tabs
 Instance.new("UICorner", recentTab).CornerRadius = UDim.new(0, 10)
 recentTab.Activated:Connect(function() selectTab("RECENT") end)
 
--- Loaded after item-detail.client.lua: wrap the finished card so opening DETAILS also
--- updates the user's privacy-minimal recent history without changing item-detail internals.
 local recentBaseCatalogCard = catalogCard
 catalogCard = function(parent, item)
     local card = recentBaseCatalogCard(parent, item)
@@ -180,4 +215,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Persistent Recently Viewed v2 + recommendation seed ready")
+print("[BBYAVATAR] Persistent Recently Viewed v3 + player clear control ready")
