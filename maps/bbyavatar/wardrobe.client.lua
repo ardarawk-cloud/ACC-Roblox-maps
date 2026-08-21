@@ -17,20 +17,6 @@ local function wardrobeHumanoid()
     return character:FindFirstChildOfClass("Humanoid")
 end
 
-local function wardrobeAction(parent, text, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 44)
-    button.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 13
-    button.Text = text
-    button.Parent = parent
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 11)
-    button.Activated:Connect(callback)
-    return button
-end
-
 local function renderWardrobeStudio()
     clearContent()
 
@@ -48,7 +34,7 @@ local function renderWardrobeStudio()
     actions.Name = "WardrobeActions"
     actions.BackgroundTransparency = 1
     actions.Position = UDim2.fromOffset(0, 50)
-    actions.Size = UDim2.new(1, 0, 0, 100)
+    actions.Size = UDim2.new(1, 0, 0, 48)
     actions.AutomaticCanvasSize = Enum.AutomaticSize.X
     actions.CanvasSize = UDim2.new()
     actions.ScrollBarThickness = 0
@@ -76,8 +62,8 @@ local function renderWardrobeStudio()
     local list = Instance.new("ScrollingFrame")
     list.Name = "SavedOutfits"
     list.BackgroundTransparency = 1
-    list.Position = UDim2.fromOffset(0, 102)
-    list.Size = UDim2.new(1, 0, 1, -145)
+    list.Position = UDim2.fromOffset(0, 104)
+    list.Size = UDim2.new(1, 0, 1, -148)
     list.AutomaticCanvasSize = Enum.AutomaticSize.Y
     list.CanvasSize = UDim2.new()
     list.ScrollBarThickness = 4
@@ -127,7 +113,7 @@ local function renderWardrobeStudio()
 
     local function outfitCard(outfit)
         local outfitId = tonumber(outfit.Id or outfit.id)
-        if not outfitId then return end
+        if not outfitId then return false end
         local name = tostring(outfit.Name or outfit.name or "Saved Outfit")
         local card = Instance.new("Frame")
         card.Size = UDim2.new(1, -4, 0, 78)
@@ -170,21 +156,66 @@ local function renderWardrobeStudio()
         use.Parent = card
         Instance.new("UICorner", use).CornerRadius = UDim.new(0, 10)
         use.Activated:Connect(function() applyOutfit(outfitId, name) end)
+        return true
     end
 
     local outfitPages = nil
-    local function appendPage()
+    local loadedCount = 0
+    local loadMoreButton = nil
+
+    local function refreshLoadMoreState()
+        if not loadMoreButton then return end
+        local finished = not outfitPages or outfitPages.IsFinished
+        loadMoreButton.Visible = not finished
+        loadMoreButton.Active = not finished and not wardrobeBusy
+        loadMoreButton.AutoButtonColor = not wardrobeBusy
+        loadMoreButton.Text = wardrobeBusy and "LOADING…" or "LOAD MORE"
+    end
+
+    local function appendCurrentPage()
         if not outfitPages then return 0 end
-        local page = outfitPages:GetCurrentPage()
-        for _, outfit in ipairs(page) do outfitCard(outfit) end
-        return #page
+        local added = 0
+        for _, outfit in ipairs(outfitPages:GetCurrentPage()) do
+            if outfitCard(outfit) then
+                added += 1
+                loadedCount += 1
+            end
+        end
+        return added
+    end
+
+    local function loadMore()
+        if wardrobeBusy or not outfitPages or outfitPages.IsFinished then return end
+        wardrobeBusy = true
+        refreshLoadMoreState()
+        status.Text = "Loading more saved outfits…"
+        task.spawn(function()
+            local ok, err = pcall(function()
+                outfitPages:AdvanceToNextPageAsync()
+            end)
+            if not ok then
+                status.Text = "Could not load more outfits: " .. tostring(err)
+                wardrobeTrack("WARDROBE_PAGE_FAILED")
+                wardrobeBusy = false
+                refreshLoadMoreState()
+                return
+            end
+            local added = appendCurrentPage()
+            status.Text = string.format("%d saved outfits loaded • %d added", loadedCount, added)
+            wardrobeTrack("WARDROBE_PAGE_LOADED")
+            wardrobeBusy = false
+            refreshLoadMoreState()
+        end)
     end
 
     local function loadOutfits()
         if wardrobeBusy then return end
         wardrobeBusy = true
+        outfitPages = nil
+        loadedCount = 0
         clearWardrobe()
         status.Text = "Loading your Roblox saved outfits…"
+        refreshLoadMoreState()
         task.spawn(function()
             local ok, pages = pcall(function()
                 return AvatarEditorService:GetOutfitsAsync(Enum.OutfitSource.All, Enum.OutfitType.All)
@@ -192,12 +223,19 @@ local function renderWardrobeStudio()
             if not ok or not pages then
                 status.Text = "Wardrobe access needs Roblox inventory permission • tap ALLOW INVENTORY, then LOAD OUTFITS again."
                 wardrobeBusy = false
+                refreshLoadMoreState()
                 return
             end
             outfitPages = pages
-            local count = appendPage()
-            status.Text = string.format("%d saved outfits loaded • inventory stays on Roblox", count)
+            local count = appendCurrentPage()
+            if count == 0 then
+                status.Text = "No saved outfits found yet • SAVE CURRENT creates one through Roblox."
+            else
+                status.Text = string.format("%d saved outfits loaded • inventory stays on Roblox", loadedCount)
+            end
+            wardrobeTrack("WARDROBE_LOADED")
             wardrobeBusy = false
+            refreshLoadMoreState()
         end)
     end
 
@@ -228,6 +266,18 @@ local function renderWardrobeStudio()
         end)
     end)
 
+    loadMoreButton = Instance.new("TextButton")
+    loadMoreButton.Size = UDim2.new(1, -4, 0, 44)
+    loadMoreButton.BackgroundColor3 = Color3.fromRGB(49, 54, 70)
+    loadMoreButton.TextColor3 = Color3.new(1, 1, 1)
+    loadMoreButton.Font = Enum.Font.GothamBold
+    loadMoreButton.TextSize = 12
+    loadMoreButton.Text = "LOAD MORE"
+    loadMoreButton.Visible = false
+    loadMoreButton.Parent = list
+    Instance.new("UICorner", loadMoreButton).CornerRadius = UDim.new(0, 11)
+    loadMoreButton.Activated:Connect(loadMore)
+
     loadOutfits()
 end
 
@@ -236,4 +286,4 @@ player.CharacterAdded:Connect(function()
     wardrobeRestoreDescription = nil
     wardrobeBusy = false
 end)
-print("[BBYAVATAR] Roblox-native saved wardrobe browser + funnel telemetry ready")
+print("[BBYAVATAR] saved wardrobe pagination + preview telemetry ready")
