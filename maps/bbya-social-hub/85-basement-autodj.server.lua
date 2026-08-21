@@ -15,11 +15,11 @@ local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("Bind
 
 local PLAYLIST={
 -- ADXL_OWNER_UPLOAD_BEGIN
- {title="ADXL - SEXY PAPI 2025",id="140514006350666",style="adxl-breakbeat"},
- {title="ADXL - BANG BANG WIRO SABLENG",id="129311447065112",style="adxl-breakbeat"},
- {title="ADXL - SEMATA KARENAMU 2023",id="113513851570966",style="jakarta-bounce"},
- {title="ADXL - CINTA KITA 2023",id="103346687856740",style="adxl-breakbeat"},
- {title="ADXL - BUTA HATI 2023",id="78901521795281",style="adxl-breakbeat"},
+ {title="ADXL - SEXY PAPI 2025",id="86653303854897",style="adxl-breakbeat"},
+ {title="ADXL - BANG BANG WIRO SABLENG",id="130820965331543",style="adxl-breakbeat"},
+ {title="ADXL - SEMATA KARENAMU 2023",id="93401669454178",style="jakarta-bounce"},
+ {title="ADXL - CINTA KITA 2023",id="104573695864719",style="adxl-breakbeat"},
+ {title="ADXL - BUTA HATI 2023",id="87433323955726",style="adxl-breakbeat"},
 -- ADXL_OWNER_UPLOAD_END
  {title="Breakbeat : Pyro Pulse",id="103491797412309",style="breakbeat"},
  {title="Aku Suka Jedag Jedug Full Bass",id="100787734732008",style="breakbeat"},
