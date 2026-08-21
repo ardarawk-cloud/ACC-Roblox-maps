@@ -38,6 +38,26 @@ jobs:
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip 'gdown>=6.1.0'
 
+      - name: Prioritize Progressive for Main Club first
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/inject-bbya-basement-from-drive.py')
+          s=p.read_text(encoding='utf-8')
+          old='''    {"name": "FUNKOT", "id": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS", "style": "funkot"},\n    {"name": "BREAKBEAT CAMPUR", "id": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs", "style": "breakbeat"},\n    {"name": "TEMBAK LANGIT REMIX", "id": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE", "style": "tembak-langit"},\n    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},'''
+          new='''    {"name": "PROGRESIVE", "id": "1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd", "style": "progressive"},\n    {"name": "FUNKOT", "id": "1YB4xGNjTPk9f01D38NfQ4590DB8rBADS", "style": "funkot"},\n    {"name": "BREAKBEAT CAMPUR", "id": "1Dfng7YAgz7kcH0Qz3hyeXdwHzqYOR0Hs", "style": "breakbeat"},\n    {"name": "TEMBAK LANGIT REMIX", "id": "1rwTIqIKdgai3EbU4AFhUGTIaZkwxkBwE", "style": "tembak-langit"},'''
+          if old in s:
+              s=s.replace(old,new,1)
+              p.write_text(s,encoding='utf-8')
+              print('PROGRESIVE promoted to source priority 1')
+          elif new in s:
+              print('PROGRESIVE already source priority 1')
+          else:
+              raise SystemExit('Source priority block not found')
+          PY
+
       - name: Upload and checkpoint routed audio batches
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -51,12 +71,13 @@ jobs:
 
           for batch in $(seq 1 30); do
             echo "=== BBYA AUDIO CHECKPOINT BATCH ${batch} ==="
-            export MAX_NEW_AUDIO_UPLOADS=40
+            export MAX_NEW_AUDIO_UPLOADS=20
 
             python3 scripts/inject-bbya-basement-from-drive.py
             python3 scripts/route-bbya-drive-audio.py
 
             git add \
+              scripts/inject-bbya-basement-from-drive.py \
               maps/bbya-social-hub/30-club-systems.server.lua \
               maps/bbya-social-hub/85-basement-autodj.server.lua \
               deploy-status/bbya-basement-drive-inject.json \
@@ -114,6 +135,7 @@ jobs:
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
           git add \
+            scripts/inject-bbya-basement-from-drive.py \
             maps/bbya-social-hub/30-club-systems.server.lua \
             maps/bbya-social-hub/85-basement-autodj.server.lua \
             deploy-status/bbya-basement-drive-inject.json \
