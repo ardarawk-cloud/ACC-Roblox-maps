@@ -1,8 +1,9 @@
--- BBYAVATAR context-aware recommendation lane v3.
--- Uses Roblox-native recommendation APIs from a Saved Pick as the context seed.
+-- BBYAVATAR context-aware recommendation lane v4.
+-- Uses Roblox-native recommendation APIs from a Saved Pick, falling back to the user's
+-- most recent viewed wearable so SIMILAR remains useful before a pick is saved.
 -- No external profiling, no PII, and no fabricated ranking signals.
--- v3 adds resilient asset-type resolution, in-flight request coalescing, and cooldown
--- behavior so repeated SIMILAR opens do not amplify AvatarEditorService throttling.
+-- v4 preserves resilient asset-type resolution, in-flight request coalescing, cooldowns,
+-- and per-seed caching to reduce AvatarEditorService throttling pressure.
 
 local RECOMMEND_CACHE_TTL = 120
 local RECOMMEND_FAILURE_COOLDOWN = 20
@@ -43,8 +44,6 @@ local function resolveAvatarAssetType(item, itemId)
         return assetTypeCache[itemId]
     end
 
-    -- Saved Picks created by older catalog response shapes may not retain AssetType.
-    -- Resolve it once from Roblox-native item details and cache locally for the session.
     if itemId then
         local ok, details = pcall(function()
             return AvatarEditorService:GetItemDetailsAsync(itemId, Enum.AvatarItemType.Asset)
@@ -67,10 +66,21 @@ local function newestRecommendationSeed()
         local item = savedPicks[id]
         if item and not isBundleItem(item) then
             local assetType = resolveAvatarAssetType(item, id)
-            if assetType then return item, id, assetType end
+            if assetType then return item, id, assetType, "saved" end
         end
     end
-    return nil, nil, nil
+
+    -- Recent history is a second-party signal created only from the user's own in-experience
+    -- browsing. If that module is unavailable or cannot resolve a wearable, fail closed.
+    if typeof(getRecentRecommendationSeed) == "function" then
+        local item, id = getRecentRecommendationSeed()
+        if item and id then
+            local assetType = resolveAvatarAssetType(item, id)
+            if assetType then return item, id, assetType, "recent" end
+        end
+    end
+
+    return nil, nil, nil, nil
 end
 
 local function normalizeRecommendedAsset(entry)
@@ -79,9 +89,7 @@ local function normalizeRecommendedAsset(entry)
     if typeof(source) ~= "table" then return nil end
 
     local item = {}
-    for key, value in pairs(source) do
-        item[key] = value
-    end
+    for key, value in pairs(source) do item[key] = value end
     for _, key in ipairs({"Price", "LowestPrice", "ProductId", "ItemStatus", "ItemRestrictions", "CreatorName", "CreatorType", "AssetType"}) do
         if item[key] == nil and entry[key] ~= nil then item[key] = entry[key] end
     end
@@ -130,14 +138,14 @@ local function renderRecommendations()
     heading.Parent = content
 
     status.Text = "Finding a recommendation seed…"
-    local seed, seedId, assetType = newestRecommendationSeed()
+    local seed, seedId, assetType, seedSource = newestRecommendationSeed()
     if not seed then
         local empty = Instance.new("TextLabel")
         empty.Position = UDim2.fromOffset(0, 52)
         empty.Size = UDim2.new(1, 0, 0, 120)
         empty.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
         empty.Font = Enum.Font.Gotham
-        empty.Text = "Save at least one wearable item to PICKS first.\nBBYAVATAR will then ask Roblox for related catalog recommendations from that item."
+        empty.Text = "Browse a wearable item or save one to PICKS first.\nBBYAVATAR will then ask Roblox for related catalog recommendations from that item."
         empty.TextWrapped = true
         empty.TextColor3 = Color3.fromRGB(205, 208, 219)
         empty.TextSize = 14
@@ -152,7 +160,8 @@ local function renderRecommendations()
     seedLabel.Position = UDim2.fromOffset(0, 38)
     seedLabel.Size = UDim2.new(1, 0, 0, 34)
     seedLabel.Font = Enum.Font.Gotham
-    seedLabel.Text = "Inspired by: " .. tostring(seed.Name or ("Item " .. tostring(seedId)))
+    local prefix = seedSource == "recent" and "Based on recent: " or "Inspired by saved: "
+    seedLabel.Text = prefix .. tostring(seed.Name or ("Item " .. tostring(seedId)))
     seedLabel.TextColor3 = Color3.fromRGB(157, 164, 184)
     seedLabel.TextSize = 12
     seedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -259,4 +268,4 @@ recommendationTab.Parent = tabs
 Instance.new("UICorner", recommendationTab).CornerRadius = UDim.new(0, 10)
 recommendationTab.Activated:Connect(function() selectTab("RECOMMEND") end)
 
-print("[BBYAVATAR] Roblox-native contextual recommendations v3 ready")
+print("[BBYAVATAR] Roblox-native contextual recommendations v4 saved + recent fallback ready")
