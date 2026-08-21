@@ -38,7 +38,7 @@ jobs:
       - name: Pull owner Drive audio and upload to Roblox
         id: inject
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           UNIVERSE_ID: '8116636513'
         shell: bash
         run: |
