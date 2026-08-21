@@ -28,6 +28,8 @@ local ALLOWED = {
     WARDROBE_PREVIEW_FAILED = true,
     WARDROBE_RESTORE_SUCCESS = true,
     WARDROBE_RESTORE_FAILED = true,
+    DISCOVERY_OPEN = true,
+    DISCOVERY_CATEGORY = true,
 }
 
 local lastEventAt = {}
@@ -51,6 +53,6 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     lastEventAt[player.UserId] = nil
 end)
 
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V2_TRYON_WARDROBE")
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V3_DISCOVERY")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
-print("[BBYAVATAR] Privacy-safe session telemetry v2 ready")
+print("[BBYAVATAR] Privacy-safe session telemetry v3 ready")
