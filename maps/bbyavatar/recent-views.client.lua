@@ -152,4 +152,18 @@ recentTab.Parent = tabs
 Instance.new("UICorner", recentTab).CornerRadius = UDim.new(0, 10)
 recentTab.Activated:Connect(function() selectTab("RECENT") end)
 
+-- Loaded after item-detail.client.lua: wrap the finished card so opening DETAILS also
+-- updates the user's privacy-minimal recent history without changing item-detail internals.
+local recentBaseCatalogCard = catalogCard
+catalogCard = function(parent, item)
+    local card = recentBaseCatalogCard(parent, item)
+    if not card then return card end
+    local preview = card:FindFirstChild("Preview")
+    local inspect = preview and preview:FindFirstChild("Inspect")
+    if inspect and inspect:IsA("TextButton") then
+        inspect.Activated:Connect(function() recordRecentView(item) end)
+    end
+    return card
+end
+
 print("[BBYAVATAR] Persistent Recently Viewed v1 ready")
