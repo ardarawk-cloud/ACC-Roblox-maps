@@ -8,6 +8,7 @@ remote.Name="BBYAEditRemote";remote.Parent=ReplicatedStorage
 
 local CO_OWNER_USERNAMES={
  ["nadmo97"]=true,
+ ["arda_moron123"]=true,
 }
 
 local deleteStore=DataStoreService:GetDataStore("BBYA_EDITOR_DELETE_V1")
