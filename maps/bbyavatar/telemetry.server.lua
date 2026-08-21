@@ -1,5 +1,6 @@
--- BBYAVATAR analytics-ready foundation.
--- Session-only counters: no external endpoint, no PII persistence, no arbitrary client keys.
+-- BBYAVATAR analytics-ready foundation v5.
+-- Privacy posture: aggregate session counters only; no external endpoint, no PII persistence,
+-- no arbitrary client event names, and no per-user metrics exposed as attributes.
 
 local trackEvent = rem:FindFirstChild("TrackEvent")
 if not trackEvent then
@@ -35,20 +36,58 @@ local ALLOWED = {
     DISCOVERY_CATEGORY = true,
 }
 
+-- Per-player, per-event throttling avoids a noisy event suppressing an unrelated funnel event
+-- that happens in the same frame (for example TRY_ON_SUCCESS followed by PICK_SAVE).
 local lastEventAt = {}
 local counters = {}
+local THROTTLE_SECONDS = 0.12
+
+local function metric(key)
+    return counters[key] or 0
+end
+
+local function safeRate(numerator, denominator)
+    if denominator <= 0 then return 0 end
+    return math.floor((numerator / denominator) * 1000 + 0.5) / 10
+end
+
+local function refreshDerivedMetrics()
+    local sessions = metric("SESSION_START")
+    local opens = metric("CATALOG_OPEN")
+    local tries = metric("TRY_ON_SUCCESS")
+    local picks = metric("PICK_SAVE")
+    local favorites = metric("FAVORITE_SUCCESS")
+    local outfitSaves = metric("CREATE_OUTFIT_SUCCESS") + metric("SAVE_AVATAR_SUCCESS")
+    local purchases = metric("PURCHASE_SUCCESS")
+
+    root:SetAttribute("Funnel_OpenPerSessionPct", safeRate(opens, sessions))
+    root:SetAttribute("Funnel_TryOnPerOpenPct", safeRate(tries, opens))
+    root:SetAttribute("Funnel_PickPerOpenPct", safeRate(picks, opens))
+    root:SetAttribute("Funnel_FavoritePerOpenPct", safeRate(favorites, opens))
+    root:SetAttribute("Funnel_SavePerTryOnPct", safeRate(outfitSaves, tries))
+    root:SetAttribute("Funnel_PurchasePerOpenPct", safeRate(purchases, opens))
+    root:SetAttribute("Funnel_PurchasePerTryOnPct", safeRate(purchases, tries))
+end
 
 local function bump(key)
     counters[key] = (counters[key] or 0) + 1
     root:SetAttribute("Metric_" .. key, counters[key])
+    refreshDerivedMetrics()
 end
 
 trackEvent.OnServerEvent:Connect(function(player, eventName)
     if typeof(eventName) ~= "string" or not ALLOWED[eventName] then return end
-    local now = os.clock()
+
     local userId = player.UserId
-    if now - (lastEventAt[userId] or 0) < 0.15 then return end
-    lastEventAt[userId] = now
+    local playerTimes = lastEventAt[userId]
+    if not playerTimes then
+        playerTimes = {}
+        lastEventAt[userId] = playerTimes
+    end
+
+    local now = os.clock()
+    if now - (playerTimes[eventName] or 0) < THROTTLE_SECONDS then return end
+    playerTimes[eventName] = now
     bump(eventName)
 end)
 
@@ -56,6 +95,10 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     lastEventAt[player.UserId] = nil
 end)
 
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V4_SAVED_PICKS")
+-- Stable schema markers make production receipts/audits able to distinguish telemetry revisions.
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V5_DERIVED_FUNNEL")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
-print("[BBYAVATAR] Privacy-safe session telemetry v4 ready")
+root:SetAttribute("TelemetryThrottle", "PER_USER_PER_EVENT")
+root:SetAttribute("TelemetrySchema", 5)
+refreshDerivedMetrics()
+print("[BBYAVATAR] Privacy-safe telemetry v5 + derived funnel metrics ready")
