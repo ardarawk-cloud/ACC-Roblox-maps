@@ -114,13 +114,16 @@
     },
     "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW": {
       "driveId": "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW",
+      "assetId": "100105336048945",
       "title": "10B - 128 - Somewhere  10b",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
       "sourceOrder": 0,
       "path": "10B - 128 - Somewhere  10b.mp3",
-      "lastError": "identical audio is already being uploaded in this run",
-      "lastAttemptAt": "2026-08-21T05:46:44.034727+00:00"
+      "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
+      "moderationState": "Reviewing",
+      "duplicateOfDriveId": "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK",
+      "deduplicatedAt": "2026-08-21T05:48:55.307479+00:00"
     },
     "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7": {
       "driveId": "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7",
@@ -290,7 +293,219 @@
       "sha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686",
       "moderationState": "Reviewing",
       "uploadedAt": "2026-08-21T05:48:17.488562+00:00"
+    },
+    "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv": {
+      "driveId": "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv",
+      "assetId": "132685557961369",
+      "title": "2A - 132 - Stadium - The Time",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "2A - 132 - Stadium - The Time.mp3",
+      "sha256": "0f73862060f477244ff5da296df8f549aac29ef493bf66a70b9f3bd5ed43d92a",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:10.399549+00:00"
+    },
+    "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR": {
+      "driveId": "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR",
+      "assetId": "125068509199097",
+      "title": "2A - 130 - Beggin You (Harto Remix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "2A - 130 - Beggin You (Harto Remix).mp3",
+      "sha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:10.442198+00:00"
+    },
+    "1RGKuXqmWGihHvSHDeKdGzDClA2wFMJe_": {
+      "driveId": "1RGKuXqmWGihHvSHDeKdGzDClA2wFMJe_",
+      "assetId": "130652457794872",
+      "title": "2.Feels So Good ( Jerome Isma Ae Mix DRM ) (www.MusicDjsMp3.com)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "2.Feels So Good ( Jerome Isma Ae Mix DRM ) (www.MusicDjsMp3.com).mp3",
+      "sha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:15.991683+00:00"
+    },
+    "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv": {
+      "driveId": "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv",
+      "assetId": "96201307185074",
+      "title": "2A - 130 - 2A - 130 -tru love  - Viemix Remix",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "2A - 130 - 2A - 130 -tru love  - Viemix Remix.mp3",
+      "sha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:17.459612+00:00"
+    },
+    "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5": {
+      "driveId": "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5",
+      "assetId": "111162505018062",
+      "title": "3A - 128 - Desert Rose - Stadium Mix 2011",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "3A - 128 - Desert Rose - Stadium Mix 2011.mp3",
+      "sha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:36.036777+00:00"
+    },
+    "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP": {
+      "driveId": "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP",
+      "assetId": "92845805134726",
+      "title": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100.mp3",
+      "sha256": "6b7aa3c225c630655394e0a1d684fea7834ca6eca5668fcc5de949f1de066666",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:38.975151+00:00"
+    },
+    "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn": {
+      "driveId": "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn",
+      "assetId": "86119899029100",
+      "title": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist.mp3",
+      "sha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:49.375838+00:00"
+    },
+    "1LkmzPXccLdUoMan460Uc0TAMObSdAqC2": {
+      "driveId": "1LkmzPXccLdUoMan460Uc0TAMObSdAqC2",
+      "assetId": "119021087760906",
+      "title": "3A - 130 - Feels So Good 3a",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "3A - 130 - Feels So Good 3a.mp3",
+      "sha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:49:51.245716+00:00"
+    },
+    "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI": {
+      "driveId": "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI",
+      "title": "4A - 130 - In and Out of Love    4a",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "4A - 130 - In and Out of Love    4a.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:49:56.804168+00:00"
+    },
+    "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76": {
+      "driveId": "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76",
+      "title": "4B - 128 - Fly Away (Main Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "4B - 128 - Fly Away (Main Mix).mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:49:58.558816+00:00"
+    },
+    "15zniFaf8ruhOJW52P440PDSJZNfsU7QI": {
+      "driveId": "15zniFaf8ruhOJW52P440PDSJZNfsU7QI",
+      "title": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_15zniFaf8ruhOJW52P440PDSJZNfsU7QI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:03.179178+00:00"
+    },
+    "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe": {
+      "driveId": "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe",
+      "assetId": "79262763273656",
+      "title": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1.mp3",
+      "sha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:50:05.928004+00:00"
+    },
+    "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi": {
+      "driveId": "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi",
+      "title": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya).mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:06.139519+00:00"
+    },
+    "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB": {
+      "driveId": "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB",
+      "assetId": "76089367016271",
+      "title": "4. Stadium Club Remix - Stars of Edger",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "4. Stadium Club Remix - Stars of Edger.mp3",
+      "sha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:50:08.076537+00:00"
+    },
+    "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA": {
+      "driveId": "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA",
+      "assetId": "127018756715269",
+      "title": "4A - 130 - because of u 4",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "4A - 130 - because of u 4.mp3",
+      "sha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370",
+      "moderationState": "Reviewing",
+      "uploadedAt": "2026-08-21T05:50:10.169063+00:00"
+    },
+    "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju": {
+      "driveId": "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju",
+      "title": "5A - 130 - 01.dj riri - rusty guitar",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 130 - 01.dj riri - rusty guitar.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:13.549271+00:00"
+    },
+    "1Pt4_oAMEmieku7n8xQz_bi539PcePSER": {
+      "driveId": "1Pt4_oAMEmieku7n8xQz_bi539PcePSER",
+      "title": "5A - 128 - Walkin On Air (Matthew)   5a",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 128 - Walkin On Air (Matthew)   5a.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Pt4_oAMEmieku7n8xQz_bi539PcePSER.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:14.201430+00:00"
+    },
+    "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ": {
+      "driveId": "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ",
+      "title": "5A - 130 - 05 belum ada judul",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 130 - 05 belum ada judul.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:15.578097+00:00"
+    },
+    "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1": {
+      "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
+      "title": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "sourceOrder": 0,
+      "path": "5A - 130 - PULSE OF JAKARTA - Unknown Artist.mp3",
+      "lastError": "command failed: gdown https://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1\n\nbut Gdown can't. Please check connections and permissions.\n",
+      "lastAttemptAt": "2026-08-21T05:50:16.870677+00:00"
     }
   },
-  "updatedAt": "2026-08-21T05:48:17.489835+00:00"
+  "updatedAt": "2026-08-21T05:50:16.872555+00:00"
 }
