@@ -3,7 +3,7 @@
   "source": "CONNECTED_GOOGLE_DRIVE_FULL_LIBRARY",
   "target": "BASEMENT_ONLY",
   "complete": false,
-  "startedAt": "2026-08-21T05:57:20.111533+00:00",
+  "startedAt": "2026-08-21T05:58:06.360134+00:00",
   "workers": 5,
   "sources": [
     {
@@ -129,15 +129,6 @@
   ],
   "tracks": [
     {
-      "driveId": "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI",
-      "title": "4A - 130 - In and Out of Love    4a",
-      "style": "progressive",
-      "sourceFolder": "PROGRESIVE",
-      "path": "4A - 130 - In and Out of Love    4a.mp3",
-      "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI\n\nbut Gdown can't. Please check connections and permissions.\n"
-    },
-    {
       "driveId": "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76",
       "title": "4B - 128 - Fly Away (Main Mix)",
       "style": "progressive",
@@ -147,13 +138,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi",
-      "title": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya)",
+      "driveId": "15zniFaf8ruhOJW52P440PDSJZNfsU7QI",
+      "title": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya).mp3",
+      "path": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130.mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_15zniFaf8ruhOJW52P440PDSJZNfsU7QI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1Pt4_oAMEmieku7n8xQz_bi539PcePSER",
@@ -165,13 +156,22 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Pt4_oAMEmieku7n8xQz_bi539PcePSER.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Pt4_oAMEmieku7n8xQz_bi539PcePSER\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "15zniFaf8ruhOJW52P440PDSJZNfsU7QI",
-      "title": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130",
+      "driveId": "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi",
+      "title": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya)",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130.mp3",
+      "path": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya).mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_15zniFaf8ruhOJW52P440PDSJZNfsU7QI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=15zniFaf8ruhOJW52P440PDSJZNfsU7QI\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi\n\nbut Gdown can't. Please check connections and permissions.\n"
+    },
+    {
+      "driveId": "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI",
+      "title": "4A - 130 - In and Out of Love    4a",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "4A - 130 - In and Out of Love    4a.mp3",
+      "result": "failed",
+      "error": "command failed: gdown https://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju",
@@ -192,13 +192,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ",
-      "title": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3",
+      "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
+      "title": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3.mp3",
+      "path": "5A - 130 - PULSE OF JAKARTA - Unknown Artist.mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs",
@@ -210,13 +210,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
-      "title": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
+      "driveId": "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ",
+      "title": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "5A - 130 - PULSE OF JAKARTA - Unknown Artist.mp3",
+      "path": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3.mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD",
@@ -228,13 +228,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o",
-      "title": "7. Beggin' You (Armin van Buuren Remix)",
+      "driveId": "12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI",
+      "title": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "7. Beggin' You (Armin van Buuren Remix).mp3",
+      "path": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit.mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1DutiLvvEX5nP-vmKSBAqk-WUlrGirWIA",
@@ -255,22 +255,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=11StJVOolkSNHE787BCWaHL61TlXRSzSX -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_11StJVOolkSNHE787BCWaHL61TlXRSzSX.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=11StJVOolkSNHE787BCWaHL61TlXRSzSX\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI",
-      "title": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit",
+      "driveId": "1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o",
+      "title": "7. Beggin' You (Armin van Buuren Remix)",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "6A - 130 - beautiful lie (chandra mile rmx) lagos edit.mp3",
+      "path": "7. Beggin' You (Armin van Buuren Remix).mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=12h6Vwlymr9pbGKZq5Pe6huFbmzTaoyOI\n\nbut Gdown can't. Please check connections and permissions.\n"
-    },
-    {
-      "driveId": "1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5",
-      "title": "7B - 131 - 09.freak",
-      "style": "progressive",
-      "sourceFolder": "PROGRESIVE",
-      "path": "7B - 131 - 09.freak.mp3",
-      "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1ZUsxC_cZMfLF6zA1Fui8oZQKLrWGa93o\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "1Foafx0qgAxTn77GDLlTtMgex6vB0zD50",
@@ -280,6 +271,15 @@
       "path": "7A - 130 - LA SERENADA - Unknown Artist.mp3",
       "result": "failed",
       "error": "command failed: gdown https://drive.google.com/uc?id=1Foafx0qgAxTn77GDLlTtMgex6vB0zD50 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Foafx0qgAxTn77GDLlTtMgex6vB0zD50.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Foafx0qgAxTn77GDLlTtMgex6vB0zD50\n\nbut Gdown can't. Please check connections and permissions.\n"
+    },
+    {
+      "driveId": "1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4",
+      "title": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix)",
+      "style": "progressive",
+      "sourceFolder": "PROGRESIVE",
+      "path": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix).mp3",
+      "result": "failed",
+      "error": "command failed: gdown https://drive.google.com/uc?id=1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
       "driveId": "19LGvW06VF3FeXRJiMcHZfT3QYnDhAuB9",
@@ -300,13 +300,13 @@
       "error": "command failed: gdown https://drive.google.com/uc?id=1J1rtNzPCwJHCnc05-LAfw96bXKpZw97b -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1J1rtNzPCwJHCnc05-LAfw96bXKpZw97b.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1J1rtNzPCwJHCnc05-LAfw96bXKpZw97b\n\nbut Gdown can't. Please check connections and permissions.\n"
     },
     {
-      "driveId": "1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4",
-      "title": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix)",
+      "driveId": "1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5",
+      "title": "7B - 131 - 09.freak",
       "style": "progressive",
       "sourceFolder": "PROGRESIVE",
-      "path": "7B - 128 - 7B - 128 - Iio - Kiss You (Frank Bailey Extended Mix).mp3",
+      "path": "7B - 131 - 09.freak.mp3",
       "result": "failed",
-      "error": "command failed: gdown https://drive.google.com/uc?id=1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Snvm-tddQQ1z5bDG-YM3_Nqi8pbzwmS4\n\nbut Gdown can't. Please check connections and permissions.\n"
+      "error": "command failed: gdown https://drive.google.com/uc?id=1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5 -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio-full/raw_1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5.mp3 --quiet\nFailed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1vRPsmCSebaKaMz1zSBvxocwvhRz0jtY5\n\nbut Gdown can't. Please check connections and permissions.\n"
     }
   ],
   "apiKey": {
@@ -355,5 +355,5 @@
   "registeredDiscoveredCount": 36,
   "remainingCount": 807,
   "mainClubUntouched": true,
-  "finishedAt": "2026-08-21T05:58:04.964955+00:00"
+  "finishedAt": "2026-08-21T05:58:52.943562+00:00"
 }
