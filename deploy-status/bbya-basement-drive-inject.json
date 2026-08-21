@@ -7,31 +7,66 @@
       "title": "ADXL - SEXY PAPI 2025",
       "driveId": "1pp6GHnoLs-wkmlLcoo33cOou2-uFO4XF",
       "cut": false,
-      "error": "command failed: gdown --id 1pp6GHnoLs-wkmlLcoo33cOou2-uFO4XF -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_SEXY_PAPI_2025.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+      "preparedDuration": 295.079,
+      "preparedBytes": 4721927,
+      "createHttp": 403,
+      "createResponse": {
+        "code": "PERMISSION_DENIED",
+        "message": "User not authenticated"
+      },
+      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
     },
     {
       "title": "ADXL - BANG BANG WIRO SABLENG",
       "driveId": "1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA",
       "cut": false,
-      "error": "command failed: gdown --id 1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_BANG_BANG_WIRO_SABLENG.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+      "preparedDuration": 367.491,
+      "preparedBytes": 5880550,
+      "createHttp": 403,
+      "createResponse": {
+        "code": "PERMISSION_DENIED",
+        "message": "User not authenticated"
+      },
+      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
     },
     {
       "title": "ADXL - SEMATA KARENAMU 2023",
       "driveId": "13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV",
       "cut": true,
-      "error": "command failed: gdown --id 13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_SEMATA_KARENAMU_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561474,
+      "createHttp": 403,
+      "createResponse": {
+        "code": "PERMISSION_DENIED",
+        "message": "User not authenticated"
+      },
+      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
     },
     {
       "title": "ADXL - CINTA KITA 2023",
       "driveId": "1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx",
       "cut": true,
-      "error": "command failed: gdown --id 1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_CINTA_KITA_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561469,
+      "createHttp": 403,
+      "createResponse": {
+        "code": "PERMISSION_DENIED",
+        "message": "User not authenticated"
+      },
+      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
     },
     {
       "title": "ADXL - BUTA HATI 2023",
       "driveId": "1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX",
       "cut": true,
-      "error": "command failed: gdown --id 1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_BUTA_HATI_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+      "preparedDuration": 410.044,
+      "preparedBytes": 6561444,
+      "createHttp": 403,
+      "createResponse": {
+        "code": "PERMISSION_DENIED",
+        "message": "User not authenticated"
+      },
+      "scopeHint": "API key needs asset:read + asset:write for the universe creator"
     }
   ],
   "creator": {
