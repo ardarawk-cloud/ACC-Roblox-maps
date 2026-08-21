@@ -3,4 +3,4 @@ PROGRESIVE -> Main Club
 All other Drive music folders -> Basement
 Checkpoint Asset IDs and publish live.
 
-Retry generation 2: resilient Roblox API-key introspection fallback enabled.
+Retry generation 3: Roblox creator moderation detected; preserve existing Asset IDs, skip new uploads, route and publish current safe library.
