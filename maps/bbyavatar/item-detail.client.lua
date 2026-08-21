@@ -1,6 +1,46 @@
 -- BBYAVATAR item detail drawer.
 -- Adds an intentional inspection step before try-on/save/purchase without storing creator or description data.
 -- Marketplace metadata is fetched only when the player opens a detail view.
+-- v2 uses the current async Marketplace API and a small session-only cache to reduce repeated metadata requests.
+
+local DETAIL_CACHE_TTL = 120
+local DETAIL_CACHE_MAX = 24
+local detailInfoCache = {}
+local detailCacheOrder = {}
+
+local function detailTrack(eventName)
+    local remote = root:FindFirstChild("TrackEvent")
+    if remote and remote:IsA("RemoteEvent") then
+        pcall(function() remote:FireServer(eventName) end)
+    end
+end
+
+local function detailCacheKey(id, bundle)
+    return (bundle and "B:" or "A:") .. tostring(id)
+end
+
+local function detailCacheGet(id, bundle)
+    local key = detailCacheKey(id, bundle)
+    local entry = detailInfoCache[key]
+    if not entry then return nil end
+    if os.clock() - entry.at > DETAIL_CACHE_TTL then
+        detailInfoCache[key] = nil
+        return nil
+    end
+    return entry.info
+end
+
+local function detailCachePut(id, bundle, info)
+    local key = detailCacheKey(id, bundle)
+    if not detailInfoCache[key] then
+        table.insert(detailCacheOrder, key)
+    end
+    detailInfoCache[key] = {at = os.clock(), info = info}
+    while #detailCacheOrder > DETAIL_CACHE_MAX do
+        local oldest = table.remove(detailCacheOrder, 1)
+        detailInfoCache[oldest] = nil
+    end
+end
 
 local detailShade = Instance.new("Frame")
 detailShade.Name = "ItemDetailShade"
@@ -140,7 +180,7 @@ end
 detailClose.Activated:Connect(closeDetail)
 detailShade.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 and input.Position then
-        -- Panel itself consumes its own button input; shade click is a convenient desktop close path.
+        -- Panel itself consumes its own button input; shade click remains intentionally inert.
     end
 end)
 
@@ -150,6 +190,18 @@ local function safeCreatorText(info)
         return tostring(info.Creator.Name or info.Creator.CreatorTargetId or "Creator unavailable")
     end
     return "Creator unavailable"
+end
+
+local function applyDetailInfo(id, bundle, info)
+    local currentName = info.Name or detailName.Text
+    local price = info.PriceInRobux
+    local creator = safeCreatorText(info)
+    local saleText = info.IsForSale == false and "Not currently for sale" or (price and (tostring(price) .. " R$") or "Price shown in Roblox purchase prompt")
+    detailName.Text = tostring(currentName)
+    detailMeta.Text = saleText .. " • " .. (bundle and "Bundle" or "Asset") .. "\nBy " .. creator .. " • ID " .. tostring(id)
+    local description = tostring(info.Description or "No catalog description provided.")
+    if #description > 900 then description = string.sub(description, 1, 897) .. "…" end
+    detailDescription.Text = description
 end
 
 local function openItemDetail(item)
@@ -167,26 +219,29 @@ local function openItemDetail(item)
     detailTry.Visible = not bundle
     detailSave.Text = savedPicks[id] and "SAVED ✓" or "SAVE PICK"
     detailShade.Visible = true
+    detailTrack("DETAIL_OPEN")
+
+    local cached = detailCacheGet(id, bundle)
+    if cached then
+        applyDetailInfo(id, bundle, cached)
+        detailTrack("DETAIL_CACHE_HIT")
+        return
+    end
 
     task.spawn(function()
         local ok, info = pcall(function()
-            return MarketplaceService:GetProductInfo(id, bundle and Enum.InfoType.Bundle or Enum.InfoType.Asset)
+            return MarketplaceService:GetProductInfoAsync(id, bundle and Enum.InfoType.Bundle or Enum.InfoType.Asset)
         end)
         if serial ~= detailLoadSerial or not detailShade.Visible then return end
         if not ok or typeof(info) ~= "table" then
             detailMeta.Text = (bundle and "Bundle" or "Asset") .. " • ID " .. tostring(id)
             detailDescription.Text = "Live catalog metadata is temporarily unavailable. Try-on, Saved Picks, and Roblox purchase prompts remain available where supported."
+            detailTrack("DETAIL_FAILED")
             return
         end
-        local currentName = info.Name or detailName.Text
-        local price = info.PriceInRobux
-        local creator = safeCreatorText(info)
-        local saleText = info.IsForSale == false and "Not currently for sale" or (price and (tostring(price) .. " R$") or "Price shown in Roblox purchase prompt")
-        detailName.Text = tostring(currentName)
-        detailMeta.Text = saleText .. " • " .. (bundle and "Bundle" or "Asset") .. "\nBy " .. creator .. " • ID " .. tostring(id)
-        local description = tostring(info.Description or "No catalog description provided.")
-        if #description > 900 then description = string.sub(description, 1, 897) .. "…" end
-        detailDescription.Text = description
+        detailCachePut(id, bundle, info)
+        applyDetailInfo(id, bundle, info)
+        detailTrack("DETAIL_RESULT")
     end)
 end
 
@@ -254,4 +309,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] On-demand item detail drawer ready")
+print("[BBYAVATAR] Item detail v2 async metadata + session cache ready")
