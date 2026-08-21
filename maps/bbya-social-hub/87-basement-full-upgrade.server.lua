@@ -5,14 +5,32 @@
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
-local basement=root:WaitForChild("Underground",30)
-if not basement then return end
 
--- Wait for the base basement, acoustic treatment and premium furniture pass.
-local checker=basement:WaitForChild("CheckerFloor",30)
-local pentagons=basement:WaitForChild("WhitePentagonCeilingLights",30)
-local oldLounge=basement:WaitForChild("PremiumLounge",30)
+-- BasementPremiumUpgrade rebuilds the Underground model at server start. Do not
+-- capture the older structural model: wait until the final premium room exists.
+local basement=nil
+local deadline=os.clock()+35
+repeat
+ local candidate=root:FindFirstChild("Underground")
+ if candidate and candidate:GetAttribute("Pass")=="BASEMENT_PREMIUM_V2"
+  and candidate:FindFirstChild("CheckerFloor")
+  and candidate:FindFirstChild("WhitePentagonCeilingLights")
+  and candidate:FindFirstChild("PremiumLounge") then
+  basement=candidate
+  break
+ end
+ task.wait(.15)
+until os.clock()>=deadline
+if not basement then warn("[BBYA] Basement Full Upgrade skipped: final premium Underground was not ready") return end
+
+local checker=basement:FindFirstChild("CheckerFloor")
+local pentagons=basement:FindFirstChild("WhitePentagonCeilingLights")
+local oldLounge=basement:FindFirstChild("PremiumLounge")
 task.wait(.55)
+if basement.Parent~=root or root:FindFirstChild("Underground")~=basement then
+ warn("[BBYA] Basement Full Upgrade aborted: Underground changed during startup")
+ return
+end
 
 local old=basement:FindFirstChild("BasementFullUpgradeV1")
 if old then old:Destroy() end
@@ -142,22 +160,17 @@ local function sectional(side,z,accent)
  local innerX=side*44.0
  local cluster=Instance.new("Model");cluster.Name=(side<0 and "West" or "East").."Sectional_"..tostring(z);cluster.Parent=lounge
 
- -- floating plinth + soft seat
  part("Plinth",Vector3.new(10.8,.72,15.5),CFrame.new(x,-14.15,z),Color3.fromRGB(18,20,24),Enum.Material.Metal,true,cluster)
  part("Seat",Vector3.new(10.5,1.45,15.1),CFrame.new(x,-13.15,z),C.leather2,Enum.Material.Fabric,true,cluster)
 
- -- wall-side back with segmented cushions for a less blocky silhouette
  part("BackShell",Vector3.new(1.55,4.25,15.3),CFrame.new(side*54.1,-11.35,z),C.leather,Enum.Material.Fabric,true,cluster)
  for n=-2,2 do
   local cz=z+n*2.7
   part("BackCushion"..n,Vector3.new(1.72,3.25,2.35),CFrame.new(side*53.15,-11.45,cz),C.fabric,Enum.Material.Fabric,false,cluster)
  end
 
- -- short arms keep sightlines open
  part("ArmFront",Vector3.new(9.6,2.15,1.15),CFrame.new(x,-12.35,z-7.0),C.leather,Enum.Material.Fabric,true,cluster)
  part("ArmRear",Vector3.new(9.6,2.15,1.15),CFrame.new(x,-12.35,z+7.0),C.leather,Enum.Material.Fabric,true,cluster)
-
- -- subtle inner edge accent, not another ceiling neon system
  lowGlow("InnerUnderglow",Vector3.new(.12,.10,13.8),CFrame.new(innerX,-14.48,z),accent,cluster)
 end
 
@@ -184,7 +197,6 @@ local sg=Instance.new("SurfaceGui");sg.Name="IdentityGui";sg.Face=Enum.NormalId.
 local title=Instance.new("TextLabel");title.BackgroundTransparency=1;title.Position=UDim2.fromScale(.04,.10);title.Size=UDim2.fromScale(.92,.48);title.Text="BBYA UNDERGROUND";title.Font=Enum.Font.GothamBlack;title.TextScaled=true;title.TextColor3=C.white;title.Parent=sg
 local sub=Instance.new("TextLabel");sub.BackgroundTransparency=1;sub.Position=UDim2.fromScale(.08,.62);sub.Size=UDim2.fromScale(.84,.20);sub.Text="INDO ROOM  •  BREAKBEAT  •  FUNKOT  •  INDO BOUNCE";sub.Font=Enum.Font.GothamBold;sub.TextScaled=true;sub.TextColor3=C.blue;sub.Parent=sg
 
--- Thin architectural trims help the acoustic walls read in the newly brighter room.
 for _,x in ipairs({-48,-24,0,24,48}) do
  part("NorthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,42.55),C.metal,Enum.Material.Metal,false,identity)
  part("SouthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,-42.55),C.metal,Enum.Material.Metal,false,identity)
