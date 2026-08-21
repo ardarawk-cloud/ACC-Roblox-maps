@@ -1,0 +1,42 @@
+{
+  "universeId": "8116636513",
+  "source": "CONNECTED_GOOGLE_DRIVE",
+  "complete": false,
+  "tracks": [
+    {
+      "title": "ADXL - SEXY PAPI 2025",
+      "driveId": "1pp6GHnoLs-wkmlLcoo33cOou2-uFO4XF",
+      "cut": false,
+      "error": "command failed: gdown --id 1pp6GHnoLs-wkmlLcoo33cOou2-uFO4XF -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_SEXY_PAPI_2025.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+    },
+    {
+      "title": "ADXL - BANG BANG WIRO SABLENG",
+      "driveId": "1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA",
+      "cut": false,
+      "error": "command failed: gdown --id 1smUfcqGV7BlXgZ5Iw8Za4Jxox3eeQrQA -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_BANG_BANG_WIRO_SABLENG.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+    },
+    {
+      "title": "ADXL - SEMATA KARENAMU 2023",
+      "driveId": "13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV",
+      "cut": true,
+      "error": "command failed: gdown --id 13GV4hS1PQV8VIVpX0wQUxtqIEAtZ2RJV -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_SEMATA_KARENAMU_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+    },
+    {
+      "title": "ADXL - CINTA KITA 2023",
+      "driveId": "1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx",
+      "cut": true,
+      "error": "command failed: gdown --id 1wGmz1gHTSPW02PueEsgwmtt3ZFVzUQXx -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_CINTA_KITA_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+    },
+    {
+      "title": "ADXL - BUTA HATI 2023",
+      "driveId": "1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX",
+      "cut": true,
+      "error": "command failed: gdown --id 1H_m4WH9KM5ruvDMQ5Dz5XQW7Ch93AFuX -O /home/runner/work/ACC-Roblox-maps/ACC-Roblox-maps/.tmp-bbya-audio/raw_ADXL_BUTA_HATI_2023.mp3\nusage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]\n             [--no-cookies] [--no-check-certificate] [--continue] [--folder]\n             [--json] [--format FORMAT] [--user-agent USER_AGENT]\n             url_or_id\ngdown: error: unrecognized arguments: --id\n"
+    }
+  ],
+  "creator": {
+    "type": "user",
+    "id": "8878884630",
+    "name": "RidhooMauKamu"
+  }
+}
