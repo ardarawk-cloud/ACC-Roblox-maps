@@ -1,8 +1,9 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v3
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v4
 -- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
 local camera=workspace.CurrentCamera
 local gui=player:WaitForChild("PlayerGui"):WaitForChild("BBYAClubUI",30)
@@ -88,16 +89,17 @@ end
 local function apply()
  camera=workspace.CurrentCamera or camera
  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
+ local isPhone=UserInputService.TouchEnabled or vp.Y<800
  local panel=gui:FindFirstChild("HubPanel")
- if panel and vp.X<900 then
+ if panel and isPhone then
   panel.AnchorPoint=Vector2.new(.5,.5)
   panel.Position=UDim2.fromScale(.5,.52)
-  panel.Size=UDim2.fromOffset(math.clamp(math.floor(vp.X*.76),430,620),math.clamp(math.floor(vp.Y*.70),310,430))
+  panel.Size=UDim2.fromOffset(math.clamp(math.floor(vp.X*.48),460,650),math.clamp(math.floor(vp.Y*.68),300,420))
  end
- local cols=vp.X<900 and 2 or 3
+ local cols=isPhone and 2 or 3
  local width=math.max(320,holder.AbsoluteSize.X)
  local cellW=math.max(118,math.floor((width-(cols-1)*6)/cols))
- grid.CellSize=UDim2.fromOffset(cellW,vp.X<900 and 72 or 82)
+ grid.CellSize=UDim2.fromOffset(cellW,isPhone and 72 or 82)
 end
 
 task.defer(apply)
@@ -105,4 +107,4 @@ holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(apply)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(apply) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(apply)end)
 
-print("[BBYA] Travel UI v3 online: compact mobile cards + permanent paid access")
+print("[BBYA] Travel UI v4 online: touch-safe compact mobile cards")
