@@ -49,7 +49,8 @@
       "BasementAcousticV3": { "$path": "80-basement-acoustic.server.lua" },
       "ClubGear": { "$path": "75-club-gear.server.lua" },
       "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" },
-      "VIPEnclosureSoundV6": { "$path": "82-vip-enclosure-sound.server.lua" }
+      "VIPEnclosureSoundV6": { "$path": "82-vip-enclosure-sound.server.lua" },
+      "VenueLightingBoostV1": { "$path": "86-vip-skate-lighting-boost.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
