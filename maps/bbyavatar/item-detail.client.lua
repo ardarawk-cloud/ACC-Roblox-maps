@@ -1,12 +1,15 @@
 -- BBYAVATAR item detail drawer.
 -- Adds an intentional inspection step before try-on/save/purchase without storing creator or description data.
 -- Marketplace metadata is fetched only when the player opens a detail view.
--- v2 uses the current async Marketplace API and a small session-only cache to reduce repeated metadata requests.
+-- v3 adds purchase-state gating so stale/off-sale metadata never presents a misleading active BUY action.
 
 local DETAIL_CACHE_TTL = 120
 local DETAIL_CACHE_MAX = 24
 local detailInfoCache = {}
 local detailCacheOrder = {}
+
+local BUY_ENABLED_COLOR = Color3.fromRGB(64, 91, 72)
+local BUY_DISABLED_COLOR = Color3.fromRGB(55, 57, 65)
 
 local function detailTrack(eventName)
     local remote = root:FindFirstChild("TrackEvent")
@@ -164,16 +167,38 @@ end
 
 local detailTry = detailButton("TryOn", "TRY ON", Color3.fromRGB(62, 76, 112))
 local detailSave = detailButton("SavePick", "SAVE PICK", Color3.fromRGB(55, 67, 86))
-local detailBuy = detailButton("Buy", "BUY", Color3.fromRGB(64, 91, 72))
+local detailBuy = detailButton("Buy", "BUY", BUY_ENABLED_COLOR)
 
 local activeDetailItem = nil
 local activeDetailId = nil
 local detailLoadSerial = 0
+local detailPurchasable = nil
+
+local function setDetailPurchaseState(state, price)
+    detailPurchasable = state
+    if state == false then
+        detailBuy.Active = false
+        detailBuy.AutoButtonColor = false
+        detailBuy.BackgroundColor3 = BUY_DISABLED_COLOR
+        detailBuy.Text = "OFF SALE"
+    elseif state == true then
+        detailBuy.Active = true
+        detailBuy.AutoButtonColor = true
+        detailBuy.BackgroundColor3 = BUY_ENABLED_COLOR
+        detailBuy.Text = price and ("BUY • " .. tostring(price) .. " R$") or "BUY"
+    else
+        detailBuy.Active = false
+        detailBuy.AutoButtonColor = false
+        detailBuy.BackgroundColor3 = BUY_DISABLED_COLOR
+        detailBuy.Text = "CHECKING…"
+    end
+end
 
 local function closeDetail()
     detailShade.Visible = false
     activeDetailItem = nil
     activeDetailId = nil
+    detailPurchasable = nil
     detailLoadSerial += 1
 end
 
@@ -196,12 +221,14 @@ local function applyDetailInfo(id, bundle, info)
     local currentName = info.Name or detailName.Text
     local price = info.PriceInRobux
     local creator = safeCreatorText(info)
-    local saleText = info.IsForSale == false and "Not currently for sale" or (price and (tostring(price) .. " R$") or "Price shown in Roblox purchase prompt")
+    local isForSale = info.IsForSale ~= false
+    local saleText = isForSale and (price and (tostring(price) .. " R$") or "Price confirmed in Roblox purchase prompt") or "Not currently for sale"
     detailName.Text = tostring(currentName)
     detailMeta.Text = saleText .. " • " .. (bundle and "Bundle" or "Asset") .. "\nBy " .. creator .. " • ID " .. tostring(id)
     local description = tostring(info.Description or "No catalog description provided.")
     if #description > 900 then description = string.sub(description, 1, 897) .. "…" end
     detailDescription.Text = description
+    setDetailPurchaseState(isForSale, price)
 end
 
 local function openItemDetail(item)
@@ -218,6 +245,7 @@ local function openItemDetail(item)
     detailDescription.Text = "Fetching current Marketplace information."
     detailTry.Visible = not bundle
     detailSave.Text = savedPicks[id] and "SAVED ✓" or "SAVE PICK"
+    setDetailPurchaseState(nil)
     detailShade.Visible = true
     detailTrack("DETAIL_OPEN")
 
@@ -235,7 +263,8 @@ local function openItemDetail(item)
         if serial ~= detailLoadSerial or not detailShade.Visible then return end
         if not ok or typeof(info) ~= "table" then
             detailMeta.Text = (bundle and "Bundle" or "Asset") .. " • ID " .. tostring(id)
-            detailDescription.Text = "Live catalog metadata is temporarily unavailable. Try-on, Saved Picks, and Roblox purchase prompts remain available where supported."
+            detailDescription.Text = "Live catalog metadata is temporarily unavailable. Try-on and Saved Picks remain available; purchase is paused here until Roblox confirms current sale status."
+            setDetailPurchaseState(nil)
             detailTrack("DETAIL_FAILED")
             return
         end
@@ -263,6 +292,10 @@ end)
 
 detailBuy.Activated:Connect(function()
     if not activeDetailItem or not activeDetailId then return end
+    if detailPurchasable ~= true then
+        status.Text = detailPurchasable == false and "This item is not currently for sale." or "Checking current Roblox sale status…"
+        return
+    end
     local bundle = isBundleItem(activeDetailItem)
     local ok, err = pcall(function()
         if bundle then
@@ -309,4 +342,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Item detail v2 async metadata + session cache ready")
+print("[BBYAVATAR] Item detail v3 purchase-state gating ready")
