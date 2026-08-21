@@ -4,8 +4,8 @@
   "universeId": "10744157359",
   "placeId": "85866320744490",
   "sourceFile": "maps/bbyavatar/place.rbxlx",
-  "payloadBytes": 127575,
-  "payloadSha256": "f837a52b89ecffaeb72e04bf6f5237aebb187f3934cb379c4255aea789ff22c3",
+  "payloadBytes": 138108,
+  "payloadSha256": "ceacacc96e957aec49dccf5bccb85aea0dc79d8fe06d7f285fafaa90b2d52a1f",
   "blocker": "OWNER_MODERATION_BLOCK",
   "retrySafe": false,
   "payload": {
@@ -16,6 +16,6 @@
       }
     ]
   },
-  "startedAt": "2026-08-21T17:15:55.869Z",
-  "at": "2026-08-21T17:15:56.043Z"
+  "startedAt": "2026-08-21T18:18:10.594Z",
+  "at": "2026-08-21T18:18:11.149Z"
 }
