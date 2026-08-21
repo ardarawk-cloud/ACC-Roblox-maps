@@ -51,7 +51,8 @@
       "ClubGear": { "$path": "75-club-gear.server.lua" },
       "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" },
       "VIPEnclosureSoundV6": { "$path": "82-vip-enclosure-sound.server.lua" },
-      "VenueLightingBoostV1": { "$path": "86-vip-skate-lighting-boost.server.lua" }
+      "VenueLightingBoostV1": { "$path": "86-vip-skate-lighting-boost.server.lua" },
+      "SkateparkExposureFixV2": { "$path": "88-skatepark-exposure-fix.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -71,7 +72,8 @@
         "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" },
         "MobileUIPolishV5": { "$path": "78-mobile-ui-polish.client.lua" },
         "BasementAudioUIPatchV5": { "$path": "81-basement-audio-ui.client.lua" },
-        "MobileUIFinalOverrideV1": { "$path": "84-mobile-ui-final-override.client.lua" }
+        "MobileUIFinalOverrideV1": { "$path": "84-mobile-ui-final-override.client.lua" },
+        "MobilePanelPrecisionV1": { "$path": "89-mobile-panel-precision.client.lua" }
       }
     },
     "Lighting": {
