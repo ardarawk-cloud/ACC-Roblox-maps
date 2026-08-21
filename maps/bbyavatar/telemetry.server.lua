@@ -24,6 +24,9 @@ local ALLOWED = {
     PURCHASE_CANCELLED = true,
     TRY_ON_SUCCESS = true,
     TRY_ON_FAILED = true,
+    PICK_SAVE = true,
+    PICK_REMOVE = true,
+    PICKS_OPEN = true,
     WARDROBE_PREVIEW_SUCCESS = true,
     WARDROBE_PREVIEW_FAILED = true,
     WARDROBE_RESTORE_SUCCESS = true,
@@ -53,6 +56,6 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     lastEventAt[player.UserId] = nil
 end)
 
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V3_DISCOVERY")
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V4_SAVED_PICKS")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
-print("[BBYAVATAR] Privacy-safe session telemetry v3 ready")
+print("[BBYAVATAR] Privacy-safe session telemetry v4 ready")
