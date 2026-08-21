@@ -1,6 +1,10 @@
--- BBYAVATAR analytics-ready foundation v7.
+-- BBYAVATAR analytics-ready foundation v8.
 -- Privacy posture: aggregate session counters only; no external endpoint, no PII persistence,
 -- no arbitrary client event names, and no per-user metrics exposed as attributes.
+-- v8 hardens the funnel by making SESSION_START server-authoritative and applying
+-- event-specific anti-spam throttles so exploit clients cannot cheaply inflate metrics.
+
+local Players = game:GetService("Players")
 
 local trackEvent = rem:FindFirstChild("TrackEvent")
 if not trackEvent then
@@ -10,7 +14,6 @@ if not trackEvent then
 end
 
 local ALLOWED = {
-    SESSION_START = true,
     CATALOG_OPEN = true,
     SAVE_AVATAR_SUCCESS = true,
     SAVE_AVATAR_DENIED = true,
@@ -40,9 +43,40 @@ local ALLOWED = {
     RECOMMEND_FAILED = true,
 }
 
+local THROTTLE = {
+    CATALOG_OPEN = 1.0,
+    TRY_ON_SUCCESS = 0.75,
+    TRY_ON_FAILED = 0.75,
+    PICK_SAVE = 0.5,
+    PICK_REMOVE = 0.5,
+    PICKS_OPEN = 1.0,
+    PICK_CLOUD_LOAD = 5.0,
+    DISCOVERY_OPEN = 1.0,
+    DISCOVERY_CATEGORY = 0.75,
+    RECOMMEND_OPEN = 1.0,
+    RECOMMEND_RESULT = 1.0,
+    RECOMMEND_FAILED = 1.0,
+    FAVORITE_SUCCESS = 1.0,
+    FAVORITE_DENIED = 1.0,
+    FAVORITE_FAILED = 1.0,
+    PURCHASE_SUCCESS = 2.0,
+    PURCHASE_CANCELLED = 1.0,
+    CREATE_OUTFIT_SUCCESS = 2.0,
+    CREATE_OUTFIT_DENIED = 2.0,
+    CREATE_OUTFIT_FAILED = 2.0,
+    SAVE_AVATAR_SUCCESS = 2.0,
+    SAVE_AVATAR_DENIED = 2.0,
+    SAVE_AVATAR_FAILED = 2.0,
+    WARDROBE_PREVIEW_SUCCESS = 0.75,
+    WARDROBE_PREVIEW_FAILED = 0.75,
+    WARDROBE_RESTORE_SUCCESS = 1.0,
+    WARDROBE_RESTORE_FAILED = 1.0,
+}
+
+local DEFAULT_THROTTLE_SECONDS = 0.75
 local lastEventAt = {}
 local counters = {}
-local THROTTLE_SECONDS = 0.12
+local countedSessions = {}
 
 local function metric(key)
     return counters[key] or 0
@@ -83,6 +117,17 @@ local function bump(key)
     refreshDerivedMetrics()
 end
 
+local function registerSession(player)
+    if not player or countedSessions[player] then return end
+    countedSessions[player] = true
+    bump("SESSION_START")
+end
+
+Players.PlayerAdded:Connect(registerSession)
+for _, player in ipairs(Players:GetPlayers()) do
+    registerSession(player)
+end
+
 trackEvent.OnServerEvent:Connect(function(player, eventName)
     if typeof(eventName) ~= "string" or not ALLOWED[eventName] then return end
 
@@ -94,18 +139,21 @@ trackEvent.OnServerEvent:Connect(function(player, eventName)
     end
 
     local now = os.clock()
-    if now - (playerTimes[eventName] or 0) < THROTTLE_SECONDS then return end
+    local minimumGap = THROTTLE[eventName] or DEFAULT_THROTTLE_SECONDS
+    if now - (playerTimes[eventName] or 0) < minimumGap then return end
     playerTimes[eventName] = now
     bump(eventName)
 end)
 
-game:GetService("Players").PlayerRemoving:Connect(function(player)
+Players.PlayerRemoving:Connect(function(player)
     lastEventAt[player.UserId] = nil
+    countedSessions[player] = nil
 end)
 
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V7_RECOMMENDATION_FUNNEL")
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V8_SERVER_AUTH_SESSIONS")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
-root:SetAttribute("TelemetryThrottle", "PER_USER_PER_EVENT")
-root:SetAttribute("TelemetrySchema", 7)
+root:SetAttribute("TelemetryThrottle", "EVENT_SPECIFIC_PER_USER")
+root:SetAttribute("TelemetrySessionAuthority", "SERVER")
+root:SetAttribute("TelemetrySchema", 8)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v7 + recommendation funnel ready")
+print("[BBYAVATAR] Privacy-safe telemetry v8 server-authoritative sessions ready")
