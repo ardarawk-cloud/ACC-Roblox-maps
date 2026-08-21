@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — UNIFIED UI v4
--- Responsive music/support/travel shell + local audio-zone balancing.
+-- BBYA SOCIAL HUB — UNIFIED UI v5
+-- Responsive shell + per-player venue mixer: Main western vs Basement Indo.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -33,7 +33,6 @@ local function card(parent,name)
  local f=Instance.new("Frame");f.Name=name;f.BackgroundColor3=C.CARD;f.BorderSizePixel=0;f.Parent=parent;round(f,13);stroke(f,C.LINE,1,.45);return f
 end
 
--- TOP DOCK --------------------------------------------------------------------
 local dock=Instance.new("Frame")
 dock.Name="TopDock";dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.56,0,0,14);dock.Size=UDim2.fromOffset(690,52);dock.BackgroundColor3=Color3.fromRGB(12,11,15);dock.BackgroundTransparency=.08;dock.BorderSizePixel=0;dock.Parent=gui;round(dock,14);stroke(dock,C.LINE,1,.35)
 local brand=button(dock,"BBYA",UDim2.fromOffset(7,6),UDim2.fromOffset(78,40),Color3.fromRGB(43,24,37));stroke(brand,C.PINK,1,.35)
@@ -44,17 +43,15 @@ local statusPill=Instance.new("Frame");statusPill.Position=UDim2.new(1,-129,0,8)
 local statusDot=Instance.new("Frame");statusDot.Position=UDim2.fromOffset(11,13);statusDot.Size=UDim2.fromOffset(10,10);statusDot.BackgroundColor3=C.GREEN;statusDot.BorderSizePixel=0;statusDot.Parent=statusPill;round(statusDot,10)
 local statusText=label(statusPill,"CLUB LIVE",UDim2.fromOffset(29,7),UDim2.new(1,-34,1,-14),Enum.Font.GothamBold,10,C.WHITE);statusText.TextYAlignment=Enum.TextYAlignment.Center
 
--- MAIN PANEL ------------------------------------------------------------------
 local panel=Instance.new("Frame")
 panel.Name="HubPanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.54);panel.Size=UDim2.fromOffset(820,500);panel.BackgroundColor3=C.BG;panel.BackgroundTransparency=.025;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;round(panel,17);stroke(panel,C.PINK,1.2,.38)
 local header=Instance.new("Frame");header.BackgroundTransparency=1;header.Position=UDim2.fromOffset(20,14);header.Size=UDim2.new(1,-40,0,58);header.Parent=panel
 local pageTitle=label(header,"MUSIC SYSTEM",UDim2.fromOffset(0,0),UDim2.new(1,-60,0,26),Enum.Font.GothamBold,20,C.WHITE)
-local pageSub=label(header,"Synced club feed • request queue • local zone balance",UDim2.fromOffset(0,29),UDim2.new(1,-60,0,20),Enum.Font.Gotham,10,C.MUTED)
+local pageSub=label(header,"Main western channel • venue-aware request queue",UDim2.fromOffset(0,29),UDim2.new(1,-60,0,20),Enum.Font.Gotham,10,C.MUTED)
 local close=button(header,"×",UDim2.new(1,-38,0,0),UDim2.fromOffset(38,36),C.CARD2);close.TextSize=22
 local divider=Instance.new("Frame");divider.Position=UDim2.fromOffset(20,78);divider.Size=UDim2.new(1,-40,0,1);divider.BackgroundColor3=C.LINE;divider.BackgroundTransparency=.35;divider.BorderSizePixel=0;divider.Parent=panel
 local content=Instance.new("Frame");content.BackgroundTransparency=1;content.Position=UDim2.fromOffset(20,92);content.Size=UDim2.new(1,-40,1,-112);content.Parent=panel
 
--- MUSIC -----------------------------------------------------------------------
 local music=Instance.new("Frame");music.BackgroundTransparency=1;music.Size=UDim2.fromScale(1,1);music.Parent=content
 local playerCard=card(music,"PlayerCard");local libraryCard=card(music,"LibraryCard")
 local art=Instance.new("Frame");art.BackgroundColor3=Color3.fromRGB(35,21,35);art.BorderSizePixel=0;art.Parent=playerCard;round(art,13);stroke(art,C.PINK,1,.4)
@@ -65,20 +62,19 @@ local liveBadge=Instance.new("Frame");liveBadge.BackgroundColor3=Color3.fromRGB(
 local liveLabel=label(liveBadge,"●  LIVE",UDim2.fromOffset(9,0),UDim2.new(1,-16,1,0),Enum.Font.GothamBold,9,C.GREEN);liveLabel.TextYAlignment=Enum.TextYAlignment.Center
 local nowSmall=label(playerCard,"NOW PLAYING",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.PINK)
 local nowTitle=label(playerCard,"Loading club audio…",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,18,C.WHITE)
-local nowMeta=label(playerCard,"BBYA • SYNCED MASTER FEED",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,9,C.MUTED)
+local nowMeta=label(playerCard,"MAIN • WESTERN / INTERNATIONAL",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,9,C.MUTED)
 local eqHolder=Instance.new("Frame");eqHolder.BackgroundColor3=Color3.fromRGB(15,17,20);eqHolder.BorderSizePixel=0;eqHolder.Parent=playerCard;round(eqHolder,9);stroke(eqHolder,C.LINE,1,.55)
 local eqBars={}
 for i=1,18 do local b=Instance.new("Frame");b.AnchorPoint=Vector2.new(.5,1);b.Position=UDim2.new((i-.5)/18,0,1,-7);b.Size=UDim2.new(.035,0,0,8);b.BackgroundColor3=(i%3==0 and C.CYAN or C.PINK);b.BorderSizePixel=0;b.Parent=eqHolder;round(b,4);table.insert(eqBars,b) end
 local localMute=button(playerCard,"MUTE LOCAL",UDim2.new(),UDim2.new(),C.CARD2)
-local zoneLabel=label(playerCard,"AUTO BALANCE: --",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.CYAN)
-local requestHint=label(playerCard,"Tap a track in Library to request it. Requests enter the DJ queue.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,9,C.MUTED)
+local zoneLabel=label(playerCard,"AUDIO VENUE: --",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.CYAN)
+local requestHint=label(playerCard,"Request masuk ke queue venue tempat kamu berada.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,9,C.MUTED)
 local adminPause=button(playerCard,"PAUSE",UDim2.new(),UDim2.new(),C.CARD2);local adminNext=button(playerCard,"NEXT",UDim2.new(),UDim2.new(),C.PINKD);local adminResume=button(playerCard,"RESUME",UDim2.new(),UDim2.new(),C.CARD2)
 local libHead=label(libraryCard,"LIBRARY / REQUEST",UDim2.fromOffset(14,12),UDim2.new(1,-28,0,22),Enum.Font.GothamBold,13,C.WHITE)
-local libSub=label(libraryCard,"Choose a track for the DJ request queue",UDim2.fromOffset(14,35),UDim2.new(1,-28,0,18),Enum.Font.Gotham,9,C.MUTED)
+local libSub=label(libraryCard,"Main: western • Basement: Indo",UDim2.fromOffset(14,35),UDim2.new(1,-28,0,18),Enum.Font.Gotham,9,C.MUTED)
 local listHolder=Instance.new("ScrollingFrame");listHolder.Position=UDim2.fromOffset(12,62);listHolder.Size=UDim2.new(1,-24,1,-74);listHolder.BackgroundTransparency=1;listHolder.BorderSizePixel=0;listHolder.ScrollBarThickness=3;listHolder.ScrollBarImageColor3=C.PINK;listHolder.AutomaticCanvasSize=Enum.AutomaticSize.Y;listHolder.CanvasSize=UDim2.new();listHolder.ScrollingDirection=Enum.ScrollingDirection.Y;listHolder.Active=true;listHolder.Parent=libraryCard
 local listLayout=Instance.new("UIListLayout");listLayout.Padding=UDim.new(0,7);listLayout.Parent=listHolder
 
--- SUPPORT ---------------------------------------------------------------------
 local support=Instance.new("Frame");support.BackgroundTransparency=1;support.Size=UDim2.fromScale(1,1);support.Visible=false;support.Parent=content
 local supportIntro=card(support,"SupportIntro")
 local supBrand=label(supportIntro,"SUPPORT BBYA",UDim2.fromOffset(18,18),UDim2.new(1,-36,0,28),Enum.Font.GothamBold,20,C.WHITE)
@@ -92,7 +88,6 @@ local supportGrid=Instance.new("UIGridLayout");supportGrid.CellSize=UDim2.new(.4
 local function syncSupportCanvas()supportHolder.CanvasSize=UDim2.fromOffset(0,math.max(0,supportGrid.AbsoluteContentSize.Y+8))end
 supportGrid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(syncSupportCanvas)
 
--- TRAVEL ----------------------------------------------------------------------
 local travel=Instance.new("Frame");travel.BackgroundTransparency=1;travel.Size=UDim2.fromScale(1,1);travel.Visible=false;travel.Parent=content
 label(travel,"MOVE THROUGH BBYA",UDim2.fromOffset(0,0),UDim2.new(1,0,0,26),Enum.Font.GothamBold,17,C.WHITE)
 label(travel,"Only destinations with valid walkable geometry are shown.",UDim2.fromOffset(0,28),UDim2.new(1,0,0,24),Enum.Font.Gotham,10,C.MUTED)
@@ -108,36 +103,46 @@ for i,d in ipairs(destinations) do
  go.MouseButton1Click:Connect(function()teleportRemote:FireServer(d[2]);panel.Visible=false end)
 end
 
--- TOAST / PAGE SWITCH ---------------------------------------------------------
 local toast=Instance.new("TextLabel");toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.new(.5,0,1,-22);toast.Size=UDim2.fromOffset(420,42);toast.BackgroundColor3=Color3.fromRGB(12,11,15);toast.BackgroundTransparency=.03;toast.TextColor3=C.WHITE;toast.Font=Enum.Font.GothamMedium;toast.TextSize=12;toast.Visible=false;toast.BorderSizePixel=0;toast.Parent=gui;round(toast,10);stroke(toast,C.PINK,1,.48)
 local function showToast(t)toast.Text=t;toast.Visible=true;task.delay(2.6,function()if toast.Text==t then toast.Visible=false end end)end
 local function activeTab(b,on,col)b.BackgroundColor3=on and (col or C.PINKD) or C.PANEL end
+local currentVenue="MAIN"
+local function applyVenueCopy()
+ if currentVenue=="BASEMENT" then
+  pageTitle.Text="UNDERGROUND MUSIC";pageSub.Text="Independent Indo channel • breakbeat • funkot • indo-bounce"
+  nowMeta.Text="BASEMENT • INDO BREAKBEAT / FUNKOT";libSub.Text="BASEMENT INDO LIBRARY / REQUEST"
+ else
+  pageTitle.Text="MUSIC SYSTEM";pageSub.Text="Main western channel • independent from Basement"
+  nowMeta.Text="MAIN • WESTERN / INTERNATIONAL";libSub.Text="MAIN WESTERN LIBRARY / REQUEST"
+ end
+end
 local function setPage(which)
  panel.Visible=true;music.Visible=which=="music";support.Visible=which=="support";travel.Visible=which=="travel"
  activeTab(musicTab,which=="music",C.PINKD);activeTab(supportTab,which=="support",Color3.fromRGB(22,64,76));activeTab(travelTab,which=="travel",Color3.fromRGB(80,58,31))
- if which=="music" then pageTitle.Text="MUSIC SYSTEM";pageSub.Text="Synced club feed • request queue • local zone balance";musicRemote:FireServer("list")
+ if which=="music" then applyVenueCopy();musicRemote:FireServer("list")
  elseif which=="support" then pageTitle.Text="SUPPORT BBYA";pageSub.Text="Community support • scroll to choose an amount";supportRemote:FireServer("list")
  else pageTitle.Text="TRAVEL";pageSub.Text="Quick access to verified BBYA social zones" end
 end
 brand.MouseButton1Click:Connect(function()if panel.Visible then panel.Visible=false else setPage("music") end end)
 musicTab.MouseButton1Click:Connect(function()setPage("music")end);supportTab.MouseButton1Click:Connect(function()setPage("support")end);travelTab.MouseButton1Click:Connect(function()setPage("travel")end);close.MouseButton1Click:Connect(function()panel.Visible=false end)
 
--- LOCAL AUDIO BALANCE ---------------------------------------------------------
+-- Per-player venue audio mixer. Only one venue feed is audible at a time.
 local muted=false
-local currentVolume=.35
-local function getZoneVolume()
+local currentMainVolume=.35
+local currentBasementVolume=0
+local function getZoneMix()
  local ch=player.Character;local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
- if not hrp then return .25,"LOADING" end
+ if not hrp then return .20,0,"LOADING","MAIN" end
  local p=hrp.Position
- if p.Y<0 then return .18,"BASEMENT" end
- if p.Y>40 then return .34,"ROOFTOP" end
- if p.Y>18 then return .48,"VIP" end
- if p.Z<-45 then return .10,"ARRIVAL" end
- if p.Z<-18 then return .20,"FRONT HALL" end
- if p.Z<0 then return .36,"TRANSITION" end
- if math.abs(p.X)>28 then return .62,"BAR / VIP LOUNGE" end
- if p.Z>27 then return .92,"DJ / STAGE" end
- return .84,"MAIN CLUB"
+ if p.Y<-4.5 then return 0,.94,"BASEMENT / INDO","BASEMENT" end
+ if p.Y>40 then return .34,0,"ROOFTOP","MAIN" end
+ if p.Y>18 then return .48,0,"VIP","MAIN" end
+ if p.Z<-45 then return .10,0,"ARRIVAL","MAIN" end
+ if p.Z<-18 then return .20,0,"FRONT HALL","MAIN" end
+ if p.Z<0 then return .36,0,"TRANSITION","MAIN" end
+ if math.abs(p.X)>28 then return .62,0,"BAR / VIP LOUNGE","MAIN" end
+ if p.Z>27 then return .92,0,"DJ / STAGE","MAIN" end
+ return .84,0,"MAIN CLUB","MAIN"
 end
 localMute.MouseButton1Click:Connect(function()muted=not muted;localMute.Text=muted and "UNMUTE LOCAL" or "MUTE LOCAL" end)
 adminPause.MouseButton1Click:Connect(function()musicRemote:FireServer("pause")end);adminNext.MouseButton1Click:Connect(function()musicRemote:FireServer("next")end);adminResume.MouseButton1Click:Connect(function()musicRemote:FireServer("resume")end)
@@ -147,7 +152,6 @@ local function refreshAdmin()
 end
 refreshAdmin();player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshAdmin)
 
--- DATA POPULATION -------------------------------------------------------------
 local function populatePlaylist(data)
  for _,c in ipairs(listHolder:GetChildren())do if c:IsA("Frame") then c:Destroy() end end
  for i,item in ipairs(data or {}) do
@@ -166,13 +170,15 @@ local function populateSupport(data)
 end
 stateRemote.OnClientEvent:Connect(function(kind,data)
  if kind=="playlist" then populatePlaylist(data)
- elseif kind=="music" then nowTitle.Text=tostring(data.title or "No track loaded");liveLabel.Text=data.playing and "●  LIVE" or "Ⅱ  PAUSED";liveLabel.TextColor3=data.playing and C.GREEN or C.GOLD
+ elseif kind=="music" then
+  if data.venue then currentVenue=tostring(data.venue) end
+  nowTitle.Text=tostring(data.title or "No track loaded");liveLabel.Text=data.playing and "●  LIVE" or "Ⅱ  PAUSED";liveLabel.TextColor3=data.playing and C.GREEN or C.GOLD
+  applyVenueCopy()
  elseif kind=="supportProducts" then populateSupport(data)
  elseif kind=="openSupport" then setPage("support")
  elseif kind=="toast" then showToast(tostring(data)) end
 end)
 
--- RESPONSIVE LAYOUT -----------------------------------------------------------
 local function layout()
  local vp=camera.ViewportSize
  local dockW=math.clamp(vp.X*.52,430,720);dock.Size=UDim2.fromOffset(dockW,52)
@@ -203,11 +209,17 @@ local t=0
 RunService.RenderStepped:Connect(function(dt)
  t+=dt
  for i,b in ipairs(eqBars) do local h=10+math.abs(math.sin(t*3.4+i*.72))*46+math.abs(math.sin(t*1.6+i*.31))*8;b.Size=UDim2.new(.035,0,0,h) end
- local target,zone=getZoneVolume();if muted then target=0 end
- currentVolume=currentVolume+(target-currentVolume)*math.min(1,dt*4.2)
- local g=SoundService:FindFirstChild("BBYAClubMaster");if g then g.Volume=currentVolume end
- zoneLabel.Text=string.format("AUTO BALANCE: %s  •  %d%%",zone,math.floor(target*100+.5))
+ local mainTarget,basementTarget,zone,venue=getZoneMix()
+ if muted then mainTarget=0;basementTarget=0 end
+ currentMainVolume=currentMainVolume+(mainTarget-currentMainVolume)*math.min(1,dt*4.8)
+ currentBasementVolume=currentBasementVolume+(basementTarget-currentBasementVolume)*math.min(1,dt*4.8)
+ local mainGroup=SoundService:FindFirstChild("BBYAClubMaster");if mainGroup then mainGroup.Volume=currentMainVolume end
+ local basementGroup=SoundService:FindFirstChild("BBYABasementMaster");if basementGroup then basementGroup.Volume=currentBasementVolume end
+ zoneLabel.Text=string.format("AUDIO VENUE: %s  •  %d%%",zone,math.floor(math.max(mainTarget,basementTarget)*100+.5))
+ if venue~=currentVenue then
+  currentVenue=venue;applyVenueCopy();musicRemote:FireServer("list");musicRemote:FireServer("queue")
+ end
 end)
 
 musicRemote:FireServer("list");supportRemote:FireServer("list")
-print("[BBYA] Unified UI v4 online: scrolling support, verified travel, synced local audio balance")
+print("[BBYA] Unified UI v5 online: automatic Main-Western / Basement-Indo audio routing")
