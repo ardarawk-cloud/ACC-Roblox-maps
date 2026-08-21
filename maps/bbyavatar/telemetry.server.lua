@@ -1,7 +1,7 @@
--- BBYAVATAR analytics-ready foundation v9.
+-- BBYAVATAR analytics-ready foundation v10.
 -- Privacy posture: aggregate session counters only; no external endpoint, no PII persistence,
 -- no arbitrary client event names, and no per-user metrics exposed as attributes.
--- v9 adds recommendation cache efficiency tracking while preserving server authority and throttles.
+-- v10 adds item-detail reliability/cache metrics while preserving server authority and throttles.
 
 local Players = game:GetService("Players")
 
@@ -41,6 +41,10 @@ local ALLOWED = {
     RECOMMEND_RESULT = true,
     RECOMMEND_FAILED = true,
     RECOMMEND_CACHE_HIT = true,
+    DETAIL_OPEN = true,
+    DETAIL_RESULT = true,
+    DETAIL_FAILED = true,
+    DETAIL_CACHE_HIT = true,
 }
 
 local THROTTLE = {
@@ -57,6 +61,10 @@ local THROTTLE = {
     RECOMMEND_RESULT = 1.0,
     RECOMMEND_FAILED = 1.0,
     RECOMMEND_CACHE_HIT = 1.0,
+    DETAIL_OPEN = 0.5,
+    DETAIL_RESULT = 0.5,
+    DETAIL_FAILED = 1.0,
+    DETAIL_CACHE_HIT = 0.5,
     FAVORITE_SUCCESS = 1.0,
     FAVORITE_DENIED = 1.0,
     FAVORITE_FAILED = 1.0,
@@ -101,6 +109,10 @@ local function refreshDerivedMetrics()
     local recommendationResults = metric("RECOMMEND_RESULT")
     local recommendationCacheHits = metric("RECOMMEND_CACHE_HIT")
     local recommendationServed = recommendationResults + recommendationCacheHits
+    local detailOpens = metric("DETAIL_OPEN")
+    local detailResults = metric("DETAIL_RESULT")
+    local detailCacheHits = metric("DETAIL_CACHE_HIT")
+    local detailServed = detailResults + detailCacheHits
 
     root:SetAttribute("Funnel_OpenPerSessionPct", safeRate(opens, sessions))
     root:SetAttribute("Funnel_TryOnPerOpenPct", safeRate(tries, opens))
@@ -113,6 +125,9 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Funnel_RecommendPerPickPct", safeRate(recommendationOpens, picks))
     root:SetAttribute("Funnel_RecommendResultPct", safeRate(recommendationServed, recommendationOpens))
     root:SetAttribute("Funnel_RecommendCacheHitPct", safeRate(recommendationCacheHits, recommendationServed))
+    root:SetAttribute("Funnel_DetailPerOpenPct", safeRate(detailOpens, opens))
+    root:SetAttribute("Funnel_DetailResultPct", safeRate(detailServed, detailOpens))
+    root:SetAttribute("Funnel_DetailCacheHitPct", safeRate(detailCacheHits, detailServed))
 end
 
 local function bump(key)
@@ -154,10 +169,10 @@ Players.PlayerRemoving:Connect(function(player)
     countedSessions[player] = nil
 end)
 
-root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V9_RECOMMEND_CACHE")
+root:SetAttribute("TelemetryRevision", "SESSION_COUNTERS_V10_DETAIL_CACHE")
 root:SetAttribute("TelemetryPrivacy", "NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle", "EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority", "SERVER")
-root:SetAttribute("TelemetrySchema", 9)
+root:SetAttribute("TelemetrySchema", 10)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v9 recommendation cache metrics ready")
+print("[BBYAVATAR] Privacy-safe telemetry v10 item-detail metrics ready")
