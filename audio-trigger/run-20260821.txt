@@ -2,3 +2,5 @@ Run BBYA Drive audio ingestion with routing policy:
 PROGRESIVE -> Main Club
 All other Drive music folders -> Basement
 Checkpoint Asset IDs and publish live.
+
+Retry generation 2: resilient Roblox API-key introspection fallback enabled.
