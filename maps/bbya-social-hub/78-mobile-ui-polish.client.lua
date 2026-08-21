@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — MOBILE UI POLISH v4
--- Thumb-sized DANCE/CARRY controls + safe panels + redundant BBYA dock tab removal.
+-- BBYA SOCIAL HUB — MOBILE UI POLISH v5
+-- Vertical thumb-sized DANCE/CARRY controls on the extreme left edge + compact drawers.
+-- Also removes the redundant BBYA top-dock tab.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
@@ -19,41 +20,38 @@ local function polishSocial()
  local carry=findLauncher(gui,"CARRY")
  if not dance or not carry then return end
 
- local function styleLauncher(b)
-  b.Size=UDim2.fromOffset(48,48)
-  b.TextSize=9
+ local vp=(workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1280,720)
+ local size=42
+ local left=3
+ local baseBottom=math.clamp(math.floor(vp.Y*.22),150,184)
+
+ local function style(b)
+  b.AnchorPoint=Vector2.new(0,1)
+  b.Size=UDim2.fromOffset(size,size)
+  b.TextSize=8
   b.Font=Enum.Font.GothamBlack
-  b.ZIndex=46
-  for _,c in ipairs(b:GetChildren()) do
-   if c:IsA("UICorner") then c.CornerRadius=UDim.new(0,12) end
-  end
+  b.ZIndex=70
+  local c=b:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+  c.CornerRadius=UDim.new(0,10);c.Parent=b
  end
- styleLauncher(dance);styleLauncher(carry)
+ style(dance);style(carry)
 
- local function layout()
-  camera=workspace.CurrentCamera or camera
-  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
-  -- Keep the two thumb targets directly above the native left movement control.
-  local bottom=math.clamp(math.floor(vp.Y*.205),138,172)
-  dance.Position=UDim2.new(0,8,1,-bottom)
-  carry.Position=UDim2.new(0,62,1,-bottom)
+ -- Vertical stack requested by owner: DANCE above CARRY, both nearly touching left screen edge.
+ dance.Position=UDim2.new(0,left,1,-baseBottom-size-6)
+ carry.Position=UDim2.new(0,left,1,-baseBottom)
 
-  local panelW=math.clamp(math.floor(vp.X*.48),300,360)
-  local panelH=math.clamp(vp.Y-bottom-74,270,340)
-  for _,name in ipairs({"DancePanel","CarryPanel"}) do
-   local p=gui:FindFirstChild(name)
-   if p and p:IsA("Frame") then
-    p.AnchorPoint=Vector2.new(0,1)
-    p.Position=UDim2.new(0,8,1,-bottom-8)
-    p.Size=UDim2.fromOffset(panelW,panelH)
-    p.ClipsDescendants=true
-   end
+ local panelW=math.clamp(math.floor(vp.X*.38),246,300)
+ local panelH=math.clamp(math.floor(vp.Y*.43),220,286)
+ for _,name in ipairs({"DancePanel","CarryPanel"}) do
+  local p=gui:FindFirstChild(name)
+  if p and p:IsA("Frame") then
+   p.AnchorPoint=Vector2.new(0,1)
+   p.Position=UDim2.new(0,left,1,-baseBottom-size-12)
+   p.Size=UDim2.fromOffset(panelW,panelH)
+   p.ClipsDescendants=true
+   local c=p:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+   c.CornerRadius=UDim.new(0,12);c.Parent=p
   end
- end
- layout()
- if camera and not gui:GetAttribute("BBYAMobileViewportHook") then
-  gui:SetAttribute("BBYAMobileViewportHook",true)
-  camera:GetPropertyChangedSignal("ViewportSize"):Connect(layout)
  end
 end
 
@@ -90,10 +88,14 @@ end
 
 applyAll()
 pg.ChildAdded:Connect(function()task.defer(applyAll)end)
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(applyAll)end)
--- Community/MESSAGE tabs can be injected after the base dock; re-run briefly so they inherit the shifted dock.
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+ camera=workspace.CurrentCamera
+ task.defer(applyAll)
+end)
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyAll) end
+
 task.spawn(function()
- for _=1,20 do task.wait(.75);applyAll() end
+ for _=1,40 do task.wait(.35);applyAll() end
 end)
 
-print("[BBYA] Mobile UI polish v4 online: compact thumb DANCE/CARRY + redundant BBYA tab removed")
+print("[BBYA] Mobile UI polish v5 online: vertical left-edge DANCE/CARRY")
