@@ -5,6 +5,13 @@
 local wardrobeBusy = false
 local wardrobeRestoreDescription = nil
 
+local function wardrobeTrack(eventName)
+    local remote = root:FindFirstChild("TrackEvent")
+    if remote and remote:IsA("RemoteEvent") then
+        pcall(function() remote:FireServer(eventName) end)
+    end
+end
+
 local function wardrobeHumanoid()
     local character = player.Character or player.CharacterAdded:Wait()
     return character:FindFirstChildOfClass("Humanoid")
@@ -100,13 +107,20 @@ local function renderWardrobeStudio()
             end)
             if not ok or not description then
                 status.Text = "Could not load this outfit."
+                wardrobeTrack("WARDROBE_PREVIEW_FAILED")
                 wardrobeBusy = false
                 return
             end
             local applied, err = pcall(function()
                 humanoid:ApplyDescriptionAsync(description)
             end)
-            status.Text = applied and ("Previewing “" .. tostring(outfitName or "Saved Outfit") .. "” • RESTORE returns to your previous look.") or ("Outfit preview failed: " .. tostring(err))
+            if applied then
+                status.Text = "Previewing “" .. tostring(outfitName or "Saved Outfit") .. "” • RESTORE returns to your previous look."
+                wardrobeTrack("WARDROBE_PREVIEW_SUCCESS")
+            else
+                status.Text = "Outfit preview failed: " .. tostring(err)
+                wardrobeTrack("WARDROBE_PREVIEW_FAILED")
+            end
             wardrobeBusy = false
         end)
     end
@@ -202,7 +216,14 @@ local function renderWardrobeStudio()
         wardrobeBusy = true
         task.spawn(function()
             local ok, err = pcall(function() humanoid:ApplyDescriptionAsync(wardrobeRestoreDescription) end)
-            if ok then wardrobeRestoreDescription = nil; status.Text = "Previous look restored." else status.Text = "Restore failed: " .. tostring(err) end
+            if ok then
+                wardrobeRestoreDescription = nil
+                status.Text = "Previous look restored."
+                wardrobeTrack("WARDROBE_RESTORE_SUCCESS")
+            else
+                status.Text = "Restore failed: " .. tostring(err)
+                wardrobeTrack("WARDROBE_RESTORE_FAILED")
+            end
             wardrobeBusy = false
         end)
     end)
@@ -215,4 +236,4 @@ player.CharacterAdded:Connect(function()
     wardrobeRestoreDescription = nil
     wardrobeBusy = false
 end)
-print("[BBYAVATAR] Roblox-native saved wardrobe browser ready")
+print("[BBYAVATAR] Roblox-native saved wardrobe browser + funnel telemetry ready")
