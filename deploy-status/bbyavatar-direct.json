@@ -3,6 +3,11 @@
   "httpStatus": 403,
   "universeId": "10744157359",
   "placeId": "85866320744490",
+  "sourceFile": "maps/bbyavatar/place.rbxlx",
+  "payloadBytes": 126779,
+  "payloadSha256": "8bb01278f0fc9c39ad6096fa775211e7ff1a925bdfb1c2c3484f2a941fe5921f",
+  "blocker": "OWNER_MODERATION_BLOCK",
+  "retrySafe": false,
   "payload": {
     "errors": [
       {
@@ -11,5 +16,6 @@
       }
     ]
   },
-  "at": "2026-08-21T15:13:05.305Z"
+  "startedAt": "2026-08-21T16:14:10.712Z",
+  "at": "2026-08-21T16:14:10.947Z"
 }
