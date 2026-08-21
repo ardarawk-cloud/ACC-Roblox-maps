@@ -42,9 +42,12 @@
       "WorldPromptCleanup": { "$path": "71-world-prompt-cleanup.server.lua" },
       "VIPFloorNeonFix": { "$path": "72-vip-floor-neon-fix.server.lua" },
       "RearSkatepark": { "$path": "73-skatepark.server.lua" },
+      "SkateparkUpgradeV2": { "$path": "79-skatepark-upgrade.server.lua" },
       "BasementPremiumUpgrade": { "$path": "74-basement-premium-upgrade.server.lua" },
+      "BasementAcousticV3": { "$path": "80-basement-acoustic.server.lua" },
       "ClubGear": { "$path": "75-club-gear.server.lua" },
-      "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" }
+      "EntranceCarCleanup": { "$path": "77-entrance-car-cleanup.server.lua" },
+      "VIPEnclosureSoundV6": { "$path": "82-vip-enclosure-sound.server.lua" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -61,7 +64,9 @@
         "DockStability": { "$path": "56-dock-stability.client.lua" },
         "DJWallClientRenderer": { "$path": "62-dj-wall-render.client.lua" },
         "SocialHangoutClient": { "$path": "63-social-hangout.client.lua" },
-        "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" }
+        "TravelUIPatch": { "$path": "76-travel-ui-patch.client.lua" },
+        "MobileUIPolishV4": { "$path": "78-mobile-ui-polish.client.lua" },
+        "BasementAudioUIPatchV3": { "$path": "81-basement-audio-ui.client.lua" }
       }
     },
     "Lighting": {
