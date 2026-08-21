@@ -32,6 +32,7 @@
       "DJWallPrestige": { "$path": "50-dj-wall-message.server.lua" },
       "DJWallTypography": { "$path": "54-dj-wall-typography.server.lua" },
       "AudioWatchdog": { "$path": "55-audio-watchdog.server.lua" },
+      "AudioHealthGuardV3": { "$path": "83-audio-health-guard.server.lua" },
       "DJWallRandomVisuals": { "$path": "59-dj-wall-visuals.server.lua" },
       "VIPSkyLounge": { "$path": "60-vip-sky-lounge.server.lua" },
       "VIPWhiteTriangleNetwork": { "$path": "65-vip-white-triangle-network.server.lua" },
