@@ -44,7 +44,7 @@ def download_drive(track):
     WORK.mkdir(parents=True,exist_ok=True)
     raw=WORK/('raw_'+track['file'])
     if raw.exists(): raw.unlink()
-    run(['gdown','--id',track['drive_id'],'-O',str(raw)])
+    run(['gdown',track['drive_id'],'-O',str(raw)])
     if not raw.exists() or raw.stat().st_size<100000:
         raise RuntimeError(f'Drive download failed for {track["title"]}')
     return raw
