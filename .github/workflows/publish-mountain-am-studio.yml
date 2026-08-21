@@ -1,0 +1,55 @@
+name: Publish Mountain via AM STUDIO
+
+on:
+  push:
+    branches:
+      - agent/mountain-master-v3
+    paths:
+      - 'maps/mountain-social/**'
+      - 'maps/registry.json'
+      - 'scripts/publish-mountain-closed-test.js'
+      - '.github/workflows/publish-mountain-am-studio.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mountain-am-studio-publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate AM STUDIO key binding
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO || secrets.ROBLOX_OPEN_CLOUD_AM_STUDIO }}
+        shell: bash
+        run: |
+          if [ -z "$ROBLOX_API_KEY" ]; then
+            echo 'AM STUDIO secret not found under AM_STUDIO or ROBLOX_OPEN_CLOUD_AM_STUDIO'
+            exit 1
+          fi
+          echo 'AM STUDIO key binding detected'
+
+      - name: Validate mountain target
+        run: |
+          node - <<'NODE'
+          const r=require('./maps/registry.json');
+          const t=r.maps['mountain-social'];
+          if(!t) throw new Error('mountain-social missing');
+          if(String(t.universeId)!=='4187755690') throw new Error('Wrong Universe ID');
+          if(String(t.placeId)!=='11832985967') throw new Error('Wrong Place ID');
+          console.log('Mountain target PASS');
+          NODE
+
+      - name: Publish mountain test via AM STUDIO
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO || secrets.ROBLOX_OPEN_CLOUD_AM_STUDIO }}
+        run: node scripts/publish-mountain-closed-test.js
