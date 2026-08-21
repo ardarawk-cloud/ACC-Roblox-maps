@@ -1,4 +1,4 @@
-name: BBYA Basement Full Drive Audio Inject
+name: BBYA Drive Audio Router
 
 on:
   push:
@@ -6,11 +6,12 @@ on:
     paths:
       - '.github/workflows/bbya-basement-drive-inject.yml'
       - 'scripts/inject-bbya-basement-from-drive.py'
+      - 'scripts/route-bbya-drive-audio.py'
   workflow_dispatch:
 
 concurrency:
   group: bbya-basement-drive-full-library
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   inject:
@@ -37,14 +38,13 @@ jobs:
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip 'gdown>=6.1.0'
 
-      - name: Snapshot Main Club hard guard
-        id: main_guard
+      - name: Snapshot Main Club before upload stage
         shell: bash
         run: |
           set -euo pipefail
           sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}' > /tmp/bbya-main-before.sha
 
-      - name: Pull full owner Drive library and upload to Roblox Basement
+      - name: Pull full owner Drive library and create Roblox Audio IDs
         id: inject
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -56,51 +56,55 @@ jobs:
           set -euo pipefail
           python3 scripts/inject-bbya-basement-from-drive.py
 
-      - name: Enforce Basement-only target
+      - name: Verify uploader did not alter Main Club directly
         shell: bash
         run: |
           set -euo pipefail
           before="$(cat /tmp/bbya-main-before.sha)"
           after="$(sha256sum maps/bbya-social-hub/30-club-systems.server.lua | awk '{print $1}')"
           test "$before" = "$after"
-          if ! git diff --quiet -- maps/bbya-social-hub/30-club-systems.server.lua; then
-            echo "::error::Main Club file changed during Basement injection."
-            exit 1
-          fi
-          echo "Main Club untouched: $after"
+          echo "Uploader stage left Main Club untouched: $after"
 
-      - name: Persist Basement registry and Asset IDs
+      - name: Route Progressive to Main Club and all others to Basement
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/route-bbya-drive-audio.py
+
+      - name: Persist routed playlists registry and Asset IDs
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
           git add \
+            maps/bbya-social-hub/30-club-systems.server.lua \
             maps/bbya-social-hub/85-basement-autodj.server.lua \
             deploy-status/bbya-basement-drive-inject.json \
-            deploy-status/bbya-basement-drive-registry.json
+            deploy-status/bbya-basement-drive-registry.json \
+            deploy-status/bbya-audio-routing.json
           if ! git diff --cached --quiet; then
-            git commit -m "Expand BBYA Basement owner Drive audio library [skip ci]"
+            git commit -m "Route BBYA Drive audio: Progressive Main, others Basement [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Report injection state
+      - name: Report injection and routing state
         shell: bash
         run: |
           python3 - <<'PY'
           import json
-          p='deploy-status/bbya-basement-drive-inject.json'
-          d=json.load(open(p,encoding='utf-8'))
-          print('Basement-only:', d.get('target'))
-          print('Discovered:', d.get('discoveredCount'))
-          print('Registered:', d.get('registeredDiscoveredCount'))
-          print('New uploads:', d.get('newlyUploadedCount'))
-          print('Deduplicated:', d.get('deduplicatedCount'))
-          print('Failed:', d.get('failedCount'))
-          print('Remaining:', d.get('remainingCount', 0))
-          print('Complete:', d.get('complete'))
-          print('Main Club untouched:', d.get('mainClubUntouched'))
+          i=json.load(open('deploy-status/bbya-basement-drive-inject.json',encoding='utf-8'))
+          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          print('Discovered:', i.get('discoveredCount'))
+          print('Registered:', i.get('registeredDiscoveredCount'))
+          print('New uploads:', i.get('newlyUploadedCount'))
+          print('Deduplicated:', i.get('deduplicatedCount'))
+          print('Failed:', i.get('failedCount'))
+          print('Remaining:', i.get('remainingCount', 0))
+          print('Main Progressive:', r.get('mainProgressiveCount'))
+          print('Basement Drive:', r.get('basementDriveCount'))
+          print('Routing valid:', r.get('valid'))
           PY
 
       - name: Cache Rojo binary
@@ -114,19 +118,19 @@ jobs:
         if: steps.rojo-cache.outputs.cache-hit != 'true'
         run: cargo install rojo --version 7.7.0 --locked
 
-      - name: Build BBYA with Basement library
+      - name: Build BBYA with routed audio libraries
         shell: bash
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-basement-library.rbxl
-          test -s /tmp/bbya-basement-library.rbxl
-          ls -lh /tmp/bbya-basement-library.rbxl
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-routed-audio.rbxl
+          test -s /tmp/bbya-routed-audio.rbxl
+          ls -lh /tmp/bbya-routed-audio.rbxl
 
-      - name: Publish BBYA Basement library live
+      - name: Publish BBYA routed audio live
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status
-          PLACE_FILE_OVERRIDE: /tmp/bbya-basement-library.rbxl
+          PLACE_FILE_OVERRIDE: /tmp/bbya-routed-audio.rbxl
         run: node scripts/publish-map.js a-club
 
       - name: Persist deploy receipt
@@ -134,16 +138,16 @@ jobs:
         run: |
           set -euo pipefail
           test -f deploy-status/a-club.json
-          cp deploy-status/a-club.json /tmp/a-club-basement-library.json
+          cp deploy-status/a-club.json /tmp/a-club-routed-audio.json
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
           mkdir -p deploy-status
-          cp /tmp/a-club-basement-library.json deploy-status/a-club.json
+          cp /tmp/a-club-routed-audio.json deploy-status/a-club.json
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/a-club.json
           if ! git diff --cached --quiet; then
-            git commit -m "Record BBYA Basement full Drive deploy [skip ci]"
+            git commit -m "Record BBYA routed audio deploy [skip ci]"
             git push origin HEAD:main
           fi
