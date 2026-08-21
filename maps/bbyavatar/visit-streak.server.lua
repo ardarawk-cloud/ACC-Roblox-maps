@@ -3,7 +3,11 @@
 -- Persistence is intentionally minimal: UTC day index + current/best streak + distinct visit-day count,
 -- keyed only by Roblox UserId. No item history, search terms, chat, creator data, or external IDs.
 
-local visitStreakStore = DataStoreService:GetDataStore("BBYAVATAR_VisitStreak_v1")
+local VisitDataStoreService = game:GetService("DataStoreService")
+local VisitPlayers = game:GetService("Players")
+local VisitReplicatedStorage = game:GetService("ReplicatedStorage")
+local visitRoot = VisitReplicatedStorage:WaitForChild("BBYAVATAR")
+local visitStreakStore = VisitDataStoreService:GetDataStore("BBYAVATAR_VisitStreak_v1")
 local VISIT_STREAK_RETRY_SECONDS = 8
 local VISIT_STREAK_MAX_ATTEMPTS = 2
 
@@ -44,7 +48,7 @@ local function applyVisitForDay(current, today)
 end
 
 local function publishVisitState(player, state, persisted)
-    if not player or player.Parent ~= Players then return end
+    if not player or player.Parent ~= VisitPlayers then return end
     local clean = sanitizeStreakState(state)
     visitStreakCache[player.UserId] = clean
     player:SetAttribute("BBYAVATAR_VisitStreak", clean.streak)
@@ -54,7 +58,7 @@ local function publishVisitState(player, state, persisted)
 end
 
 local function recordVisit(player, attempt)
-    if not player or player.Parent ~= Players then return end
+    if not player or player.Parent ~= VisitPlayers then return end
     attempt = attempt or 1
     local today = utcDayIndex()
     local updatedState
@@ -83,19 +87,19 @@ local function recordVisit(player, attempt)
     publishVisitState(player, fallback, false)
 end
 
-Players.PlayerAdded:Connect(function(player)
+VisitPlayers.PlayerAdded:Connect(function(player)
     task.spawn(recordVisit, player, 1)
 end)
-for _, player in ipairs(Players:GetPlayers()) do
+for _, player in ipairs(VisitPlayers:GetPlayers()) do
     task.spawn(recordVisit, player, 1)
 end
 
-Players.PlayerRemoving:Connect(function(player)
+VisitPlayers.PlayerRemoving:Connect(function(player)
     visitStreakCache[player.UserId] = nil
 end)
 
-root:SetAttribute("VisitStreakRevision", "UTC_DAY_DATASTORE_V1")
-root:SetAttribute("VisitStreakAuthority", "SERVER_JOIN_ONLY")
-root:SetAttribute("VisitStreakPrivacy", "USERID_KEY_DAY_STREAK_BEST_VISITCOUNT_ONLY")
-root:SetAttribute("VisitStreakRewardValue", "NONE")
+visitRoot:SetAttribute("VisitStreakRevision", "UTC_DAY_DATASTORE_V1")
+visitRoot:SetAttribute("VisitStreakAuthority", "SERVER_JOIN_ONLY")
+visitRoot:SetAttribute("VisitStreakPrivacy", "USERID_KEY_DAY_STREAK_BEST_VISITCOUNT_ONLY")
+visitRoot:SetAttribute("VisitStreakRewardValue", "NONE")
 print("[BBYAVATAR] Privacy-minimal daily Style Streak v1 ready")
