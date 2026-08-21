@@ -25,22 +25,41 @@ jobs:
           git fetch origin agent/mountain-master-v3
           git checkout origin/agent/mountain-master-v3 -- maps/mountain-social/place.rbxlx maps/registry.json scripts/publish-mountain-closed-test.js
 
-      - name: Publish mountain with current key
+      - name: Resolve AM STUDIO repository secret
+        shell: bash
+        env:
+          KEY_AM_STUDIO: ${{ secrets.AM_STUDIO }}
+          KEY_AM_STUDIO_KEY: ${{ secrets.AM_STUDIO_KEY }}
+          KEY_AM_STUDIO_API_KEY: ${{ secrets.AM_STUDIO_API_KEY }}
+          KEY_AM_STUDIO_ROBLOX: ${{ secrets.AM_STUDIO_ROBLOX }}
+          KEY_AM_STUDIO_ROBLOX_KEY: ${{ secrets.AM_STUDIO_ROBLOX_KEY }}
+          KEY_ROBLOX_OPEN_CLOUD_AM_STUDIO: ${{ secrets.ROBLOX_OPEN_CLOUD_AM_STUDIO }}
+        run: |
+          mkdir -p /tmp/am-studio
+          if [ -n "$KEY_AM_STUDIO" ]; then printf '%s' "$KEY_AM_STUDIO" > /tmp/am-studio/key; echo 'AM_STUDIO' > /tmp/am-studio/name;
+          elif [ -n "$KEY_AM_STUDIO_KEY" ]; then printf '%s' "$KEY_AM_STUDIO_KEY" > /tmp/am-studio/key; echo 'AM_STUDIO_KEY' > /tmp/am-studio/name;
+          elif [ -n "$KEY_AM_STUDIO_API_KEY" ]; then printf '%s' "$KEY_AM_STUDIO_API_KEY" > /tmp/am-studio/key; echo 'AM_STUDIO_API_KEY' > /tmp/am-studio/name;
+          elif [ -n "$KEY_AM_STUDIO_ROBLOX" ]; then printf '%s' "$KEY_AM_STUDIO_ROBLOX" > /tmp/am-studio/key; echo 'AM_STUDIO_ROBLOX' > /tmp/am-studio/name;
+          elif [ -n "$KEY_AM_STUDIO_ROBLOX_KEY" ]; then printf '%s' "$KEY_AM_STUDIO_ROBLOX_KEY" > /tmp/am-studio/key; echo 'AM_STUDIO_ROBLOX_KEY' > /tmp/am-studio/name;
+          elif [ -n "$KEY_ROBLOX_OPEN_CLOUD_AM_STUDIO" ]; then printf '%s' "$KEY_ROBLOX_OPEN_CLOUD_AM_STUDIO" > /tmp/am-studio/key; echo 'ROBLOX_OPEN_CLOUD_AM_STUDIO' > /tmp/am-studio/name;
+          else echo 'No recognized AM_STUDIO repository secret found'; exit 2; fi
+          echo "Using repository secret: $(cat /tmp/am-studio/name)"
+
+      - name: Publish mountain with AM STUDIO key
         id: publish
         continue-on-error: true
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         shell: bash
         run: |
+          export ROBLOX_API_KEY="$(cat /tmp/am-studio/key)"
           set +e
           node scripts/publish-mountain-closed-test.js > /tmp/mountain-publish.log 2>&1
           code=$?
           set -e
           mkdir -p deploy-status
           if [ "$code" -eq 0 ]; then
-            printf 'status=PUBLISHED\nuniverseId=4187755690\nplaceId=11832985967\n' > deploy-status/mountain-am-studio-probe.txt
+            printf 'status=PUBLISHED\nsecret=%s\nuniverseId=4187755690\nplaceId=11832985967\n' "$(cat /tmp/am-studio/name)" > deploy-status/mountain-am-studio-probe.txt
           else
-            printf 'status=FAILED\nuniverseId=4187755690\nplaceId=11832985967\nexitCode=%s\n' "$code" > deploy-status/mountain-am-studio-probe.txt
+            printf 'status=FAILED\nsecret=%s\nuniverseId=4187755690\nplaceId=11832985967\nexitCode=%s\n' "$(cat /tmp/am-studio/name)" "$code" > deploy-status/mountain-am-studio-probe.txt
             tail -n 8 /tmp/mountain-publish.log | sed 's/^/log=/' >> deploy-status/mountain-am-studio-probe.txt
           fi
           cat /tmp/mountain-publish.log || true
@@ -50,6 +69,10 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if [ ! -s deploy-status/mountain-am-studio-probe.txt ]; then
+            mkdir -p deploy-status
+            printf 'status=NO_RESULT\nuniverseId=4187755690\nplaceId=11832985967\n' > deploy-status/mountain-am-studio-probe.txt
+          fi
           git reset
           git add deploy-status/mountain-am-studio-probe.txt
           git config user.name 'ACC Roblox Deploy Bot'
