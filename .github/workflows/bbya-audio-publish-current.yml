@@ -1,0 +1,105 @@
+name: BBYA Audio Publish Current Registry
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-audio-observable-runner
+  cancel-in-progress: true
+
+jobs:
+  publish_current:
+    if: startsWith(github.event.pull_request.title, 'PUBLISH BBYA AUDIO')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout live main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Route only already registered Asset IDs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy-status/bbya-basement-drive-registry.json
+          python3 scripts/route-bbya-drive-audio.py
+          python3 - <<'PY'
+          import json
+          r=json.load(open('deploy-status/bbya-audio-routing.json',encoding='utf-8'))
+          if not r.get('valid'):
+              raise SystemExit('Routing invalid: '+str(r.get('errors')))
+          print('PROGRESIVE -> MAIN CLUB:',r.get('mainProgressiveCount'))
+          print('OTHER DRIVE -> BASEMENT:',r.get('basementDriveCount'))
+          PY
+
+      - name: Persist routed current library
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- maps/bbya-social-hub/30-club-systems.server.lua maps/bbya-social-hub/85-basement-autodj.server.lua deploy-status/bbya-audio-routing.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Route current BBYA audio registry: Progressive Main, others Basement [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Build BBYA current audio registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-audio-current.rbxl
+          test -s /tmp/bbya-audio-current.rbxl
+          ls -lh /tmp/bbya-audio-current.rbxl
+
+      - name: Publish BBYA current audio registry live
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-audio-current.rbxl
+        run: node scripts/publish-map.js a-club
+
+      - name: Persist deploy receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy-status/a-club.json
+          cp deploy-status/a-club.json /tmp/a-club-audio-current.json
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          mkdir -p deploy-status
+          cp /tmp/a-club-audio-current.json deploy-status/a-club.json
+          git config user.name "ACC Roblox Deploy Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- deploy-status/a-club.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BBYA current audio registry deploy [skip ci]"
+            git push origin HEAD:main
+          fi
