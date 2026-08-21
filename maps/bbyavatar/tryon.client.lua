@@ -100,7 +100,7 @@ local function buildTryOnDescription(item, assetId, humanoid)
     local ok, accessoryType = pcall(function()
         return AvatarEditorService:GetAccessoryType(avatarType)
     end)
-    if not ok or not accessoryType or accessoryType == Enum.AccessoryType.Unknown then
+    if not ok or not accessoryType or accessoryType.Name == "Unknown" then
         return nil, "This item type cannot be previewed yet."
     end
 
@@ -109,6 +109,13 @@ local function buildTryOnDescription(item, assetId, humanoid)
     end)
     if not changed then return nil, tostring(err) end
     return description
+end
+
+local function fireTryOnTelemetry(typeName)
+    local remote = root:FindFirstChild("Telemetry")
+    if remote and remote:IsA("RemoteEvent") then
+        pcall(function() remote:FireServer("try_on", typeName or "unknown") end)
+    end
 end
 
 local function applyTryOn(item)
@@ -150,9 +157,7 @@ local function applyTryOn(item)
         if ok then
             undoTryOn.Visible = true
             status.Text = "Preview applied • use UNDO TRY-ON to restore your join look."
-            if telemetryEvent then
-                pcall(function() telemetryEvent:FireServer("try_on", assetTypeName(item) or "unknown") end)
-            end
+            fireTryOnTelemetry(assetTypeName(item))
         else
             status.Text = "Try-on failed: " .. tostring(err)
         end
