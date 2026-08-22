@@ -1,141 +1,38 @@
--- BECAK E-BIKE — Vehicle Signal Lights v1.43
--- Lightweight visual feedback for braking, reversing, and steering intent. Visual-only parts never affect physics.
-
+-- BECAK E-BIKE — Vehicle Signal Lights v1.44
+-- Physics-safe brake/reverse/turn lights with mobile steering hysteresis.
 local Workspace = game:GetService('Workspace')
-
-local UPDATE_HZ = 8
-local ROOT_NAME = 'BecakEBike'
-local INDICATOR_STEER_THRESHOLD = 0.42
-local INDICATOR_MIN_SPEED = 1.5
-local BLINK_PERIOD = 0.55
+local UPDATE_HZ, ROOT_NAME = 8, 'BecakEBike'
+local INDICATOR_STEER_THRESHOLD, INDICATOR_CANCEL_THRESHOLD = 0.42, 0.18
+local INDICATOR_MIN_SPEED, BLINK_PERIOD = 1.5, 0.55
 local tracked = {}
-
-local function makeLamp(model, chassis, name, offset, color)
-    local old = model:FindFirstChild(name)
-    if old and old:IsA('BasePart') then return old end
-
-    local lamp = Instance.new('Part')
-    lamp.Name = name
-    lamp.Size = Vector3.new(0.55, 0.28, 0.18)
-    lamp.Material = Enum.Material.Neon
-    lamp.Color = color
-    lamp.Transparency = 0.72
-    lamp.CanCollide = false
-    lamp.CanTouch = false
-    lamp.CanQuery = false
-    lamp.Massless = true
-    lamp.Anchored = false
-    lamp.CFrame = chassis.CFrame * CFrame.new(offset)
-    lamp.Parent = model
-
-    local weld = Instance.new('WeldConstraint')
-    weld.Part0 = chassis
-    weld.Part1 = lamp
-    weld.Parent = lamp
-    return lamp
+local function makeLamp(model,chassis,name,offset,color)
+ local old=model:FindFirstChild(name); if old and old:IsA('BasePart') then return old end
+ local p=Instance.new('Part'); p.Name=name; p.Size=Vector3.new(.55,.28,.18); p.Material=Enum.Material.Neon; p.Color=color; p.Transparency=.72; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Massless=true; p.Anchored=false; p.CFrame=chassis.CFrame*CFrame.new(offset); p.Parent=model
+ local w=Instance.new('WeldConstraint'); w.Part0=chassis; w.Part1=p; w.Parent=p; return p
 end
-
 local function track(model)
-    if not model:IsA('Model') or tracked[model] then return end
-    if not model:GetAttribute('OwnerUserId') then return end
-    local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
-    local seat = model:FindFirstChild('DriverSeat', true)
-    if not chassis or not chassis:IsA('BasePart') or not seat or not seat:IsA('VehicleSeat') then return end
-
-    local left = makeLamp(model, chassis, 'RearBrakeLightLeft', Vector3.new(-2.15, 0.25, 4.9), Color3.fromRGB(255, 45, 35))
-    local right = makeLamp(model, chassis, 'RearBrakeLightRight', Vector3.new(2.15, 0.25, 4.9), Color3.fromRGB(255, 45, 35))
-    local reverse = makeLamp(model, chassis, 'RearReverseLight', Vector3.new(0, 0.18, 4.92), Color3.fromRGB(235, 245, 255))
-    local turnLeftRear = makeLamp(model, chassis, 'RearTurnSignalLeft', Vector3.new(-2.65, 0.23, 4.88), Color3.fromRGB(255, 165, 40))
-    local turnRightRear = makeLamp(model, chassis, 'RearTurnSignalRight', Vector3.new(2.65, 0.23, 4.88), Color3.fromRGB(255, 165, 40))
-    local turnLeftFront = makeLamp(model, chassis, 'FrontTurnSignalLeft', Vector3.new(-2.55, 0.18, -4.75), Color3.fromRGB(255, 165, 40))
-    local turnRightFront = makeLamp(model, chassis, 'FrontTurnSignalRight', Vector3.new(2.55, 0.18, -4.75), Color3.fromRGB(255, 165, 40))
-
-    tracked[model] = {
-        chassis = chassis,
-        seat = seat,
-        left = left,
-        right = right,
-        reverse = reverse,
-        turnLeftRear = turnLeftRear,
-        turnRightRear = turnRightRear,
-        turnLeftFront = turnLeftFront,
-        turnRightFront = turnRightFront,
-        lastSpeed = 0,
-    }
-    model:SetAttribute('VehicleSignalsReady', true)
-    model:SetAttribute('VehicleSignalsVersion', 'v1.43')
+ if not model:IsA('Model') or tracked[model] or not model:GetAttribute('OwnerUserId') then return end
+ local c=model.PrimaryPart or model:FindFirstChild('Chassis'); local s=model:FindFirstChild('DriverSeat',true)
+ if not c or not c:IsA('BasePart') or not s or not s:IsA('VehicleSeat') then return end
+ tracked[model]={chassis=c,seat=s,left=makeLamp(model,c,'RearBrakeLightLeft',Vector3.new(-2.15,.25,4.9),Color3.fromRGB(255,45,35)),right=makeLamp(model,c,'RearBrakeLightRight',Vector3.new(2.15,.25,4.9),Color3.fromRGB(255,45,35)),reverse=makeLamp(model,c,'RearReverseLight',Vector3.new(0,.18,4.92),Color3.fromRGB(235,245,255)),tlr=makeLamp(model,c,'RearTurnSignalLeft',Vector3.new(-2.65,.23,4.88),Color3.fromRGB(255,165,40)),trr=makeLamp(model,c,'RearTurnSignalRight',Vector3.new(2.65,.23,4.88),Color3.fromRGB(255,165,40)),tlf=makeLamp(model,c,'FrontTurnSignalLeft',Vector3.new(-2.55,.18,-4.75),Color3.fromRGB(255,165,40)),trf=makeLamp(model,c,'FrontTurnSignalRight',Vector3.new(2.55,.18,-4.75),Color3.fromRGB(255,165,40)),lastSpeed=0,intent=0}
+ model:SetAttribute('VehicleSignalsReady',true); model:SetAttribute('VehicleSignalsVersion','v1.44')
 end
-
-local function setLamp(lamp, on, activeTransparency, idleTransparency)
-    if not lamp or not lamp.Parent then return end
-    lamp.Transparency = on and activeTransparency or idleTransparency
+local function lamp(p,on,a,i) if p and p.Parent then p.Transparency=on and a or i end end
+local function pair(a,b,on) lamp(a,on,.05,.9); lamp(b,on,.05,.9) end
+local function scan() local r=Workspace:FindFirstChild(ROOT_NAME); local v=r and r:FindFirstChild('Vehicles'); if v then for _,m in ipairs(v:GetChildren()) do track(m) end end end
+scan(); local root=Workspace:FindFirstChild(ROOT_NAME); local vehicles=root and root:FindFirstChild('Vehicles'); if vehicles then vehicles.ChildAdded:Connect(function(c) task.defer(track,c) end) end
+while task.wait(1/UPDATE_HZ) do
+ if not vehicles or not vehicles.Parent then root=Workspace:FindFirstChild(ROOT_NAME); vehicles=root and root:FindFirstChild('Vehicles'); if vehicles then scan() end end
+ local blink=(os.clock()%BLINK_PERIOD)<BLINK_PERIOD*.5
+ for model,x in pairs(tracked) do
+  if not model.Parent or not x.chassis.Parent then tracked[model]=nil else
+   local vel=x.chassis.AssemblyLinearVelocity; local f=x.chassis.CFrame.LookVector:Dot(vel); local speed=math.abs(f); local throttle=x.seat.ThrottleFloat; local steer=x.seat.SteerFloat
+   local braking=speed>2 and (math.abs(throttle)<.05 and x.lastSpeed-speed>.45 or throttle*f<-.2); local reversing=throttle<-.05 or f< -2; local eligible=speed>=INDICATOR_MIN_SPEED or math.abs(throttle)>.08
+   if not eligible then x.intent=0 elseif steer<=-INDICATOR_STEER_THRESHOLD then x.intent=-1 elseif steer>=INDICATOR_STEER_THRESHOLD then x.intent=1 elseif math.abs(steer)<=INDICATOR_CANCEL_THRESHOLD then x.intent=0 end
+   local li=x.intent==-1; local ri=x.intent==1; lamp(x.left,braking,.08,.72); lamp(x.right,braking,.08,.72); lamp(x.reverse,reversing,.12,.88); pair(x.tlf,x.tlr,li and blink); pair(x.trf,x.trr,ri and blink)
+   model:SetAttribute('BrakeLightsActive',braking); model:SetAttribute('ReverseLightActive',reversing); model:SetAttribute('TurnSignalLeftActive',li); model:SetAttribute('TurnSignalRightActive',ri); x.lastSpeed=speed
+  end
+ end
 end
-
-local function setIndicatorPair(front, rear, on)
-    setLamp(front, on, 0.05, 0.9)
-    setLamp(rear, on, 0.05, 0.9)
-end
-
-local function scan()
-    local root = Workspace:FindFirstChild(ROOT_NAME)
-    local vehicles = root and root:FindFirstChild('Vehicles')
-    if not vehicles then return end
-    for _, child in ipairs(vehicles:GetChildren()) do track(child) end
-end
-
-scan()
-local root = Workspace:FindFirstChild(ROOT_NAME)
-local vehicles = root and root:FindFirstChild('Vehicles')
-if vehicles then vehicles.ChildAdded:Connect(function(child) task.defer(track, child) end) end
-
-local interval = 1 / UPDATE_HZ
-while task.wait(interval) do
-    if not vehicles or not vehicles.Parent then
-        root = Workspace:FindFirstChild(ROOT_NAME)
-        vehicles = root and root:FindFirstChild('Vehicles')
-        if vehicles then scan() end
-    end
-
-    local blinkOn = (os.clock() % BLINK_PERIOD) < (BLINK_PERIOD * 0.5)
-
-    for model, state in pairs(tracked) do
-        if not model.Parent or not state.chassis.Parent then
-            tracked[model] = nil
-        else
-            local velocity = state.chassis.AssemblyLinearVelocity
-            local forwardSpeed = state.chassis.CFrame.LookVector:Dot(velocity)
-            local speed = math.abs(forwardSpeed)
-            local throttle = state.seat.ThrottleFloat
-            local steer = state.seat.SteerFloat
-            local decelerating = state.lastSpeed - speed > 0.45
-            local braking = speed > 2 and (math.abs(throttle) < 0.05 and decelerating or throttle * forwardSpeed < -0.2)
-            local reversing = throttle < -0.05 or forwardSpeed < -2
-
-            local indicatorEligible = speed >= INDICATOR_MIN_SPEED or math.abs(throttle) > 0.08
-            local leftIntent = indicatorEligible and steer < -INDICATOR_STEER_THRESHOLD
-            local rightIntent = indicatorEligible and steer > INDICATOR_STEER_THRESHOLD
-            local leftBlink = leftIntent and blinkOn
-            local rightBlink = rightIntent and blinkOn
-
-            setLamp(state.left, braking, 0.08, 0.72)
-            setLamp(state.right, braking, 0.08, 0.72)
-            setLamp(state.reverse, reversing, 0.12, 0.88)
-            setIndicatorPair(state.turnLeftFront, state.turnLeftRear, leftBlink)
-            setIndicatorPair(state.turnRightFront, state.turnRightRear, rightBlink)
-
-            model:SetAttribute('BrakeLightsActive', braking)
-            model:SetAttribute('ReverseLightActive', reversing)
-            model:SetAttribute('TurnSignalLeftActive', leftIntent)
-            model:SetAttribute('TurnSignalRightActive', rightIntent)
-            state.lastSpeed = speed
-        end
-    end
-end
-
-Workspace:SetAttribute('ACC_BecakVehicleSignals', 'v1.43')
-Workspace:SetAttribute('BecakBrakeLights', 'ON')
-Workspace:SetAttribute('BecakReverseLight', 'ON')
-Workspace:SetAttribute('BecakAutoTurnIndicators', 'ON')
-Workspace:SetAttribute('BecakIndicatorSteerThreshold', INDICATOR_STEER_THRESHOLD)
-Workspace:SetAttribute('BecakVehicleSignalsHz', UPDATE_HZ)
-print('[BECAK E-BIKE] vehicle signals v1.43 ready • brake + reverse + steering indicators • physics-safe')
+Workspace:SetAttribute('ACC_BecakVehicleSignals','v1.44'); Workspace:SetAttribute('BecakBrakeLights','ON'); Workspace:SetAttribute('BecakReverseLight','ON'); Workspace:SetAttribute('BecakAutoTurnIndicators','ON'); Workspace:SetAttribute('BecakIndicatorHysteresis','ON'); Workspace:SetAttribute('BecakIndicatorSteerThreshold',INDICATOR_STEER_THRESHOLD); Workspace:SetAttribute('BecakIndicatorCancelThreshold',INDICATOR_CANCEL_THRESHOLD); Workspace:SetAttribute('BecakVehicleSignalsHz',UPDATE_HZ)
+print('[BECAK E-BIKE] vehicle signals v1.44 ready • stable mobile indicators • physics-safe')
