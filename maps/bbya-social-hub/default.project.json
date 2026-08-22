@@ -58,7 +58,8 @@
       "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
       "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
-      "ActiveRearMallV1": {"$path": "94-mall.server.lua"}
+      "ActiveRearMallV1": {"$path": "94-mall.server.lua"},
+      "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
