@@ -1,4 +1,4 @@
--- BECAK E-BIKE — road access + drivability hardening v1.27
+-- BECAK E-BIKE — road access + drivability hardening v1.32
 -- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
 -- Dedicated to maps/becak-e-bike only.
 
@@ -18,10 +18,25 @@ local function isRoadEdgeName(name)
     return string.match(name,'^Sidewalk_') ~= nil
         or string.find(n,'sidewalk',1,true) ~= nil
         or string.find(n,'trotoar',1,true) ~= nil
+        or string.find(n,'pavement',1,true) ~= nil
+        or string.find(n,'footpath',1,true) ~= nil
         or string.match(n,'^curb') ~= nil
         or string.match(n,'^kerb') ~= nil
         or string.find(n,'curbcut',1,true) ~= nil
         or string.find(n,'curb_cut',1,true) ~= nil
+end
+
+-- City kits often use generic child names such as "Part" inside a Folder/Model named
+-- Trotoar, Sidewalk, Curb, or Pavement. Checking ancestors closes that hole without
+-- disabling collision on unrelated buildings, walls, props, or fences.
+local function isRoadEdgePart(p)
+    if isRoadEdgeName(p.Name) then return true end
+    local ancestor = p.Parent
+    while ancestor and ancestor ~= world do
+        if isRoadEdgeName(ancestor.Name) then return true end
+        ancestor = ancestor.Parent
+    end
+    return false
 end
 
 local function flattenVisualSurface(p, attributeName)
@@ -50,10 +65,9 @@ local function tuneRoadSurface(p)
         return
     end
 
-    -- v1.27: normalize every known curb/trotoar naming style, not only Sidewalk_*.
-    -- This prevents city-detail additions from silently reintroducing a physical lip that catches
-    -- the low chassis during diagonal mobile steering. Continuous ground owns collision.
-    if isRoadEdgeName(p.Name) then
+    -- v1.32: normalize known curb/trotoar naming styles on the part OR any parent container.
+    -- This catches generic child Parts placed inside Trotoar/Sidewalk/Curb/Pavement folders.
+    if isRoadEdgePart(p) then
         flattenVisualSurface(p,'BecakSeamlessRoadEdge')
         p:SetAttribute('BecakSeamlessSidewalk',true)
         p:SetAttribute('BecakMountableCurb',true)
@@ -116,7 +130,7 @@ local function tuneVehicle(model)
     if not chassis or not chassis:IsA('BasePart') then return end
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.27')
+    model:SetAttribute('RoadAccessTune','v1.32')
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m)
@@ -136,7 +150,7 @@ RunService.Heartbeat:Connect(function(dt)
         auditAcc=0
         local repaired=0
         for _,p in ipairs(world:GetDescendants()) do
-            if p:IsA('BasePart') and isRoadEdgeName(p.Name) and p.CanCollide then
+            if p:IsA('BasePart') and isRoadEdgePart(p) and p.CanCollide then
                 flattenVisualSurface(p,'BecakSeamlessRoadEdge')
                 p:SetAttribute('BecakSeamlessSidewalk',true)
                 p:SetAttribute('BecakMountableCurb',true)
@@ -162,11 +176,12 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakRoadAccess','v1.27')
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.32')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeAncestorAudit','ON')
 Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
-print('[BECAK E-BIKE] Road access v1.27 active: generic curb/trotoar collision OFF + runtime seam audit')
+print('[BECAK E-BIKE] Road access v1.32 active: curb/trotoar/pavement collision OFF + ancestor-aware seam audit')
