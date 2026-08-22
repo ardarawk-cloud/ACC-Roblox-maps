@@ -56,7 +56,8 @@
       "SkateparkExposureFixV2": {"$path": "88-skatepark-exposure-fix.server.lua"},
       "OwnerGeometryFixesV1": {"$path": "91-owner-geometry-fixes.server.lua"},
       "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
-      "FunkotClubV1": {"$path": "92-funkot-club.server.lua"}
+      "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
+      "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -75,10 +76,12 @@
         "SocialHangoutClient": {"$path": "63-social-hangout.client.lua"},
         "TravelUIPatch": {"$path": "76-travel-ui-patch.client.lua"},
         "BasementAudioUIPatchV5": {"$path": "81-basement-audio-ui.client.lua"},
-        "OwnerStableUIV2": {"$path": "91-owner-ui.client.lua"},
+        "OwnerStableUIV3": {"$path": "91-owner-ui.client.lua"},
         "DashboardUpgradeV1": {"$path": "92-dashboard-ui.client.lua"},
         "FreecamV1": {"$path": "92-freecam.client.lua"},
-        "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"}
+        "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
+        "ThreeVenueMusicUIV2": {"$path": "93-venue-music-ui.client.lua"},
+        "StructuralDashboardV2": {"$path": "93-dashboard-structural.client.lua"}
       }
     },
     "Lighting": {
