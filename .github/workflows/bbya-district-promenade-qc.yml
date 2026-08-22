@@ -1,0 +1,59 @@
+name: BBYA District Promenade QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/101-district-promenade.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-district-promenade-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-district-promenade.rbxl
+          test -s /tmp/bbya-district-promenade.rbxl
+      - name: Validate static district pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/101-district-promenade.server.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'DistrictServicePromenadeV1' "$f"
+          grep -q 'MallEastWalkway' "$f"
+          grep -q 'MallRearWalkway' "$f"
+          grep -q 'EdgeAndDrainage' "$f"
+          grep -q 'WarmStreetLights' "$f"
+          grep -q 'StreetGreenery' "$f"
+          grep -q 'StreetFurniture' "$f"
+          grep -q 'Wayfinding' "$f"
+          grep -q 'MallServiceWallWash' "$f"
+          grep -q 'TravelAuthorityChanged",false' "$f"
+          grep -q 'AudioInjected",false' "$f"
+          grep -q '101-district-promenade.server.lua' "$project"
+
+          if grep -q 'RunService' "$f"; then echo 'Promenade must remain static; RunService is not allowed.' >&2; exit 1; fi
+          if grep -q 'Instance.new("Sound")' "$f"; then echo 'Promenade must not inject audio.' >&2; exit 1; fi
+          if grep -q 'RemoteEvent' "$f"; then echo 'Promenade must not create gameplay authority.' >&2; exit 1; fi
+          if grep -Eq 'TravelPrice|PromptProductPurchase|UserOwnsGamePassAsync' "$f"; then echo 'Promenade must not touch monetization or travel price.' >&2; exit 1; fi
+          if grep -Eq 'MallEastWalkway.*Destroy|MallRearWalkway.*Destroy' "$f"; then echo 'Promenade must preserve existing route collision surfaces.' >&2; exit 1; fi
+
+          echo 'BBYA district promenade QC passed.'
