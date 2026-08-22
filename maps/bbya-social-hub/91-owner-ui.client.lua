@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — OWNER STABLE UI v2
--- Single authority for DANCE/CARRY placement. Event-driven, stable, and fixes drawer z-order.
+-- BBYA SOCIAL HUB — OWNER STABLE UI v3
+-- Single authority for DANCE/CARRY placement. Event-driven, stable, and guards dynamic drawer z-order.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
@@ -34,6 +34,33 @@ local function bindGuard(obj,property)
  end)
 end
 
+local function liftDrawerObject(d)
+ if not d or not d:IsA("GuiObject") then return end
+ d.ZIndex=math.max(d.ZIndex,51)
+ if d:IsA("ScrollingFrame") then
+  d.ScrollBarThickness=2
+  d.ScrollingEnabled=true
+  d.Active=true
+ end
+end
+
+local function bindDynamicDrawer(panel)
+ if panel:GetAttribute("BBYADynamicZGuardV3")==true then return end
+ panel:SetAttribute("BBYADynamicZGuardV3",true)
+ panel.DescendantAdded:Connect(function(d)
+  task.defer(function()
+   if d and d.Parent then liftDrawerObject(d) end
+  end)
+ end)
+ panel:GetPropertyChangedSignal("Visible"):Connect(function()
+  if panel.Visible then
+   task.defer(function()
+    for _,d in ipairs(panel:GetDescendants()) do liftDrawerObject(d) end
+   end)
+  end
+ end)
+end
+
 local function enforceSocial()
  local gui=pg:FindFirstChild("BBYASocialHangoutUI")
  if not gui then return end
@@ -62,12 +89,8 @@ local function enforceSocial()
    p.AnchorPoint=Vector2.new(0,1);p.Size=UDim2.fromOffset(390,390);p.Position=UDim2.new(0,left+size+10,1,-lower+size);p.ClipsDescendants=true;p.ZIndex=50
    scaleFor(p,"BBYAOwnerStableScale",drawerScale)
    p:SetAttribute("BBYAStableLayout",true)
-   -- Critical v2 fix: the old panel sat at ZIndex 80 while its contents stayed at 1,
-   -- so the panel background covered every Dance/Carry control.
-   for _,d in ipairs(p:GetDescendants()) do
-    if d:IsA("GuiObject") then d.ZIndex=math.max(d.ZIndex,51) end
-    if d:IsA("ScrollingFrame") then d.ScrollBarThickness=2;d.ScrollingEnabled=true end
-   end
+   for _,d in ipairs(p:GetDescendants()) do liftDrawerObject(d) end
+   bindDynamicDrawer(p)
    bindGuard(p,"Position");bindGuard(p,"Size")
   end
  end
@@ -112,4 +135,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
  end
 end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(enforceAll)end) end
-print("[BBYA] Owner Stable UI v2: Dance/Carry contents visible + deterministic drawers")
+print("[BBYA] Owner Stable UI v3: dynamic Dance/Carry contents remain visible")
