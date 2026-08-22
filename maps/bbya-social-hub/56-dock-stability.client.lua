@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — SIX TAB DOCK STABILITY v2
+-- BBYA SOCIAL HUB — SIX TAB DOCK STABILITY v3
 -- Final layout authority for BBYA / MUSIC / SUPPORT / TRAVEL / MESSAGE / COMMUNITY.
--- v2: mobile dock sits below Roblox CoreGui chat area, keeps BBYA visible,
+-- v3 raises the mobile dock while keeping it clear of Roblox CoreGui controls,
 -- and never overwrites CLUB / UNDERGROUND / FUNKOT venue labels.
 
 local Players=game:GetService("Players")
@@ -37,7 +37,7 @@ local function layout()
  local vp=camera.ViewportSize
  local touchLandscape=UserInputService.TouchEnabled and vp.X>vp.Y
  local width=math.clamp(vp.X*.62,520,960)
- local topY=UserInputService.TouchEnabled and 66 or 14
+ local topY=UserInputService.TouchEnabled and 36 or 14
  dock.AnchorPoint=Vector2.new(.5,0)
  dock.Position=UDim2.new(touchLandscape and .59 or .5,0,0,topY)
  dock.Size=UDim2.fromOffset(width,52)
@@ -96,4 +96,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Six-tab dock stability v2 online: mobile chat-safe / venue labels preserved")
+print("[BBYA] Six-tab dock stability v3 online: raised mobile dock / venue labels preserved")

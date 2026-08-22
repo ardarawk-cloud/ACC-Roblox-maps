@@ -53,7 +53,8 @@ jobs:
             exit 1
           fi
 
-          grep -q 'OWNER STABLE UI v4' "$owner"
+          grep -q 'OWNER STABLE UI v5' "$owner"
           grep -q 'FREE CAMERA v2' "$freecam"
-          grep -q 'topY=UserInputService.TouchEnabled and 66 or 14' "$dock"
-          grep -q 'dockY=touch and 66 or 14' "$dash"
+          grep -q 'topY=UserInputService.TouchEnabled and 36 or 14' "$dock"
+          grep -q 'topY=touch and 36 or 14' "$owner"
+          grep -q 'dockY=touch and 36 or 14' "$dash"
