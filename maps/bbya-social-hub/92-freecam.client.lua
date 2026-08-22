@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — FREE CAMERA v1
+-- BBYA SOCIAL HUB — FREE CAMERA v2
 -- Public cinematic freecam. Mobile: on-screen controls + swipe look. Desktop: WASD/QE + RMB look.
+-- v2: launcher matches Dance/Carry size and stays on the right.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local RunService=game:GetService("RunService")
@@ -19,23 +20,39 @@ local saved={}
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYAFreecamUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=70;gui.Parent=pg
 local toggle=Instance.new("TextButton")
-toggle.Name="FreecamToggle";toggle.AnchorPoint=Vector2.new(1,0);toggle.Position=UDim2.new(1,-18,0,78);toggle.Size=UDim2.fromOffset(92,34);toggle.BackgroundColor3=Color3.fromRGB(18,20,27);toggle.BorderSizePixel=0;toggle.Text="FREECAM";toggle.TextColor3=Color3.fromRGB(241,241,245);toggle.Font=Enum.Font.GothamBold;toggle.TextSize=10;toggle.Parent=gui
+toggle.Name="FreecamToggle";toggle.AnchorPoint=Vector2.new(1,1);toggle.BackgroundColor3=Color3.fromRGB(18,20,27);toggle.BorderSizePixel=0;toggle.Text="FREECAM";toggle.TextColor3=Color3.fromRGB(241,241,245);toggle.Font=Enum.Font.GothamBold;toggle.TextSize=7;toggle.ZIndex=90;toggle.Parent=gui
 local tc=Instance.new("UICorner");tc.CornerRadius=UDim.new(0,10);tc.Parent=toggle
 local ts=Instance.new("UIStroke");ts.Color=Color3.fromRGB(120,75,255);ts.Transparency=.38;ts.Parent=toggle
 
 local controls=Instance.new("Frame")
-controls.Name="MobileControls";controls.AnchorPoint=Vector2.new(1,1);controls.Position=UDim2.new(1,-18,1,-88);controls.Size=UDim2.fromOffset(190,132);controls.BackgroundColor3=Color3.fromRGB(9,10,15);controls.BackgroundTransparency=.22;controls.BorderSizePixel=0;controls.Visible=false;controls.Parent=gui
+controls.Name="MobileControls";controls.AnchorPoint=Vector2.new(1,1);controls.Size=UDim2.fromOffset(190,132);controls.BackgroundColor3=Color3.fromRGB(9,10,15);controls.BackgroundTransparency=.22;controls.BorderSizePixel=0;controls.Visible=false;controls.ZIndex=88;controls.Parent=gui
 local cc=Instance.new("UICorner");cc.CornerRadius=UDim.new(0,14);cc.Parent=controls
 local cs=Instance.new("UIStroke");cs.Color=Color3.fromRGB(45,179,220);cs.Transparency=.55;cs.Parent=controls
 
+local function applyLauncherLayout()
+ camera=workspace.CurrentCamera or camera
+ local vp=(camera and camera.ViewportSize) or Vector2.new(1280,720)
+ local compact=UserInputService.TouchEnabled or vp.Y<850
+ local size=compact and 44 or 48
+ local lower=math.clamp(math.floor(vp.Y*.22),154,188)
+ toggle.AnchorPoint=Vector2.new(1,1)
+ toggle.Position=UDim2.new(1,-8,1,-lower)
+ toggle.Size=UDim2.fromOffset(size,size)
+ toggle.TextSize=compact and 7 or 8
+ controls.AnchorPoint=Vector2.new(1,1)
+ controls.Position=UDim2.new(1,-8,1,-lower-size-10)
+ toggle:SetAttribute("BBYAMatchedDanceCarry",true)
+end
+applyLauncherLayout()
+
 local function button(name,text,x,y,w,h)
- local b=Instance.new("TextButton");b.Name=name;b.Text=text;b.Position=UDim2.fromOffset(x,y);b.Size=UDim2.fromOffset(w,h);b.BackgroundColor3=Color3.fromRGB(29,31,40);b.BorderSizePixel=0;b.TextColor3=Color3.fromRGB(242,242,246);b.Font=Enum.Font.GothamBold;b.TextSize=14;b.Parent=controls
+ local b=Instance.new("TextButton");b.Name=name;b.Text=text;b.Position=UDim2.fromOffset(x,y);b.Size=UDim2.fromOffset(w,h);b.BackgroundColor3=Color3.fromRGB(29,31,40);b.BorderSizePixel=0;b.TextColor3=Color3.fromRGB(242,242,246);b.Font=Enum.Font.GothamBold;b.TextSize=14;b.ZIndex=89;b.Parent=controls
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,9);c.Parent=b
  return b
 end
 local up=button("Up","↑",56,8,42,34);local down=button("Down","↓",56,86,42,34);local left=button("Left","←",8,47,42,34);local right=button("Right","→",104,47,42,34)
 local rise=button("Rise","+",151,8,32,49);local fall=button("Fall","−",151,70,32,49)
-local hint=Instance.new("TextLabel");hint.BackgroundTransparency=1;hint.Position=UDim2.fromOffset(48,47);hint.Size=UDim2.fromOffset(56,34);hint.Text="DRAG\nLOOK";hint.TextColor3=Color3.fromRGB(154,158,170);hint.Font=Enum.Font.GothamBold;hint.TextSize=8;hint.Parent=controls
+local hint=Instance.new("TextLabel");hint.BackgroundTransparency=1;hint.Position=UDim2.fromOffset(48,47);hint.Size=UDim2.fromOffset(56,34);hint.Text="DRAG\nLOOK";hint.TextColor3=Color3.fromRGB(154,158,170);hint.Font=Enum.Font.GothamBold;hint.TextSize=8;hint.ZIndex=89;hint.Parent=controls
 
 local held={}
 local function bindHold(btn,key)
@@ -60,7 +77,7 @@ local function setEnabled(value)
   saved.type=camera.CameraType;saved.subject=camera.CameraSubject;saved.cf=camera.CFrame;saved.fov=camera.FieldOfView
   pos=camera.CFrame.Position;yaw,pitch=anglesFromCF(camera.CFrame);velocity=Vector3.zero
   camera.CameraType=Enum.CameraType.Scriptable
-  toggle.Text="EXIT CAM";toggle.BackgroundColor3=Color3.fromRGB(55,28,72);controls.Visible=UserInputService.TouchEnabled
+  toggle.Text="EXIT";toggle.BackgroundColor3=Color3.fromRGB(55,28,72);controls.Visible=UserInputService.TouchEnabled
  else
   controls.Visible=false;toggle.Text="FREECAM";toggle.BackgroundColor3=Color3.fromRGB(18,20,27)
   camera.CameraType=saved.type or Enum.CameraType.Custom
@@ -68,6 +85,7 @@ local function setEnabled(value)
   camera.FieldOfView=saved.fov or 70
   for k in pairs(held) do held[k]=false end
  end
+ applyLauncherLayout()
 end
 
 toggle.MouseButton1Click:Connect(function()setEnabled(not enabled)end)
@@ -108,5 +126,11 @@ RunService:BindToRenderStep("BBYAFreecam",Enum.RenderPriority.Camera.Value+2,fun
  camera.CFrame=CFrame.new(pos)*cf
 end)
 
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera or camera;if enabled and camera then camera.CameraType=Enum.CameraType.Scriptable end end)
-print("[BBYA] Freecam v1 online: mobile controls + desktop WASD/QE")
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+ camera=workspace.CurrentCamera or camera
+ applyLauncherLayout()
+ if enabled and camera then camera.CameraType=Enum.CameraType.Scriptable end
+ if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyLauncherLayout) end
+end)
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyLauncherLayout) end
+print("[BBYA] Freecam v2 online: launcher matched to Dance/Carry on right")

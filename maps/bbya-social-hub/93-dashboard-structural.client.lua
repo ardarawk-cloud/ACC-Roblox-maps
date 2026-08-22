@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v2
--- Noticeable dashboard rebuild: sidebar, wider library, glass header, venue rail, responsive landscape layout.
+-- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v3
+-- Dashboard rebuild: sidebar, wider library, glass header, venue rail, responsive landscape layout.
+-- v3 keeps the global dock below Roblox CoreGui chat on touch devices.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
@@ -28,11 +29,7 @@ label(rail,"Brand","BBYA",UDim2.fromOffset(18,22),UDim2.new(1,-28,0,32),Enum.Fon
 label(rail,"Sub","SOCIAL HUB",UDim2.fromOffset(18,52),UDim2.new(1,-28,0,18),Enum.Font.GothamBold,8,C.muted)
 local live=label(rail,"Live","●  LIVE",UDim2.fromOffset(18,88),UDim2.new(1,-32,0,26),Enum.Font.GothamBold,9,C.green);live.BackgroundTransparency=0;live.BackgroundColor3=Color3.fromRGB(15,43,32);corner(live,8);stroke(live,C.green,1,.65)
 label(rail,"NavHead","VENUES",UDim2.fromOffset(18,142),UDim2.new(1,-28,0,18),Enum.Font.GothamBold,8,C.muted)
-local clubs={
- {"RailClub","CLUB",C.pink,170},
- {"RailUnder","UNDERGROUND",C.cyan,204},
- {"RailFunkot","FUNKOT",C.purple,238},
-}
+local clubs={{"RailClub","CLUB",C.pink,170},{"RailUnder","UNDERGROUND",C.cyan,204},{"RailFunkot","FUNKOT",C.purple,238}}
 for _,v in ipairs(clubs) do
  local t=label(rail,v[1],v[2],UDim2.fromOffset(18,v[4]),UDim2.new(1,-28,0,26),Enum.Font.GothamBold,9,C.white);t.BackgroundTransparency=.18;t.BackgroundColor3=Color3.fromRGB(24,25,33);corner(t,7);stroke(t,v[3],1,.72)
 end
@@ -83,11 +80,11 @@ local function apply()
  panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.54);panel.Size=UDim2.fromOffset(panelW,panelH);panel.BackgroundColor3=C.bg
  local railW=math.clamp(math.floor(panelW*.145),112,146)
  rail.Position=UDim2.fromOffset(0,0);rail.Size=UDim2.fromOffset(railW,panelH)
- topGlass.Position=UDim2.fromOffset(railW+14,10);topGlass.Size=UDim2.new(1, -railW-28,0,66)
- if header then header.Position=UDim2.fromOffset(railW+30,15);header.Size=UDim2.new(1, -railW-60,0,56);header.ZIndex=6 end
+ topGlass.Position=UDim2.fromOffset(railW+14,10);topGlass.Size=UDim2.new(1,-railW-28,0,66)
+ if header then header.Position=UDim2.fromOffset(railW+30,15);header.Size=UDim2.new(1,-railW-60,0,56);header.ZIndex=6 end
  if divider then divider.Position=UDim2.fromOffset(railW+22,80);divider.Size=UDim2.new(1,-railW-44,0,1);divider.BackgroundTransparency=.72 end
  if content then
-  content.Position=UDim2.fromOffset(railW+22,92);content.Size=UDim2.new(1, -railW-44,1,-108)
+  content.Position=UDim2.fromOffset(railW+22,92);content.Size=UDim2.new(1,-railW-44,1,-108)
   local cw=math.max(500,panelW-railW-44)
   local wide=cw>=650
   if playerCard and libraryCard then
@@ -100,7 +97,8 @@ local function apply()
    end
   end
  end
- dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.5,railW*.12,0,12);dock.Size=UDim2.fromOffset(math.min(620,panelW-railW-70),48)
+ local dockY=touch and 66 or 14
+ dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.5,railW*.12,0,dockY);dock.Size=UDim2.fromOffset(math.min(620,panelW-railW-70),48)
  polishRows();applying=false
 end
 
@@ -110,4 +108,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(apply)end end)
 task.spawn(function()while task.wait(1.0) do if panel.Visible then apply() end end end)
 
-print("[BBYA] Structural Dashboard v2 online: sidebar + glass header + wide music library")
+print("[BBYA] Structural Dashboard v3 online: chat-safe dock + premium dashboard")
