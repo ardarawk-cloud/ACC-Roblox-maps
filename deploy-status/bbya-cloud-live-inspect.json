@@ -6,523 +6,523 @@
   "root": [
     {
       "name": "Workspace",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000002",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000002",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "Run Service",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000003",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000003",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "GuiService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000004",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000004",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "Stats",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000006",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000006",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "TimerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000346",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000346",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "SoundService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000347",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000347",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "VideoCaptureService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000353",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000353",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "LogService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000356",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000356",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "MicroProfilerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000357",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000357",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ContentProvider",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000358",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000358",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "KeyframeSequenceProvider",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000359",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000359",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AnimationClipProvider",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035a",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Chat",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035b",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Players",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035c",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035c",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "MarketplaceService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "PointsService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035e",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "NotificationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000035f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000035f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ReplicatedFirst",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000360",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000360",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "HttpRbxApiService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000361",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000361",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "TweenService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000362",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000362",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "MaterialService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000363",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000363",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "TextChatService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000364",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000364",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "TextService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000365",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000365",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "SharedTableRegistry",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000036a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000036a",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "StarterPlayer",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000036b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000036b",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "StarterPack",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000036c",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000036c",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "StarterGui",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000036d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000036d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "LocalizationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000036f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000036f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "PolicyService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000371",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000371",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Teleport Service",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000374",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000374",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "JointsService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000375",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000375",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "CollectionService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000376",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000376",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "PhysicsService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000377",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000377",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "BadgeService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000378",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000378",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "FriendService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000379",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000379",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "InsertService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037a",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "GamePassService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037b",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Debris",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037c",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037c",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "CookiesService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Selection",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037e",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "UserInputService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000037f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000037f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "KeyboardService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000380",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000380",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "MouseService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000381",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000381",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "VRService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000382",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000382",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ContextActionService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000383",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000383",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ScriptService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000384",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000384",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AssetService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000385",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000385",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "TouchInputService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000387",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000387",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "BrowserService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000388",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000388",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "CaptureService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000389",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000389",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "SlimContentProvider",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000038d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000038d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Packages",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000392",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000392",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "GuidRegistryService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000393",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000393",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AvatarCreationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000395",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000394",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "GenerationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000396",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000395",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "MatchmakingService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000397",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000396",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ConfigureServerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000398",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000397",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ChangeHistoryService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000039a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000399",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "NetworkServer",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d820000039f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa0000039e",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ClusterPacketCache",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d82000003a7",
+      "id": "094bce9c-2462-5589-0a9b-8dfa000003a6",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Lighting",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e0e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e0d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ServerScriptService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e0f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e0e",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "Script Context",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e12",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e11",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "PackageService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e70",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e6f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "VoiceChatService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e72",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e71",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "SpawnerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e74",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e73",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Teams",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e75",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e74",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "FeatureRestrictionManager",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e76",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e75",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "CommerceService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e78",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e77",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "RecommendationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e79",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e78",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ReplicatedStorage",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e7a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e79",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "TestService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e7b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e7a",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AdService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e7c",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e7b",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "SocialService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e7d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e7c",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ProximityPromptService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e7e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e7d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AvatarEditorService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e80",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e7f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ScriptProfilerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e82",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e81",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "HeapProfilerService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e83",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e82",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ModerationService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e85",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e84",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "VideoService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e86",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e85",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "ServerStorage",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e87",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e86",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "HttpService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e88",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e87",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "AnalyticsService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e89",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e88",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "VersionControlService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e8a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e89",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "RemoteCommandService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e8e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e8d",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "Instance",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e90",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e8f",
       "hasChildren": false,
       "details": {}
     },
     {
       "name": "PermissionsService",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e9e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e9e",
       "hasChildren": false,
       "details": {}
     }
@@ -530,13 +530,13 @@
   "starterPlayer": [
     {
       "name": "StarterPlayerScripts",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e53",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e52",
       "hasChildren": true,
       "details": {}
     },
     {
       "name": "StarterCharacterScripts",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e6b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e6a",
       "hasChildren": false,
       "details": {}
     }
@@ -544,7 +544,7 @@
   "starterPlayerScripts": [
     {
       "name": "ActiveMallUIV1",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e54",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e53",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -555,7 +555,7 @@
     },
     {
       "name": "BasementAudioUIPatchV5",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e55",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e54",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -566,7 +566,7 @@
     },
     {
       "name": "ClubUI",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e56",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e55",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -577,7 +577,7 @@
     },
     {
       "name": "CommunityTab",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e57",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e56",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -588,7 +588,7 @@
     },
     {
       "name": "DJRequestCompactPatch",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e58",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e57",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -599,7 +599,7 @@
     },
     {
       "name": "DJWallClientRenderer",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e59",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e58",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -610,7 +610,7 @@
     },
     {
       "name": "DJWallPrestigeClient",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5a",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e59",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -621,7 +621,7 @@
     },
     {
       "name": "DashboardUpgradeV1",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5b",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5a",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -632,7 +632,7 @@
     },
     {
       "name": "DockStabilityV2",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5c",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5b",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -643,7 +643,7 @@
     },
     {
       "name": "Floor1FeatureClient",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5d",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5c",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -654,7 +654,7 @@
     },
     {
       "name": "FreecamV2",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5e",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5d",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -665,7 +665,7 @@
     },
     {
       "name": "FunkotZoneV1",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5f",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5e",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -676,7 +676,7 @@
     },
     {
       "name": "MallLiveClientV2",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e60",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5f",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -687,7 +687,7 @@
     },
     {
       "name": "MenuMessageScrollPatch",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e61",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e60",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -698,7 +698,7 @@
     },
     {
       "name": "OwnerStableUIV4",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e62",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e61",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -709,7 +709,7 @@
     },
     {
       "name": "ResponsiveUIPatch",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e63",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e62",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -720,7 +720,7 @@
     },
     {
       "name": "RuntimeEditorClient",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e64",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e63",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -731,7 +731,7 @@
     },
     {
       "name": "SocialHangoutClient",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e65",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e64",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -742,7 +742,7 @@
     },
     {
       "name": "StructuralDashboardV3",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e66",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e65",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -753,7 +753,7 @@
     },
     {
       "name": "ThreeVenueMusicUIV2",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e67",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e66",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -764,7 +764,7 @@
     },
     {
       "name": "TravelUIPatchV7",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e68",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e67",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -775,7 +775,7 @@
     },
     {
       "name": "UIClarityPatch",
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e69",
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e68",
       "hasChildren": false,
       "details": {
         "LocalScript": {
@@ -788,48 +788,103 @@
   "targets": {
     "ClubUI": {
       "http": 200,
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e56",
-      "detailsKeys": [
-        "LocalScript"
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e55",
+      "sourceHits": [
+        {
+          "line": 21,
+          "text": "gui.Name=\"BBYAClubUI\";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=18;gui.Parent=pg"
+        },
+        {
+          "line": 37,
+          "text": "dock.Name=\"TopDock\";dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.56,0,0,14);dock.Size=UDim2.fromOffset(690,52);dock.BackgroundColor3=Color3.fromRGB(12,11,15);dock.BackgroundTransparency=.08;dock.BorderSizePixel=0;dock.Parent=gui;round(dock,14);s"
+        }
       ],
-      "sourceHits": [],
-      "sourceAvailable": false
+      "sourceAvailable": true,
+      "sourceLength": 22605
     },
     "DockStabilityV2": {
       "http": 200,
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e5c",
-      "detailsKeys": [
-        "LocalScript"
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e5b",
+      "sourceHits": [
+        {
+          "line": 13,
+          "text": "local dock=gui:WaitForChild(\"TopDock\",20)"
+        },
+        {
+          "line": 38,
+          "text": "local touchLandscape=UserInputService.TouchEnabled and vp.X>vp.Y"
+        },
+        {
+          "line": 40,
+          "text": "local topY=UserInputService.TouchEnabled and 66 or 14"
+        },
+        {
+          "line": 42,
+          "text": "dock.Position=UDim2.new(touchLandscape and .59 or .5,0,0,topY)"
+        }
       ],
-      "sourceHits": [],
-      "sourceAvailable": false
+      "sourceAvailable": true,
+      "sourceLength": 3556
     },
     "OwnerStableUIV4": {
       "http": 200,
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e62",
-      "detailsKeys": [
-        "LocalScript"
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e61",
+      "sourceHits": [
+        {
+          "line": 63,
+          "text": "local compact=UserInputService.TouchEnabled or vp.Y<850"
+        },
+        {
+          "line": 136,
+          "text": "local dock=gui:FindFirstChild(\"TopDock\");if not dock then return end"
+        },
+        {
+          "line": 137,
+          "text": "local touch=UserInputService.TouchEnabled"
+        },
+        {
+          "line": 138,
+          "text": "local topY=touch and 66 or 14"
+        },
+        {
+          "line": 139,
+          "text": "dock.Position=UDim2.new(dock.Position.X.Scale,dock.Position.X.Offset,0,topY)"
+        }
       ],
-      "sourceHits": [],
-      "sourceAvailable": false
+      "sourceAvailable": true,
+      "sourceLength": 6766
     },
     "StructuralDashboardV3": {
       "http": 200,
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e66",
-      "detailsKeys": [
-        "LocalScript"
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e65",
+      "sourceHits": [
+        {
+          "line": 19,
+          "text": "local dock=gui:FindFirstChild(\"TopDock\")"
+        },
+        {
+          "line": 77,
+          "text": "local touch=UserInputService.TouchEnabled"
+        },
+        {
+          "line": 101,
+          "text": "dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.5,railW*.12,0,dockY);dock.Size=UDim2.fromOffset(math.min(620,panelW-railW-70),48)"
+        }
       ],
-      "sourceHits": [],
-      "sourceAvailable": false
+      "sourceAvailable": true,
+      "sourceLength": 8083
     },
     "TravelUIPatchV7": {
       "http": 200,
-      "id": "264f9cdc-7e49-ec31-0a9b-8d8200000e68",
-      "detailsKeys": [
-        "LocalScript"
+      "id": "094bce9c-2462-5589-0a9b-8dfa00000e67",
+      "sourceHits": [
+        {
+          "line": 105,
+          "text": "local phone=UserInputService.TouchEnabled or vp.X<900"
+        }
       ],
-      "sourceHits": [],
-      "sourceAvailable": false
+      "sourceAvailable": true,
+      "sourceLength": 6255
     }
   },
   "errors": [],
