@@ -1,0 +1,134 @@
+BBYA OWNER AUDIT 2026-08-23
+=== FUNKOT REFERENCES ===
+maps/bbya-social-hub/81-basement-audio-ui.client.lua:52:    obj.Text=on and "Independent Indo venue • Dual Deck AutoMix • breakbeat / funkot / indo-bounce" or "Main western channel • independent from Basement"
+maps/bbya-social-hub/85-basement-autodj.server.lua:2:-- Independent underground channel: Indo breakbeat / funkot / indo-bounce only.
+maps/bbya-social-hub/85-basement-autodj.server.lua:23: {title="DJ Bahagiamu Sayang Funkot",id="110691393637838",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:24: {title="DJ Mama Muda Enak Dong",id="134073539670673",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:25: {title="Jamilah Itu Bukan Anunya Aisyah",id="116255319981650",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:27: {title="FUNKOT",id="124224888312006",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:28: {title="FUNKOT Alt",id="83125775305712",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:29: {title="FUNKOT Melody Rhythm",id="95602240268105",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:30: {title="DJ Funkot - Karna Kamu Cantik",id="103451932037576",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:31: {title="FUNKOT Jangan Pergi",id="139850430998864",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:32: {title="Funkot - Aku Tak Berarti Bagimu",id="98095276635738",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:33: {title="FUNKOT Ngamen 5",id="134100771661430",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:34: {title="FUNKOT Garam Cina",id="79905157574964",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:35: {title="DJ Funkot Ego Wong Tuo",id="78891075630689",style="funkot"},
+maps/bbya-social-hub/85-basement-autodj.server.lua:67:group:SetAttribute("BBYAAudioMode","BASEMENT_INDO_DUAL_DECK_V1");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","INDO_BREAKBEAT_FUNKOT_BOUNCE");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
+maps/bbya-social-hub/87-basement-full-upgrade.server.lua:198:local sub=Instance.new("TextLabel");sub.BackgroundTransparency=1;sub.Position=UDim2.fromScale(.08,.62);sub.Size=UDim2.fromScale(.84,.20);sub.Text="INDO ROOM  •  BREAKBEAT  •  FUNKOT  •  INDO BOUNCE";sub.Font=Enum.Font.GothamBold;sub.TextScaled=true;sub.TextColor3=C.blue;sub.Parent=sg
+maps/bbya-social-hub/31-club-ui.client.lua:112:  pageTitle.Text="UNDERGROUND MUSIC";pageSub.Text="Independent Indo channel • breakbeat • funkot • indo-bounce"
+maps/bbya-social-hub/31-club-ui.client.lua:113:  nowMeta.Text="BASEMENT • INDO BREAKBEAT / FUNKOT";libSub.Text="BASEMENT INDO LIBRARY / REQUEST"
+
+=== VIP PILLAR/COLUMN/LARGE VERTICAL CANDIDATES ===
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:147:-- Each corner gets twin cabinets, ceiling hangers, visible drivers and low-volume
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:203:    local hangerBottomY = c.pos.Y + 2.65 + 2.8
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:204:    local hangerTopY = 43.72
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:205:    local hangerLen = hangerTopY - hangerBottomY
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:208:            "Hanger"..i,
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:209:            Vector3.new(.16, hangerLen, .16),
+maps/bbya-social-hub/66-vip-neon-roof-sound.server.lua:210:            CFrame.new(c.pos.X + dx, hangerBottomY + hangerLen/2, c.pos.Z),
+maps/bbya-social-hub/42-main-club-realism.server.lua:167:-- Column cladding gives the room structural rhythm.
+maps/bbya-social-hub/42-main-club-realism.server.lua:170:    part("ColumnCore"..i, Vector3.new(2.2, 18.5, 2.2), CFrame.new(x, 9.75, z), C.black, Enum.Material.Metal, 0, shell, false)
+maps/bbya-social-hub/42-main-club-realism.server.lua:171:    part("ColumnFace"..i, Vector3.new(2.35, 11.0, .16), CFrame.new(x, 7.1, z-1.18), C.graphite, Enum.Material.Slate, 0, shell, false)
+maps/bbya-social-hub/42-main-club-realism.server.lua:172:    local trim = neon("ColumnGlow"..i, Vector3.new(.055, 7.8, .06), CFrame.new(x, 7.2, z-1.29), (i%2==0) and C.cyan or C.pink, shell, .28)
+maps/bbya-social-hub/74-basement-premium-upgrade.server.lua:31:part("WestWall",Vector3.new(2,16,90),CFrame.new(-59,-8,0),C.wall,Enum.Material.Concrete,true)
+maps/bbya-social-hub/25-upper-levels.server.lua:22:p("LiftCore",Vector3.new(10,44,10),CFrame.new(52,22,-32),C.dark,Enum.Material.Metal,0,circ)
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:230:            "Hanger" .. i,
+maps/bbya-social-hub/82-vip-enclosure-sound.server.lua:27:part("WestWall",Vector3.new(1.2,18.5,90),CFrame.new(-57.35,34.25,0),C.wall,Enum.Material.Concrete,true,walls)
+maps/bbya-social-hub/82-vip-enclosure-sound.server.lua:29:part("FrontWallLeft",Vector3.new(43,18.5,1.2),CFrame.new(-36.5,34.25,-44.35),C.wall,Enum.Material.Concrete,true,walls)
+maps/bbya-social-hub/82-vip-enclosure-sound.server.lua:50: for i,offset in ipairs({-1.45,1.45}) do local anchor=pos+right*offset;part("Hanger"..i,Vector3.new(.16,2.1,.16),CFrame.new(anchor.X,42.45,anchor.Z),C.metal,Enum.Material.Metal,false,cluster) end
+maps/bbya-social-hub/26-basement-backofhouse.server.lua:11:p("NorthWall",Vector3.new(120,16,2),CFrame.new(0,-8,44),C.wall);p("SouthWall",Vector3.new(120,16,2),CFrame.new(0,-8,-44),C.wall);p("WestWall",Vector3.new(2,16,90),CFrame.new(-59,-8,0),C.wall);p("EastWall",Vector3.new(2,16,90),CFrame.new(59,-8,0),C.wall)
+maps/bbya-social-hub/27-shell-and-dressing.server.lua:30:-- Structural columns around club, never through center dance area.
+maps/bbya-social-hub/27-shell-and-dressing.server.lua:33:  p("ClubColumn"..x.."_"..z,Vector3.new(2.4,24,2.4),CFrame.new(x,12,z),C.metal,Enum.Material.Metal)
+maps/bbya-social-hub/90-vip-private-club-upgrade.server.lua:152:part("PortalColumnL", Vector3.new(.60, 15.4, .50), CFrame.new(-14.40, 33.35, -43.65), C.black, Enum.Material.Metal, 0, false, portal)
+maps/bbya-social-hub/90-vip-private-club-upgrade.server.lua:153:part("PortalColumnR", Vector3.new(.60, 15.4, .50), CFrame.new(14.40, 33.35, -43.65), C.black, Enum.Material.Metal, 0, false, portal)
+maps/bbya-social-hub/43-floor1-front-premium.server.lua:186:-- Vertical light columns flank the backdrop.
+maps/bbya-social-hub/43-floor1-front-premium.server.lua:188:    local col=neon("PhotoLightColumn"..i,Vector3.new(.18,7.6,.18),CFrame.new(-49.28,5.55,z),i==1 and C.cyan or C.pink,photo)
+
+=== VIP PINK NEON CANDIDATES ===
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:42:local PINK = Color3.fromRGB(255, 42, 157)
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:117:    {"OuterNorth", Vector3.new(116, 0.10, 0.16), CFrame.new(0, FLOOR_NEON_Y, 44.92), PINK},
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:120:    {"OuterEast", Vector3.new(0.16, 0.10, 90), CFrame.new(57.92, FLOOR_NEON_Y, 0), PINK},
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:124:    {"InnerSouth", Vector3.new(70, 0.10, 0.16), CFrame.new(0, FLOOR_NEON_Y, -26.86), PINK},
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:125:    {"InnerWest", Vector3.new(0.16, 0.10, 50), CFrame.new(-34.86, FLOOR_NEON_Y, -2), PINK},
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:155:neonBeam("TriangleRight", triA, triC, PINK)
+maps/bbya-social-hub/60-vip-sky-lounge.server.lua:156:neonBeam("TriangleBase", triB, triC, PINK)
+maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua:40:local PINK=Color3.fromRGB(255,42,157)
+maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua:57:for i,z in ipairs({-26.76,-26.98}) do strip("South_"..i,Vector3.new(69.8,.07,.07),CFrame.new(0,Y,z),PINK) end
+maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua:58:for i,x in ipairs({-34.76,-34.98}) do strip("West_"..i,Vector3.new(.07,.07,49.8),CFrame.new(x,Y,-2),PINK) end
+
+=== ENTRANCE FRONT GEOMETRY ===
+maps/bbya-social-hub/20-entrance.server.lua:1:-- BBYA SOCIAL HUB — ENTRANCE VALIDATION BUILD v2.1
+maps/bbya-social-hub/20-entrance.server.lua:3:-- v2.1: enlarge/tighten true 3D entrance typography while preserving the approved facade/crown.
+maps/bbya-social-hub/20-entrance.server.lua:11:local old=root:FindFirstChild("Entrance")
+maps/bbya-social-hub/20-entrance.server.lua:15:model.Name="Entrance"
+maps/bbya-social-hub/20-entrance.server.lua:27:local signModel=Instance.new("Model");signModel.Name="EntranceSignage";signModel.Parent=model
+maps/bbya-social-hub/20-entrance.server.lua:93:part("EntryPad",Vector3.new(78,1,16),CFrame.new(0,0,-39),C.floor,Enum.Material.Slate)
+maps/bbya-social-hub/20-entrance.server.lua:94:part("FacadeLeft",Vector3.new(24,24,10),CFrame.new(-33,12,-39),C.black)
+maps/bbya-social-hub/20-entrance.server.lua:95:part("FacadeRight",Vector3.new(24,24,10),CFrame.new(33,12,-39),C.black)
+maps/bbya-social-hub/20-entrance.server.lua:101:local gl=part("GlassLeft",Vector3.new(16,13,.45),CFrame.new(-33,7,-44.2),C.glass,Enum.Material.Glass,.22);gl.CanCollide=false
+maps/bbya-social-hub/20-entrance.server.lua:102:local gr=part("GlassRight",Vector3.new(16,13,.45),CFrame.new(33,7,-44.2),C.glass,Enum.Material.Glass,.22);gr.CanCollide=false
+maps/bbya-social-hub/20-entrance.server.lua:120:local spawn=Instance.new("SpawnLocation");spawn.Name="EntranceSpawn";spawn.Anchored=true;spawn.Neutral=true;spawn.Size=Vector3.new(7,1,7);spawn.CFrame=CFrame.lookAt(Vector3.new(0,1,-66),Vector3.new(0,12,-44));spawn.Transparency=1;spawn.Parent=model
+maps/bbya-social-hub/20-entrance.server.lua:122:for _,name in ipairs({"BBYAEntranceColor","BBYABloom"}) do local e=Lighting:FindFirstChild(name);if e then e:Destroy() end end
+maps/bbya-social-hub/20-entrance.server.lua:123:local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAEntranceColor";cc.Brightness=.08;cc.Contrast=.03;cc.Saturation=.04;cc.TintColor=Color3.fromRGB(255,240,246);cc.Parent=Lighting
+maps/bbya-social-hub/20-entrance.server.lua:125:print("[BBYA] Entrance validation v2.1: larger/tighter true 3D BBYA/SOCIAL HUB/24 / 7 signage loaded")
+maps/bbya-social-hub/43-floor1-front-premium.server.lua:2:-- Deterministic architecture/furniture for reception, photo area, salon/look studio and entrance-to-club transition.
+maps/bbya-social-hub/43-floor1-front-premium.server.lua:249:local transition=model("EntranceToClubTransition")
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:1:-- BBYA SOCIAL HUB — ENTRANCE STREET + ICON CARS v1
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:8:local entrance = root:WaitForChild("Entrance", 30)
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:9:if not entrance then return end
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:12:local old = root:FindFirstChild("EntranceStreetScene")
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:16:out.Name = "EntranceStreetScene"
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:17:out:SetAttribute("Pass", "ENTRANCE_STREET_ICONS_V1")
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:113:-- Cars face each other with the venue entrance centered between them.
+maps/bbya-social-hub/69-entrance-street-icons.server.lua:131:print("[BBYA] Entrance street v1 online: main asphalt road + red/blue photo cars")
+
+=== MAIN PLAYLIST MARKERS ===
+21-
+22-local PLAYLIST={
+23:-- MAIN_PROGRESSIVE_UPLOAD_BEGIN
+24--- MAIN_PROGRESSIVE_UPLOAD_END
+25- {title="Pumpin' And Bumpin' D",id="9040442826",style="club"},
+26- {title="DJ Party Time",id="90337553112855",style="club"},
+27- {title="Electronic Music",id="1846869595",style="electronic"},
+28- {title="Electronic Avenue",id="84504061779927",style="electronic"},
+29- {title="DJ",id="15878422179",style="club"},
+30- {title="Welcome",id="137350000972072",style="dance"},
+31- {title="Store",id="1837393392",style="club"},
+32-}
+33-
+34-local SUPPORT_PRODUCTS={
+35- {label="10",amount=10,productId=3709047095},{label="25",amount=25,productId=3709047097},
+36- {label="50",amount=50,productId=3709047101},{label="100",amount=100,productId=3709047104},
+37- {label="250",amount=250,productId=3709047106},{label="500",amount=500,productId=3709047107},
+38- {label="1000",amount=1000,productId=3709047109},{label="2000",amount=2000,productId=3709048779},
+39-}
+40-
+41-local MIX_SECONDS=4.0
+42-local PRELOAD_WINDOW=14.0
+43-local LOAD_TIMEOUT=5.0
+44-local REQUEST_COOLDOWN=20
+45-local MAX_QUEUE=8
+46-
+47-local function isBasement(player)
+48- local ch=player and player.Character
+49- local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
+50- return hrp and hrp.Position.Y<-4.5 or false
+51-end
+52-local function isAdmin(player)
+53- if not player then return false end
+54- if player:GetAttribute("BBYAAdmin")==true then return true end
+55- return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
+56-end
+57-local function forMainPlayers(fn)
+58- for _,p in ipairs(Players:GetPlayers()) do if not isBasement(p) then fn(p) end end
+59-end
+60-local function toastMain(msg)
+61- forMainPlayers(function(p)stateRemote:FireClient(p,"toast",msg)end)
+62-end
+63-local function denyTransport(player)
+64- stateRemote:FireClient(player,"toast","DJ transport controls khusus admin. Gunakan Request untuk antrean lagu.")
+65-end
+66-
+67-local oldZones=Workspace:FindFirstChild("BBYAAudioZones");if oldZones then oldZones:Destroy() end
+68-for _,obj in ipairs(Workspace:GetDescendants()) do
