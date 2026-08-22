@@ -1,4 +1,4 @@
--- BBYAVATAR persistent daily aggregate analytics v1.
+-- BBYAVATAR persistent daily aggregate analytics v2.
 -- Stores only anonymous per-day event totals. No UserIds, item IDs, queries, creator names,
 -- prices, outfit contents, or other player metadata are persisted.
 local DataStoreService = game:GetService("DataStoreService")
@@ -10,7 +10,8 @@ local trackEvent = rem:WaitForChild("TrackEvent")
 local ALLOWED = {
     CATALOG_OPEN=true, DETAIL_OPEN=true, TRY_ON_SUCCESS=true, PICK_SAVE=true,
     BOARD_OPEN=true, BOARD_TRY_ALL_SUCCESS=true, OWNED_OPEN=true, OWNED_TRY=true,
-    OWNED_SAVE=true, DISCOVERY_OPEN=true, RECOMMEND_OPEN=true, RECENT_CONTINUE=true,
+    OWNED_SAVE=true, DISCOVERY_OPEN=true, DISCOVERY_DAILY_SPOTLIGHT=true,
+    RECOMMEND_OPEN=true, RECENT_CONTINUE=true,
     CHALLENGE_OPEN=true, PHOTO_OPEN=true, PHOTO_PRESET=true, PHOTO_CLEAN_VIEW=true,
     CREATE_OUTFIT_SUCCESS=true, SAVE_AVATAR_SUCCESS=true, FAVORITE_SUCCESS=true,
     PURCHASE_SUCCESS=true,
@@ -19,7 +20,8 @@ local ALLOWED = {
 local THROTTLE = {
     CATALOG_OPEN=1, DETAIL_OPEN=.5, TRY_ON_SUCCESS=.75, PICK_SAVE=.5,
     BOARD_OPEN=1, BOARD_TRY_ALL_SUCCESS=.75, OWNED_OPEN=1, OWNED_TRY=.5,
-    OWNED_SAVE=.5, DISCOVERY_OPEN=1, RECOMMEND_OPEN=1, RECENT_CONTINUE=1,
+    OWNED_SAVE=.5, DISCOVERY_OPEN=1, DISCOVERY_DAILY_SPOTLIGHT=1,
+    RECOMMEND_OPEN=1, RECENT_CONTINUE=1,
     CHALLENGE_OPEN=2, PHOTO_OPEN=1, PHOTO_PRESET=.5, PHOTO_CLEAN_VIEW=2,
     CREATE_OUTFIT_SUCCESS=2, SAVE_AVATAR_SUCCESS=2, FAVORITE_SUCCESS=1,
     PURCHASE_SUCCESS=2,
@@ -58,7 +60,7 @@ local function flush()
     local ok, err = pcall(function()
         store:UpdateAsync("DAY_" .. day, function(current)
             current = typeof(current) == "table" and current or {}
-            current.schema = 1
+            current.schema = 2
             current.day = day
             current.updatedAt = os.time()
             current.events = typeof(current.events) == "table" and current.events or {}
@@ -116,7 +118,7 @@ game:BindToClose(function()
     flush()
 end)
 
-root:SetAttribute("DailyAggregateRevision", "V1_ANONYMOUS_DAILY_TOTALS")
+root:SetAttribute("DailyAggregateRevision", "V2_DAILY_SPOTLIGHT")
 root:SetAttribute("DailyAggregatePrivacy", "NO_USER_IDS_NO_ITEM_IDS_NO_QUERY_TEXT")
 root:SetAttribute("DailyAggregateFlushSeconds", FLUSH_SECONDS)
-print("[BBYAVATAR] Daily aggregate analytics v1 ready")
+print("[BBYAVATAR] Daily aggregate analytics v2 with spotlight ready")
