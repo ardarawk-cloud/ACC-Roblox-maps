@@ -1,0 +1,91 @@
+name: BBYA Music UI v6 + Venue Audio QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/103-music-ui-final.client.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-groups.server.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
+      - 'maps/bbya-social-hub/105-music-ui-integrity.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-music-ui-v6-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-music-v6.rbxl
+          test -s /tmp/bbya-music-v6.rbxl
+      - name: Validate compact player and venue isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ui='maps/bbya-social-hub/103-music-ui-final.client.lua'
+          router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
+          masters='maps/bbya-social-hub/104-venue-audio-groups.server.lua'
+          integrity='maps/bbya-social-hub/105-music-ui-integrity.client.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'MUSIC UI FINAL AUTHORITY v6' "$ui"
+          grep -q 'MusicCloseV6' "$ui"
+          grep -q 'math.min(760,vp.X-56)' "$ui"
+          grep -q 'math.min(430,vp.Y-88)' "$ui"
+          grep -q 'OnlineAboveBBYA' "$ui"
+          grep -q 'DashboardSearch' "$ui"
+          grep -q 'PlaybackLoudness' "$ui"
+          grep -q 'BBYAAudioPulseV6' "$ui"
+          grep -q 'BBYAHomeActionV6' "$ui"
+          grep -q 'StableMusicLabelV6' "$ui"
+          grep -q 'AdminPreviousV6' "$ui"
+          grep -q 'AdminNextV6' "$ui"
+          grep -q 'REQUEST' "$ui"
+
+          grep -q 'STRICT VENUE AUDIO ROUTER v2' "$router"
+          grep -q 'EqualizerSoundEffect' "$router"
+          grep -q 'BBYAVenueGateV2' "$router"
+          grep -q 'local gain=open and 0 or -80' "$router"
+          grep -q 'return "UNDERGROUND"' "$router"
+          grep -q 'return "ROOFTOP"' "$router"
+          grep -q 'return "FUNKOT"' "$router"
+          grep -q 'return "SKATEPARK"' "$router"
+          grep -q 'return "MAIN"' "$router"
+          grep -q 'return "NONE"' "$router"
+          grep -q 'BBYASkateparkMaster' "$router"
+          grep -q 'BBYARooftopMaster' "$router"
+
+          grep -q 'BBYASkateparkMaster' "$masters"
+          grep -q 'BBYARooftopMaster' "$masters"
+          grep -q 'g.Volume=0' "$masters"
+          grep -q 'PlaylistReady",false' "$masters"
+
+          grep -q 'AdminPreviousHistoryV6' "$integrity"
+          grep -q 'local history=' "$integrity"
+          grep -q 'table.insert(h,old)' "$integrity"
+          grep -q 'oldPrev.Visible=false' "$integrity"
+          grep -q 'SKATEPARK AUDIO' "$integrity"
+          grep -q 'ROOFTOP AUDIO' "$integrity"
+          grep -q 'NO LOCAL MUSIC ZONE' "$integrity"
+
+          grep -q 'MusicUIFinalV6' "$project"
+          grep -q 'VenueAudioMastersV1' "$project"
+          grep -q 'VenueAudioRouterV1' "$project"
+          grep -q 'MusicUIIntegrityV1' "$project"
+
+          echo 'BBYA Music UI v6 + EQ-gated venue audio QC passed.'
