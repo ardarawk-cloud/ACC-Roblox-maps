@@ -1,0 +1,144 @@
+name: BBYA Progressive Permission Repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-progressive-permission-repair.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-progressive-permission-repair
+  cancel-in-progress: true
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Grant existing Progressive audio to BBYA Universe
+        env:
+          AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+          AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
+          UNIVERSE_ID: '8116636513'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, urllib.request, urllib.error
+
+          root=pathlib.Path('.')
+          src=(root/'maps/bbya-social-hub/30-club-systems.server.lua').read_text(encoding='utf-8')
+          block=src.split('-- MAIN_PROGRESSIVE_UPLOAD_BEGIN',1)[1].split('-- MAIN_PROGRESSIVE_UPLOAD_END',1)[0]
+          ids=[]
+          for value in re.findall(r'id="(\d+)"',block):
+              if value not in ids: ids.append(value)
+
+          universe=os.environ['UNIVERSE_ID']
+          report={
+              'status':'STARTED',
+              'universeId':universe,
+              'playlistAssetCount':len(ids),
+              'playlistAssetIds':ids,
+              'uploadAttempted':False,
+              'attempts':[],
+          }
+
+          def json_request(url, method='GET', payload=None, headers=None):
+              data=None if payload is None else json.dumps(payload).encode('utf-8')
+              h=dict(headers or {})
+              if payload is not None and 'Content-Type' not in h:
+                  h['Content-Type']='application/json'
+              req=urllib.request.Request(url,data=data,headers=h,method=method)
+              try:
+                  with urllib.request.urlopen(req,timeout=30) as r:
+                      raw=r.read().decode('utf-8','replace')
+                      return r.status, json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try: body=json.loads(raw) if raw.strip() else {}
+                  except Exception: body={'raw':raw[-2000:]}
+                  return e.code, body
+
+          def introspect(key):
+              if not key: return {'present':False}
+              code,data=json_request('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key})
+              out={
+                  'present':True,'http':code,'name':data.get('name'),
+                  'authorizedUserId':str(data.get('authorizedUserId')) if data.get('authorizedUserId') is not None else None,
+                  'enabled':data.get('enabled'),'expired':data.get('expired'),
+                  'scopes':[]
+              }
+              for scope in data.get('scopes') or []:
+                  out['scopes'].append({'name':scope.get('name'),'operations':scope.get('operations') or []})
+              uid=out.get('authorizedUserId')
+              if uid:
+                  ucode,udata=json_request(f'https://users.roblox.com/v1/users/{uid}')
+                  if ucode==200: out['authorizedUsername']=udata.get('name')
+              return out
+
+          def can_permission(info):
+              if not info.get('present') or info.get('http')!=200 or info.get('enabled') is False or info.get('expired') is True:
+                  return False
+              return any(s.get('name')=='asset-permissions:write' for s in info.get('scopes',[]))
+
+          granted=set()
+          for label,key in [('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip())]:
+              info=introspect(key)
+              attempt={'key':label,'keyInfo':info,'permissionAttempted':False}
+              if not can_permission(info):
+                  attempt['result']='NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE'
+                  report['attempts'].append(attempt)
+                  continue
+              remaining=[x for x in ids if x not in granted]
+              if not remaining:
+                  attempt['result']='NOT_NEEDED'
+                  report['attempts'].append(attempt)
+                  continue
+              payload={
+                  'subjectType':'Universe',
+                  'subjectId':universe,
+                  'action':'Use',
+                  'requests':[{'assetId':int(x)} for x in remaining],
+              }
+              code,data=json_request(
+                  'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions',
+                  'PATCH',payload,
+                  {'x-api-key':key,'Content-Type':'application/json-patch+json'}
+              )
+              attempt['permissionAttempted']=True
+              attempt['http']=code
+              attempt['response']=data
+              success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+              granted.update(success)
+              attempt['successCount']=len(success)
+              attempt['result']='SUCCESS' if code in (200,201,204) else 'FAILED'
+              report['attempts'].append(attempt)
+              if len(granted)==len(ids): break
+
+          report['grantedAssetIds']=sorted(granted,key=int)
+          report['grantedCount']=len(granted)
+          report['missingAssetIds']=[x for x in ids if x not in granted]
+          report['status']='GRANTED_ALL' if len(granted)==len(ids) and ids else 'PARTIAL_OR_FAILED'
+          out=root/'deploy-status/bbya-progressive-permissions.json'
+          out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+          print(json.dumps({'status':report['status'],'count':len(ids),'granted':len(granted),'uploadAttempted':False}))
+          PY
+
+      - name: Persist permission result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-progressive-permissions.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA Progressive permission repair [skip ci]'
+            git push origin HEAD:main
+          fi
