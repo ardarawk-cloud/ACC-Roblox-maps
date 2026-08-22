@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — HYBRID AUTODJ RECOVERY WATCHDOG v2
--- Recovers silent/stopped decks by asking AutoDJ for another random track.
+-- BBYA SOCIAL HUB — MAIN AUTODJ RECOVERY WATCHDOG v3
+-- Recovery only. Never writes SoundGroup.Volume; per-player venue mixer owns audibility.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -8,6 +8,12 @@ local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",20)
 if not remotes then return end
 local internalMusic=remotes:WaitForChild("InternalMusic",20)
 if not internalMusic or not internalMusic:IsA("BindableEvent") then return end
+
+local group=SoundService:WaitForChild("BBYAClubMaster",20)
+if group and group:IsA("SoundGroup") then
+ group:SetAttribute("WatchdogVersion","V3_ZONE_SAFE")
+ group:SetAttribute("WatchdogOwnsVolume",false)
+end
 
 local deadFor=0
 local function deckState(sound)
@@ -18,19 +24,19 @@ local function deckState(sound)
 end
 
 while task.wait(2.5) do
- local group=SoundService:FindFirstChild("BBYAClubMaster")
- if group and group:IsA("SoundGroup") and group.Volume<=0 then group.Volume=1 end
  local a=SoundService:FindFirstChild("BBYAClubDeckA")
  local b=SoundService:FindFirstChild("BBYAClubDeckB")
  local sa,sb=deckState(a),deckState(b)
- if sa=="paused" or sb=="paused" then deadFor=0
- elseif sa=="playing" or sb=="playing" then deadFor=0
+ if sa=="paused" or sb=="paused" then
+  deadFor=0
+ elseif sa=="playing" or sb=="playing" then
+  deadFor=0
  else
   deadFor+=2.5
   if deadFor>=5 then
    internalMusic:Fire("random")
    deadFor=0
-   warn("[BBYA] Hybrid AutoDJ watchdog recovery -> random track")
+   warn("[BBYA] Main AutoDJ watchdog recovery -> random Progressive track")
   end
  end
 end
