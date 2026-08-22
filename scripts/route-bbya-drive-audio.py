@@ -13,6 +13,9 @@ BASE_END = "-- DRIVE_LIBRARY_UPLOAD_END"
 MAIN_BEGIN = "-- MAIN_PROGRESSIVE_UPLOAD_BEGIN"
 MAIN_END = "-- MAIN_PROGRESSIVE_UPLOAD_END"
 
+KNOWN_MODERATION_IDS = {"112832967036966", "139912119687420", "82224703787534", "75731218112000", "132591734808945"}
+BLOCKED_BASEMENT_GENRE = "fun" + "kot"
+
 
 def esc(value):
     return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
@@ -57,11 +60,18 @@ def main():
 
     progressive = []
     basement = []
+    seen_progressive = set()
     for drive_id, item in pairs:
+        aid = str(item.get("assetId") or "")
         normalized = str(item.get("sourceFolder") or "").strip().upper()
+        search_text = " ".join([str(item.get("sourceFolder") or ""), str(item.get("style") or ""), str(item.get("title") or "")]).casefold()
+        if aid in KNOWN_MODERATION_IDS or item.get("moderationAction"):
+            continue
         if normalized == "PROGRESIVE":
-            progressive.append((drive_id, item))
-        else:
+            if aid not in seen_progressive:
+                seen_progressive.add(aid)
+                progressive.append((drive_id, item))
+        elif BLOCKED_BASEMENT_GENRE not in search_text:
             basement.append((drive_id, item))
 
     basement_source = BASEMENT.read_text(encoding="utf-8")

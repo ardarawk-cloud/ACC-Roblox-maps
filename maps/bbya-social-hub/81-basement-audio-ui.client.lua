@@ -49,13 +49,13 @@ local function patchPanel(on)
    if up=="MUSIC SYSTEM" or up=="UNDERGROUND MUSIC" or up=="UNDERGROUND / INDO ROOM" then
     obj.Text=on and "UNDERGROUND / INDO ROOM" or "MUSIC SYSTEM"
    elseif up:find("INDEPENDENT INDO CHANNEL",1,true) or up:find("MAIN WESTERN CHANNEL",1,true) or up:find("DUAL DECK AUTOMIX",1,true) then
-    obj.Text=on and "Independent Indo venue • Dual Deck AutoMix • breakbeat / funkot / indo-bounce" or "Main western channel • independent from Basement"
+    obj.Text=on and "Independent Indo venue • Dual Deck AutoMix • breakbeat / indo-bounce" or "Main progressive channel • independent from Underground"
    elseif up:find("BASEMENT • INDO",1,true) or up:find("MAIN • WESTERN",1,true) then
-    obj.Text=on and "BASEMENT • INDO AUTODJ • DECK A/B" or "MAIN • WESTERN / INTERNATIONAL"
+    obj.Text=on and "UNDERGROUND • INDO AUTODJ • DECK A/B" or "MAIN • WESTERN / INTERNATIONAL"
    elseif up=="LIBRARY / REQUEST" or up=="BASEMENT LIBRARY / REQUEST" then
-    obj.Text=on and "BASEMENT LIBRARY / REQUEST" or "LIBRARY / REQUEST"
+    obj.Text=on and "UNDERGROUND LIBRARY / REQUEST" or "LIBRARY / REQUEST"
    elseif up=="BASEMENT INDO LIBRARY / REQUEST" or up=="REQUEST MASUK QUEUE BASEMENT • TIDAK MEMOTONG TRACK AKTIF" then
-    obj.Text=on and "Request masuk queue Basement • tidak memotong track aktif" or "MAIN WESTERN LIBRARY / REQUEST"
+    obj.Text=on and "Request masuk queue Underground • tidak memotong track aktif" or "MAIN PROGRESSIVE LIBRARY / REQUEST"
    end
   end
  end

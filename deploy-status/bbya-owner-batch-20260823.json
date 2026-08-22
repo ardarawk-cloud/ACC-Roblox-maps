@@ -1,0 +1,17 @@
+{
+  "status": "PATCHED_NOT_PUBLISHED",
+  "removedBasementTracks": 12,
+  "mainProgressiveTracks": 28,
+  "excludedModerationAssetIds": [
+    "139912119687420"
+  ],
+  "travelLabel": "UNDERGROUND",
+  "travelRoute": "Basement",
+  "stableSocialUI": true,
+  "pinkVipPathsRemoved": [
+    "South",
+    "West"
+  ],
+  "vipObstructionRemoved": "UpperLevels/VerticalCirculation/LiftCore",
+  "entranceLowerCornerFill": true
+}
