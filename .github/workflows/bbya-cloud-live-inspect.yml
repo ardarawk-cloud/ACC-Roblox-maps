@@ -1,6 +1,6 @@
 name: BBYA Open Cloud Live Inspector
 
-# live inspect trigger: 2026-08-23T03:05+08:00
+# live inspect trigger: 2026-08-23T03:07+08:00
 on:
   push:
     branches: [main]
@@ -19,7 +19,6 @@ jobs:
       ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
       UNIVERSE_ID: '8116636513'
       PLACE_ID: '131894120482837'
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - name: Inspect published place through Open Cloud Instance API
@@ -28,80 +27,72 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json, os, time, urllib.request, urllib.error
-          key=os.environ.get('ROBLOX_API_KEY','')
-          U=os.environ['UNIVERSE_ID']; P=os.environ['PLACE_ID']
+          key=os.environ.get('ROBLOX_API_KEY','');U=os.environ['UNIVERSE_ID'];P=os.environ['PLACE_ID']
           out={'universeId':U,'placeId':P,'api':'Open Cloud Instance API','ok':False,'root':[],'starterPlayer':[],'starterPlayerScripts':[],'targets':{},'errors':[]}
           headers={'x-api-key':key,'Accept':'application/json'}
           def get(url):
               req=urllib.request.Request(url,headers=headers,method='GET')
               try:
-                  with urllib.request.urlopen(req,timeout=25) as r:
-                      return r.status,json.loads(r.read().decode() or '{}')
+                  with urllib.request.urlopen(req,timeout=25) as r:return r.status,json.loads(r.read().decode() or '{}')
               except urllib.error.HTTPError as e:
                   body=e.read().decode(errors='replace')[:4000]
-                  try: data=json.loads(body)
-                  except: data={'raw':body}
+                  try:data=json.loads(body)
+                  except:data={'raw':body}
                   return e.code,data
           def poll(op):
               path=op.get('path') if isinstance(op,dict) else None
-              if not path: return op
-              url='https://apis.roblox.com/cloud/v2/'+path
+              if not path:return op
               last={}
               for _ in range(12):
-                  st,last=get(url)
-                  if st>=400: return {'http':st,'error':last}
-                  if last.get('done'): return last
+                  st,last=get('https://apis.roblox.com/cloud/v2/'+path)
+                  if st>=400:return {'http':st,'error':last}
+                  if last.get('done'):return last
                   time.sleep(.7)
               return {'error':'operation timeout','last':last}
-          def list_children(iid):
+          def children(iid):
               st,data=get(f'https://apis.roblox.com/cloud/v2/universes/{U}/places/{P}/instances/{iid}:listChildren')
-              if st>=400: return st,[],data
-              done=poll(data)
-              rows=((done.get('response') or {}).get('instances') or []) if isinstance(done,dict) else []
-              return st,rows,done
-          def get_instance(iid):
+              if st>=400:return st,[],data
+              done=poll(data);return st,((done.get('response') or {}).get('instances') or []),done
+          def instance(iid):
               st,data=get(f'https://apis.roblox.com/cloud/v2/universes/{U}/places/{P}/instances/{iid}')
-              if st>=400: return st,data
-              done=poll(data)
-              return st,(done.get('response') or done)
+              if st>=400:return st,data
+              done=poll(data);return st,(done.get('response') or done)
           def slim(rows):
-              arr=[]
+              a=[]
               for r in rows:
-                  e=r.get('engineInstance') or {}
-                  arr.append({'name':e.get('Name'),'id':e.get('Id'),'hasChildren':r.get('hasChildren'),'details':e.get('Details')})
-              return arr
-          st,root,raw=list_children('root')
-          out['root_http']=st; out['root']=slim(root)
-          if st>=400:
-              out['errors'].append({'stage':'root','http':st,'body':raw})
+                  e=r.get('engineInstance') or {};a.append({'name':e.get('Name'),'id':e.get('Id'),'hasChildren':r.get('hasChildren'),'details':e.get('Details')})
+              return a
+          def source_from(details):
+              if not isinstance(details,dict):return ''
+              for k in ('Source','source'):
+                  if isinstance(details.get(k),str):return details[k]
+              for v in details.values():
+                  if isinstance(v,dict):
+                      s=source_from(v)
+                      if s:return s
+              return ''
+          st,root,raw=children('root');out['root_http']=st;out['root']=slim(root)
+          if st>=400:out['errors'].append({'stage':'root','http':st,'body':raw})
           else:
               sp=next((r for r in root if (r.get('engineInstance') or {}).get('Name')=='StarterPlayer'),None)
-              if not sp: out['errors'].append({'stage':'find','name':'StarterPlayer'})
+              if not sp:out['errors'].append({'stage':'find','name':'StarterPlayer'})
               else:
-                  spid=sp['engineInstance']['Id']
-                  st2,spc,raw2=list_children(spid);out['starterPlayer_http']=st2;out['starterPlayer']=slim(spc)
+                  st2,spc,raw2=children(sp['engineInstance']['Id']);out['starterPlayer_http']=st2;out['starterPlayer']=slim(spc)
                   sps=next((r for r in spc if (r.get('engineInstance') or {}).get('Name')=='StarterPlayerScripts'),None)
-                  if not sps: out['errors'].append({'stage':'find','name':'StarterPlayerScripts'})
+                  if not sps:out['errors'].append({'stage':'find','name':'StarterPlayerScripts'})
                   else:
-                      spsid=sps['engineInstance']['Id']
-                      st3,scripts,raw3=list_children(spsid);out['starterPlayerScripts_http']=st3;out['starterPlayerScripts']=slim(scripts)
+                      st3,scripts,raw3=children(sps['engineInstance']['Id']);out['starterPlayerScripts_http']=st3;out['starterPlayerScripts']=slim(scripts)
                       wanted={'DockStabilityV2','ClubUI','StructuralDashboardV3','OwnerStableUIV4','TravelUIPatchV7'}
                       for r in scripts:
-                          e=r.get('engineInstance') or {}; name=e.get('Name')
-                          if name not in wanted: continue
-                          iid=e.get('Id'); st4,inst=get_instance(iid)
-                          eng=(inst.get('engineInstance') or inst) if isinstance(inst,dict) else {}
-                          details=eng.get('Details') or {}
-                          source=details.get('Source') or details.get('source') or ''
+                          e=r.get('engineInstance') or {};name=e.get('Name')
+                          if name not in wanted:continue
+                          iid=e.get('Id');st4,inst=instance(iid);eng=(inst.get('engineInstance') or inst) if isinstance(inst,dict) else {};details=eng.get('Details') or {};source=source_from(details)
                           hits=[]
-                          for n,line in enumerate(str(source).splitlines(),1):
-                              if any(tok in line for tok in ['topY','dock.Position','TopDock','TouchEnabled','IgnoreGuiInset']):
-                                  hits.append({'line':n,'text':line.strip()[:260]})
-                          out['targets'][name]={'http':st4,'id':iid,'detailsKeys':list(details.keys()),'sourceHits':hits,'sourceAvailable':bool(source)}
+                          for n,line in enumerate(source.splitlines(),1):
+                              if any(tok in line for tok in ['topY','dock.Position','TopDock','TouchEnabled','IgnoreGuiInset']):hits.append({'line':n,'text':line.strip()[:260]})
+                          out['targets'][name]={'http':st4,'id':iid,'sourceHits':hits,'sourceAvailable':bool(source),'sourceLength':len(source)}
               out['ok']=not out['errors']
-          os.makedirs('deploy-status',exist_ok=True)
-          open('deploy-status/bbya-cloud-live-inspect.json','w').write(json.dumps(out,indent=2)+'\n')
-          print(json.dumps(out,indent=2))
+          os.makedirs('deploy-status',exist_ok=True);open('deploy-status/bbya-cloud-live-inspect.json','w').write(json.dumps(out,indent=2)+'\n');print(json.dumps(out,indent=2))
           PY
       - name: Persist cloud inspection result
         shell: bash
