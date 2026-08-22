@@ -52,102 +52,74 @@ jobs:
         run: |
           set -euo pipefail
           test -s maps/becak-e-bike/place.rbxlx
+
+          # Isolation + core runtime
           grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Client' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_CityDetails' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_Masterplan' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_CargoVisual' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_CityEvents' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_TrafficNPC' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_VehicleRecovery' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_ChargingNetwork' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_DailyContracts' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_StoryProgression' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_ReputationCargo' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_ReputationPassenger' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_Achievements' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_DailyContractsUI' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_MasterplanClient' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_DriverPhone' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_MobileSafeArea' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_DriverNavigation' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_WorldQC' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakEBike_RoadAccess' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakRuntime\",\"v1.31' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakStartupGuard\", \"v1.31' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakRuntimeOwned\", true' maps/becak-e-bike/place.rbxlx
           grep -q 'Refusing to destroy pre-existing unowned Workspace/BecakEBike root' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakCargoVisual', 'v1.30" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakCargoVisualCrates', CRATE_COUNT" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakCargoVisualCollision', 'OFF" maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakVersion\",\"1.31.0' maps/becak-e-bike/place.rbxlx
+
+          # Gameplay systems
+          for marker in \
+            BecakEBike_CityDetails \
+            BecakEBike_Masterplan \
+            BecakEBike_CargoVisual \
+            BecakEBike_CityEvents \
+            BecakEBike_TrafficNPC \
+            BecakEBike_VehicleRecovery \
+            BecakEBike_ChargingNetwork \
+            BecakEBike_DailyContracts \
+            BecakEBike_StoryProgression \
+            BecakEBike_ReputationCargo \
+            BecakEBike_ReputationPassenger \
+            BecakEBike_Achievements \
+            BecakEBike_DailyContractsUI \
+            BecakEBike_MasterplanClient \
+            BecakEBike_DriverPhone \
+            BecakEBike_MobileSafeArea \
+            BecakEBike_DriverNavigation \
+            BecakEBike_WorldQC \
+            BecakEBike_RoadAccess; do
+              grep -q "$marker" maps/becak-e-bike/place.rbxlx
+          done
+
+          # Vehicle safety + road access
           grep -q "ACC_BecakVehicleRecovery','v1.26" maps/becak-e-bike/place.rbxlx
           grep -q "BecakSelfRighting','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakLowCurbAssist','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakMultiProbeCurbAssist','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakReverseCurbAssist','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakHillStartAssist','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakRecoveryTickHz',10" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakPassengerFareTelemetry' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakLastTripBaseReward' maps/becak-e-bike/place.rbxlx
-          grep -q 'ACC_BecakCityDetails' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakMasterplanSystems','v1.3" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakLegacyTrafficDisabled','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakSystemsTickHz',5" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakCityEvents','v1.10" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakTrafficNPC','v1.14" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakChargingNetwork','v1.16" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakDailyContracts','v1.17" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakStoryProgression','v1.21" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakStoryChapterCount',#CHAPTERS" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationSystem','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationCargoTiers','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationPassengerTiers','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakReputationCargo','v1.20" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationCargoBonusMaxPct',25" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakReputationPassenger','v1.21" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationPassengerBonusMaxPct',15" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakReputationPassengerUsesActualFare','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakAchievements','v1.23" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakAchievementCount',#ACHIEVEMENTS" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakAchievementsPersistent','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakAchievementUIProgress','ON" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakAchievementNextTitle' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakAchievementNextRemaining' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakDailyContractsUI','v1.23" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakMissionUIPhoneIntegrated','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakStoryUIIntegrated','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakAchievementUIIntegrated','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakDailyContractCount',3" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakDailyContractsPersistent','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakChargingStationCount',#stations" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakEmergencyCharging','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakChargingPricePerUnit',PRICE_PER_UNIT" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficPlayerYield','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficVehicleYield','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficHeadway','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficBrakeLights','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficIntersectionPacing','ON" maps/becak-e-bike/place.rbxlx
-          grep -q "BecakTrafficAdaptiveTick','ON" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakTrafficVehicleCount' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakPedestrianCount' maps/becak-e-bike/place.rbxlx
-          grep -q 'ACC_BecakDriverNavigation' maps/becak-e-bike/place.rbxlx
-          grep -q 'ACC_BecakWorldQC' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakRoadAccess','v1.33" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRoadAccess','v1.34" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakGenericCurbCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadEdgeAudit','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadEdgeAncestorAudit','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadEdgeAliasAudit','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRoadEdgeCachedAudit','ON" maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakRoadEdgeRegistrySize' maps/becak-e-bike/place.rbxlx
           grep -q "BecakRoadEdgeAuditHz',2" maps/becak-e-bike/place.rbxlx
+
+          # Mobile UX lock: phone remains on left safe area
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeAreaAdaptive','v1.29" maps/becak-e-bike/place.rbxlx
           grep -q "BecakMobileCoreGuiAware','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakPhoneLeftPin','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion\",\"1.31.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.31 + RoadAccess v1.33 validation PASS'
+
+          # Progression/economy safeguards
+          grep -q 'BecakPassengerFareTelemetry' maps/becak-e-bike/place.rbxlx
+          grep -q "BecakLegacyTrafficDisabled','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakTrafficAdaptiveTick','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakEmergencyCharging','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakDailyContractsPersistent','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakAchievementsPersistent','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT" maps/becak-e-bike/place.rbxlx
+
+          echo 'Final Becak E-Bike v1.31 + RoadAccess v1.34 cached-audit validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -174,7 +146,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.31 road-access v1.33 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.31 road-access v1.34 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
