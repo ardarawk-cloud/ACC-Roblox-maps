@@ -71,6 +71,7 @@ jobs:
             BecakEBike_CityEvents \
             BecakEBike_TrafficNPC \
             BecakEBike_VehicleRecovery \
+            BecakEBike_GroundContact \
             BecakEBike_ChargingNetwork \
             BecakEBike_DailyContracts \
             BecakEBike_StoryProgression \
@@ -87,7 +88,7 @@ jobs:
               grep -q "$marker" maps/becak-e-bike/place.rbxlx
           done
 
-          # Vehicle safety + road access
+          # Vehicle safety + ground contact + road access
           grep -q "ACC_BecakVehicleRecovery','v1.35" maps/becak-e-bike/place.rbxlx
           grep -q "BecakSelfRighting','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakMultiProbeCurbAssist','ON" maps/becak-e-bike/place.rbxlx
@@ -98,6 +99,13 @@ jobs:
           grep -q "BecakHighSpeedStabilityAssist','ON" maps/becak-e-bike/place.rbxlx
           grep -q 'BecakStabilityMinSpeed' maps/becak-e-bike/place.rbxlx
           grep -q 'LastStabilityAssistSpeed' maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakGroundContact','v1.36" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakChassisCollision','OFF" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakGroundContactPods',#PODS" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakGroundContactShape','BALL" maps/becak-e-bike/place.rbxlx
+          grep -q 'GroundContactFrontLeft' maps/becak-e-bike/place.rbxlx
+          grep -q 'GroundContactFrontRight' maps/becak-e-bike/place.rbxlx
+          grep -q 'GroundContactRear' maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadAccess','v1.34" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakGenericCurbCollision','OFF" maps/becak-e-bike/place.rbxlx
@@ -124,7 +132,7 @@ jobs:
           grep -q "BecakAchievementsPersistent','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT" maps/becak-e-bike/place.rbxlx
 
-          echo 'Final Becak E-Bike v1.31 + VehicleRecovery v1.35 (high-speed stability verified) + RoadAccess v1.34 validation PASS'
+          echo 'Final Becak E-Bike v1.31 + VehicleRecovery v1.35 + GroundContact v1.36 + RoadAccess v1.34 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -151,7 +159,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.31 recovery v1.35 stability + road-access v1.34 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.31 recovery v1.35 ground-contact v1.36 road-access v1.34 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
