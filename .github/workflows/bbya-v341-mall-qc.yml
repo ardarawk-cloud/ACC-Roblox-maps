@@ -1,0 +1,54 @@
+name: BBYA v341 Mall Live QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v341-mall-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mall-qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Static v341 mall checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          root=pathlib.Path('maps/bbya-social-hub')
+          project=json.loads((root/'default.project.json').read_text())
+          text=(root/'default.project.json').read_text()
+          required=['95-mall-live-upgrade.server.lua','95-mall-live.client.lua','94-mall.server.lua','97-mall-safe-security-override.server.lua']
+          for name in required:
+              assert name in text, name
+              assert (root/name).exists(), name
+          server=(root/'95-mall-live-upgrade.server.lua').read_text()
+          client=(root/'95-mall-live.client.lua').read_text()
+          for token in ['PremiumArrival','AtriumKiosks','DigitalSignageNetwork','AtriumLiveStageV2','BBYAPhotoBooth','EscalatorMotionDetail','MallPassportZones','MallPresenceVolume']:
+              assert token in server, token
+          for token in ['MallV2Event','MALL PASSPORT','photo_flash','BBYAInsideMall']:
+              assert token in client, token
+          security=(root/'97-mall-safe-security-override.server.lua').read_text()
+          assert 'MallConnectorPreserved' in security and 'north edge of Funkot' in security
+          assert 'MallLiveUpgradeV2' in text and 'MallLiveClientV2' in text
+          print('BBYA v341 mall static QC OK')
+          PY
+      - name: Rojo build
+        run: |
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v341.rbxl
+          test -s /tmp/bbya-v341.rbxl
+          ls -lh /tmp/bbya-v341.rbxl
