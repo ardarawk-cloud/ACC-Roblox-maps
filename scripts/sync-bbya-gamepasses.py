@@ -11,6 +11,7 @@ DESIRED=[
  ('Skatepark','BBYA Skatepark Access',5,'Permanent Skatepark travel access for BBYA Social Hub.'),
  ('Rooftop','BBYA Rooftop Access',10,'Permanent Rooftop travel access for BBYA Social Hub.'),
  ('Basement','BBYA Basement Access',20,'Permanent Basement / Underground travel access for BBYA Social Hub.'),
+ ('Funkot','BBYA Funkot Club Access',10,'Permanent Funkot Club travel access for BBYA Social Hub.'),
 ]
 STATUS=Path('deploy-status/bbya-gamepasses-sync.json'); STATUS.parent.mkdir(parents=True,exist_ok=True)
 MODULE=Path('maps/bbya-social-hub/monetization/passes.luau'); MODULE.parent.mkdir(parents=True,exist_ok=True)
@@ -66,8 +67,6 @@ def existing_ids():
     return out
 
 def list_all_public():
-    # Public replacement for the deprecated games.roblox.com endpoint.
-    # passView=Full returns id/name/price and does NOT require game-pass:read.
     out=[]; token=None; pages=[]
     for _ in range(10):
         q={'passView':'Full','pageSize':'100'}
@@ -117,7 +116,6 @@ else:
                 resolved[key]=created_id
                 result['created'].append({'key':key,'name':name,'price':wanted_price,'id':created_id})
                 continue
-            # Creation can race with an existing same-name pass. Re-list before failure.
             item=refresh_exact(name)
             if not item:
                 problem={'stage':'create','key':key,'name':name,'http':h,'body':b,'stderr':e}
@@ -146,7 +144,6 @@ else:
             result['updated'].append({'key':key,'name':name,'price':wanted_price,'id':pass_id})
         resolved[key]=pass_id
 
-# Never erase a previously-known valid pass id just because a later sync is temporarily blocked.
 final_ids={key:(resolved.get(key) or prior.get(key,0)) for key,_,_,_ in DESIRED}
 for key,name,wanted_price,_ in DESIRED:
     result['passes'].append({'key':key,'name':name,'price':wanted_price,'id':final_ids.get(key,0),'verified':bool(resolved.get(key))})
