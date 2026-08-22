@@ -79,8 +79,6 @@ if header then
  end
 end
 
--- Remove conflicting dashboard-only widgets. They caused duplicated ONLINE/LIVE semantics
--- and pushed the actual request list below a search box on mobile.
 local function removeConflicts(root)
  for _,d in ipairs(root:GetDescendants()) do
   if d.Name=="OnlineAboveBBYA" or d.Name=="DashboardSearch" then d:Destroy() end
@@ -95,13 +93,11 @@ panel.DescendantAdded:Connect(function(d)
  if d.Name=="OnlineAboveBBYA" or d.Name=="DashboardSearch" then task.defer(function()if d.Parent then d:Destroy() end end) end
 end)
 
--- Always-visible close control with high ZIndex.
 local close=button(panel,"MusicCloseV6","×",UDim2.new(1,-50,0,10),UDim2.fromOffset(40,36),Color3.fromRGB(31,32,40))
 close.TextSize=22;close.ZIndex=520;stroke(close,C.pink,.42,"MusicV6CloseStroke")
 if legacyClose then legacyClose.Visible=false end
 close.Activated:Connect(function()panel.Visible=false end)
 
--- Resolve key direct children in PlayerCard.
 local nowSmall,nowTitle,nowMeta,zoneLabel,localMute,statusFrame,statusText,eqHolder
 local legacyAdmin={}
 for _,d in ipairs(playerCard:GetChildren()) do
@@ -127,7 +123,6 @@ end
 for _,b in ipairs(legacyAdmin) do b.Visible=false end
 if zoneLabel then zoneLabel.Visible=false end
 
--- Hide the decorative BBYA cover tile: on a small gameplay HUD it wastes most of the card.
 for _,d in ipairs(playerCard:GetChildren()) do
  if d:IsA("Frame") and d~=eqHolder and d~=statusFrame then
   local hasBrand=false
@@ -136,7 +131,6 @@ for _,d in ipairs(playerCard:GetChildren()) do
  end
 end
 
--- Replace fake sine visual bars with an independent audio-amplitude pulse layer.
 local pulseBars={}
 if eqHolder then
  for _,x in ipairs(eqHolder:GetChildren()) do if x:IsA("Frame") then x.Visible=false end end
@@ -149,8 +143,6 @@ if eqHolder then
  eqHolder:SetAttribute("VisualizerMode","PLAYBACK_LOUDNESS_AMPLITUDE_V6")
 end
 
--- Admin-only PREVIOUS / NEXT. The server already protects `play` and `next` actions,
--- so hiding these from visitors is UX; permission remains enforced server-side too.
 local adminPrev=button(playerCard,"AdminPreviousV6","PREV",UDim2.new(),UDim2.fromOffset(52,26),Color3.fromRGB(32,33,42))
 local adminNext=button(playerCard,"AdminNextV6","NEXT",UDim2.new(),UDim2.fromOffset(52,26),Color3.fromRGB(66,27,55))
 stroke(adminPrev,C.cyan,.55,"AdminStroke");stroke(adminNext,C.pink,.48,"AdminStroke")
@@ -203,7 +195,6 @@ adminNext.Activated:Connect(function()
  local v=venueAtPlayer();if v=="FUNKOT" then funkotRemote:FireServer("next") else musicRemote:FireServer("next") end
 end)
 
--- Library: make track titles and REQUEST the dominant content. No search box.
 local function polishScroller(scroller)
  if not scroller or not scroller:IsA("ScrollingFrame") then return end
  scroller.Position=UDim2.fromOffset(12,38);scroller.Size=UDim2.new(1,-24,1,-46);scroller.Visible=true;scroller.Active=true;scroller.ScrollingEnabled=true;scroller.ScrollBarThickness=3
@@ -228,7 +219,6 @@ local function polishLibrary()
 end
 libraryCard.DescendantAdded:Connect(function(d)if d:IsA("ScrollingFrame") or d:IsA("Frame") then task.defer(polishLibrary) end end)
 
--- Distinct HOME page. HOME is informational; MUSIC is where title/playlist/request live.
 local oldHome=content:FindFirstChild("BBYAHomeV6");if oldHome then oldHome:Destroy() end
 local home=Instance.new("Frame");home.Name="BBYAHomeV6";home.BackgroundTransparency=1;home.Size=UDim2.fromScale(1,1);home.Visible=false;home.Parent=content
 local homeCard=Instance.new("Frame");homeCard.Name="HomeCard";homeCard.BackgroundColor3=C.card;homeCard.BorderSizePixel=0;homeCard.Size=UDim2.fromScale(1,1);homeCard.Parent=home;corner(homeCard,13);stroke(homeCard,C.line,.50)
@@ -252,7 +242,6 @@ local function leaveHome()
  home.Visible=false;if pageTitle then pageTitle.Visible=true end;if pageSub then pageSub.Visible=true end
 end
 
--- Capture original menu actions so HOME and MUSIC no longer do the same thing.
 local observedCommand=false
 local function bindCommandMenu()
  if observedCommand then return end
@@ -266,7 +255,6 @@ local function bindCommandMenu()
  hb.Activated:Connect(function()
   openHome();drawer.Visible=false;local mb=menuGui:FindFirstChild("MenuButton");if mb and mb:IsA("TextButton") then mb.Text="MENU" end
  end)
- -- Keep the original MUSIC action clickable but make its label stable instead of changing to venue names.
  local originalMusic
  for _,x in ipairs(musicSlot:GetChildren()) do if x:IsA("TextButton") and x~=hb then originalMusic=x;break end end
  if originalMusic then
@@ -274,7 +262,6 @@ local function bindCommandMenu()
   local ml=label(musicSlot,"StableMusicLabelV6","MUSIC",UDim2.fromScale(0,0),UDim2.fromScale(1,1),Enum.Font.GothamBold,8,C.white);ml.TextXAlignment=Enum.TextXAlignment.Center;ml.ZIndex=228
   originalMusic.Activated:Connect(function()leaveHome()end)
  end
- -- Other original menu buttons must also leave HOME before opening their own page.
  for _,slotName in ipairs({"Slot_SUPPORT","Slot_TRAVEL"}) do
   local slot=drawer:FindFirstChild(slotName,true);if slot then for _,x in ipairs(slot:GetChildren()) do if x:IsA("TextButton") then x.Activated:Connect(leaveHome) end end end
  end
@@ -290,7 +277,6 @@ local function layout()
  removeConflicts(panel)
  if header then header.Position=UDim2.fromOffset(16,9);header.Size=UDim2.new(1,-72,0,44) end
  close.Position=UDim2.new(1,-50,0,10)
- -- Move the divider/content up; the old dashboard reserved too much vertical space.
  for _,f in ipairs(panel:GetChildren()) do
   if f:IsA("Frame") and f~=content and f~=header and f~=playerCard and f~=libraryCard then
    if f.Size.Y.Offset<=3 and f.Position.Y.Offset>50 and f.Position.Y.Offset<100 then f.Position=UDim2.fromOffset(16,58);f.Size=UDim2.new(1,-32,0,1) end
@@ -313,7 +299,6 @@ local function layout()
  if home.Visible then homeVenue.Text="YOU ARE IN  "..venueAtPlayer();homeSong.Text="NOW PLAYING  "..currentSongText() end
 end
 
--- Real audio amplitude: one scalar PlaybackLoudness drives a restrained, deterministic pulse profile.
 local peak=120
 local smooth=0
 local acc=0
@@ -346,7 +331,7 @@ RunService.RenderStepped:Connect(function(dt)
  end
 end)
 
-panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(function()leaveHome();layout()end)end end)
+panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(layout)end end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layout)end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end) end
 
