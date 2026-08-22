@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v6
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v7
 -- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
+-- v7: Travel owns only its own scroller; it never resizes HubPanel and never resets CanvasPosition.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,13 +12,17 @@ local remote=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30):WaitForChild("
 if not gui or not remote then return end
 
 local function findTravel()
- for _,d in ipairs(gui:GetDescendants()) do if d:IsA("TextLabel") and d.Text=="MOVE THROUGH BBYA" then return d.Parent end end
+ for _,d in ipairs(gui:GetDescendants()) do
+  if d:IsA("TextLabel") and d.Text=="MOVE THROUGH BBYA" then return d.Parent end
+ end
 end
 local travel=findTravel();if not travel then task.wait(1);travel=findTravel() end
 if not travel then warn("[BBYA TravelPatch] travel frame not found");return end
 
 for _,d in ipairs(travel:GetDescendants()) do
- if d:IsA("TextLabel") and d.Text:find("Only destinations") then d.Text="Paid destinations are permanent one-time unlocks.";d.TextSize=9 end
+ if d:IsA("TextLabel") and d.Text:find("Only destinations") then
+  d.Text="Paid destinations are permanent one-time unlocks.";d.TextSize=9
+ end
 end
 for _,child in ipairs(travel:GetChildren()) do
  if child:IsA("Frame") and child:FindFirstChildOfClass("UIGridLayout") then child:Destroy() end
@@ -25,8 +30,29 @@ for _,child in ipairs(travel:GetChildren()) do
 end
 
 local holder=Instance.new("ScrollingFrame")
-holder.Name="TravelDestinationScroller";holder.Position=UDim2.fromOffset(0,52);holder.Size=UDim2.new(1,0,1,-52);holder.BackgroundTransparency=1;holder.BorderSizePixel=0;holder.ScrollBarThickness=2;holder.AutomaticCanvasSize=Enum.AutomaticSize.Y;holder.CanvasSize=UDim2.new();holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable;holder.Parent=travel
-local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(6,6);grid.SortOrder=Enum.SortOrder.LayoutOrder;grid.Parent=holder
+holder.Name="TravelDestinationScroller"
+holder.Position=UDim2.fromOffset(0,52)
+holder.Size=UDim2.new(1,0,1,-52)
+holder.BackgroundTransparency=1
+holder.BorderSizePixel=0
+holder.ScrollBarThickness=3
+holder.ScrollBarImageTransparency=.18
+holder.AutomaticCanvasSize=Enum.AutomaticSize.None
+holder.CanvasSize=UDim2.fromOffset(0,0)
+holder.ScrollingDirection=Enum.ScrollingDirection.Y
+holder.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
+holder.ScrollingEnabled=true
+holder.Active=true
+holder.Selectable=false
+holder.Parent=travel
+
+local grid=Instance.new("UIGridLayout")
+grid.CellPadding=UDim2.fromOffset(6,6)
+grid.SortOrder=Enum.SortOrder.LayoutOrder
+grid.FillDirection=Enum.FillDirection.Horizontal
+grid.HorizontalAlignment=Enum.HorizontalAlignment.Left
+grid.VerticalAlignment=Enum.VerticalAlignment.Top
+grid.Parent=holder
 
 local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65)}
 local destinations={
@@ -51,23 +77,46 @@ for i,d in ipairs(destinations) do
  label(card,d[1],UDim2.fromOffset(16,8),UDim2.new(1,-22,0,18),Enum.Font.GothamBold,10,C.white)
  local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or "FREE TELEPORT"
  label(card,meta,UDim2.fromOffset(16,27),UDim2.new(1,-22,0,14),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
- local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.Position=UDim2.new(0,16,1,-27);go.Size=UDim2.new(1,-22,0,21);go.BackgroundColor3=Color3.fromRGB(38,34,43);go.BorderSizePixel=0;go.Font=Enum.Font.GothamSemibold;go.TextSize=8;go.TextColor3=C.white;go.Parent=card;corner(go,6)
- go.MouseButton1Click:Connect(function()remote:FireServer(d[2]);local panel=gui:FindFirstChild("HubPanel");if panel then panel.Visible=false end end)
+ local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.Position=UDim2.new(0,16,1,-27);go.Size=UDim2.new(1,-22,0,21);go.BackgroundColor3=Color3.fromRGB(38,34,43);go.BorderSizePixel=0;go.Font=Enum.Font.GothamSemibold;go.TextSize=8;go.TextColor3=C.white;go.Selectable=false;go.Parent=card;corner(go,6)
+ go.MouseButton1Click:Connect(function()
+  remote:FireServer(d[2])
+  local panel=gui:FindFirstChild("HubPanel");if panel then panel.Visible=false end
+ end)
 end
 
-local function apply()
+local layingOut=false
+local function syncCanvas(keepY)
+ if layingOut then return end
+ layingOut=true
+ local oldY=keepY and holder.CanvasPosition.Y or 0
+ local contentY=math.max(0,grid.AbsoluteContentSize.Y+10)
+ holder.CanvasSize=UDim2.fromOffset(0,contentY)
+ task.defer(function()
+  local maxY=math.max(0,contentY-holder.AbsoluteWindowSize.Y)
+  holder.CanvasPosition=Vector2.new(0,math.clamp(oldY,0,maxY))
+  layingOut=false
+ end)
+end
+
+local function applyGrid()
  camera=workspace.CurrentCamera or camera
  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
- local isPhone=UserInputService.TouchEnabled or vp.Y<800
- local panel=gui:FindFirstChild("HubPanel")
- if panel and isPhone then panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.52);panel.Size=UDim2.fromOffset(math.clamp(math.floor(vp.X*.48),460,650),math.clamp(math.floor(vp.Y*.68),300,420)) end
- local cols=isPhone and 2 or 3
- local width=math.max(320,holder.AbsoluteSize.X)
+ local phone=UserInputService.TouchEnabled or vp.X<900
+ local cols=phone and 2 or 3
+ local width=math.max(280,holder.AbsoluteSize.X)
  local cellW=math.max(118,math.floor((width-(cols-1)*6)/cols))
- grid.CellSize=UDim2.fromOffset(cellW,isPhone and 72 or 82)
+ local oldY=holder.CanvasPosition.Y
+ grid.CellSize=UDim2.fromOffset(cellW,phone and 72 or 82)
+ task.defer(function()syncCanvas(true);holder.CanvasPosition=Vector2.new(0,oldY)end)
 end
 
-task.defer(apply);holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(apply)
-if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(apply) end
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(apply)end)
-print("[BBYA] Travel UI v6 online: Mall 10R added")
+grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()syncCanvas(true)end)
+holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyGrid)
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyGrid) end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+ camera=workspace.CurrentCamera
+ task.defer(applyGrid)
+end)
+task.defer(function()applyGrid();syncCanvas(false)end)
+
+print("[BBYA] Travel UI v7 online: stable manual canvas / no HubPanel resize fight")
