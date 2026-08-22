@@ -1,6 +1,7 @@
--- BBYAVATAR Look Share v1 client
--- Creates a short code from the current Style Board and imports shared looks into Saved Picks + Board.
--- Shared records contain only Roblox asset IDs; metadata is hydrated transiently from Roblox.
+-- BBYAVATAR Look Share v2 client
+-- Creates short share codes and imports shared looks atomically into Saved Picks + Style Board.
+-- A failed import never clears or partially replaces the player's current Style Board.
+-- Shared records contain only Roblox asset IDs; catalog metadata is hydrated transiently from Roblox.
 
 local lookShareRequest = root:WaitForChild("LookShareRequest")
 
@@ -22,7 +23,7 @@ local function makeShareButton(parent, text, x, width, callback)
     b.Text = text
     b.Parent = parent
     Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
-    b.Activated:Connect(callback)
+    if callback then b.Activated:Connect(callback) end
     return b
 end
 
@@ -42,28 +43,59 @@ local function hydrateSharedItem(id)
     }
 end
 
-local function importSharedLook(ids)
-    if typeof(ids) ~= "table" or #ids == 0 then return false, 0 end
-    styleBoard = {}
-    local imported = 0
+local function normalizeSharedIds(ids)
+    if typeof(ids) ~= "table" then return {} end
+    local clean, seen = {}, {}
     for _, rawId in ipairs(ids) do
         local id = tonumber(rawId)
-        if id and id > 0 then
-            if not savedPicks[id] then
-                local item = hydrateSharedItem(id)
-                local ok = savePick(item)
-                if not ok and not savedPicks[id] then
-                    -- Saved Picks may be full; skip rather than silently replacing the player's shortlist.
-                end
-                task.wait(0.36)
-            end
-            if savedPicks[id] and imported < STYLE_BOARD_MAX then
-                styleBoard[id] = true
-                imported += 1
-            end
+        if id and id > 0 and id == math.floor(id) and not seen[id] then
+            seen[id] = true
+            table.insert(clean, id)
+            if #clean >= STYLE_BOARD_MAX then break end
         end
     end
-    return imported > 0, imported
+    return clean
+end
+
+local function importSharedLook(ids)
+    local clean = normalizeSharedIds(ids)
+    if #clean == 0 then return false, 0, "EMPTY" end
+
+    -- Capacity preflight happens before any mutation. This prevents a shared look from
+    -- partially filling Saved Picks and then replacing the current board with a partial look.
+    local missing = 0
+    for _, id in ipairs(clean) do
+        if not savedPicks[id] then missing += 1 end
+    end
+    if #savedPickOrder + missing > MAX_SAVED_PICKS then
+        return false, 0, "CAPACITY"
+    end
+
+    local nextBoard = {}
+    local imported = 0
+    for _, id in ipairs(clean) do
+        if not savedPicks[id] then
+            local item = hydrateSharedItem(id)
+            local ok = savePick(item)
+            if not ok and not savedPicks[id] then
+                return false, 0, "SAVE_FAILED"
+            end
+            -- Saved Picks server requests are intentionally throttled; keep import polite.
+            task.wait(0.36)
+        end
+        if savedPicks[id] then
+            nextBoard[id] = true
+            imported += 1
+        end
+    end
+
+    if imported ~= #clean then
+        return false, 0, "INCOMPLETE"
+    end
+
+    -- Commit the board only after the full look is ready.
+    styleBoard = nextBoard
+    return true, imported, "OK"
 end
 
 local function renderLookShare()
@@ -171,12 +203,8 @@ local function renderLookShare()
     codeInput.Parent = importRow
     Instance.new("UICorner", codeInput).CornerRadius = UDim.new(0,10)
 
-    makeShareButton(importRow, "IMPORT LOOK", 0, 140, function() end).Position = UDim2.new(1,-140,0,0)
-    local importButton = importRow:GetChildren()[#importRow:GetChildren()]
-    -- Resolve the button by class instead of depending on child order after UICorner creation.
-    for _, child in ipairs(importRow:GetChildren()) do
-        if child:IsA("TextButton") and child.Text == "IMPORT LOOK" then importButton = child break end
-    end
+    local importButton = makeShareButton(importRow, "IMPORT LOOK", 0, 140, nil)
+    importButton.Position = UDim2.new(1,-140,0,0)
     importButton.Activated:Connect(function()
         local code = string.upper(codeInput.Text or ""):gsub("%s+", "")
         status.Text = "Loading shared look…"
@@ -196,14 +224,18 @@ local function renderLookShare()
             return
         end
 
-        local importedOk, count = importSharedLook(response.ids)
+        shareTrack("SHARE_LOAD")
+        local importedOk, count, reason = importSharedLook(response.ids)
         if importedOk then
             shareTrack("SHARE_IMPORT")
-            status.Text = string.format("Imported %d item(s) into Saved Picks + Style Board.", count)
+            status.Text = string.format("Imported full look • %d item(s) in Saved Picks + Style Board.", count)
             selectTab("BOARD")
+        elseif reason == "CAPACITY" then
+            shareTrack("SHARE_CAPACITY_BLOCK")
+            status.Text = "Not enough Saved Picks space for the full shared look • nothing on your current board was changed."
         else
             shareTrack("SHARE_FAILED")
-            status.Text = "The shared look loaded, but Saved Picks may be full. Remove a few picks and retry."
+            status.Text = "Shared look could not be imported completely • your current Style Board was kept unchanged."
         end
     end)
 
@@ -212,7 +244,7 @@ local function renderLookShare()
     note.Position = UDim2.fromOffset(0,280)
     note.Size = UDim2.new(1,0,0,70)
     note.Font = Enum.Font.Gotham
-    note.Text = "Import never deletes your Saved Picks. Shared items are hydrated from Roblox, then added to your shortlist when space is available."
+    note.Text = "Safe import: BBYAVATAR checks Saved Picks capacity first and only replaces your Style Board after the entire shared look is ready."
     note.TextWrapped = true
     note.TextColor3 = Color3.fromRGB(151,156,174)
     note.TextSize = 11
@@ -234,4 +266,4 @@ shareTab.Parent = tabs
 Instance.new("UICorner", shareTab).CornerRadius = UDim.new(0,10)
 shareTab.Activated:Connect(function() selectTab("SHARE") end)
 
-print("[BBYAVATAR] Look Share v1 code create/import UI ready")
+print("[BBYAVATAR] Look Share v2 atomic import + board preservation ready")
