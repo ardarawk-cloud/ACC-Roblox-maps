@@ -57,11 +57,11 @@ jobs:
           grep -q 'BecakEBike_Runtime' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_Client' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
-          grep -q 'ACC_BecakRuntime\",\"v1.31' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakRuntime\",\"v1.45' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakStartupGuard\", \"v1.31' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakRuntimeOwned\", true' maps/becak-e-bike/place.rbxlx
           grep -q 'Refusing to destroy pre-existing unowned Workspace/BecakEBike root' maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion\",\"1.31.0' maps/becak-e-bike/place.rbxlx
+          grep -q 'BecakVersion\",\"1.45.0' maps/becak-e-bike/place.rbxlx
 
           # Gameplay systems
           for marker in \
@@ -73,6 +73,7 @@ jobs:
             BecakEBike_VehicleRecovery \
             BecakEBike_GroundContact \
             BecakEBike_SteeringStability \
+            BecakEBike_VehicleSignals \
             BecakEBike_ChargingNetwork \
             BecakEBike_DailyContracts \
             BecakEBike_StoryProgression \
@@ -129,6 +130,17 @@ jobs:
           grep -q 'SteeringCornerAssistBlend' maps/becak-e-bike/place.rbxlx
           grep -q 'SteeringReversalAssistActive' maps/becak-e-bike/place.rbxlx
           grep -q 'SteeringReversalAssistBlend' maps/becak-e-bike/place.rbxlx
+
+          # Vehicle signals v1.45: driver-aware and physics-safe
+          grep -q "ACC_BecakVehicleSignals','v1.45" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakDriverAwareSignals','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakAutoTurnIndicators','ON" maps/becak-e-bike/place.rbxlx
+          grep -q 'VehicleSignalDriverPresent' maps/becak-e-bike/place.rbxlx
+          grep -q 'BrakeLightsActive' maps/becak-e-bike/place.rbxlx
+          grep -q 'ReverseLightActive' maps/becak-e-bike/place.rbxlx
+          grep -q 'TurnSignalLeftActive' maps/becak-e-bike/place.rbxlx
+          grep -q 'TurnSignalRightActive' maps/becak-e-bike/place.rbxlx
+
           grep -q "ACC_BecakRoadAccess','v1.34" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakGenericCurbCollision','OFF" maps/becak-e-bike/place.rbxlx
@@ -139,11 +151,14 @@ jobs:
           grep -q 'BecakRoadEdgeRegistrySize' maps/becak-e-bike/place.rbxlx
           grep -q "BecakRoadEdgeAuditHz',2" maps/becak-e-bike/place.rbxlx
 
-          # Mobile UX lock: phone remains on left safe area
+          # Mobile UX lock: phone remains on left safe area and keeps touch controls clear
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakMobileSafeAreaAdaptive','v1.29" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakMobileSafeAreaAdaptive','v1.30" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakMobileSafeAreaUX','v1.31" maps/becak-e-bike/place.rbxlx
           grep -q "BecakMobileCoreGuiAware','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakPhoneLeftPin','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakPhoneScalePin','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakTouchControlReserve','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
 
           # Progression/economy safeguards
@@ -155,7 +170,7 @@ jobs:
           grep -q "BecakAchievementsPersistent','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT" maps/becak-e-bike/place.rbxlx
 
-          echo 'Final Becak E-Bike v1.31 + VehicleRecovery v1.35 + GroundContact v1.36 + SteeringStability v1.41 + RoadAccess v1.34 validation PASS'
+          echo 'Final Becak E-Bike runtime v1.45 + VehicleRecovery v1.35 + GroundContact v1.36 + SteeringStability v1.41 + VehicleSignals v1.45 + RoadAccess v1.34 + MobileSafeArea UX v1.31 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -182,7 +197,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.31 recovery v1.35 ground-contact v1.36 steering v1.41 road-access v1.34 publish [skip ci]"
+            git commit -m "Record Becak E-Bike runtime v1.45 recovery v1.35 ground-contact v1.36 steering v1.41 signals v1.45 road-access v1.34 mobile UX v1.31 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
