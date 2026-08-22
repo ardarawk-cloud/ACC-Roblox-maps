@@ -1,0 +1,58 @@
+name: BBYA Dev Owner Audit
+
+on:
+  push:
+    branches:
+      - agent/bbya-serious-dev
+    paths:
+      - '.github/workflows/bbya-dev-owner-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/bbya-serious-dev
+          fetch-depth: 0
+
+      - name: Audit requested BBYA sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          {
+            echo 'BBYA OWNER AUDIT 2026-08-23'
+            echo '=== FUNKOT REFERENCES ==='
+            grep -Rni --include='*.lua' --include='*.luau' --include='*.json' -E 'funkot' maps/bbya-social-hub scripts 2>/dev/null || true
+            echo
+            echo '=== VIP PILLAR/COLUMN/LARGE VERTICAL CANDIDATES ==='
+            grep -Rni --include='*.lua' -E 'Pillar|Column|column|pillar|LiftCore|FrontWallLeft|WestWall|PortalColumn|Hanger' maps/bbya-social-hub 2>/dev/null || true
+            echo
+            echo '=== VIP PINK NEON CANDIDATES ==='
+            grep -Rni --include='*.lua' -E 'PINK|pink|Pink' maps/bbya-social-hub/60-vip-sky-lounge.server.lua maps/bbya-social-hub/65-vip-white-triangle-network.server.lua maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua maps/bbya-social-hub/90-vip-private-club-upgrade.server.lua 2>/dev/null || true
+            echo
+            echo '=== ENTRANCE FRONT GEOMETRY ==='
+            grep -Rni --include='*.lua' -E 'FacadeLeft|FacadeRight|GlassLeft|GlassRight|EntryPad|Entrance|Front.*Left|Front.*Right' maps/bbya-social-hub/20-entrance.server.lua maps/bbya-social-hub/43-floor1-front-premium.server.lua maps/bbya-social-hub/69-entrance-street-icons.server.lua 2>/dev/null || true
+            echo
+            echo '=== MAIN PLAYLIST MARKERS ==='
+            grep -n -A45 -B2 'MAIN_PROGRESSIVE_UPLOAD_BEGIN' maps/bbya-social-hub/30-club-systems.server.lua || true
+          } > deploy-status/bbya-owner-audit.txt
+          cat deploy-status/bbya-owner-audit.txt
+
+      - name: Persist audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Dev Audit'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-owner-audit.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA owner batch audit [skip ci]'
+            git push origin HEAD:agent/bbya-serious-dev
+          fi
