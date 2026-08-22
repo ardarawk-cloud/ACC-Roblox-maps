@@ -7,7 +7,9 @@
     ".github/workflows/bbya-v338-premium-qc.yml",
     "deploy-status/bbya-cloud-live-audit-v338.json",
     "deploy-status/bbya-cloud-live-audit-v338.txt",
+    "deploy-status/bbya-v338-premium-qc.json",
     "maps/bbya-social-hub/94-world-premium-v338.server.lua",
+    "maps/bbya-social-hub/95-paid-zone-hard-seal.server.lua",
     "maps/bbya-social-hub/default.project.json"
   ],
   "formerPillarSeals": 2,
