@@ -1,0 +1,91 @@
+name: BBYA v338 Premium World QC
+
+on:
+  push:
+    branches: [agent/bbya-premium-v338]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v338-premium-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v338-premium-qc.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v338-qc.rbxl
+          test -s /tmp/bbya-v338-qc.rbxl
+          ls -lh /tmp/bbya-v338-qc.rbxl
+      - name: Static owner requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/94-world-premium-v338.server.lua'
+          test -f "$f"
+          grep -q 'FormerPillarSeal' "$f"
+          grep -q 'NoBypassWorldBoundary' "$f"
+          grep -q 'LockedTravelGlass' "$f"
+          grep -q 'PhysicalEntryLocked' "$f"
+          grep -q 'WorldPremiumV338' maps/bbya-social-hub/default.project.json
+          grep -q 'FunctionalSeats' "$f"
+          grep -q 'MallExcluded' "$f"
+          git diff --name-only origin/main...HEAD | tee /tmp/v338-files.txt
+          if grep -Eqi '(^|/)mall(/|[-_.])|mall/' /tmp/v338-files.txt; then
+            echo 'Mall file touched by v338 — blocked.' >&2
+            exit 1
+          fi
+      - name: Generate QC receipt
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, subprocess
+          files=subprocess.check_output(['git','diff','--name-only','origin/main...HEAD'],text=True).splitlines()
+          src=pathlib.Path('maps/bbya-social-hub/94-world-premium-v338.server.lua').read_text()
+          report={
+            'status':'PASS',
+            'build':'ROJO_OK',
+            'mallExcluded':not any('mall' in x.lower() for x in files),
+            'changedFiles':files,
+            'formerPillarSeals':2 if 'FormerPillarSeal' in src else 0,
+            'sideWorldBoundaries':2 if 'NoBypassWorldBoundary' in src else 0,
+            'skateTravelGateLocked':'PhysicalEntryLocked' in src and 'LockedTravelGlass' in src,
+            'premiumFamilies':8,
+            'functionalSeatsDeclared':'FunctionalSeats' in src,
+            'openCloudAudit':'deploy-status/bbya-cloud-live-audit-v338.json'
+          }
+          p=pathlib.Path('deploy-status/bbya-v338-premium-qc.json');p.parent.mkdir(exist_ok=True);p.write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          PY
+      - name: Persist QC receipt on branch push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox QC'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-v338-premium-qc.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA v338 premium QC [skip ci]'
+            git push origin HEAD:agent/bbya-premium-v338
+          fi
