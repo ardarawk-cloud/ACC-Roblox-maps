@@ -58,7 +58,8 @@
       "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
       "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
-      "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"}
+      "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
+      "PaidZoneHardSealV1": {"$path": "95-paid-zone-hard-seal.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
