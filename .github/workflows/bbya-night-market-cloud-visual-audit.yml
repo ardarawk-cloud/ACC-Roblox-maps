@@ -1,0 +1,193 @@
+name: BBYA Night Market Cloud Visual Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-night-market-cloud-visual-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+
+      - name: See current Pasar Malam in Roblox Studio cloud worker
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class BBYAWin {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+            public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+          }
+          "@
+
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){throw 'Roblox Studio not found on BBYA cloud worker'}
+          $hwnd=[IntPtr]$proc.MainWindowHandle
+          [BBYAWin]::ShowWindow($hwnd,9)|Out-Null
+          [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+          Start-Sleep -Milliseconds 700
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
+          Start-Sleep -Seconds 1
+          [System.Windows.Forms.SendKeys]::SendWait('{F5}')
+          Start-Sleep -Seconds 14
+
+          $ui=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+
+          function Invoke-Lua([string]$lua){
+            $value.SetValue($lua)
+            Start-Sleep -Milliseconds 220
+            $invoke.Invoke()
+            Start-Sleep -Milliseconds 900
+          }
+
+          $outDir=Join-Path $env:GITHUB_WORKSPACE 'deploy-status/bbya-night-market-cloud-audit'
+          New-Item -ItemType Directory -Force -Path $outDir|Out-Null
+          function Capture-View([string]$name){
+            [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+            Start-Sleep -Milliseconds 500
+            $r=New-Object BBYAWin+RECT
+            [BBYAWin]::GetWindowRect($hwnd,[ref]$r)|Out-Null
+            $w=[Math]::Max(640,$r.Right-$r.Left);$h=[Math]::Max(360,$r.Bottom-$r.Top)
+            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+            $targetW=1200;$targetH=[int]($h*$targetW/$w)
+            $small=New-Object System.Drawing.Bitmap($targetW,$targetH)
+            $g2=[System.Drawing.Graphics]::FromImage($small)
+            $g2.DrawImage($bmp,0,0,$targetW,$targetH)
+            $jpg=Join-Path $outDir ($name+'.jpg')
+            $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
+            $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
+            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]78)
+            $small.Save($jpg,$codec,$ep)
+            $g.Dispose();$g2.Dispose();$bmp.Dispose();$small.Dispose()
+          }
+
+          $diag=@'
+          print("[BBYA_NM_AUDIT_BEGIN]")
+          local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
+          local market=root and root:FindFirstChild("BBYANightMarket")
+          print("MARKET="..tostring(market~=nil))
+          if market then
+            local ground=market:FindFirstChild("MarketGround")
+            if ground and ground:IsA("BasePart") then
+              local gx1=ground.Position.X-ground.Size.X/2;local gx2=ground.Position.X+ground.Size.X/2
+              local gz1=ground.Position.Z-ground.Size.Z/2;local gz2=ground.Position.Z+ground.Size.Z/2
+              print(string.format("GROUND=x[%.1f,%.1f]|z[%.1f,%.1f]|topY=%.2f",gx1,gx2,gz1,gz2,ground.Position.Y+ground.Size.Y/2))
+              local names={"PlayableCarousel","PlayableKoraKora","PremiumNightMarketV3"}
+              for _,name in ipairs(names) do
+                local m=market:FindFirstChild(name)
+                if m and m:IsA("Model") then
+                  local cf,sz=m:GetBoundingBox();local x1=cf.Position.X-sz.X/2;local x2=cf.Position.X+sz.X/2;local z1=cf.Position.Z-sz.Z/2;local z2=cf.Position.Z+sz.Z/2
+                  print(string.format("MODEL=%s|x[%.1f,%.1f]|z[%.1f,%.1f]|OUT=%s",name,x1,x2,z1,z2,tostring(x1<gx1 or x2>gx2 or z1<gz1 or z2>gz2)))
+                end
+              end
+              local premium=market:FindFirstChild("PremiumNightMarketV3")
+              if premium then
+                for _,name in ipairs({"PremiumFerrisWheel","PlayableMiniTrain","RingToss","ServiceDetails","CarouselOperator","FerrisOperator","KoraOperator","TrainOperator"}) do
+                  local m=premium:FindFirstChild(name,true)
+                  if m then
+                    local cf,sz
+                    if m:IsA("Model") then cf,sz=m:GetBoundingBox() elseif m:IsA("BasePart") then cf,sz=m.CFrame,m.Size end
+                    if cf and sz then local x1=cf.Position.X-sz.X/2;local x2=cf.Position.X+sz.X/2;local z1=cf.Position.Z-sz.Z/2;local z2=cf.Position.Z+sz.Z/2;print(string.format("ZONE=%s|x[%.1f,%.1f]|z[%.1f,%.1f]|OUT=%s",name,x1,x2,z1,z2,tostring(x1<gx1 or x2>gx2 or z1<gz1 or z2>gz2))) end
+                  end
+                end
+              end
+              local outside=0;local below=0
+              for _,d in ipairs(market:GetDescendants()) do
+                if d:IsA("BasePart") and d.Transparency<.98 then
+                  local p=d.Position
+                  if p.X<gx1-1 or p.X>gx2+1 or p.Z<gz1-1 or p.Z>gz2+1 then outside+=1 end
+                  if d:IsA("Seat") and p.Y<ground.Position.Y+ground.Size.Y/2-.2 then below+=1 end
+                end
+              end
+              print("VISIBLE_PARTS_OUTSIDE_GROUND="..outside)
+              print("SEATS_BELOW_GROUND="..below)
+            else print("GROUND=false") end
+          end
+          print("[BBYA_NM_AUDIT_END]")
+          '@
+          Invoke-Lua $diag
+
+          $views=@(
+            @{n='01-entrance';p='0,5,473';l='0,7,520';z='18'},
+            @{n='02-left-rides';p='-10,8,493';l='-58,8,535';z='20'},
+            @{n='03-right-rides';p='12,9,493';l='58,17,535';z='20'},
+            @{n='04-rear-center';p='0,8,575';l='0,7,646';z='22'},
+            @{n='05-train';p='-20,8,585';l='-58,6,625';z='20'},
+            @{n='06-ring-service';p='25,8,596';l='10,6,648';z='20'},
+            @{n='07-overview';p='0,38,545';l='0,3,610';z='28'}
+          )
+          foreach($v in $views){
+            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=$($v.z);P.CameraMaxZoomDistance=$($v.z);local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.Anchored=true;H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
+            Invoke-Lua $lua
+            Start-Sleep -Milliseconds 850
+            Capture-View $v.n
+          }
+          Invoke-Lua "local P=game:GetService('Players'):GetPlayers()[1];local H=P and P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.Anchored=false end"
+
+          $marked=New-Object System.Collections.Generic.List[string]
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 6
+          foreach($log in $logs){
+            $capture=$false
+            foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
+              if($line -match '\[BBYA_NM_AUDIT_BEGIN\]'){$capture=$true}
+              if($capture){$marked.Add($line)}
+              if($capture -and $line -match '\[BBYA_NM_AUDIT_END\]'){$capture=$false}
+            }
+            if($marked.Count -gt 0){break}
+          }
+          [IO.File]::WriteAllText((Join-Path $outDir 'geometry.txt'),($marked -join "`n"))
+
+          $report=Join-Path $outDir 'visual-analysis.md'
+          $prompt=@'
+          Inspect these seven CURRENT Roblox Studio screenshots of BBYA Pasar Malam behind the Mall. Be strict. The owner says the layout looks bad and specifically suspects a ride/game crosses outside the fairground floor so players can fall. Judge only what is visibly rendered. Identify exact objects that are outside the paved/grounded fairground, floating over void, intersecting stalls/queues, blocking paths, badly scaled, too boxy, or visually disorganized. Check entrance, carousel, Ferris wheel, Kora-Kora, mini train, ring-toss/service rear zone and overview. Give a concrete layout repair plan using existing features only; do not invent unrelated attractions. State whether the rear boundary/floor is visibly too short for the added attractions.
+          '@
+          $imgs=Get-ChildItem $outDir -Filter '*.jpg'|Sort-Object Name|ForEach-Object {$_.FullName}
+          try {
+            $args=@('exec','--ephemeral','-s','read-only','--color','never','-o',$report)
+            foreach($img in $imgs){$args+=@('-i',$img)}
+            $args+=$prompt
+            & codex @args
+            if($LASTEXITCODE -ne 0){throw "codex visual audit exit $LASTEXITCODE"}
+          } catch {
+            [IO.File]::WriteAllText($report,"VISUAL_ANALYSIS_UNAVAILABLE`n"+$_.Exception.Message)
+          }
+
+          $status=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;sourceCommit=$env:GITHUB_SHA;views=($views|ForEach-Object {$_.n});geometryLines=$marked.Count}|ConvertTo-Json -Depth 5
+          [IO.File]::WriteAllText((Join-Path $outDir 'audit.json'),$status)
+
+          [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
+          Start-Sleep -Seconds 2
+
+          git config user.name 'ACC BBYA Night Market Auditor'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-night-market-cloud-audit
+          if(-not (git diff --cached --quiet)){git commit -m 'Record BBYA Pasar Malam cloud visual audit [skip ci]'}
+          git pull --rebase origin main
+          git push origin HEAD:main
