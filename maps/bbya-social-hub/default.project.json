@@ -64,7 +64,8 @@
       "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
       "PaidZoneHardSealV2": {"$path": "95-paid-zone-hard-seal.server.lua"},
       "PaidZonePortalsV1": {"$path": "96-paid-zone-portals.server.lua"},
-      "MallSafeSecurityOverrideV1": {"$path": "97-mall-safe-security-override.server.lua"}
+      "MallSafeSecurityOverrideV1": {"$path": "97-mall-safe-security-override.server.lua"},
+      "NightMarketV1": {"$path": "98-night-market.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
