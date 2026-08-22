@@ -74,7 +74,10 @@ jobs:
           grep -q 'BecakEBike_WorldQC' maps/becak-e-bike/place.rbxlx
           grep -q 'BecakEBike_RoadAccess' maps/becak-e-bike/place.rbxlx
           grep -q 'EconomyTransaction' maps/becak-e-bike/place.rbxlx
-          grep -q 'ACC_BecakRuntime\",\"v1.30' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakRuntime\",\"v1.31' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakStartupGuard\", \"v1.31' maps/becak-e-bike/place.rbxlx
+          grep -q 'ACC_BecakRuntimeOwned\", true' maps/becak-e-bike/place.rbxlx
+          grep -q 'Refusing to destroy pre-existing unowned Workspace/BecakEBike root' maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakCargoVisual', 'v1.30" maps/becak-e-bike/place.rbxlx
           grep -q "BecakCargoVisualCrates', CRATE_COUNT" maps/becak-e-bike/place.rbxlx
           grep -q "BecakCargoVisualCollision', 'OFF" maps/becak-e-bike/place.rbxlx
@@ -141,8 +144,8 @@ jobs:
           grep -q "BecakMobileCoreGuiAware','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakPhoneLeftPin','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
-          grep -q 'BecakVersion\",\"1.30.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.30 validation PASS'
+          grep -q 'BecakVersion\",\"1.31.0' maps/becak-e-bike/place.rbxlx
+          echo 'Final Becak E-Bike v1.31 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -169,7 +172,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.30 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.31 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
