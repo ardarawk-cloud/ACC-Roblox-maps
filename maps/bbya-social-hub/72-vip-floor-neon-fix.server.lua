@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — VIP FLOOR NEON FIX v6
+-- BBYA SOCIAL HUB — VIP FLOOR NEON FIX v7
 -- Owner lock: BLUE/cyan VIP floor trim must never be deleted or rebuilt here.
 -- This pass removes only PINK/magenta neon at VIP floor height.
+-- Final guard is separately wired in default.project.json for late race cleanup.
 
 local Workspace = game:GetService("Workspace")
 
@@ -33,7 +34,6 @@ local function removePinkOnly()
     return removed
 end
 
--- Run once immediately and again shortly after the VIP builder finishes.
 local removed = removePinkOnly()
 task.wait(0.35)
 removed += removePinkOnly()
@@ -42,7 +42,7 @@ removed += removePinkOnly()
 
 active:SetAttribute("PinkFloorNeonRemoved", true)
 active:SetAttribute("BlueFloorTrimPreserved", true)
-active:SetAttribute("FloorLightingProfile", "PINK_ONLY_REMOVAL_V6")
-active:SetAttribute("PinkRemovedByV6", removed)
+active:SetAttribute("FloorLightingProfile", "PINK_ONLY_REMOVAL_V7")
+active:SetAttribute("PinkRemovedByV7", removed)
 
-print(string.format("[BBYA] VIP floor neon v6: removed %d pink floor parts; BLUE trim untouched", removed))
+print(string.format("[BBYA] VIP floor neon v7: removed %d pink floor parts; BLUE trim untouched", removed))
