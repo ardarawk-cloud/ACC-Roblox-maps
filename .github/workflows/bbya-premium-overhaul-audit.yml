@@ -13,11 +13,12 @@ permissions:
 jobs:
   audit:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
-      - name: Capture eight BBYA runtime views in one Studio session
+
+      - name: Capture and visually audit BBYA in one Studio session
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -37,26 +38,28 @@ jobs:
           "@
 
           $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
-          if(-not $proc){throw 'Roblox Studio not found on BBYA cloud worker'}
+          if(-not $proc){throw 'Roblox Studio not found on BBYA worker'}
           $hwnd=[IntPtr]$proc.MainWindowHandle
           [BBYAWin]::ShowWindow($hwnd,9)|Out-Null
           [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+          Start-Sleep -Milliseconds 700
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
           Start-Sleep -Seconds 1
           [System.Windows.Forms.SendKeys]::SendWait('{F5}')
-          Start-Sleep -Seconds 12
+          Start-Sleep -Seconds 13
 
           $ui=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
           $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
           $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
           $edit=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
           $run=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar controls unavailable'}
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
 
           function Invoke-Lua([string]$lua){
             $value.SetValue($lua)
-            Start-Sleep -Milliseconds 250
+            Start-Sleep -Milliseconds 220
             $invoke.Invoke()
             Start-Sleep -Milliseconds 900
           }
@@ -79,7 +82,7 @@ jobs:
             $jpg=Join-Path $outDir ($name+'.jpg')
             $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
             $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
-            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]70)
+            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]72)
             $small.Save($jpg,$codec,$ep)
             $g.Dispose();$g2.Dispose();$bmp.Dispose();$small.Dispose()
           }
@@ -99,7 +102,7 @@ jobs:
               if d:IsA("SurfaceGui") then counts.SurfaceGui+=1 end
               if d:IsA("ProximityPrompt") then counts.Prompt+=1 end
             end
-            for _,n in ipairs({"Floor1Core","MainClubRealism","WorldPremiumV338","VIPSkyLounge","RooftopResort","RearSkatepark","FunkotClubV1","BBYAMall","BBYANightMarket","SocialHangout"}) do
+            for _,n in ipairs({"EntranceStreetScene","Floor1Core","MainClubRealism","UpperLevels","RearSkatepark","FunkotClubV1","BBYAMall","BBYANightMarket"}) do
               local x=root:FindFirstChild(n)
               print("LANDMARK="..n.."|"..tostring(x~=nil)..(x and ("|DESC="..tostring(#x:GetDescendants())) or ""))
             end
@@ -108,13 +111,16 @@ jobs:
           local L=game:GetService("Lighting")
           print("LIGHTING=Clock:"..L.ClockTime..",Brightness:"..L.Brightness..",Exposure:"..L.ExposureCompensation..",Technology:"..tostring(L.Technology))
           local ss=game:GetService("SoundService")
-          for _,n in ipairs({"BBYAClubDeckA","BBYAClubDeckB","BBYABasementDeckA","BBYAFunkotSound"}) do local s=ss:FindFirstChild(n);if s then print("SOUND="..n.."|PLAY="..tostring(s.IsPlaying).."|LOUD="..tostring(s.PlaybackLoudness).."|VOL="..tostring(s.Volume)) end end
+          for _,n in ipairs({"BBYAClubDeckA","BBYAClubDeckB","BBYABasementDeckA","BBYABasementDeckB","BBYAFunkotSound","BBYAFunkotDeckA","BBYAFunkotDeckB"}) do
+            local s=ss:FindFirstChild(n)
+            if s and s:IsA("Sound") then print("SOUND="..n.."|PLAY="..tostring(s.IsPlaying).."|LOUD="..tostring(s.PlaybackLoudness).."|VOL="..tostring(s.Volume)) end
+          end
           print("[BBYA_PREMIUM_AUDIT_END]")
           '@
           Invoke-Lua $diag
 
           $views=@(
-            @{n='01-arrival';p='0,4,-76';l='0,7,-35'},
+            @{n='01-arrival';p='0,4,-76';l='0,7,-30'},
             @{n='02-main-club';p='3,4,-4';l='3,8,43'},
             @{n='03-vip';p='43,28,-12';l='3,10,18'},
             @{n='04-rooftop';p='0,48,-40';l='0,47,5'},
@@ -124,9 +130,9 @@ jobs:
             @{n='08-night-market';p='0,5,472';l='0,8,550'}
           )
           foreach($v in $views){
-            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=14;P.CameraMaxZoomDistance=14;local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
+            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=12;P.CameraMaxZoomDistance=12;local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
             Invoke-Lua $lua
-            Start-Sleep -Milliseconds 850
+            Start-Sleep -Milliseconds 800
             Capture-View $v.n
           }
 
@@ -141,8 +147,30 @@ jobs:
             }
             if($marked.Count -gt 0){break}
           }
-          $status=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;views=($views|ForEach-Object {$_.n});log=($marked -join "`n")}|ConvertTo-Json -Depth 5
+          $status=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;sourceCommit=$env:GITHUB_SHA;views=($views|ForEach-Object {$_.n});log=($marked -join "`n")}|ConvertTo-Json -Depth 5
           [IO.File]::WriteAllText((Join-Path $outDir 'audit.json'),$status)
+
+          $report=Join-Path $outDir 'visual-analysis.md'
+          $prompt=@'
+          Audit these eight screenshots of the CURRENT BBYA Social Hub as a demanding fresh Roblox player. Do not trust names such as premium, realism, or upgrade. Judge only what is visibly rendered.
+
+          Screens in order: arrival, main club, VIP, rooftop, rear district, mall exterior, mall interior, night market.
+
+          For each screenshot give 1-10 scores for: architecture realism, environment/detail, lighting, visual identity/cohesion, absence of blocky/default/placeholder look, and gameplay readability. Identify exact visible weaknesses and strengths. Then answer clearly whether a fresh player would truly call the whole experience PREMIUM today: YES or NO. List the top 12 fixes ranked by visual impact versus performance cost. Explicitly flag blocky geometry, empty areas, toy-like props, inconsistent scale/materials, weak roads/landscape, bad signage, UI obstruction, and nightlife visuals that look decorative rather than music-reactive. Keep the assessment strict and evidence-based. Do not propose random new features.
+          '@
+          $imgs=@(
+            (Join-Path $outDir '01-arrival.jpg'),(Join-Path $outDir '02-main-club.jpg'),(Join-Path $outDir '03-vip.jpg'),(Join-Path $outDir '04-rooftop.jpg'),
+            (Join-Path $outDir '05-rear-district.jpg'),(Join-Path $outDir '06-mall-exterior.jpg'),(Join-Path $outDir '07-mall-interior.jpg'),(Join-Path $outDir '08-night-market.jpg')
+          )
+          try {
+            $args=@('exec','--ephemeral','-s','read-only','--color','never','-o',$report)
+            foreach($img in $imgs){$args+=@('-i',$img)}
+            $args+=$prompt
+            & codex @args
+            if($LASTEXITCODE -ne 0){throw "codex visual audit exit $LASTEXITCODE"}
+          } catch {
+            [IO.File]::WriteAllText($report,"VISUAL_ANALYSIS_UNAVAILABLE`n"+$_.Exception.Message)
+          }
 
           [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
           [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
@@ -151,6 +179,6 @@ jobs:
           git config user.name 'ACC BBYA Premium Auditor'
           git config user.email 'actions@users.noreply.github.com'
           git add deploy-status/bbya-premium-audit
-          git commit -m 'Record one-pass BBYA premium visual audit [skip ci]'
+          if(-not (git diff --cached --quiet)){git commit -m 'Record one-pass BBYA premium visual audit [skip ci]'}
           git pull --rebase origin main
           git push origin HEAD:main
