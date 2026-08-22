@@ -43,6 +43,7 @@
       "SocialHangout": { "$path": "63-social-hangout.server.lua" },
       "WorldPromptCleanup": { "$path": "71-world-prompt-cleanup.server.lua" },
       "VIPFloorNeonFix": { "$path": "72-vip-floor-neon-fix.server.lua" },
+      "VIPPinkFloorFinalGuard": { "$path": "91-vip-pink-floor-hard-clean.server.lua" },
       "RearSkatepark": { "$path": "73-skatepark.server.lua" },
       "SkateparkUpgradeV2": { "$path": "79-skatepark-upgrade.server.lua" },
       "BasementPremiumUpgrade": { "$path": "74-basement-premium-upgrade.server.lua" },
