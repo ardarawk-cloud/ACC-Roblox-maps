@@ -36,10 +36,18 @@ toastEvent.Name = "Toast"
 toastEvent.Parent = remoteFolder
 
 local old = Workspace:FindFirstChild(ROOT_NAME)
-if old then old:Destroy() end
+if old then
+    if old:GetAttribute("ACC_BecakRuntimeOwned") == true then
+        old:Destroy()
+    else
+        error("[BECAK E-BIKE] Refusing to destroy pre-existing unowned Workspace/BecakEBike root")
+    end
+end
 local root = Instance.new("Folder")
 root.Name = ROOT_NAME
+root:SetAttribute("ACC_BecakRuntimeOwned", true)
 root.Parent = Workspace
+Workspace:SetAttribute("ACC_BecakStartupGuard", "v1.31")
 
 local economyTransaction = Instance.new("BindableFunction")
 economyTransaction.Name = "EconomyTransaction"
@@ -401,6 +409,7 @@ RunService.Heartbeat:Connect(function(dt)
                 local dist=(trip.start-c.chassis.Position).Magnitude
                 local reward=math.floor(5000+dist*18)
                 d.Coins+=reward d.XP+=math.floor(20+dist/60) d.Trips+=1 d.Level=levelFromXP(d.XP)
+                player:SetAttribute("BecakLastTripBaseReward",reward)
                 player:SetAttribute("BecakTrips",d.Trips)
                 activeTrips[player]=nil
                 toast(player,"Trip selesai! +Rp"..reward.." • XP bertambah")
@@ -422,7 +431,8 @@ Players.PlayerAdded:Connect(function(player)
     if ok and type(saved)=="table" then for k,v in pairs(DEFAULT) do if saved[k]~=nil then d[k]=saved[k] end end end
     playerData[player]=d
     player:SetAttribute("BecakTrips",d.Trips)
-    player:SetAttribute("BecakVersion","1.9.0")
+    player:SetAttribute("BecakLastTripBaseReward",0)
+    player:SetAttribute("BecakVersion","1.45.0")
     local stats=Instance.new("Folder") stats.Name="leaderstats" stats.Parent=player
     local coins=Instance.new("IntValue") coins.Name="Rupiah" coins.Value=d.Coins coins.Parent=stats
     local level=Instance.new("IntValue") level.Name="Level" level.Value=d.Level level.Parent=stats
@@ -446,7 +456,8 @@ game:BindToClose(function()
 end)
 
 print("[BECAK E-BIKE] runtime v"..VERSION.." initialized | Universe 10745325613 | Place 80994730522893")
-Workspace:SetAttribute("ACC_BecakRuntime","v1.9")
+Workspace:SetAttribute("ACC_BecakRuntime","v1.45")
+Workspace:SetAttribute("BecakPassengerFareTelemetry","ON")
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="D"><Properties><string name="Name">BecakEBike_CityDetails</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Nusakarya visual/detail pass v1.1
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -539,8 +550,9 @@ end
 
 Workspace:SetAttribute('ACC_BecakCityDetails','v1.1')
 print('[BECAK E-BIKE] Nusakarya detail pass v1.1 ready')
-]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan systems v1.2
--- Weather, cargo, damage/repair, session challenge, story progression and ambient traffic.
+]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan systems v1.3
+-- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
+-- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
 local Lighting=game:GetService('Lighting')
@@ -647,6 +659,7 @@ end)
 
 -- Session challenge and story progression based on persistent trip total.
 local joinTrips={}
+local lastProgressTrips={}
 local function syncProgress(player)
  local total=player:GetAttribute('BecakTrips') or 0
  local chapter=1
@@ -658,24 +671,14 @@ local function syncProgress(player)
   player:SetAttribute('Session10Claimed',true)
   if transact(player,50000,100,'session10') then toast:FireClient(player,'Tantangan 10 trip selesai • +Rp50.000 +100 XP') end
  end
+ lastProgressTrips[player]=total
 end
 
--- Lightweight ambient traffic.
-local traffic=Instance.new('Folder');traffic.Name='AmbientTraffic';traffic.Parent=systems
-local cars={}
-for i=1,12 do
- local body=part(traffic,'Traffic_'..i,Vector3.new(6,2.5,10),CFrame.new(-480+(i-1)*80,2,(i%2==0 and 10 or -10)),i%3==0 and Color3.fromRGB(65,105,175) or (i%3==1 and Color3.fromRGB(185,65,55) or Color3.fromRGB(185,185,180)),Enum.Material.Metal,false)
- cars[i]={part=body,t=(i-1)/12,axis=(i<=6 and 'x' or 'z'),dir=i%2==0 and 1 or -1}
-end
-
+-- Gameplay maintenance loop. Traffic simulation lives only in traffic.npc.server.lua.
+-- Run cargo completion + progression at 5 Hz instead of the legacy 12.5 Hz loop.
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
- accum+=dt;if accum<.08 then return end;local step=accum;accum=0
- for _,c in ipairs(cars) do
-  c.t=(c.t+step*.018*c.dir)%1
-  if c.axis=='x' then local x=-520+c.t*1040;c.part.CFrame=CFrame.new(x,2,c.dir>0 and 10 or -10)*CFrame.Angles(0,c.dir>0 and math.rad(90) or math.rad(-90),0)
-  else local z=-520+c.t*1040;c.part.CFrame=CFrame.new(c.dir>0 and 10 or -10,2,z)*CFrame.Angles(0,c.dir>0 and 0 or math.pi,0) end
- end
+ accum+=dt;if accum<.2 then return end;accum=0
  for player,d in pairs(cargoActive) do
   if player.Parent then
    local b=playerBecak(player)
@@ -685,7 +688,10 @@ RunService.Heartbeat:Connect(function(dt)
    end
   end
  end
- for _,player in ipairs(Players:GetPlayers()) do syncProgress(player) end
+ for _,player in ipairs(Players:GetPlayers()) do
+  local total=player:GetAttribute('BecakTrips') or 0
+  if lastProgressTrips[player]~=total then syncProgress(player) end
+ end
 end)
 
 local function setupPlayer(player)
@@ -695,10 +701,480 @@ local function setupPlayer(player)
 end
 for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;cargoActive[player]=nil end)
+Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil end)
 
-Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.2')
-print('[BECAK E-BIKE] masterplan systems v1.2 ready')
+Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.3')
+Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
+Workspace:SetAttribute('BecakSystemsTickHz',5)
+print('[BECAK E-BIKE] masterplan systems v1.3 ready: duplicate traffic removed + 5 Hz gameplay maintenance')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="CV"><Properties><string name="Name">BecakEBike_CargoVisual</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — cargo payload visualizer v1.30
+-- Mirrors the existing CargoDestination state into lightweight, non-colliding crate visuals on the player's becak.
+-- Visual-only: does not own payout, job state, physics, or persistence.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike', 20)
+if not root then return end
+local vehicles = root:WaitForChild('Vehicles', 20)
+if not vehicles then return end
+
+local PAYLOAD_NAME = 'CargoPayloadVisual'
+local CRATE_COUNT = 3
+
+local function findBecak(player)
+    for _, model in ipairs(vehicles:GetChildren()) do
+        if model:IsA('Model') and model:GetAttribute('OwnerUserId') == player.UserId then
+            return model
+        end
+    end
+end
+
+local function clearPayload(model)
+    if not model then return end
+    local old = model:FindFirstChild(PAYLOAD_NAME)
+    if old then old:Destroy() end
+    model:SetAttribute('CargoVisualLoaded', false)
+end
+
+local function addCrate(folder, chassis, index, offset)
+    local crate = Instance.new('Part')
+    crate.Name = 'CargoCrate_' .. index
+    crate.Size = Vector3.new(2.2, 1.65, 2.25)
+    crate.CFrame = chassis.CFrame * CFrame.new(offset)
+    crate.Anchored = false
+    crate.CanCollide = false
+    crate.CanTouch = false
+    crate.CanQuery = false
+    crate.Massless = true
+    crate.Material = Enum.Material.WoodPlanks
+    crate.Color = Color3.fromRGB(156, 111, 67)
+    crate.TopSurface = Enum.SurfaceType.Smooth
+    crate.BottomSurface = Enum.SurfaceType.Smooth
+    crate.Parent = folder
+
+    local weld = Instance.new('WeldConstraint')
+    weld.Part0 = chassis
+    weld.Part1 = crate
+    weld.Parent = crate
+
+    return crate
+end
+
+local function buildPayload(model, destination)
+    if not model then return end
+    clearPayload(model)
+
+    local chassis = model:FindFirstChild('Chassis') or model.PrimaryPart
+    if not chassis or not chassis:IsA('BasePart') then return end
+
+    local folder = Instance.new('Folder')
+    folder.Name = PAYLOAD_NAME
+    folder.Parent = model
+
+    -- Keep payload centered and low so it does not affect camera readability or mobile driving visibility.
+    local offsets = {
+        Vector3.new(-1.35, 1.55, -1.8),
+        Vector3.new(1.35, 1.55, -1.8),
+        Vector3.new(0, 3.25, -1.8),
+    }
+    for i = 1, CRATE_COUNT do
+        addCrate(folder, chassis, i, offsets[i])
+    end
+
+    local tagAnchor = folder:FindFirstChild('CargoCrate_3')
+    if tagAnchor then
+        local gui = Instance.new('BillboardGui')
+        gui.Name = 'CargoDestinationTag'
+        gui.Size = UDim2.fromOffset(150, 34)
+        gui.StudsOffset = Vector3.new(0, 1.8, 0)
+        gui.AlwaysOnTop = false
+        gui.MaxDistance = 55
+        gui.LightInfluence = 0.35
+        gui.Parent = tagAnchor
+
+        local text = Instance.new('TextLabel')
+        text.Size = UDim2.fromScale(1, 1)
+        text.BackgroundTransparency = 0.2
+        text.BackgroundColor3 = Color3.fromRGB(19, 24, 22)
+        text.TextColor3 = Color3.fromRGB(245, 244, 235)
+        text.TextSize = 11
+        text.TextWrapped = true
+        text.Font = Enum.Font.GothamBold
+        text.Text = 'CARGO • ' .. tostring(destination)
+        text.Parent = gui
+
+        local corner = Instance.new('UICorner')
+        corner.CornerRadius = UDim.new(0, 7)
+        corner.Parent = text
+    end
+
+    model:SetAttribute('CargoVisualLoaded', true)
+end
+
+local function syncPlayer(player)
+    local destination = player:GetAttribute('CargoDestination')
+    local model = findBecak(player)
+    if not model then return end
+    if type(destination) == 'string' and destination ~= '' then
+        buildPayload(model, destination)
+    else
+        clearPayload(model)
+    end
+end
+
+local watchers = {}
+local function hookPlayer(player)
+    if watchers[player] then return end
+    watchers[player] = player:GetAttributeChangedSignal('CargoDestination'):Connect(function()
+        syncPlayer(player)
+    end)
+    task.delay(2, function()
+        if player.Parent then syncPlayer(player) end
+    end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do hookPlayer(player) end
+Players.PlayerAdded:Connect(hookPlayer)
+Players.PlayerRemoving:Connect(function(player)
+    local conn = watchers[player]
+    if conn then conn:Disconnect() end
+    watchers[player] = nil
+end)
+
+vehicles.ChildAdded:Connect(function(model)
+    task.defer(function()
+        if not model:IsA('Model') then return end
+        local ownerId = model:GetAttribute('OwnerUserId')
+        if not ownerId then return end
+        local player = Players:GetPlayerByUserId(ownerId)
+        if player then syncPlayer(player) end
+    end)
+end)
+
+Workspace:SetAttribute('ACC_BecakCargoVisual', 'v1.30')
+Workspace:SetAttribute('BecakCargoVisualCrates', CRATE_COUNT)
+Workspace:SetAttribute('BecakCargoVisualCollision', 'OFF')
+print('[BECAK E-BIKE] cargo payload visualizer v1.30 ready')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="EV"><Properties><string name="Name">BecakEBike_CityEvents</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — live city events + progression bonus v1.10
+-- Dedicated overlay for maps/becak-e-bike. Adds lightweight rotating city events
+-- without changing the core passenger/cargo loops or touching other ACC maps.
+local Players=game:GetService('Players')
+local Workspace=game:GetService('Workspace')
+local ReplicatedStorage=game:GetService('ReplicatedStorage')
+
+local root=Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local vehicles=root:WaitForChild('Vehicles',20)
+local economy=root:WaitForChild('EconomyTransaction',20)
+local remotes=ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+local toast=remotes:WaitForChild('Toast',20)
+if not vehicles or not economy or not toast then return end
+
+local EVENT_DURATION=135
+local BREAK_DURATION=45
+local events={
+ {id='PASAR_RAMAI',title='Pasar Ramai',desc='Bonus penumpang +Rp8.000 +10 XP',tripBonus=8000,tripXP=10,cargoBonus=0,cargoXP=0},
+ {id='CARGO_RUSH',title='Cargo Rush',desc='Bonus cargo +Rp12.000 +15 XP',tripBonus=0,tripXP=0,cargoBonus=12000,cargoXP=15},
+ {id='GREEN_HOUR',title='Green Hour',desc='Trip memberi isi ulang baterai 8%',tripBonus=5000,tripXP=8,cargoBonus=5000,cargoXP=8,battery=8},
+}
+local active=nil
+local sequence=0
+local lastTrips={}
+local lastCargo={}
+
+local function transact(player,amount,xp,reason)
+ local ok,result=pcall(function() return economy:Invoke(player,amount,xp or 0,reason or '') end)
+ return ok and result==true
+end
+local function playerBecak(player)
+ for _,m in ipairs(vehicles:GetChildren()) do
+  if m:IsA('Model') and m:GetAttribute('OwnerUserId')==player.UserId then return m end
+ end
+end
+local function notifyAll(text)
+ for _,p in ipairs(Players:GetPlayers()) do toast:FireClient(p,text) end
+end
+local function recharge(player,amount)
+ local b=playerBecak(player);if not b then return end
+ local now=tonumber(b:GetAttribute('Battery')) or 0
+ local cap=tonumber(b:GetAttribute('BatteryMax')) or 100
+ b:SetAttribute('Battery',math.min(cap,now+cap*(amount/100)))
+end
+local function rewardTrip(player)
+ if not active then return end
+ if active.tripBonus>0 and transact(player,active.tripBonus,active.tripXP,'event_trip_'..active.id) then
+  toast:FireClient(player,active.title..' • bonus trip +Rp'..active.tripBonus)
+ end
+ if active.battery then recharge(player,active.battery) end
+end
+local function rewardCargo(player)
+ if not active then return end
+ if active.cargoBonus>0 and transact(player,active.cargoBonus,active.cargoXP,'event_cargo_'..active.id) then
+  toast:FireClient(player,active.title..' • bonus cargo +Rp'..active.cargoBonus)
+ end
+ if active.battery then recharge(player,active.battery) end
+end
+local function watchPlayer(player)
+ lastTrips[player]=tonumber(player:GetAttribute('BecakTrips')) or 0
+ lastCargo[player]=tonumber(player:GetAttribute('CargoJobs')) or 0
+ player:GetAttributeChangedSignal('BecakTrips'):Connect(function()
+  local n=tonumber(player:GetAttribute('BecakTrips')) or 0
+  if n> (lastTrips[player] or 0) then rewardTrip(player) end
+  lastTrips[player]=n
+ end)
+ player:GetAttributeChangedSignal('CargoJobs'):Connect(function()
+  local n=tonumber(player:GetAttribute('CargoJobs')) or 0
+  if n> (lastCargo[player] or 0) then rewardCargo(player) end
+  lastCargo[player]=n
+ end)
+end
+for _,p in ipairs(Players:GetPlayers()) do watchPlayer(p) end
+Players.PlayerAdded:Connect(watchPlayer)
+Players.PlayerRemoving:Connect(function(p) lastTrips[p]=nil;lastCargo[p]=nil end)
+
+local function activate(e)
+ active=e;sequence+=1
+ Workspace:SetAttribute('BecakCityEvent',e.id)
+ Workspace:SetAttribute('BecakCityEventTitle',e.title)
+ Workspace:SetAttribute('BecakCityEventEndsAt',os.time()+EVENT_DURATION)
+ Workspace:SetAttribute('BecakCityEventSequence',sequence)
+ notifyAll('EVENT KOTA • '..e.title..' — '..e.desc)
+end
+local function clearEvent()
+ active=nil
+ Workspace:SetAttribute('BecakCityEvent','NONE')
+ Workspace:SetAttribute('BecakCityEventTitle','')
+ Workspace:SetAttribute('BecakCityEventEndsAt',0)
+ notifyAll('Event kota selesai • Nusakarya kembali normal')
+end
+
+Workspace:SetAttribute('ACC_BecakCityEvents','v1.10')
+Workspace:SetAttribute('BecakCityEvent','NONE')
+print('[BECAK E-BIKE] live city events v1.10 ready')
+
+task.spawn(function()
+ task.wait(25)
+ local i=0
+ while root.Parent do
+  i=i%#events+1
+  activate(events[i])
+  task.wait(EVENT_DURATION)
+  clearEvent()
+  task.wait(BREAK_DURATION)
+ end
+end)
+]]></ProtectedString></Properties></Item><Item class="Script" referent="TR"><Properties><string name="Name">BecakEBike_TrafficNPC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.14
+-- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
+-- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, and adaptive cadence.
+local Players=game:GetService('Players')
+local RunService=game:GetService('RunService')
+local Workspace=game:GetService('Workspace')
+
+local root=Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local world=root:WaitForChild('Nusakarya',20)
+if not world then return end
+local playerVehicles=root:WaitForChild('Vehicles',20)
+if not playerVehicles then return end
+
+local trafficFolder=world:FindFirstChild('AmbientTraffic') or Instance.new('Folder')
+trafficFolder.Name='AmbientTraffic';trafficFolder.Parent=world
+local pedestrianFolder=world:FindFirstChild('AmbientPedestrians') or Instance.new('Folder')
+pedestrianFolder.Name='AmbientPedestrians';pedestrianFolder.Parent=world
+
+local function p(parent,name,size,color)
+ local x=Instance.new('Part');x.Name=name;x.Size=size;x.Anchored=true;x.CanCollide=false;x.CanTouch=false;x.CanQuery=false
+ x.TopSurface=Enum.SurfaceType.Smooth;x.BottomSurface=Enum.SurfaceType.Smooth;x.Color=color;x.Material=Enum.Material.SmoothPlastic;x.Parent=parent
+ return x
+end
+
+local function makeVehicle(name,color)
+ local m=Instance.new('Model');m.Name=name;m.Parent=trafficFolder
+ local body=p(m,'Body',Vector3.new(5.5,1.6,9),color);body.CFrame=CFrame.new(0,-100,0);m.PrimaryPart=body
+ local roof=p(m,'Roof',Vector3.new(4.5,1.3,4.5),color:Lerp(Color3.new(1,1,1),.12));roof.CFrame=body.CFrame*CFrame.new(0,1.35,.3)
+ local glass=p(m,'Glass',Vector3.new(4.2,.85,2.2),Color3.fromRGB(55,70,78));glass.Material=Enum.Material.Glass;glass.Transparency=.2;glass.CFrame=body.CFrame*CFrame.new(0,1.35,-1.1)
+ for _,o in ipairs({Vector3.new(-2.4,-.75,-2.7),Vector3.new(2.4,-.75,-2.7),Vector3.new(-2.4,-.75,2.7),Vector3.new(2.4,-.75,2.7)}) do
+  local w=p(m,'Wheel',Vector3.new(1.1,1.1,.7),Color3.fromRGB(24,24,24));w.Shape=Enum.PartType.Cylinder;w.CFrame=body.CFrame*CFrame.new(o)*CFrame.Angles(0,0,math.rad(90))
+ end
+ local brakeL=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeL.CFrame=body.CFrame*CFrame.new(-1.65,.1,4.55)
+ local brakeR=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeR.CFrame=body.CFrame*CFrame.new(1.65,.1,4.55)
+ return m
+end
+
+local function makePed(name,shirt)
+ local m=Instance.new('Model');m.Name=name;m.Parent=pedestrianFolder
+ local torso=p(m,'Torso',Vector3.new(1.6,2.1,.8),shirt);torso.CFrame=CFrame.new(0,-100,0);m.PrimaryPart=torso
+ local head=p(m,'Head',Vector3.new(1.2,1.2,1.2),Color3.fromRGB(217,166,125));head.Shape=Enum.PartType.Ball;head.CFrame=torso.CFrame*CFrame.new(0,1.65,0)
+ local legs=p(m,'Legs',Vector3.new(1.35,1.9,.7),Color3.fromRGB(48,51,55));legs.CFrame=torso.CFrame*CFrame.new(0,-1.9,0)
+ return m
+end
+
+local routes={
+ {Vector3.new(-520,1.45,-8),Vector3.new(520,1.45,-8),Vector3.new(520,1.45,8),Vector3.new(-520,1.45,8)},
+ {Vector3.new(-8,1.45,-520),Vector3.new(-8,1.45,520),Vector3.new(8,1.45,520),Vector3.new(8,1.45,-520)},
+ {Vector3.new(-520,1.45,292),Vector3.new(150,1.45,292),Vector3.new(150,1.45,308),Vector3.new(-520,1.45,308)},
+ {Vector3.new(-150,1.45,-308),Vector3.new(520,1.45,-308),Vector3.new(520,1.45,-292),Vector3.new(-150,1.45,-292)},
+}
+local walkRoutes={
+ {Vector3.new(-480,2.1,325),Vector3.new(-250,2.1,325)},
+ {Vector3.new(120,2.1,45),Vector3.new(310,2.1,45)},
+ {Vector3.new(-360,2.1,-115),Vector3.new(-250,2.1,-115)},
+ {Vector3.new(330,2.1,-255),Vector3.new(430,2.1,-255)},
+}
+local intersections={
+ Vector3.new(0,1.45,0),Vector3.new(150,1.45,300),Vector3.new(-150,1.45,-300)
+}
+local colors={Color3.fromRGB(196,66,62),Color3.fromRGB(65,112,172),Color3.fromRGB(224,185,67),Color3.fromRGB(62,139,91),Color3.fromRGB(185,185,190),Color3.fromRGB(78,78,82)}
+local shirts={Color3.fromRGB(57,111,173),Color3.fromRGB(177,78,67),Color3.fromRGB(69,143,91),Color3.fromRGB(185,132,54),Color3.fromRGB(113,82,157)}
+
+local actors={}
+for i=1,6 do
+ local route=routes[((i-1)%#routes)+1]
+ local m=makeVehicle('Traffic_'..i,colors[((i-1)%#colors)+1])
+ actors[#actors+1]={model=m,route=route,seg=((i-1)%#route)+1,t=(i*.13)%1,speed=18+(i%3)*3,yielding=false}
+end
+local walkers={}
+for i=1,8 do
+ local route=walkRoutes[((i-1)%#walkRoutes)+1]
+ local m=makePed('Pedestrian_'..i,shirts[((i-1)%#shirts)+1])
+ walkers[#walkers+1]={model=m,a=route[1],b=route[2],t=(i*.17)%1,dir=(i%2==0) and 1 or -1,speed=4+(i%2)}
+end
+
+local function nearestPlayerInfo(pos)
+ local best=math.huge
+ local bestHrp=nil
+ for _,plr in ipairs(Players:GetPlayers()) do
+  local ch=plr.Character;local hrp=ch and ch:FindFirstChild('HumanoidRootPart')
+  if hrp then
+   local d=(hrp.Position-pos).Magnitude
+   if d<best then best=d;bestHrp=hrp end
+  end
+ end
+ return best,bestHrp
+end
+
+local function nearestOwnedVehicleInfo(pos)
+ local best=math.huge
+ local bestPart=nil
+ for _,model in ipairs(playerVehicles:GetChildren()) do
+  local primary=model:IsA('Model') and model.PrimaryPart
+  if primary then
+   local d=(primary.Position-pos).Magnitude
+   if d<best then best=d;bestPart=primary end
+  end
+ end
+ return best,bestPart
+end
+
+local function trafficAhead(selfActor,pos,travel)
+ local nearest=math.huge
+ for _,other in ipairs(actors) do
+  if other~=selfActor and other.model.PrimaryPart then
+   local relative=other.model.PrimaryPart.Position-pos
+   local ahead=relative:Dot(travel)
+   if ahead>0 and ahead<28 then
+    local lateral=(relative-travel*ahead).Magnitude
+    if lateral<7 then nearest=math.min(nearest,ahead) end
+   end
+  end
+ end
+ return nearest
+end
+
+local function intersectionScale(pos,travel)
+ local scale=1
+ for _,center in ipairs(intersections) do
+  local rel=center-pos
+  local ahead=rel:Dot(travel)
+  local lateral=(rel-travel*ahead).Magnitude
+  if ahead>0 and ahead<52 and lateral<18 then
+   scale=math.min(scale,.48+.52*math.clamp((52-ahead)/52,0,1))
+  elseif (pos-center).Magnitude<20 then
+   scale=math.min(scale,.58)
+  end
+ end
+ return scale
+end
+
+local function setBrakeLights(model,on)
+ local c=on and Color3.fromRGB(255,40,28) or Color3.fromRGB(90,15,15)
+ for _,x in ipairs(model:GetChildren()) do if x.Name=='BrakeLight' and x:IsA('BasePart') then x.Color=c end end
+end
+
+local function setVisible(model,visible)
+ if model:GetAttribute('Visible')==visible then return end
+ model:SetAttribute('Visible',visible)
+ for _,x in ipairs(model:GetDescendants()) do if x:IsA('BasePart') then x.Transparency=visible and (x.Name=='Glass' and .2 or 0) or 1 end end
+end
+
+local accum=0
+RunService.Heartbeat:Connect(function(dt)
+ accum+=dt
+ local playerCount=#Players:GetPlayers()
+ local targetStep=playerCount>0 and .05 or .25 -- 20 Hz occupied, 4 Hz empty
+ if accum<targetStep then return end
+ dt=math.min(accum,.25);accum=0
+
+ for _,a in ipairs(actors) do
+  local from=a.route[a.seg];local to=a.route[a.seg%#a.route+1];local len=(to-from).Magnitude
+  local pos=from:Lerp(to,a.t)
+  local travel=(to-from).Unit
+  local playerDist,hrp=nearestPlayerInfo(pos)
+  local vehicleDist,vehiclePart=nearestOwnedVehicleInfo(pos)
+  local yieldNow=false
+
+  if hrp and playerDist<26 then
+   local relative=hrp.Position-pos
+   local ahead=relative:Dot(travel)
+   if ahead>-5 and ahead<22 then yieldNow=true end
+  end
+  if vehiclePart and vehicleDist<36 then
+   local relative=vehiclePart.Position-pos
+   local ahead=relative:Dot(travel)
+   local lateral=(relative-travel*ahead).Magnitude
+   if ahead>-8 and ahead<30 and lateral<10 then yieldNow=true end
+  end
+  if trafficAhead(a,pos,travel)<15 then yieldNow=true end
+
+  local speedScale=intersectionScale(pos,travel)
+  a.yielding=yieldNow
+  if not yieldNow then
+   a.t+=a.speed*speedScale*dt/math.max(len,1)
+   if a.t>=1 then a.t-=1;a.seg=a.seg%#a.route+1;from=a.route[a.seg];to=a.route[a.seg%#a.route+1] end
+   pos=from:Lerp(to,a.t)
+  end
+  local cf=CFrame.lookAt(pos,to)
+  a.model:PivotTo(cf)
+  a.model:SetAttribute('Yielding',yieldNow)
+  a.model:SetAttribute('IntersectionSpeedScale',speedScale)
+  setBrakeLights(a.model,yieldNow or speedScale<.7)
+  setVisible(a.model,playerDist<430 or vehicleDist<430)
+ end
+
+ for _,w in ipairs(walkers) do
+  local len=(w.b-w.a).Magnitude
+  local pos=w.a:Lerp(w.b,w.t)
+  local playerDist=nearestPlayerInfo(pos)
+  local vehicleDist=nearestOwnedVehicleInfo(pos)
+  local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1 -- pause before clipping through player/becak
+  w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
+  if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
+  pos=w.a:Lerp(w.b,w.t);local target=w.dir>0 and w.b or w.a
+  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,playerDist<240 or vehicleDist<240)
+ end
+end)
+
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.14')
+Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
+Workspace:SetAttribute('BecakPedestrianCount',#walkers)
+Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
+Workspace:SetAttribute('BecakTrafficVehicleYield','ON')
+Workspace:SetAttribute('BecakTrafficHeadway','ON')
+Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
+Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
+Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.14 ready: intersection pacing + becak-aware yield + headway')
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="V"><Properties><string name="Name">BecakEBike_VehicleMasterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Cargo E-Bike 01 masterplan vehicle visual v1.0
 -- Canon visual: 3 wheels, 2x front 20in, 1x rear 26in, front cargo box,
 -- rider saddle behind cargo, upright handlebar, matte-black carbon-steel look.
@@ -865,6 +1341,1232 @@ vehicles.ChildAdded:Connect(function(m)
 end)
 
 Workspace:SetAttribute('ACC_BecakVehicleMasterplan','Cargo E-Bike 01 v1.0')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="VR"><Properties><string name="Name">BecakEBike_VehicleRecovery</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Vehicle Recovery Assist v1.35
+-- Automatic owner-only self-righting, fast multi-probe curb assist, hill-start anti-rollback,
+-- plus conservative high-speed anti-tip damping for mobile drivability.
+-- Designed to improve stability without replacing the core VehicleSeat controller.
+
+local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local RunService = game:GetService('RunService')
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike', 30)
+if not root then return end
+local vehicles = root:WaitForChild('Vehicles', 30)
+if not vehicles then return end
+
+local remotes = ReplicatedStorage:FindFirstChild('BecakEBikeRemotes')
+local toast = remotes and remotes:FindFirstChild('Toast')
+
+local FLIP_UP_Y = 0.38
+local FLIP_HOLD_SECONDS = 1.35
+-- v1.35: curb geometry is already wall-filtered by the multi-probe routine, so the
+-- stall hold can be shorter. This makes mobile curb recovery feel responsive instead
+-- of requiring the player to hold throttle against the obstacle for more than a second.
+local STALL_HOLD_SECONDS = 0.85
+local STALL_SPEED = 2.0
+local THROTTLE_THRESHOLD = 0.50
+local RECOVERY_COOLDOWN = 6
+local ASSIST_FORWARD_SPEED = 7.5
+local ASSIST_UP_SPEED = 4.6
+local CURB_PROBE_DISTANCE = 4.5
+local CURB_SIDE_OFFSET = 1.35
+local CURB_LOW_HEIGHT = 0.35
+local CURB_CLEAR_HEIGHT = 2.15
+local CURB_MAX_TOP_HEIGHT = 1.35
+
+-- Hill-start assist is intentionally conservative: it only fights rollback while the owner
+-- is actively requesting forward throttle at very low speed. This avoids changing normal handling.
+local HILL_CHECK_DISTANCE = 5.5
+local HILL_MIN_RISE = 0.55
+local HILL_MAX_SPEED = 5.0
+local ROLLBACK_TRIGGER_SPEED = 0.7
+local HILL_ASSIST_FORWARD_SPEED = 4.2
+local HILL_ASSIST_COOLDOWN = 1.1
+
+-- Stability assist only damps pitch/roll spin once the becak is already moving at road speed.
+-- Yaw remains untouched so steering authority stays with the native controller.
+local STABILITY_MIN_SPEED = 11
+local STABILITY_MAX_TILT_RATE = 1.7
+local STABILITY_DAMPING = 0.58
+local STABILITY_MIN_UP_Y = 0.62
+
+local states = {}
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Exclude
+rayParams.IgnoreWater = true
+
+local function ownerOf(model)
+    local id = tonumber(model:GetAttribute('OwnerUserId'))
+    if not id then return nil end
+    return Players:GetPlayerByUserId(id)
+end
+
+local function horizontal(v)
+    return Vector3.new(v.X, 0, v.Z)
+end
+
+local function clearMomentum(model)
+    for _,obj in ipairs(model:GetDescendants()) do
+        if obj:IsA('BasePart') then
+            obj.AssemblyLinearVelocity = Vector3.zero
+            obj.AssemblyAngularVelocity = Vector3.zero
+        end
+    end
+end
+
+local function safeLook(chassis)
+    local look = horizontal(chassis.CFrame.LookVector)
+    if look.Magnitude < 0.05 then return Vector3.new(0,0,-1) end
+    return look.Unit
+end
+
+local function notify(player, text)
+    if toast and player then toast:FireClient(player, text) end
+end
+
+local function recoverFlip(model, chassis, player, state)
+    local pos = chassis.Position + Vector3.new(0, 2.4, 0)
+    local look = safeLook(chassis)
+    clearMomentum(model)
+    model:PivotTo(CFrame.lookAt(pos, pos + look))
+    state.cooldownUntil = os.clock() + RECOVERY_COOLDOWN
+    state.flipSince = nil
+    state.stallSince = nil
+    model:SetAttribute('RecoveryCount', (tonumber(model:GetAttribute('RecoveryCount')) or 0) + 1)
+    model:SetAttribute('LastRecoveryMode', 'SELF_RIGHT')
+    notify(player, 'Becak otomatis dibalikkan ke posisi aman.')
+end
+
+local function desiredTravelDirection(chassis, seat)
+    local look = safeLook(chassis)
+    local throttleSign = seat.ThrottleFloat < 0 and -1 or 1
+    local travel = look * throttleSign
+    local right = horizontal(chassis.CFrame.RightVector)
+    if right.Magnitude > 0.05 then
+        travel += right.Unit * math.clamp(seat.SteerFloat, -1, 1) * 0.28 * throttleSign
+    end
+    if travel.Magnitude < 0.05 then return look * throttleSign end
+    return travel.Unit
+end
+
+local function curbProbe(model, chassis, travel, lateralOffset)
+    local right = horizontal(chassis.CFrame.RightVector)
+    if right.Magnitude < 0.05 then right = Vector3.new(1,0,0) else right = right.Unit end
+    local base = chassis.Position + right * lateralOffset
+    local lowOrigin = base + Vector3.new(0, CURB_LOW_HEIGHT, 0)
+    local highOrigin = base + Vector3.new(0, CURB_CLEAR_HEIGHT, 0)
+    local lowHit = Workspace:Raycast(lowOrigin, travel * CURB_PROBE_DISTANCE, rayParams)
+    if not lowHit then return nil end
+    local highHit = Workspace:Raycast(highOrigin, travel * CURB_PROBE_DISTANCE, rayParams)
+    if highHit then return nil end
+
+    -- Reject walls/tall obstacles: sample downward from above the contact point and require
+    -- a low top surface. This keeps assist focused on curbs/sidewalk lips rather than buildings.
+    local contact = lowHit.Position
+    local topOrigin = contact + Vector3.new(0, CURB_MAX_TOP_HEIGHT + 1.0, 0) - travel * 0.2
+    local topHit = Workspace:Raycast(topOrigin, Vector3.new(0, -(CURB_MAX_TOP_HEIGHT + 1.4), 0), rayParams)
+    if not topHit then return nil end
+    local topRise = topHit.Position.Y - chassis.Position.Y
+    if topRise > CURB_MAX_TOP_HEIGHT then return nil end
+    return lowHit
+end
+
+local function tryLowCurbAssist(model, chassis, seat, player, state)
+    rayParams.FilterDescendantsInstances = {model}
+    local travel = desiredTravelDirection(chassis, seat)
+
+    -- Three probes cover center + both front wheel tracks, so diagonal approaches to a curb
+    -- are detected reliably on mobile. Direction follows throttle sign, fixing reverse-stall cases.
+    local hit = curbProbe(model, chassis, travel, 0)
+        or curbProbe(model, chassis, travel, CURB_SIDE_OFFSET)
+        or curbProbe(model, chassis, travel, -CURB_SIDE_OFFSET)
+    if not hit then return false end
+
+    local velocity = chassis.AssemblyLinearVelocity
+    chassis.AssemblyLinearVelocity = travel * math.max(ASSIST_FORWARD_SPEED, horizontal(velocity).Magnitude) + Vector3.new(0, ASSIST_UP_SPEED, 0)
+    state.cooldownUntil = os.clock() + 1.8
+    state.stallSince = nil
+    model:SetAttribute('CurbAssistCount', (tonumber(model:GetAttribute('CurbAssistCount')) or 0) + 1)
+    model:SetAttribute('LastRecoveryMode', 'FAST_MULTI_PROBE_CURB_ASSIST')
+    notify(player, 'Curb Assist aktif — becak dibantu melewati bibir jalan.')
+    return true
+end
+
+local function tryHillStartAssist(model, chassis, seat, state)
+    if seat.ThrottleFloat < THROTTLE_THRESHOLD then return false end
+
+    local look = safeLook(chassis)
+    local velocity = chassis.AssemblyLinearVelocity
+    local horizontalVelocity = horizontal(velocity)
+    if horizontalVelocity.Magnitude > HILL_MAX_SPEED then return false end
+
+    -- Only activate when the vehicle is actually rolling backwards relative to its facing direction.
+    local signedForwardSpeed = horizontalVelocity:Dot(look)
+    if signedForwardSpeed > -ROLLBACK_TRIGGER_SPEED then return false end
+
+    rayParams.FilterDescendantsInstances = {model}
+    local down = Vector3.new(0, -8, 0)
+    local hereHit = Workspace:Raycast(chassis.Position + Vector3.new(0, 2.0, 0), down, rayParams)
+    local aheadHit = Workspace:Raycast(chassis.Position + look * HILL_CHECK_DISTANCE + Vector3.new(0, 3.5, 0), down, rayParams)
+    if not hereHit or not aheadHit then return false end
+
+    local rise = aheadHit.Position.Y - hereHit.Position.Y
+    if rise < HILL_MIN_RISE then return false end
+
+    -- Preserve vertical motion, cancel rollback, and give a small forward start impulse.
+    chassis.AssemblyLinearVelocity = look * HILL_ASSIST_FORWARD_SPEED + Vector3.new(0, velocity.Y, 0)
+    state.cooldownUntil = os.clock() + HILL_ASSIST_COOLDOWN
+    model:SetAttribute('HillStartAssistCount', (tonumber(model:GetAttribute('HillStartAssistCount')) or 0) + 1)
+    model:SetAttribute('LastRecoveryMode', 'HILL_START_ASSIST')
+    return true
+end
+
+local function applyStabilityAssist(model, chassis)
+    local speed = horizontal(chassis.AssemblyLinearVelocity).Magnitude
+    if speed < STABILITY_MIN_SPEED or chassis.CFrame.UpVector.Y < STABILITY_MIN_UP_Y then return end
+
+    local angular = chassis.AssemblyAngularVelocity
+    local tiltRate = Vector2.new(angular.X, angular.Z).Magnitude
+    if tiltRate <= STABILITY_MAX_TILT_RATE then return end
+
+    chassis.AssemblyAngularVelocity = Vector3.new(
+        angular.X * STABILITY_DAMPING,
+        angular.Y,
+        angular.Z * STABILITY_DAMPING
+    )
+    model:SetAttribute('StabilityAssistCount', (tonumber(model:GetAttribute('StabilityAssistCount')) or 0) + 1)
+    model:SetAttribute('LastStabilityAssistSpeed', math.floor(speed * 10 + 0.5) / 10)
+end
+
+local function stepVehicle(model, dt)
+    if not model:IsA('Model') or not model.Parent then states[model] = nil return end
+    local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
+    local seat = model:FindFirstChild('DriverSeat', true)
+    if not chassis or not chassis:IsA('BasePart') or not seat or not seat:IsA('VehicleSeat') then return end
+
+    local player = ownerOf(model)
+    local occupant = seat.Occupant
+    local occupiedByOwner = player and occupant and occupant.Parent == player.Character
+    if not occupiedByOwner then
+        local state = states[model]
+        if state then state.flipSince=nil; state.stallSince=nil end
+        return
+    end
+
+    local state = states[model]
+    if not state then
+        state = {cooldownUntil=0, flipSince=nil, stallSince=nil}
+        states[model] = state
+    end
+    local now = os.clock()
+
+    -- Keep normal steering/yaw untouched while damping only excessive pitch/roll at speed.
+    applyStabilityAssist(model, chassis)
+
+    if now < state.cooldownUntil then return end
+
+    local upY = chassis.CFrame.UpVector.Y
+    if upY < FLIP_UP_Y then
+        state.flipSince = state.flipSince or now
+        if now - state.flipSince >= FLIP_HOLD_SECONDS then
+            recoverFlip(model, chassis, player, state)
+        end
+        return
+    else
+        state.flipSince = nil
+    end
+
+    -- Address the common mobile case where a loaded becak rolls backward on a ramp/slope
+    -- even though the player is holding forward throttle.
+    if tryHillStartAssist(model, chassis, seat, state) then
+        state.stallSince = nil
+        return
+    end
+
+    local throttle = math.abs(seat.ThrottleFloat)
+    local speed = horizontal(chassis.AssemblyLinearVelocity).Magnitude
+    if throttle >= THROTTLE_THRESHOLD and speed <= STALL_SPEED then
+        state.stallSince = state.stallSince or now
+        if now - state.stallSince >= STALL_HOLD_SECONDS then
+            if not tryLowCurbAssist(model, chassis, seat, player, state) then
+                -- Do not teleport through walls; simply reset the detector and wait for a better geometry match.
+                state.stallSince = now
+            end
+        end
+    else
+        state.stallSince = nil
+    end
+end
+
+local acc = 0
+RunService.Heartbeat:Connect(function(dt)
+    acc += dt
+    if acc < 0.1 then return end -- 10 Hz max; lightweight for mobile/server.
+    local step = acc
+    acc = 0
+    for _,model in ipairs(vehicles:GetChildren()) do
+        stepVehicle(model, step)
+    end
+end)
+
+vehicles.ChildRemoved:Connect(function(model) states[model]=nil end)
+
+Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.35')
+Workspace:SetAttribute('BecakSelfRighting','ON')
+Workspace:SetAttribute('BecakLowCurbAssist','ON')
+Workspace:SetAttribute('BecakMultiProbeCurbAssist','ON')
+Workspace:SetAttribute('BecakReverseCurbAssist','ON')
+Workspace:SetAttribute('BecakFastCurbAssist','ON')
+Workspace:SetAttribute('BecakCurbAssistHoldSeconds',STALL_HOLD_SECONDS)
+Workspace:SetAttribute('BecakHillStartAssist','ON')
+Workspace:SetAttribute('BecakHighSpeedStabilityAssist','ON')
+Workspace:SetAttribute('BecakStabilityMinSpeed',STABILITY_MIN_SPEED)
+Workspace:SetAttribute('BecakRecoveryTickHz',10)
+print('[BECAK E-BIKE] vehicle recovery v1.35 ready • curb + reverse + self-righting + hill-start + anti-tip stability')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="GC"><Properties><string name="Name">BecakEBike_GroundContact</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Ground Contact / Clearance v1.36
+-- Replaces the large rectangular chassis as the road-contact surface with three smooth,
+-- low-friction spherical contact pods aligned to the visual wheel tracks. This keeps the
+-- becak at useful ride height and prevents the chassis edge from catching on curb lips.
+
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike', 30)
+if not root then return end
+local vehicles = root:WaitForChild('Vehicles', 30)
+if not vehicles then return end
+
+local POD_DIAMETER = 3.6
+local POD_FRICTION = 0.22
+local POD_DENSITY = 0.72
+local PODS = {
+    {'GroundContactFrontLeft',  Vector3.new(-2.35, -0.45, -3.10)},
+    {'GroundContactFrontRight', Vector3.new( 2.35, -0.45, -3.10)},
+    {'GroundContactRear',       Vector3.new( 0.00, -0.45,  3.50)},
+}
+
+local function makePod(model, chassis, name, offset)
+    local old = model:FindFirstChild(name)
+    if old and old:IsA('BasePart') then return old end
+
+    local pod = Instance.new('Part')
+    pod.Name = name
+    pod.Shape = Enum.PartType.Ball
+    pod.Size = Vector3.new(POD_DIAMETER, POD_DIAMETER, POD_DIAMETER)
+    pod.CFrame = chassis.CFrame * CFrame.new(offset)
+    pod.Transparency = 1
+    pod.Anchored = false
+    pod.CanCollide = true
+    pod.CanTouch = false
+    pod.CanQuery = false
+    pod.CastShadow = false
+    pod.CustomPhysicalProperties = PhysicalProperties.new(POD_DENSITY, POD_FRICTION, 0.02, 1, 1)
+    pod.Parent = model
+
+    local weld = Instance.new('WeldConstraint')
+    weld.Name = name .. '_Weld'
+    weld.Part0 = chassis
+    weld.Part1 = pod
+    weld.Parent = pod
+    return pod
+end
+
+local function tuneVehicle(model)
+    if not model:IsA('Model') or not model.Parent then return end
+    local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
+    if not chassis or not chassis:IsA('BasePart') then return end
+
+    -- The prototype originally drove on the full 6x10 rectangular chassis. Its front/bottom
+    -- edges can catch curb geometry even when the visible wheels look clear. Let the three
+    -- smooth pods own road collision instead.
+    chassis.CanCollide = false
+    chassis.CanTouch = false
+    chassis.CustomPhysicalProperties = PhysicalProperties.new(1.0, 0.20, 0.02, 1, 1)
+
+    for _,obj in ipairs(model:GetDescendants()) do
+        if obj:IsA('BasePart') and (obj.Name == 'FrontWheel' or obj.Name == 'RearWheel') then
+            obj.CanCollide = false
+            obj.CanTouch = false
+            obj.CanQuery = false
+        end
+    end
+
+    local count = 0
+    for _,def in ipairs(PODS) do
+        if makePod(model, chassis, def[1], def[2]) then count += 1 end
+    end
+    model:SetAttribute('GroundContactReady', count == #PODS)
+    model:SetAttribute('GroundContactPods', count)
+    model:SetAttribute('GroundContactVersion', 'v1.36')
+end
+
+for _,model in ipairs(vehicles:GetChildren()) do
+    task.defer(tuneVehicle, model)
+end
+vehicles.ChildAdded:Connect(function(model)
+    -- Runtime creates/welds the visual vehicle in one function; deferring one task tick lets
+    -- Chassis/PrimaryPart exist before contact tuning without polling.
+    task.defer(tuneVehicle, model)
+end)
+
+Workspace:SetAttribute('ACC_BecakGroundContact','v1.36')
+Workspace:SetAttribute('BecakChassisCollision','OFF')
+Workspace:SetAttribute('BecakGroundContactPods',#PODS)
+Workspace:SetAttribute('BecakGroundContactShape','BALL')
+Workspace:SetAttribute('BecakGroundContactFriction',POD_FRICTION)
+print('[BECAK E-BIKE] ground contact v1.36 ready • 3 smooth pods • chassis snag collision OFF')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="SS"><Properties><string name="Name">BecakEBike_SteeringStability</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Speed Sensitive Steering Stability v1.41
+-- Softens yaw authority as road speed rises so the 3-wheel becak is easier to control on mobile.
+-- v1.38 added cargo-aware damping. v1.39 added condition-aware damping. v1.40 added
+-- sharp-corner anti-tip assist. v1.41 adds rapid steering-reversal damping so abrupt
+-- left/right thumb changes at road speed do not snap the three-wheel chassis into a tip.
+-- This does not replace the main vehicle controller; it only retunes the existing BodyGyro.
+
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike', 30)
+if not root then return end
+local vehicles = root:WaitForChild('Vehicles', 30)
+if not vehicles then return end
+
+local UPDATE_HZ = 10
+local LOW_SPEED = 8
+local HIGH_SPEED = 30
+local CARGO_BLEND_START_SPEED = 12
+local CONDITION_BLEND_START_SPEED = 14
+local CONDITION_FULL_ASSIST_AT = 45
+local CORNER_BLEND_START_SPEED = 15
+local CORNER_STEER_DEADZONE = 0.35
+local REVERSAL_BLEND_START_SPEED = 14
+local REVERSAL_STEER_DEADZONE = 0.45
+local REVERSAL_HOLD_SECONDS = 0.45
+local LOW_P = 9000
+local HIGH_P = 4300
+local LOW_D = 650
+local HIGH_D = 1100
+local LOW_YAW_TORQUE = 150000
+local HIGH_YAW_TORQUE = 82000
+local CARGO_HIGH_SPEED_P_SCALE = 0.88
+local CARGO_HIGH_SPEED_YAW_SCALE = 0.84
+local CARGO_DAMPING_SCALE = 1.12
+local CONDITION_HIGH_SPEED_P_SCALE = 0.90
+local CONDITION_HIGH_SPEED_YAW_SCALE = 0.80
+local CONDITION_DAMPING_SCALE = 1.18
+local CORNER_HIGH_SPEED_P_SCALE = 0.88
+local CORNER_HIGH_SPEED_YAW_SCALE = 0.72
+local CORNER_DAMPING_SCALE = 1.22
+local REVERSAL_HIGH_SPEED_P_SCALE = 0.90
+local REVERSAL_HIGH_SPEED_YAW_SCALE = 0.68
+local REVERSAL_DAMPING_SCALE = 1.28
+
+local tracked = {}
+
+local function planarSpeed(part)
+    local v = part.AssemblyLinearVelocity
+    return Vector3.new(v.X, 0, v.Z).Magnitude
+end
+
+local function alphaFor(speed)
+    return math.clamp((speed - LOW_SPEED) / math.max(1, HIGH_SPEED - LOW_SPEED), 0, 1)
+end
+
+local function cargoBlendFor(speed, loaded)
+    if not loaded then return 0 end
+    return math.clamp((speed - CARGO_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CARGO_BLEND_START_SPEED), 0, 1)
+end
+
+local function conditionBlendFor(speed, condition)
+    condition = math.clamp(tonumber(condition) or 100, 0, 100)
+    if condition >= 100 or speed <= CONDITION_BLEND_START_SPEED then return 0 end
+    local damageBlend = math.clamp((100 - condition) / math.max(1, 100 - CONDITION_FULL_ASSIST_AT), 0, 1)
+    local speedBlend = math.clamp((speed - CONDITION_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CONDITION_BLEND_START_SPEED), 0, 1)
+    return damageBlend * speedBlend
+end
+
+local function cornerBlendFor(speed, steer)
+    local steerAmount = math.abs(tonumber(steer) or 0)
+    if speed <= CORNER_BLEND_START_SPEED or steerAmount <= CORNER_STEER_DEADZONE then return 0 end
+    local steerBlend = math.clamp((steerAmount - CORNER_STEER_DEADZONE) / math.max(0.01, 1 - CORNER_STEER_DEADZONE), 0, 1)
+    local speedBlend = math.clamp((speed - CORNER_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CORNER_BLEND_START_SPEED), 0, 1)
+    return steerBlend * speedBlend
+end
+
+local function isStrongSteer(value)
+    return math.abs(tonumber(value) or 0) >= REVERSAL_STEER_DEADZONE
+end
+
+local function oppositeStrongSteer(previous, current)
+    if not isStrongSteer(previous) or not isStrongSteer(current) then return false end
+    return previous * current < 0
+end
+
+local function track(model)
+    if not model:IsA('Model') then return end
+    local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
+    if not chassis or not chassis:IsA('BasePart') then return end
+    local gyro = chassis:FindFirstChildOfClass('BodyGyro')
+    if not gyro then return end
+    local seat = model:FindFirstChild('DriverSeat', true)
+    if seat and not seat:IsA('VehicleSeat') then seat = nil end
+    tracked[model] = {chassis = chassis, gyro = gyro, seat = seat, lastSteer = 0, reversalHold = 0}
+    model:SetAttribute('SteeringStabilityReady', true)
+    model:SetAttribute('SteeringStabilityVersion', 'v1.41')
+end
+
+local function untrack(model)
+    tracked[model] = nil
+end
+
+for _,model in ipairs(vehicles:GetChildren()) do
+    task.defer(track, model)
+end
+vehicles.ChildAdded:Connect(function(model)
+    task.defer(track, model)
+end)
+vehicles.ChildRemoved:Connect(untrack)
+
+local interval = 1 / UPDATE_HZ
+while task.wait(interval) do
+    for model,state in pairs(tracked) do
+        local chassis = state.chassis
+        local gyro = state.gyro
+        if not model.Parent or not chassis.Parent or not gyro.Parent then
+            tracked[model] = nil
+        else
+            if not state.seat or not state.seat.Parent then
+                local seat = model:FindFirstChild('DriverSeat', true)
+                state.seat = seat and seat:IsA('VehicleSeat') and seat or nil
+            end
+
+            local speed = planarSpeed(chassis)
+            local a = alphaFor(speed)
+            local cargoLoaded = model:GetAttribute('CargoVisualLoaded') == true
+            local cargoBlend = cargoBlendFor(speed, cargoLoaded)
+            local condition = model:GetAttribute('Condition') or 100
+            local conditionBlend = conditionBlendFor(speed, condition)
+            local steer = state.seat and state.seat.SteerFloat or 0
+            local cornerBlend = cornerBlendFor(speed, steer)
+
+            if speed >= REVERSAL_BLEND_START_SPEED and oppositeStrongSteer(state.lastSteer, steer) then
+                state.reversalHold = REVERSAL_HOLD_SECONDS
+            else
+                state.reversalHold = math.max(0, state.reversalHold - interval)
+            end
+            state.lastSteer = steer
+
+            local reversalSpeedBlend = math.clamp((speed - REVERSAL_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - REVERSAL_BLEND_START_SPEED), 0, 1)
+            local reversalTimeBlend = math.clamp(state.reversalHold / REVERSAL_HOLD_SECONDS, 0, 1)
+            local reversalBlend = reversalSpeedBlend * reversalTimeBlend
+
+            local baseP = LOW_P + (HIGH_P - LOW_P) * a
+            local baseD = LOW_D + (HIGH_D - LOW_D) * a
+            local baseYawTorque = LOW_YAW_TORQUE + (HIGH_YAW_TORQUE - LOW_YAW_TORQUE) * a
+
+            -- Cargo, damage, sharp-corner and rapid-reversal assists only blend in above city speed.
+            -- Parking, curb recovery and normal straight-line behavior remain close to the base controller.
+            local cargoPScale = 1 + (CARGO_HIGH_SPEED_P_SCALE - 1) * cargoBlend
+            local cargoYawScale = 1 + (CARGO_HIGH_SPEED_YAW_SCALE - 1) * cargoBlend
+            local cargoDScale = 1 + (CARGO_DAMPING_SCALE - 1) * cargoBlend
+            local conditionPScale = 1 + (CONDITION_HIGH_SPEED_P_SCALE - 1) * conditionBlend
+            local conditionYawScale = 1 + (CONDITION_HIGH_SPEED_YAW_SCALE - 1) * conditionBlend
+            local conditionDScale = 1 + (CONDITION_DAMPING_SCALE - 1) * conditionBlend
+            local cornerPScale = 1 + (CORNER_HIGH_SPEED_P_SCALE - 1) * cornerBlend
+            local cornerYawScale = 1 + (CORNER_HIGH_SPEED_YAW_SCALE - 1) * cornerBlend
+            local cornerDScale = 1 + (CORNER_DAMPING_SCALE - 1) * cornerBlend
+            local reversalPScale = 1 + (REVERSAL_HIGH_SPEED_P_SCALE - 1) * reversalBlend
+            local reversalYawScale = 1 + (REVERSAL_HIGH_SPEED_YAW_SCALE - 1) * reversalBlend
+            local reversalDScale = 1 + (REVERSAL_DAMPING_SCALE - 1) * reversalBlend
+
+            gyro.P = baseP * cargoPScale * conditionPScale * cornerPScale * reversalPScale
+            gyro.D = baseD * cargoDScale * conditionDScale * cornerDScale * reversalDScale
+            local finalYawScale = cargoYawScale * conditionYawScale * cornerYawScale * reversalYawScale
+            gyro.MaxTorque = Vector3.new(0, baseYawTorque * finalYawScale, 0)
+
+            model:SetAttribute('SteeringStabilitySpeed', math.floor(speed * 10 + 0.5) / 10)
+            model:SetAttribute('SteeringStabilityScale', math.floor((1 - a * 0.55) * finalYawScale * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringCargoAssistActive', cargoBlend > 0.01)
+            model:SetAttribute('SteeringCargoAssistBlend', math.floor(cargoBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringConditionAssistActive', conditionBlend > 0.01)
+            model:SetAttribute('SteeringConditionAssistBlend', math.floor(conditionBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringCornerAssistActive', cornerBlend > 0.01)
+            model:SetAttribute('SteeringCornerAssistBlend', math.floor(cornerBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringReversalAssistActive', reversalBlend > 0.01)
+            model:SetAttribute('SteeringReversalAssistBlend', math.floor(reversalBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringInput', math.floor(steer * 100 + 0.5) / 100)
+        end
+    end
+end
+
+Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.41')
+Workspace:SetAttribute('BecakSpeedSensitiveSteering', 'ON')
+Workspace:SetAttribute('BecakCargoAwareSteering', 'ON')
+Workspace:SetAttribute('BecakConditionAwareSteering', 'ON')
+Workspace:SetAttribute('BecakCornerAntiTipAssist', 'ON')
+Workspace:SetAttribute('BecakSteeringReversalAssist', 'ON')
+Workspace:SetAttribute('BecakSteeringCargoBlendStartSpeed', CARGO_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringConditionBlendStartSpeed', CONDITION_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringConditionFullAssistAt', CONDITION_FULL_ASSIST_AT)
+Workspace:SetAttribute('BecakSteeringCornerBlendStartSpeed', CORNER_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringCornerDeadzone', CORNER_STEER_DEADZONE)
+Workspace:SetAttribute('BecakSteeringReversalBlendStartSpeed', REVERSAL_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringReversalDeadzone', REVERSAL_STEER_DEADZONE)
+Workspace:SetAttribute('BecakSteeringReversalHoldSeconds', REVERSAL_HOLD_SECONDS)
+Workspace:SetAttribute('BecakSteeringStabilityHz', UPDATE_HZ)
+Workspace:SetAttribute('BecakSteeringHighSpeedP', HIGH_P)
+Workspace:SetAttribute('BecakSteeringHighSpeedYawTorque', HIGH_YAW_TORQUE)
+print('[BECAK E-BIKE] steering stability v1.41 ready • speed + cargo + condition + corner + reversal anti-tip damping • mobile friendly')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="SIG"><Properties><string name="Name">BecakEBike_VehicleSignals</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Vehicle Signal Lights v1.45
+-- Physics-safe brake/reverse/turn lights with mobile steering hysteresis and driver-aware idle shutdown.
+local Workspace = game:GetService('Workspace')
+local UPDATE_HZ, ROOT_NAME = 8, 'BecakEBike'
+local INDICATOR_STEER_THRESHOLD, INDICATOR_CANCEL_THRESHOLD = 0.42, 0.18
+local INDICATOR_MIN_SPEED, BLINK_PERIOD = 1.5, 0.55
+local tracked = {}
+
+local function makeLamp(model,chassis,name,offset,color)
+ local old=model:FindFirstChild(name); if old and old:IsA('BasePart') then return old end
+ local p=Instance.new('Part'); p.Name=name; p.Size=Vector3.new(.55,.28,.18); p.Material=Enum.Material.Neon; p.Color=color; p.Transparency=.72; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Massless=true; p.Anchored=false; p.CFrame=chassis.CFrame*CFrame.new(offset); p.Parent=model
+ local w=Instance.new('WeldConstraint'); w.Part0=chassis; w.Part1=p; w.Parent=p; return p
+end
+
+local function track(model)
+ if not model:IsA('Model') or tracked[model] or not model:GetAttribute('OwnerUserId') then return end
+ local c=model.PrimaryPart or model:FindFirstChild('Chassis'); local s=model:FindFirstChild('DriverSeat',true)
+ if not c or not c:IsA('BasePart') or not s or not s:IsA('VehicleSeat') then return end
+ tracked[model]={chassis=c,seat=s,left=makeLamp(model,c,'RearBrakeLightLeft',Vector3.new(-2.15,.25,4.9),Color3.fromRGB(255,45,35)),right=makeLamp(model,c,'RearBrakeLightRight',Vector3.new(2.15,.25,4.9),Color3.fromRGB(255,45,35)),reverse=makeLamp(model,c,'RearReverseLight',Vector3.new(0,.18,4.92),Color3.fromRGB(235,245,255)),tlr=makeLamp(model,c,'RearTurnSignalLeft',Vector3.new(-2.65,.23,4.88),Color3.fromRGB(255,165,40)),trr=makeLamp(model,c,'RearTurnSignalRight',Vector3.new(2.65,.23,4.88),Color3.fromRGB(255,165,40)),tlf=makeLamp(model,c,'FrontTurnSignalLeft',Vector3.new(-2.55,.18,-4.75),Color3.fromRGB(255,165,40)),trf=makeLamp(model,c,'FrontTurnSignalRight',Vector3.new(2.55,.18,-4.75),Color3.fromRGB(255,165,40)),lastSpeed=0,intent=0}
+ model:SetAttribute('VehicleSignalsReady',true); model:SetAttribute('VehicleSignalsVersion','v1.45'); model:SetAttribute('VehicleSignalDriverPresent',false)
+end
+
+local function lamp(p,on,a,i) if p and p.Parent then p.Transparency=on and a or i end end
+local function pair(a,b,on) lamp(a,on,.05,.9); lamp(b,on,.05,.9) end
+local function allOff(x)
+ lamp(x.left,false,.08,.72); lamp(x.right,false,.08,.72); lamp(x.reverse,false,.12,.88); pair(x.tlf,x.tlr,false); pair(x.trf,x.trr,false)
+end
+local function scan() local r=Workspace:FindFirstChild(ROOT_NAME); local v=r and r:FindFirstChild('Vehicles'); if v then for _,m in ipairs(v:GetChildren()) do track(m) end end end
+
+scan(); local root=Workspace:FindFirstChild(ROOT_NAME); local vehicles=root and root:FindFirstChild('Vehicles'); if vehicles then vehicles.ChildAdded:Connect(function(c) task.defer(track,c) end) end
+while task.wait(1/UPDATE_HZ) do
+ if not vehicles or not vehicles.Parent then root=Workspace:FindFirstChild(ROOT_NAME); vehicles=root and root:FindFirstChild('Vehicles'); if vehicles then scan() end end
+ local blink=(os.clock()%BLINK_PERIOD)<BLINK_PERIOD*.5
+ for model,x in pairs(tracked) do
+  if not model.Parent or not x.chassis.Parent then tracked[model]=nil else
+   local driverPresent=x.seat.Occupant~=nil
+   model:SetAttribute('VehicleSignalDriverPresent',driverPresent)
+   if not driverPresent then
+    x.intent=0; x.lastSpeed=0; allOff(x)
+    model:SetAttribute('BrakeLightsActive',false); model:SetAttribute('ReverseLightActive',false); model:SetAttribute('TurnSignalLeftActive',false); model:SetAttribute('TurnSignalRightActive',false)
+   else
+    local vel=x.chassis.AssemblyLinearVelocity; local f=x.chassis.CFrame.LookVector:Dot(vel); local speed=math.abs(f); local throttle=x.seat.ThrottleFloat; local steer=x.seat.SteerFloat
+    local braking=speed>2 and (math.abs(throttle)<.05 and x.lastSpeed-speed>.45 or throttle*f<-.2); local reversing=throttle<-.05 or f< -2; local eligible=speed>=INDICATOR_MIN_SPEED or math.abs(throttle)>.08
+    if not eligible then x.intent=0 elseif steer<=-INDICATOR_STEER_THRESHOLD then x.intent=-1 elseif steer>=INDICATOR_STEER_THRESHOLD then x.intent=1 elseif math.abs(steer)<=INDICATOR_CANCEL_THRESHOLD then x.intent=0 end
+    local li=x.intent==-1; local ri=x.intent==1; lamp(x.left,braking,.08,.72); lamp(x.right,braking,.08,.72); lamp(x.reverse,reversing,.12,.88); pair(x.tlf,x.tlr,li and blink); pair(x.trf,x.trr,ri and blink)
+    model:SetAttribute('BrakeLightsActive',braking); model:SetAttribute('ReverseLightActive',reversing); model:SetAttribute('TurnSignalLeftActive',li); model:SetAttribute('TurnSignalRightActive',ri); x.lastSpeed=speed
+   end
+  end
+ end
+end
+
+Workspace:SetAttribute('ACC_BecakVehicleSignals','v1.45'); Workspace:SetAttribute('BecakBrakeLights','ON'); Workspace:SetAttribute('BecakReverseLight','ON'); Workspace:SetAttribute('BecakAutoTurnIndicators','ON'); Workspace:SetAttribute('BecakIndicatorHysteresis','ON'); Workspace:SetAttribute('BecakDriverAwareSignals','ON'); Workspace:SetAttribute('BecakIndicatorSteerThreshold',INDICATOR_STEER_THRESHOLD); Workspace:SetAttribute('BecakIndicatorCancelThreshold',INDICATOR_CANCEL_THRESHOLD); Workspace:SetAttribute('BecakVehicleSignalsHz',UPDATE_HZ)
+print('[BECAK E-BIKE] vehicle signals v1.45 ready • driver-aware idle shutdown • stable mobile indicators • physics-safe')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="CH"><Properties><string name="Name">BecakEBike_ChargingNetwork</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — charging network v1.16
+-- Expands charging beyond HQ with lightweight, economy-backed public chargers.
+-- Uses the isolated Becak EconomyTransaction BindableFunction and vehicle Battery attributes.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local vehicles = root:WaitForChild('Vehicles',20)
+local interactives = root:WaitForChild('Interactives',20)
+local economy = root:WaitForChild('EconomyTransaction',20)
+local remotes = ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+if not vehicles or not interactives or not economy or not remotes then return end
+local toast = remotes:WaitForChild('Toast')
+
+local PRICE_PER_UNIT = 55
+local EMERGENCY_THRESHOLD = 10
+local EMERGENCY_GRANT = 12
+
+local function playerBecak(player)
+    for _,m in ipairs(vehicles:GetChildren()) do
+        if m:IsA('Model') and m:GetAttribute('OwnerUserId') == player.UserId then return m end
+    end
+end
+
+local function transact(player,amount,reason)
+    local ok,result = pcall(function()
+        return economy:Invoke(player,amount,0,reason)
+    end)
+    return ok and result == true
+end
+
+local function label(part,text)
+    local g=Instance.new('BillboardGui')
+    g.Size=UDim2.fromOffset(180,46)
+    g.StudsOffset=Vector3.new(0,4,0)
+    g.AlwaysOnTop=false
+    g.MaxDistance=70
+    g.Parent=part
+    local t=Instance.new('TextLabel')
+    t.Size=UDim2.fromScale(1,1)
+    t.BackgroundTransparency=.18
+    t.BackgroundColor3=Color3.fromRGB(12,24,20)
+    t.TextColor3=Color3.fromRGB(225,255,235)
+    t.TextSize=13
+    t.TextWrapped=true
+    t.Font=Enum.Font.GothamBold
+    t.Text=text
+    t.Parent=g
+end
+
+local network = interactives:FindFirstChild('ChargingNetwork')
+if network then network:Destroy() end
+network = Instance.new('Folder')
+network.Name='ChargingNetwork'
+network.Parent=interactives
+
+local stations={
+    {name='HQ',pos=Vector3.new(-45,.55,-112)},
+    {name='Pasar Nusantara',pos=Vector3.new(-335,.55,330)},
+    {name='Pusat Kota',pos=Vector3.new(190,.55,120)},
+    {name='Terminal Raya',pos=Vector3.new(420,.55,35)},
+    {name='Pantai Bahari',pos=Vector3.new(305,.55,-330)},
+}
+
+local function chargePlayer(player,stationName)
+    local b=playerBecak(player)
+    if not b then toast:FireClient(player,'Becak E-Bike belum tersedia.') return end
+    local max=tonumber(b:GetAttribute('BatteryMax')) or 100
+    local current=math.clamp(tonumber(b:GetAttribute('Battery')) or max,0,max)
+    local missing=math.max(0,max-current)
+    if missing < .5 then toast:FireClient(player,'Baterai sudah penuh.') return end
+
+    -- Emergency assist prevents a stranded player from being trapped by economy state.
+    if current <= EMERGENCY_THRESHOLD then
+        local grant=math.min(EMERGENCY_GRANT,missing)
+        b:SetAttribute('Battery',math.min(max,current+grant))
+        current=tonumber(b:GetAttribute('Battery')) or current
+        missing=math.max(0,max-current)
+        toast:FireClient(player,'Emergency charge +'..math.floor(grant)..'% • gratis')
+        if missing < .5 then return end
+    end
+
+    local cost=math.max(1,math.ceil(missing*PRICE_PER_UNIT))
+    if not transact(player,-cost,'public_charge') then
+        toast:FireClient(player,'Charging penuh butuh Rp'..cost..'. Saldo belum cukup.')
+        return
+    end
+    b:SetAttribute('Battery',max)
+    player:SetAttribute('ChargingVisits',(player:GetAttribute('ChargingVisits') or 0)+1)
+    player:SetAttribute('LastChargingStation',stationName)
+    toast:FireClient(player,'Charging '..stationName..' selesai • Rp'..cost..' • 100%')
+end
+
+for i,s in ipairs(stations) do
+    local pad=Instance.new('Part')
+    pad.Name='PublicCharger_'..i
+    pad.Size=Vector3.new(18,.45,13)
+    pad.CFrame=CFrame.new(s.pos)
+    pad.Anchored=true
+    pad.CanCollide=false
+    pad.CanTouch=false
+    pad.CanQuery=true
+    pad.Material=Enum.Material.Neon
+    pad.Color=Color3.fromRGB(45,185,105)
+    pad.Transparency=.25
+    pad:SetAttribute('StationName',s.name)
+    pad.Parent=network
+    label(pad,'CHARGING • '..s.name)
+    local p=Instance.new('ProximityPrompt')
+    p.ActionText='Isi Baterai'
+    p.ObjectText='E-Bike Charger • Rp'..PRICE_PER_UNIT..'/%'
+    p.HoldDuration=.55
+    p.MaxActivationDistance=12
+    p.RequiresLineOfSight=false
+    p.Parent=pad
+    p.Triggered:Connect(function(player) chargePlayer(player,s.name) end)
+end
+
+local function setupPlayer(player)
+    if player:GetAttribute('ChargingVisits')==nil then player:SetAttribute('ChargingVisits',0) end
+end
+for _,p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
+Players.PlayerAdded:Connect(setupPlayer)
+
+Workspace:SetAttribute('ACC_BecakChargingNetwork','v1.16')
+Workspace:SetAttribute('BecakChargingStationCount',#stations)
+Workspace:SetAttribute('BecakEmergencyCharging','ON')
+Workspace:SetAttribute('BecakChargingPricePerUnit',PRICE_PER_UNIT)
+print('[BECAK E-BIKE] charging network v1.16 ready • '..#stations..' stations • emergency assist ON')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="DC"><Properties><string name="Name">BecakEBike_DailyContracts</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — daily contracts v1.17
+-- Lightweight persistent daily goals that extend the passenger/cargo/charging loop.
+
+local Players = game:GetService('Players')
+local DataStoreService = game:GetService('DataStoreService')
+local Workspace = game:GetService('Workspace')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local economy = root:WaitForChild('EconomyTransaction',20)
+local remotes = ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+if not economy or not remotes then return end
+local toast = remotes:WaitForChild('Toast')
+
+local store = DataStoreService:GetDataStore('BecakDailyContractsV1')
+local playerState = {}
+local lastCounters = {}
+
+local CONTRACTS = {
+    passenger = {goal=3, reward=18000, xp=45, label='Antar 3 penumpang'},
+    cargo = {goal=2, reward=24000, xp=55, label='Kirim 2 cargo'},
+    charge = {goal=1, reward=8000, xp=20, label='Charging 1 kali'},
+}
+
+local function utcDay()
+    return os.date('!%Y-%m-%d')
+end
+
+local function freshState(player)
+    return {
+        day=utcDay(),
+        tripStart=player:GetAttribute('BecakTrips') or 0,
+        progress={passenger=0,cargo=0,charge=0},
+        claimed={passenger=false,cargo=false,charge=false},
+    }
+end
+
+local function sanitize(player,raw)
+    if type(raw)~='table' or raw.day~=utcDay() then return freshState(player) end
+    raw.progress=type(raw.progress)=='table' and raw.progress or {}
+    raw.claimed=type(raw.claimed)=='table' and raw.claimed or {}
+    raw.tripStart=tonumber(raw.tripStart) or (player:GetAttribute('BecakTrips') or 0)
+    for id in pairs(CONTRACTS) do
+        raw.progress[id]=math.max(0,math.floor(tonumber(raw.progress[id]) or 0))
+        raw.claimed[id]=raw.claimed[id]==true
+    end
+    return raw
+end
+
+local function save(player)
+    local state=playerState[player]
+    if not state then return end
+    local key='u_'..player.UserId
+    pcall(function() store:SetAsync(key,state) end)
+end
+
+local function transact(player,amount,xp,reason)
+    local ok,result=pcall(function() return economy:Invoke(player,amount,xp,reason) end)
+    return ok and result==true
+end
+
+local function publishAttributes(player,state)
+    local completed=0
+    for id,c in pairs(CONTRACTS) do
+        local progress=math.min(c.goal,state.progress[id] or 0)
+        player:SetAttribute('DailyContract_'..id..'_Progress',progress)
+        player:SetAttribute('DailyContract_'..id..'_Goal',c.goal)
+        player:SetAttribute('DailyContract_'..id..'_Claimed',state.claimed[id]==true)
+        if state.claimed[id] then completed+=1 end
+    end
+    player:SetAttribute('DailyContractDay',state.day)
+    player:SetAttribute('DailyContractsCompleted',completed)
+    player:SetAttribute('DailyContractsTotal',3)
+end
+
+local function tryClaim(player,id)
+    local state=playerState[player]
+    local c=CONTRACTS[id]
+    if not state or not c or state.claimed[id] then return false end
+    if (state.progress[id] or 0)<c.goal then return false end
+    if not transact(player,c.reward,c.xp,'daily_contract_'..id) then return false end
+    state.claimed[id]=true
+    publishAttributes(player,state)
+    toast:FireClient(player,'Kontrak harian selesai • '..c.label..' • +Rp'..c.reward..' +'..c.xp..' XP')
+    save(player)
+    return true
+end
+
+local function addProgress(player,id,delta)
+    local state=playerState[player]
+    local c=CONTRACTS[id]
+    if not state or not c or state.claimed[id] then return end
+    state.progress[id]=math.min(c.goal,(state.progress[id] or 0)+math.max(0,delta or 0))
+    publishAttributes(player,state)
+    tryClaim(player,id)
+end
+
+local function setupPlayer(player)
+    local key='u_'..player.UserId
+    local raw
+    pcall(function() raw=store:GetAsync(key) end)
+    local state=sanitize(player,raw)
+    playerState[player]=state
+    local totalTrips=player:GetAttribute('BecakTrips') or 0
+    state.progress.passenger=math.max(state.progress.passenger or 0,totalTrips-state.tripStart)
+    lastCounters[player]={trips=totalTrips,cargo=player:GetAttribute('CargoJobs') or 0,charge=player:GetAttribute('ChargingVisits') or 0}
+    publishAttributes(player,state)
+    for id in pairs(CONTRACTS) do tryClaim(player,id) end
+    task.delay(6,function()
+        if player.Parent then
+            toast:FireClient(player,'Kontrak harian • 3 penumpang • 2 cargo • 1 charging')
+        end
+    end)
+end
+
+for _,player in ipairs(Players:GetPlayers()) do task.spawn(setupPlayer,player) end
+Players.PlayerAdded:Connect(function(player) task.spawn(setupPlayer,player) end)
+Players.PlayerRemoving:Connect(function(player)
+    save(player)
+    playerState[player]=nil
+    lastCounters[player]=nil
+end)
+
+task.spawn(function()
+    while root.Parent do
+        task.wait(1)
+        for _,player in ipairs(Players:GetPlayers()) do
+            local state=playerState[player]
+            local last=lastCounters[player]
+            if state and last then
+                if state.day~=utcDay() then
+                    state=freshState(player)
+                    playerState[player]=state
+                    last.trips=player:GetAttribute('BecakTrips') or 0
+                    last.cargo=player:GetAttribute('CargoJobs') or 0
+                    last.charge=player:GetAttribute('ChargingVisits') or 0
+                    publishAttributes(player,state)
+                    save(player)
+                    toast:FireClient(player,'Kontrak harian baru tersedia.')
+                end
+                local trips=player:GetAttribute('BecakTrips') or 0
+                local cargo=player:GetAttribute('CargoJobs') or 0
+                local charge=player:GetAttribute('ChargingVisits') or 0
+                if trips>last.trips then addProgress(player,'passenger',trips-last.trips) end
+                if cargo>last.cargo then addProgress(player,'cargo',cargo-last.cargo) end
+                if charge>last.charge then addProgress(player,'charge',charge-last.charge) end
+                last.trips,last.cargo,last.charge=trips,cargo,charge
+            end
+        end
+    end
+end)
+
+Workspace:SetAttribute('ACC_BecakDailyContracts','v1.17')
+Workspace:SetAttribute('BecakDailyContractCount',3)
+Workspace:SetAttribute('BecakDailyContractsPersistent','ON')
+print('[BECAK E-BIKE] daily contracts v1.17 ready • passenger + cargo + charging')]]></ProtectedString></Properties></Item><Item class="Script" referent="ST"><Properties><string name="Name">BecakEBike_StoryProgression</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — story progression v1.21
+-- Story chapters unlock reputation-based cargo and passenger service bonuses without adding a second economy system.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+
+local CHAPTERS = {
+    {min=0,   nextGoal=10,  title='Awal Perjalanan',      rep='Pendatang',   jobTier='Pemula',      cargoMultiplier=1.00, passengerMultiplier=1.00, objective='Selesaikan 10 trip untuk dikenal warga Nusakarya.'},
+    {min=10,  nextGoal=25,  title='Mulai Dipercaya',      rep='Warga Kenal', jobTier='Lokal',       cargoMultiplier=1.05, passengerMultiplier=1.03, objective='Capai 25 trip dan bangun reputasi layanan.'},
+    {min=25,  nextGoal=50,  title='Pengemudi Andalan',    rep='Terpercaya',  jobTier='Profesional', cargoMultiplier=1.10, passengerMultiplier=1.06, objective='Capai 50 trip untuk membuka kontrak cargo bernilai lebih tinggi.'},
+    {min=50,  nextGoal=100, title='Nama Besar Nusakarya', rep='Andalan Kota',jobTier='Prioritas',    cargoMultiplier=1.15, passengerMultiplier=1.10, objective='Capai 100 trip dan kuasai rute seluruh kota.'},
+    {min=100, nextGoal=nil, title='Legenda Jalanan',      rep='Legenda',     jobTier='Elite',        cargoMultiplier=1.25, passengerMultiplier=1.15, objective='Pertahankan rating, selesaikan kontrak, dan bantu ekonomi kota.'},
+}
+
+local function chapterForTrips(trips)
+    local chapter = 1
+    for i,c in ipairs(CHAPTERS) do
+        if trips >= c.min then chapter = i else break end
+    end
+    return chapter, CHAPTERS[chapter]
+end
+
+local function sync(player)
+    local trips = math.max(0, tonumber(player:GetAttribute('BecakTrips')) or 0)
+    local chapter, data = chapterForTrips(trips)
+    local progressStart = data.min
+    local nextGoal = data.nextGoal
+
+    player:SetAttribute('StoryChapter', chapter)
+    player:SetAttribute('StoryChapterTitle', data.title)
+    player:SetAttribute('StoryReputation', data.rep)
+    player:SetAttribute('StoryObjective', data.objective)
+    player:SetAttribute('StoryProgressStart', progressStart)
+    player:SetAttribute('StoryProgressTrips', math.max(0, trips-progressStart))
+    player:SetAttribute('StoryNextTripGoal', nextGoal or trips)
+    player:SetAttribute('StoryMaxChapter', #CHAPTERS)
+    player:SetAttribute('StoryComplete', nextGoal == nil)
+    player:SetAttribute('StoryJobTier', data.jobTier)
+    player:SetAttribute('StoryCargoRewardMultiplier', data.cargoMultiplier)
+    player:SetAttribute('StoryCargoRewardBonusPct', math.floor((data.cargoMultiplier-1)*100+.5))
+    player:SetAttribute('StoryPassengerRewardMultiplier', data.passengerMultiplier)
+    player:SetAttribute('StoryPassengerRewardBonusPct', math.floor((data.passengerMultiplier-1)*100+.5))
+end
+
+local function setup(player)
+    sync(player)
+    player:GetAttributeChangedSignal('BecakTrips'):Connect(function()
+        if player.Parent then sync(player) end
+    end)
+end
+
+for _,player in ipairs(Players:GetPlayers()) do setup(player) end
+Players.PlayerAdded:Connect(setup)
+
+Workspace:SetAttribute('ACC_BecakStoryProgression','v1.21')
+Workspace:SetAttribute('BecakStoryChapterCount',#CHAPTERS)
+Workspace:SetAttribute('BecakReputationSystem','ON')
+Workspace:SetAttribute('BecakReputationCargoTiers','ON')
+Workspace:SetAttribute('BecakReputationPassengerTiers','ON')
+print('[BECAK E-BIKE] story progression v1.21 ready • 5 chapters + cargo/passenger reputation tiers')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RC"><Properties><string name="Name">BecakEBike_ReputationCargo</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — reputation cargo rewards v1.20
+-- Adds chapter-based cargo bonuses on top of the existing cargo payout without changing the base cargo loop.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local economy = root:WaitForChild('EconomyTransaction',20)
+local remotes = ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+if not economy or not remotes then return end
+local toast = remotes:WaitForChild('Toast')
+
+local BASE_CARGO_REWARD = 35000
+local lastCargo = {}
+
+local function transact(player,amount,reason)
+    if amount <= 0 then return true end
+    local ok,result = pcall(function()
+        return economy:Invoke(player,amount,0,reason)
+    end)
+    return ok and result == true
+end
+
+local function rewardBonus(player,completedCount)
+    local multiplier = tonumber(player:GetAttribute('StoryCargoRewardMultiplier')) or 1
+    multiplier = math.clamp(multiplier,1,1.25)
+    local perJob = math.max(0,math.floor(BASE_CARGO_REWARD*(multiplier-1)+.5))
+    if perJob <= 0 or completedCount <= 0 then return end
+    local bonus = perJob * completedCount
+    if transact(player,bonus,'reputation_cargo_bonus') then
+        local tier = tostring(player:GetAttribute('StoryJobTier') or 'Pemula')
+        toast:FireClient(player,string.format('Bonus reputasi cargo • %s • +Rp%d',tier,bonus))
+    end
+end
+
+local function setup(player)
+    lastCargo[player] = math.max(0,tonumber(player:GetAttribute('CargoJobs')) or 0)
+    player:GetAttributeChangedSignal('CargoJobs'):Connect(function()
+        if not player.Parent then return end
+        local current = math.max(0,tonumber(player:GetAttribute('CargoJobs')) or 0)
+        local previous = lastCargo[player] or current
+        if current > previous then rewardBonus(player,current-previous) end
+        lastCargo[player] = current
+    end)
+end
+
+for _,player in ipairs(Players:GetPlayers()) do setup(player) end
+Players.PlayerAdded:Connect(setup)
+Players.PlayerRemoving:Connect(function(player) lastCargo[player]=nil end)
+
+Workspace:SetAttribute('ACC_BecakReputationCargo','v1.20')
+Workspace:SetAttribute('BecakReputationCargoBaseReward',BASE_CARGO_REWARD)
+Workspace:SetAttribute('BecakReputationCargoBonusMaxPct',25)
+print('[BECAK E-BIKE] reputation cargo v1.20 ready • chapter bonus up to +25%')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RP"><Properties><string name="Name">BecakEBike_ReputationPassenger</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — reputation passenger rewards v1.21
+-- Adds chapter-based passenger service bonuses using the actual completed trip base reward.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local economy = root:WaitForChild('EconomyTransaction',20)
+local remotes = ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+if not economy or not remotes then return end
+local toast = remotes:WaitForChild('Toast')
+
+local lastTrips = {}
+
+local function transact(player,amount,reason)
+    if amount <= 0 then return true end
+    local ok,result = pcall(function()
+        return economy:Invoke(player,amount,0,reason)
+    end)
+    return ok and result == true
+end
+
+local function rewardBonus(player,completedCount)
+    local baseReward = math.max(0,math.floor(tonumber(player:GetAttribute('BecakLastTripBaseReward')) or 0))
+    if baseReward <= 0 or completedCount <= 0 then return end
+    local multiplier = tonumber(player:GetAttribute('StoryPassengerRewardMultiplier')) or 1
+    multiplier = math.clamp(multiplier,1,1.15)
+    local perTrip = math.max(0,math.floor(baseReward*(multiplier-1)+.5))
+    if perTrip <= 0 then return end
+    local bonus = perTrip * completedCount
+    if transact(player,bonus,'reputation_passenger_bonus') then
+        local tier = tostring(player:GetAttribute('StoryJobTier') or 'Pemula')
+        toast:FireClient(player,string.format('Bonus layanan penumpang • %s • +Rp%d',tier,bonus))
+    end
+end
+
+local function setup(player)
+    lastTrips[player] = math.max(0,tonumber(player:GetAttribute('BecakTrips')) or 0)
+    player:GetAttributeChangedSignal('BecakTrips'):Connect(function()
+        if not player.Parent then return end
+        local current = math.max(0,tonumber(player:GetAttribute('BecakTrips')) or 0)
+        local previous = lastTrips[player] or current
+        if current > previous then rewardBonus(player,current-previous) end
+        lastTrips[player] = current
+    end)
+end
+
+for _,player in ipairs(Players:GetPlayers()) do setup(player) end
+Players.PlayerAdded:Connect(setup)
+Players.PlayerRemoving:Connect(function(player) lastTrips[player]=nil end)
+
+Workspace:SetAttribute('ACC_BecakReputationPassenger','v1.21')
+Workspace:SetAttribute('BecakReputationPassengerBonusMaxPct',15)
+Workspace:SetAttribute('BecakReputationPassengerUsesActualFare','ON')
+print('[BECAK E-BIKE] reputation passenger v1.21 ready • actual-fare chapter bonus up to +15%')
+]]></ProtectedString></Properties></Item><Item class="Script" referent="ACH"><Properties><string name="Name">BecakEBike_Achievements</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — persistent achievements v1.23
+-- One-time trip milestones backed by a dedicated Becak-only DataStore.
+-- Rewards are persisted before payout to prevent rejoin farming.
+-- v1.23 exposes live milestone progress for the left-side mission/story phone UI.
+
+local Players = game:GetService('Players')
+local DataStoreService = game:GetService('DataStoreService')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local Workspace = game:GetService('Workspace')
+
+local root = Workspace:WaitForChild('BecakEBike',20)
+if not root then return end
+local economy = root:WaitForChild('EconomyTransaction',20)
+local remotes = ReplicatedStorage:WaitForChild('BecakEBikeRemotes',20)
+if not economy or not remotes then return end
+local toast = remotes:WaitForChild('Toast')
+local store = DataStoreService:GetDataStore('ACC_BecakAchievements_v1')
+
+local ACHIEVEMENTS = {
+    {id='trip_1', trips=1, title='Perjalanan Pertama', money=5000, xp=20},
+    {id='trip_10', trips=10, title='Pengemudi Lokal', money=15000, xp=50},
+    {id='trip_25', trips=25, title='Andalan Nusakarya', money=30000, xp=90},
+    {id='trip_50', trips=50, title='Pengemudi Profesional', money=60000, xp=160},
+    {id='trip_100', trips=100, title='Legenda Jalanan', money=125000, xp=300},
+}
+
+local state = {}
+local checking = {}
+
+local function key(player)
+    return 'u_'..player.UserId
+end
+
+local function setSummary(player,awarded)
+    local count=0
+    local trips=tonumber(player:GetAttribute('BecakTrips')) or 0
+    local nextAchievement=nil
+    for _,a in ipairs(ACHIEVEMENTS) do
+        local unlocked = awarded[a.id] == true or awarded[a.id] ~= nil
+        player:SetAttribute('BecakAchievement_'..a.id..'_Unlocked',unlocked)
+        if unlocked then
+            count+=1
+        elseif not nextAchievement then
+            nextAchievement=a
+        end
+    end
+    player:SetAttribute('BecakAchievementsUnlocked',count)
+    player:SetAttribute('BecakAchievementsTotal',#ACHIEVEMENTS)
+    if nextAchievement then
+        player:SetAttribute('BecakAchievementNextTitle',nextAchievement.title)
+        player:SetAttribute('BecakAchievementNextTrips',nextAchievement.trips)
+        player:SetAttribute('BecakAchievementNextRemaining',math.max(0,nextAchievement.trips-trips))
+    else
+        player:SetAttribute('BecakAchievementNextTitle','Semua Prestasi Selesai')
+        player:SetAttribute('BecakAchievementNextTrips',trips)
+        player:SetAttribute('BecakAchievementNextRemaining',0)
+    end
+end
+
+local function persistUnlock(player,achievement)
+    local unlocked = false
+    local ok, result = pcall(function()
+        return store:UpdateAsync(key(player),function(old)
+            old = type(old)=='table' and old or {}
+            old.awarded = type(old.awarded)=='table' and old.awarded or {}
+            if old.awarded[achievement.id] then return old end
+            old.awarded[achievement.id] = os.time()
+            unlocked = true
+            return old
+        end)
+    end)
+    return ok and result ~= nil, unlocked
+end
+
+local function reward(player,a)
+    local ok,result = pcall(function()
+        return economy:Invoke(player,a.money,a.xp,'achievement_'..a.id)
+    end)
+    if ok and result == true then
+        toast:FireClient(player,'Achievement: '..a.title..' • +Rp'..a.money..' +'..a.xp..' XP')
+        return true
+    end
+    return false
+end
+
+local function check(player)
+    if checking[player] or not player.Parent then return end
+    local data=state[player]
+    if not data or data.disabled then return end
+    checking[player]=true
+    local trips=tonumber(player:GetAttribute('BecakTrips')) or 0
+    for _,a in ipairs(ACHIEVEMENTS) do
+        if trips>=a.trips and not data.awarded[a.id] then
+            local persisted,newUnlock=persistUnlock(player,a)
+            if not persisted then
+                data.disabled=true
+                player:SetAttribute('BecakAchievementsPersistence','UNAVAILABLE')
+                break
+            end
+            data.awarded[a.id]=true
+            if newUnlock then reward(player,a) end
+        end
+    end
+    setSummary(player,data.awarded)
+    checking[player]=nil
+end
+
+local function setup(player)
+    player:SetAttribute('BecakAchievementsPersistence','LOADING')
+    local ok,saved=pcall(function() return store:GetAsync(key(player)) end)
+    if not ok then
+        state[player]={awarded={},disabled=true}
+        player:SetAttribute('BecakAchievementsPersistence','UNAVAILABLE')
+        setSummary(player,{})
+        return
+    end
+    local awarded = type(saved)=='table' and type(saved.awarded)=='table' and saved.awarded or {}
+    state[player]={awarded=awarded,disabled=false}
+    player:SetAttribute('BecakAchievementsPersistence','READY')
+    setSummary(player,awarded)
+    player:GetAttributeChangedSignal('BecakTrips'):Connect(function() check(player) end)
+    task.defer(check,player)
+end
+
+for _,player in ipairs(Players:GetPlayers()) do task.spawn(setup,player) end
+Players.PlayerAdded:Connect(function(player) task.spawn(setup,player) end)
+Players.PlayerRemoving:Connect(function(player) state[player]=nil;checking[player]=nil end)
+
+Workspace:SetAttribute('ACC_BecakAchievements','v1.23')
+Workspace:SetAttribute('BecakAchievementCount',#ACHIEVEMENTS)
+Workspace:SetAttribute('BecakAchievementsPersistent','ON')
+Workspace:SetAttribute('BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT')
+Workspace:SetAttribute('BecakAchievementUIProgress','ON')
+print('[BECAK E-BIKE] achievements v1.23 ready • persistent milestones + live UI progress')
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="PL"><Properties><string name="Name">BecakEBike_Polish</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — World polish v1.5
 -- Converts passenger markers into lightweight human silhouettes and adds service-zone props.
 local Workspace=game:GetService('Workspace')
@@ -945,8 +2647,8 @@ end
 
 Workspace:SetAttribute('ACC_BecakWorldPolish','v1.5')
 print('[BECAK E-BIKE] World polish v1.5 ready')
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — road access + drivability hotfix v1.9
--- Makes road/grass/sidewalk transitions seamless for the low Cargo E-Bike 01 chassis.
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — road access + drivability hardening v1.34
+-- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
 -- Dedicated to maps/becak-e-bike only.
 
 local Workspace = game:GetService('Workspace')
@@ -957,6 +2659,59 @@ if not root then return end
 local world = root:WaitForChild('Nusakarya',30)
 local vehicles = root:WaitForChild('Vehicles',30)
 if not world or not vehicles then return end
+
+local seamParts = 0
+local seamRegistry = {}
+
+local function isRoadEdgeName(name)
+    local n = string.lower(name)
+    return string.match(name,'^Sidewalk_') ~= nil
+        or string.find(n,'sidewalk',1,true) ~= nil
+        or string.find(n,'trotoar',1,true) ~= nil
+        or string.find(n,'pavement',1,true) ~= nil
+        or string.find(n,'footpath',1,true) ~= nil
+        or string.find(n,'walkway',1,true) ~= nil
+        or string.find(n,'walk_path',1,true) ~= nil
+        or string.find(n,'pedestrian_path',1,true) ~= nil
+        or string.find(n,'kerbstone',1,true) ~= nil
+        or string.find(n,'curbstone',1,true) ~= nil
+        or string.find(n,'roadedge',1,true) ~= nil
+        or string.find(n,'road_edge',1,true) ~= nil
+        or string.match(n,'^curb') ~= nil
+        or string.match(n,'^kerb') ~= nil
+        or string.find(n,'curbcut',1,true) ~= nil
+        or string.find(n,'curb_cut',1,true) ~= nil
+end
+
+-- City kits often use generic child names such as "Part" inside a Folder/Model named
+-- Trotoar, Sidewalk, Curb, or Pavement. Checking ancestors closes that hole without
+-- disabling collision on unrelated buildings, walls, props, or fences.
+local function isRoadEdgePart(p)
+    if isRoadEdgeName(p.Name) then return true end
+    local ancestor = p.Parent
+    while ancestor and ancestor ~= world do
+        if isRoadEdgeName(ancestor.Name) then return true end
+        ancestor = ancestor.Parent
+    end
+    return false
+end
+
+local function flattenVisualSurface(p, attributeName)
+    p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
+    p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
+    p.CanCollide = false
+    p.CanTouch = false
+    p.CanQuery = true
+    if attributeName then p:SetAttribute(attributeName,true) end
+    p:SetAttribute('BecakDriveSurface',true)
+end
+
+local function registerSeamPart(p)
+    if seamRegistry[p] then return false end
+    seamRegistry[p] = true
+    seamParts += 1
+    return true
+end
 
 local function tuneRoadSurface(p)
     if not p:IsA('BasePart') then return end
@@ -970,26 +2725,17 @@ local function tuneRoadSurface(p)
             return
         end
         -- Road is a visual skin over the continuous playable ground.
-        p.CanCollide = false
-        p.CanTouch = false
-        p.CanQuery = true
-        p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
-        p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
-        p:SetAttribute('BecakDriveSurface',true)
+        flattenVisualSurface(p,'BecakRoadSkin')
         return
     end
 
-    -- v1.9: sidewalks are visual-only. Even a shallow physical curb could still catch
-    -- the low chassis at oblique angles on mobile steering. The continuous ground below
-    -- now owns collision, so every grass -> sidewalk -> road transition is step-free.
-    if string.match(p.Name,'^Sidewalk_') then
-        p.Size = Vector3.new(p.Size.X,0.10,p.Size.Z)
-        p.CFrame = CFrame.new(p.Position.X,0.055,p.Position.Z) * (p.CFrame - p.CFrame.Position)
-        p.CanCollide = false
-        p.CanTouch = false
-        p.CanQuery = true
+    -- v1.34: normalize curb/trotoar aliases on the part OR any parent container, then
+    -- keep a cached registry so the runtime audit never rescans the entire city tree.
+    if isRoadEdgePart(p) then
+        flattenVisualSurface(p,'BecakSeamlessRoadEdge')
         p:SetAttribute('BecakSeamlessSidewalk',true)
         p:SetAttribute('BecakMountableCurb',true)
+        registerSeamPart(p)
     end
 end
 
@@ -997,13 +2743,19 @@ for _,x in ipairs(world:GetDescendants()) do tuneRoadSurface(x) end
 world.DescendantAdded:Connect(function(x)
     task.defer(function() tuneRoadSurface(x) end)
 end)
+world.DescendantRemoving:Connect(function(x)
+    if seamRegistry[x] then
+        seamRegistry[x] = nil
+        seamParts = math.max(0,seamParts-1)
+    end
+end)
 
 -- Broad, flat driveway from the HQ/spawn lawn to the nearest road.
 local oldDriveway = world:FindFirstChild('HQ_Driveway')
 if oldDriveway then oldDriveway:Destroy() end
 local driveway = Instance.new('Part')
 driveway.Name='HQ_Driveway'
-driveway.Size=Vector3.new(30,0.08,82)
+driveway.Size=Vector3.new(36,0.08,88)
 driveway.CFrame=CFrame.new(-80,0.05,-47)
 driveway.Anchored=true
 driveway.CanCollide=false
@@ -1015,7 +2767,7 @@ driveway:SetAttribute('Purpose','Seamless HQ road access')
 driveway:SetAttribute('BecakDriveSurface',true)
 driveway.Parent=world
 
--- Visible curb-cut strips remain as navigation/readability cues, but never block physics.
+-- Visible curb-cut strips remain navigation/readability cues, but never block physics.
 local curbCuts = world:FindFirstChild('BecakCurbCuts')
 if curbCuts then curbCuts:Destroy() end
 curbCuts=Instance.new('Folder')
@@ -1036,19 +2788,19 @@ local function curbCut(name,size,cf)
     p:SetAttribute('BecakDriveSurface',true)
     p.Parent=curbCuts
 end
-curbCut('CurbCut_Merdeka_N',Vector3.new(22,0.08,10),CFrame.new(-80,0.05,-25))
-curbCut('CurbCut_Merdeka_S',Vector3.new(22,0.08,10),CFrame.new(-80,0.05,25))
-curbCut('CurbCut_Nusantara_W',Vector3.new(10,0.08,22),CFrame.new(-25,0.05,-40))
-curbCut('CurbCut_Nusantara_E',Vector3.new(10,0.08,22),CFrame.new(25,0.05,-40))
+curbCut('CurbCut_Merdeka_N',Vector3.new(26,0.08,12),CFrame.new(-80,0.05,-25))
+curbCut('CurbCut_Merdeka_S',Vector3.new(26,0.08,12),CFrame.new(-80,0.05,25))
+curbCut('CurbCut_Nusantara_W',Vector3.new(12,0.08,26),CFrame.new(-25,0.05,-40))
+curbCut('CurbCut_Nusantara_E',Vector3.new(12,0.08,26),CFrame.new(25,0.05,-40))
 
 -- Low-friction, stable chassis tune. Movement remains owned by the existing runtime controller.
 local function tuneVehicle(model)
     if not model:IsA('Model') then return end
     local chassis=model:FindFirstChild('Chassis') or model.PrimaryPart
     if not chassis or not chassis:IsA('BasePart') then return end
-    chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.18,0.04,1,1)
+    chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.9')
+    model:SetAttribute('RoadAccessTune','v1.34')
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m)
@@ -1056,27 +2808,64 @@ vehicles.ChildAdded:Connect(function(m)
     tuneVehicle(m)
 end)
 
--- Conservative recovery: only rescue vehicles that actually fall below playable ground.
-local acc=0
+-- Runtime seam audit: audit only the known road-edge registry instead of calling
+-- world:GetDescendants() every 0.5s. This keeps self-healing behavior while avoiding
+-- repeated O(world-size) scans as Nusakarya grows.
+local auditAcc=0
+local recoveryAcc=0
 RunService.Heartbeat:Connect(function(dt)
-    acc += dt
-    if acc < 0.5 then return end
-    acc=0
-    for _,m in ipairs(vehicles:GetChildren()) do
-        local ch=m:IsA('Model') and (m:FindFirstChild('Chassis') or m.PrimaryPart)
-        if ch and ch:IsA('BasePart') and ch.Position.Y < -6 then
-            ch.AssemblyLinearVelocity=Vector3.zero
-            ch.AssemblyAngularVelocity=Vector3.zero
-            ch.CFrame=CFrame.new(-80,2.8,-38) * CFrame.Angles(0,math.rad(180),0)
+    auditAcc += dt
+    recoveryAcc += dt
+
+    if auditAcc >= 0.5 then
+        auditAcc=0
+        local repaired=0
+        local stale=0
+        for p in pairs(seamRegistry) do
+            if not p.Parent or not p:IsDescendantOf(world) then
+                seamRegistry[p] = nil
+                seamParts = math.max(0,seamParts-1)
+                stale += 1
+            elseif p:IsA('BasePart') and p.CanCollide then
+                flattenVisualSurface(p,'BecakSeamlessRoadEdge')
+                p:SetAttribute('BecakSeamlessSidewalk',true)
+                p:SetAttribute('BecakMountableCurb',true)
+                repaired += 1
+            end
+        end
+        if repaired > 0 then
+            Workspace:SetAttribute('BecakRoadEdgeAutoRepairs',(tonumber(Workspace:GetAttribute('BecakRoadEdgeAutoRepairs')) or 0)+repaired)
+        end
+        Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
+        Workspace:SetAttribute('BecakRoadEdgeRegistryStaleCleanups',(tonumber(Workspace:GetAttribute('BecakRoadEdgeRegistryStaleCleanups')) or 0)+stale)
+    end
+
+    -- Conservative recovery: only rescue vehicles that actually fall below playable ground.
+    if recoveryAcc >= 0.5 then
+        recoveryAcc=0
+        for _,m in ipairs(vehicles:GetChildren()) do
+            local ch=m:IsA('Model') and (m:FindFirstChild('Chassis') or m.PrimaryPart)
+            if ch and ch:IsA('BasePart') and ch.Position.Y < -6 then
+                ch.AssemblyLinearVelocity=Vector3.zero
+                ch.AssemblyAngularVelocity=Vector3.zero
+                ch.CFrame=CFrame.new(-80,2.8,-38) * CFrame.Angles(0,math.rad(180),0)
+            end
         end
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakRoadAccess','v1.9')
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.34')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
-print('[BECAK E-BIKE] Road access v1.9 active: collision-free sidewalks + seamless curb transitions')
-]]></ProtectedString></Properties></Item><Item class="Script" referent="WQ"><Properties><string name="Name">BecakEBike_WorldQC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — world readability/performance QC v1.7
+Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
+Workspace:SetAttribute('ACC_BecakRoadEdgeAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeAncestorAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeAliasAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeCachedAudit','ON')
+Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
+Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
+Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
+print('[BECAK E-BIKE] Road access v1.34 active: cached road-edge registry + seamless curb/trotoar self-heal')]]></ProtectedString></Properties></Item><Item class="Script" referent="WQ"><Properties><string name="Name">BecakEBike_WorldQC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — world readability/performance QC v1.7
 -- Prevents billboard clutter and removes avoidable collision/query cost from decorative parts.
 
 local Workspace=game:GetService('Workspace')
@@ -1470,11 +3259,14 @@ if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(updateSca
 updateScale()
 
 Workspace:SetAttribute('ACC_BecakPhoneUI','v1.5')
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MS"><Properties><string name="Name">BecakEBike_MobileSafeArea</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — mobile safe-area controller v1.8
--- Keeps the driver phone on the LEFT side as requested, below Roblox top controls and clear of vehicle controls.
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MS"><Properties><string name="Name">BecakEBike_MobileSafeArea</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — mobile safe-area controller v1.31
+-- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
+-- v1.31 also reserves the lower touch-control zone so the open phone cannot cover the movement thumbstick.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
+local GuiService=game:GetService('GuiService')
+local UserInputService=game:GetService('UserInputService')
 local RunService=game:GetService('RunService')
 
 local player=Players.LocalPlayer
@@ -1487,52 +3279,137 @@ if not phone or not launcher then return end
 local scaler=phone:FindFirstChildOfClass('UIScale')
 
 local camera=Workspace.CurrentCamera
-local function applySafeArea()
-    camera=Workspace.CurrentCamera or camera
-    local v=camera and camera.ViewportSize or Vector2.new(800,600)
-    local portrait=v.Y>v.X
+local lastKey=''
+local enforcing=false
+local enforcingScale=false
 
-    -- User preference: launcher on the left, but below Roblox top-left menu/chat/mic controls.
-    launcher.AnchorPoint=Vector2.new(0,0)
-    launcher.Position=portrait and UDim2.new(0,16,0,118) or UDim2.new(0,18,0,112)
-    launcher.Size=UDim2.fromOffset(portrait and 48 or 50,portrait and 48 or 50)
-
-    -- Phone opens on the left side. Leave a top safety band for Roblox CoreGui.
-    phone.AnchorPoint=Vector2.new(0,0)
-    if scaler then
-        if portrait then
-            scaler.Scale=math.clamp(math.min((v.X-24)/326,(v.Y-210)/566),0.60,0.78)
-        else
-            scaler.Scale=math.clamp(math.min((v.X*0.34)/326,(v.Y-168)/566),0.66,0.88)
-        end
+local function readInset()
+    local ok,topLeft,bottomRight=pcall(function()
+        return GuiService:GetGuiInset()
+    end)
+    if ok and typeof(topLeft)=='Vector2' and typeof(bottomRight)=='Vector2' then
+        return topLeft,bottomRight
     end
-    if phone.Visible then
-        phone.Position=portrait and UDim2.new(0,12,0,106) or UDim2.new(0,16,0,104)
-    end
+    return Vector2.zero,Vector2.zero
 end
 
-applySafeArea()
-launcher:GetPropertyChangedSignal('Visible'):Connect(applySafeArea)
-phone:GetPropertyChangedSignal('Visible'):Connect(applySafeArea)
-if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(applySafeArea) end
+local function layoutMetrics()
+    camera=Workspace.CurrentCamera or camera
+    local v=camera and camera.ViewportSize or Vector2.new(800,600)
+    local topLeft,bottomRight=readInset()
+    local portrait=v.Y>v.X
+    local touch=UserInputService.TouchEnabled
+    local topBand=math.max(104,math.floor(topLeft.Y+64))
+    local leftPad=math.max(12,math.floor(topLeft.X+12))
+    return v,topLeft,bottomRight,portrait,touch,topBand,leftPad
+end
+
+local function desiredScale()
+    local v,topLeft,bottomRight,portrait,touch,topBand=layoutMetrics()
+    local usableW=math.max(220,v.X-topLeft.X-bottomRight.X-24)
+    -- Reserve the lower-left thumb-control zone on touch devices. This keeps the phone readable
+    -- without covering DynamicThumbstick/vehicle movement controls on narrow landscape screens.
+    local controlReserve=18
+    if touch then controlReserve=portrait and 148 or 112 end
+    local usableH=math.max(260,v.Y-topBand-bottomRight.Y-controlReserve)
+    if portrait then
+        return math.clamp(math.min(usableW/326,usableH/566),0.52,0.80)
+    end
+    -- Keep the phone within the left third so steering/throttle controls remain clear.
+    return math.clamp(math.min((usableW*0.34)/326,usableH/566),0.54,0.88)
+end
+
+local function pinOpenPhone()
+    if enforcing or not phone.Visible then return end
+    enforcing=true
+    local _,_,_,_,_,topBand,leftPad=layoutMetrics()
+    local desired=UDim2.fromOffset(leftPad,topBand)
+    if phone.AnchorPoint~=Vector2.new(0,0) then phone.AnchorPoint=Vector2.new(0,0) end
+    if phone.Position~=desired then phone.Position=desired end
+    enforcing=false
+end
+
+local function pinScale()
+    if enforcingScale or not scaler then return end
+    enforcingScale=true
+    local target=desiredScale()
+    if math.abs(scaler.Scale-target)>0.001 then scaler.Scale=target end
+    enforcingScale=false
+end
+
+local function applySafeArea(force)
+    local v,topLeft,bottomRight,portrait,touch,topBand,leftPad=layoutMetrics()
+
+    local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),portrait and 1 or 0,touch and 1 or 0,phone.Visible and 1 or 0},':')
+    if not force and key==lastKey then
+        -- Re-assert final ownership even when dimensions did not change.
+        pinOpenPhone()
+        pinScale()
+        return
+    end
+    lastKey=key
+
+    -- Closed launcher stays on the left edge, below CoreGui. On touch landscape it sits
+    -- around the upper-middle left so it cannot overlap the Roblox menu/chat/mic cluster
+    -- or the lower-left movement thumbstick.
+    launcher.AnchorPoint=Vector2.new(0,0.5)
+    local launcherY
+    if touch and not portrait then
+        launcherY=math.clamp(math.floor(v.Y*0.34),topBand+30,v.Y-150)
+    else
+        launcherY=math.clamp(topBand+34,topBand+30,v.Y-120)
+    end
+    launcher.Position=UDim2.fromOffset(leftPad,launcherY)
+    local launcherSize=portrait and 46 or 48
+    launcher.Size=UDim2.fromOffset(launcherSize,launcherSize)
+
+    -- Open phone remains left-aligned and scales to the actual usable viewport.
+    phone.AnchorPoint=Vector2.new(0,0)
+    pinScale()
+    pinOpenPhone()
+end
+
+applySafeArea(true)
+launcher:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
+phone:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
+phone:GetPropertyChangedSignal('Position'):Connect(function()
+    -- Legacy phone UI can still animate toward the right edge. Reclaim the left-safe-area immediately.
+    if phone.Visible then task.defer(pinOpenPhone) end
+end)
+if scaler then
+    scaler:GetPropertyChangedSignal('Scale'):Connect(function()
+        -- Legacy phone UI also has its own viewport scaler. Reclaim the safe mobile scale immediately.
+        task.defer(pinScale)
+    end)
+end
+if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     camera=Workspace.CurrentCamera
-    if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(applySafeArea) end
-    applySafeArea()
+    if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
+    applySafeArea(true)
 end)
 
--- Base phone UI still owns its open/close tween. Re-assert the safe position while visible
--- so it cannot drift to the right or into mobile steering/jump controls.
+-- Low-frequency inset recheck handles mobile orientation/CoreGui changes without a busy layout loop.
 local acc=0
 RunService.RenderStepped:Connect(function(dt)
     acc += dt
-    if acc < 0.04 then return end
+    if acc < 0.25 then return end
     acc=0
-    applySafeArea()
+    applySafeArea(false)
 end)
 
+-- Keep established compatibility markers while exposing the current adaptive implementation separately.
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.31')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
+Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
+Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
+Workspace:SetAttribute('BecakPhoneLeftPin','ON')
+Workspace:SetAttribute('BecakPhoneScalePin','ON')
+Workspace:SetAttribute('BecakTouchControlReserve','ON')
+Workspace:SetAttribute('BecakTouchControlReservePortraitPx',148)
+Workspace:SetAttribute('BecakTouchControlReserveLandscapePx',112)
 ]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="NV"><Properties><string name="Name">BecakEBike_DriverNavigation</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Driver navigation v1.7
 -- Compact mobile-safe guidance for passenger, cargo, garage and active destinations.
 
@@ -1785,4 +3662,234 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakDriverNavigation','v1.7')
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="DCUI"><Properties><string name="Name">BecakEBike_DailyContractsUI</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Daily Contracts + Story + Achievement UI v1.23
+-- Lightweight mission overlay integrated into the existing left-side driver phone.
+
+local Players = game:GetService('Players')
+local Workspace = game:GetService('Workspace')
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild('PlayerGui')
+
+local GREEN = Color3.fromRGB(21,155,73)
+local DARK = Color3.fromRGB(12,16,19)
+local CARD = Color3.fromRGB(24,30,34)
+local MUTED = Color3.fromRGB(155,167,174)
+local WHITE = Color3.fromRGB(246,248,249)
+
+local function corner(obj, radius)
+    local c = Instance.new('UICorner')
+    c.CornerRadius = UDim.new(0, radius or 12)
+    c.Parent = obj
+    return c
+end
+
+local function label(parent, text, pos, size, textSize, bold, color)
+    local t = Instance.new('TextLabel')
+    t.BackgroundTransparency = 1
+    t.Text = text
+    t.Position = pos
+    t.Size = size
+    t.TextColor3 = color or WHITE
+    t.TextSize = textSize or 12
+    t.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+    t.TextXAlignment = Enum.TextXAlignment.Left
+    t.TextYAlignment = Enum.TextYAlignment.Center
+    t.Parent = parent
+    return t
+end
+
+local function waitForPhone()
+    local gui = playerGui:WaitForChild('BecakDriverPhone', 25)
+    if not gui then return nil end
+    return gui:WaitForChild('Phone', 10), gui
+end
+
+local phone, phoneGui = waitForPhone()
+if not phone or not phoneGui then return end
+
+local panel = Instance.new('Frame')
+panel.Name = 'DailyContractsPanel'
+panel.Position = UDim2.fromOffset(18,94)
+panel.Size = UDim2.new(1,-36,1,-176)
+panel.BackgroundColor3 = DARK
+panel.Visible = false
+panel.ZIndex = 80
+panel.Parent = phone
+corner(panel,18)
+
+local stroke = Instance.new('UIStroke')
+stroke.Color = Color3.fromRGB(68,76,82)
+stroke.Transparency = .2
+stroke.Parent = panel
+
+label(panel,'MISI & STORY',UDim2.fromOffset(14,8),UDim2.new(1,-60,0,28),16,true,WHITE)
+local summary = label(panel,'Kontrak 0/3 • Prestasi 0/5',UDim2.fromOffset(14,36),UDim2.new(1,-28,0,22),11,false,MUTED)
+
+local close = Instance.new('TextButton')
+close.Text = '×'
+close.Position = UDim2.new(1,-44,0,8)
+close.Size = UDim2.fromOffset(32,32)
+close.BackgroundColor3 = Color3.fromRGB(39,45,49)
+close.TextColor3 = WHITE
+close.TextSize = 20
+close.Font = Enum.Font.GothamBold
+close.ZIndex = 82
+close.Parent = panel
+corner(close,10)
+
+local rows = {}
+local defs = {
+    {id='passenger', title='ANTAR PENUMPANG', reward='Reward Rp18.000 + 45 XP'},
+    {id='cargo', title='KIRIM CARGO', reward='Reward Rp24.000 + 55 XP'},
+    {id='charge', title='CHARGING', reward='Reward Rp8.000 + 20 XP'},
+}
+
+for i,d in ipairs(defs) do
+    local row = Instance.new('Frame')
+    row.Position = UDim2.fromOffset(12,72+(i-1)*106)
+    row.Size = UDim2.new(1,-24,0,94)
+    row.BackgroundColor3 = CARD
+    row.ZIndex = 81
+    row.Parent = panel
+    corner(row,13)
+
+    local title = label(row,d.title,UDim2.fromOffset(12,8),UDim2.new(1,-24,0,20),12,true,WHITE)
+    title.ZIndex = 82
+    local progress = label(row,'0 / 0',UDim2.fromOffset(12,31),UDim2.new(1,-24,0,20),14,true,Color3.fromRGB(124,235,151))
+    progress.ZIndex = 82
+    local reward = label(row,d.reward,UDim2.fromOffset(12,62),UDim2.new(1,-24,0,18),10,false,MUTED)
+    reward.ZIndex = 82
+
+    local barBack = Instance.new('Frame')
+    barBack.Position = UDim2.new(0,12,1,-12)
+    barBack.AnchorPoint = Vector2.new(0,1)
+    barBack.Size = UDim2.new(1,-24,0,5)
+    barBack.BackgroundColor3 = Color3.fromRGB(48,55,59)
+    barBack.ZIndex = 82
+    barBack.Parent = row
+    corner(barBack,3)
+
+    local bar = Instance.new('Frame')
+    bar.Size = UDim2.new(0,0,1,0)
+    bar.BackgroundColor3 = GREEN
+    bar.ZIndex = 83
+    bar.Parent = barBack
+    corner(bar,3)
+
+    rows[d.id] = {progress=progress,bar=bar,row=row}
+end
+
+local storyCard = Instance.new('Frame')
+storyCard.Position = UDim2.fromOffset(12,398)
+storyCard.Size = UDim2.new(1,-24,0,140)
+storyCard.BackgroundColor3 = Color3.fromRGB(35,25,52)
+storyCard.ZIndex = 81
+storyCard.Parent = panel
+corner(storyCard,13)
+
+local storyHeader = label(storyCard,'STORY • CHAPTER 1/5',UDim2.fromOffset(12,7),UDim2.new(1,-24,0,18),10,true,Color3.fromRGB(201,171,239)); storyHeader.ZIndex=82
+local storyTitle = label(storyCard,'Awal Perjalanan',UDim2.fromOffset(12,27),UDim2.new(1,-24,0,21),14,true,WHITE); storyTitle.ZIndex=82
+local storyRep = label(storyCard,'REPUTASI • Pendatang',UDim2.fromOffset(12,49),UDim2.new(1,-24,0,18),9,true,Color3.fromRGB(124,235,151)); storyRep.ZIndex=82
+local storyObjective = label(storyCard,'Selesaikan trip untuk membangun reputasi.',UDim2.fromOffset(12,66),UDim2.new(1,-24,0,28),9,false,MUTED); storyObjective.ZIndex=82; storyObjective.TextWrapped=true
+local achievementProgress = label(storyCard,'PRESTASI • 0/5 • Berikutnya: Perjalanan Pertama',UDim2.fromOffset(12,94),UDim2.new(1,-24,0,18),9,true,Color3.fromRGB(245,201,92)); achievementProgress.ZIndex=82
+local storyProgress = label(storyCard,'0 / 10 trip',UDim2.new(0,12,1,-22),UDim2.new(1,-24,0,16),9,true,WHITE); storyProgress.ZIndex=82
+
+local storyBarBack = Instance.new('Frame')
+storyBarBack.Position = UDim2.new(0,12,1,-5)
+storyBarBack.AnchorPoint = Vector2.new(0,1)
+storyBarBack.Size = UDim2.new(1,-24,0,5)
+storyBarBack.BackgroundColor3 = Color3.fromRGB(63,48,79)
+storyBarBack.ZIndex = 82
+storyBarBack.Parent = storyCard
+corner(storyBarBack,3)
+local storyBar = Instance.new('Frame')
+storyBar.Size = UDim2.new(0,0,1,0)
+storyBar.BackgroundColor3 = Color3.fromRGB(160,110,219)
+storyBar.ZIndex = 83
+storyBar.Parent = storyBarBack
+corner(storyBar,3)
+
+local function refresh()
+    local completed = tonumber(player:GetAttribute('DailyContractsCompleted')) or 0
+    local total = tonumber(player:GetAttribute('DailyContractsTotal')) or 3
+    local achievementsUnlocked = tonumber(player:GetAttribute('BecakAchievementsUnlocked')) or 0
+    local achievementsTotal = tonumber(player:GetAttribute('BecakAchievementsTotal')) or 5
+    summary.Text = string.format('Kontrak %d/%d • Prestasi %d/%d',completed,total,achievementsUnlocked,achievementsTotal)
+    for _,d in ipairs(defs) do
+        local p = tonumber(player:GetAttribute('DailyContract_'..d.id..'_Progress')) or 0
+        local g = math.max(1,tonumber(player:GetAttribute('DailyContract_'..d.id..'_Goal')) or 1)
+        local claimed = player:GetAttribute('DailyContract_'..d.id..'_Claimed') == true
+        local ui = rows[d.id]
+        ui.progress.Text = claimed and 'SELESAI ✓' or string.format('%d / %d',math.min(p,g),g)
+        ui.progress.TextColor3 = claimed and Color3.fromRGB(116,242,145) or WHITE
+        ui.bar.Size = UDim2.new(math.clamp(p/g,0,1),0,1,0)
+        ui.row.BackgroundColor3 = claimed and Color3.fromRGB(24,48,34) or CARD
+    end
+
+    local chapter = tonumber(player:GetAttribute('StoryChapter')) or 1
+    local maxChapter = tonumber(player:GetAttribute('StoryMaxChapter')) or 5
+    local title = tostring(player:GetAttribute('StoryChapterTitle') or 'Awal Perjalanan')
+    local rep = tostring(player:GetAttribute('StoryReputation') or 'Pendatang')
+    local objective = tostring(player:GetAttribute('StoryObjective') or 'Bangun reputasi lewat layanan kota.')
+    local trips = tonumber(player:GetAttribute('BecakTrips')) or 0
+    local startTrips = tonumber(player:GetAttribute('StoryProgressStart')) or 0
+    local nextGoal = tonumber(player:GetAttribute('StoryNextTripGoal')) or trips
+    local complete = player:GetAttribute('StoryComplete') == true
+    local denom = math.max(1,nextGoal-startTrips)
+    local storyRatio = complete and 1 or math.clamp((trips-startTrips)/denom,0,1)
+
+    storyHeader.Text = string.format('STORY • CHAPTER %d/%d',chapter,maxChapter)
+    storyTitle.Text = title
+    storyRep.Text = 'REPUTASI • '..rep
+    storyObjective.Text = objective
+    storyProgress.Text = complete and 'STORY UTAMA SELESAI ✓' or string.format('%d / %d trip',trips,nextGoal)
+    storyBar.Size = UDim2.new(storyRatio,0,1,0)
+
+    local nextAchievement = tostring(player:GetAttribute('BecakAchievementNextTitle') or 'Perjalanan Pertama')
+    local remaining = tonumber(player:GetAttribute('BecakAchievementNextRemaining')) or 0
+    if achievementsUnlocked >= achievementsTotal and achievementsTotal > 0 then
+        achievementProgress.Text = string.format('PRESTASI • %d/%d • SEMUA SELESAI ✓',achievementsUnlocked,achievementsTotal)
+    else
+        achievementProgress.Text = string.format('PRESTASI • %d/%d • %s (%d trip lagi)',achievementsUnlocked,achievementsTotal,nextAchievement,remaining)
+    end
+end
+
+for _,d in ipairs(defs) do
+    for _,suffix in ipairs({'Progress','Goal','Claimed'}) do
+        player:GetAttributeChangedSignal('DailyContract_'..d.id..'_'..suffix):Connect(refresh)
+    end
+end
+for _,attr in ipairs({'DailyContractsCompleted','DailyContractsTotal','BecakTrips','StoryChapter','StoryChapterTitle','StoryReputation','StoryObjective','StoryProgressStart','StoryNextTripGoal','StoryMaxChapter','StoryComplete','BecakAchievementsUnlocked','BecakAchievementsTotal','BecakAchievementNextTitle','BecakAchievementNextRemaining'}) do
+    player:GetAttributeChangedSignal(attr):Connect(refresh)
+end
+
+local function bindMissionButton()
+    for _,obj in ipairs(phoneGui:GetDescendants()) do
+        if obj:IsA('TextButton') and obj.Text == 'MISI & STORY' and not obj:GetAttribute('DailyContractsBound') then
+            obj:SetAttribute('DailyContractsBound',true)
+            obj.Activated:Connect(function()
+                refresh()
+                panel.Visible = true
+            end)
+        end
+    end
+end
+
+close.Activated:Connect(function() panel.Visible=false end)
+phone:GetPropertyChangedSignal('Visible'):Connect(function()
+    if not phone.Visible then panel.Visible=false end
+end)
+
+bindMissionButton()
+phoneGui.DescendantAdded:Connect(function(obj)
+    if obj:IsA('TextButton') and obj.Text == 'MISI & STORY' then task.defer(bindMissionButton) end
+end)
+refresh()
+
+Workspace:SetAttribute('ACC_BecakDailyContractsUI','v1.23')
+Workspace:SetAttribute('BecakMissionUIPhoneIntegrated','ON')
+Workspace:SetAttribute('BecakStoryUIIntegrated','ON')
+Workspace:SetAttribute('BecakAchievementUIIntegrated','ON')
+print('[BECAK E-BIKE] mission + story + achievement UI v1.23 ready')
 ]]></ProtectedString></Properties></Item></Item></Item></roblox>
