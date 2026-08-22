@@ -134,11 +134,12 @@ jobs:
           grep -q 'BecakPedestrianCount' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakDriverNavigation' maps/becak-e-bike/place.rbxlx
           grep -q 'ACC_BecakWorldQC' maps/becak-e-bike/place.rbxlx
-          grep -q "ACC_BecakRoadAccess','v1.32" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRoadAccess','v1.33" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakSidewalkCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakGenericCurbCollision','OFF" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadEdgeAudit','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakRoadEdgeAncestorAudit','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "ACC_BecakRoadEdgeAliasAudit','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakRoadEdgeAuditHz',2" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeArea','v1.8-left" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakMobileSafeAreaAdaptive','v1.29" maps/becak-e-bike/place.rbxlx
@@ -146,7 +147,7 @@ jobs:
           grep -q "BecakPhoneLeftPin','ON" maps/becak-e-bike/place.rbxlx
           grep -q "ACC_BecakUILocation','LEFT" maps/becak-e-bike/place.rbxlx
           grep -q 'BecakVersion\",\"1.31.0' maps/becak-e-bike/place.rbxlx
-          echo 'Final Becak E-Bike v1.31 + RoadAccess v1.32 validation PASS'
+          echo 'Final Becak E-Bike v1.31 + RoadAccess v1.33 validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -173,7 +174,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike v1.31 road-access v1.32 publish [skip ci]"
+            git commit -m "Record Becak E-Bike v1.31 road-access v1.33 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
