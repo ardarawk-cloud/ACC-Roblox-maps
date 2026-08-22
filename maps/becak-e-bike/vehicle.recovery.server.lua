@@ -1,6 +1,7 @@
 -- BECAK E-BIKE — Vehicle Recovery Assist v1.35
--- Automatic owner-only self-righting, fast multi-probe curb assist, and hill-start anti-rollback.
--- Designed to improve mobile drivability without changing the core VehicleSeat controller.
+-- Automatic owner-only self-righting, fast multi-probe curb assist, hill-start anti-rollback,
+-- plus conservative high-speed anti-tip damping for mobile drivability.
+-- Designed to improve stability without replacing the core VehicleSeat controller.
 
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
@@ -40,6 +41,13 @@ local HILL_MAX_SPEED = 5.0
 local ROLLBACK_TRIGGER_SPEED = 0.7
 local HILL_ASSIST_FORWARD_SPEED = 4.2
 local HILL_ASSIST_COOLDOWN = 1.1
+
+-- Stability assist only damps pitch/roll spin once the becak is already moving at road speed.
+-- Yaw remains untouched so steering authority stays with the native controller.
+local STABILITY_MIN_SPEED = 11
+local STABILITY_MAX_TILT_RATE = 1.7
+local STABILITY_DAMPING = 0.58
+local STABILITY_MIN_UP_Y = 0.62
 
 local states = {}
 local rayParams = RaycastParams.new()
@@ -172,6 +180,23 @@ local function tryHillStartAssist(model, chassis, seat, state)
     return true
 end
 
+local function applyStabilityAssist(model, chassis)
+    local speed = horizontal(chassis.AssemblyLinearVelocity).Magnitude
+    if speed < STABILITY_MIN_SPEED or chassis.CFrame.UpVector.Y < STABILITY_MIN_UP_Y then return end
+
+    local angular = chassis.AssemblyAngularVelocity
+    local tiltRate = Vector2.new(angular.X, angular.Z).Magnitude
+    if tiltRate <= STABILITY_MAX_TILT_RATE then return end
+
+    chassis.AssemblyAngularVelocity = Vector3.new(
+        angular.X * STABILITY_DAMPING,
+        angular.Y,
+        angular.Z * STABILITY_DAMPING
+    )
+    model:SetAttribute('StabilityAssistCount', (tonumber(model:GetAttribute('StabilityAssistCount')) or 0) + 1)
+    model:SetAttribute('LastStabilityAssistSpeed', math.floor(speed * 10 + 0.5) / 10)
+end
+
 local function stepVehicle(model, dt)
     if not model:IsA('Model') or not model.Parent then states[model] = nil return end
     local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
@@ -193,6 +218,10 @@ local function stepVehicle(model, dt)
         states[model] = state
     end
     local now = os.clock()
+
+    -- Keep normal steering/yaw untouched while damping only excessive pitch/roll at speed.
+    applyStabilityAssist(model, chassis)
+
     if now < state.cooldownUntil then return end
 
     local upY = chassis.CFrame.UpVector.Y
@@ -249,5 +278,7 @@ Workspace:SetAttribute('BecakReverseCurbAssist','ON')
 Workspace:SetAttribute('BecakFastCurbAssist','ON')
 Workspace:SetAttribute('BecakCurbAssistHoldSeconds',STALL_HOLD_SECONDS)
 Workspace:SetAttribute('BecakHillStartAssist','ON')
+Workspace:SetAttribute('BecakHighSpeedStabilityAssist','ON')
+Workspace:SetAttribute('BecakStabilityMinSpeed',STABILITY_MIN_SPEED)
 Workspace:SetAttribute('BecakRecoveryTickHz',10)
-print('[BECAK E-BIKE] vehicle recovery v1.35 ready • fast multi-probe curb + reverse assist + self-righting + hill-start')
+print('[BECAK E-BIKE] vehicle recovery v1.35 ready • curb + reverse + self-righting + hill-start + anti-tip stability')
