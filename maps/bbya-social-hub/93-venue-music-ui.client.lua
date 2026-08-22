@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — THREE VENUE MUSIC UI v2
+-- BBYA SOCIAL HUB — THREE VENUE MUSIC UI v3
 -- MAIN => CLUB / Progressive, UNDERGROUND => Underground / Indo, FUNKOT => Funkot / Funkot playlist.
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -166,12 +166,18 @@ local last=zone();applyCopy(last)
 if last=="FUNKOT" then funkotRemote:FireServer("list") end
 
 task.spawn(function()
- while task.wait(.15) do
+ while task.wait(.25) do
   local v=zone()
   if v~=last then
    last=v;applyCopy(v)
    if v=="FUNKOT" then funkotRemote:FireServer("list") end
-  elseif v=="FUNKOT" then applyFunkotState(lastFunkotState) end
+  elseif v=="FUNKOT" then
+   applyFunkotState(lastFunkotState)
+  else
+   -- Legacy responsive scripts can rewrite MUSIC after viewport/login refresh.
+   -- Reassert the current venue label without touching their layout.
+   applyCopy(v)
+  end
  end
 end)
 
@@ -187,4 +193,4 @@ RunService.RenderStepped:Connect(function()
  end
 end)
 
-print("[BBYA] Three Venue Music UI v2: CLUB / UNDERGROUND / FUNKOT automatic switching")
+print("[BBYA] Three Venue Music UI v3: CLUB / UNDERGROUND / FUNKOT automatic switching")
