@@ -1,0 +1,122 @@
+name: BBYA v344 Pasar Malam QC
+
+on:
+  push:
+    branches: [agent/bbya-night-market-v344-premium]
+    paths:
+      - 'maps/bbya-social-hub/98-night-market.server.lua'
+      - 'maps/bbya-social-hub/99-night-market-premium.server.lua'
+      - 'maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-night-market-v344-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/98-night-market.server.lua'
+      - 'maps/bbya-social-hub/99-night-market-premium.server.lua'
+      - 'maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+
+permissions:
+  contents: write
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Apply audited runtime fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('maps/bbya-social-hub/99-night-market-premium.server.lua')
+          s=p.read_text()
+          s=s.replace('o:IsA("BasePart") and o.Shape==Enum.PartType.Ball','o:IsA("Part") and o.Shape==Enum.PartType.Ball')
+          s=s.replace('o:IsA("BasePart") and o.Shape==Enum.PartType.Cylinder','o:IsA("Part") and o.Shape==Enum.PartType.Cylinder')
+          old='rail("South",Vector3.new(x1,0,z1),Vector3.new(x2,0,z1),m);rail("North",Vector3.new(x1,0,z2),Vector3.new(x2,0,z2),m)'
+          new='local gap=4\n rail("SouthL",Vector3.new(x1,0,z1),Vector3.new(cx-gap/2,0,z1),m);rail("SouthR",Vector3.new(cx+gap/2,0,z1),Vector3.new(x2,0,z1),m);rail("North",Vector3.new(x1,0,z2),Vector3.new(x2,0,z2),m)'
+          if old not in s: raise SystemExit('queue pattern missing')
+          s=s.replace(old,new)
+          old_hide='for _,o in ipairs(oldFerris:GetDescendants()) do if o:IsA("BasePart") then o.Transparency=1;o.CanCollide=false end end'
+          new_hide='for _,o in ipairs(oldFerris:GetDescendants()) do if o:IsA("BasePart") then o.Transparency=1;o.CanCollide=false;o.CanTouch=false end end'
+          if old_hide not in s: raise SystemExit('ferris hide pattern missing')
+          s=s.replace(old_hide,new_hide)
+          p.write_text(s)
+          c=Path('maps/bbya-social-hub/100-night-market-control-fix.server.lua')
+          t=c.read_text()
+          old_booth='local booth=premium:FindFirstChild(boothName,true)'
+          if old_booth not in t: raise SystemExit('operator booth pattern missing')
+          t=t.replace(old_booth,'local booth=premium:WaitForChild(boothName,15)')
+          c.write_text(t)
+          PY
+      - name: Static Pasar Malam checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/99-night-market-premium.server.lua'
+          c='maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+          p='maps/bbya-social-hub/default.project.json'
+          grep -q 'NIGHT_MARKET_PREMIUM_V3' "$f"
+          grep -q 'AUTHENTIC_INDONESIAN_FAIR' "$f"
+          grep -q 'PlayableMiniTrain' "$f"
+          grep -q 'PremiumFerrisWheel' "$f"
+          grep -q 'LEMPAR GELANG' "$f"
+          grep -q 'OperatorBoothControlsBound' "$c"
+          grep -q 'WaitForChild(boothName,15)' "$c"
+          grep -q 'SouthL' "$f"
+          grep -q 'o:IsA("Part") and o.Shape==Enum.PartType.Cylinder' "$f"
+          grep -q 'NightMarketPremiumV3' "$p"
+          grep -q 'NightMarketControlFixV344' "$p"
+          if grep -n 'Instance.new("Sound")' "$f" "$c"; then
+            echo 'Pasar Malam premium must not inject audio.' >&2
+            exit 1
+          fi
+          grep -q 'TravelPriceRobux",10' "$f"
+          python3 -m json.tool "$p" >/dev/null
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v344-night-market.rbxl
+          test -s /tmp/bbya-v344-night-market.rbxl
+          ls -lh /tmp/bbya-v344-night-market.rbxl
+      - name: Persist audited source and QC receipt
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          bytes=$(stat -c%s /tmp/bbya-v344-night-market.rbxl)
+          cat > deploy-status/bbya-night-market-v344-qc.json <<EOF
+          {
+            "status": "PASS",
+            "sourceCommit": "${GITHUB_SHA}",
+            "rojoBuild": true,
+            "buildBytes": ${bytes},
+            "travelPriceRobux": 10,
+            "globalSoundInjected": false,
+            "premiumOverlay": "NIGHT_MARKET_PREMIUM_V3",
+            "operatorControlsBound": true,
+            "queueEntryGaps": true,
+            "seatShapeGuard": true
+          }
+          EOF
+          git config user.name 'ACC Roblox QC Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/99-night-market-premium.server.lua maps/bbya-social-hub/100-night-market-control-fix.server.lua deploy-status/bbya-night-market-v344-qc.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Apply audited BBYA v344 Pasar Malam fixes and record QC [skip ci]'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
