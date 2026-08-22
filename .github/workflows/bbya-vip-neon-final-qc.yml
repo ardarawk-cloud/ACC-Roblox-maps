@@ -1,0 +1,61 @@
+name: BBYA VIP Neon Final Lock QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+      - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+      - '.github/workflows/bbya-vip-neon-final-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-neon-final.rbxl
+          test -s /tmp/bbya-vip-neon-final.rbxl
+      - name: Validate VIP neon final authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          neon='maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+          geom='maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+
+          grep -q 'VIP FLOOR NEON OWNER LOCK v6' "$neon"
+          grep -q 'VIP_FLOOR_NEON_V6_FINAL' "$neon"
+          grep -q 'SymmetricDoubleLine' "$neon"
+          grep -q 'North_1' "$neon"
+          grep -q 'North_2' "$neon"
+          grep -q 'South_1' "$neon"
+          grep -q 'South_2' "$neon"
+          grep -q 'West_1' "$neon"
+          grep -q 'West_2' "$neon"
+          grep -q 'East_1' "$neon"
+          grep -q 'East_2' "$neon"
+          grep -q 'ChildRemoved' "$neon"
+          grep -q 'FloorBoundaryNeon' "$neon"
+          grep -q 'PinkVIPLightingAllowed",false' "$neon"
+
+          grep -q 'OWNER GEOMETRY FIXES v2' "$geom"
+          grep -q 'OwnerGeometryPreservesAllVIPNeonSides' "$geom"
+          if grep -q 'obj.Name:match("^South_")' "$geom"; then echo 'Stale South neon deletion still present.' >&2; exit 1; fi
+          if grep -q 'obj.Name:match("^West_")' "$geom"; then echo 'Stale West neon deletion still present.' >&2; exit 1; fi
+          if grep -q 'OwnerPinkPathsRemoved' "$geom"; then echo 'Stale partial neon removal marker still present.' >&2; exit 1; fi
+
+          echo 'BBYA VIP neon final lock QC passed.'
