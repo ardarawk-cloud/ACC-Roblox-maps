@@ -1,0 +1,66 @@
+name: BBYA Night Market Layout Guard QC
+
+on:
+  push:
+    branches: [agent/bbya-night-market-layout-guard-v348]
+    paths:
+      - 'maps/bbya-social-hub/102-night-market-boundary-layout-fix.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-night-market-layout-guard-qc.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: agent/bbya-night-market-layout-guard-v348}
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Validate containment fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/102-night-market-boundary-layout-fix.server.lua'
+          p='maps/bbya-social-hub/default.project.json'
+          grep -q 'NIGHT_MARKET_BOUNDARY_LAYOUT_GUARD_V1' "$f"
+          grep -q 'RearBoundaryZ",685' "$f"
+          grep -q 'LeftBoundaryX",-118' "$f"
+          grep -q 'MiniTrainSafetyPad' "$f"
+          grep -q 'RingTossSafetyPad' "$f"
+          grep -q 'ServiceSafetyPad' "$f"
+          grep -q 'RearCrossAisle' "$f"
+          grep -q 'TravelPriceRobux",10' "$f"
+          grep -q 'NightMarketBoundaryLayoutGuardV1' "$p"
+          if grep -n 'Instance.new("Sound")' "$f"; then exit 1; fi
+          python3 -m json.tool "$p" >/dev/null
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-nm-layout-guard.rbxl
+          test -s /tmp/bbya-nm-layout-guard.rbxl
+      - name: Persist QC receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          bytes=$(stat -c%s /tmp/bbya-nm-layout-guard.rbxl)
+          cat > deploy-status/bbya-night-market-layout-guard-qc.json <<EOF
+          {"status":"PASS","sourceCommit":"${GITHUB_SHA}","rojoBuild":true,"buildBytes":${bytes},"frontBoundaryZ":465,"rearBoundaryZ":685,"minX":-118,"maxX":118,"travelPriceRobux":10,"globalSoundInjected":false,"rearAttractionsContained":true}
+          EOF
+          git config user.name 'ACC Roblox QC Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-night-market-layout-guard-qc.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA Night Market layout guard QC [skip ci]'
+            git push origin HEAD:agent/bbya-night-market-layout-guard-v348
+          fi

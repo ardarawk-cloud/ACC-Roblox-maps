@@ -68,7 +68,8 @@
       "NightMarketV1": {"$path": "98-night-market.server.lua"},
       "NightMarketPremiumV3": {"$path": "99-night-market-premium.server.lua"},
       "NightMarketControlFixV344": {"$path": "100-night-market-control-fix.server.lua"},
-      "DistrictServicePromenadeV1": {"$path": "101-district-promenade.server.lua"}
+      "DistrictServicePromenadeV1": {"$path": "101-district-promenade.server.lua"},
+      "NightMarketBoundaryLayoutGuardV1": {"$path": "102-night-market-boundary-layout-fix.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
