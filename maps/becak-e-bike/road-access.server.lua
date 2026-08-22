@@ -1,4 +1,4 @@
--- BECAK E-BIKE — road access + drivability hardening v1.32
+-- BECAK E-BIKE — road access + drivability hardening v1.33
 -- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
 -- Dedicated to maps/becak-e-bike only.
 
@@ -20,6 +20,13 @@ local function isRoadEdgeName(name)
         or string.find(n,'trotoar',1,true) ~= nil
         or string.find(n,'pavement',1,true) ~= nil
         or string.find(n,'footpath',1,true) ~= nil
+        or string.find(n,'walkway',1,true) ~= nil
+        or string.find(n,'walk_path',1,true) ~= nil
+        or string.find(n,'pedestrian_path',1,true) ~= nil
+        or string.find(n,'kerbstone',1,true) ~= nil
+        or string.find(n,'curbstone',1,true) ~= nil
+        or string.find(n,'roadedge',1,true) ~= nil
+        or string.find(n,'road_edge',1,true) ~= nil
         or string.match(n,'^curb') ~= nil
         or string.match(n,'^kerb') ~= nil
         or string.find(n,'curbcut',1,true) ~= nil
@@ -65,8 +72,9 @@ local function tuneRoadSurface(p)
         return
     end
 
-    -- v1.32: normalize known curb/trotoar naming styles on the part OR any parent container.
-    -- This catches generic child Parts placed inside Trotoar/Sidewalk/Curb/Pavement folders.
+    -- v1.33: normalize curb/trotoar aliases on the part OR any parent container.
+    -- Extra aliases cover common imported city-kit names (walkway, kerbstone, road_edge)
+    -- while keeping walls/buildings/fences collidable.
     if isRoadEdgePart(p) then
         flattenVisualSurface(p,'BecakSeamlessRoadEdge')
         p:SetAttribute('BecakSeamlessSidewalk',true)
@@ -130,7 +138,7 @@ local function tuneVehicle(model)
     if not chassis or not chassis:IsA('BasePart') then return end
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.32')
+    model:SetAttribute('RoadAccessTune','v1.33')
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m)
@@ -176,12 +184,13 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakRoadAccess','v1.32')
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.33')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAudit','ON')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAncestorAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeAliasAudit','ON')
 Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
-print('[BECAK E-BIKE] Road access v1.32 active: curb/trotoar/pavement collision OFF + ancestor-aware seam audit')
+print('[BECAK E-BIKE] Road access v1.33 active: expanded curb/trotoar/walkway aliases + ancestor-aware seam audit')
