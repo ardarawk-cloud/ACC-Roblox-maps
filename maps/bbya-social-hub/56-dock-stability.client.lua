@@ -1,7 +1,9 @@
--- BBYA SOCIAL HUB — SIX TAB DOCK STABILITY v1
+-- BBYA SOCIAL HUB — SIX TAB DOCK STABILITY v2
 -- Final layout authority for BBYA / MUSIC / SUPPORT / TRAVEL / MESSAGE / COMMUNITY.
+-- v2: mobile dock sits below Roblox CoreGui chat area and keeps BBYA visible.
 
 local Players=game:GetService("Players")
+local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
@@ -18,8 +20,10 @@ local function findButton(word)
 end
 
 local function layout()
+ camera=workspace.CurrentCamera or camera
+ if not camera then return false end
  local brand=findButton("BBYA")
- local music=findButton("MUSIC")
+ local music=findButton("MUSIC") or findButton("CLUB")
  local support=findButton("SUPPORT")
  local travel=findButton("TRAVEL")
  local message=dock:FindFirstChild("MessageTab") or findButton("MESSAGE")
@@ -27,10 +31,11 @@ local function layout()
  if not (brand and music and support and travel and message and community) then return false end
 
  local vp=camera.ViewportSize
- local touchLandscape=vp.X>vp.Y and vp.Y<850
+ local touchLandscape=UserInputService.TouchEnabled and vp.X>vp.Y
  local width=math.clamp(vp.X*.62,520,960)
+ local topY=UserInputService.TouchEnabled and 66 or 14
  dock.AnchorPoint=Vector2.new(.5,0)
- dock.Position=UDim2.new(touchLandscape and .59 or .5,0,0,14)
+ dock.Position=UDim2.new(touchLandscape and .59 or .5,0,0,topY)
  dock.Size=UDim2.fromOffset(width,52)
 
  local pad=6
@@ -42,6 +47,7 @@ local function layout()
   btn.Position=UDim2.fromOffset(x,6)
   btn.Size=UDim2.fromOffset(w,40)
   btn.Visible=true
+  btn.Active=true
   x+=w+gap
  end
  place(brand,brandW)
@@ -51,9 +57,11 @@ local function layout()
  place(message,each)
  place(community,each)
 
+ brand.ZIndex=96
  local compact=width<760
  brand.TextSize=compact and 9 or 11
- music.Text=compact and "MUSIC" or "♫  MUSIC";music.TextSize=compact and 8 or 11
+ if tostring(music.Text):upper():find("CLUB",1,true) then music.Text="CLUB" else music.Text=compact and "MUSIC" or "♫  MUSIC" end
+ music.TextSize=compact and 8 or 11
  support.Text=compact and "SUPPORT" or "◇  SUPPORT";support.TextSize=compact and 8 or 11
  travel.Text=compact and "TRAVEL" or "⌖  TRAVEL";travel.TextSize=compact and 8 or 11
  message.Text=compact and "MESSAGE" or "✦  MESSAGE";message.TextSize=compact and 8 or 11
@@ -69,14 +77,15 @@ local function layout()
  return true
 end
 
-for _=1,40 do
- if layout() then break end
- task.wait(.15)
-end
-camera:GetPropertyChangedSignal("ViewportSize"):Connect(function() task.defer(layout) end)
-dock.ChildAdded:Connect(function() task.defer(layout) end)
+for _=1,40 do if layout() then break end;task.wait(.15) end
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end) end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+ camera=workspace.CurrentCamera
+ task.defer(layout)
+ if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end) end
+end)
+dock.ChildAdded:Connect(function()task.defer(layout)end)
 
--- Older UI layers also react to viewport changes. Reassert lightly so no tab can be kicked outside.
 task.spawn(function()
  while dock.Parent do
   task.wait(.75)
@@ -84,4 +93,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Six-tab dock stability v1 online")
+print("[BBYA] Six-tab dock stability v2 online: mobile chat-safe / BBYA visible")
