@@ -1,6 +1,6 @@
--- BBYAVATAR analytics-ready foundation v19.
+-- BBYAVATAR analytics-ready foundation v20.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v19 adds privacy-safe Look Vault observability.
+-- no arbitrary client event names. v20 adds server-validated Style Board bulk-purchase observability.
 
 local Players = game:GetService("Players")
 
@@ -19,6 +19,7 @@ local ALLOWED = {
     PICK_SAVE=true, PICK_REMOVE=true, PICKS_OPEN=true, PICK_CLOUD_LOAD=true,
     BOARD_OPEN=true, BOARD_ADD=true, BOARD_REMOVE=true, BOARD_CLEAR=true, BOARD_TRY_ONE=true,
     BOARD_TRY_ALL_CLICK=true, BOARD_TRY_ALL_START=true, BOARD_TRY_ALL_SUCCESS=true, BOARD_TRY_ALL_FAILED=true,
+    BOARD_BUY_REQUEST=true, BOARD_BUY_PROMPT=true, BOARD_BUY_SUCCESS=true, BOARD_BUY_CANCELLED=true, BOARD_BUY_FAILED=true,
     VAULT_OPEN=true, VAULT_SAVE=true, VAULT_LOAD=true,
     WARDROBE_PREVIEW_SUCCESS=true, WARDROBE_PREVIEW_FAILED=true,
     WARDROBE_RESTORE_SUCCESS=true, WARDROBE_RESTORE_FAILED=true,
@@ -38,6 +39,7 @@ local THROTTLE = {
     PICK_SAVE=.5, PICK_REMOVE=.5, PICKS_OPEN=1.0, PICK_CLOUD_LOAD=5.0,
     BOARD_OPEN=1.0, BOARD_ADD=.35, BOARD_REMOVE=.35, BOARD_CLEAR=1.0, BOARD_TRY_ONE=.5,
     BOARD_TRY_ALL_CLICK=.75, BOARD_TRY_ALL_START=.75, BOARD_TRY_ALL_SUCCESS=.75, BOARD_TRY_ALL_FAILED=.75,
+    BOARD_BUY_REQUEST=2.0, BOARD_BUY_PROMPT=2.0, BOARD_BUY_SUCCESS=2.0, BOARD_BUY_CANCELLED=1.0, BOARD_BUY_FAILED=1.0,
     VAULT_OPEN=1.0, VAULT_SAVE=1.5, VAULT_LOAD=.75,
     OWNED_OPEN=1.0, OWNED_PERMISSION_SUCCESS=2.0, OWNED_PERMISSION_DENIED=2.0,
     OWNED_LOADED=1.0, OWNED_LOAD_FAILED=1.0, OWNED_PAGE=.75, OWNED_TRY=.5, OWNED_SAVE=.5,
@@ -58,8 +60,8 @@ local THROTTLE = {
 
 local SESSION_MILESTONES = {
     CATALOG_OPEN="OPEN", DETAIL_OPEN="DETAIL", TRY_ON_SUCCESS="TRY_ON", PICK_SAVE="PICK",
-    BOARD_OPEN="BOARD", BOARD_TRY_ALL_SUCCESS="BOARD_LOOK", FAVORITE_SUCCESS="FAVORITE",
-    VAULT_OPEN="VAULT", VAULT_LOAD="VAULT_LOAD",
+    BOARD_OPEN="BOARD", BOARD_TRY_ALL_SUCCESS="BOARD_LOOK", BOARD_BUY_PROMPT="BOARD_BUY", BOARD_BUY_SUCCESS="BOARD_BUY_SUCCESS",
+    FAVORITE_SUCCESS="FAVORITE", VAULT_OPEN="VAULT", VAULT_LOAD="VAULT_LOAD",
     CREATE_OUTFIT_SUCCESS="SAVE", SAVE_AVATAR_SUCCESS="SAVE", OWNED_OPEN="OWNED",
     OWNED_FILTER="OWNED_FILTER", OWNED_TRY="OWNED_TRY", OWNED_SAVE="OWNED_SAVE",
     DISCOVERY_DAILY_SPOTLIGHT="SPOTLIGHT", RECOMMEND_OPEN="RECOMMEND",
@@ -98,6 +100,9 @@ local function refreshDerivedMetrics()
     local boardOpen=metric("BOARD_OPEN")
     local boardTryClick=metric("BOARD_TRY_ALL_CLICK")
     local boardTrySuccess=metric("BOARD_TRY_ALL_SUCCESS")
+    local boardBuyRequest=metric("BOARD_BUY_REQUEST")
+    local boardBuyPrompt=metric("BOARD_BUY_PROMPT")
+    local boardBuySuccess=metric("BOARD_BUY_SUCCESS")
     local vaultOpen=metric("VAULT_OPEN")
     local ownedOpen=metric("OWNED_OPEN")
     local ownedLoaded=metric("OWNED_LOADED")
@@ -112,6 +117,9 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_SpotlightPerDiscoveryPct", safeRate(spotlightOpen,discoveryOpen))
     root:SetAttribute("Activity_RecentContinuePerRecentOpenPct", safeRate(metric("RECENT_CONTINUE"),recentOpen))
     root:SetAttribute("Activity_BoardTryAllPerBoardOpenPct", safeRate(boardTryClick,boardOpen))
+    root:SetAttribute("Activity_BoardBuyRequestPerOpenPct", safeRate(boardBuyRequest,boardOpen))
+    root:SetAttribute("Activity_BoardBuyPromptPerRequestPct", safeRate(boardBuyPrompt,boardBuyRequest))
+    root:SetAttribute("Activity_BoardBuySuccessPerPromptPct", safeRate(boardBuySuccess,boardBuyPrompt))
     root:SetAttribute("Activity_VaultSavePerOpenPct", safeRate(metric("VAULT_SAVE"),vaultOpen))
     root:SetAttribute("Activity_VaultLoadPerOpenPct", safeRate(metric("VAULT_LOAD"),vaultOpen))
     root:SetAttribute("Activity_OwnedFilterPerOwnedOpenPct", safeRate(metric("OWNED_FILTER"),ownedOpen))
@@ -119,6 +127,7 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_OwnedTryPerOwnedOpenPct", safeRate(metric("OWNED_TRY"),ownedOpen))
     root:SetAttribute("Activity_OwnedSavePerOwnedOpenPct", safeRate(metric("OWNED_SAVE"),ownedOpen))
     root:SetAttribute("Health_BoardTryAllSuccessPct", safeRate(boardTrySuccess,boardTryClick))
+    root:SetAttribute("Health_BoardBulkPromptPct", safeRate(boardBuyPrompt,boardBuyRequest))
     root:SetAttribute("Health_RecommendServedPct", safeRate(recommendServed,recommendOpen))
     root:SetAttribute("Health_DetailServedPct", safeRate(detailServed,detailOpen))
     root:SetAttribute("Health_RecentServedPct", safeRate(recentServed,recentOpen))
@@ -133,6 +142,8 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_PickPct", safeRate(metric("SESSION_UNIQUE_PICK"),sessions))
     root:SetAttribute("SessionConv_BoardPct", safeRate(metric("SESSION_UNIQUE_BOARD"),sessions))
     root:SetAttribute("SessionConv_BoardLookPct", safeRate(metric("SESSION_UNIQUE_BOARD_LOOK"),sessions))
+    root:SetAttribute("SessionConv_BoardBuyPct", safeRate(metric("SESSION_UNIQUE_BOARD_BUY"),sessions))
+    root:SetAttribute("SessionConv_BoardBuySuccessPct", safeRate(metric("SESSION_UNIQUE_BOARD_BUY_SUCCESS"),sessions))
     root:SetAttribute("SessionConv_VaultPct", safeRate(metric("SESSION_UNIQUE_VAULT"),sessions))
     root:SetAttribute("SessionConv_VaultLoadPct", safeRate(metric("SESSION_UNIQUE_VAULT_LOAD"),sessions))
     root:SetAttribute("SessionConv_FavoritePct", safeRate(metric("SESSION_UNIQUE_FAVORITE"),sessions))
@@ -194,10 +205,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V19_LOOK_VAULT")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V20_BULK_PURCHASE")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",19)
+root:SetAttribute("TelemetrySchema",20)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v19 Look Vault funnel ready")
+print("[BBYAVATAR] Privacy-safe telemetry v20 bulk-purchase funnel ready")
