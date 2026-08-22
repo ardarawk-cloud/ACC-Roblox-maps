@@ -1,7 +1,6 @@
--- BBYAVATAR analytics-ready foundation v13.
+-- BBYAVATAR analytics-ready foundation v14.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v13 adds Recently Viewed / Continue Viewing funnel
--- coverage so the return-browsing loop can be measured without persisting analytics identity.
+-- no arbitrary client event names. v14 adds Daily Style Challenge open conversion.
 
 local Players = game:GetService("Players")
 
@@ -25,6 +24,7 @@ local ALLOWED = {
     RECOMMEND_CACHE_HIT=true, RECOMMEND_JOIN_WAIT=true, RECOMMEND_JOINED=true, RECOMMEND_COOLDOWN=true,
     DETAIL_OPEN=true, DETAIL_RESULT=true, DETAIL_FAILED=true, DETAIL_CACHE_HIT=true,
     RECENT_OPEN=true, RECENT_RESULT=true, RECENT_TOUCH=true, RECENT_CLEAR=true, RECENT_CONTINUE=true,
+    CHALLENGE_OPEN=true,
 }
 
 local THROTTLE = {
@@ -35,6 +35,7 @@ local THROTTLE = {
     RECOMMEND_CACHE_HIT=1.0, RECOMMEND_JOIN_WAIT=1.0, RECOMMEND_JOINED=1.0, RECOMMEND_COOLDOWN=2.0,
     DETAIL_OPEN=.5, DETAIL_RESULT=.5, DETAIL_FAILED=1.0, DETAIL_CACHE_HIT=.5,
     RECENT_OPEN=1.0, RECENT_RESULT=1.0, RECENT_TOUCH=.5, RECENT_CLEAR=2.0, RECENT_CONTINUE=1.0,
+    CHALLENGE_OPEN=2.0,
     FAVORITE_SUCCESS=1.0, FAVORITE_DENIED=1.0, FAVORITE_FAILED=1.0,
     PURCHASE_SUCCESS=2.0, PURCHASE_CANCELLED=1.0,
     CREATE_OUTFIT_SUCCESS=2.0, CREATE_OUTFIT_DENIED=2.0, CREATE_OUTFIT_FAILED=2.0,
@@ -43,8 +44,6 @@ local THROTTLE = {
     WARDROBE_RESTORE_SUCCESS=1.0, WARDROBE_RESTORE_FAILED=1.0,
 }
 
--- First occurrence of these milestones is counted once per live player session.
--- The table lives only in server memory and is deleted on PlayerRemoving.
 local SESSION_MILESTONES = {
     CATALOG_OPEN="OPEN",
     DETAIL_OPEN="DETAIL",
@@ -56,6 +55,7 @@ local SESSION_MILESTONES = {
     RECOMMEND_OPEN="RECOMMEND",
     RECENT_OPEN="RECENT",
     RECENT_CONTINUE="CONTINUE",
+    CHALLENGE_OPEN="CHALLENGE",
     PURCHASE_SUCCESS="PURCHASE",
 }
 
@@ -86,7 +86,6 @@ local function refreshDerivedMetrics()
     local recentOpen=metric("RECENT_OPEN")
     local recentServed=metric("RECENT_RESULT")
 
-    -- Activity intensity metrics may legitimately exceed 100 because a session can act repeatedly.
     root:SetAttribute("Activity_OpenPerSession", safeRate(opens,sessions))
     root:SetAttribute("Activity_DetailPerOpenPct", safeRate(detailOpen,opens))
     root:SetAttribute("Activity_TryOnPerOpenPct", safeRate(tries,opens))
@@ -101,7 +100,6 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Health_RecommendCacheHitPct", safeRate(metric("RECOMMEND_CACHE_HIT"),recommendServed))
     root:SetAttribute("Health_DetailCacheHitPct", safeRate(metric("DETAIL_CACHE_HIT"),detailServed))
 
-    -- True session conversion: every milestone contributes at most once per session, capped by design.
     root:SetAttribute("SessionConv_OpenPct", safeRate(metric("SESSION_UNIQUE_OPEN"),sessions))
     root:SetAttribute("SessionConv_DetailPct", safeRate(metric("SESSION_UNIQUE_DETAIL"),sessions))
     root:SetAttribute("SessionConv_TryOnPct", safeRate(metric("SESSION_UNIQUE_TRY_ON"),sessions))
@@ -111,6 +109,7 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_RecommendPct", safeRate(metric("SESSION_UNIQUE_RECOMMEND"),sessions))
     root:SetAttribute("SessionConv_RecentPct", safeRate(metric("SESSION_UNIQUE_RECENT"),sessions))
     root:SetAttribute("SessionConv_ContinuePct", safeRate(metric("SESSION_UNIQUE_CONTINUE"),sessions))
+    root:SetAttribute("SessionConv_ChallengePct", safeRate(metric("SESSION_UNIQUE_CHALLENGE"),sessions))
     root:SetAttribute("SessionConv_PurchasePct", safeRate(metric("SESSION_UNIQUE_PURCHASE"),sessions))
 end
 
@@ -162,10 +161,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V13_RECENT_CONTINUE")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V14_DAILY_STYLE")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",13)
+root:SetAttribute("TelemetrySchema",14)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v13 Recent/Continue conversion ready")
+print("[BBYAVATAR] Privacy-safe telemetry v14 Daily Style conversion ready")
