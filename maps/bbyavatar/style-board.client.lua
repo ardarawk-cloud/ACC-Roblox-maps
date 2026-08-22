@@ -1,10 +1,10 @@
--- BBYAVATAR Style Board v2
+-- BBYAVATAR Style Board v3
 -- Session-local mix-and-match board built from persistent Saved Picks.
--- No extra user data is persisted; the authoritative shortlist remains Saved Picks.
--- v2 adds one-tap atomic full-look preview through applyTryOnBatch.
+-- v3 adds a server-authoritative BUY MISSING flow through MarketplaceService:PromptBulkPurchase.
 
 local STYLE_BOARD_MAX = 6
 local styleBoard = {}
+local bulkPurchaseRequest = root:WaitForChild("BulkPurchaseRequest")
 
 local function boardTrack(eventName)
     local remote = root:FindFirstChild("TrackEvent")
@@ -21,7 +21,6 @@ end
 
 local function selectedBoardItems()
     local items = {}
-    -- Preserve Saved Picks order so composition is deterministic across rerenders.
     for _, id in ipairs(savedPickOrder) do
         if styleBoard[id] then
             local item = savedPicks[id]
@@ -29,6 +28,14 @@ local function selectedBoardItems()
         end
     end
     return items
+end
+
+local function selectedBoardIds()
+    local ids = {}
+    for _, id in ipairs(savedPickOrder) do
+        if styleBoard[id] then table.insert(ids, id) end
+    end
+    return ids
 end
 
 local function totalKnownPrice()
@@ -39,6 +46,55 @@ local function totalKnownPrice()
         if price then total += price; known += 1 end
     end
     return total, known
+end
+
+local bulkFinishedConnected = false
+local function ensureBulkFinishedTelemetry()
+    if bulkFinishedConnected then return end
+    bulkFinishedConnected = true
+    MarketplaceService.PromptBulkPurchaseFinished:Connect(function(finishedPlayer, purchaseStatus)
+        if finishedPlayer ~= player then return end
+        local statusName = tostring(purchaseStatus)
+        if statusName:find("Success") then
+            boardTrack("BOARD_BUY_SUCCESS")
+            status.Text = "Purchase flow completed. Your Roblox inventory may take a moment to refresh."
+        elseif statusName:find("Cancelled") or statusName:find("Aborted") then
+            boardTrack("BOARD_BUY_CANCELLED")
+            status.Text = "Purchase closed without completing the full look."
+        else
+            boardTrack("BOARD_BUY_FAILED")
+            status.Text = "Roblox could not complete the full-look purchase."
+        end
+    end)
+end
+ensureBulkFinishedTelemetry()
+
+local function requestBulkPurchase()
+    local ids = selectedBoardIds()
+    if #ids == 0 then return end
+    boardTrack("BOARD_BUY_REQUEST")
+    status.Text = "Checking which selected items you still need…"
+    local ok, result = pcall(function()
+        return bulkPurchaseRequest:InvokeServer(ids)
+    end)
+    if not ok or typeof(result) ~= "table" then
+        boardTrack("BOARD_BUY_FAILED")
+        status.Text = "Could not open Roblox purchase flow right now."
+        return
+    end
+    if result.ok then
+        boardTrack("BOARD_BUY_PROMPT")
+        local count = tonumber(result.count) or 0
+        local owned = tonumber(result.owned) or 0
+        status.Text = string.format("Roblox purchase prompt opened for %d missing item(s)%s.", count, owned > 0 and (" • " .. owned .. " already owned") or "")
+    elseif result.code == "ALL_OWNED" then
+        status.Text = "You already own all selected purchasable items."
+    elseif result.code == "THROTTLED" then
+        status.Text = "Purchase check is cooling down • try again in a few seconds."
+    else
+        boardTrack("BOARD_BUY_FAILED")
+        status.Text = "No eligible missing avatar assets were found in this board."
+    end
 end
 
 local function renderStyleBoard()
@@ -104,11 +160,36 @@ local function renderStyleBoard()
         applyTryOnBatch(selectedBoardItems())
     end)
 
+    local buyMissing = Instance.new("TextButton")
+    buyMissing.Position = UDim2.fromOffset(0, 72)
+    buyMissing.Size = UDim2.fromOffset(132, 32)
+    buyMissing.BackgroundColor3 = count > 0 and Color3.fromRGB(55, 91, 68) or Color3.fromRGB(46, 48, 57)
+    buyMissing.TextColor3 = count > 0 and Color3.new(1, 1, 1) or Color3.fromRGB(126, 130, 143)
+    buyMissing.Font = Enum.Font.GothamBold
+    buyMissing.TextSize = 10
+    buyMissing.Text = "BUY MISSING"
+    buyMissing.AutoButtonColor = count > 0
+    buyMissing.Active = count > 0
+    buyMissing.Parent = content
+    Instance.new("UICorner", buyMissing).CornerRadius = UDim.new(0, 9)
+    buyMissing.Activated:Connect(requestBulkPurchase)
+
+    local buyHint = Instance.new("TextLabel")
+    buyHint.BackgroundTransparency = 1
+    buyHint.Position = UDim2.fromOffset(142, 72)
+    buyHint.Size = UDim2.new(1, -142, 0, 32)
+    buyHint.Font = Enum.Font.Gotham
+    buyHint.TextColor3 = Color3.fromRGB(150, 155, 171)
+    buyHint.TextSize = 10
+    buyHint.TextXAlignment = Enum.TextXAlignment.Left
+    buyHint.Text = "Roblox-native prompt • server validates Saved Picks and skips owned items"
+    buyHint.Parent = content
+
     local list = Instance.new("ScrollingFrame")
     list.Name = "StyleBoardList"
     list.BackgroundTransparency = 1
-    list.Position = UDim2.fromOffset(0, 76)
-    list.Size = UDim2.new(1, 0, 1, -112)
+    list.Position = UDim2.fromOffset(0, 112)
+    list.Size = UDim2.new(1, 0, 1, -148)
     list.AutomaticCanvasSize = Enum.AutomaticSize.Y
     list.CanvasSize = UDim2.new()
     list.ScrollBarThickness = 4
@@ -220,7 +301,7 @@ local function renderStyleBoard()
         end
     end
 
-    status.Text = string.format("%d/%d selected • TRY FULL LOOK applies compatible wearables in one avatar update", boardCount(), STYLE_BOARD_MAX)
+    status.Text = string.format("%d/%d selected • TRY FULL LOOK previews • BUY MISSING opens one Roblox-native purchase prompt", boardCount(), STYLE_BOARD_MAX)
 end
 
 renderers.BOARD = renderStyleBoard
@@ -237,4 +318,4 @@ boardTab.Parent = tabs
 Instance.new("UICorner", boardTab).CornerRadius = UDim.new(0, 10)
 boardTab.Activated:Connect(function() selectTab("BOARD") end)
 
-print("[BBYAVATAR] Style Board v2 + atomic full-look preview ready")
+print("[BBYAVATAR] Style Board v3 + server-validated BUY MISSING ready")
