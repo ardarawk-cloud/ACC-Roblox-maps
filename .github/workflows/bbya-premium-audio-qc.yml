@@ -1,0 +1,74 @@
+name: BBYA Premium Audio Reactive QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/28-lighting-ambience.server.lua'
+      - 'maps/bbya-social-hub/59-dj-wall-visuals.server.lua'
+      - 'maps/bbya-social-hub/62-dj-wall-render.client.lua'
+      - '.github/workflows/bbya-premium-audio-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-premium-audio.rbxl
+          test -s /tmp/bbya-premium-audio.rbxl
+      - name: Validate audio-reactive authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          client='maps/bbya-social-hub/62-dj-wall-render.client.lua'
+          fallback='maps/bbya-social-hub/59-dj-wall-visuals.server.lua'
+          lighting='maps/bbya-social-hub/28-lighting-ambience.server.lua'
+
+          grep -q 'PlaybackLoudness' "$client"
+          grep -q 'accumulator<.05' "$client"
+          grep -q 'BBYAClubDeckA' "$client"
+          grep -q 'BBYAClubDeckB' "$client"
+          grep -q 'BBYABasementDeckA' "$client"
+          grep -q 'BBYABasementDeckB' "$client"
+          grep -q 'BBYAFunkotDeck' "$client"
+          grep -q 'LIVE ENVELOPE' "$client"
+          grep -q 'BBYAAudioReactiveRenderer' "$client"
+
+          grep -q 'Static fallback only' "$fallback"
+          grep -q 'BBYAFakeSpectrumRemoved' "$fallback"
+          if grep -q 'LiveSpectrum' "$fallback"; then
+            echo 'Server fallback must not recreate a fake LiveSpectrum.' >&2
+            exit 1
+          fi
+          if grep -q 'while rootFrame.Parent' "$fallback"; then
+            echo 'Server DJ wall fallback must not run an animation loop.' >&2
+            exit 1
+          fi
+
+          grep -q 'BBYAAudioReactive' "$lighting"
+          grep -q 'client audio intensity' "$lighting"
+          if grep -q 'r.s.Brightness=r.base' "$lighting"; then
+            echo 'Server lighting must not fight client loudness intensity.' >&2
+            exit 1
+          fi
+
+          if grep -q 'local h=.18+math.abs(math.sin' "$client"; then
+            echo 'Legacy fake sine spectrum still present in client.' >&2
+            exit 1
+          fi
+          echo 'BBYA audio-reactive QC passed.'

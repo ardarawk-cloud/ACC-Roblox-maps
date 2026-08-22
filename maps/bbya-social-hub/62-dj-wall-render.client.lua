@@ -1,8 +1,11 @@
--- BBYA SOCIAL HUB — DJ WALL CLIENT RENDERER v1
--- Mobile-safe local SurfaceGui renderer. Server remains authoritative for purchases/queue.
+-- BBYA SOCIAL HUB — AUDIO-REACTIVE NIGHTLIFE RENDERER v2
+-- Reads local Sound.PlaybackLoudness from the existing MAIN / UNDERGROUND / FUNKOT engines.
+-- No playlist, queue, purchase, or transport authority lives here.
+-- Visual response is amplitude/envelope based; this does NOT pretend to be a frequency spectrum.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local RunService=game:GetService("RunService")
+local SoundService=game:GetService("SoundService")
 local Workspace=game:GetService("Workspace")
 
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
@@ -28,23 +31,20 @@ for _,name in ipairs({"DJWallUI","DJWallUI_OppositeFace"}) do
 end
 
 local C={
- black=Color3.fromRGB(4,4,8),ink=Color3.fromRGB(10,8,15),pink=Color3.fromRGB(255,38,155),
- cyan=Color3.fromRGB(0,210,238),gold=Color3.fromRGB(238,190,94),white=Color3.fromRGB(245,243,248),
- muted=Color3.fromRGB(140,133,151),green=Color3.fromRGB(62,205,124),purple=Color3.fromRGB(111,65,214),
+ black=Color3.fromRGB(4,4,8),pink=Color3.fromRGB(255,38,155),cyan=Color3.fromRGB(0,210,238),
+ gold=Color3.fromRGB(238,190,94),white=Color3.fromRGB(245,243,248),muted=Color3.fromRGB(140,133,151),
+ green=Color3.fromRGB(62,205,124),purple=Color3.fromRGB(111,65,214),
 }
-
 local function label(parent,text,pos,size,font,color,z)
  local l=Instance.new("TextLabel")
  l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.GothamBold
  l.TextColor3=color or C.white;l.TextScaled=true;l.TextWrapped=true;l.TextXAlignment=Enum.TextXAlignment.Center
- l.TextYAlignment=Enum.TextYAlignment.Center;l.ZIndex=z or 5;l.Parent=parent
- return l
+ l.TextYAlignment=Enum.TextYAlignment.Center;l.ZIndex=z or 5;l.Parent=parent;return l
 end
 local function frame(parent,pos,size,color,trans,z)
  local f=Instance.new("Frame")
  f.Position=pos;f.Size=size;f.BackgroundColor3=color or C.pink;f.BackgroundTransparency=trans or 0
- f.BorderSizePixel=0;f.ZIndex=z or 4;f.Parent=parent
- return f
+ f.BorderSizePixel=0;f.ZIndex=z or 4;f.Parent=parent;return f
 end
 local function round(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 8);c.Parent=o end
 
@@ -62,14 +62,14 @@ local function build(face,name)
 
  local idle=frame(bg,UDim2.fromScale(0,0),UDim2.fromScale(1,1),C.black,1,2)
  local logo=label(idle,"BBYA",UDim2.fromScale(.26,.18),UDim2.fromScale(.48,.28),Enum.Font.GothamBlack,C.white,6)
- local sub=label(idle,"SOCIAL HUB  //  LIVE",UDim2.fromScale(.30,.47),UDim2.fromScale(.40,.07),Enum.Font.GothamBold,C.pink,6)
- local status=label(idle,"●  LIVE VISUALS",UDim2.fromScale(.78,.05),UDim2.fromScale(.17,.05),Enum.Font.GothamBold,C.green,6)
+ local sub=label(idle,"SOCIAL HUB  //  AUDIO REACTIVE",UDim2.fromScale(.27,.47),UDim2.fromScale(.46,.07),Enum.Font.GothamBold,C.pink,6)
+ local status=label(idle,"○  AUDIO IDLE",UDim2.fromScale(.78,.05),UDim2.fromScale(.17,.05),Enum.Font.GothamBold,C.muted,6)
  local footer=label(idle,"MUSIC  •  COMMUNITY  •  24/7",UDim2.fromScale(.29,.82),UDim2.fromScale(.42,.05),Enum.Font.GothamMedium,C.muted,6)
 
  local visual=frame(idle,UDim2.fromScale(.055,.60),UDim2.fromScale(.89,.18),Color3.fromRGB(8,8,12),.18,3);round(visual,14)
  local bars={}
  for i=1,34 do
-  local b=frame(visual,UDim2.new((i-.5)/34,0,1,0),UDim2.new(.018,0,.18,0),i%5==0 and C.cyan or (i%3==0 and C.gold or C.pink),.02,4)
+  local b=frame(visual,UDim2.new((i-.5)/34,0,1,0),UDim2.new(.018,0,.08,0),i%5==0 and C.cyan or (i%3==0 and C.gold or C.pink),.02,4)
   b.AnchorPoint=Vector2.new(.5,1);round(b,5);table.insert(bars,b)
  end
 
@@ -78,7 +78,7 @@ local function build(face,name)
  local dots={}
  for r=1,6 do
   for c=1,15 do
-   local d=frame(matrix,UDim2.fromScale((c-.5)/15,(r-.5)/6),UDim2.fromScale(.025,.06),((r+c)%3==0) and C.cyan or (((r+c)%2==0) and C.pink or C.purple),.10,4)
+   local d=frame(matrix,UDim2.fromScale((c-.5)/15,(r-.5)/6),UDim2.fromScale(.025,.06),((r+c)%3==0) and C.cyan or (((r+c)%2==0) and C.pink or C.purple),.72,4)
    d.AnchorPoint=Vector2.new(.5,.5);round(d,5);table.insert(dots,d)
   end
  end
@@ -99,58 +99,139 @@ end
 
 local renderers={build(Enum.NormalId.Front,"BBYAClientWallFront"),build(Enum.NormalId.Back,"BBYAClientWallBack")}
 local wallState={mode="idle"}
-local mode=1
+local displayMode=1
 local modeStart=os.clock()
-local nextMode=9
 
 local function applyState(state)
  wallState=state or {mode="idle"}
  for _,r in ipairs(renderers) do
   local isMessage=wallState.mode=="message"
-  r.message.Visible=isMessage
-  r.idle.Visible=not isMessage
+  r.message.Visible=isMessage;r.idle.Visible=not isMessage
   if isMessage then
-   r.category.Text=wallState.category or "BBYA LIVE MESSAGE"
-   r.msg.Text=wallState.text or ""
-   r.from.Text=wallState.from or ""
+   r.category.Text=wallState.category or "BBYA LIVE MESSAGE";r.msg.Text=wallState.text or "";r.from.Text=wallState.from or ""
   end
  end
 end
 applyState(wallState)
+wallRemote.OnClientEvent:Connect(function(action,data)if action=="wallRenderState" and type(data)=="table" then applyState(data) end end)
 
-wallRemote.OnClientEvent:Connect(function(action,data)
- if action=="wallRenderState" and type(data)=="table" then applyState(data) end
-end)
+local venue={
+ MAIN={soundNames={"BBYAClubDeckA","BBYAClubDeckB"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
+ BASEMENT={soundNames={"BBYABasementDeckA","BBYABasementDeckB"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
+ FUNKOT={soundNames={"BBYAFunkotDeck"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
+}
 
-RunService.RenderStepped:Connect(function()
+local function isLight(x)return x:IsA("SpotLight") or x:IsA("PointLight") or x:IsA("SurfaceLight") end
+local function cacheLight(bucket,l)
+ for _,row in ipairs(bucket.lights) do if row.light==l then return end end
+ local base=l:GetAttribute("BBYABaseBrightness")
+ if type(base)~="number" then base=l.Brightness end
+ table.insert(bucket.lights,{light=l,base=math.max(.05,base)})
+end
+local function cacheBeam(bucket,b)
+ for _,row in ipairs(bucket.beams) do if row.beam==b then return end end
+ table.insert(bucket.beams,{beam=b})
+end
+local function refreshFX()
+ for _,v in pairs(venue) do v.lights={};v.beams={} end
+ local main=root:FindFirstChild("ClubAmbience")
+ if main then
+  for _,d in ipairs(main:GetDescendants()) do
+   if isLight(d) and d.Parent and (d.Parent.Name:find("StageBeam",1,true) or d.Parent.Name:find("DanceBeam",1,true)) then cacheLight(venue.MAIN,d) end
+  end
+ end
+ local underground=root:FindFirstChild("Underground")
+ if underground then
+  for _,d in ipairs(underground:GetDescendants()) do
+   if isLight(d) and d.Parent then
+    local n=d.Parent.Name
+    if n:find("CeilingBlue",1,true) or n:find("CeilingYellow",1,true) or n:find("DJBoothBlue",1,true) or n:find("DJBoothYellow",1,true) or n:find("BarBlue",1,true) or n:find("BarYellow",1,true) then cacheLight(venue.BASEMENT,d) end
+   end
+  end
+ end
+ local funkot=root:FindFirstChild("FunkotClubV1")
+ if funkot then
+  local movers=funkot:FindFirstChild("MovingHeads")
+  if movers then for _,d in ipairs(movers:GetDescendants()) do if isLight(d) then cacheLight(venue.FUNKOT,d) end end end
+  local lasers=funkot:FindFirstChild("LaserRig")
+  if lasers then for _,d in ipairs(lasers:GetDescendants()) do if d:IsA("Beam") then cacheBeam(venue.FUNKOT,d) end end end
+ end
+end
+refreshFX()
+task.spawn(function()while screen.Parent do task.wait(5);refreshFX() end end)
+
+local function rawLoudness(names)
+ local raw=0
+ for _,name in ipairs(names) do
+  local s=SoundService:FindFirstChild(name)
+  if s and s:IsA("Sound") and s.IsPlaying then raw=math.max(raw,tonumber(s.PlaybackLoudness) or 0) end
+ end
+ return raw
+end
+local function updateEnvelope(v)
+ local raw=rawLoudness(v.soundNames)
+ if raw>v.peak then v.peak=raw else v.peak=math.max(90,v.peak*.992) end
+ local norm=(raw<2) and 0 or math.clamp(raw/math.max(v.peak,90),0,1)
+ v.fast+=(norm-v.fast)*.34;v.slow+=(norm-v.slow)*.055
+ v.energy+=(norm-v.energy)*.22
+ v.beat=math.clamp((v.fast-v.slow)*3.1,0,1)
+ return raw
+end
+local function applyRig(v,minGain,energyGain,beatGain)
+ local gain=minGain+v.energy*energyGain+v.beat*beatGain
+ for i=#v.lights,1,-1 do
+  local row=v.lights[i]
+  if row.light and row.light.Parent then row.light.Brightness=row.base*gain else table.remove(v.lights,i) end
+ end
+ for i=#v.beams,1,-1 do
+  local row=v.beams[i]
+  if row.beam and row.beam.Parent then
+   local visible=math.clamp(.78-v.energy*.58-v.beat*.16,.06,.78)
+   row.beam.Transparency=NumberSequence.new(visible)
+  else table.remove(v.beams,i) end
+ end
+end
+
+local accumulator=0
+RunService.RenderStepped:Connect(function(dt)
+ accumulator+=dt
+ if accumulator<.05 then return end
+ accumulator=0
+ local mainRaw=updateEnvelope(venue.MAIN)
+ updateEnvelope(venue.BASEMENT);updateEnvelope(venue.FUNKOT)
+ applyRig(venue.MAIN,.48,.76,.34)
+ applyRig(venue.BASEMENT,.58,.90,.36)
+ applyRig(venue.FUNKOT,.32,.72,.28)
+
  if wallState.mode=="message" then return end
  local t=os.clock()
- if t-modeStart>=nextMode then
-  mode=(mode%3)+1;modeStart=t;nextMode=8+math.random()*5
- end
+ if t-modeStart>=12 then displayMode=(displayMode%3)+1;modeStart=t end
+ local e=venue.MAIN.energy;local beat=venue.MAIN.beat
  for _,r in ipairs(renderers) do
-  if mode==1 then
-   r.matrix.Visible=false;r.visual.Visible=true;r.logo.Visible=true;r.sub.Visible=true;r.footer.Visible=true
-   local pulse=.96+math.sin(t*1.8)*.035
-   r.logo.Size=UDim2.fromScale(.48*pulse,.28*pulse)
-   r.logo.Position=UDim2.fromScale(.5-.24*pulse,.32-.14*pulse)
-  elseif mode==2 then
-   r.matrix.Visible=false;r.visual.Visible=true;r.logo.Visible=true;r.sub.Visible=true;r.footer.Visible=true
-   r.logo.Text="BBYA  LIVE WAVE";r.sub.Text="AUTO DJ  //  NIGHT NETWORK"
-  else
+  r.status.Text=(mainRaw>2) and "●  AUDIO LINK" or "○  AUDIO IDLE"
+  r.status.TextColor3=(mainRaw>2) and C.green or C.muted
+  if displayMode==3 then
    r.matrix.Visible=true;r.visual.Visible=false;r.logo.Visible=false;r.sub.Visible=false;r.footer.Visible=false
-   r.matrixLogo.Rotation=math.sin(t*.8)*1.5
-   for i,d in ipairs(r.dots) do d.BackgroundTransparency=.08+.55*(.5+.5*math.sin(t*2+i*.31)) end
-  end
-  if mode~=3 then
-   r.logo.Text=(mode==1) and "BBYA" or "BBYA  LIVE WAVE"
-   r.sub.Text=(mode==1) and "SOCIAL HUB  //  LIVE" or "AUTO DJ  //  NIGHT NETWORK"
+   local pulse=1+beat*.035;r.matrixLogo.Size=UDim2.fromScale(.44*pulse,.30*pulse);r.matrixLogo.Position=UDim2.fromScale(.5-.22*pulse,.46-.15*pulse)
+   for i,d in ipairs(r.dots) do
+    local spatial=.55+.45*math.sin(t*1.15+i*.41)
+    d.BackgroundTransparency=math.clamp(.82-e*(.48+.25*spatial)-beat*.12,.10,.86)
+   end
+  else
+   r.matrix.Visible=false;r.visual.Visible=true;r.logo.Visible=true;r.sub.Visible=true;r.footer.Visible=true
+   r.logo.Text=(displayMode==1) and "BBYA" or "BBYA  LIVE WAVE"
+   r.sub.Text=(displayMode==1) and "SOCIAL HUB  //  AUDIO REACTIVE" or "AUTO DJ  //  LIVE ENVELOPE"
+   local pulse=1+beat*.055+r.energy*.012
+   r.logo.Size=UDim2.fromScale(.48*pulse,.28*pulse);r.logo.Position=UDim2.fromScale(.5-.24*pulse,.32-.14*pulse)
    for i,b in ipairs(r.bars) do
-    local h=.18+math.abs(math.sin(t*3.2+i*.47))*.72
+    local spatial=.52+.48*math.sin(t*1.35+i*.57)
+    local accent=(i%5==0) and 1.08 or 1
+    local h=math.clamp(.07+e*(.30+.58*spatial)*accent+beat*.12*(1-spatial*.35),.07,.98)
     b.Size=UDim2.new(.018,0,h,0)
    end
   end
  end
 end)
 
-print("[BBYA] DJ wall client renderer v1 online: dual-face mobile render")
+screen:SetAttribute("BBYAAudioReactiveRenderer","V2_PLAYBACK_LOUDNESS")
+print("[BBYA] audio-reactive renderer v2 online: real loudness envelope / MAIN + UNDERGROUND + FUNKOT")
