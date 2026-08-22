@@ -1,4 +1,4 @@
--- BECAK E-BIKE — road access + drivability hardening v1.33
+-- BECAK E-BIKE — road access + drivability hardening v1.34
 -- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
 -- Dedicated to maps/becak-e-bike only.
 
@@ -12,6 +12,7 @@ local vehicles = root:WaitForChild('Vehicles',30)
 if not world or not vehicles then return end
 
 local seamParts = 0
+local seamRegistry = {}
 
 local function isRoadEdgeName(name)
     local n = string.lower(name)
@@ -56,6 +57,13 @@ local function flattenVisualSurface(p, attributeName)
     p:SetAttribute('BecakDriveSurface',true)
 end
 
+local function registerSeamPart(p)
+    if seamRegistry[p] then return false end
+    seamRegistry[p] = true
+    seamParts += 1
+    return true
+end
+
 local function tuneRoadSurface(p)
     if not p:IsA('BasePart') then return end
 
@@ -72,20 +80,25 @@ local function tuneRoadSurface(p)
         return
     end
 
-    -- v1.33: normalize curb/trotoar aliases on the part OR any parent container.
-    -- Extra aliases cover common imported city-kit names (walkway, kerbstone, road_edge)
-    -- while keeping walls/buildings/fences collidable.
+    -- v1.34: normalize curb/trotoar aliases on the part OR any parent container, then
+    -- keep a cached registry so the runtime audit never rescans the entire city tree.
     if isRoadEdgePart(p) then
         flattenVisualSurface(p,'BecakSeamlessRoadEdge')
         p:SetAttribute('BecakSeamlessSidewalk',true)
         p:SetAttribute('BecakMountableCurb',true)
-        seamParts += 1
+        registerSeamPart(p)
     end
 end
 
 for _,x in ipairs(world:GetDescendants()) do tuneRoadSurface(x) end
 world.DescendantAdded:Connect(function(x)
     task.defer(function() tuneRoadSurface(x) end)
+end)
+world.DescendantRemoving:Connect(function(x)
+    if seamRegistry[x] then
+        seamRegistry[x] = nil
+        seamParts = math.max(0,seamParts-1)
+    end
 end)
 
 -- Broad, flat driveway from the HQ/spawn lawn to the nearest road.
@@ -138,7 +151,7 @@ local function tuneVehicle(model)
     if not chassis or not chassis:IsA('BasePart') then return end
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.33')
+    model:SetAttribute('RoadAccessTune','v1.34')
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m)
@@ -146,8 +159,9 @@ vehicles.ChildAdded:Connect(function(m)
     tuneVehicle(m)
 end)
 
--- Runtime seam audit: if a later city script changes a known road-edge part back to collision,
--- repair it automatically. Audit is deliberately slow (2 Hz) to keep server/mobile cost tiny.
+-- Runtime seam audit: audit only the known road-edge registry instead of calling
+-- world:GetDescendants() every 0.5s. This keeps self-healing behavior while avoiding
+-- repeated O(world-size) scans as Nusakarya grows.
 local auditAcc=0
 local recoveryAcc=0
 RunService.Heartbeat:Connect(function(dt)
@@ -157,8 +171,13 @@ RunService.Heartbeat:Connect(function(dt)
     if auditAcc >= 0.5 then
         auditAcc=0
         local repaired=0
-        for _,p in ipairs(world:GetDescendants()) do
-            if p:IsA('BasePart') and isRoadEdgePart(p) and p.CanCollide then
+        local stale=0
+        for p in pairs(seamRegistry) do
+            if not p.Parent or not p:IsDescendantOf(world) then
+                seamRegistry[p] = nil
+                seamParts = math.max(0,seamParts-1)
+                stale += 1
+            elseif p:IsA('BasePart') and p.CanCollide then
                 flattenVisualSurface(p,'BecakSeamlessRoadEdge')
                 p:SetAttribute('BecakSeamlessSidewalk',true)
                 p:SetAttribute('BecakMountableCurb',true)
@@ -168,6 +187,8 @@ RunService.Heartbeat:Connect(function(dt)
         if repaired > 0 then
             Workspace:SetAttribute('BecakRoadEdgeAutoRepairs',(tonumber(Workspace:GetAttribute('BecakRoadEdgeAutoRepairs')) or 0)+repaired)
         end
+        Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
+        Workspace:SetAttribute('BecakRoadEdgeRegistryStaleCleanups',(tonumber(Workspace:GetAttribute('BecakRoadEdgeRegistryStaleCleanups')) or 0)+stale)
     end
 
     -- Conservative recovery: only rescue vehicles that actually fall below playable ground.
@@ -184,13 +205,15 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakRoadAccess','v1.33')
+Workspace:SetAttribute('ACC_BecakRoadAccess','v1.34')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAudit','ON')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAncestorAudit','ON')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAliasAudit','ON')
+Workspace:SetAttribute('ACC_BecakRoadEdgeCachedAudit','ON')
 Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
+Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
-print('[BECAK E-BIKE] Road access v1.33 active: expanded curb/trotoar/walkway aliases + ancestor-aware seam audit')
+print('[BECAK E-BIKE] Road access v1.34 active: cached road-edge registry + seamless curb/trotoar self-heal')
