@@ -1,0 +1,63 @@
+name: BBYA v344 Pasar Malam QC
+
+on:
+  push:
+    branches: [agent/bbya-night-market-v344-premium]
+    paths:
+      - 'maps/bbya-social-hub/98-night-market.server.lua'
+      - 'maps/bbya-social-hub/99-night-market-premium.server.lua'
+      - 'maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-night-market-v344-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/98-night-market.server.lua'
+      - 'maps/bbya-social-hub/99-night-market-premium.server.lua'
+      - 'maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Static Pasar Malam checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/99-night-market-premium.server.lua'
+          c='maps/bbya-social-hub/100-night-market-control-fix.server.lua'
+          p='maps/bbya-social-hub/default.project.json'
+          grep -q 'NIGHT_MARKET_PREMIUM_V3' "$f"
+          grep -q 'AUTHENTIC_INDONESIAN_FAIR' "$f"
+          grep -q 'PlayableMiniTrain' "$f"
+          grep -q 'PremiumFerrisWheel' "$f"
+          grep -q 'LEMPAR GELANG' "$f"
+          grep -q 'OperatorBoothControlsBound' "$c"
+          grep -q 'NightMarketPremiumV3' "$p"
+          grep -q 'NightMarketControlFixV344' "$p"
+          if grep -n 'Instance.new("Sound")' "$f" "$c"; then
+            echo 'Pasar Malam premium must not inject audio.' >&2
+            exit 1
+          fi
+          grep -q 'TravelPriceRobux",10' "$f"
+          python3 -m json.tool "$p" >/dev/null
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v344-night-market.rbxl
+          test -s /tmp/bbya-v344-night-market.rbxl
+          ls -lh /tmp/bbya-v344-night-market.rbxl
