@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v5
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v6
 -- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
 
 local Players=game:GetService("Players")
@@ -28,7 +28,7 @@ local holder=Instance.new("ScrollingFrame")
 holder.Name="TravelDestinationScroller";holder.Position=UDim2.fromOffset(0,52);holder.Size=UDim2.new(1,0,1,-52);holder.BackgroundTransparency=1;holder.BorderSizePixel=0;holder.ScrollBarThickness=2;holder.AutomaticCanvasSize=Enum.AutomaticSize.Y;holder.CanvasSize=UDim2.new();holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable;holder.Parent=travel
 local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(6,6);grid.SortOrder=Enum.SortOrder.LayoutOrder;grid.Parent=holder
 
-local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255)}
+local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65)}
 local destinations={
  {"ARRIVAL","Arrival","FREE",nil,C.cyan},
  {"PHOTO STUDIO","Photo","FREE",nil,C.cyan},
@@ -39,6 +39,7 @@ local destinations={
  {"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},
  {"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
  {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},
+ {"BBYA MALL","Mall","ONE-TIME",10,C.mall},
 }
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,c)local s=Instance.new("UIStroke");s.Color=c;s.Thickness=1;s.Transparency=.55;s.Parent=o end
@@ -69,4 +70,4 @@ end
 task.defer(apply);holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(apply)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(apply) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(apply)end)
-print("[BBYA] Travel UI v5 online: Funkot Club 10R added")
+print("[BBYA] Travel UI v6 online: Mall 10R added")
