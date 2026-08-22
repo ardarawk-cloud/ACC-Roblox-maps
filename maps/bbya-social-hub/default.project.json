@@ -57,7 +57,8 @@
       "OwnerGeometryFixesV1": {"$path": "91-owner-geometry-fixes.server.lua"},
       "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
       "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
-      "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"}
+      "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
+      "ActiveRearMallV1": {"$path": "94-mall.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -69,7 +70,7 @@
         "DJRequestCompactPatch": {"$path": "48-dj-request-compact.client.lua"},
         "UIClarityPatch": {"$path": "49-ui-clarity-patch.client.lua"},
         "DJWallPrestigeClient": {"$path": "50-dj-wall-message.client.lua"},
-        "MenuMessageScrollPatch": {"$path": "51-menu-message-scroll.client.lua"},
+        "MenuMessageScrollPatch": {"$path": "51-menu-message-scroll-patch.client.lua"},
         "CommunityTab": {"$path": "52-community-tab.client.lua"},
         "DockStability": {"$path": "56-dock-stability.client.lua"},
         "DJWallClientRenderer": {"$path": "62-dj-wall-render.client.lua"},
@@ -81,7 +82,8 @@
         "FreecamV1": {"$path": "92-freecam.client.lua"},
         "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
         "ThreeVenueMusicUIV2": {"$path": "93-venue-music-ui.client.lua"},
-        "StructuralDashboardV2": {"$path": "93-dashboard-structural.client.lua"}
+        "StructuralDashboardV2": {"$path": "93-dashboard-structural.client.lua"},
+        "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"}
       }
     },
     "Lighting": {
