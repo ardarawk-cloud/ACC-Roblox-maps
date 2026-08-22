@@ -60,6 +60,7 @@
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
       "ActiveRearMallV1": {"$path": "94-mall.server.lua"},
       "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"},
+      "MallLiveUpgradeV2": {"$path": "95-mall-live-upgrade.server.lua"},
       "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
       "PaidZoneHardSealV2": {"$path": "95-paid-zone-hard-seal.server.lua"},
       "PaidZonePortalsV1": {"$path": "96-paid-zone-portals.server.lua"},
@@ -88,7 +89,8 @@
         "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
         "ThreeVenueMusicUIV2": {"$path": "93-venue-music-ui.client.lua"},
         "StructuralDashboardV3": {"$path": "93-dashboard-structural.client.lua"},
-        "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"}
+        "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
+        "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
       }
     },
     "Lighting": {
