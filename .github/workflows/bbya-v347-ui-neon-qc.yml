@@ -1,0 +1,87 @@
+name: BBYA v347 UI Neon QC
+
+on:
+  push:
+    branches: [agent/bbya-ui-neon-v347]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v347-ui-neon-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v347-ui-neon-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v347.rbxl
+          test -s /tmp/bbya-v347.rbxl
+      - name: Validate command menu authority
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/56-dock-stability.client.lua'
+          grep -q 'COMMAND MENU AUTHORITY v4' "$f"
+          grep -q 'menuButton.Position=UDim2.new(1,-6,0,6)' "$f"
+          grep -q 'dock.Visible=false' "$f"
+          grep -q 'task.wait(.18)' "$f"
+          grep -q 'FREECAM' "$f"
+          grep -q 'COMMUNITY' "$f"
+          owner='maps/bbya-social-hub/91-owner-ui.client.lua'
+          grep -q 'OWNER UI COMPATIBILITY GUARD v6' "$owner"
+          ! grep -q 'Instance.new("ScreenGui")' "$owner"
+      - name: Validate Travel touch reliability
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+          grep -q 'TRAVEL UI PATCH v10' "$f"
+          grep -q 'FillDirectionMaxCells=cols' "$f"
+          grep -q 'SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)' "$f"
+          grep -q 'go.Activated' "$f"
+          if grep -q 'CanvasPosition=' "$f"; then
+            echo 'Travel v10 must never rewrite CanvasPosition' >&2
+            exit 1
+          fi
+      - name: Validate playlist-first music UI
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/93-venue-music-ui.client.lua'
+          grep -q 'THREE VENUE MUSIC UI v4' "$f"
+          grep -q 'CLUB PLAYLIST' "$f"
+          grep -q 'UNDERGROUND PLAYLIST' "$f"
+          grep -q 'FUNKOT PLAYLIST' "$f"
+          grep -q 'FunkotPlaylistV4' "$f"
+          if grep -q 'Instance.new("TextBox")' "$f"; then
+            echo 'Search-first music UI is forbidden in v347' >&2
+            exit 1
+          fi
+      - name: Validate VIP pink hard scrub
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+          grep -q 'VIP FLOOR NEON OWNER LOCK v5' "$f"
+          grep -q 'PinkVIPLightingAllowed",false' "$f"
+          grep -q 'obj:IsA("Beam")' "$f"
+          grep -q 'obj:IsA("Light")' "$f"
+          grep -q 'for _=1,48 do' "$f"
+          test "$(grep -c 'strip("North_' "$f")" -eq 1
+          grep -q 'strip("South_' "$f"
+          grep -q 'strip("West_' "$f"
+          grep -q 'strip("East_' "$f"
