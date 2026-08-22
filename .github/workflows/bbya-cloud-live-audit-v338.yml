@@ -1,0 +1,186 @@
+name: BBYA v338 Open Cloud Live Audit
+
+on:
+  push:
+    branches: [agent/bbya-premium-v338]
+    paths:
+      - '.github/workflows/bbya-cloud-live-audit-v338.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit-live-cloud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/bbya-premium-v338
+          fetch-depth: 0
+
+      - name: Inspect published BBYA through Roblox Open Cloud
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          UNIVERSE_ID: '8116636513'
+          PLACE_ID: '131894120482837'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, time, urllib.request, urllib.error
+
+          root=pathlib.Path('.')
+          receipt_path=root/'deploy-status/a-club.json'
+          receipt=json.loads(receipt_path.read_text()) if receipt_path.exists() else {}
+          version=str(((receipt.get('response') or {}).get('versionNumber')) or 337)
+          key=os.environ.get('ROBLOX_API_KEY','').strip()
+          universe=os.environ['UNIVERSE_ID']; place=os.environ['PLACE_ID']
+          report={'universeId':universe,'placeId':place,'publishedVersion':version,'method':'OPEN_CLOUD','luau':{},'instanceFallback':{}}
+
+          def req(url,method='GET',payload=None):
+              data=None if payload is None else json.dumps(payload).encode()
+              headers={'x-api-key':key}
+              if payload is not None: headers['Content-Type']='application/json'
+              r=urllib.request.Request(url,data=data,headers=headers,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=35) as x:
+                      raw=x.read().decode('utf-8','replace')
+                      return x.status, json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try: body=json.loads(raw) if raw.strip() else {}
+                  except Exception: body={'raw':raw[-3000:]}
+                  return e.code,body
+              except Exception as e:
+                  return 0,{'error':str(e)}
+
+          # Safe key introspection: never writes or prints the key itself.
+          code,intro=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key})
+          report['key']={'http':code,'name':intro.get('name'),'enabled':intro.get('enabled'),'expired':intro.get('expired'),
+                         'scopes':[{'name':x.get('name'),'operations':x.get('operations') or []} for x in (intro.get('scopes') or [])]}
+
+          script=r'''
+          task.wait(7)
+          local W=game:GetService("Workspace")
+          local root=W:FindFirstChild("BBYA_ZERO_BUILD")
+          print("BBYA_CLOUD_AUDIT_BEGIN")
+          print("ROOT="..tostring(root~=nil))
+          if root then
+              local names={}
+              for _,c in ipairs(root:GetChildren()) do table.insert(names,c.Name) end
+              table.sort(names)
+              print("ROOT_CHILDREN="..table.concat(names,"|"))
+          end
+          local function path(o)
+              local a={}
+              local cur=o
+              while cur and cur~=W do table.insert(a,1,cur.Name);cur=cur.Parent end
+              return table.concat(a,"/")
+          end
+          local function inspectBox(label,cf,size)
+              local parts=W:GetPartBoundsInBox(cf,size)
+              local rows={}
+              for _,p in ipairs(parts) do
+                  if p:IsA("BasePart") and p.CanCollide then
+                      table.insert(rows,string.format("%s@%.1f,%.1f,%.1f#%.1f,%.1f,%.1f",path(p),p.Position.X,p.Position.Y,p.Position.Z,p.Size.X,p.Size.Y,p.Size.Z))
+                  end
+              end
+              table.sort(rows)
+              print(label.."_COUNT="..#rows)
+              for i=1,math.min(#rows,90) do print(label.."_PART="..rows[i]) end
+          end
+          inspectBox("FRONT_LEFT",CFrame.new(-53,4,-38),Vector3.new(24,12,28))
+          inspectBox("FRONT_RIGHT",CFrame.new(53,4,-38),Vector3.new(24,12,28))
+          inspectBox("SIDE_LEFT",CFrame.new(-60,4,19),Vector3.new(22,10,134))
+          inspectBox("SIDE_RIGHT",CFrame.new(60,4,19),Vector3.new(22,10,134))
+          local function openCells(label,x)
+              local open={}
+              for z=-48,70,4 do
+                  local n=0
+                  for _,p in ipairs(W:GetPartBoundsInBox(CFrame.new(x,3,z),Vector3.new(5,6,5))) do
+                      if p:IsA("BasePart") and p.CanCollide and p.Size.Y>1 then n+=1 end
+                  end
+                  if n==0 then table.insert(open,tostring(z)) end
+              end
+              print(label.."_OPEN_Z="..table.concat(open,","))
+          end
+          openCells("LEFT_X55",-55);openCells("LEFT_X63",-63);openCells("RIGHT_X55",55);openCells("RIGHT_X63",63)
+          if root then
+              local e=root:FindFirstChild("Entrance")
+              local fills=e and e:FindFirstChild("OwnerLowerCornerFill")
+              print("OWNER_FILL_EXISTS="..tostring(fills~=nil))
+              if fills then
+                  for _,p in ipairs(fills:GetChildren()) do if p:IsA("BasePart") then print(string.format("OWNER_FILL=%s@%.1f,%.1f,%.1f#%.1f,%.1f,%.1f",p.Name,p.Position.X,p.Position.Y,p.Position.Z,p.Size.X,p.Size.Y,p.Size.Z)) end end
+              end
+              print("SKATEPARK_EXISTS="..tostring(root:FindFirstChild("RearSkatepark")~=nil))
+              print("FUNKOT_EXISTS="..tostring(root:FindFirstChild("FunkotClub")~=nil))
+              local mall=false
+              for _,d in ipairs(root:GetDescendants()) do if string.find(string.lower(d.Name),"mall",1,true) then mall=true;break end end
+              print("MALL_PRESENT="..tostring(mall))
+          end
+          print("BBYA_CLOUD_AUDIT_END")
+          return "BBYA_AUDIT_OK"
+          '''
+
+          create_url=f'https://apis.roblox.com/cloud/v2/universes/{universe}/places/{place}/versions/{version}/luau-execution-session-tasks'
+          code,created=req(create_url,'POST',{'script':script,'timeout':'45s'})
+          report['luau']['createHttp']=code;report['luau']['createResponse']=created
+          task_path=created.get('path') if isinstance(created,dict) else None
+          if code in (200,201,202) and task_path:
+              task_url='https://apis.roblox.com/cloud/v2/'+task_path.lstrip('/')
+              final=None
+              for _ in range(30):
+                  time.sleep(2)
+                  c,b=req(task_url)
+                  final={'http':c,'body':b}
+                  if c==200 and isinstance(b,dict) and (b.get('state') in ('COMPLETE','FAILED','CANCELLED') or b.get('done') is True): break
+              report['luau']['task']=final
+              logs_url=task_url+'/logs?view=STRUCTURED&pageSize=100'
+              lc,lb=req(logs_url)
+              report['luau']['logsHttp']=lc;report['luau']['logs']=lb
+
+          # Fallback/proof of cloud read access using Engine Instance API.
+          list_url=f'https://apis.roblox.com/cloud/v2/universes/{universe}/places/{place}/instances/root:listChildren'
+          ic,ib=req(list_url)
+          report['instanceFallback']['createHttp']=ic;report['instanceFallback']['operation']=ib
+          op=ib.get('path') if isinstance(ib,dict) else None
+          if ic in (200,201,202) and op:
+              op_url='https://apis.roblox.com/cloud/v2/'+op.lstrip('/')
+              for _ in range(15):
+                  time.sleep(2)
+                  oc,ob=req(op_url)
+                  report['instanceFallback']['pollHttp']=oc;report['instanceFallback']['result']=ob
+                  if oc==200 and isinstance(ob,dict) and ob.get('done') is True: break
+
+          # Flatten human-readable audit lines from structured logs.
+          lines=[]
+          logs=report.get('luau',{}).get('logs') or {}
+          for entry in logs.get('luauExecutionSessionTaskLogs',[]) if isinstance(logs,dict) else []:
+              for sm in entry.get('structuredMessages') or []:
+                  msg=sm.get('message')
+                  if msg: lines.append(msg)
+              for msg in entry.get('messages') or []:
+                  if isinstance(msg,str): lines.append(msg)
+          report['auditLines']=lines
+          report['liveGeometryObserved']=any('BBYA_CLOUD_AUDIT_BEGIN' in x for x in lines)
+          report['status']='LIVE_GEOMETRY_OBSERVED' if report['liveGeometryObserved'] else ('INSTANCE_TREE_OBSERVED' if report['instanceFallback'].get('pollHttp')==200 else 'CLOUD_SCOPE_LIMITED')
+
+          out=root/'deploy-status/bbya-cloud-live-audit-v338.json'
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
+          (root/'deploy-status/bbya-cloud-live-audit-v338.txt').write_text('\n'.join(lines) if lines else json.dumps({'status':report['status'],'luauHttp':code,'instanceHttp':ic},indent=2))
+          print(json.dumps({'status':report['status'],'version':version,'luauHttp':code,'instanceHttp':ic,'lines':len(lines)}))
+          PY
+
+      - name: Persist cloud audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Cloud Audit'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-cloud-live-audit-v338.json deploy-status/bbya-cloud-live-audit-v338.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA v338 Open Cloud live audit [skip ci]'
+            git push origin HEAD:agent/bbya-premium-v338
+          fi
