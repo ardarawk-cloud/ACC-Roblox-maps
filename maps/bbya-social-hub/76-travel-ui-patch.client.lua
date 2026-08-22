@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v9
--- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
--- v9: modal input guard hides Roblox Backpack while HubPanel is open and keeps Travel above bottom touch controls.
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v10
+-- Reliable touch-first Travel list. Never writes CanvasPosition after user scrolls.
+-- Mobile uses one large card per row; Backpack is hidden only while Travel is actually open.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,24 +11,7 @@ local camera=workspace.CurrentCamera
 local gui=player:WaitForChild("PlayerGui"):WaitForChild("BBYAClubUI",30)
 local remote=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30):WaitForChild("Teleport",30)
 if not gui or not remote then return end
-
 local hubPanel=gui:FindFirstChild("HubPanel")
-local backpackRestore=true
-local modalOpen=false
-local function setBackpackForModal(open)
- if open==modalOpen then return end
- modalOpen=open
- if open then
-  pcall(function()backpackRestore=StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Backpack)end)
-  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)end)
- else
-  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,backpackRestore)end)
- end
-end
-if hubPanel then
- hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()setBackpackForModal(hubPanel.Visible)end)
- if hubPanel.Visible then task.defer(function()setBackpackForModal(true)end) end
-end
 
 local function findTravel()
  for _,d in ipairs(gui:GetDescendants()) do
@@ -36,11 +19,13 @@ local function findTravel()
  end
 end
 local travel=findTravel();if not travel then task.wait(1);travel=findTravel() end
-if not travel then warn("[BBYA TravelPatch] travel frame not found");return end
+if not travel then warn("[BBYA Travel v10] travel frame not found");return end
+travel.ClipsDescendants=true
+travel.ZIndex=70
 
 for _,d in ipairs(travel:GetDescendants()) do
- if d:IsA("TextLabel") and d.Text:find("Only destinations") then
-  d.Text="Paid destinations are permanent one-time unlocks.";d.TextSize=9
+ if d:IsA("TextLabel") and (d.Text:find("Only destinations") or d.Text:find("Paid destinations")) then
+  d.Text="Tap destination • paid access is a permanent one-time unlock.";d.TextSize=9;d.ZIndex=72
  end
 end
 for _,child in ipairs(travel:GetChildren()) do
@@ -50,97 +35,76 @@ end
 
 local holder=Instance.new("ScrollingFrame")
 holder.Name="TravelDestinationScroller"
-holder.Position=UDim2.fromOffset(0,52)
-holder.Size=UDim2.new(1,0,1,-52)
-holder.BackgroundTransparency=1
-holder.BorderSizePixel=0
-holder.ScrollBarThickness=3
-holder.ScrollBarImageTransparency=.18
-holder.AutomaticCanvasSize=Enum.AutomaticSize.None
-holder.CanvasSize=UDim2.fromOffset(0,0)
-holder.ScrollingDirection=Enum.ScrollingDirection.Y
-holder.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
-holder.ScrollingEnabled=true
-holder.Active=true
-holder.Selectable=false
-holder.ClipsDescendants=true
-holder.Parent=travel
+holder.Position=UDim2.fromOffset(0,50)
+holder.Size=UDim2.new(1,0,1,-50)
+holder.BackgroundTransparency=1;holder.BorderSizePixel=0
+holder.ScrollBarThickness=5;holder.ScrollBarImageTransparency=.05
+holder.AutomaticCanvasSize=Enum.AutomaticSize.None;holder.CanvasSize=UDim2.fromOffset(0,0)
+holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.ElasticBehavior=Enum.ElasticBehavior.Always
+holder.ScrollingEnabled=true;holder.Active=true;holder.Selectable=false;holder.ClipsDescendants=true;holder.ZIndex=80;holder.Parent=travel
 
 local grid=Instance.new("UIGridLayout")
-grid.CellPadding=UDim2.fromOffset(6,6)
-grid.SortOrder=Enum.SortOrder.LayoutOrder
-grid.FillDirection=Enum.FillDirection.Horizontal
-grid.HorizontalAlignment=Enum.HorizontalAlignment.Left
-grid.VerticalAlignment=Enum.VerticalAlignment.Top
-grid.Parent=holder
+grid.CellPadding=UDim2.fromOffset(7,7);grid.SortOrder=Enum.SortOrder.LayoutOrder
+ grid.FillDirection=Enum.FillDirection.Horizontal;grid.FillDirectionMaxCells=1
+ grid.HorizontalAlignment=Enum.HorizontalAlignment.Left;grid.VerticalAlignment=Enum.VerticalAlignment.Top;grid.Parent=holder
+local pad=Instance.new("UIPadding");pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,116);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4);pad.Parent=holder
 
 local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55)}
 local destinations={
- {"ARRIVAL","Arrival","FREE",nil,C.cyan},
- {"PHOTO STUDIO","Photo","FREE",nil,C.cyan},
- {"LOOK LAB","LookLab","FREE",nil,C.cyan},
- {"MAIN CLUB","MainClub","FREE",nil,C.pink},
- {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},
- {"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},
- {"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},
- {"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
- {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},
- {"BBYA MALL","Mall","ONE-TIME",10,C.mall},
- {"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
+ {"ARRIVAL","Arrival","FREE",nil,C.cyan},{"PHOTO STUDIO","Photo","FREE",nil,C.cyan},{"LOOK LAB","LookLab","FREE",nil,C.cyan},{"MAIN CLUB","MainClub","FREE",nil,C.pink},
+ {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},{"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},{"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},{"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
+ {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},{"BBYA MALL","Mall","ONE-TIME",10,C.mall},{"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
 }
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
-local function stroke(o,c)local s=Instance.new("UIStroke");s.Color=c;s.Thickness=1;s.Transparency=.55;s.Parent=o end
-local function label(parent,value,pos,size,font,ts,color)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=value;l.Position=pos;l.Size=size;l.Font=font;l.TextSize=ts;l.TextColor3=color;l.TextXAlignment=Enum.TextXAlignment.Left;l.Parent=parent;return l end
+local function stroke(o,c)local s=Instance.new("UIStroke");s.Color=c;s.Thickness=1;s.Transparency=.50;s.Parent=o end
+local function label(parent,value,pos,size,font,ts,color)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=value;l.Position=pos;l.Size=size;l.Font=font;l.TextSize=ts;l.TextColor3=color;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.ZIndex=83;l.Parent=parent;return l end
 
 for i,d in ipairs(destinations) do
- local card=Instance.new("Frame");card.Name="Travel_"..d[2];card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.LayoutOrder=i;card.Parent=holder;corner(card,9);stroke(card,d[5])
- local bar=Instance.new("Frame");bar.Size=UDim2.new(0,3,1,-12);bar.Position=UDim2.fromOffset(6,6);bar.BackgroundColor3=d[5];bar.BorderSizePixel=0;bar.Parent=card;corner(bar,3)
- label(card,d[1],UDim2.fromOffset(16,8),UDim2.new(1,-22,0,18),Enum.Font.GothamBold,10,C.white)
+ local card=Instance.new("Frame");card.Name="Travel_"..d[2];card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.LayoutOrder=i;card.ZIndex=81;card.Parent=holder;corner(card,10);stroke(card,d[5])
+ local bar=Instance.new("Frame");bar.Size=UDim2.new(0,4,1,-14);bar.Position=UDim2.fromOffset(7,7);bar.BackgroundColor3=d[5];bar.BorderSizePixel=0;bar.ZIndex=82;bar.Parent=card;corner(bar,3)
+ label(card,d[1],UDim2.fromOffset(19,7),UDim2.new(.55,-16,0,22),Enum.Font.GothamBold,11,C.white)
  local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or "FREE TELEPORT"
- label(card,meta,UDim2.fromOffset(16,27),UDim2.new(1,-22,0,14),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
- local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.Position=UDim2.new(0,16,1,-27);go.Size=UDim2.new(1,-22,0,21);go.BackgroundColor3=Color3.fromRGB(38,34,43);go.BorderSizePixel=0;go.Font=Enum.Font.GothamSemibold;go.TextSize=8;go.TextColor3=C.white;go.Selectable=false;go.Active=true;go.ZIndex=20;go.Parent=card;corner(go,6)
- go.MouseButton1Click:Connect(function()
-  remote:FireServer(d[2])
-  local panel=gui:FindFirstChild("HubPanel");if panel then panel.Visible=false end
- end)
+ label(card,meta,UDim2.fromOffset(19,30),UDim2.new(.55,-16,0,18),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
+ local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.AnchorPoint=Vector2.new(1,.5);go.Position=UDim2.new(1,-9,.5,0);go.Size=UDim2.new(.40,0,0,38)
+ go.BackgroundColor3=Color3.fromRGB(40,36,46);go.BorderSizePixel=0;go.Font=Enum.Font.GothamBold;go.TextSize=9;go.TextColor3=C.white;go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5])
+ go.Activated:Connect(function()remote:FireServer(d[2]);if hubPanel then hubPanel.Visible=false end end)
 end
 
-local layingOut=false
-local function syncCanvas(keepY)
- if layingOut then return end
- layingOut=true
- local oldY=keepY and holder.CanvasPosition.Y or 0
- local contentY=math.max(0,grid.AbsoluteContentSize.Y+18)
- holder.CanvasSize=UDim2.fromOffset(0,contentY)
- task.defer(function()
-  local maxY=math.max(0,contentY-holder.AbsoluteWindowSize.Y)
-  holder.CanvasPosition=Vector2.new(0,math.clamp(oldY,0,maxY))
-  layingOut=false
- end)
+local function updateCanvas()
+ task.defer(function()if holder.Parent then holder.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+124)) end end)
 end
-
-local function applyGrid()
+local function applyLayout()
  camera=workspace.CurrentCamera or camera
  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
- local phone=UserInputService.TouchEnabled or vp.X<900
- local cols=phone and 2 or 3
- local safeBottom=phone and 96 or 12
- local wantedSize=UDim2.new(1,0,1,-(52+safeBottom))
- if holder.Size~=wantedSize then holder.Size=wantedSize end
- local width=math.max(280,holder.AbsoluteSize.X)
- local cellW=math.max(118,math.floor((width-(cols-1)*6)/cols))
- local oldY=holder.CanvasPosition.Y
- grid.CellSize=UDim2.fromOffset(cellW,phone and 72 or 82)
- task.defer(function()syncCanvas(true);holder.CanvasPosition=Vector2.new(0,oldY)end)
+ local touch=UserInputService.TouchEnabled or vp.X<900
+ local cols=touch and 1 or 2
+ grid.FillDirectionMaxCells=cols
+ local usable=math.max(260,holder.AbsoluteSize.X-8)
+ local cellW=touch and usable or math.floor((usable-7)/2)
+ grid.CellSize=UDim2.fromOffset(cellW,touch and 66 or 72)
+ pad.PaddingBottom=UDim.new(0,touch and 128 or 30)
+ updateCanvas()
 end
+grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyLayout)
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyLayout) end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(applyLayout)end)
 
-grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()syncCanvas(true)end)
-holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyGrid)
-if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyGrid) end
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
- camera=workspace.CurrentCamera
- task.defer(applyGrid)
-end)
-task.defer(function()applyGrid();syncCanvas(false)end)
+-- CoreGui hotbar guard only while Travel itself is the visible page.
+local backpackWas=true
+local backpackHidden=false
+local function travelIsOpen()return travel.Visible and (not hubPanel or hubPanel.Visible) end
+local function syncBackpack()
+ local open=travelIsOpen()
+ if open and not backpackHidden then
+  pcall(function()backpackWas=StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Backpack)end)
+  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)end);backpackHidden=true
+ elseif not open and backpackHidden then
+  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,backpackWas)end);backpackHidden=false
+ end
+end
+travel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBackpack)end)
+if hubPanel then hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBackpack)end) end
 
-print("[BBYA] Travel UI v9 online: bottom input safe + Roblox Backpack modal guard")
+task.defer(function()applyLayout();updateCanvas();syncBackpack()end)
+print("[BBYA] Travel UI v10 online: no scroll snap / one-column mobile / full bottom touch access")
