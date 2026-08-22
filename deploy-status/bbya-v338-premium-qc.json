@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "build": "ROJO_OK",
+  "mallExcluded": true,
+  "changedFiles": [
+    ".github/workflows/bbya-cloud-live-audit-v338.yml",
+    ".github/workflows/bbya-v338-premium-qc.yml",
+    "deploy-status/bbya-cloud-live-audit-v338.json",
+    "deploy-status/bbya-cloud-live-audit-v338.txt",
+    "maps/bbya-social-hub/94-world-premium-v338.server.lua",
+    "maps/bbya-social-hub/default.project.json"
+  ],
+  "formerPillarSeals": 2,
+  "sideWorldBoundaries": 2,
+  "skateTravelGateLocked": true,
+  "premiumFamilies": 8,
+  "functionalSeatsDeclared": true,
+  "openCloudAudit": "deploy-status/bbya-cloud-live-audit-v338.json"
+}
