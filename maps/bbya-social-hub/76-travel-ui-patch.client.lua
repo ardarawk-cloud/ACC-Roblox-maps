@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v7
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v8
 -- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
--- v7: Travel owns only its own scroller; it never resizes HubPanel and never resets CanvasPosition.
+-- v8: adds BBYA Pasar Malam behind Mall as a 10 R$ permanent Travel destination.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -54,7 +54,7 @@ grid.HorizontalAlignment=Enum.HorizontalAlignment.Left
 grid.VerticalAlignment=Enum.VerticalAlignment.Top
 grid.Parent=holder
 
-local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65)}
+local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55)}
 local destinations={
  {"ARRIVAL","Arrival","FREE",nil,C.cyan},
  {"PHOTO STUDIO","Photo","FREE",nil,C.cyan},
@@ -66,6 +66,7 @@ local destinations={
  {"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
  {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},
  {"BBYA MALL","Mall","ONE-TIME",10,C.mall},
+ {"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
 }
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,c)local s=Instance.new("UIStroke");s.Color=c;s.Thickness=1;s.Transparency=.55;s.Parent=o end
@@ -119,4 +120,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 end)
 task.defer(function()applyGrid();syncCanvas(false)end)
 
-print("[BBYA] Travel UI v7 online: stable manual canvas / no HubPanel resize fight")
+print("[BBYA] Travel UI v8 online: Pasar Malam 10R / stable manual canvas")
