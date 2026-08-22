@@ -1,8 +1,8 @@
--- BBYAVATAR accessibility/performance controls v1.
+-- BBYAVATAR accessibility/performance controls v1.1.
 -- Session-local only: no user preference data is persisted or transmitted.
 local settingsState = {
     lowFX = false,
-    largeText = false,
+    largeUI = false,
     compactUI = false,
 }
 
@@ -10,29 +10,30 @@ local originalLightStates = setmetatable({}, {__mode = "k"})
 local originalEffectStates = setmetatable({}, {__mode = "k"})
 local baseFrameSize = frame.Size
 local baseContentSize = content.Size
-local baseTextScale = 1
 
-local textScale = gui:FindFirstChild("BBYAVATAR_TextScale")
-if not textScale then
-    textScale = Instance.new("UIScale")
-    textScale.Name = "BBYAVATAR_TextScale"
-    textScale.Scale = baseTextScale
-    textScale.Parent = gui
+local panelScale = frame:FindFirstChild("BBYAVATAR_PanelScale")
+if not panelScale then
+    panelScale = Instance.new("UIScale")
+    panelScale.Name = "BBYAVATAR_PanelScale"
+    panelScale.Scale = 1
+    panelScale.Parent = frame
+end
+
+local function tuneFxObject(obj, enabled)
+    if obj:IsA("PointLight") or obj:IsA("SurfaceLight") or obj:IsA("SpotLight") then
+        if originalLightStates[obj] == nil then originalLightStates[obj] = obj.Enabled end
+        obj.Enabled = enabled and false or originalLightStates[obj]
+    elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+        if originalEffectStates[obj] == nil then originalEffectStates[obj] = obj.Enabled end
+        obj.Enabled = enabled and false or originalEffectStates[obj]
+    end
 end
 
 local function applyLowFX(enabled)
     settingsState.lowFX = enabled
     local showroom = workspace:FindFirstChild("BBYAVATAR_SHOWROOM")
     if showroom then
-        for _, obj in ipairs(showroom:GetDescendants()) do
-            if obj:IsA("PointLight") or obj:IsA("SurfaceLight") or obj:IsA("SpotLight") then
-                if originalLightStates[obj] == nil then originalLightStates[obj] = obj.Enabled end
-                obj.Enabled = enabled and false or originalLightStates[obj]
-            elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
-                if originalEffectStates[obj] == nil then originalEffectStates[obj] = obj.Enabled end
-                obj.Enabled = enabled and false or originalEffectStates[obj]
-            end
-        end
+        for _, obj in ipairs(showroom:GetDescendants()) do tuneFxObject(obj, enabled) end
     end
     local atmosphere = game:GetService("Lighting"):FindFirstChild("BBYAVATAR_Atmosphere")
     if atmosphere and atmosphere:IsA("Atmosphere") then
@@ -41,9 +42,21 @@ local function applyLowFX(enabled)
     end
 end
 
-local function applyLargeText(enabled)
-    settingsState.largeText = enabled
-    textScale.Scale = enabled and 1.10 or 1
+workspace.DescendantAdded:Connect(function(obj)
+    if not settingsState.lowFX then return end
+    if obj:IsDescendantOf(workspace:FindFirstChild("BBYAVATAR_SHOWROOM") or workspace) then
+        task.defer(function() if obj.Parent then tuneFxObject(obj, true) end end)
+    end
+end)
+
+local function applyLargeUI(enabled)
+    settingsState.largeUI = enabled
+    if enabled then
+        local width = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X or 900
+        panelScale.Scale = width < 700 and 1.04 or 1.08
+    else
+        panelScale.Scale = 1
+    end
 end
 
 local function applyCompactUI(enabled)
@@ -101,7 +114,7 @@ local function renderSettings()
     d.Position = UDim2.fromOffset(0,44)
     d.Size = UDim2.new(1,0,0,54)
     d.Font = Enum.Font.Gotham
-    d.Text = "Tune BBYAVATAR for readability and lower-end devices. Settings apply only to this play session."
+    d.Text = "Tune readability and reduce visual load on lower-end devices. Settings apply only to this play session."
     d.TextWrapped = true
     d.TextColor3 = Color3.fromRGB(190,195,210)
     d.TextSize = 14
@@ -119,7 +132,7 @@ local function renderSettings()
     layout.Parent = actions
 
     makeToggle(actions, "LOW FX", "lowFX", applyLowFX)
-    makeToggle(actions, "LARGER UI TEXT", "largeText", applyLargeText)
+    makeToggle(actions, "LARGER CATALOG UI", "largeUI", applyLargeUI)
     makeToggle(actions, "COMPACT CATALOG PANEL", "compactUI", applyCompactUI)
 
     local reset = Instance.new("TextButton")
@@ -133,7 +146,7 @@ local function renderSettings()
     Instance.new("UICorner", reset).CornerRadius = UDim.new(0,11)
     reset.Activated:Connect(function()
         applyLowFX(false)
-        applyLargeText(false)
+        applyLargeUI(false)
         applyCompactUI(false)
         status.Text = "Display settings reset."
         task.defer(renderSettings)
@@ -154,4 +167,4 @@ settingsTab.Parent = tabs
 Instance.new("UICorner", settingsTab).CornerRadius = UDim.new(0,10)
 settingsTab.Activated:Connect(function() selectTab("SETTINGS") end)
 
-print("[BBYAVATAR] Accessibility/performance controls v1 ready")
+print("[BBYAVATAR] Accessibility/performance controls v1.1 ready")
