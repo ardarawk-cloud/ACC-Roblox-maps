@@ -1,6 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.29
+-- BECAK E-BIKE — mobile safe-area controller v1.30
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.29 also owns the final open-phone position so legacy right-side tweens cannot pull it back across the screen.
+-- v1.30 owns both final position and scale so legacy phone tweens/viewport scaling cannot pull the UI right or oversize it.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -20,6 +20,7 @@ local scaler=phone:FindFirstChildOfClass('UIScale')
 local camera=Workspace.CurrentCamera
 local lastKey=''
 local enforcing=false
+local enforcingScale=false
 
 local function readInset()
     local ok,topLeft,bottomRight=pcall(function()
@@ -42,6 +43,17 @@ local function layoutMetrics()
     return v,topLeft,bottomRight,portrait,touch,topBand,leftPad
 end
 
+local function desiredScale()
+    local v,topLeft,bottomRight,portrait,_,topBand=layoutMetrics()
+    local usableW=math.max(220,v.X-topLeft.X-bottomRight.X-24)
+    local usableH=math.max(300,v.Y-topBand-bottomRight.Y-18)
+    if portrait then
+        return math.clamp(math.min(usableW/326,usableH/566),0.58,0.80)
+    end
+    -- Keep the phone within the left third so steering/throttle controls remain clear.
+    return math.clamp(math.min((usableW*0.34)/326,usableH/566),0.62,0.88)
+end
+
 local function pinOpenPhone()
     if enforcing or not phone.Visible then return end
     enforcing=true
@@ -52,14 +64,22 @@ local function pinOpenPhone()
     enforcing=false
 end
 
+local function pinScale()
+    if enforcingScale or not scaler then return end
+    enforcingScale=true
+    local target=desiredScale()
+    if math.abs(scaler.Scale-target)>0.001 then scaler.Scale=target end
+    enforcingScale=false
+end
+
 local function applySafeArea(force)
     local v,topLeft,bottomRight,portrait,touch,topBand,leftPad=layoutMetrics()
 
     local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),portrait and 1 or 0,touch and 1 or 0,phone.Visible and 1 or 0},':')
     if not force and key==lastKey then
-        -- Position is intentionally re-asserted even when dimensions did not change.
-        -- This defeats the old phone UI's right-edge TweenService animation without a busy loop.
+        -- Re-assert final ownership even when dimensions did not change.
         pinOpenPhone()
+        pinScale()
         return
     end
     lastKey=key
@@ -79,16 +99,7 @@ local function applySafeArea(force)
 
     -- Open phone remains left-aligned and scales to the actual usable viewport.
     phone.AnchorPoint=Vector2.new(0,0)
-    local usableW=math.max(220,v.X-topLeft.X-bottomRight.X-24)
-    local usableH=math.max(300,v.Y-topBand-bottomRight.Y-18)
-    if scaler then
-        if portrait then
-            scaler.Scale=math.clamp(math.min(usableW/326,usableH/566),0.58,0.80)
-        else
-            -- Keep the phone within the left third so steering/throttle controls remain clear.
-            scaler.Scale=math.clamp(math.min((usableW*0.34)/326,usableH/566),0.62,0.88)
-        end
-    end
+    pinScale()
     pinOpenPhone()
 end
 
@@ -96,9 +107,15 @@ applySafeArea(true)
 launcher:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Position'):Connect(function()
-    -- Legacy phone.ui v1.5 still animates toward the right edge. Reclaim the left-safe-area immediately.
+    -- Legacy phone UI can still animate toward the right edge. Reclaim the left-safe-area immediately.
     if phone.Visible then task.defer(pinOpenPhone) end
 end)
+if scaler then
+    scaler:GetPropertyChangedSignal('Scale'):Connect(function()
+        -- Legacy phone UI also has its own viewport scaler. Reclaim the safe mobile scale immediately.
+        task.defer(pinScale)
+    end)
+end
 if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     camera=Workspace.CurrentCamera
@@ -106,7 +123,7 @@ Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     applySafeArea(true)
 end)
 
--- Low-frequency inset recheck handles mobile orientation/CoreGui changes without a 25 Hz layout loop.
+-- Low-frequency inset recheck handles mobile orientation/CoreGui changes without a busy layout loop.
 local acc=0
 RunService.RenderStepped:Connect(function(dt)
     acc += dt
@@ -115,10 +132,11 @@ RunService.RenderStepped:Connect(function(dt)
     applySafeArea(false)
 end)
 
--- Keep the established publish marker stable while exposing the adaptive implementation separately.
+-- Keep established compatibility markers while exposing the current adaptive implementation separately.
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.29')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
 Workspace:SetAttribute('BecakPhoneLeftPin','ON')
+Workspace:SetAttribute('BecakPhoneScalePin','ON')
