@@ -1,0 +1,54 @@
+name: BBYA Owner Batch Dev
+
+on:
+  push:
+    branches:
+      - agent/bbya-serious-dev
+    paths:
+      - '.github/workflows/bbya-owner-batch-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch_and_qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/bbya-serious-dev
+          fetch-depth: 0
+
+      - name: Apply owner batch
+        run: python3 scripts/bbya-owner-batch-20260823.py
+
+      - name: Source QC
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool maps/bbya-social-hub/default.project.json >/dev/null
+          python3 -m json.tool deploy-status/bbya-owner-batch-20260823.json >/dev/null
+          if grep -Rni --include='*.lua' --include='*.luau' --include='*.json' --include='*.md' -E 'funkot' maps/bbya-social-hub; then
+            echo 'Forbidden Funkot reference remains in BBYA map source.' >&2
+            exit 1
+          fi
+          grep -q '"UNDERGROUND","Basement"' maps/bbya-social-hub/76-travel-ui-patch.client.lua
+          grep -q 'OwnerStableUIV1' maps/bbya-social-hub/default.project.json
+          grep -q 'OwnerGeometryFixesV1' maps/bbya-social-hub/default.project.json
+          test "$(grep -c 'style="progressive"' maps/bbya-social-hub/30-club-systems.server.lua)" -gt 0
+          test "$(grep -c 'style="funkot"' maps/bbya-social-hub/85-basement-autodj.server.lua || true)" -eq 0
+
+      - name: Persist patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Dev Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub scripts/route-bbya-drive-audio.py deploy-status/bbya-audio-routing.json deploy-status/bbya-owner-batch-20260823.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Apply BBYA owner cleanup batch 2026-08-23 [skip ci]'
+            git pull --rebase origin agent/bbya-serious-dev
+            git push origin HEAD:agent/bbya-serious-dev
+          fi
