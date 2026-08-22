@@ -1,6 +1,7 @@
--- BBYAVATAR Style Board v1
+-- BBYAVATAR Style Board v2
 -- Session-local mix-and-match board built from persistent Saved Picks.
 -- No extra user data is persisted; the authoritative shortlist remains Saved Picks.
+-- v2 adds one-tap atomic full-look preview through applyTryOnBatch.
 
 local STYLE_BOARD_MAX = 6
 local styleBoard = {}
@@ -16,6 +17,18 @@ local function boardCount()
     local count = 0
     for _ in pairs(styleBoard) do count += 1 end
     return count
+end
+
+local function selectedBoardItems()
+    local items = {}
+    -- Preserve Saved Picks order so composition is deterministic across rerenders.
+    for _, id in ipairs(savedPickOrder) do
+        if styleBoard[id] then
+            local item = savedPicks[id]
+            if item then table.insert(items, item) end
+        end
+    end
+    return items
 end
 
 local function totalKnownPrice()
@@ -42,16 +55,17 @@ local function renderStyleBoard()
     heading.TextXAlignment = Enum.TextXAlignment.Left
     heading.Parent = content
 
+    local count = boardCount()
     local total, known = totalKnownPrice()
     local summary = Instance.new("TextLabel")
     summary.BackgroundTransparency = 1
     summary.Position = UDim2.fromOffset(0, 36)
-    summary.Size = UDim2.new(1, -110, 0, 34)
+    summary.Size = UDim2.new(1, -220, 0, 34)
     summary.Font = Enum.Font.Gotham
     summary.TextColor3 = Color3.fromRGB(163, 169, 188)
     summary.TextSize = 11
     summary.TextXAlignment = Enum.TextXAlignment.Left
-    summary.Text = string.format("Mix up to %d Saved Picks • %d selected • known subtotal %d R$ (%d priced)", STYLE_BOARD_MAX, boardCount(), total, known)
+    summary.Text = string.format("Mix up to %d Saved Picks • %d selected • known subtotal %d R$ (%d priced)", STYLE_BOARD_MAX, count, total, known)
     summary.Parent = content
 
     local clear = Instance.new("TextButton")
@@ -69,6 +83,25 @@ local function renderStyleBoard()
         styleBoard = {}
         boardTrack("BOARD_CLEAR")
         renderStyleBoard()
+    end)
+
+    local tryAll = Instance.new("TextButton")
+    tryAll.AnchorPoint = Vector2.new(1, 0)
+    tryAll.Position = UDim2.new(1, -104, 0, 34)
+    tryAll.Size = UDim2.fromOffset(106, 32)
+    tryAll.BackgroundColor3 = count > 0 and Color3.fromRGB(61, 73, 108) or Color3.fromRGB(46, 48, 57)
+    tryAll.TextColor3 = count > 0 and Color3.new(1, 1, 1) or Color3.fromRGB(126, 130, 143)
+    tryAll.Font = Enum.Font.GothamBold
+    tryAll.TextSize = 10
+    tryAll.Text = "TRY FULL LOOK"
+    tryAll.AutoButtonColor = count > 0
+    tryAll.Active = count > 0
+    tryAll.Parent = content
+    Instance.new("UICorner", tryAll).CornerRadius = UDim.new(0, 9)
+    tryAll.Activated:Connect(function()
+        if boardCount() == 0 then return end
+        boardTrack("BOARD_TRY_ALL_CLICK")
+        applyTryOnBatch(selectedBoardItems())
     end)
 
     local list = Instance.new("ScrollingFrame")
@@ -176,18 +209,18 @@ local function renderStyleBoard()
                 try.TextColor3 = Color3.new(1, 1, 1)
                 try.Font = Enum.Font.GothamBold
                 try.TextSize = 10
-                try.Text = "TRY ON"
+                try.Text = "TRY ONE"
                 try.Parent = card
                 Instance.new("UICorner", try).CornerRadius = UDim.new(0, 10)
                 try.Activated:Connect(function()
-                    boardTrack("BOARD_TRY")
+                    boardTrack("BOARD_TRY_ONE")
                     applyTryOn(item)
                 end)
             end
         end
     end
 
-    status.Text = string.format("%d/%d items on Style Board • session-local board, persistent picks stay unchanged", boardCount(), STYLE_BOARD_MAX)
+    status.Text = string.format("%d/%d selected • TRY FULL LOOK applies compatible wearables in one avatar update", boardCount(), STYLE_BOARD_MAX)
 end
 
 renderers.BOARD = renderStyleBoard
@@ -204,4 +237,4 @@ boardTab.Parent = tabs
 Instance.new("UICorner", boardTab).CornerRadius = UDim.new(0, 10)
 boardTab.Activated:Connect(function() selectTab("BOARD") end)
 
-print("[BBYAVATAR] Style Board v1 mix-and-match shortlist ready")
+print("[BBYAVATAR] Style Board v2 + atomic full-look preview ready")
