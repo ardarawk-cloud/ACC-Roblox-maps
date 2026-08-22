@@ -57,7 +57,10 @@ jobs:
           grep -q 'AdminNextV6' "$ui"
           grep -q 'REQUEST' "$ui"
 
-          grep -q 'STRICT VENUE AUDIO ROUTER v1' "$router"
+          grep -q 'STRICT VENUE AUDIO ROUTER v2' "$router"
+          grep -q 'EqualizerSoundEffect' "$router"
+          grep -q 'BBYAVenueGateV2' "$router"
+          grep -q 'local gain=open and 0 or -80' "$router"
           grep -q 'return "UNDERGROUND"' "$router"
           grep -q 'return "ROOFTOP"' "$router"
           grep -q 'return "FUNKOT"' "$router"
@@ -66,7 +69,6 @@ jobs:
           grep -q 'return "NONE"' "$router"
           grep -q 'BBYASkateparkMaster' "$router"
           grep -q 'BBYARooftopMaster' "$router"
-          grep -q 'target=(not muted and currentVenue==key)' "$router"
 
           grep -q 'BBYASkateparkMaster' "$masters"
           grep -q 'BBYARooftopMaster' "$masters"
@@ -86,4 +88,4 @@ jobs:
           grep -q 'VenueAudioRouterV1' "$project"
           grep -q 'MusicUIIntegrityV1' "$project"
 
-          echo 'BBYA Music UI v6 + strict venue audio QC passed.'
+          echo 'BBYA Music UI v6 + EQ-gated venue audio QC passed.'
