@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v3
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v4
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
@@ -12,7 +12,7 @@ local internal=remotes:FindFirstChild("InternalTeleport") or Instance.new("Binda
 internal.Name="InternalTeleport";internal.Parent=remotes
 
 local passModule=script.Parent:FindFirstChild("TravelPasses")
-local PASSES={VIP=0,Skatepark=0,Rooftop=0,Basement=0}
+local PASSES={VIP=0,Skatepark=0,Rooftop=0,Basement=0,Funkot=0}
 if passModule and passModule:IsA("ModuleScript") then
  local ok,data=pcall(require,passModule)
  if ok and type(data)=="table" then PASSES=data end
@@ -28,8 +28,9 @@ local destinations={
  Pool=CFrame.new(0,47,-12),
  Basement=CFrame.new(0,-12,0),
  Skatepark=CFrame.new(0,3,112),
+ Funkot=CFrame.new(0,3,178),
 }
-local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20}
+local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20,Funkot=10}
 local keyByPass={}
 for key,id in pairs(PASSES) do
  id=tonumber(id) or 0
@@ -39,7 +40,7 @@ local ownershipCache={}
 
 local function isAdmin(player)
  if not player then return false end
- if player:GetAttribute("BBYAAdmin")==true then return true end
+ if player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYATravelBypass")==true then return true end
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
 local function toast(player,msg)
@@ -94,11 +95,8 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId
  ownershipCache[player.UserId]=ownershipCache[player.UserId] or {}
  ownershipCache[player.UserId][key]=true
  player:SetAttribute("BBYAPendingTravelPass",nil)
- if doTeleport(player,key) then
-  toast(player,string.format("%s unlocked permanently • %d R$",key,PRICES[key]))
- end
+ if doTeleport(player,key) then toast(player,string.format("%s unlocked permanently • %d R$",key,PRICES[key])) end
 end)
 
 Players.PlayerRemoving:Connect(function(player)ownershipCache[player.UserId]=nil end)
-
-print("[BBYA] Travel v3 online: permanent passes VIP 5R / Skatepark 5R / Rooftop 10R / Basement 20R")
+print("[BBYA] Travel v4 online: VIP 5R / Skatepark 5R / Rooftop 10R / Underground 20R / Funkot 10R")
