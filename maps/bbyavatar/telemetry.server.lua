@@ -1,6 +1,6 @@
--- BBYAVATAR analytics-ready foundation v15.
+-- BBYAVATAR analytics-ready foundation v16.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v15 adds Style Board composition/try-all conversion.
+-- no arbitrary client event names. v16 adds Roblox-native Owned Items funnel health.
 
 local Players = game:GetService("Players")
 
@@ -21,6 +21,8 @@ local ALLOWED = {
     BOARD_TRY_ALL_CLICK=true, BOARD_TRY_ALL_START=true, BOARD_TRY_ALL_SUCCESS=true, BOARD_TRY_ALL_FAILED=true,
     WARDROBE_PREVIEW_SUCCESS=true, WARDROBE_PREVIEW_FAILED=true,
     WARDROBE_RESTORE_SUCCESS=true, WARDROBE_RESTORE_FAILED=true,
+    OWNED_OPEN=true, OWNED_PERMISSION_SUCCESS=true, OWNED_PERMISSION_DENIED=true,
+    OWNED_LOADED=true, OWNED_LOAD_FAILED=true, OWNED_PAGE=true, OWNED_TRY=true, OWNED_SAVE=true,
     DISCOVERY_OPEN=true, DISCOVERY_CATEGORY=true,
     RECOMMEND_OPEN=true, RECOMMEND_RESULT=true, RECOMMEND_FAILED=true,
     RECOMMEND_CACHE_HIT=true, RECOMMEND_JOIN_WAIT=true, RECOMMEND_JOINED=true, RECOMMEND_COOLDOWN=true,
@@ -34,6 +36,8 @@ local THROTTLE = {
     PICK_SAVE=.5, PICK_REMOVE=.5, PICKS_OPEN=1.0, PICK_CLOUD_LOAD=5.0,
     BOARD_OPEN=1.0, BOARD_ADD=.35, BOARD_REMOVE=.35, BOARD_CLEAR=1.0, BOARD_TRY_ONE=.5,
     BOARD_TRY_ALL_CLICK=.75, BOARD_TRY_ALL_START=.75, BOARD_TRY_ALL_SUCCESS=.75, BOARD_TRY_ALL_FAILED=.75,
+    OWNED_OPEN=1.0, OWNED_PERMISSION_SUCCESS=2.0, OWNED_PERMISSION_DENIED=2.0,
+    OWNED_LOADED=1.0, OWNED_LOAD_FAILED=1.0, OWNED_PAGE=.75, OWNED_TRY=.5, OWNED_SAVE=.5,
     DISCOVERY_OPEN=1.0, DISCOVERY_CATEGORY=.75,
     RECOMMEND_OPEN=1.0, RECOMMEND_RESULT=1.0, RECOMMEND_FAILED=1.0,
     RECOMMEND_CACHE_HIT=1.0, RECOMMEND_JOIN_WAIT=1.0, RECOMMEND_JOINED=1.0, RECOMMEND_COOLDOWN=2.0,
@@ -58,6 +62,9 @@ local SESSION_MILESTONES = {
     FAVORITE_SUCCESS="FAVORITE",
     CREATE_OUTFIT_SUCCESS="SAVE",
     SAVE_AVATAR_SUCCESS="SAVE",
+    OWNED_OPEN="OWNED",
+    OWNED_TRY="OWNED_TRY",
+    OWNED_SAVE="OWNED_SAVE",
     RECOMMEND_OPEN="RECOMMEND",
     RECENT_OPEN="RECENT",
     RECENT_CONTINUE="CONTINUE",
@@ -94,6 +101,8 @@ local function refreshDerivedMetrics()
     local boardOpen=metric("BOARD_OPEN")
     local boardTryClick=metric("BOARD_TRY_ALL_CLICK")
     local boardTrySuccess=metric("BOARD_TRY_ALL_SUCCESS")
+    local ownedOpen=metric("OWNED_OPEN")
+    local ownedLoaded=metric("OWNED_LOADED")
 
     root:SetAttribute("Activity_OpenPerSession", safeRate(opens,sessions))
     root:SetAttribute("Activity_DetailPerOpenPct", safeRate(detailOpen,opens))
@@ -104,12 +113,16 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_PurchasePerTryOnPct", safeRate(purchases,tries))
     root:SetAttribute("Activity_RecentContinuePerRecentOpenPct", safeRate(metric("RECENT_CONTINUE"),recentOpen))
     root:SetAttribute("Activity_BoardTryAllPerBoardOpenPct", safeRate(boardTryClick,boardOpen))
+    root:SetAttribute("Activity_OwnedTryPerOwnedOpenPct", safeRate(metric("OWNED_TRY"),ownedOpen))
+    root:SetAttribute("Activity_OwnedSavePerOwnedOpenPct", safeRate(metric("OWNED_SAVE"),ownedOpen))
     root:SetAttribute("Health_BoardTryAllSuccessPct", safeRate(boardTrySuccess,boardTryClick))
     root:SetAttribute("Health_RecommendServedPct", safeRate(recommendServed,recommendOpen))
     root:SetAttribute("Health_DetailServedPct", safeRate(detailServed,detailOpen))
     root:SetAttribute("Health_RecentServedPct", safeRate(recentServed,recentOpen))
     root:SetAttribute("Health_RecommendCacheHitPct", safeRate(metric("RECOMMEND_CACHE_HIT"),recommendServed))
     root:SetAttribute("Health_DetailCacheHitPct", safeRate(metric("DETAIL_CACHE_HIT"),detailServed))
+    root:SetAttribute("Health_OwnedLoadedPct", safeRate(ownedLoaded,ownedOpen))
+    root:SetAttribute("Health_OwnedPermissionSuccessPct", safeRate(metric("OWNED_PERMISSION_SUCCESS"),metric("OWNED_PERMISSION_SUCCESS")+metric("OWNED_PERMISSION_DENIED")))
 
     root:SetAttribute("SessionConv_OpenPct", safeRate(metric("SESSION_UNIQUE_OPEN"),sessions))
     root:SetAttribute("SessionConv_DetailPct", safeRate(metric("SESSION_UNIQUE_DETAIL"),sessions))
@@ -119,6 +132,9 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_BoardLookPct", safeRate(metric("SESSION_UNIQUE_BOARD_LOOK"),sessions))
     root:SetAttribute("SessionConv_FavoritePct", safeRate(metric("SESSION_UNIQUE_FAVORITE"),sessions))
     root:SetAttribute("SessionConv_SavePct", safeRate(metric("SESSION_UNIQUE_SAVE"),sessions))
+    root:SetAttribute("SessionConv_OwnedPct", safeRate(metric("SESSION_UNIQUE_OWNED"),sessions))
+    root:SetAttribute("SessionConv_OwnedTryPct", safeRate(metric("SESSION_UNIQUE_OWNED_TRY"),sessions))
+    root:SetAttribute("SessionConv_OwnedSavePct", safeRate(metric("SESSION_UNIQUE_OWNED_SAVE"),sessions))
     root:SetAttribute("SessionConv_RecommendPct", safeRate(metric("SESSION_UNIQUE_RECOMMEND"),sessions))
     root:SetAttribute("SessionConv_RecentPct", safeRate(metric("SESSION_UNIQUE_RECENT"),sessions))
     root:SetAttribute("SessionConv_ContinuePct", safeRate(metric("SESSION_UNIQUE_CONTINUE"),sessions))
@@ -174,10 +190,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V15_STYLE_BOARD")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V16_OWNED_ITEMS")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",15)
+root:SetAttribute("TelemetrySchema",16)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v15 Style Board conversion ready")
+print("[BBYAVATAR] Privacy-safe telemetry v16 Owned Items funnel ready")
