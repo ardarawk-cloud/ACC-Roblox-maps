@@ -1,5 +1,6 @@
 name: BBYA Progressive Permission Repair
 
+# Registered workflow retrigger: 2026-08-23T01:45+08:00
 on:
   push:
     branches: [main]
