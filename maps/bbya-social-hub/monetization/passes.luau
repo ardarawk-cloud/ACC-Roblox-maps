@@ -5,4 +5,5 @@ return {
     Rooftop = 1954884352,
     Basement = 1952834896,
     Funkot = 1955508827,
+    Mall = 1951773702,
 }
