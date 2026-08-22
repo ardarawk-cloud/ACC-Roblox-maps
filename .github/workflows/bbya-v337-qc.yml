@@ -1,0 +1,57 @@
+name: BBYA v337 Revision QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v337-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Static v337 checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          root=pathlib.Path('maps/bbya-social-hub')
+          project=json.loads((root/'default.project.json').read_text())
+          text=(root/'default.project.json').read_text()
+          required=[
+            '93-funkot-music.server.lua','93-venue-music-ui.client.lua',
+            '93-dashboard-structural.client.lua','91-owner-ui.client.lua'
+          ]
+          for name in required:
+            assert name in text, name
+            assert (root/name).exists(), name
+          carry=(root/'91-owner-ui.client.lua').read_text()
+          assert 'DescendantAdded' in carry and 'BBYADynamicZGuardV3' in carry
+          venue=(root/'93-venue-music-ui.client.lua').read_text()
+          for token in ['CLUB','UNDERGROUND','FUNKOT','FunkotMusic']:
+            assert token in venue, token
+          funk=(root/'93-funkot-music.server.lua').read_text()
+          assert 'FUNKOT_AUTODJ_V2' in funk and 'PLAYLIST' in funk
+          dash=(root/'93-dashboard-structural.client.lua').read_text()
+          assert 'DashboardSideRailV2' in dash and 'wide music library' in dash
+          print('BBYA v337 static QC OK')
+          PY
+      - name: Rojo build
+        run: |
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v337.rbxl
+          test -s /tmp/bbya-v337.rbxl
+          ls -lh /tmp/bbya-v337.rbxl
