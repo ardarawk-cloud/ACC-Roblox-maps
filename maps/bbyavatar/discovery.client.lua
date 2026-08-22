@@ -123,6 +123,17 @@ local function renderDiscoveryHub()
         discoveryButton(scroll, "START WITH FEATURED", "Curated entry point for a first visit", "FEATURED", Color3.fromRGB(55, 58, 84))
     end
 
+    -- Deterministic daily editorial lane. The helper stores no player data and rotates by UTC day.
+    local spotlight = _G.BBYAVATAR_DailySpotlight
+    if spotlight and typeof(spotlight.RenderButton) == "function" then
+        local ok = pcall(function()
+            spotlight.RenderButton(scroll)
+        end)
+        if not ok then
+            status.Text = "Discovery loaded • daily spotlight temporarily unavailable"
+        end
+    end
+
     discoveryButton(scroll, "HOT NOW", "Explore currently promoted discovery lane", "TRENDING", Color3.fromRGB(73, 52, 101))
     discoveryButton(scroll, "NEW DROPS", "Fresh-item discovery lane", "NEW DROPS", Color3.fromRGB(43, 75, 103))
     discoveryButton(scroll, "CREATOR PICKS", "Creator-focused discovery lane", "CREATORS", Color3.fromRGB(46, 78, 61))
@@ -131,8 +142,8 @@ local function renderDiscoveryHub()
         discoveryButton(scroll, category, "Browse Roblox Marketplace results for " .. string.lower(category), category)
     end
 
-    status.Text = "Discover → try on → save → shop → return"
+    status.Text = "Discover → daily spotlight → try on → save → shop → return"
 end
 
 renderers.DISCOVER = renderDiscoveryHub
-print("[BBYAVATAR] Session-personalized discovery hub ready")
+print("[BBYAVATAR] Session-personalized discovery hub + daily spotlight ready")
