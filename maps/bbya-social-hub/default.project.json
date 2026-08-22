@@ -59,7 +59,11 @@
       "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
       "ActiveRearMallV1": {"$path": "94-mall.server.lua"},
-      "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"}
+      "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"},
+      "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
+      "PaidZoneHardSealV2": {"$path": "95-paid-zone-hard-seal.server.lua"},
+      "PaidZonePortalsV1": {"$path": "96-paid-zone-portals.server.lua"},
+      "MallSafeSecurityOverrideV1": {"$path": "97-mall-safe-security-override.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
