@@ -15,9 +15,7 @@ m.Name="ClubAmbience"
 m.Parent=root
 m:SetAttribute("BBYALightingAuthority","SERVER_MOTION_CLIENT_AUDIO_INTENSITY_V3")
 
-local C={
- pink=Color3.fromRGB(255,39,154),cyan=Color3.fromRGB(0,200,230),warm=Color3.fromRGB(255,191,132),neutral=Color3.fromRGB(224,214,207),
-}
+local C={pink=Color3.fromRGB(255,39,154),cyan=Color3.fromRGB(0,200,230),warm=Color3.fromRGB(255,191,132),neutral=Color3.fromRGB(224,214,207)}
 local function emitter(name,pos)
  local p=Instance.new("Part");p.Name=name;p.Size=Vector3.new(.3,.3,.3);p.CFrame=CFrame.new(pos);p.Anchored=true
  p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Transparency=1;p.Parent=m;return p
@@ -30,8 +28,7 @@ local function spot(name,pos,color,brightness,range,angle,phase)
 end
 local function point(name,pos,color,brightness,range,shadows)
  local p=emitter(name,pos)
- local l=Instance.new("PointLight");l.Name=name.."Light";l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=shadows==true;l.Parent=p
- return l
+ local l=Instance.new("PointLight");l.Name=name.."Light";l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=shadows==true;l.Parent=p;return l
 end
 
 local rigs={
@@ -50,15 +47,8 @@ point("BarWarmFront",Vector3.new(40,7,3),C.warm,.78,16,true)
 point("BarWarmRear",Vector3.new(40,7,20),C.warm,.72,16,true)
 point("StageWash",Vector3.new(3,12,39),Color3.fromRGB(190,173,196),.48,18,false)
 
-Lighting.ClockTime=21.2
-Lighting.Brightness=1.55
-Lighting.Ambient=Color3.fromRGB(29,26,33)
-Lighting.OutdoorAmbient=Color3.fromRGB(19,17,24)
-Lighting.EnvironmentDiffuseScale=.34
-Lighting.EnvironmentSpecularScale=.88
-Lighting.ShadowSoftness=.32
-Lighting.ExposureCompensation=-.20
-
+Lighting.ClockTime=21.2;Lighting.Brightness=1.55;Lighting.Ambient=Color3.fromRGB(29,26,33);Lighting.OutdoorAmbient=Color3.fromRGB(19,17,24)
+Lighting.EnvironmentDiffuseScale=.34;Lighting.EnvironmentSpecularScale=.88;Lighting.ShadowSoftness=.32;Lighting.ExposureCompensation=-.20
 local at=Lighting:FindFirstChild("BBYAAtmosphere") or Instance.new("Atmosphere")
 at.Name="BBYAAtmosphere";at.Density=.19;at.Offset=.03;at.Color=Color3.fromRGB(151,139,166);at.Decay=Color3.fromRGB(50,39,59);at.Glare=.04;at.Haze=.55;at.Parent=Lighting
 local bloom=Lighting:FindFirstChild("BBYABloom") or Instance.new("BloomEffect")
@@ -66,7 +56,7 @@ bloom.Name="BBYABloom";bloom.Intensity=.28;bloom.Size=22;bloom.Threshold=1.65;bl
 local cc=Lighting:FindFirstChild("BBYAColor") or Instance.new("ColorCorrectionEffect")
 cc.Name="BBYAColor";cc.Brightness=-.015;cc.Contrast=.08;cc.Saturation=-.035;cc.TintColor=Color3.fromRGB(244,236,248);cc.Parent=Lighting
 
--- Smooth low-frequency pan/tilt remains architectural motion. No fake timer-driven brightness pulse.
+-- Low-frequency pan/tilt only. Brightness is intentionally untouched after construction so each client can follow actual audio amplitude.
 task.spawn(function()
  local t=0
  while m.Parent do
@@ -75,7 +65,6 @@ task.spawn(function()
    local yaw=math.sin(t+r.phase)*((i<=3) and 10 or 7)
    local pitch=math.cos(t*.72+r.phase)*((i<=3) and 4 or 3)
    r.p.CFrame=CFrame.new(r.p.Position)*CFrame.Angles(math.rad(pitch),math.rad(yaw),0)
-   r.s.Brightness=r.base
   end
   task.wait(.12)
  end
