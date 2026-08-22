@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "build": "ROJO_OK",
+  "travelScrollStable": true,
+  "travelDoesNotResizeHubPanel": true,
+  "bbyaButtonVisible": true,
+  "mobileDockTopY": 66,
+  "freecamMatchesDanceCarry": true,
+  "freecamSide": "RIGHT",
+  "venueLabelsPreserved": true,
+  "changedFiles": [
+    ".github/workflows/bbya-v340-ui-qc.yml",
+    "maps/bbya-social-hub/56-dock-stability.client.lua",
+    "maps/bbya-social-hub/76-travel-ui-patch.client.lua",
+    "maps/bbya-social-hub/91-owner-ui.client.lua",
+    "maps/bbya-social-hub/92-freecam.client.lua",
+    "maps/bbya-social-hub/93-dashboard-structural.client.lua",
+    "maps/bbya-social-hub/default.project.json"
+  ]
+}
