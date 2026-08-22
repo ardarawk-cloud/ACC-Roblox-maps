@@ -48,6 +48,7 @@ const recovery=raw('maps/becak-e-bike/vehicle.recovery.server.lua');
 const groundContact=raw('maps/becak-e-bike/vehicle.ground-contact.server.lua');
 const steeringStability=raw('maps/becak-e-bike/vehicle.steering-stability.server.lua');
 const vehicleSignals=raw('maps/becak-e-bike/vehicle.signals.server.lua');
+if(!vehicleSignals.includes("ACC_BecakVehicleSignals','v1.45") || !vehicleSignals.includes("BecakDriverAwareSignals','ON")) throw new Error('Becak vehicle signals v1.45 driver-aware validation failed');
 const charging=raw('maps/becak-e-bike/charging.network.server.lua');
 const contracts=raw('maps/becak-e-bike/daily.contracts.server.lua');
 const story=raw('maps/becak-e-bike/story.progression.server.lua');
@@ -102,4 +103,4 @@ const clientItems=[
 const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>${clientItems}</Item></Item></roblox>`;
 
 fs.writeFileSync(path.join(root,'maps/becak-e-bike/place.rbxlx'),xml);
-console.log('[Becak E-Bike] Built v1.31 with startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + v1.36 smooth ground contact + v1.41 steering stability + v1.42 vehicle signals + progression systems:',Buffer.byteLength(xml),'bytes');
+console.log('[Becak E-Bike] Built v1.31 with startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + v1.36 smooth ground contact + v1.41 steering stability + v1.45 driver-aware vehicle signals + progression systems:',Buffer.byteLength(xml),'bytes');
