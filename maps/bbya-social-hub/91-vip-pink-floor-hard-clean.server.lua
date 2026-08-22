@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — VIP PINK FLOOR HARD CLEAN v1
--- Final late guard for the VIP screenshot issue: remove the bright magenta floor strip
--- around the central VIP opening. This does NOT touch ceiling lights or the blue guide.
+-- BBYA SOCIAL HUB — VIP PINK FLOOR HARD CLEAN v2
+-- Late guard: remove only PINK/magenta floor neon in VIP.
+-- Never delete FloorBoundaryNeon wholesale and never remove BLUE/cyan trim.
 
 local Workspace = game:GetService("Workspace")
 
@@ -20,38 +20,20 @@ local function isPinkFloorNeon(obj)
     if y < 24.4 or y > 25.6 then return false end
 
     local c = obj.Color
-    -- Covers the BBYA magenta/pink family without matching the cyan/blue guide.
     return c.R > 0.72 and c.G < 0.48 and c.B > 0.35
 end
 
 local function clean()
     local removed = 0
-
-    -- The legacy v5 builder owns this duplicate boundary model. The current
-    -- precision pass owns the wanted BLUE guide, so delete this model wholesale.
-    local oldBoundary = active:FindFirstChild("FloorBoundaryNeon")
-    if oldBoundary then
-        oldBoundary:Destroy()
-        removed += 1
-    end
-
-    -- Catch any late-created legacy segments or duplicates by name/color/height.
     for _, obj in ipairs(vip:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            local n = obj.Name
-            local legacyName = n == "OuterNorth" or n == "OuterEast" or n == "InnerSouth" or n == "InnerWest"
-            if legacyName or isPinkFloorNeon(obj) then
-                obj:Destroy()
-                removed += 1
-            end
+        if isPinkFloorNeon(obj) then
+            obj:Destroy()
+            removed += 1
         end
     end
-
     return removed
 end
 
--- ServerScripts start in parallel, so run after the VIP builders and keep guarding
--- briefly against a late race. This is intentionally scoped only to L2 VIP floor neon.
 local total = 0
 for _ = 1, 12 do
     task.wait(0.75)
@@ -60,6 +42,7 @@ end
 
 active:SetAttribute("PinkFloorHardClean", true)
 active:SetAttribute("PinkFloorHardCleanRemoved", total)
-active:SetAttribute("PinkFloorHardCleanScope", "VIP_FLOOR_ONLY")
+active:SetAttribute("BlueFloorTrimPreserved", true)
+active:SetAttribute("PinkFloorHardCleanScope", "VIP_PINK_FLOOR_ONLY")
 
-print(string.format("[BBYA] VIP pink floor hard-clean complete: %d legacy/pink floor objects removed", total))
+print(string.format("[BBYA] VIP pink floor hard-clean v2: %d pink objects removed / blue trim preserved", total))
