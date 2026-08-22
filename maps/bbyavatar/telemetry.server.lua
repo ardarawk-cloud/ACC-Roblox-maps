@@ -1,6 +1,6 @@
--- BBYAVATAR analytics-ready foundation v17.
+-- BBYAVATAR analytics-ready foundation v18.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v17 adds Owned Items filter/search UX health.
+-- no arbitrary client event names. v18 closes the Daily Spotlight observability gap.
 
 local Players = game:GetService("Players")
 
@@ -24,7 +24,7 @@ local ALLOWED = {
     OWNED_OPEN=true, OWNED_PERMISSION_SUCCESS=true, OWNED_PERMISSION_DENIED=true,
     OWNED_LOADED=true, OWNED_LOAD_FAILED=true, OWNED_PAGE=true, OWNED_TRY=true, OWNED_SAVE=true,
     OWNED_FILTER=true, OWNED_SEARCH=true,
-    DISCOVERY_OPEN=true, DISCOVERY_CATEGORY=true,
+    DISCOVERY_OPEN=true, DISCOVERY_CATEGORY=true, DISCOVERY_DAILY_SPOTLIGHT=true,
     RECOMMEND_OPEN=true, RECOMMEND_RESULT=true, RECOMMEND_FAILED=true,
     RECOMMEND_CACHE_HIT=true, RECOMMEND_JOIN_WAIT=true, RECOMMEND_JOINED=true, RECOMMEND_COOLDOWN=true,
     DETAIL_OPEN=true, DETAIL_RESULT=true, DETAIL_FAILED=true, DETAIL_CACHE_HIT=true,
@@ -40,7 +40,7 @@ local THROTTLE = {
     OWNED_OPEN=1.0, OWNED_PERMISSION_SUCCESS=2.0, OWNED_PERMISSION_DENIED=2.0,
     OWNED_LOADED=1.0, OWNED_LOAD_FAILED=1.0, OWNED_PAGE=.75, OWNED_TRY=.5, OWNED_SAVE=.5,
     OWNED_FILTER=.35, OWNED_SEARCH=.75,
-    DISCOVERY_OPEN=1.0, DISCOVERY_CATEGORY=.75,
+    DISCOVERY_OPEN=1.0, DISCOVERY_CATEGORY=.75, DISCOVERY_DAILY_SPOTLIGHT=1.0,
     RECOMMEND_OPEN=1.0, RECOMMEND_RESULT=1.0, RECOMMEND_FAILED=1.0,
     RECOMMEND_CACHE_HIT=1.0, RECOMMEND_JOIN_WAIT=1.0, RECOMMEND_JOINED=1.0, RECOMMEND_COOLDOWN=2.0,
     DETAIL_OPEN=.5, DETAIL_RESULT=.5, DETAIL_FAILED=1.0, DETAIL_CACHE_HIT=.5,
@@ -59,7 +59,8 @@ local SESSION_MILESTONES = {
     BOARD_OPEN="BOARD", BOARD_TRY_ALL_SUCCESS="BOARD_LOOK", FAVORITE_SUCCESS="FAVORITE",
     CREATE_OUTFIT_SUCCESS="SAVE", SAVE_AVATAR_SUCCESS="SAVE", OWNED_OPEN="OWNED",
     OWNED_FILTER="OWNED_FILTER", OWNED_TRY="OWNED_TRY", OWNED_SAVE="OWNED_SAVE",
-    RECOMMEND_OPEN="RECOMMEND", RECENT_OPEN="RECENT", RECENT_CONTINUE="CONTINUE",
+    DISCOVERY_DAILY_SPOTLIGHT="SPOTLIGHT", RECOMMEND_OPEN="RECOMMEND",
+    RECENT_OPEN="RECENT", RECENT_CONTINUE="CONTINUE",
     CHALLENGE_OPEN="CHALLENGE", PURCHASE_SUCCESS="PURCHASE",
 }
 
@@ -83,6 +84,8 @@ local function refreshDerivedMetrics()
     local favorites=metric("FAVORITE_SUCCESS")
     local saves=metric("CREATE_OUTFIT_SUCCESS")+metric("SAVE_AVATAR_SUCCESS")
     local purchases=metric("PURCHASE_SUCCESS")
+    local discoveryOpen=metric("DISCOVERY_OPEN")
+    local spotlightOpen=metric("DISCOVERY_DAILY_SPOTLIGHT")
     local recommendOpen=metric("RECOMMEND_OPEN")
     local recommendServed=metric("RECOMMEND_RESULT")+metric("RECOMMEND_CACHE_HIT")+metric("RECOMMEND_JOINED")
     local detailOpen=metric("DETAIL_OPEN")
@@ -102,6 +105,7 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_FavoritePerOpenPct", safeRate(favorites,opens))
     root:SetAttribute("Activity_SavePerTryOnPct", safeRate(saves,tries))
     root:SetAttribute("Activity_PurchasePerTryOnPct", safeRate(purchases,tries))
+    root:SetAttribute("Activity_SpotlightPerDiscoveryPct", safeRate(spotlightOpen,discoveryOpen))
     root:SetAttribute("Activity_RecentContinuePerRecentOpenPct", safeRate(metric("RECENT_CONTINUE"),recentOpen))
     root:SetAttribute("Activity_BoardTryAllPerBoardOpenPct", safeRate(boardTryClick,boardOpen))
     root:SetAttribute("Activity_OwnedFilterPerOwnedOpenPct", safeRate(metric("OWNED_FILTER"),ownedOpen))
@@ -129,6 +133,7 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_OwnedFilterPct", safeRate(metric("SESSION_UNIQUE_OWNED_FILTER"),sessions))
     root:SetAttribute("SessionConv_OwnedTryPct", safeRate(metric("SESSION_UNIQUE_OWNED_TRY"),sessions))
     root:SetAttribute("SessionConv_OwnedSavePct", safeRate(metric("SESSION_UNIQUE_OWNED_SAVE"),sessions))
+    root:SetAttribute("SessionConv_SpotlightPct", safeRate(metric("SESSION_UNIQUE_SPOTLIGHT"),sessions))
     root:SetAttribute("SessionConv_RecommendPct", safeRate(metric("SESSION_UNIQUE_RECOMMEND"),sessions))
     root:SetAttribute("SessionConv_RecentPct", safeRate(metric("SESSION_UNIQUE_RECENT"),sessions))
     root:SetAttribute("SessionConv_ContinuePct", safeRate(metric("SESSION_UNIQUE_CONTINUE"),sessions))
@@ -181,10 +186,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V17_OWNED_FILTERS")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V18_DAILY_SPOTLIGHT")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",17)
+root:SetAttribute("TelemetrySchema",18)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v17 Owned wardrobe filters ready")
+print("[BBYAVATAR] Privacy-safe telemetry v18 Daily Spotlight funnel ready")
