@@ -5,30 +5,40 @@ const cdata=(s)=>String(s).replaceAll(']]>',']]]]><![CDATA[>');
 const mustReplace=(src,needle,replacement,label)=>{if(!src.includes(needle))throw new Error(`Becak build patch anchor missing: ${label}`);return src.replace(needle,replacement);};
 
 let server=raw('maps/becak-e-bike/runtime.server.lua');
+
 server=mustReplace(server,
 `local old = Workspace:FindFirstChild(ROOT_NAME)\nif old then old:Destroy() end\nlocal root = Instance.new("Folder")\nroot.Name = ROOT_NAME\nroot.Parent = Workspace`,
 `local old = Workspace:FindFirstChild(ROOT_NAME)\nif old then\n    if old:GetAttribute("ACC_BecakRuntimeOwned") == true then\n        old:Destroy()\n    else\n        error("[BECAK E-BIKE] Refusing to destroy pre-existing unowned Workspace/BecakEBike root")\n    end\nend\nlocal root = Instance.new("Folder")\nroot.Name = ROOT_NAME\nroot:SetAttribute("ACC_BecakRuntimeOwned", true)\nroot.Parent = Workspace\nWorkspace:SetAttribute("ACC_BecakStartupGuard", "v1.31")`,
 'startup ownership guard');
+
 server=mustReplace(server,
 `root.Name = ROOT_NAME\nroot.Parent = Workspace\n\nlocal world =`,
 `root.Name = ROOT_NAME\nroot.Parent = Workspace\n\nlocal economyTransaction = Instance.new("BindableFunction")\neconomyTransaction.Name = "EconomyTransaction"\neconomyTransaction.Parent = root\n\nlocal world =`,
 'economy object');
+
 server=mustReplace(server,
 `local playerVehicles = {}\n\nlocal function copy`,
 `local playerVehicles = {}\n\neconomyTransaction.OnInvoke = function(player, amount, xp, reason)\n    local d = playerData[player]\n    if not d then return false end\n    amount = math.floor(tonumber(amount) or 0)\n    xp = math.max(0, math.floor(tonumber(xp) or 0))\n    if amount < 0 and d.Coins < -amount then return false end\n    d.Coins += amount\n    d.XP += xp\n    d.Level = math.max(1, math.floor(math.sqrt(d.XP/100))+1)\n    player:SetAttribute("BecakTrips", d.Trips)\n    return true, d.Coins, reason\nend\n\nlocal function copy`,
 'economy handler');
+
 server=mustReplace(server,
 `m:SetAttribute("BatteryMax",batteryCapacity(d))`,
 `m:SetAttribute("BatteryMax",batteryCapacity(d))\n    m:SetAttribute("Condition",100)`,
 'vehicle condition');
+
 server=mustReplace(server,
 `d.Coins+=reward d.XP+=math.floor(20+dist/60) d.Trips+=1 d.Level=levelFromXP(d.XP)\n                activeTrips[player]=nil`,
 `d.Coins+=reward d.XP+=math.floor(20+dist/60) d.Trips+=1 d.Level=levelFromXP(d.XP)\n                player:SetAttribute("BecakLastTripBaseReward",reward)\n                player:SetAttribute("BecakTrips",d.Trips)\n                activeTrips[player]=nil`,
 'trip attribute + fare telemetry');
+
+// Keep this anchor tied to the real runtime source. Earlier builds expected attributes
+// that are not present in runtime.server.lua, causing the publish workflow to stop
+// before generating place.rbxlx.
 server=mustReplace(server,
-`playerData[player]=d\n    player:SetAttribute("BecakTrips",d.Trips)\n    player:SetAttribute("BecakVersion","1.9.0")\n    local stats=Instance.new("Folder")`,
+`playerData[player]=d\n    local stats=Instance.new("Folder")`,
 `playerData[player]=d\n    player:SetAttribute("BecakTrips",d.Trips)\n    player:SetAttribute("BecakLastTripBaseReward",0)\n    player:SetAttribute("BecakVersion","1.31.0")\n    local stats=Instance.new("Folder")`,
 'player attributes');
+
 server += `\nWorkspace:SetAttribute("ACC_BecakRuntime","v1.31")\nWorkspace:SetAttribute("BecakPassengerFareTelemetry","ON")\n`;
 
 const details=raw('maps/becak-e-bike/world.details.server.lua');
@@ -54,6 +64,39 @@ const mobileSafe=raw('maps/becak-e-bike/mobile.safearea.client.lua');
 const navigation=raw('maps/becak-e-bike/navigation.client.lua');
 const contractsClient=raw('maps/becak-e-bike/daily.contracts.ui.client.lua');
 
-const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="B"><Properties><string name="Name">BecakEBike_Runtime</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(server)}]]></ProtectedString></Properties></Item><Item class="Script" referent="D"><Properties><string name="Name">BecakEBike_CityDetails</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(details)}]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(systems)}]]></ProtectedString></Properties></Item><Item class="Script" referent="CV"><Properties><string name="Name">BecakEBike_CargoVisual</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(cargoVisual)}]]></ProtectedString></Properties></Item><Item class="Script" referent="EV"><Properties><string name="Name">BecakEBike_CityEvents</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(events)}]]></ProtectedString></Properties></Item><Item class="Script" referent="TR"><Properties><string name="Name">BecakEBike_TrafficNPC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(traffic)}]]></ProtectedString></Properties></Item><Item class="Script" referent="V"><Properties><string name="Name">BecakEBike_VehicleMasterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(vehicle)}]]></ProtectedString></Properties></Item><Item class="Script" referent="VR"><Properties><string name="Name">BecakEBike_VehicleRecovery</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(recovery)}]]></ProtectedString></Properties></Item><Item class="Script" referent="CH"><Properties><string name="Name">BecakEBike_ChargingNetwork</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(charging)}]]></ProtectedString></Properties></Item><Item class="Script" referent="DC"><Properties><string name="Name">BecakEBike_DailyContracts</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(contracts)}]]></ProtectedString></Properties></Item><Item class="Script" referent="ST"><Properties><string name="Name">BecakEBike_StoryProgression</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(story)}]]></ProtectedString></Properties></Item><Item class="Script" referent="RC"><Properties><string name="Name">BecakEBike_ReputationCargo</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(reputationCargo)}]]></ProtectedString></Properties></Item><Item class="Script" referent="RP"><Properties><string name="Name">BecakEBike_ReputationPassenger</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(reputationPassenger)}]]></ProtectedString></Properties></Item><Item class="Script" referent="ACH"><Properties><string name="Name">BecakEBike_Achievements</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(achievements)}]]></ProtectedString></Properties></Item><Item class="Script" referent="PL"><Properties><string name="Name">BecakEBike_Polish</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(polish)}]]></ProtectedString></Properties></Item><Item class="Script" referent="RA"><Properties><string name="Name">BecakEBike_RoadAccess</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(roadAccess)}]]></ProtectedString></Properties></Item><Item class="Script" referent="WQ"><Properties><string name="Name">BecakEBike_WorldQC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(worldQC)}]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BecakEBike_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(client)}]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MC"><Properties><string name="Name">BecakEBike_MasterplanClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(masterClient)}]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="PH"><Properties><string name="Name">BecakEBike_DriverPhone</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(phoneClient)}]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="MS"><Properties><string name="Name">BecakEBike_MobileSafeArea</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(mobileSafe)}]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="NV"><Properties><string name="Name">BecakEBike_DriverNavigation</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(navigation)}]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="DCUI"><Properties><string name="Name">BecakEBike_DailyContractsUI</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(contractsClient)}]]></ProtectedString></Properties></Item></Item></Item></roblox>`;
+const scriptItem=(referent,name,source)=>`<Item class="Script" referent="${referent}"><Properties><string name="Name">${name}</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(source)}]]></ProtectedString></Properties></Item>`;
+const localScriptItem=(referent,name,source)=>`<Item class="LocalScript" referent="${referent}"><Properties><string name="Name">${name}</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(source)}]]></ProtectedString></Properties></Item>`;
+
+const serverItems=[
+['B','BecakEBike_Runtime',server],
+['D','BecakEBike_CityDetails',details],
+['M','BecakEBike_Masterplan',systems],
+['CV','BecakEBike_CargoVisual',cargoVisual],
+['EV','BecakEBike_CityEvents',events],
+['TR','BecakEBike_TrafficNPC',traffic],
+['V','BecakEBike_VehicleMasterplan',vehicle],
+['VR','BecakEBike_VehicleRecovery',recovery],
+['CH','BecakEBike_ChargingNetwork',charging],
+['DC','BecakEBike_DailyContracts',contracts],
+['ST','BecakEBike_StoryProgression',story],
+['RC','BecakEBike_ReputationCargo',reputationCargo],
+['RP','BecakEBike_ReputationPassenger',reputationPassenger],
+['ACH','BecakEBike_Achievements',achievements],
+['PL','BecakEBike_Polish',polish],
+['RA','BecakEBike_RoadAccess',roadAccess],
+['WQ','BecakEBike_WorldQC',worldQC],
+].map(([r,n,s])=>scriptItem(r,n,s)).join('');
+
+const clientItems=[
+['C','BecakEBike_Client',client],
+['MC','BecakEBike_MasterplanClient',masterClient],
+['PH','BecakEBike_DriverPhone',phoneClient],
+['MS','BecakEBike_MobileSafeArea',mobileSafe],
+['NV','BecakEBike_DriverNavigation',navigation],
+['DCUI','BecakEBike_DailyContractsUI',contractsClient],
+].map(([r,n,s])=>localScriptItem(r,n,s)).join('');
+
+const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>${clientItems}</Item></Item></roblox>`;
+
 fs.writeFileSync(path.join(root,'maps/becak-e-bike/place.rbxlx'),xml);
-console.log('[Becak E-Bike] Built v1.31 runtime-aligned startup ownership guard + v1.30 cargo payload visuals + v1.29 adaptive left phone + v1.27 road-edge audit + v1.26 recovery + progression systems:',Buffer.byteLength(xml),'bytes');
+console.log('[Becak E-Bike] Built v1.31 with repaired runtime anchor + startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + progression systems:',Buffer.byteLength(xml),'bytes');
