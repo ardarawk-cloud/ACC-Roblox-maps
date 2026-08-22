@@ -1,7 +1,7 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v4.4-precision-alignment
+build=v4.5-upper-scenic
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 7 }
+log=Mountain AM STUDIO publish success { versionNumber: 8 }
