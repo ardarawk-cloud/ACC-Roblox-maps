@@ -2,6 +2,7 @@ name: BBYA Zero Live Publish
 
 # Scope refresh trigger: 2026-08-21
 # Audio publish retrigger: 2026-08-21T13:24+08:00
+# AM STUDIO API ownership-transfer probe: 2026-08-22T23:38+08:00
 on:
   workflow_dispatch:
   push:
