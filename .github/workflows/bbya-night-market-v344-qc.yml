@@ -18,7 +18,7 @@ on:
       - 'maps/bbya-social-hub/default.project.json'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   qc:
@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/cache@v4
         id: rojo-cache
         with:
@@ -61,3 +63,29 @@ jobs:
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v344-night-market.rbxl
           test -s /tmp/bbya-v344-night-market.rbxl
           ls -lh /tmp/bbya-v344-night-market.rbxl
+      - name: Persist QC receipt on dev branch
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          bytes=$(stat -c%s /tmp/bbya-v344-night-market.rbxl)
+          cat > deploy-status/bbya-night-market-v344-qc.json <<EOF
+          {
+            "status": "PASS",
+            "sourceCommit": "${GITHUB_SHA}",
+            "rojoBuild": true,
+            "buildBytes": ${bytes},
+            "travelPriceRobux": 10,
+            "globalSoundInjected": false,
+            "premiumOverlay": "NIGHT_MARKET_PREMIUM_V3",
+            "operatorControlsBound": true
+          }
+          EOF
+          git config user.name 'ACC Roblox QC Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-night-market-v344-qc.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA v344 Pasar Malam offline QC [skip ci]'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
