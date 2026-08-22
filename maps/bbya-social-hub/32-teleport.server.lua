@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v4
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v5
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
@@ -12,7 +12,7 @@ local internal=remotes:FindFirstChild("InternalTeleport") or Instance.new("Binda
 internal.Name="InternalTeleport";internal.Parent=remotes
 
 local passModule=script.Parent:FindFirstChild("TravelPasses")
-local PASSES={VIP=0,Skatepark=0,Rooftop=0,Basement=0,Funkot=0}
+local PASSES={VIP=0,Skatepark=0,Rooftop=0,Basement=0,Funkot=0,Mall=0}
 if passModule and passModule:IsA("ModuleScript") then
  local ok,data=pcall(require,passModule)
  if ok and type(data)=="table" then PASSES=data end
@@ -29,8 +29,9 @@ local destinations={
  Basement=CFrame.new(0,-12,0),
  Skatepark=CFrame.new(0,3,112),
  Funkot=CFrame.new(0,3,178),
+ Mall=CFrame.new(0,4,302),
 }
-local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20,Funkot=10}
+local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20,Funkot=10,Mall=10}
 local keyByPass={}
 for key,id in pairs(PASSES) do
  id=tonumber(id) or 0
@@ -99,4 +100,4 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId
 end)
 
 Players.PlayerRemoving:Connect(function(player)ownershipCache[player.UserId]=nil end)
-print("[BBYA] Travel v4 online: VIP 5R / Skatepark 5R / Rooftop 10R / Underground 20R / Funkot 10R")
+print("[BBYA] Travel v5 online: VIP 5R / Skatepark 5R / Rooftop 10R / Underground 20R / Funkot 10R / Mall 10R")
