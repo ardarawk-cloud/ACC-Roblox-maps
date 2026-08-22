@@ -6,4 +6,5 @@ return {
     Basement = 1952834896,
     Funkot = 1955508827,
     Mall = 1951773702,
+    NightMarket = 0,
 }
