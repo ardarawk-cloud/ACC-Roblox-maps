@@ -1,7 +1,8 @@
--- BECAK E-BIKE — Speed Sensitive Steering Stability v1.39
+-- BECAK E-BIKE — Speed Sensitive Steering Stability v1.40
 -- Softens yaw authority as road speed rises so the 3-wheel becak is easier to control on mobile.
--- v1.38 added cargo-aware damping. v1.39 also scales high-speed steering for damaged vehicles
--- so low-condition becaks become calmer and less likely to tip while preserving low-speed maneuverability.
+-- v1.38 added cargo-aware damping. v1.39 added condition-aware damping. v1.40 adds
+-- sharp-corner anti-tip assist: extra yaw softening only when steering hard at road speed,
+-- preserving straight-line response and low-speed maneuverability.
 -- This does not replace the main vehicle controller; it only retunes the existing BodyGyro.
 
 local Workspace = game:GetService('Workspace')
@@ -17,6 +18,8 @@ local HIGH_SPEED = 30
 local CARGO_BLEND_START_SPEED = 12
 local CONDITION_BLEND_START_SPEED = 14
 local CONDITION_FULL_ASSIST_AT = 45
+local CORNER_BLEND_START_SPEED = 15
+local CORNER_STEER_DEADZONE = 0.35
 local LOW_P = 9000
 local HIGH_P = 4300
 local LOW_D = 650
@@ -29,6 +32,9 @@ local CARGO_DAMPING_SCALE = 1.12
 local CONDITION_HIGH_SPEED_P_SCALE = 0.90
 local CONDITION_HIGH_SPEED_YAW_SCALE = 0.80
 local CONDITION_DAMPING_SCALE = 1.18
+local CORNER_HIGH_SPEED_P_SCALE = 0.88
+local CORNER_HIGH_SPEED_YAW_SCALE = 0.72
+local CORNER_DAMPING_SCALE = 1.22
 
 local tracked = {}
 
@@ -54,15 +60,25 @@ local function conditionBlendFor(speed, condition)
     return damageBlend * speedBlend
 end
 
+local function cornerBlendFor(speed, steer)
+    local steerAmount = math.abs(tonumber(steer) or 0)
+    if speed <= CORNER_BLEND_START_SPEED or steerAmount <= CORNER_STEER_DEADZONE then return 0 end
+    local steerBlend = math.clamp((steerAmount - CORNER_STEER_DEADZONE) / math.max(0.01, 1 - CORNER_STEER_DEADZONE), 0, 1)
+    local speedBlend = math.clamp((speed - CORNER_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CORNER_BLEND_START_SPEED), 0, 1)
+    return steerBlend * speedBlend
+end
+
 local function track(model)
     if not model:IsA('Model') then return end
     local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
     if not chassis or not chassis:IsA('BasePart') then return end
     local gyro = chassis:FindFirstChildOfClass('BodyGyro')
     if not gyro then return end
-    tracked[model] = {chassis = chassis, gyro = gyro}
+    local seat = model:FindFirstChild('DriverSeat', true)
+    if seat and not seat:IsA('VehicleSeat') then seat = nil end
+    tracked[model] = {chassis = chassis, gyro = gyro, seat = seat}
     model:SetAttribute('SteeringStabilityReady', true)
-    model:SetAttribute('SteeringStabilityVersion', 'v1.39')
+    model:SetAttribute('SteeringStabilityVersion', 'v1.40')
 end
 
 local function untrack(model)
@@ -85,30 +101,39 @@ while task.wait(interval) do
         if not model.Parent or not chassis.Parent or not gyro.Parent then
             tracked[model] = nil
         else
+            if not state.seat or not state.seat.Parent then
+                local seat = model:FindFirstChild('DriverSeat', true)
+                state.seat = seat and seat:IsA('VehicleSeat') and seat or nil
+            end
+
             local speed = planarSpeed(chassis)
             local a = alphaFor(speed)
             local cargoLoaded = model:GetAttribute('CargoVisualLoaded') == true
             local cargoBlend = cargoBlendFor(speed, cargoLoaded)
             local condition = model:GetAttribute('Condition') or 100
             local conditionBlend = conditionBlendFor(speed, condition)
+            local steer = state.seat and state.seat.SteerFloat or 0
+            local cornerBlend = cornerBlendFor(speed, steer)
 
             local baseP = LOW_P + (HIGH_P - LOW_P) * a
             local baseD = LOW_D + (HIGH_D - LOW_D) * a
             local baseYawTorque = LOW_YAW_TORQUE + (HIGH_YAW_TORQUE - LOW_YAW_TORQUE) * a
 
-            -- Cargo and damage assists only blend in above city speed. Parking and low-speed
-            -- maneuverability stay close to the base controller while loaded/damaged becaks
-            -- receive progressively calmer yaw authority near the high-speed envelope.
+            -- Cargo, damage and sharp-corner assists only blend in above city speed. Parking,
+            -- curb recovery and straight-line behavior remain close to the base controller.
             local cargoPScale = 1 + (CARGO_HIGH_SPEED_P_SCALE - 1) * cargoBlend
             local cargoYawScale = 1 + (CARGO_HIGH_SPEED_YAW_SCALE - 1) * cargoBlend
             local cargoDScale = 1 + (CARGO_DAMPING_SCALE - 1) * cargoBlend
             local conditionPScale = 1 + (CONDITION_HIGH_SPEED_P_SCALE - 1) * conditionBlend
             local conditionYawScale = 1 + (CONDITION_HIGH_SPEED_YAW_SCALE - 1) * conditionBlend
             local conditionDScale = 1 + (CONDITION_DAMPING_SCALE - 1) * conditionBlend
+            local cornerPScale = 1 + (CORNER_HIGH_SPEED_P_SCALE - 1) * cornerBlend
+            local cornerYawScale = 1 + (CORNER_HIGH_SPEED_YAW_SCALE - 1) * cornerBlend
+            local cornerDScale = 1 + (CORNER_DAMPING_SCALE - 1) * cornerBlend
 
-            gyro.P = baseP * cargoPScale * conditionPScale
-            gyro.D = baseD * cargoDScale * conditionDScale
-            local finalYawScale = cargoYawScale * conditionYawScale
+            gyro.P = baseP * cargoPScale * conditionPScale * cornerPScale
+            gyro.D = baseD * cargoDScale * conditionDScale * cornerDScale
+            local finalYawScale = cargoYawScale * conditionYawScale * cornerYawScale
             gyro.MaxTorque = Vector3.new(0, baseYawTorque * finalYawScale, 0)
 
             model:SetAttribute('SteeringStabilitySpeed', math.floor(speed * 10 + 0.5) / 10)
@@ -117,18 +142,24 @@ while task.wait(interval) do
             model:SetAttribute('SteeringCargoAssistBlend', math.floor(cargoBlend * 100 + 0.5) / 100)
             model:SetAttribute('SteeringConditionAssistActive', conditionBlend > 0.01)
             model:SetAttribute('SteeringConditionAssistBlend', math.floor(conditionBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringCornerAssistActive', cornerBlend > 0.01)
+            model:SetAttribute('SteeringCornerAssistBlend', math.floor(cornerBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringInput', math.floor(steer * 100 + 0.5) / 100)
         end
     end
 end
 
-Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.39')
+Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.40')
 Workspace:SetAttribute('BecakSpeedSensitiveSteering', 'ON')
 Workspace:SetAttribute('BecakCargoAwareSteering', 'ON')
 Workspace:SetAttribute('BecakConditionAwareSteering', 'ON')
+Workspace:SetAttribute('BecakCornerAntiTipAssist', 'ON')
 Workspace:SetAttribute('BecakSteeringCargoBlendStartSpeed', CARGO_BLEND_START_SPEED)
 Workspace:SetAttribute('BecakSteeringConditionBlendStartSpeed', CONDITION_BLEND_START_SPEED)
 Workspace:SetAttribute('BecakSteeringConditionFullAssistAt', CONDITION_FULL_ASSIST_AT)
+Workspace:SetAttribute('BecakSteeringCornerBlendStartSpeed', CORNER_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringCornerDeadzone', CORNER_STEER_DEADZONE)
 Workspace:SetAttribute('BecakSteeringStabilityHz', UPDATE_HZ)
 Workspace:SetAttribute('BecakSteeringHighSpeedP', HIGH_P)
 Workspace:SetAttribute('BecakSteeringHighSpeedYawTorque', HIGH_YAW_TORQUE)
-print('[BECAK E-BIKE] steering stability v1.39 ready • speed + cargo + condition-aware yaw damping • mobile friendly')
+print('[BECAK E-BIKE] steering stability v1.40 ready • speed + cargo + condition + corner anti-tip damping • mobile friendly')
