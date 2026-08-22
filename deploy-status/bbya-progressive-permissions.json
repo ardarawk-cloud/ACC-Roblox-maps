@@ -1,0 +1,164 @@
+{
+  "status": "PARTIAL_OR_FAILED",
+  "universeId": "8116636513",
+  "playlistAssetCount": 28,
+  "playlistAssetIds": [
+    "92702917431354",
+    "115888429247140",
+    "81067975196024",
+    "76999503317939",
+    "118117585511088",
+    "100105336048945",
+    "133637574696828",
+    "115630349269312",
+    "103311122364729",
+    "127279442599331",
+    "81269753705199",
+    "107310072452368",
+    "79404897034350",
+    "130628759763851",
+    "80712330348006",
+    "88482943108864",
+    "131113336118215",
+    "130652457794872",
+    "96201307185074",
+    "125068509199097",
+    "132685557961369",
+    "92845805134726",
+    "111162505018062",
+    "86119899029100",
+    "79262763273656",
+    "119021087760906",
+    "76089367016271",
+    "127018756715269"
+  ],
+  "uploadAttempted": false,
+  "attempts": [
+    {
+      "key": "ROBLOX_AUDIO_API_KEY",
+      "keyInfo": {
+        "present": true,
+        "http": 200,
+        "name": "ROBLOX_AUDIO_API_KEY",
+        "authorizedUserId": "8878884630",
+        "enabled": true,
+        "expired": false,
+        "scopes": [
+          {
+            "name": "asset",
+            "operations": [
+              "read",
+              "write"
+            ]
+          }
+        ],
+        "authorizedUsername": "RidhooMauKamu"
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    },
+    {
+      "key": "AM_STUDIO",
+      "keyInfo": {
+        "present": true,
+        "http": 200,
+        "name": "ARDMRN KEY",
+        "authorizedUserId": "4141352496",
+        "enabled": true,
+        "expired": false,
+        "scopes": [
+          {
+            "name": "asset",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "developer-product",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "game-pass",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe-places",
+            "operations": [
+              "write"
+            ]
+          },
+          {
+            "name": "universe.event",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place.instance",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.thumbnail",
+            "operations": [
+              "read",
+              "write"
+            ]
+          }
+        ],
+        "authorizedUsername": "Arda_Moron123"
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    }
+  ],
+  "grantedAssetIds": [],
+  "grantedCount": 0,
+  "missingAssetIds": [
+    "92702917431354",
+    "115888429247140",
+    "81067975196024",
+    "76999503317939",
+    "118117585511088",
+    "100105336048945",
+    "133637574696828",
+    "115630349269312",
+    "103311122364729",
+    "127279442599331",
+    "81269753705199",
+    "107310072452368",
+    "79404897034350",
+    "130628759763851",
+    "80712330348006",
+    "88482943108864",
+    "131113336118215",
+    "130652457794872",
+    "96201307185074",
+    "125068509199097",
+    "132685557961369",
+    "92845805134726",
+    "111162505018062",
+    "86119899029100",
+    "79262763273656",
+    "119021087760906",
+    "76089367016271",
+    "127018756715269"
+  ]
+}
