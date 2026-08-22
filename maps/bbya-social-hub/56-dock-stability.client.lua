@@ -1,6 +1,7 @@
 -- BBYA SOCIAL HUB — SIX TAB DOCK STABILITY v2
 -- Final layout authority for BBYA / MUSIC / SUPPORT / TRAVEL / MESSAGE / COMMUNITY.
--- v2: mobile dock sits below Roblox CoreGui chat area and keeps BBYA visible.
+-- v2: mobile dock sits below Roblox CoreGui chat area, keeps BBYA visible,
+-- and never overwrites CLUB / UNDERGROUND / FUNKOT venue labels.
 
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
@@ -18,12 +19,15 @@ local function findButton(word)
   if obj:IsA("TextButton") and tostring(obj.Text):upper():find(word,1,true) then return obj end
  end
 end
+local function findMusicButton()
+ return findButton("MUSIC") or findButton("CLUB") or findButton("UNDERGROUND") or findButton("FUNKOT")
+end
 
 local function layout()
  camera=workspace.CurrentCamera or camera
  if not camera then return false end
  local brand=findButton("BBYA")
- local music=findButton("MUSIC") or findButton("CLUB")
+ local music=findMusicButton()
  local support=findButton("SUPPORT")
  local travel=findButton("TRAVEL")
  local message=dock:FindFirstChild("MessageTab") or findButton("MESSAGE")
@@ -60,7 +64,6 @@ local function layout()
  brand.ZIndex=96
  local compact=width<760
  brand.TextSize=compact and 9 or 11
- if tostring(music.Text):upper():find("CLUB",1,true) then music.Text="CLUB" else music.Text=compact and "MUSIC" or "♫  MUSIC" end
  music.TextSize=compact and 8 or 11
  support.Text=compact and "SUPPORT" or "◇  SUPPORT";support.TextSize=compact and 8 or 11
  travel.Text=compact and "TRAVEL" or "⌖  TRAVEL";travel.TextSize=compact and 8 or 11
@@ -93,4 +96,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Six-tab dock stability v2 online: mobile chat-safe / BBYA visible")
+print("[BBYA] Six-tab dock stability v2 online: mobile chat-safe / venue labels preserved")
