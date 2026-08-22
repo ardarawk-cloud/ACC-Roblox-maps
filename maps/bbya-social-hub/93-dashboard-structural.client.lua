@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v4
--- Dashboard rebuild: sidebar, wider library, glass header, venue rail, responsive landscape layout.
--- v4 raises the global dock on touch devices while preserving mobile CoreGui clearance.
+-- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v5
+-- Centered responsive dashboard. Command Menu v5 owns the global launcher/dock lifecycle;
+-- this script only owns HubPanel structure and no longer polls or repositions a hidden TopDock.
+
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
@@ -16,9 +17,9 @@ local function label(parent,name,value,pos,size,font,ts,color)
 end
 
 local panel=gui:FindFirstChild("HubPanel")
-local dock=gui:FindFirstChild("TopDock")
-if not panel or not dock then return end
+if not panel then return end
 panel.ClipsDescendants=true
+panel:SetAttribute("BBYAStructuralDashboardAuthority","V5_EVENT_DRIVEN")
 
 local rail=panel:FindFirstChild("DashboardSideRailV2") or Instance.new("Frame")
 rail.Name="DashboardSideRailV2";rail.BackgroundColor3=C.rail;rail.BorderSizePixel=0;rail.ZIndex=8;rail.Parent=panel
@@ -30,9 +31,7 @@ label(rail,"Sub","SOCIAL HUB",UDim2.fromOffset(18,52),UDim2.new(1,-28,0,18),Enum
 local live=label(rail,"Live","●  LIVE",UDim2.fromOffset(18,88),UDim2.new(1,-32,0,26),Enum.Font.GothamBold,9,C.green);live.BackgroundTransparency=0;live.BackgroundColor3=Color3.fromRGB(15,43,32);corner(live,8);stroke(live,C.green,1,.65)
 label(rail,"NavHead","VENUES",UDim2.fromOffset(18,142),UDim2.new(1,-28,0,18),Enum.Font.GothamBold,8,C.muted)
 local clubs={{"RailClub","CLUB",C.pink,170},{"RailUnder","UNDERGROUND",C.cyan,204},{"RailFunkot","FUNKOT",C.purple,238}}
-for _,v in ipairs(clubs) do
- local t=label(rail,v[1],v[2],UDim2.fromOffset(18,v[4]),UDim2.new(1,-28,0,26),Enum.Font.GothamBold,9,C.white);t.BackgroundTransparency=.18;t.BackgroundColor3=Color3.fromRGB(24,25,33);corner(t,7);stroke(t,v[3],1,.72)
-end
+for _,v in ipairs(clubs) do local t=label(rail,v[1],v[2],UDim2.fromOffset(18,v[4]),UDim2.new(1,-28,0,26),Enum.Font.GothamBold,9,C.white);t.BackgroundTransparency=.18;t.BackgroundColor3=Color3.fromRGB(24,25,33);corner(t,7);stroke(t,v[3],1,.72) end
 label(rail,"StatsHead","SYSTEM",UDim2.fromOffset(18,300),UDim2.new(1,-28,0,18),Enum.Font.GothamBold,8,C.muted)
 label(rail,"Stat1","3 VENUES",UDim2.fromOffset(18,326),UDim2.new(1,-28,0,20),Enum.Font.GothamBold,9,C.white)
 label(rail,"Stat2","AUTO DJ",UDim2.fromOffset(18,350),UDim2.new(1,-28,0,20),Enum.Font.GothamBold,9,C.white)
@@ -42,9 +41,7 @@ local topGlass=panel:FindFirstChild("DashboardTopGlassV2") or Instance.new("Fram
 topGlass.Name="DashboardTopGlassV2";topGlass.BackgroundColor3=Color3.fromRGB(12,13,19);topGlass.BackgroundTransparency=.12;topGlass.BorderSizePixel=0;topGlass.ZIndex=4;topGlass.Parent=panel;corner(topGlass,12);stroke(topGlass,C.line,1,.62)
 local topGrad=topGlass:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient");topGrad.Color=ColorSequence.new(Color3.fromRGB(26,18,34),Color3.fromRGB(10,18,24));topGrad.Rotation=0;topGrad.Parent=topGlass
 
-local header
-local divider
-local content
+local header,divider,content
 for _,c in ipairs(panel:GetChildren()) do
  if c:IsA("Frame") and c~=rail and c~=topGlass then
   if c.Position.Y.Offset<=20 and c.Size.Y.Offset>=45 and c.BackgroundTransparency>.8 then header=header or c
@@ -60,11 +57,8 @@ if libraryCard then libraryCard.BackgroundColor3=C.card;corner(libraryCard,15);s
 local function polishRows()
  if not libraryCard then return end
  for _,d in ipairs(libraryCard:GetDescendants()) do
-  if d:IsA("Frame") and d.Name~="LibraryCard" and d.Size.Y.Offset>=40 and d.Size.Y.Offset<=62 then
-   d.BackgroundColor3=C.card2;corner(d,10);stroke(d,C.line,1,.72)
-  elseif d:IsA("TextButton") and string.upper(d.Text or "")=="REQUEST" then
-   d.BackgroundColor3=Color3.fromRGB(72,25,61);corner(d,9);stroke(d,C.pink,1,.62)
-  end
+  if d:IsA("Frame") and d.Name~="LibraryCard" and d.Size.Y.Offset>=40 and d.Size.Y.Offset<=62 then d.BackgroundColor3=C.card2;corner(d,10);stroke(d,C.line,1,.72)
+  elseif d:IsA("TextButton") and string.upper(d.Text or "")=="REQUEST" then d.BackgroundColor3=Color3.fromRGB(72,25,61);corner(d,9);stroke(d,C.pink,1,.62) end
  end
 end
 if libraryCard then libraryCard.DescendantAdded:Connect(function()task.defer(polishRows)end) end
@@ -75,37 +69,30 @@ local function apply()
  camera=workspace.CurrentCamera or camera
  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
  local touch=UserInputService.TouchEnabled
- local panelW=math.clamp(math.floor(vp.X*(touch and .84 or .76)),720,1040)
- local panelH=math.clamp(math.floor(vp.Y*(touch and .76 or .78)),430,590)
- panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.54);panel.Size=UDim2.fromOffset(panelW,panelH);panel.BackgroundColor3=C.bg
- local railW=math.clamp(math.floor(panelW*.145),112,146)
+ local maxW=math.max(620,math.min(980,vp.X-28));local minW=math.min(700,maxW)
+ local maxH=math.max(390,math.min(560,vp.Y-34));local minH=math.min(410,maxH)
+ local panelW=math.clamp(math.floor(vp.X*(touch and .80 or .74)),minW,maxW)
+ local panelH=math.clamp(math.floor(vp.Y*(touch and .72 or .74)),minH,maxH)
+ panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.52);panel.Size=UDim2.fromOffset(panelW,panelH);panel.BackgroundColor3=C.bg
+ local railW=math.clamp(math.floor(panelW*.145),108,142)
  rail.Position=UDim2.fromOffset(0,0);rail.Size=UDim2.fromOffset(railW,panelH)
  topGlass.Position=UDim2.fromOffset(railW+14,10);topGlass.Size=UDim2.new(1,-railW-28,0,66)
  if header then header.Position=UDim2.fromOffset(railW+30,15);header.Size=UDim2.new(1,-railW-60,0,56);header.ZIndex=6 end
  if divider then divider.Position=UDim2.fromOffset(railW+22,80);divider.Size=UDim2.new(1,-railW-44,0,1);divider.BackgroundTransparency=.72 end
  if content then
   content.Position=UDim2.fromOffset(railW+22,92);content.Size=UDim2.new(1,-railW-44,1,-108)
-  local cw=math.max(500,panelW-railW-44)
-  local wide=cw>=650
+  local cw=math.max(470,panelW-railW-44);local wide=cw>=620
   if playerCard and libraryCard then
-   if wide then
-    playerCard.Position=UDim2.fromOffset(0,0);playerCard.Size=UDim2.new(.36,-8,1,0)
-    libraryCard.Position=UDim2.new(.36,8,0,0);libraryCard.Size=UDim2.new(.64,-8,1,0)
-   else
-    playerCard.Position=UDim2.fromOffset(0,0);playerCard.Size=UDim2.new(1,0,0,178)
-    libraryCard.Position=UDim2.fromOffset(0,188);libraryCard.Size=UDim2.new(1,0,1,-188)
-   end
+   if wide then playerCard.Position=UDim2.fromOffset(0,0);playerCard.Size=UDim2.new(.36,-8,1,0);libraryCard.Position=UDim2.new(.36,8,0,0);libraryCard.Size=UDim2.new(.64,-8,1,0)
+   else playerCard.Position=UDim2.fromOffset(0,0);playerCard.Size=UDim2.new(1,0,0,168);libraryCard.Position=UDim2.fromOffset(0,178);libraryCard.Size=UDim2.new(1,0,1,-178) end
   end
  end
- local dockY=touch and 36 or 14
- dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.5,railW*.12,0,dockY);dock.Size=UDim2.fromOffset(math.min(620,panelW-railW-70),48)
  polishRows();applying=false
 end
 
-task.delay(1.1,apply)
+task.delay(.9,apply)
+panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(apply) end end)
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(apply);if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(apply)end) end end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(apply)end) end
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(apply)end)
-panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(apply)end end)
-task.spawn(function()while task.wait(1.0) do if panel.Visible then apply() end end end)
 
-print("[BBYA] Structural Dashboard v4 online: raised touch dock + premium dashboard")
+print("[BBYA] Structural Dashboard v5 online: centered compact panel / event-driven / hidden dock polling retired")
