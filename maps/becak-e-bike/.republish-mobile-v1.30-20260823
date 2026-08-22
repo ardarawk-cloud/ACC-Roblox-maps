@@ -1,0 +1,4 @@
+Becak E-Bike isolated republish trigger
+Reason: mobile safe-area v1.30 now owns both phone position and UIScale to prevent legacy right-side/oversize drift.
+Universe: 10745325613
+Place: 80994730522893
