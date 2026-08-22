@@ -1,0 +1,967 @@
+{
+  "universeId": "8116636513",
+  "placeId": "131894120482837",
+  "publishedVersion": "337",
+  "method": "OPEN_CLOUD",
+  "luau": {
+    "createHttp": 403,
+    "createResponse": {
+      "code": "PERMISSION_DENIED",
+      "message": "The required scope <universe.place.luau-execution-session:8116636513:write> is missing."
+    }
+  },
+  "instanceFallback": {
+    "createHttp": 200,
+    "operation": {
+      "path": "universes/8116636513/places/131894120482837/instances/root/operations/3197644f-e840-4a43-ae69-5fc930abb87d",
+      "done": false
+    },
+    "pollHttp": 200,
+    "result": {
+      "path": "universes/8116636513/places/131894120482837/instances/root/operations/3197644f-e840-4a43-ae69-5fc930abb87d",
+      "done": true,
+      "response": {
+        "@type": "type.googleapis.com/roblox.open_cloud.cloud.v2.ListInstanceChildrenResponse",
+        "instances": [
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000002",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000002",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Workspace",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000003",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000003",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Run Service",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000004",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000004",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "GuiService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000006",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000006",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Stats",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000346",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000346",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TimerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000347",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000347",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "SoundService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000353",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000353",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "VideoCaptureService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000356",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000356",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "LogService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000357",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000357",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "MicroProfilerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000358",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000358",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ContentProvider",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000359",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000359",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "KeyframeSequenceProvider",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035a",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035a",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AnimationClipProvider",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035b",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035b",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Chat",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035c",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035c",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Players",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035d",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035d",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "MarketplaceService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035e",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035e",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "PointsService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000035f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000035f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "NotificationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000360",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000360",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ReplicatedFirst",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000361",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000361",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "HttpRbxApiService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000362",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000362",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TweenService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000363",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000363",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "MaterialService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000364",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000364",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TextChatService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000365",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000365",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TextService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000036a",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000036a",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "SharedTableRegistry",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000036b",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000036b",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "StarterPlayer",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000036c",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000036c",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "StarterPack",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000036d",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000036d",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "StarterGui",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000036f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000036f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "LocalizationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000371",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000371",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "PolicyService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000374",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000374",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Teleport Service",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000375",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000375",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "JointsService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000376",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000376",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "CollectionService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000377",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000377",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "PhysicsService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000378",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000378",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "BadgeService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000379",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000379",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "FriendService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037a",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037a",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "InsertService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037b",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037b",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "GamePassService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037c",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037c",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Debris",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037d",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037d",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "CookiesService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037e",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037e",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Selection",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000037f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000037f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "UserInputService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000380",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000380",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "KeyboardService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000381",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000381",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "MouseService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000382",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000382",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "VRService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000383",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000383",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ContextActionService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000384",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000384",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ScriptService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000385",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000385",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AssetService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000387",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000387",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TouchInputService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000388",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000388",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "BrowserService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000389",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000389",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "CaptureService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000038d",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000038d",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "SlimContentProvider",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000392",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000392",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Packages",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000393",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000393",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "GuidRegistryService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000395",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000395",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AvatarCreationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000396",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000396",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "GenerationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000397",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000397",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "MatchmakingService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000398",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000398",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ConfigureServerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000039a",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000039a",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ChangeHistoryService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-85300000039f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-85300000039f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "NetworkServer",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-8530000003a7",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-8530000003a7",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ClusterPacketCache",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e0e",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e0e",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Lighting",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e0f",
+            "hasChildren": true,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e0f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ServerScriptService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e12",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e12",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Script Context",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e69",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e69",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "PackageService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e6b",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e6b",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "VoiceChatService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e6d",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e6d",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "SpawnerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e6e",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e6e",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Teams",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e6f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e6f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "FeatureRestrictionManager",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e71",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e71",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "CommerceService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e72",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e72",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "RecommendationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e73",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e73",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ReplicatedStorage",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e74",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e74",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "TestService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e75",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e75",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AdService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e76",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e76",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "SocialService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e77",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e77",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ProximityPromptService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e79",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e79",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AvatarEditorService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e7b",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e7b",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ScriptProfilerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e7c",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e7c",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "HeapProfilerService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e7e",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e7e",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ModerationService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e7f",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e7f",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "VideoService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e80",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e80",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "ServerStorage",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e81",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e81",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "HttpService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e82",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e82",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "AnalyticsService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e83",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e83",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "VersionControlService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e87",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e87",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "RemoteCommandService",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e89",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e89",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "Instance",
+              "Details": {}
+            }
+          },
+          {
+            "path": "universes/8116636513/places/131894120482837/instances/4ab544ef-00ab-c2c6-0a9b-853000000e97",
+            "hasChildren": false,
+            "engineInstance": {
+              "Id": "4ab544ef-00ab-c2c6-0a9b-853000000e97",
+              "Parent": "4ab544ef-00ab-c2c6-0a9b-853000000001",
+              "Name": "PermissionsService",
+              "Details": {}
+            }
+          }
+        ],
+        "nextPageToken": ""
+      }
+    }
+  },
+  "key": {
+    "http": 200,
+    "name": "ARDMRN KEY",
+    "enabled": true,
+    "expired": false,
+    "scopes": [
+      {
+        "name": "asset",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "developer-product",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "game-pass",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "universe-places",
+        "operations": [
+          "write"
+        ]
+      },
+      {
+        "name": "universe.event",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "universe.place.instance",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "universe.place",
+        "operations": [
+          "read",
+          "write"
+        ]
+      },
+      {
+        "name": "universe.thumbnail",
+        "operations": [
+          "read",
+          "write"
+        ]
+      }
+    ]
+  },
+  "auditLines": [],
+  "liveGeometryObserved": false,
+  "status": "INSTANCE_TREE_OBSERVED"
+}
