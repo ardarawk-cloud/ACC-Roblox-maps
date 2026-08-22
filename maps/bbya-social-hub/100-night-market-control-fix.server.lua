@@ -14,7 +14,7 @@ local function hideControl(control)
 end
 local function bind(oldControlName,boothName)
  local control=market:FindFirstChild(oldControlName)
- local booth=premium:FindFirstChild(boothName,true)
+ local booth=premium:WaitForChild(boothName,15)
  local counter=booth and booth:FindFirstChild("Counter")
  local oldPrompt=control and control:FindFirstChildOfClass("ProximityPrompt")
  if oldPrompt and counter then oldPrompt.Parent=counter end

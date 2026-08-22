@@ -85,7 +85,8 @@ end
 local function queue(name,cx,cz,w,d,parent)
  local m=Instance.new("Model");m.Name=name;m.Parent=parent or premium
  local x1,x2=cx-w/2,cx+w/2;local z1,z2=cz-d/2,cz+d/2
- rail("South",Vector3.new(x1,0,z1),Vector3.new(x2,0,z1),m);rail("North",Vector3.new(x1,0,z2),Vector3.new(x2,0,z2),m)
+ local gap=4
+ rail("SouthL",Vector3.new(x1,0,z1),Vector3.new(cx-gap/2,0,z1),m);rail("SouthR",Vector3.new(cx+gap/2,0,z1),Vector3.new(x2,0,z1),m);rail("North",Vector3.new(x1,0,z2),Vector3.new(x2,0,z2),m)
  rail("West",Vector3.new(x1,0,z1),Vector3.new(x1,0,z2),m);rail("East",Vector3.new(x2,0,z1),Vector3.new(x2,0,z2),m)
  return m
 end
@@ -108,7 +109,7 @@ local function booth(name,cf,title,color,parent)
 end
 
 for _,o in ipairs(market:GetChildren()) do
- if o:IsA("BasePart") and o.Shape==Enum.PartType.Ball and o.Material==Enum.Material.Neon and o.Position.Y>12 and o.Position.Z>485 and o.Position.Z<625 then o:Destroy() end
+ if o:IsA("Part") and o.Shape==Enum.PartType.Ball and o.Material==Enum.Material.Neon and o.Position.Y>12 and o.Position.Z>485 and o.Position.Z<625 then o:Destroy() end
  if o:IsA("BasePart") and (o.Name:match("^LightPole") or o.Name=="GateBeam" or o.Name=="GateSign") then o.Transparency=1;o.CanCollide=false end
 end
 
@@ -179,7 +180,7 @@ queue("KoraQueue",25,594,14,31,premium);local _,kCounter=booth("KoraOperator",CF
 local carousel=market:FindFirstChild("PlayableCarousel")
 if carousel then
  for _,o in ipairs(carousel:GetChildren()) do
-  if o:IsA("BasePart") and o.Shape==Enum.PartType.Cylinder and math.max(o.Size.Y,o.Size.Z)>44 and o.Position.Y>12 then o.Transparency=1;o.CanCollide=false end
+  if o:IsA("Part") and o.Shape==Enum.PartType.Cylinder and math.max(o.Size.Y,o.Size.Z)>44 and o.Position.Y>12 then o.Transparency=1;o.CanCollide=false end
  end
  local center=Vector3.new(-55,1.5,512)
  for i=1,12 do
@@ -215,7 +216,7 @@ end
 
 local oldFerris=market:FindFirstChild("PlayableFerrisWheel")
 if oldFerris then
- for _,o in ipairs(oldFerris:GetDescendants()) do if o:IsA("BasePart") then o.Transparency=1;o.CanCollide=false end end
+ for _,o in ipairs(oldFerris:GetDescendants()) do if o:IsA("BasePart") then o.Transparency=1;o.CanCollide=false;o.CanTouch=false end end
 end
 for _,o in ipairs(market:GetChildren()) do if o:IsA("BasePart") and (o.Name=="FerrisSupport" or o.Name=="FerrisControl" or o.Name=="FerrisSign") then o.Transparency=1;o.CanCollide=false end end
 local ferris=Instance.new("Model");ferris.Name="PremiumFerrisWheel";ferris.Parent=premium

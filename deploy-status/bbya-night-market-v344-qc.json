@@ -1,10 +1,12 @@
 {
   "status": "PASS",
-  "sourceCommit": "08a894126bb96f446293069d8a2fb0c84f42a466",
+  "sourceCommit": "9f073b230e2fb8093e3a7c612be7c489cab7b7f2",
   "rojoBuild": true,
-  "buildBytes": 264634,
+  "buildBytes": 264702,
   "travelPriceRobux": 10,
   "globalSoundInjected": false,
   "premiumOverlay": "NIGHT_MARKET_PREMIUM_V3",
-  "operatorControlsBound": true
+  "operatorControlsBound": true,
+  "queueEntryGaps": true,
+  "seatShapeGuard": true
 }
