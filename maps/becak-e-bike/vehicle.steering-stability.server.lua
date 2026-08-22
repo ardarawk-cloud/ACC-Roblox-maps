@@ -1,8 +1,8 @@
--- BECAK E-BIKE — Speed Sensitive Steering Stability v1.40
+-- BECAK E-BIKE — Speed Sensitive Steering Stability v1.41
 -- Softens yaw authority as road speed rises so the 3-wheel becak is easier to control on mobile.
--- v1.38 added cargo-aware damping. v1.39 added condition-aware damping. v1.40 adds
--- sharp-corner anti-tip assist: extra yaw softening only when steering hard at road speed,
--- preserving straight-line response and low-speed maneuverability.
+-- v1.38 added cargo-aware damping. v1.39 added condition-aware damping. v1.40 added
+-- sharp-corner anti-tip assist. v1.41 adds rapid steering-reversal damping so abrupt
+-- left/right thumb changes at road speed do not snap the three-wheel chassis into a tip.
 -- This does not replace the main vehicle controller; it only retunes the existing BodyGyro.
 
 local Workspace = game:GetService('Workspace')
@@ -20,6 +20,9 @@ local CONDITION_BLEND_START_SPEED = 14
 local CONDITION_FULL_ASSIST_AT = 45
 local CORNER_BLEND_START_SPEED = 15
 local CORNER_STEER_DEADZONE = 0.35
+local REVERSAL_BLEND_START_SPEED = 14
+local REVERSAL_STEER_DEADZONE = 0.45
+local REVERSAL_HOLD_SECONDS = 0.45
 local LOW_P = 9000
 local HIGH_P = 4300
 local LOW_D = 650
@@ -35,6 +38,9 @@ local CONDITION_DAMPING_SCALE = 1.18
 local CORNER_HIGH_SPEED_P_SCALE = 0.88
 local CORNER_HIGH_SPEED_YAW_SCALE = 0.72
 local CORNER_DAMPING_SCALE = 1.22
+local REVERSAL_HIGH_SPEED_P_SCALE = 0.90
+local REVERSAL_HIGH_SPEED_YAW_SCALE = 0.68
+local REVERSAL_DAMPING_SCALE = 1.28
 
 local tracked = {}
 
@@ -68,6 +74,15 @@ local function cornerBlendFor(speed, steer)
     return steerBlend * speedBlend
 end
 
+local function isStrongSteer(value)
+    return math.abs(tonumber(value) or 0) >= REVERSAL_STEER_DEADZONE
+end
+
+local function oppositeStrongSteer(previous, current)
+    if not isStrongSteer(previous) or not isStrongSteer(current) then return false end
+    return previous * current < 0
+end
+
 local function track(model)
     if not model:IsA('Model') then return end
     local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
@@ -76,9 +91,9 @@ local function track(model)
     if not gyro then return end
     local seat = model:FindFirstChild('DriverSeat', true)
     if seat and not seat:IsA('VehicleSeat') then seat = nil end
-    tracked[model] = {chassis = chassis, gyro = gyro, seat = seat}
+    tracked[model] = {chassis = chassis, gyro = gyro, seat = seat, lastSteer = 0, reversalHold = 0}
     model:SetAttribute('SteeringStabilityReady', true)
-    model:SetAttribute('SteeringStabilityVersion', 'v1.40')
+    model:SetAttribute('SteeringStabilityVersion', 'v1.41')
 end
 
 local function untrack(model)
@@ -115,12 +130,23 @@ while task.wait(interval) do
             local steer = state.seat and state.seat.SteerFloat or 0
             local cornerBlend = cornerBlendFor(speed, steer)
 
+            if speed >= REVERSAL_BLEND_START_SPEED and oppositeStrongSteer(state.lastSteer, steer) then
+                state.reversalHold = REVERSAL_HOLD_SECONDS
+            else
+                state.reversalHold = math.max(0, state.reversalHold - interval)
+            end
+            state.lastSteer = steer
+
+            local reversalSpeedBlend = math.clamp((speed - REVERSAL_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - REVERSAL_BLEND_START_SPEED), 0, 1)
+            local reversalTimeBlend = math.clamp(state.reversalHold / REVERSAL_HOLD_SECONDS, 0, 1)
+            local reversalBlend = reversalSpeedBlend * reversalTimeBlend
+
             local baseP = LOW_P + (HIGH_P - LOW_P) * a
             local baseD = LOW_D + (HIGH_D - LOW_D) * a
             local baseYawTorque = LOW_YAW_TORQUE + (HIGH_YAW_TORQUE - LOW_YAW_TORQUE) * a
 
-            -- Cargo, damage and sharp-corner assists only blend in above city speed. Parking,
-            -- curb recovery and straight-line behavior remain close to the base controller.
+            -- Cargo, damage, sharp-corner and rapid-reversal assists only blend in above city speed.
+            -- Parking, curb recovery and normal straight-line behavior remain close to the base controller.
             local cargoPScale = 1 + (CARGO_HIGH_SPEED_P_SCALE - 1) * cargoBlend
             local cargoYawScale = 1 + (CARGO_HIGH_SPEED_YAW_SCALE - 1) * cargoBlend
             local cargoDScale = 1 + (CARGO_DAMPING_SCALE - 1) * cargoBlend
@@ -130,10 +156,13 @@ while task.wait(interval) do
             local cornerPScale = 1 + (CORNER_HIGH_SPEED_P_SCALE - 1) * cornerBlend
             local cornerYawScale = 1 + (CORNER_HIGH_SPEED_YAW_SCALE - 1) * cornerBlend
             local cornerDScale = 1 + (CORNER_DAMPING_SCALE - 1) * cornerBlend
+            local reversalPScale = 1 + (REVERSAL_HIGH_SPEED_P_SCALE - 1) * reversalBlend
+            local reversalYawScale = 1 + (REVERSAL_HIGH_SPEED_YAW_SCALE - 1) * reversalBlend
+            local reversalDScale = 1 + (REVERSAL_DAMPING_SCALE - 1) * reversalBlend
 
-            gyro.P = baseP * cargoPScale * conditionPScale * cornerPScale
-            gyro.D = baseD * cargoDScale * conditionDScale * cornerDScale
-            local finalYawScale = cargoYawScale * conditionYawScale * cornerYawScale
+            gyro.P = baseP * cargoPScale * conditionPScale * cornerPScale * reversalPScale
+            gyro.D = baseD * cargoDScale * conditionDScale * cornerDScale * reversalDScale
+            local finalYawScale = cargoYawScale * conditionYawScale * cornerYawScale * reversalYawScale
             gyro.MaxTorque = Vector3.new(0, baseYawTorque * finalYawScale, 0)
 
             model:SetAttribute('SteeringStabilitySpeed', math.floor(speed * 10 + 0.5) / 10)
@@ -144,22 +173,28 @@ while task.wait(interval) do
             model:SetAttribute('SteeringConditionAssistBlend', math.floor(conditionBlend * 100 + 0.5) / 100)
             model:SetAttribute('SteeringCornerAssistActive', cornerBlend > 0.01)
             model:SetAttribute('SteeringCornerAssistBlend', math.floor(cornerBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringReversalAssistActive', reversalBlend > 0.01)
+            model:SetAttribute('SteeringReversalAssistBlend', math.floor(reversalBlend * 100 + 0.5) / 100)
             model:SetAttribute('SteeringInput', math.floor(steer * 100 + 0.5) / 100)
         end
     end
 end
 
-Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.40')
+Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.41')
 Workspace:SetAttribute('BecakSpeedSensitiveSteering', 'ON')
 Workspace:SetAttribute('BecakCargoAwareSteering', 'ON')
 Workspace:SetAttribute('BecakConditionAwareSteering', 'ON')
 Workspace:SetAttribute('BecakCornerAntiTipAssist', 'ON')
+Workspace:SetAttribute('BecakSteeringReversalAssist', 'ON')
 Workspace:SetAttribute('BecakSteeringCargoBlendStartSpeed', CARGO_BLEND_START_SPEED)
 Workspace:SetAttribute('BecakSteeringConditionBlendStartSpeed', CONDITION_BLEND_START_SPEED)
 Workspace:SetAttribute('BecakSteeringConditionFullAssistAt', CONDITION_FULL_ASSIST_AT)
 Workspace:SetAttribute('BecakSteeringCornerBlendStartSpeed', CORNER_BLEND_START_SPEED)
 Workspace:SetAttribute('BecakSteeringCornerDeadzone', CORNER_STEER_DEADZONE)
+Workspace:SetAttribute('BecakSteeringReversalBlendStartSpeed', REVERSAL_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringReversalDeadzone', REVERSAL_STEER_DEADZONE)
+Workspace:SetAttribute('BecakSteeringReversalHoldSeconds', REVERSAL_HOLD_SECONDS)
 Workspace:SetAttribute('BecakSteeringStabilityHz', UPDATE_HZ)
 Workspace:SetAttribute('BecakSteeringHighSpeedP', HIGH_P)
 Workspace:SetAttribute('BecakSteeringHighSpeedYawTorque', HIGH_YAW_TORQUE)
-print('[BECAK E-BIKE] steering stability v1.40 ready • speed + cargo + condition + corner anti-tip damping • mobile friendly')
+print('[BECAK E-BIKE] steering stability v1.41 ready • speed + cargo + condition + corner + reversal anti-tip damping • mobile friendly')
