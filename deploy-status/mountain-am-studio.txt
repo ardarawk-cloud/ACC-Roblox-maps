@@ -1,7 +1,7 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v4.5-upper-scenic
+build=v4.6-terrain-grounding
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 8 }
+log=Mountain AM STUDIO publish success { versionNumber: 9 }
