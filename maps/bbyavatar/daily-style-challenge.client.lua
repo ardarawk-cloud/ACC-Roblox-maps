@@ -1,5 +1,5 @@
--- BBYAVATAR daily style challenge v1 client.
--- Small mobile-safe retention card; no local persistence and no arbitrary user text.
+-- BBYAVATAR daily style challenge v2 client.
+-- Small mobile-safe retention card with privacy-safe streak display.
 
 local getChallenge = root:WaitForChild("GetDailyStyleChallenge")
 local challengeUpdated = root:WaitForChild("DailyStyleChallengeUpdated")
@@ -16,7 +16,7 @@ local chip = Instance.new("TextButton")
 chip.Name = "DailyStyleChip"
 chip.AnchorPoint = Vector2.new(0, 1)
 chip.Position = UDim2.new(0, 14, 1, -18)
-chip.Size = UDim2.fromOffset(164, 44)
+chip.Size = UDim2.fromOffset(174, 44)
 chip.BackgroundColor3 = Color3.fromRGB(29, 31, 40)
 chip.TextColor3 = Color3.new(1,1,1)
 chip.Font = Enum.Font.GothamBold
@@ -29,7 +29,7 @@ local panel = Instance.new("Frame")
 panel.Name = "DailyStylePanel"
 panel.AnchorPoint = Vector2.new(0, 1)
 panel.Position = UDim2.new(0, 14, 1, -70)
-panel.Size = UDim2.fromOffset(286, 238)
+panel.Size = UDim2.fromOffset(296, 264)
 panel.BackgroundColor3 = Color3.fromRGB(18, 20, 27)
 panel.Visible = false
 panel.Parent = challengeGui
@@ -71,10 +71,21 @@ themeLabel.TextYAlignment = Enum.TextYAlignment.Top
 themeLabel.Text = "Loading today’s theme…"
 themeLabel.Parent = panel
 
+local streakLabel = Instance.new("TextLabel")
+streakLabel.BackgroundColor3 = Color3.fromRGB(38, 42, 57)
+streakLabel.Position = UDim2.fromOffset(16, 96)
+streakLabel.Size = UDim2.new(1, -32, 0, 28)
+streakLabel.Font = Enum.Font.GothamBold
+streakLabel.TextColor3 = Color3.fromRGB(222, 225, 239)
+streakLabel.TextSize = 12
+streakLabel.Text = "STYLE STREAK  0 DAYS"
+streakLabel.Parent = panel
+Instance.new("UICorner", streakLabel).CornerRadius = UDim.new(0, 9)
+
 local checklist = Instance.new("TextLabel")
 checklist.BackgroundTransparency = 1
-checklist.Position = UDim2.fromOffset(16, 100)
-checklist.Size = UDim2.new(1, -32, 0, 78)
+checklist.Position = UDim2.fromOffset(16, 132)
+checklist.Size = UDim2.new(1, -32, 0, 74)
 checklist.Font = Enum.Font.Gotham
 checklist.TextColor3 = Color3.fromRGB(229, 231, 239)
 checklist.TextSize = 13
@@ -106,8 +117,11 @@ local function render(nextState)
     if typeof(nextState) ~= "table" then return end
     state = nextState
     local progress = tonumber(state.progress) or 0
-    chip.Text = state.completed and "DAILY STYLE  COMPLETE" or ("DAILY STYLE  " .. tostring(progress) .. "/3")
+    local streak = math.max(0, math.floor(tonumber(state.streak) or 0))
+
+    chip.Text = state.completed and ("DAILY ✓  •  " .. tostring(streak) .. " DAY STREAK") or ("DAILY STYLE  " .. tostring(progress) .. "/3")
     themeLabel.Text = tostring(state.theme or "TODAY") .. "  •  " .. tostring(state.prompt or "Build a look today.")
+    streakLabel.Text = "STYLE STREAK  " .. tostring(streak) .. (streak == 1 and " DAY" or " DAYS")
     checklist.Text = table.concat({
         mark(state.browse == true, "Browse a look"),
         mark(state.tryOn == true, "Try something on"),
@@ -149,18 +163,17 @@ end)
 challengeUpdated.OnClientEvent:Connect(render)
 refresh()
 
--- Keep the chip inside the safe width on narrow phones.
 local function resize()
     local camera = workspace.CurrentCamera
     local width = camera and camera.ViewportSize.X or 800
     if width < 500 then
-        chip.Size = UDim2.fromOffset(144, 42)
-        panel.Size = UDim2.new(1, -28, 0, 224)
+        chip.Size = UDim2.fromOffset(154, 42)
+        panel.Size = UDim2.new(1, -28, 0, 250)
     else
-        chip.Size = UDim2.fromOffset(164, 44)
-        panel.Size = UDim2.fromOffset(286, 238)
+        chip.Size = UDim2.fromOffset(174, 44)
+        panel.Size = UDim2.fromOffset(296, 264)
     end
 end
 if workspace.CurrentCamera then workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize) end
 resize()
-print("[BBYAVATAR] daily style challenge v1 client ready")
+print("[BBYAVATAR] daily style challenge v2 streak client ready")
