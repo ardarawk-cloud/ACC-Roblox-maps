@@ -1,7 +1,8 @@
--- BECAK E-BIKE — Speed Sensitive Steering Stability v1.38
+-- BECAK E-BIKE — Speed Sensitive Steering Stability v1.39
 -- Softens yaw authority as road speed rises so the 3-wheel becak is easier to control on mobile.
--- v1.38 adds cargo-aware damping: loaded cargo jobs get slightly calmer high-speed steering
--- while preserving normal low-speed maneuverability. This does not replace the main vehicle controller.
+-- v1.38 added cargo-aware damping. v1.39 also scales high-speed steering for damaged vehicles
+-- so low-condition becaks become calmer and less likely to tip while preserving low-speed maneuverability.
+-- This does not replace the main vehicle controller; it only retunes the existing BodyGyro.
 
 local Workspace = game:GetService('Workspace')
 
@@ -14,6 +15,8 @@ local UPDATE_HZ = 10
 local LOW_SPEED = 8
 local HIGH_SPEED = 30
 local CARGO_BLEND_START_SPEED = 12
+local CONDITION_BLEND_START_SPEED = 14
+local CONDITION_FULL_ASSIST_AT = 45
 local LOW_P = 9000
 local HIGH_P = 4300
 local LOW_D = 650
@@ -23,6 +26,9 @@ local HIGH_YAW_TORQUE = 82000
 local CARGO_HIGH_SPEED_P_SCALE = 0.88
 local CARGO_HIGH_SPEED_YAW_SCALE = 0.84
 local CARGO_DAMPING_SCALE = 1.12
+local CONDITION_HIGH_SPEED_P_SCALE = 0.90
+local CONDITION_HIGH_SPEED_YAW_SCALE = 0.80
+local CONDITION_DAMPING_SCALE = 1.18
 
 local tracked = {}
 
@@ -40,6 +46,14 @@ local function cargoBlendFor(speed, loaded)
     return math.clamp((speed - CARGO_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CARGO_BLEND_START_SPEED), 0, 1)
 end
 
+local function conditionBlendFor(speed, condition)
+    condition = math.clamp(tonumber(condition) or 100, 0, 100)
+    if condition >= 100 or speed <= CONDITION_BLEND_START_SPEED then return 0 end
+    local damageBlend = math.clamp((100 - condition) / math.max(1, 100 - CONDITION_FULL_ASSIST_AT), 0, 1)
+    local speedBlend = math.clamp((speed - CONDITION_BLEND_START_SPEED) / math.max(1, HIGH_SPEED - CONDITION_BLEND_START_SPEED), 0, 1)
+    return damageBlend * speedBlend
+end
+
 local function track(model)
     if not model:IsA('Model') then return end
     local chassis = model.PrimaryPart or model:FindFirstChild('Chassis')
@@ -48,7 +62,7 @@ local function track(model)
     if not gyro then return end
     tracked[model] = {chassis = chassis, gyro = gyro}
     model:SetAttribute('SteeringStabilityReady', true)
-    model:SetAttribute('SteeringStabilityVersion', 'v1.38')
+    model:SetAttribute('SteeringStabilityVersion', 'v1.39')
 end
 
 local function untrack(model)
@@ -75,34 +89,46 @@ while task.wait(interval) do
             local a = alphaFor(speed)
             local cargoLoaded = model:GetAttribute('CargoVisualLoaded') == true
             local cargoBlend = cargoBlendFor(speed, cargoLoaded)
+            local condition = model:GetAttribute('Condition') or 100
+            local conditionBlend = conditionBlendFor(speed, condition)
 
             local baseP = LOW_P + (HIGH_P - LOW_P) * a
             local baseD = LOW_D + (HIGH_D - LOW_D) * a
             local baseYawTorque = LOW_YAW_TORQUE + (HIGH_YAW_TORQUE - LOW_YAW_TORQUE) * a
 
-            -- Cargo load should not hurt parking/slow maneuvering. The extra stability only
-            -- blends in above city speed, then becomes strongest near the high-speed envelope.
+            -- Cargo and damage assists only blend in above city speed. Parking and low-speed
+            -- maneuverability stay close to the base controller while loaded/damaged becaks
+            -- receive progressively calmer yaw authority near the high-speed envelope.
             local cargoPScale = 1 + (CARGO_HIGH_SPEED_P_SCALE - 1) * cargoBlend
             local cargoYawScale = 1 + (CARGO_HIGH_SPEED_YAW_SCALE - 1) * cargoBlend
             local cargoDScale = 1 + (CARGO_DAMPING_SCALE - 1) * cargoBlend
+            local conditionPScale = 1 + (CONDITION_HIGH_SPEED_P_SCALE - 1) * conditionBlend
+            local conditionYawScale = 1 + (CONDITION_HIGH_SPEED_YAW_SCALE - 1) * conditionBlend
+            local conditionDScale = 1 + (CONDITION_DAMPING_SCALE - 1) * conditionBlend
 
-            gyro.P = baseP * cargoPScale
-            gyro.D = baseD * cargoDScale
-            gyro.MaxTorque = Vector3.new(0, baseYawTorque * cargoYawScale, 0)
+            gyro.P = baseP * cargoPScale * conditionPScale
+            gyro.D = baseD * cargoDScale * conditionDScale
+            local finalYawScale = cargoYawScale * conditionYawScale
+            gyro.MaxTorque = Vector3.new(0, baseYawTorque * finalYawScale, 0)
 
             model:SetAttribute('SteeringStabilitySpeed', math.floor(speed * 10 + 0.5) / 10)
-            model:SetAttribute('SteeringStabilityScale', math.floor((1 - a * 0.55) * cargoYawScale * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringStabilityScale', math.floor((1 - a * 0.55) * finalYawScale * 100 + 0.5) / 100)
             model:SetAttribute('SteeringCargoAssistActive', cargoBlend > 0.01)
             model:SetAttribute('SteeringCargoAssistBlend', math.floor(cargoBlend * 100 + 0.5) / 100)
+            model:SetAttribute('SteeringConditionAssistActive', conditionBlend > 0.01)
+            model:SetAttribute('SteeringConditionAssistBlend', math.floor(conditionBlend * 100 + 0.5) / 100)
         end
     end
 end
 
-Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.38')
+Workspace:SetAttribute('ACC_BecakSteeringStability', 'v1.39')
 Workspace:SetAttribute('BecakSpeedSensitiveSteering', 'ON')
 Workspace:SetAttribute('BecakCargoAwareSteering', 'ON')
+Workspace:SetAttribute('BecakConditionAwareSteering', 'ON')
 Workspace:SetAttribute('BecakSteeringCargoBlendStartSpeed', CARGO_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringConditionBlendStartSpeed', CONDITION_BLEND_START_SPEED)
+Workspace:SetAttribute('BecakSteeringConditionFullAssistAt', CONDITION_FULL_ASSIST_AT)
 Workspace:SetAttribute('BecakSteeringStabilityHz', UPDATE_HZ)
 Workspace:SetAttribute('BecakSteeringHighSpeedP', HIGH_P)
 Workspace:SetAttribute('BecakSteeringHighSpeedYawTorque', HIGH_YAW_TORQUE)
-print('[BECAK E-BIKE] steering stability v1.38 ready • speed-sensitive + cargo-aware yaw damping • mobile friendly')
+print('[BECAK E-BIKE] steering stability v1.39 ready • speed + cargo + condition-aware yaw damping • mobile friendly')
