@@ -8,13 +8,8 @@ let server=raw('maps/becak-e-bike/runtime.server.lua');
 
 server=mustReplace(server,
 `local old = Workspace:FindFirstChild(ROOT_NAME)\nif old then old:Destroy() end\nlocal root = Instance.new("Folder")\nroot.Name = ROOT_NAME\nroot.Parent = Workspace`,
-`local old = Workspace:FindFirstChild(ROOT_NAME)\nif old then\n    if old:GetAttribute("ACC_BecakRuntimeOwned") == true then\n        old:Destroy()\n    else\n        error("[BECAK E-BIKE] Refusing to destroy pre-existing unowned Workspace/BecakEBike root")\n    end\nend\nlocal root = Instance.new("Folder")\nroot.Name = ROOT_NAME\nroot:SetAttribute("ACC_BecakRuntimeOwned", true)\nroot.Parent = Workspace\nWorkspace:SetAttribute("ACC_BecakStartupGuard", "v1.31")`,
-'startup ownership guard');
-
-server=mustReplace(server,
-`root.Name = ROOT_NAME\nroot.Parent = Workspace\n\nlocal world =`,
-`root.Name = ROOT_NAME\nroot.Parent = Workspace\n\nlocal economyTransaction = Instance.new("BindableFunction")\neconomyTransaction.Name = "EconomyTransaction"\neconomyTransaction.Parent = root\n\nlocal world =`,
-'economy object');
+`local old = Workspace:FindFirstChild(ROOT_NAME)\nif old then\n    if old:GetAttribute("ACC_BecakRuntimeOwned") == true then\n        old:Destroy()\n    else\n        error("[BECAK E-BIKE] Refusing to destroy pre-existing unowned Workspace/BecakEBike root")\n    end\nend\nlocal root = Instance.new("Folder")\nroot.Name = ROOT_NAME\nroot:SetAttribute("ACC_BecakRuntimeOwned", true)\nroot.Parent = Workspace\nWorkspace:SetAttribute("ACC_BecakStartupGuard", "v1.31")\n\nlocal economyTransaction = Instance.new("BindableFunction")\neconomyTransaction.Name = "EconomyTransaction"\neconomyTransaction.Parent = root`,
+'startup ownership guard + economy object');
 
 server=mustReplace(server,
 `local playerVehicles = {}\n\nlocal function copy`,
