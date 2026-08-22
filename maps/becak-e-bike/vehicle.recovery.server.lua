@@ -1,5 +1,5 @@
--- BECAK E-BIKE — Vehicle Recovery Assist v1.26
--- Automatic owner-only self-righting, multi-probe curb assist, and hill-start anti-rollback.
+-- BECAK E-BIKE — Vehicle Recovery Assist v1.35
+-- Automatic owner-only self-righting, fast multi-probe curb assist, and hill-start anti-rollback.
 -- Designed to improve mobile drivability without changing the core VehicleSeat controller.
 
 local Players = game:GetService('Players')
@@ -17,12 +17,15 @@ local toast = remotes and remotes:FindFirstChild('Toast')
 
 local FLIP_UP_Y = 0.38
 local FLIP_HOLD_SECONDS = 1.35
-local STALL_HOLD_SECONDS = 1.35
-local STALL_SPEED = 1.8
-local THROTTLE_THRESHOLD = 0.55
+-- v1.35: curb geometry is already wall-filtered by the multi-probe routine, so the
+-- stall hold can be shorter. This makes mobile curb recovery feel responsive instead
+-- of requiring the player to hold throttle against the obstacle for more than a second.
+local STALL_HOLD_SECONDS = 0.85
+local STALL_SPEED = 2.0
+local THROTTLE_THRESHOLD = 0.50
 local RECOVERY_COOLDOWN = 6
-local ASSIST_FORWARD_SPEED = 7
-local ASSIST_UP_SPEED = 5
+local ASSIST_FORWARD_SPEED = 7.5
+local ASSIST_UP_SPEED = 4.6
 local CURB_PROBE_DISTANCE = 4.5
 local CURB_SIDE_OFFSET = 1.35
 local CURB_LOW_HEIGHT = 0.35
@@ -132,10 +135,10 @@ local function tryLowCurbAssist(model, chassis, seat, player, state)
 
     local velocity = chassis.AssemblyLinearVelocity
     chassis.AssemblyLinearVelocity = travel * math.max(ASSIST_FORWARD_SPEED, horizontal(velocity).Magnitude) + Vector3.new(0, ASSIST_UP_SPEED, 0)
-    state.cooldownUntil = os.clock() + 2.2
+    state.cooldownUntil = os.clock() + 1.8
     state.stallSince = nil
     model:SetAttribute('CurbAssistCount', (tonumber(model:GetAttribute('CurbAssistCount')) or 0) + 1)
-    model:SetAttribute('LastRecoveryMode', 'MULTI_PROBE_CURB_ASSIST')
+    model:SetAttribute('LastRecoveryMode', 'FAST_MULTI_PROBE_CURB_ASSIST')
     notify(player, 'Curb Assist aktif — becak dibantu melewati bibir jalan.')
     return true
 end
@@ -238,11 +241,13 @@ end)
 
 vehicles.ChildRemoved:Connect(function(model) states[model]=nil end)
 
-Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.26')
+Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.35')
 Workspace:SetAttribute('BecakSelfRighting','ON')
 Workspace:SetAttribute('BecakLowCurbAssist','ON')
 Workspace:SetAttribute('BecakMultiProbeCurbAssist','ON')
 Workspace:SetAttribute('BecakReverseCurbAssist','ON')
+Workspace:SetAttribute('BecakFastCurbAssist','ON')
+Workspace:SetAttribute('BecakCurbAssistHoldSeconds',STALL_HOLD_SECONDS)
 Workspace:SetAttribute('BecakHillStartAssist','ON')
 Workspace:SetAttribute('BecakRecoveryTickHz',10)
-print('[BECAK E-BIKE] vehicle recovery v1.26 ready • self-righting + multi-probe curb + reverse assist + hill-start')
+print('[BECAK E-BIKE] vehicle recovery v1.35 ready • fast multi-probe curb + reverse assist + self-righting + hill-start')
