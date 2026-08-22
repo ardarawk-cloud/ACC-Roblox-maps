@@ -59,7 +59,8 @@
       "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
       "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
-      "PaidZoneHardSealV1": {"$path": "95-paid-zone-hard-seal.server.lua"}
+      "PaidZoneHardSealV1": {"$path": "95-paid-zone-hard-seal.server.lua"},
+      "PaidZonePortalsV1": {"$path": "96-paid-zone-portals.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
