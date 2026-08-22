@@ -3,8 +3,15 @@ name: BBYA Zero Live Publish
 # Scope refresh trigger: 2026-08-21
 # Audio publish retrigger: 2026-08-21T13:24+08:00
 # AM STUDIO API ownership-transfer probe: 2026-08-22T23:38+08:00
+# Resource-saver mode: 2026-08-23 — AM_STUDIO publish + conditional monetization sync
 on:
   workflow_dispatch:
+    inputs:
+      sync_monetization:
+        description: 'Also sync BBYA Game Passes and Developer Products'
+        required: false
+        default: false
+        type: boolean
   push:
     branches: [main]
     paths:
@@ -22,6 +29,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     permissions:
       contents: write
     steps:
@@ -29,6 +37,36 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Detect whether monetization sync is required
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+          MANUAL_SYNC: ${{ inputs.sync_monetization }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync=false
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "${MANUAL_SYNC:-false}" = "true" ]; then
+            sync=true
+          elif [ "$EVENT_NAME" = "push" ]; then
+            before="${BEFORE_SHA:-}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+              before="${CURRENT_SHA}^"
+            fi
+
+            changed="$(git diff --name-only "$before" "$CURRENT_SHA" || true)"
+            printf '%s\n' "$changed"
+            if printf '%s\n' "$changed" | grep -Eq '^maps/bbya-social-hub/monetization/|^scripts/sync-bbya-(gamepasses|products)\.py$'; then
+              sync=true
+            fi
+          fi
+
+          echo "monetization=$sync" >> "$GITHUB_OUTPUT"
+          echo "BBYA resource-saver: monetization_sync=$sync"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -50,16 +88,17 @@ jobs:
         run: rojo --version
 
       - name: Sync permanent BBYA Travel Game Passes
+        if: steps.changes.outputs.monetization == 'true'
         id: gamepass_sync
         continue-on-error: true
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
           UNIVERSE_ID: '8116636513'
         shell: bash
         run: python3 scripts/sync-bbya-gamepasses.py
 
       - name: Persist Travel Game Pass IDs and diagnostics before build
-        if: always()
+        if: steps.changes.outputs.monetization == 'true' && always()
         shell: bash
         run: |
           set -euo pipefail
@@ -75,10 +114,10 @@ jobs:
           fi
 
       - name: Report Game Pass scope warning
-        if: steps.gamepass_sync.outcome == 'failure'
+        if: steps.changes.outputs.monetization == 'true' && steps.gamepass_sync.outcome == 'failure'
         shell: bash
         run: |
-          echo '::warning::BBYA Game Pass sync is incomplete. Map publish will continue. Check deploy-status/bbya-gamepasses-sync.json; the Open Cloud key may need game-pass:write for universe 8116636513.'
+          echo '::warning::BBYA Game Pass sync is incomplete. Map publish will continue. Check deploy-status/bbya-gamepasses-sync.json; AM_STUDIO may need game-pass write scope for universe 8116636513.'
 
       - name: Build canonical BBYA preview place
         shell: bash
@@ -88,9 +127,9 @@ jobs:
           test -s /tmp/bbya-zero-live.rbxl
           ls -lh /tmp/bbya-zero-live.rbxl
 
-      - name: Publish BBYA preview live
+      - name: Publish BBYA preview live with AM STUDIO
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
           PUBLISH_RECEIPT_DIR: deploy-status
           PLACE_FILE_OVERRIDE: /tmp/bbya-zero-live.rbxl
         run: node scripts/publish-map.js a-club
@@ -110,18 +149,20 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/a-club.json
           if ! git diff --cached --quiet; then
-            git commit -m "Record BBYA zero preview deploy [skip ci]"
+            git commit -m "Record BBYA AM STUDIO live deploy [skip ci]"
             git push origin HEAD:main
           fi
 
       - name: Sync BBYA repeatable Developer Products
+        if: steps.changes.outputs.monetization == 'true'
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
           UNIVERSE_ID: '8116636513'
         shell: bash
         run: python3 scripts/sync-bbya-products.py
 
       - name: Persist Developer Product IDs and status
+        if: steps.changes.outputs.monetization == 'true'
         shell: bash
         run: |
           set -euo pipefail
