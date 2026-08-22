@@ -1,5 +1,5 @@
 -- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v1
--- Independent underground channel: Indo breakbeat / funkot / indo-bounce only.
+-- Independent underground channel: Indo breakbeat / indo-bounce only.
 -- Uses its own Deck A/B, FIFO request queue and 4-second AutoMix.
 
 local Players=game:GetService("Players")
@@ -20,19 +20,7 @@ local PLAYLIST={
 -- DRIVE_LIBRARY_UPLOAD_END
  {title="Breakbeat : Pyro Pulse",id="103491797412309",style="breakbeat"},
  {title="Aku Suka Jedag Jedug Full Bass",id="100787734732008",style="breakbeat"},
- {title="DJ Bahagiamu Sayang Funkot",id="110691393637838",style="funkot"},
- {title="DJ Mama Muda Enak Dong",id="134073539670673",style="funkot"},
- {title="Jamilah Itu Bukan Anunya Aisyah",id="116255319981650",style="funkot"},
  {title="DNA Indo Bounce",id="101399039672234",style="indo-bounce"},
- {title="FUNKOT",id="124224888312006",style="funkot"},
- {title="FUNKOT Alt",id="83125775305712",style="funkot"},
- {title="FUNKOT Melody Rhythm",id="95602240268105",style="funkot"},
- {title="DJ Funkot - Karna Kamu Cantik",id="103451932037576",style="funkot"},
- {title="FUNKOT Jangan Pergi",id="139850430998864",style="funkot"},
- {title="Funkot - Aku Tak Berarti Bagimu",id="98095276635738",style="funkot"},
- {title="FUNKOT Ngamen 5",id="134100771661430",style="funkot"},
- {title="FUNKOT Garam Cina",id="79905157574964",style="funkot"},
- {title="DJ Funkot Ego Wong Tuo",id="78891075630689",style="funkot"},
  {title="Breakbeat Sayang Cintaku Istimewa",id="74711864477200",style="breakbeat"},
  {title="Breakbeat Rindu Aku Rindu Kamu",id="133512901677493",style="breakbeat"},
  {title="Despacito Breakbeat Remix",id="72539481653856",style="breakbeat"},
@@ -64,7 +52,7 @@ local function toastBasement(msg)forBasementPlayers(function(p)stateRemote:FireC
 for _,name in ipairs({"BBYABasementDeckA","BBYABasementDeckB"}) do local old=SoundService:FindFirstChild(name);if old then old:Destroy() end end
 local group=SoundService:FindFirstChild("BBYABasementMaster");if group then group:Destroy() end
 group=Instance.new("SoundGroup");group.Name="BBYABasementMaster";group.Volume=1;group.Parent=SoundService
-group:SetAttribute("BBYAAudioMode","BASEMENT_INDO_DUAL_DECK_V1");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","INDO_BREAKBEAT_FUNKOT_BOUNCE");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
+group:SetAttribute("BBYAAudioMode","BASEMENT_INDO_DUAL_DECK_V1");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","INDO_BREAKBEAT_BOUNCE");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
 local eq=Instance.new("EqualizerSoundEffect");eq.Name="BasementEQ";eq.LowGain=2.35;eq.MidGain=-.75;eq.HighGain=-1.1;eq.Parent=group
 local comp=Instance.new("CompressorSoundEffect");comp.Name="BasementCompressor";comp.Threshold=-11;comp.Ratio=2.5;comp.Attack=.05;comp.Release=.24;comp.GainMakeup=.7;comp.Parent=group
 local room=Instance.new("ReverbSoundEffect");room.Name="BasementRoom";room.DecayTime=1.15;room.Density=.86;room.Diffusion=.9;room.DryLevel=-1;room.WetLevel=-11;room.Parent=group

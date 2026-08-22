@@ -1,10 +1,9 @@
 {
   "routing": {
     "PROGRESIVE": "MAIN_CLUB",
-    "ALL_OTHER_DRIVE_FOLDERS": "BASEMENT"
+    "UNDERGROUND": "NO_BLOCKED_GENRE"
   },
-  "mainProgressiveCount": 31,
-  "basementDriveCount": 0,
+  "mainProgressiveCount": 28,
   "mainProgressiveAssetIds": [
     "92702917431354",
     "115888429247140",
@@ -12,8 +11,6 @@
     "76999503317939",
     "118117585511088",
     "100105336048945",
-    "100105336048945",
-    "118117585511088",
     "133637574696828",
     "115630349269312",
     "103311122364729",
@@ -23,7 +20,6 @@
     "79404897034350",
     "130628759763851",
     "80712330348006",
-    "139912119687420",
     "88482943108864",
     "131113336118215",
     "130652457794872",
@@ -38,6 +34,23 @@
     "76089367016271",
     "127018756715269"
   ],
-  "errors": [],
+  "excludedModerationAssetIds": [
+    "139912119687420"
+  ],
+  "basementBlockedGenreTracksRemoved": 12,
+  "basementBlockedGenreTitlesRemoved": [
+    "DJ Bahagiamu Sayang Funkot",
+    "DJ Mama Muda Enak Dong",
+    "Jamilah Itu Bukan Anunya Aisyah",
+    "FUNKOT",
+    "FUNKOT Alt",
+    "FUNKOT Melody Rhythm",
+    "DJ Funkot - Karna Kamu Cantik",
+    "FUNKOT Jangan Pergi",
+    "Funkot - Aku Tak Berarti Bagimu",
+    "FUNKOT Ngamen 5",
+    "FUNKOT Garam Cina",
+    "DJ Funkot Ego Wong Tuo"
+  ],
   "valid": true
 }

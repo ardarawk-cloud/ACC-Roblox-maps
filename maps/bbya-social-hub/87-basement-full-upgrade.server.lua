@@ -195,7 +195,7 @@ local sign=part("IdentityPanel",Vector3.new(42,7,.26),CFrame.new(0,-7.0,42.38),C
 sign.CanQuery=true
 local sg=Instance.new("SurfaceGui");sg.Name="IdentityGui";sg.Face=Enum.NormalId.Front;sg.PixelsPerStud=70;sg.LightInfluence=.15;sg.Parent=sign
 local title=Instance.new("TextLabel");title.BackgroundTransparency=1;title.Position=UDim2.fromScale(.04,.10);title.Size=UDim2.fromScale(.92,.48);title.Text="BBYA UNDERGROUND";title.Font=Enum.Font.GothamBlack;title.TextScaled=true;title.TextColor3=C.white;title.Parent=sg
-local sub=Instance.new("TextLabel");sub.BackgroundTransparency=1;sub.Position=UDim2.fromScale(.08,.62);sub.Size=UDim2.fromScale(.84,.20);sub.Text="INDO ROOM  •  BREAKBEAT  •  FUNKOT  •  INDO BOUNCE";sub.Font=Enum.Font.GothamBold;sub.TextScaled=true;sub.TextColor3=C.blue;sub.Parent=sg
+local sub=Instance.new("TextLabel");sub.BackgroundTransparency=1;sub.Position=UDim2.fromScale(.08,.62);sub.Size=UDim2.fromScale(.84,.20);sub.Text="INDO ROOM  •  BREAKBEAT  •  INDO BOUNCE";sub.Font=Enum.Font.GothamBold;sub.TextScaled=true;sub.TextColor3=C.blue;sub.Parent=sg
 
 for _,x in ipairs({-48,-24,0,24,48}) do
  part("NorthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,42.55),C.metal,Enum.Material.Metal,false,identity)

@@ -35,9 +35,9 @@ out.Name="PreciseInnerFloorNeon";out.Parent=active
 out:SetAttribute("OuterNeonRemoved",true)
 out:SetAttribute("PreciseFloorEdge",true)
 out:SetAttribute("DoubleInnerLine",true)
+out:SetAttribute("OwnerPinkPathsRemoved",2)
 out:SetAttribute("LegacyFloatingRailNeonRemoved",true)
 
-local PINK=Color3.fromRGB(255,42,157)
 local BLUE=Color3.fromRGB(0,174,255)
 local Y=25.03
 
@@ -54,11 +54,9 @@ end
 -- Two very narrow parallel lines following only the true inner walking-floor edge.
 -- This is the clean neon that was present before v2 removed it.
 for i,z in ipairs({22.76,22.98}) do strip("North_"..i,Vector3.new(69.8,.07,.07),CFrame.new(0,Y,z),BLUE) end
-for i,z in ipairs({-26.76,-26.98}) do strip("South_"..i,Vector3.new(69.8,.07,.07),CFrame.new(0,Y,z),PINK) end
-for i,x in ipairs({-34.76,-34.98}) do strip("West_"..i,Vector3.new(.07,.07,49.8),CFrame.new(x,Y,-2),PINK) end
 for i,x in ipairs({34.76,34.98}) do strip("East_"..i,Vector3.new(.07,.07,49.8),CFrame.new(x,Y,-2),BLUE) end
 
-active:SetAttribute("FloorBoundaryNeonSegments",8)
+active:SetAttribute("FloorBoundaryNeonSegments",4)
 active:SetAttribute("InnerFloorNeonRemoved",false)
 active:SetAttribute("FloorLightingProfile","PRECISE_INNER_EDGE_V3")
 

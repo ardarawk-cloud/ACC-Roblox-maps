@@ -58,7 +58,7 @@ local destinations={
  {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},
  {"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},
  {"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},
- {"BASEMENT","Basement","ONE-TIME",20,C.gold},
+ {"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
 }
 
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end

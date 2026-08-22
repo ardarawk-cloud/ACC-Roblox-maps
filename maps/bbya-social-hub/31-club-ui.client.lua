@@ -109,8 +109,8 @@ local function activeTab(b,on,col)b.BackgroundColor3=on and (col or C.PINKD) or 
 local currentVenue="MAIN"
 local function applyVenueCopy()
  if currentVenue=="BASEMENT" then
-  pageTitle.Text="UNDERGROUND MUSIC";pageSub.Text="Independent Indo channel • breakbeat • funkot • indo-bounce"
-  nowMeta.Text="BASEMENT • INDO BREAKBEAT / FUNKOT";libSub.Text="BASEMENT INDO LIBRARY / REQUEST"
+  pageTitle.Text="UNDERGROUND MUSIC";pageSub.Text="Independent Indo channel • breakbeat • indo-bounce"
+  nowMeta.Text="UNDERGROUND • INDO BREAKBEAT / INDO BOUNCE";libSub.Text="UNDERGROUND INDO LIBRARY / REQUEST"
  else
   pageTitle.Text="MUSIC SYSTEM";pageSub.Text="Main western channel • independent from Basement"
   nowMeta.Text="MAIN • WESTERN / INTERNATIONAL";libSub.Text="MAIN WESTERN LIBRARY / REQUEST"
