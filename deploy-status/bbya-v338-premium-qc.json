@@ -10,6 +10,7 @@
     "deploy-status/bbya-v338-premium-qc.json",
     "maps/bbya-social-hub/94-world-premium-v338.server.lua",
     "maps/bbya-social-hub/95-paid-zone-hard-seal.server.lua",
+    "maps/bbya-social-hub/96-paid-zone-portals.server.lua",
     "maps/bbya-social-hub/default.project.json"
   ],
   "formerPillarSeals": 2,
