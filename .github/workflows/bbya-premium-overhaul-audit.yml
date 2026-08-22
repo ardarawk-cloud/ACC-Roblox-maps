@@ -1,0 +1,156 @@
+name: BBYA Premium Overhaul One-Pass Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-premium-overhaul-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Capture eight BBYA runtime views in one Studio session
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class BBYAWin {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+            public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+          }
+          "@
+
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){throw 'Roblox Studio not found on BBYA cloud worker'}
+          $hwnd=[IntPtr]$proc.MainWindowHandle
+          [BBYAWin]::ShowWindow($hwnd,9)|Out-Null
+          [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+          Start-Sleep -Seconds 1
+          [System.Windows.Forms.SendKeys]::SendWait('{F5}')
+          Start-Sleep -Seconds 12
+
+          $ui=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar controls unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+
+          function Invoke-Lua([string]$lua){
+            $value.SetValue($lua)
+            Start-Sleep -Milliseconds 250
+            $invoke.Invoke()
+            Start-Sleep -Milliseconds 900
+          }
+
+          $outDir=Join-Path $env:GITHUB_WORKSPACE 'deploy-status/bbya-premium-audit'
+          New-Item -ItemType Directory -Force -Path $outDir|Out-Null
+          function Capture-View([string]$name){
+            [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+            Start-Sleep -Milliseconds 450
+            $r=New-Object BBYAWin+RECT
+            [BBYAWin]::GetWindowRect($hwnd,[ref]$r)|Out-Null
+            $w=[Math]::Max(640,$r.Right-$r.Left);$h=[Math]::Max(360,$r.Bottom-$r.Top)
+            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+            $targetW=1100;$targetH=[int]($h*$targetW/$w)
+            $small=New-Object System.Drawing.Bitmap($targetW,$targetH)
+            $g2=[System.Drawing.Graphics]::FromImage($small)
+            $g2.DrawImage($bmp,0,0,$targetW,$targetH)
+            $jpg=Join-Path $outDir ($name+'.jpg')
+            $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
+            $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
+            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]70)
+            $small.Save($jpg,$codec,$ep)
+            $g.Dispose();$g2.Dispose();$bmp.Dispose();$small.Dispose()
+          }
+
+          $diag=@'
+          print("[BBYA_PREMIUM_AUDIT_BEGIN]")
+          print("PLACE="..tostring(game.PlaceId).."|UNIVERSE="..tostring(game.GameId))
+          local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
+          print("ROOT="..tostring(root~=nil))
+          local counts={Part=0,MeshPart=0,Model=0,Seat=0,Light=0,SurfaceGui=0,Prompt=0}
+          if root then
+            for _,d in ipairs(root:GetDescendants()) do
+              if d:IsA("MeshPart") then counts.MeshPart+=1 elseif d:IsA("BasePart") then counts.Part+=1 end
+              if d:IsA("Model") then counts.Model+=1 end
+              if d:IsA("Seat") then counts.Seat+=1 end
+              if d:IsA("Light") then counts.Light+=1 end
+              if d:IsA("SurfaceGui") then counts.SurfaceGui+=1 end
+              if d:IsA("ProximityPrompt") then counts.Prompt+=1 end
+            end
+            for _,n in ipairs({"Floor1Core","MainClubRealism","WorldPremiumV338","VIPSkyLounge","RooftopResort","RearSkatepark","FunkotClubV1","BBYAMall","BBYANightMarket","SocialHangout"}) do
+              local x=root:FindFirstChild(n)
+              print("LANDMARK="..n.."|"..tostring(x~=nil)..(x and ("|DESC="..tostring(#x:GetDescendants())) or ""))
+            end
+          end
+          print("COUNTS=Part:"..counts.Part..",MeshPart:"..counts.MeshPart..",Model:"..counts.Model..",Seat:"..counts.Seat..",Light:"..counts.Light..",SurfaceGui:"..counts.SurfaceGui..",Prompt:"..counts.Prompt)
+          local L=game:GetService("Lighting")
+          print("LIGHTING=Clock:"..L.ClockTime..",Brightness:"..L.Brightness..",Exposure:"..L.ExposureCompensation..",Technology:"..tostring(L.Technology))
+          local ss=game:GetService("SoundService")
+          for _,n in ipairs({"BBYAClubDeckA","BBYAClubDeckB","BBYABasementDeckA","BBYAFunkotSound"}) do local s=ss:FindFirstChild(n);if s then print("SOUND="..n.."|PLAY="..tostring(s.IsPlaying).."|LOUD="..tostring(s.PlaybackLoudness).."|VOL="..tostring(s.Volume)) end end
+          print("[BBYA_PREMIUM_AUDIT_END]")
+          '@
+          Invoke-Lua $diag
+
+          $views=@(
+            @{n='01-arrival';p='0,4,-76';l='0,7,-35'},
+            @{n='02-main-club';p='3,4,-4';l='3,8,43'},
+            @{n='03-vip';p='43,28,-12';l='3,10,18'},
+            @{n='04-rooftop';p='0,48,-40';l='0,47,5'},
+            @{n='05-rear-district';p='0,5,132';l='0,5,220'},
+            @{n='06-mall-exterior';p='0,5,275';l='0,16,365'},
+            @{n='07-mall-interior';p='0,5,320';l='0,10,365'},
+            @{n='08-night-market';p='0,5,472';l='0,8,550'}
+          )
+          foreach($v in $views){
+            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=14;P.CameraMaxZoomDistance=14;local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
+            Invoke-Lua $lua
+            Start-Sleep -Milliseconds 850
+            Capture-View $v.n
+          }
+
+          $marked=New-Object System.Collections.Generic.List[string]
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 6
+          foreach($log in $logs){
+            $capture=$false
+            foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
+              if($line -match '\[BBYA_PREMIUM_AUDIT_BEGIN\]'){$capture=$true}
+              if($capture){$marked.Add($line)}
+              if($capture -and $line -match '\[BBYA_PREMIUM_AUDIT_END\]'){$capture=$false}
+            }
+            if($marked.Count -gt 0){break}
+          }
+          $status=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;views=($views|ForEach-Object {$_.n});log=($marked -join "`n")}|ConvertTo-Json -Depth 5
+          [IO.File]::WriteAllText((Join-Path $outDir 'audit.json'),$status)
+
+          [BBYAWin]::SetForegroundWindow($hwnd)|Out-Null
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
+          Start-Sleep -Seconds 2
+
+          git config user.name 'ACC BBYA Premium Auditor'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-premium-audit
+          git commit -m 'Record one-pass BBYA premium visual audit [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
