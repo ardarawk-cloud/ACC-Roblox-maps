@@ -1,0 +1,59 @@
+name: BBYA v341 VIP Neon QC
+
+on:
+  push:
+    branches: [agent/bbya-vip-neon-v341]
+    paths:
+      - 'maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+      - '.github/workflows/bbya-v341-vip-neon-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+      - '.github/workflows/bbya-v341-vip-neon-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-neon.rbxl
+          test -s /tmp/bbya-vip-neon.rbxl
+      - name: Validate VIP neon owner lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua'
+          grep -q 'AllFourSidesRestored' "$f"
+          grep -q 'AllInnerEdgesBlue' "$f"
+          grep -q 'PinkFloorNeonAllowed",false' "$f"
+          grep -q 'FloorBoundaryNeonSegments",8' "$f"
+          grep -q 'South_' "$f"
+          grep -q 'West_' "$f"
+          grep -q 'North_' "$f"
+          grep -q 'East_' "$f"
+          grep -q 'isLegacyPinkFloorPart' "$f"
+          grep -q 'DescendantAdded' "$f"
+          changed=$(git diff --name-only origin/main...HEAD | grep '^maps/bbya-social-hub/' || true)
+          bad=$(printf '%s\n' "$changed" | grep -v '^maps/bbya-social-hub/72-vip-floor-neon-fix.server.lua$' || true)
+          if [ -n "$bad" ]; then
+            echo "Unexpected BBYA map files changed:" >&2
+            echo "$bad" >&2
+            exit 1
+          fi
