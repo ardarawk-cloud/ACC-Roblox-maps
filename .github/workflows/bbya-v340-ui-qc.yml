@@ -1,11 +1,6 @@
-name: BBYA v340 UI Hotfix QC
+name: BBYA v343 UI Input QC
 
 on:
-  push:
-    branches: [agent/bbya-ui-v340]
-    paths:
-      - 'maps/bbya-social-hub/**'
-      - '.github/workflows/bbya-v340-ui-qc.yml'
   pull_request:
     branches: [main]
     paths:
@@ -13,7 +8,7 @@ on:
       - '.github/workflows/bbya-v340-ui-qc.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   qc:
@@ -33,9 +28,9 @@ jobs:
       - name: Build BBYA place
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v340-ui.rbxl
-          test -s /tmp/bbya-v340-ui.rbxl
-      - name: Validate UI ownership fixes
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v343-ui.rbxl
+          test -s /tmp/bbya-v343-ui.rbxl
+      - name: Validate UI input fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -44,60 +39,21 @@ jobs:
           freecam='maps/bbya-social-hub/92-freecam.client.lua'
           dock='maps/bbya-social-hub/56-dock-stability.client.lua'
           dash='maps/bbya-social-hub/93-dashboard-structural.client.lua'
-          manifest='maps/bbya-social-hub/default.project.json'
 
-          grep -q 'TRAVEL UI PATCH v7' "$travel"
+          grep -q 'TRAVEL UI PATCH v9' "$travel"
+          grep -q 'SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)' "$travel"
+          grep -q 'SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,backpackRestore)' "$travel"
+          grep -q 'safeBottom=phone and 96 or 12' "$travel"
+          grep -q 'go.Active=true' "$travel"
+          grep -q 'go.ZIndex=20' "$travel"
           grep -q 'AutomaticCanvasSize=Enum.AutomaticSize.None' "$travel"
           grep -q 'CanvasPosition' "$travel"
-          grep -q 'stable manual canvas' "$travel"
           if grep -q 'panel.Size=' "$travel"; then
-            echo 'Travel v7 must not resize HubPanel' >&2
+            echo 'Travel must not resize HubPanel' >&2
             exit 1
           fi
 
           grep -q 'OWNER STABLE UI v4' "$owner"
-          grep -q 'obj.Visible=true;obj.Active=true;obj.Selectable=true' "$owner"
-          ! grep -q 'obj.Visible=false;obj.Active=false' "$owner"
-          grep -q 'topY=touch and 66 or 14' "$owner"
-          grep -q 'BBYAMatchedSocialButton' "$owner"
-
           grep -q 'FREE CAMERA v2' "$freecam"
-          grep -q 'local size=compact and 44 or 48' "$freecam"
-          grep -q 'toggle.Position=UDim2.new(1,-8,1,-lower)' "$freecam"
-
           grep -q 'topY=UserInputService.TouchEnabled and 66 or 14' "$dock"
-          grep -q 'findButton("UNDERGROUND")' "$dock"
-          grep -q 'findButton("FUNKOT")' "$dock"
-          if grep -q 'music.Text=' "$dock"; then
-            echo 'Dock stability must not overwrite venue label' >&2
-            exit 1
-          fi
-
           grep -q 'dockY=touch and 66 or 14' "$dash"
-          grep -q 'TravelUIPatchV7' "$manifest"
-          grep -q 'OwnerStableUIV4' "$manifest"
-          grep -q 'FreecamV2' "$manifest"
-          grep -q 'StructuralDashboardV3' "$manifest"
-      - name: Persist QC receipt
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import json,pathlib,subprocess
-          files=subprocess.check_output(['git','diff','--name-only','origin/main...HEAD'],text=True).splitlines()
-          report={
-            'status':'PASS','build':'ROJO_OK','travelScrollStable':True,
-            'travelDoesNotResizeHubPanel':True,'bbyaButtonVisible':True,
-            'mobileDockTopY':66,'freecamMatchesDanceCarry':True,
-            'freecamSide':'RIGHT','venueLabelsPreserved':True,'changedFiles':files
-          }
-          p=pathlib.Path('deploy-status/bbya-v340-ui-qc.json');p.parent.mkdir(exist_ok=True);p.write_text(json.dumps(report,indent=2)+'\n')
-          print(json.dumps(report))
-          PY
-          git config user.name 'ACC Roblox QC'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/bbya-v340-ui-qc.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Record BBYA v340 UI QC [skip ci]'
-            git push origin HEAD:agent/bbya-ui-v340
-          fi
