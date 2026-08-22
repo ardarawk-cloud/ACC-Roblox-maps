@@ -1,15 +1,34 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v8
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v9
 -- Compact phone-first travel panel. Paid destinations are permanent one-time Game Pass unlocks.
--- v8: adds BBYA Pasar Malam behind Mall as a 10 R$ permanent Travel destination.
+-- v9: modal input guard hides Roblox Backpack while HubPanel is open and keeps Travel above bottom touch controls.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local UserInputService=game:GetService("UserInputService")
+local StarterGui=game:GetService("StarterGui")
 local player=Players.LocalPlayer
 local camera=workspace.CurrentCamera
 local gui=player:WaitForChild("PlayerGui"):WaitForChild("BBYAClubUI",30)
 local remote=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30):WaitForChild("Teleport",30)
 if not gui or not remote then return end
+
+local hubPanel=gui:FindFirstChild("HubPanel")
+local backpackRestore=true
+local modalOpen=false
+local function setBackpackForModal(open)
+ if open==modalOpen then return end
+ modalOpen=open
+ if open then
+  pcall(function()backpackRestore=StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Backpack)end)
+  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)end)
+ else
+  pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,backpackRestore)end)
+ end
+end
+if hubPanel then
+ hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()setBackpackForModal(hubPanel.Visible)end)
+ if hubPanel.Visible then task.defer(function()setBackpackForModal(true)end) end
+end
 
 local function findTravel()
  for _,d in ipairs(gui:GetDescendants()) do
@@ -44,6 +63,7 @@ holder.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
 holder.ScrollingEnabled=true
 holder.Active=true
 holder.Selectable=false
+holder.ClipsDescendants=true
 holder.Parent=travel
 
 local grid=Instance.new("UIGridLayout")
@@ -78,7 +98,7 @@ for i,d in ipairs(destinations) do
  label(card,d[1],UDim2.fromOffset(16,8),UDim2.new(1,-22,0,18),Enum.Font.GothamBold,10,C.white)
  local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or "FREE TELEPORT"
  label(card,meta,UDim2.fromOffset(16,27),UDim2.new(1,-22,0,14),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
- local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.Position=UDim2.new(0,16,1,-27);go.Size=UDim2.new(1,-22,0,21);go.BackgroundColor3=Color3.fromRGB(38,34,43);go.BorderSizePixel=0;go.Font=Enum.Font.GothamSemibold;go.TextSize=8;go.TextColor3=C.white;go.Selectable=false;go.Parent=card;corner(go,6)
+ local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.Position=UDim2.new(0,16,1,-27);go.Size=UDim2.new(1,-22,0,21);go.BackgroundColor3=Color3.fromRGB(38,34,43);go.BorderSizePixel=0;go.Font=Enum.Font.GothamSemibold;go.TextSize=8;go.TextColor3=C.white;go.Selectable=false;go.Active=true;go.ZIndex=20;go.Parent=card;corner(go,6)
  go.MouseButton1Click:Connect(function()
   remote:FireServer(d[2])
   local panel=gui:FindFirstChild("HubPanel");if panel then panel.Visible=false end
@@ -90,7 +110,7 @@ local function syncCanvas(keepY)
  if layingOut then return end
  layingOut=true
  local oldY=keepY and holder.CanvasPosition.Y or 0
- local contentY=math.max(0,grid.AbsoluteContentSize.Y+10)
+ local contentY=math.max(0,grid.AbsoluteContentSize.Y+18)
  holder.CanvasSize=UDim2.fromOffset(0,contentY)
  task.defer(function()
   local maxY=math.max(0,contentY-holder.AbsoluteWindowSize.Y)
@@ -104,6 +124,9 @@ local function applyGrid()
  local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
  local phone=UserInputService.TouchEnabled or vp.X<900
  local cols=phone and 2 or 3
+ local safeBottom=phone and 96 or 12
+ local wantedSize=UDim2.new(1,0,1,-(52+safeBottom))
+ if holder.Size~=wantedSize then holder.Size=wantedSize end
  local width=math.max(280,holder.AbsoluteSize.X)
  local cellW=math.max(118,math.floor((width-(cols-1)*6)/cols))
  local oldY=holder.CanvasPosition.Y
@@ -120,4 +143,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 end)
 task.defer(function()applyGrid();syncCanvas(false)end)
 
-print("[BBYA] Travel UI v8 online: Pasar Malam 10R / stable manual canvas")
+print("[BBYA] Travel UI v9 online: bottom input safe + Roblox Backpack modal guard")
