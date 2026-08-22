@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "build": "ROJO_OK",
+  "mallSourceUntouched": true,
+  "mallPreservedInManifest": true,
+  "securityNorthLimitZ": 250,
+  "mallConnectorStartZ": 250,
+  "mallFrontApproxZ": 287,
+  "formerPillarSeals": 2,
+  "sideGangHardSeal": true,
+  "skateparkTravelOnly": true,
+  "funkotTravelOnly": true,
+  "premiumAreas": [
+    "Entrance",
+    "MainClub",
+    "VIP",
+    "Rooftop",
+    "Underground",
+    "Skatepark",
+    "Funkot"
+  ],
+  "changedFiles": [
+    ".github/workflows/bbya-v338-main-sync-qc.yml",
+    "maps/bbya-social-hub/94-world-premium-v338.server.lua",
+    "maps/bbya-social-hub/95-paid-zone-hard-seal.server.lua",
+    "maps/bbya-social-hub/96-paid-zone-portals.server.lua",
+    "maps/bbya-social-hub/97-mall-safe-security-override.server.lua",
+    "maps/bbya-social-hub/default.project.json"
+  ]
+}

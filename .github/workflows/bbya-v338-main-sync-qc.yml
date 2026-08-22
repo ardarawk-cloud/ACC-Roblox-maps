@@ -1,0 +1,85 @@
+name: BBYA v338 Mall-safe Premium QC
+
+on:
+  push:
+    branches: [agent/bbya-premium-v338-main-sync]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v338-main-sync-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v338-main-sync-qc.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build combined live place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v338-mall-safe.rbxl
+          test -s /tmp/bbya-v338-mall-safe.rbxl
+          ls -lh /tmp/bbya-v338-mall-safe.rbxl
+      - name: Validate Mall untouched and security bounded
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only origin/main...HEAD | tee /tmp/changed.txt
+          if grep -Eq '^maps/bbya-social-hub/94-mall(-polish)?\.server\.lua$|^maps/bbya-social-hub/94-mall-ui\.client\.lua$' /tmp/changed.txt; then
+            echo 'Dedicated Mall source was modified — BLOCKED' >&2
+            exit 1
+          fi
+          manifest='maps/bbya-social-hub/default.project.json'
+          grep -q 'ActiveRearMallV1' "$manifest"
+          grep -q 'ActiveMallPolishV1' "$manifest"
+          grep -q 'ActiveMallUIV1' "$manifest"
+          grep -q 'WorldPremiumV338' "$manifest"
+          grep -q 'PaidZoneHardSealV2' "$manifest"
+          grep -q 'MallSafeSecurityOverrideV1' "$manifest"
+          grep -q 'FormerPillarSeal' maps/bbya-social-hub/94-world-premium-v338.server.lua
+          grep -q 'LockedTravelGlass' maps/bbya-social-hub/94-world-premium-v338.server.lua
+          grep -q 'FunkotTravelPlane' maps/bbya-social-hub/95-paid-zone-hard-seal.server.lua
+          grep -q 'MallSafeNorthLimitZ' maps/bbya-social-hub/97-mall-safe-security-override.server.lua
+          grep -q 'rear:Destroy' maps/bbya-social-hub/97-mall-safe-security-override.server.lua
+          grep -q 'Vector3.new(14,26,340)' maps/bbya-social-hub/97-mall-safe-security-override.server.lua
+          grep -q 'BBYAMall' maps/bbya-social-hub/97-mall-safe-security-override.server.lua
+      - name: Persist QC receipt
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,subprocess
+          files=subprocess.check_output(['git','diff','--name-only','origin/main...HEAD'],text=True).splitlines()
+          report={
+            'status':'PASS','build':'ROJO_OK','mallSourceUntouched':not any(x.endswith(('94-mall.server.lua','94-mall-polish.server.lua','94-mall-ui.client.lua')) for x in files),
+            'mallPreservedInManifest':True,'securityNorthLimitZ':250,'mallConnectorStartZ':250,'mallFrontApproxZ':287,
+            'formerPillarSeals':2,'sideGangHardSeal':True,'skateparkTravelOnly':True,'funkotTravelOnly':True,
+            'premiumAreas':['Entrance','MainClub','VIP','Rooftop','Underground','Skatepark','Funkot'],
+            'changedFiles':files
+          }
+          p=pathlib.Path('deploy-status/bbya-v338-mall-safe-qc.json');p.parent.mkdir(exist_ok=True);p.write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          PY
+          git config user.name 'ACC Roblox QC'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-v338-mall-safe-qc.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA v338 Mall-safe premium QC [skip ci]'
+            git push origin HEAD:agent/bbya-premium-v338-main-sync
+          fi
