@@ -1,21 +1,16 @@
 {
-  "ok": false,
-  "httpStatus": 403,
+  "ok": true,
+  "httpStatus": 200,
   "universeId": "10744157359",
   "placeId": "85866320744490",
   "sourceFile": "maps/bbyavatar/place.rbxlx",
-  "payloadBytes": 187272,
-  "payloadSha256": "0f1d2ca9d1053d2711959b1125f73729b00b7c056b32bdd8f7c8dde426c3636b",
-  "blocker": "OWNER_MODERATION_BLOCK",
+  "payloadBytes": 190874,
+  "payloadSha256": "5273eadd24d038ab3275d26c9cf8f8128166704952cce365c03e38c088c8a42e",
+  "blocker": null,
   "retrySafe": false,
   "payload": {
-    "errors": [
-      {
-        "code": 0,
-        "message": "User is moderated"
-      }
-    ]
+    "versionNumber": 26
   },
-  "startedAt": "2026-08-22T09:18:06.167Z",
-  "at": "2026-08-22T09:18:06.649Z"
+  "startedAt": "2026-08-22T10:18:30.460Z",
+  "at": "2026-08-22T10:18:31.864Z"
 }
