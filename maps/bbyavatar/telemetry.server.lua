@@ -1,7 +1,7 @@
--- BBYAVATAR analytics-ready foundation v12.
+-- BBYAVATAR analytics-ready foundation v13.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v12 adds first-event-per-session conversion metrics
--- so repeated browsing cannot inflate conversion percentages.
+-- no arbitrary client event names. v13 adds Recently Viewed / Continue Viewing funnel
+-- coverage so the return-browsing loop can be measured without persisting analytics identity.
 
 local Players = game:GetService("Players")
 
@@ -24,6 +24,7 @@ local ALLOWED = {
     RECOMMEND_OPEN=true, RECOMMEND_RESULT=true, RECOMMEND_FAILED=true,
     RECOMMEND_CACHE_HIT=true, RECOMMEND_JOIN_WAIT=true, RECOMMEND_JOINED=true, RECOMMEND_COOLDOWN=true,
     DETAIL_OPEN=true, DETAIL_RESULT=true, DETAIL_FAILED=true, DETAIL_CACHE_HIT=true,
+    RECENT_OPEN=true, RECENT_RESULT=true, RECENT_TOUCH=true, RECENT_CLEAR=true, RECENT_CONTINUE=true,
 }
 
 local THROTTLE = {
@@ -33,6 +34,7 @@ local THROTTLE = {
     RECOMMEND_OPEN=1.0, RECOMMEND_RESULT=1.0, RECOMMEND_FAILED=1.0,
     RECOMMEND_CACHE_HIT=1.0, RECOMMEND_JOIN_WAIT=1.0, RECOMMEND_JOINED=1.0, RECOMMEND_COOLDOWN=2.0,
     DETAIL_OPEN=.5, DETAIL_RESULT=.5, DETAIL_FAILED=1.0, DETAIL_CACHE_HIT=.5,
+    RECENT_OPEN=1.0, RECENT_RESULT=1.0, RECENT_TOUCH=.5, RECENT_CLEAR=2.0, RECENT_CONTINUE=1.0,
     FAVORITE_SUCCESS=1.0, FAVORITE_DENIED=1.0, FAVORITE_FAILED=1.0,
     PURCHASE_SUCCESS=2.0, PURCHASE_CANCELLED=1.0,
     CREATE_OUTFIT_SUCCESS=2.0, CREATE_OUTFIT_DENIED=2.0, CREATE_OUTFIT_FAILED=2.0,
@@ -52,6 +54,8 @@ local SESSION_MILESTONES = {
     CREATE_OUTFIT_SUCCESS="SAVE",
     SAVE_AVATAR_SUCCESS="SAVE",
     RECOMMEND_OPEN="RECOMMEND",
+    RECENT_OPEN="RECENT",
+    RECENT_CONTINUE="CONTINUE",
     PURCHASE_SUCCESS="PURCHASE",
 }
 
@@ -79,6 +83,8 @@ local function refreshDerivedMetrics()
     local recommendServed=metric("RECOMMEND_RESULT")+metric("RECOMMEND_CACHE_HIT")+metric("RECOMMEND_JOINED")
     local detailOpen=metric("DETAIL_OPEN")
     local detailServed=metric("DETAIL_RESULT")+metric("DETAIL_CACHE_HIT")
+    local recentOpen=metric("RECENT_OPEN")
+    local recentServed=metric("RECENT_RESULT")
 
     -- Activity intensity metrics may legitimately exceed 100 because a session can act repeatedly.
     root:SetAttribute("Activity_OpenPerSession", safeRate(opens,sessions))
@@ -88,8 +94,10 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_FavoritePerOpenPct", safeRate(favorites,opens))
     root:SetAttribute("Activity_SavePerTryOnPct", safeRate(saves,tries))
     root:SetAttribute("Activity_PurchasePerTryOnPct", safeRate(purchases,tries))
+    root:SetAttribute("Activity_RecentContinuePerRecentOpenPct", safeRate(metric("RECENT_CONTINUE"),recentOpen))
     root:SetAttribute("Health_RecommendServedPct", safeRate(recommendServed,recommendOpen))
     root:SetAttribute("Health_DetailServedPct", safeRate(detailServed,detailOpen))
+    root:SetAttribute("Health_RecentServedPct", safeRate(recentServed,recentOpen))
     root:SetAttribute("Health_RecommendCacheHitPct", safeRate(metric("RECOMMEND_CACHE_HIT"),recommendServed))
     root:SetAttribute("Health_DetailCacheHitPct", safeRate(metric("DETAIL_CACHE_HIT"),detailServed))
 
@@ -101,6 +109,8 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_FavoritePct", safeRate(metric("SESSION_UNIQUE_FAVORITE"),sessions))
     root:SetAttribute("SessionConv_SavePct", safeRate(metric("SESSION_UNIQUE_SAVE"),sessions))
     root:SetAttribute("SessionConv_RecommendPct", safeRate(metric("SESSION_UNIQUE_RECOMMEND"),sessions))
+    root:SetAttribute("SessionConv_RecentPct", safeRate(metric("SESSION_UNIQUE_RECENT"),sessions))
+    root:SetAttribute("SessionConv_ContinuePct", safeRate(metric("SESSION_UNIQUE_CONTINUE"),sessions))
     root:SetAttribute("SessionConv_PurchasePct", safeRate(metric("SESSION_UNIQUE_PURCHASE"),sessions))
 end
 
@@ -152,10 +162,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V12_TRUE_SESSION_CONVERSION")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V13_RECENT_CONTINUE")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",12)
+root:SetAttribute("TelemetrySchema",13)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v12 true session conversion ready")
+print("[BBYAVATAR] Privacy-safe telemetry v13 Recent/Continue conversion ready")
