@@ -1,0 +1,47 @@
+name: BBYA v336 Cloud QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - 'scripts/sync-bbya-gamepasses.py'
+      - '.github/workflows/bbya-v336-pr-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JSON and Python
+        shell: bash
+        run: |
+          python3 -m json.tool maps/bbya-social-hub/default.project.json >/dev/null
+          python3 -m py_compile scripts/sync-bbya-gamepasses.py
+      - name: Verify v336 source locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'QUEEN BBYA' maps/bbya-social-hub/92-player-progression.server.lua
+          grep -q 'CeilingHeightStuds",30' maps/bbya-social-hub/92-funkot-club.server.lua
+          grep -q 'FUNKOT CLUB' maps/bbya-social-hub/76-travel-ui-patch.client.lua
+          grep -q 'Funkot=10' maps/bbya-social-hub/32-teleport.server.lua
+          grep -q 'ZIndex=50' maps/bbya-social-hub/91-owner-ui.client.lua
+          grep -q 'd.ZIndex=math.max(d.ZIndex,51)' maps/bbya-social-hub/91-owner-ui.client.lua
+          grep -q 'FreecamV1' maps/bbya-social-hub/default.project.json
+          grep -q 'FunkotClubV1' maps/bbya-social-hub/default.project.json
+          grep -q 'PlayerProgressionV1' maps/bbya-social-hub/default.project.json
+          grep -q "('Funkot','BBYA Funkot Club Access',10" scripts/sync-bbya-gamepasses.py
+      - name: Install Rojo
+        shell: bash
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA cloud preview
+        shell: bash
+        run: |
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v336-qc.rbxl
+          test -s /tmp/bbya-v336-qc.rbxl
+          ls -lh /tmp/bbya-v336-qc.rbxl
