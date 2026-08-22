@@ -1,6 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.30
+-- BECAK E-BIKE — mobile safe-area controller v1.31
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.30 owns both final position and scale so legacy phone tweens/viewport scaling cannot pull the UI right or oversize it.
+-- v1.31 also reserves the lower touch-control zone so the open phone cannot cover the movement thumbstick.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -44,14 +44,18 @@ local function layoutMetrics()
 end
 
 local function desiredScale()
-    local v,topLeft,bottomRight,portrait,_,topBand=layoutMetrics()
+    local v,topLeft,bottomRight,portrait,touch,topBand=layoutMetrics()
     local usableW=math.max(220,v.X-topLeft.X-bottomRight.X-24)
-    local usableH=math.max(300,v.Y-topBand-bottomRight.Y-18)
+    -- Reserve the lower-left thumb-control zone on touch devices. This keeps the phone readable
+    -- without covering DynamicThumbstick/vehicle movement controls on narrow landscape screens.
+    local controlReserve=18
+    if touch then controlReserve=portrait and 148 or 112 end
+    local usableH=math.max(260,v.Y-topBand-bottomRight.Y-controlReserve)
     if portrait then
-        return math.clamp(math.min(usableW/326,usableH/566),0.58,0.80)
+        return math.clamp(math.min(usableW/326,usableH/566),0.52,0.80)
     end
     -- Keep the phone within the left third so steering/throttle controls remain clear.
-    return math.clamp(math.min((usableW*0.34)/326,usableH/566),0.62,0.88)
+    return math.clamp(math.min((usableW*0.34)/326,usableH/566),0.54,0.88)
 end
 
 local function pinOpenPhone()
@@ -85,16 +89,17 @@ local function applySafeArea(force)
     lastKey=key
 
     -- Closed launcher stays on the left edge, below CoreGui. On touch landscape it sits
-    -- around the upper-middle left so it cannot overlap the Roblox menu/chat/mic cluster.
+    -- around the upper-middle left so it cannot overlap the Roblox menu/chat/mic cluster
+    -- or the lower-left movement thumbstick.
     launcher.AnchorPoint=Vector2.new(0,0.5)
     local launcherY
     if touch and not portrait then
-        launcherY=math.clamp(math.floor(v.Y*0.36),topBand+30,v.Y-120)
+        launcherY=math.clamp(math.floor(v.Y*0.34),topBand+30,v.Y-150)
     else
-        launcherY=math.clamp(topBand+34,topBand+30,v.Y-100)
+        launcherY=math.clamp(topBand+34,topBand+30,v.Y-120)
     end
     launcher.Position=UDim2.fromOffset(leftPad,launcherY)
-    local launcherSize=portrait and 48 or 50
+    local launcherSize=portrait and 46 or 48
     launcher.Size=UDim2.fromOffset(launcherSize,launcherSize)
 
     -- Open phone remains left-aligned and scales to the actual usable viewport.
@@ -135,8 +140,12 @@ end)
 -- Keep established compatibility markers while exposing the current adaptive implementation separately.
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.31')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
 Workspace:SetAttribute('BecakPhoneLeftPin','ON')
 Workspace:SetAttribute('BecakPhoneScalePin','ON')
+Workspace:SetAttribute('BecakTouchControlReserve','ON')
+Workspace:SetAttribute('BecakTouchControlReservePortraitPx',148)
+Workspace:SetAttribute('BecakTouchControlReserveLandscapePx',112)
