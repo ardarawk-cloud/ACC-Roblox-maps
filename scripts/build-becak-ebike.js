@@ -48,6 +48,7 @@ const events=raw('maps/becak-e-bike/masterplan.events.server.lua');
 const traffic=raw('maps/becak-e-bike/traffic.npc.server.lua');
 const vehicle=raw('maps/becak-e-bike/masterplan.vehicle.server.lua');
 const recovery=raw('maps/becak-e-bike/vehicle.recovery.server.lua');
+const groundContact=raw('maps/becak-e-bike/vehicle.ground-contact.server.lua');
 const charging=raw('maps/becak-e-bike/charging.network.server.lua');
 const contracts=raw('maps/becak-e-bike/daily.contracts.server.lua');
 const story=raw('maps/becak-e-bike/story.progression.server.lua');
@@ -76,6 +77,7 @@ const serverItems=[
 ['TR','BecakEBike_TrafficNPC',traffic],
 ['V','BecakEBike_VehicleMasterplan',vehicle],
 ['VR','BecakEBike_VehicleRecovery',recovery],
+['GC','BecakEBike_GroundContact',groundContact],
 ['CH','BecakEBike_ChargingNetwork',charging],
 ['DC','BecakEBike_DailyContracts',contracts],
 ['ST','BecakEBike_StoryProgression',story],
@@ -99,4 +101,4 @@ const clientItems=[
 const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>${clientItems}</Item></Item></roblox>`;
 
 fs.writeFileSync(path.join(root,'maps/becak-e-bike/place.rbxlx'),xml);
-console.log('[Becak E-Bike] Built v1.31 with repaired runtime anchor + startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + progression systems:',Buffer.byteLength(xml),'bytes');
+console.log('[Becak E-Bike] Built v1.31 with repaired runtime anchor + startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + v1.36 smooth ground contact + progression systems:',Buffer.byteLength(xml),'bytes');
