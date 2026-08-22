@@ -1,6 +1,6 @@
--- BBYAVATAR analytics-ready foundation v14.
+-- BBYAVATAR analytics-ready foundation v15.
 -- Aggregate counters only: no external endpoint, no persistent user identifiers, and
--- no arbitrary client event names. v14 adds Daily Style Challenge open conversion.
+-- no arbitrary client event names. v15 adds Style Board composition/try-all conversion.
 
 local Players = game:GetService("Players")
 
@@ -17,6 +17,8 @@ local ALLOWED = {
     FAVORITE_SUCCESS=true, FAVORITE_DENIED=true, FAVORITE_FAILED=true,
     PURCHASE_SUCCESS=true, PURCHASE_CANCELLED=true, TRY_ON_SUCCESS=true, TRY_ON_FAILED=true,
     PICK_SAVE=true, PICK_REMOVE=true, PICKS_OPEN=true, PICK_CLOUD_LOAD=true,
+    BOARD_OPEN=true, BOARD_ADD=true, BOARD_REMOVE=true, BOARD_CLEAR=true, BOARD_TRY_ONE=true,
+    BOARD_TRY_ALL_CLICK=true, BOARD_TRY_ALL_START=true, BOARD_TRY_ALL_SUCCESS=true, BOARD_TRY_ALL_FAILED=true,
     WARDROBE_PREVIEW_SUCCESS=true, WARDROBE_PREVIEW_FAILED=true,
     WARDROBE_RESTORE_SUCCESS=true, WARDROBE_RESTORE_FAILED=true,
     DISCOVERY_OPEN=true, DISCOVERY_CATEGORY=true,
@@ -30,6 +32,8 @@ local ALLOWED = {
 local THROTTLE = {
     CATALOG_OPEN=1.0, TRY_ON_SUCCESS=.75, TRY_ON_FAILED=.75,
     PICK_SAVE=.5, PICK_REMOVE=.5, PICKS_OPEN=1.0, PICK_CLOUD_LOAD=5.0,
+    BOARD_OPEN=1.0, BOARD_ADD=.35, BOARD_REMOVE=.35, BOARD_CLEAR=1.0, BOARD_TRY_ONE=.5,
+    BOARD_TRY_ALL_CLICK=.75, BOARD_TRY_ALL_START=.75, BOARD_TRY_ALL_SUCCESS=.75, BOARD_TRY_ALL_FAILED=.75,
     DISCOVERY_OPEN=1.0, DISCOVERY_CATEGORY=.75,
     RECOMMEND_OPEN=1.0, RECOMMEND_RESULT=1.0, RECOMMEND_FAILED=1.0,
     RECOMMEND_CACHE_HIT=1.0, RECOMMEND_JOIN_WAIT=1.0, RECOMMEND_JOINED=1.0, RECOMMEND_COOLDOWN=2.0,
@@ -49,6 +53,8 @@ local SESSION_MILESTONES = {
     DETAIL_OPEN="DETAIL",
     TRY_ON_SUCCESS="TRY_ON",
     PICK_SAVE="PICK",
+    BOARD_OPEN="BOARD",
+    BOARD_TRY_ALL_SUCCESS="BOARD_LOOK",
     FAVORITE_SUCCESS="FAVORITE",
     CREATE_OUTFIT_SUCCESS="SAVE",
     SAVE_AVATAR_SUCCESS="SAVE",
@@ -85,6 +91,9 @@ local function refreshDerivedMetrics()
     local detailServed=metric("DETAIL_RESULT")+metric("DETAIL_CACHE_HIT")
     local recentOpen=metric("RECENT_OPEN")
     local recentServed=metric("RECENT_RESULT")
+    local boardOpen=metric("BOARD_OPEN")
+    local boardTryClick=metric("BOARD_TRY_ALL_CLICK")
+    local boardTrySuccess=metric("BOARD_TRY_ALL_SUCCESS")
 
     root:SetAttribute("Activity_OpenPerSession", safeRate(opens,sessions))
     root:SetAttribute("Activity_DetailPerOpenPct", safeRate(detailOpen,opens))
@@ -94,6 +103,8 @@ local function refreshDerivedMetrics()
     root:SetAttribute("Activity_SavePerTryOnPct", safeRate(saves,tries))
     root:SetAttribute("Activity_PurchasePerTryOnPct", safeRate(purchases,tries))
     root:SetAttribute("Activity_RecentContinuePerRecentOpenPct", safeRate(metric("RECENT_CONTINUE"),recentOpen))
+    root:SetAttribute("Activity_BoardTryAllPerBoardOpenPct", safeRate(boardTryClick,boardOpen))
+    root:SetAttribute("Health_BoardTryAllSuccessPct", safeRate(boardTrySuccess,boardTryClick))
     root:SetAttribute("Health_RecommendServedPct", safeRate(recommendServed,recommendOpen))
     root:SetAttribute("Health_DetailServedPct", safeRate(detailServed,detailOpen))
     root:SetAttribute("Health_RecentServedPct", safeRate(recentServed,recentOpen))
@@ -104,6 +115,8 @@ local function refreshDerivedMetrics()
     root:SetAttribute("SessionConv_DetailPct", safeRate(metric("SESSION_UNIQUE_DETAIL"),sessions))
     root:SetAttribute("SessionConv_TryOnPct", safeRate(metric("SESSION_UNIQUE_TRY_ON"),sessions))
     root:SetAttribute("SessionConv_PickPct", safeRate(metric("SESSION_UNIQUE_PICK"),sessions))
+    root:SetAttribute("SessionConv_BoardPct", safeRate(metric("SESSION_UNIQUE_BOARD"),sessions))
+    root:SetAttribute("SessionConv_BoardLookPct", safeRate(metric("SESSION_UNIQUE_BOARD_LOOK"),sessions))
     root:SetAttribute("SessionConv_FavoritePct", safeRate(metric("SESSION_UNIQUE_FAVORITE"),sessions))
     root:SetAttribute("SessionConv_SavePct", safeRate(metric("SESSION_UNIQUE_SAVE"),sessions))
     root:SetAttribute("SessionConv_RecommendPct", safeRate(metric("SESSION_UNIQUE_RECOMMEND"),sessions))
@@ -161,10 +174,10 @@ Players.PlayerRemoving:Connect(function(player)
     sessionMilestones[player]=nil
 end)
 
-root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V14_DAILY_STYLE")
+root:SetAttribute("TelemetryRevision","SESSION_COUNTERS_V15_STYLE_BOARD")
 root:SetAttribute("TelemetryPrivacy","NO_PII_NO_EXTERNAL_PERSISTENCE")
 root:SetAttribute("TelemetryThrottle","EVENT_SPECIFIC_PER_USER")
 root:SetAttribute("TelemetrySessionAuthority","SERVER")
-root:SetAttribute("TelemetrySchema",14)
+root:SetAttribute("TelemetrySchema",15)
 refreshDerivedMetrics()
-print("[BBYAVATAR] Privacy-safe telemetry v14 Daily Style conversion ready")
+print("[BBYAVATAR] Privacy-safe telemetry v15 Style Board conversion ready")
