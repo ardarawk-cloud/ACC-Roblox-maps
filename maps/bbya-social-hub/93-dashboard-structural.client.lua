@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v3
+-- BBYA SOCIAL HUB — STRUCTURAL DASHBOARD UI v4
 -- Dashboard rebuild: sidebar, wider library, glass header, venue rail, responsive landscape layout.
--- v3 keeps the global dock below Roblox CoreGui chat on touch devices.
+-- v4 raises the global dock on touch devices while preserving mobile CoreGui clearance.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
@@ -97,7 +97,7 @@ local function apply()
    end
   end
  end
- local dockY=touch and 66 or 14
+ local dockY=touch and 36 or 14
  dock.AnchorPoint=Vector2.new(.5,0);dock.Position=UDim2.new(.5,railW*.12,0,dockY);dock.Size=UDim2.fromOffset(math.min(620,panelW-railW-70),48)
  polishRows();applying=false
 end
@@ -108,4 +108,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 panel:GetPropertyChangedSignal("Visible"):Connect(function()if panel.Visible then task.defer(apply)end end)
 task.spawn(function()while task.wait(1.0) do if panel.Visible then apply() end end end)
 
-print("[BBYA] Structural Dashboard v3 online: chat-safe dock + premium dashboard")
+print("[BBYA] Structural Dashboard v4 online: raised touch dock + premium dashboard")
