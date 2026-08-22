@@ -97,6 +97,7 @@
         "StructuralDashboardV3": {"$path": "93-dashboard-structural.client.lua"},
         "MusicUIFinalV6": {"$path": "103-music-ui-final.client.lua"},
         "VenueAudioRouterV1": {"$path": "104-venue-audio-router.client.lua"},
+        "MusicUIIntegrityV1": {"$path": "105-music-ui-integrity.client.lua"},
         "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
         "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
       }
