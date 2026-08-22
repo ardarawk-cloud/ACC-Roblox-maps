@@ -94,6 +94,7 @@
         "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
         "ThreeVenueMusicUIV2": {"$path": "93-venue-music-ui.client.lua"},
         "StructuralDashboardV3": {"$path": "93-dashboard-structural.client.lua"},
+        "MusicUIFinalV6": {"$path": "103-music-ui-final.client.lua"},
         "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
         "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
       }
