@@ -13,6 +13,7 @@ DESIRED=[
  ('Basement','BBYA Basement Access',20,'Permanent Basement / Underground travel access for BBYA Social Hub.'),
  ('Funkot','BBYA Funkot Club Access',10,'Permanent Funkot Club travel access for BBYA Social Hub.'),
  ('Mall','BBYA Mall Access',10,'Permanent BBYA Mall travel access for BBYA Social Hub.'),
+ ('NightMarket','BBYA Pasar Malam Access',10,'Permanent Pasar Malam travel access behind BBYA Mall.'),
 ]
 STATUS=Path('deploy-status/bbya-gamepasses-sync.json'); STATUS.parent.mkdir(parents=True,exist_ok=True)
 MODULE=Path('maps/bbya-social-hub/monetization/passes.luau'); MODULE.parent.mkdir(parents=True,exist_ok=True)
