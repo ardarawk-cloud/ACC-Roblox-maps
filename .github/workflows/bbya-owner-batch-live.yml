@@ -1,0 +1,98 @@
+name: BBYA Owner Batch Live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-owner-batch-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-owner-batch-live
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+      AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pull reviewed batch patch from dev branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/bbya-serious-dev
+          git show FETCH_HEAD:scripts/bbya-owner-batch-20260823.py > scripts/bbya-owner-batch-20260823.py
+          python3 scripts/bbya-owner-batch-20260823.py
+
+      - name: Source QC
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool maps/bbya-social-hub/default.project.json >/dev/null
+          python3 -m json.tool deploy-status/bbya-owner-batch-20260823.json >/dev/null
+          if grep -Rni --include='*.lua' --include='*.luau' --include='*.json' --include='*.md' -E 'funkot' maps/bbya-social-hub; then
+            echo 'Forbidden Funkot reference remains.' >&2
+            exit 1
+          fi
+          grep -q '"UNDERGROUND","Basement"' maps/bbya-social-hub/76-travel-ui-patch.client.lua
+          grep -q 'OwnerStableUIV1' maps/bbya-social-hub/default.project.json
+          grep -q 'OwnerGeometryFixesV1' maps/bbya-social-hub/default.project.json
+          test "$(grep -c 'style="progressive"' maps/bbya-social-hub/30-club-systems.server.lua)" -gt 0
+          test "$(grep -c 'style="funkot"' maps/bbya-social-hub/85-basement-autodj.server.lua || true)" -eq 0
+
+      - name: Probe audio key identity without uploading
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error, pathlib
+          out={"status":"NOT_TESTED","expectedUsername":"gudangpet88","uploadAttempted":False}
+          key=(os.environ.get('AUDIO_KEY') or os.environ.get('AM_STUDIO_KEY') or '').strip()
+          if not key:
+              out.update(status='NO_KEY_SECRET_AVAILABLE', matchesExpectedUsername=False)
+          else:
+              try:
+                  payload=json.dumps({'apiKey':key}).encode()
+                  req=urllib.request.Request('https://apis.roblox.com/api-keys/v1/introspect',data=payload,headers={'Content-Type':'application/json'},method='POST')
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      info=json.loads(r.read().decode('utf-8','replace'))
+                  uid=info.get('authorizedUserId')
+                  out.update(status='KEY_INTROSPECTION_OK',authorizedUserId=str(uid) if uid is not None else None,enabled=info.get('enabled'),expired=info.get('expired'),keyName=info.get('name'))
+                  username=None
+                  if uid is not None:
+                      req2=urllib.request.Request(f'https://users.roblox.com/v1/users/{uid}')
+                      with urllib.request.urlopen(req2,timeout=20) as r:
+                          u=json.loads(r.read().decode('utf-8','replace'))
+                      username=u.get('name')
+                  out['authorizedUsername']=username
+                  out['matchesExpectedUsername']=str(username or '').casefold()=='gudangpet88'
+              except Exception as exc:
+                  out.update(status='KEY_PROBE_FAILED',matchesExpectedUsername=False,errorType=type(exc).__name__)
+          p=pathlib.Path('deploy-status/bbya-audio-key-gudangpet88.json')
+          p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(out,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Persist owner batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- maps/bbya-social-hub scripts/bbya-owner-batch-20260823.py scripts/route-bbya-drive-audio.py deploy-status/bbya-audio-routing.json deploy-status/bbya-owner-batch-20260823.json deploy-status/bbya-audio-key-gudangpet88.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Apply BBYA owner fixes: Underground, social UI, VIP, entrance, Progressive [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
