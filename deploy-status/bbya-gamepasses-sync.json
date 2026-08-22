@@ -1,7 +1,14 @@
 {
   "api_ok": true,
   "complete": true,
-  "created": [],
+  "created": [
+    {
+      "key": "Funkot",
+      "name": "BBYA Funkot Club Access",
+      "price": 10,
+      "id": 1955508827
+    }
+  ],
   "updated": [],
   "errors": [],
   "pages": [
@@ -39,6 +46,13 @@
       "name": "BBYA Basement Access",
       "price": 20,
       "id": 1952834896,
+      "verified": true
+    },
+    {
+      "key": "Funkot",
+      "name": "BBYA Funkot Club Access",
+      "price": 10,
+      "id": 1955508827,
       "verified": true
     }
   ],

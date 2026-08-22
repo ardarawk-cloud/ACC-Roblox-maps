@@ -4,4 +4,5 @@ return {
     Skatepark = 1951935192,
     Rooftop = 1954884352,
     Basement = 1952834896,
+    Funkot = 1955508827,
 }
