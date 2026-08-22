@@ -1,6 +1,6 @@
--- BBYAVATAR Recently Viewed v3.
+-- BBYAVATAR Recently Viewed v4.
 -- Persists only catalog asset IDs through the server module; details are resolved from Roblox on demand.
--- v3 adds an explicit player-facing CLEAR HISTORY control and keeps recommendation seeding privacy-minimal.
+-- v4 adds a privacy-minimal CONTINUE VIEWING card to Discover using only the most recent Roblox asset ID.
 
 local recentRequest = root:WaitForChild("RecentViewsRequest")
 local recentIds = {}
@@ -215,4 +215,64 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Persistent Recently Viewed v3 + player clear control ready")
+-- Return-loop integration: add one persisted Continue Viewing entry to the top of Discover.
+-- Only the asset ID is persisted; current item metadata is resolved from Roblox on demand.
+local recentBaseDiscovery = renderers.DISCOVER
+if recentBaseDiscovery then
+    renderers.DISCOVER = function()
+        recentBaseDiscovery()
+        task.spawn(function()
+            loadRecent()
+            local waited = 0
+            while recentLoadInFlight and waited < 5 do task.wait(0.1); waited += 0.1 end
+            if #recentIds == 0 then return end
+
+            local item = resolveRecentItem(recentIds[1])
+            if not item then return end
+            local feed = content:FindFirstChild("DiscoveryFeed")
+            if not feed or feed.Parent ~= content then return end
+
+            local button = Instance.new("TextButton")
+            button.Name = "ContinueViewing"
+            button.LayoutOrder = -100
+            button.Size = UDim2.new(1, -4, 0, 74)
+            button.BackgroundColor3 = Color3.fromRGB(58, 61, 91)
+            button.Text = ""
+            button.AutoButtonColor = true
+            button.Parent = feed
+            Instance.new("UICorner", button).CornerRadius = UDim.new(0, 13)
+
+            local title = Instance.new("TextLabel")
+            title.BackgroundTransparency = 1
+            title.Position = UDim2.fromOffset(14, 8)
+            title.Size = UDim2.new(1, -28, 0, 26)
+            title.Font = Enum.Font.GothamBold
+            title.Text = "CONTINUE VIEWING"
+            title.TextColor3 = Color3.new(1, 1, 1)
+            title.TextSize = 14
+            title.TextXAlignment = Enum.TextXAlignment.Left
+            title.Parent = button
+
+            local itemName = tostring(item.Name or item.name or ("Catalog Item " .. tostring(recentIds[1])))
+            local sub = Instance.new("TextLabel")
+            sub.BackgroundTransparency = 1
+            sub.Position = UDim2.fromOffset(14, 36)
+            sub.Size = UDim2.new(1, -28, 0, 24)
+            sub.Font = Enum.Font.Gotham
+            sub.Text = itemName
+            sub.TextColor3 = Color3.fromRGB(196, 201, 220)
+            sub.TextSize = 11
+            sub.TextXAlignment = Enum.TextXAlignment.Left
+            sub.TextTruncate = Enum.TextTruncate.AtEnd
+            sub.Parent = button
+
+            button.Activated:Connect(function()
+                recentTrack("RECENT_CONTINUE")
+                recordRecentView(item)
+                openItemDetail(item)
+            end)
+        end)
+    end
+end
+
+print("[BBYAVATAR] Persistent Recently Viewed v4 + Continue Viewing return loop ready")
