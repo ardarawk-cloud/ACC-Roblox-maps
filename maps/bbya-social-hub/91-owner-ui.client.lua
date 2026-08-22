@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — OWNER STABLE UI v4
+-- BBYA SOCIAL HUB — OWNER STABLE UI v5
 -- Single authority for DANCE/CARRY placement, BBYA dock visibility, and FREECAM launcher sizing.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
@@ -45,15 +45,13 @@ local function liftDrawerObject(d)
 end
 
 local function bindDynamicDrawer(panel)
- if panel:GetAttribute("BBYADynamicZGuardV4")==true then return end
- panel:SetAttribute("BBYADynamicZGuardV4",true)
+ if panel:GetAttribute("BBYADynamicZGuardV5")==true then return end
+ panel:SetAttribute("BBYADynamicZGuardV5",true)
  panel.DescendantAdded:Connect(function(d)
   task.defer(function()if d and d.Parent then liftDrawerObject(d) end end)
  end)
  panel:GetPropertyChangedSignal("Visible"):Connect(function()
-  if panel.Visible then
-   task.defer(function()for _,d in ipairs(panel:GetDescendants()) do liftDrawerObject(d) end end)
-  end
+  if panel.Visible then task.defer(function()for _,d in ipairs(panel:GetDescendants()) do liftDrawerObject(d) end end) end
  end)
 end
 
@@ -135,12 +133,12 @@ local function enforceDock()
  local gui=pg:FindFirstChild("BBYAClubUI");if not gui then return end
  local dock=gui:FindFirstChild("TopDock");if not dock then return end
  local touch=UserInputService.TouchEnabled
- local topY=touch and 66 or 14
+ local topY=touch and 36 or 14
  dock.Position=UDim2.new(dock.Position.X.Scale,dock.Position.X.Offset,0,topY)
  for _,obj in ipairs(dock:GetChildren()) do
   if obj:IsA("TextButton") and string.upper((obj.Text or ""):gsub("%s+",""))=="BBYA" then
    obj.Visible=true;obj.Active=true;obj.Selectable=true;obj.ZIndex=96
-   obj:SetAttribute("BBYABrandVisibleV4",true)
+   obj:SetAttribute("BBYABrandVisibleV5",true)
    bindGuard(obj,"Visible")
   end
  end
@@ -159,10 +157,10 @@ pg.ChildAdded:Connect(function()task.defer(enforceAll)end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
  camera=workspace.CurrentCamera
  task.defer(enforceAll)
- if camera and not camera:GetAttribute("BBYAOwnerViewportBoundV4") then
-  camera:SetAttribute("BBYAOwnerViewportBoundV4",true)
+ if camera and not camera:GetAttribute("BBYAOwnerViewportBoundV5") then
+  camera:SetAttribute("BBYAOwnerViewportBoundV5",true)
   camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(enforceAll)end)
  end
 end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(enforceAll)end) end
-print("[BBYA] Owner Stable UI v4: BBYA visible / Freecam matched / social drawers stable")
+print("[BBYA] Owner Stable UI v5: raised dock / BBYA visible / Freecam matched / social drawers stable")
