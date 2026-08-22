@@ -1,8 +1,11 @@
--- BBYAVATAR advanced Marketplace discovery filters.
--- Extends the existing catalog grid with native CatalogSearchParams filtering.
+-- BBYAVATAR advanced Marketplace discovery filters v2.
+-- Extends the catalog grid with native CatalogSearchParams filtering/sorting.
+-- User input stays client-side and is passed only to Roblox-native catalog search.
 local searchSequence = 0
 local lastSearchAt = 0
 local FILTER_COOLDOWN = 0.7
+local MAX_QUERY_LENGTH = 80
+local MAX_CREATOR_LENGTH = 50
 
 local filterModes = {
     {label = "ALL", value = Enum.CatalogCategoryFilter.None},
@@ -11,6 +14,24 @@ local filterModes = {
     {label = "FEATURED", value = Enum.CatalogCategoryFilter.Featured},
 }
 local filterIndex = 1
+
+local sortModes = {
+    {label = "RELEVANCE", value = Enum.CatalogSortType.Relevance},
+    {label = "NEWEST", value = Enum.CatalogSortType.RecentlyCreated},
+    {label = "FAVORITES", value = Enum.CatalogSortType.MostFavorited, aggregate = true},
+    {label = "BESTSELLING", value = Enum.CatalogSortType.Bestselling, aggregate = true},
+    {label = "PRICE LOW", value = Enum.CatalogSortType.PriceLowToHigh},
+    {label = "PRICE HIGH", value = Enum.CatalogSortType.PriceHighToLow},
+}
+local sortIndex = 1
+
+local aggregationModes = {
+    {label = "DAY", value = Enum.CatalogSortAggregation.PastDay},
+    {label = "WEEK", value = Enum.CatalogSortAggregation.PastWeek},
+    {label = "MONTH", value = Enum.CatalogSortAggregation.PastMonth},
+    {label = "ALL TIME", value = Enum.CatalogSortAggregation.AllTime},
+}
+local aggregationIndex = 2
 
 local function compactField(parent, placeholder, width)
     local box = Instance.new("TextBox")
@@ -38,6 +59,13 @@ local function compactButton(parent, text, width)
     button.Parent = parent
     Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
     return button
+end
+
+local function trimAndLimit(value, limit)
+    value = tostring(value or "")
+    value = value:match("^%s*(.-)%s*$") or ""
+    if #value > limit then value = value:sub(1, limit) end
+    return value
 end
 
 renderSearch = function()
@@ -83,6 +111,9 @@ renderSearch = function()
     fl.Parent = filters
 
     local modeButton = compactButton(filters, "FILTER: " .. filterModes[filterIndex].label, 128)
+    local sortButton = compactButton(filters, "SORT: " .. sortModes[sortIndex].label, 136)
+    local aggregationButton = compactButton(filters, aggregationModes[aggregationIndex].label, 90)
+    aggregationButton.Visible = sortModes[sortIndex].aggregate == true
     local creatorBox = compactField(filters, "Creator", 116)
     local minBox = compactField(filters, "Min R$", 76)
     local maxBox = compactField(filters, "Max R$", 76)
@@ -126,6 +157,20 @@ renderSearch = function()
         loadedCount = 0
     end
 
+    local function showEmptyState(query)
+        local empty = Instance.new("TextLabel")
+        empty.Name = "EmptyState"
+        empty.Size = UDim2.new(1, -4, 0, 76)
+        empty.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
+        empty.TextColor3 = Color3.fromRGB(205, 209, 222)
+        empty.Font = Enum.Font.Gotham
+        empty.TextSize = 14
+        empty.TextWrapped = true
+        empty.Text = "No results for “" .. query .. "”. Try a broader keyword, RESET filters, or use a category chip."
+        empty.Parent = results
+        Instance.new("UICorner", empty).CornerRadius = UDim.new(0, 12)
+    end
+
     local function appendCurrentPage()
         if not pagesCache then return end
         local current = pagesCache:GetCurrentPage()
@@ -165,12 +210,24 @@ renderSearch = function()
             return
         end
         lastSearchAt = now
+
+        local query = trimAndLimit(searchBox.Text, MAX_QUERY_LENGTH)
+        if query == "" then query = activeCategory ~= "FEATURED" and activeCategory or "avatar" end
+        local creator = trimAndLimit(creatorBox.Text, MAX_CREATOR_LENGTH)
+        local minPrice = tonumber(minBox.Text)
+        local maxPrice = tonumber(maxBox.Text)
+        if minPrice and minPrice < 0 then minPrice = 0 end
+        if maxPrice and maxPrice < 0 then maxPrice = 0 end
+        if minPrice and maxPrice and minPrice > maxPrice then
+            status.Text = "Min price cannot be higher than max price."
+            return
+        end
+
+        searchBox.Text = query
+        creatorBox.Text = creator
         loading = true
         searchSequence += 1
         mySequence = searchSequence
-
-        local query = searchBox.Text
-        if query == "" then query = activeCategory ~= "FEATURED" and activeCategory or "avatar" end
         status.Text = "Searching Roblox Marketplace…"
         clearResults()
         pagesCache = nil
@@ -178,14 +235,15 @@ renderSearch = function()
         local ok, pages = pcall(function()
             local params = CatalogSearchParams.new()
             params.SearchKeyword = query
-            params.SortType = Enum.CatalogSortType.Relevance
+            params.SortType = sortModes[sortIndex].value
             params.IncludeOffSale = false
             params.CategoryFilter = filterModes[filterIndex].value
-            local minPrice = tonumber(minBox.Text)
-            local maxPrice = tonumber(maxBox.Text)
-            if minPrice and minPrice >= 0 then params.MinPrice = math.floor(minPrice) end
-            if maxPrice and maxPrice >= 0 then params.MaxPrice = math.floor(maxPrice) end
-            if creatorBox.Text ~= "" then params.CreatorName = creatorBox.Text end
+            if sortModes[sortIndex].aggregate then
+                params.SortAggregation = aggregationModes[aggregationIndex].value
+            end
+            if minPrice then params.MinPrice = math.floor(minPrice) end
+            if maxPrice then params.MaxPrice = math.floor(maxPrice) end
+            if creator ~= "" then params.CreatorName = creator end
             params.Limit = 20
             return AvatarEditorService:SearchCatalogAsync(params)
         end)
@@ -200,7 +258,12 @@ renderSearch = function()
             return
         end
         pagesCache = pages
-        appendCurrentPage()
+        if #pages:GetCurrentPage() == 0 then
+            showEmptyState(query)
+            status.Text = "No Marketplace items matched those filters."
+        else
+            appendCurrentPage()
+        end
         loading = false
     end
 
@@ -209,13 +272,29 @@ renderSearch = function()
         modeButton.Text = "FILTER: " .. filterModes[filterIndex].label
     end)
 
+    sortButton.Activated:Connect(function()
+        sortIndex = (sortIndex % #sortModes) + 1
+        sortButton.Text = "SORT: " .. sortModes[sortIndex].label
+        aggregationButton.Visible = sortModes[sortIndex].aggregate == true
+    end)
+
+    aggregationButton.Activated:Connect(function()
+        aggregationIndex = (aggregationIndex % #aggregationModes) + 1
+        aggregationButton.Text = aggregationModes[aggregationIndex].label
+    end)
+
     resetButton.Activated:Connect(function()
         creatorBox.Text = ""
         minBox.Text = ""
         maxBox.Text = ""
         filterIndex = 1
+        sortIndex = 1
+        aggregationIndex = 2
         modeButton.Text = "FILTER: ALL"
-        status.Text = "Filters reset."
+        sortButton.Text = "SORT: RELEVANCE"
+        aggregationButton.Text = "WEEK"
+        aggregationButton.Visible = false
+        status.Text = "Filters and sorting reset."
     end)
 
     for _, chip in ipairs({"HAIR", "JACKETS", "PANTS", "ACCESSORIES", "STREETWEAR", "CUTE", "CYBER", "BALI"}) do
@@ -231,4 +310,4 @@ renderSearch = function()
 end
 
 renderers.SEARCH = renderSearch
-print("[BBYAVATAR] Advanced UGC/creator/price catalog filters ready")
+print("[BBYAVATAR] Advanced catalog filters + sort/aggregation resilience ready")
