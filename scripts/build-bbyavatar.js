@@ -7,6 +7,7 @@ const readLua=f=>fs.readFileSync(path.join(root,f),'utf8').replaceAll(']]>',']]]
 const coreServerFiles=[
   ['BBYAVATAR_WorldSafety','maps/bbyavatar/world-safety.server.lua'],
   ['BBYAVATAR_Runtime','maps/bbyavatar/runtime.server.lua'],
+  ['BBYAVATAR_NativeMannequins','maps/bbyavatar/showroom-native-mannequins.server.lua'],
   ['BBYAVATAR_PremiumShowroom','maps/bbyavatar/showroom-premium.server.lua']
 ];
 const featureServerFiles=[
@@ -45,5 +46,6 @@ fs.writeFileSync(path.join(root,'maps/bbyavatar/place.rbxlx'),xml);
 
 if(!xml.includes('<string name="Name">BBYAVATAR_WorldSafety</string>')) throw new Error('Missing isolated world safety sentinel');
 if(!xml.includes('<string name="Name">BBYAVATAR_Runtime</string>')) throw new Error('Missing isolated runtime bootstrap');
+if(!xml.includes('<string name="Name">BBYAVATAR_NativeMannequins</string>')) throw new Error('Missing isolated native mannequin upgrade');
 if(!xml.includes('<string name="Name">BBYAVATAR_PremiumShowroom</string>')) throw new Error('Missing isolated premium showroom');
 console.log(`[BBYAVATAR] Built resilient place.rbxlx with ${coreServerFiles.length} isolated world scripts, ${featureServerFiles.length} isolated feature scripts, and responsive client bundle`);
