@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'maps/bbya-social-hub/56-dock-stability.client.lua'
       - 'maps/bbya-social-hub/93-dashboard-structural.client.lua'
       - 'maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
@@ -31,28 +32,36 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-secondary-ui.rbxl
           test -s /tmp/bbya-compact-secondary-ui.rbxl
-      - name: Validate compact secondary UI and legacy dashboard retirement
+      - name: Validate compact secondary UI and single position authority
         shell: bash
         run: |
           set -euo pipefail
+          menu='maps/bbya-social-hub/56-dock-stability.client.lua'
           ui='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
           legacy='maps/bbya-social-hub/93-dashboard-structural.client.lua'
           manifest='maps/bbya-social-hub/default.project.json'
 
-          grep -q 'COMPACT SECONDARY PANELS v2' "$ui"
+          grep -q 'COMMAND MENU AUTHORITY v7' "$menu"
+          grep -q 'V7_SINGLE_COMPACT_AUTHORITY' "$menu"
+          grep -q 'LEFT_OF_MENU_V2_PRECISE' "$menu"
+
+          grep -q 'COMPACT SECONDARY PANELS v3' "$ui"
           grep -q 'FeatureDrawer' "$ui"
           grep -q 'SUPPORT_MENU_SIZE' "$ui"
           grep -q 'TRAVEL_MENU_SIZE' "$ui"
-          grep -q 'V2_MENU_SIZE' "$ui"
+          grep -q 'V3_CONTENT_ONLY' "$ui"
+          grep -q 'COMMAND_MENU_V7' "$ui"
           grep -q 'math.clamp(math.floor(vp.X\*.30),296,330)' "$ui"
           grep -q 'math.clamp(math.floor(vp.X\*.25),304,340)' "$ui"
           grep -q 'local h=(vp.Y<620) and 286 or 308' "$ui"
-          grep -q 'hub.AnchorPoint=Vector2.new(.5,0)' "$ui"
           grep -q 'hub.BackgroundTransparency=.34' "$ui"
           grep -q 'grid.FillDirectionMaxCells=2' "$ui"
-          grep -q 'panel.AnchorPoint=Vector2.new(.5,0)' "$ui"
           grep -q 'panel.BackgroundTransparency=.34' "$ui"
           grep -q 'shade.BackgroundTransparency=.70' "$ui"
+          if grep -q 'hub.AnchorPoint=' "$ui"; then echo 'Secondary UI must not own HubPanel anchor.' >&2; exit 1; fi
+          if grep -q 'hub.Position=' "$ui"; then echo 'Secondary UI must not own HubPanel position.' >&2; exit 1; fi
+          if grep -q 'panel.AnchorPoint=' "$ui"; then echo 'Secondary UI must not own message anchor.' >&2; exit 1; fi
+          if grep -q 'panel.Position=' "$ui"; then echo 'Secondary UI must not own message position.' >&2; exit 1; fi
 
           grep -q 'LEGACY DASHBOARD RETIREMENT v6' "$legacy"
           grep -q 'V6_RETIRED_FOR_COMPACT_UI' "$legacy"
@@ -67,14 +76,7 @@ jobs:
 
           grep -q 'CompactSecondaryPanelsV1' "$manifest"
           grep -q '111-compact-secondary-panels.client.lua' "$manifest"
+          if grep -q 'FireServer' "$ui"; then echo 'Compact secondary authority must not own remotes.' >&2; exit 1; fi
+          if grep -q '420,560\|360,470\|320,380' "$ui"; then echo 'Old oversized secondary panel sizing returned.' >&2; exit 1; fi
 
-          if grep -q 'FireServer' "$ui"; then
-            echo 'Compact secondary authority must not own purchase/teleport/message remotes.' >&2
-            exit 1
-          fi
-          if grep -q '420,560\|360,470\|320,380' "$ui"; then
-            echo 'Old oversized secondary panel sizing returned.' >&2
-            exit 1
-          fi
-
-          echo 'BBYA compact secondary UI + legacy dashboard retirement QC passed.'
+          echo 'BBYA compact secondary UI v3 QC passed.'

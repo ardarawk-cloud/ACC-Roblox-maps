@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — COMPACT SECONDARY PANELS v2
--- MENU is the visual master. SUPPORT / TRAVEL / MESSAGE copy its compact shell metrics.
--- Existing purchase, teleport and DJ-wall remotes remain untouched; this script owns presentation only.
+-- BBYA SOCIAL HUB — COMPACT SECONDARY PANELS v3
+-- CONTENT/SIZE ONLY. Command Menu v7 is the sole position authority.
+-- SUPPORT / TRAVEL / MESSAGE reuse the compact MENU dimensions without fighting AnchorPoint/Position.
+-- Existing purchase, teleport and DJ-wall remotes remain untouched.
 
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
@@ -8,13 +9,12 @@ local UserInputService=game:GetService("UserInputService")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
-
 local clubUI=pg:WaitForChild("BBYAClubUI",30)
 if not clubUI then return end
 local hub=clubUI:WaitForChild("HubPanel",30)
 if not hub then return end
 
-local C={panel=Color3.fromRGB(9,10,14),card=Color3.fromRGB(27,28,37),line=Color3.fromRGB(72,75,89)}
+local C={panel=Color3.fromRGB(9,10,14)}
 
 local function viewport()
  camera=workspace.CurrentCamera or camera
@@ -26,16 +26,16 @@ local function menuDrawer()
  return menuGui and menuGui:FindFirstChild("FeatureDrawer") or nil
 end
 
-local function masterMetrics()
+local function masterSize()
  local drawer=menuDrawer()
- if drawer and drawer:IsA("Frame") then
-  return drawer.Size.X.Offset,drawer.Size.Y.Offset,drawer.Position
+ if drawer and drawer:IsA("Frame") and drawer.Size.X.Offset>0 and drawer.Size.Y.Offset>0 then
+  return drawer.Size.X.Offset,drawer.Size.Y.Offset
  end
  local vp=viewport()
  local touch=UserInputService.TouchEnabled
  local w=touch and math.clamp(math.floor(vp.X*.30),296,330) or math.clamp(math.floor(vp.X*.25),304,340)
  local h=(vp.Y<620) and 286 or 308
- return w,h,UDim2.new(.5,0,0,54)
+ return w,h
 end
 
 local function findSupport()
@@ -91,13 +91,14 @@ local applyingHub=false
 local function compactHubShell(content,page)
  if applyingHub then return end
  applyingHub=true
- local w,h,pos=masterMetrics()
- hub.AnchorPoint=Vector2.new(.5,0)
- hub.Position=pos
+ local w,h=masterSize()
+ -- IMPORTANT: no AnchorPoint/Position writes here. Command Menu v7 owns placement.
  hub.Size=UDim2.fromOffset(w,h)
  hub.BackgroundColor3=C.panel
  hub.BackgroundTransparency=.34
  hub.ClipsDescendants=true
+ hub:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7")
+ hub:SetAttribute("BBYASecondaryLayoutAuthority","V3_CONTENT_ONLY")
  setHeader(page)
  if content then
   content.Position=UDim2.fromOffset(10,70)
@@ -137,15 +138,11 @@ local function applySupport()
   local grid=scroller:FindFirstChildWhichIsA("UIGridLayout")
   if grid and not supportGridGuard then
    supportGridGuard=true
-   grid.FillDirectionMaxCells=2
-   grid.CellSize=UDim2.new(.5,-4,0,40)
-   grid.CellPadding=UDim2.fromOffset(6,6)
+   grid.FillDirectionMaxCells=2;grid.CellSize=UDim2.new(.5,-4,0,40);grid.CellPadding=UDim2.fromOffset(6,6)
    scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+8))
    supportGridGuard=false
   end
-  for _,d in ipairs(scroller:GetChildren()) do
-   if d:IsA("TextButton") then d.BackgroundTransparency=.22;d.TextSize=9 end
-  end
+  for _,d in ipairs(scroller:GetChildren()) do if d:IsA("TextButton") then d.BackgroundTransparency=.22;d.TextSize=9 end end
  end
  hub:SetAttribute("BBYACompactPage","SUPPORT_MENU_SIZE")
 end
@@ -164,9 +161,7 @@ local function applyTravel()
   local grid=scroller:FindFirstChildWhichIsA("UIGridLayout")
   if grid and not travelGridGuard then
    travelGridGuard=true
-   grid.FillDirectionMaxCells=2
-   grid.CellSize=UDim2.new(.5,-4,0,48)
-   grid.CellPadding=UDim2.fromOffset(6,6)
+   grid.FillDirectionMaxCells=2;grid.CellSize=UDim2.new(.5,-4,0,48);grid.CellPadding=UDim2.fromOffset(6,6)
    local pad=scroller:FindFirstChildWhichIsA("UIPadding")
    if pad then pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,10);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4) end
    scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+14))
@@ -193,9 +188,11 @@ local function applyMessage()
  local panel=wallUI:FindFirstChild("DJWallComposerPanel",true)
  if not panel or not panel:IsA("Frame") or not panel.Visible then return end
  messageGuard=true
- local w,h,pos=masterMetrics()
+ local w,h=masterSize()
  wallUI.IgnoreGuiInset=true
- panel.AnchorPoint=Vector2.new(.5,0);panel.Position=pos;panel.Size=UDim2.fromOffset(w,h);panel.BackgroundTransparency=.34
+ -- IMPORTANT: no AnchorPoint/Position writes here. Command Menu v7 owns placement.
+ panel.Size=UDim2.fromOffset(w,h);panel.BackgroundTransparency=.34
+ panel:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7")
  local shade
  for _,d in ipairs(wallUI:GetChildren()) do if d:IsA("Frame") and d.Size.X.Scale==1 and d.Size.Y.Scale==1 then shade=d;break end end
  if shade then shade.BackgroundTransparency=.70 end
@@ -225,10 +222,10 @@ local function applyMessage()
    local box=content:FindFirstChildWhichIsA("TextBox")
    for _,child in ipairs(content:GetChildren()) do
     if child:IsA("Frame") then
-     local text=""
-     for _,x in ipairs(child:GetDescendants()) do if x:IsA("TextLabel") then text=text.." "..string.upper(x.Text or "") end end
-     if text:find("ROBUX",1,true) or text:find("OWNER TEST",1,true) then pricePill=child
-     elseif text:find("ROBLOX FILTER",1,true) then filterPill=child
+     local t=""
+     for _,x in ipairs(child:GetDescendants()) do if x:IsA("TextLabel") then t=t.." "..string.upper(x.Text or "") end end
+     if t:find("ROBUX",1,true) or t:find("OWNER TEST",1,true) then pricePill=child
+     elseif t:find("ROBLOX FILTER",1,true) then filterPill=child
      elseif child:FindFirstChildWhichIsA("TextButton") then catsHolder=child
      else preview=child end
     elseif child:IsA("TextLabel") then
@@ -254,7 +251,7 @@ local function applyMessage()
   if d:IsA("TextButton") and d.BackgroundTransparency<.18 then d.BackgroundTransparency=.18 end
   if d:IsA("TextBox") then d.BackgroundTransparency=.24 end
  end
- panel:SetAttribute("BBYACompactMessage","V2_MENU_SIZE")
+ panel:SetAttribute("BBYACompactMessage","V3_CONTENT_ONLY")
  messageGuard=false
 end
 
@@ -277,8 +274,10 @@ end
 local function bindAll()
  local support=findSupport();local travel=findTravel();local drawer=menuDrawer()
  bind(hub,"Visible");bind(support,"Visible");bind(travel,"Visible")
- bind(drawer,"Size");bind(drawer,"Position")
- local wallUI=pg:FindFirstChild("BBYADJWallUI");local mp=wallUI and wallUI:FindFirstChild("DJWallComposerPanel",true);bind(mp,"Visible")
+ bind(drawer,"Size")
+ local wallUI=pg:FindFirstChild("BBYADJWallUI")
+ local mp=wallUI and wallUI:FindFirstChild("DJWallComposerPanel",true)
+ bind(mp,"Visible")
 end
 
 pg.ChildAdded:Connect(function()task.defer(function()bindAll();applyVisible()end)end)
@@ -290,4 +289,4 @@ task.defer(function()bindAll();applyVisible()end)
 task.delay(.5,function()bindAll();applyVisible()end)
 task.delay(1.5,function()bindAll();applyVisible()end)
 
-print("[BBYA] Compact Secondary Panels v2: SUPPORT / TRAVEL / MESSAGE now match MENU shell size")
+print("[BBYA] Compact Secondary Panels v3: compact content/size only; Command Menu v7 owns all panel placement")
