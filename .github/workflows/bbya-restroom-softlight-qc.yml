@@ -1,0 +1,67 @@
+name: BBYA Shared Restroom + Soft Club Light QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/112-shared-restroom-soft-club-light.server.lua'
+      - 'maps/bbya-social-hub/32-teleport.server.lua'
+      - 'maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-restroom-softlight-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-restroom-softlight.rbxl
+          test -s /tmp/bbya-restroom-softlight.rbxl
+      - name: Validate shared restroom and lighting
+        shell: bash
+        run: |
+          set -euo pipefail
+          world='maps/bbya-social-hub/112-shared-restroom-soft-club-light.server.lua'
+          tp='maps/bbya-social-hub/32-teleport.server.lua'
+          ui='maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+          manifest='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'SharedRestroomV1' "$world"
+          grep -q 'MainClubSoftLightingV1' "$world"
+          grep -q 'StallDoor_.*i' "$world"
+          grep -q 'VanityBase' "$world"
+          grep -q 'Mirror' "$world"
+          grep -q 'SoftCeilingFixture_' "$world"
+          grep -q 'SurfaceLight' "$world"
+          grep -q 'Toilet=CFrame.new(43,3,-13)' "$tp"
+          grep -q 'TRAVEL UI PATCH v11' "$ui"
+          grep -q 'TOILET / RESTROOM' "$ui"
+          grep -q 'ONE RESTROOM FOR ALL VENUES' "$ui"
+          grep -q 'SharedRestroomSoftClubLightV1' "$manifest"
+          grep -q '112-shared-restroom-soft-club-light.server.lua' "$manifest"
+
+          if grep -q 'ProximityPrompt' "$world"; then
+            echo 'Restroom must use Travel, not a duplicate world prompt.' >&2
+            exit 1
+          fi
+          if grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)' "$world"; then
+            echo 'Soft club pass must not alter global Lighting.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA shared restroom + soft club light QC passed.'
