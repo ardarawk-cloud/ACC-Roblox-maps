@@ -19,6 +19,7 @@ local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
 local musicRemote=remotes:WaitForChild("Music",30)
 local stateRemote=remotes:WaitForChild("State",30)
 local funkotRemote=remotes:WaitForChild("FunkotMusic",30)
+local vipRemote=remotes:WaitForChild("VIPMusic",30)
 
 local C={
  bg=Color3.fromRGB(10,11,16),card=Color3.fromRGB(21,22,29),card2=Color3.fromRGB(29,30,39),
@@ -192,8 +193,9 @@ local function clearRows()
  end
 end
 local function requestTrack(v,index)
- if resetActive() then showToast("PLAYLIST MASIH KOSONG");return end
- if v=="FUNKOT" then funkotRemote:FireServer("request",index)
+ if resetActive() and v~="VIP" then showToast("PLAYLIST MASIH KOSONG");return end
+ if v=="VIP" then vipRemote:FireServer("request",index)
+ elseif v=="FUNKOT" then funkotRemote:FireServer("request",index)
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("request",index)
  else showToast("REQUEST VENUE INI BELUM AKTIF") end
 end
@@ -212,8 +214,9 @@ local function rebuildPlaylist()
 end
 
 local function requestList(v)
- if resetActive() then return end
- if v=="FUNKOT" then funkotRemote:FireServer("list")
+ if resetActive() and v~="VIP" then return end
+ if v=="VIP" then vipRemote:FireServer("list")
+ elseif v=="FUNKOT" then funkotRemote:FireServer("list")
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("list") end
 end
 local function openMusic()
@@ -244,6 +247,7 @@ end)
 local function playPrevious()
  if not isAdmin() then return end
  local v=currentVenue();local s=state[v];local tracks=effectiveTracks(v);if not s or #tracks==0 then return end
+ if v=="VIP" then vipRemote:FireServer("previous");return end
  local prev=table.remove(s.history)
  if not prev then prev=((math.max(s.index,1)-2)%#tracks)+1 end
  if v=="FUNKOT" then funkotRemote:FireServer("play",prev)
@@ -252,7 +256,8 @@ end
 local function playNext()
  if not isAdmin() then return end
  local v=currentVenue();if #effectiveTracks(v)==0 then return end
- if v=="FUNKOT" then funkotRemote:FireServer("next")
+ if v=="VIP" then vipRemote:FireServer("next")
+ elseif v=="FUNKOT" then funkotRemote:FireServer("next")
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("next") end
 end
 adminPrev.Activated:Connect(playPrevious);adminNext.Activated:Connect(playNext)
@@ -277,6 +282,12 @@ funkotRemote.OnClientEvent:Connect(function(kind,data)
  elseif kind=="state" and type(data)=="table" then ingestState("FUNKOT",data) end
 end)
 
+vipRemote.OnClientEvent:Connect(function(kind,data)
+ if kind=="state" and type(data)=="table" then ingestState("VIP",data)
+ elseif kind=="toast" then showToast(data)
+ elseif kind=="playlist" and layer.Visible and currentVenue()=="VIP" then refreshCard();if drawer.Visible then rebuildPlaylist() end end
+end)
+
 local function activeSound()
  local v=currentVenue();local spec=VENUES[v];if not spec or not spec.group then return nil end
  local known={MAIN={"BBYAClubDeckA","BBYAClubDeckB"},UNDERGROUND={"BBYABasementDeckA","BBYABasementDeckB"},FUNKOT={"BBYAFunkotDeck"}}
@@ -290,7 +301,7 @@ end
 local peak,smooth,visualAcc=100,0,0
 RunService.RenderStepped:Connect(function(dt)
  visualAcc+=dt;if visualAcc<1/20 then return end;visualAcc=0
- local s=(not resetActive()) and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
+ local vv=currentVenue();local s=((not resetActive()) or vv=="VIP") and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
  peak=math.max(100,loud,peak*.985);local norm=math.clamp(loud/math.max(peak,100),0,1);smooth+=(norm-smooth)*.38
  local n=#waveBars
  for i,b in ipairs(waveBars) do local center=1-math.abs((i-(n+1)/2)/((n+1)/2));local h=3+math.floor(smooth*17*(.62+.38*center)+.5);b.Size=UDim2.new(.045,0,0,h) end
@@ -334,7 +345,7 @@ player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()if layer.Vi
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshAdmin)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(refreshCard)
 ReplicatedStorage:GetAttributeChangedSignal("BBYAMusicCatalogReset"):Connect(function()
- if resetActive() then for _,s in pairs(state) do s.tracks={};s.title="";s.index=0;s.playing=false end end
+ if resetActive() then for key,st in pairs(state) do if key~="VIP" then st.tracks={};st.title="";st.index=0;st.playing=false end end end
  if layer.Visible then refreshCard();rebuildPlaylist() end
 end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layout)end)

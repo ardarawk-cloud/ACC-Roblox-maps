@@ -1,0 +1,32 @@
+{
+  "status": "AUDITED",
+  "assets": [
+    {
+      "index": 1,
+      "title": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
+      "assetId": "105859685125263",
+      "http": 200,
+      "moderationState": "Approved",
+      "oldStatus": "LIVE_IN_PLAYLIST",
+      "newStatus": "LIVE_IN_PLAYLIST"
+    },
+    {
+      "index": 2,
+      "title": "Utopia - Baby Doll (Phatbee Edit)",
+      "assetId": "136681158481930",
+      "http": 200,
+      "moderationState": "Approved",
+      "oldStatus": "LIVE_IN_PLAYLIST",
+      "newStatus": "LIVE_IN_PLAYLIST"
+    },
+    {
+      "index": 5,
+      "title": "Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",
+      "assetId": "131557279061872",
+      "http": 200,
+      "moderationState": "Approved",
+      "oldStatus": "LIVE_IN_PLAYLIST",
+      "newStatus": "LIVE_IN_PLAYLIST"
+    }
+  ]
+}
