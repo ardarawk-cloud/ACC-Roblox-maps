@@ -41,11 +41,23 @@ jobs:
           ui='maps/bbya-social-hub/76-travel-ui-patch.client.lua'
           manifest='maps/bbya-social-hub/default.project.json'
 
+          grep -q 'SHARED RESTROOM + MAIN CLUB SOFT LIGHTING v2' "$world"
           grep -q 'SharedRestroomV1' "$world"
           grep -q 'MainClubSoftLightingV1' "$world"
+          grep -q 'V2_EXTENDED_REAR' "$world"
+          grep -q 'local backZ=-30.8' "$world"
+          grep -q 'RoomDepthStuds",21.6' "$world"
+          grep -q 'PrivacyDivider' "$world"
           grep -q 'StallDoor_.*i' "$world"
           grep -q 'VanityBase' "$world"
           grep -q 'Mirror' "$world"
+          grep -q 'AmenityShelf' "$world"
+          grep -q 'HandDryer' "$world"
+          grep -q 'RestroomCeilingLight_' "$world"
+          grep -q 'V2_SLIGHTLY_BRIGHTER' "$world"
+          grep -q 'NormalBrightness",.56' "$world"
+          grep -q 'BarBrightness",.70' "$world"
+          grep -q 'isBar and .70 or .56' "$world"
           grep -q 'SoftCeilingFixture_' "$world"
           grep -q 'SurfaceLight' "$world"
           grep -q 'Toilet=CFrame.new(43,3,-13)' "$tp"
@@ -64,4 +76,4 @@ jobs:
             exit 1
           fi
 
-          echo 'BBYA shared restroom + soft club light QC passed.'
+          echo 'BBYA shared restroom v2 + soft club light v2 QC passed.'
