@@ -1,23 +1,17 @@
-timestamp=2026-08-23T14:43:20.1196998+00:00
+timestamp=2026-08-23T14:44:36.2432209+00:00
 whoami=nt authority\network service
-PROCESS_SESSION_ID=0
-QUSER_BEGIN
+runner_session=0
+QUSER_BEFORE_BEGIN
 USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
- administrator                             2  Disc         8:21  8/22/2026 5:10 PM
-QUSER_END
-QWINSTA_BEGIN
-SESSIONNAME               USERNAME                 ID  STATE   TYPE        DEVICE 
->services                                            0  Disc                        
- console                                             1  Conn                        
-                           Administrator             2  Disc                        
- 31c5ce94259d4006a9e4                            65536  Listen                      
- rdp-tcp                                         65537  Listen
-QWINSTA_END
-DESKTOP_PROCESSES_BEGIN
-explorer|pid=5288|session=2|hwnd=0|title=
-LogonUI|pid=616|session=1|hwnd=0|title=
-LogonUI|pid=6820|session=2|hwnd=0|title=
-dwm|pid=848|session=1|hwnd=0|title=
-dwm|pid=3704|session=2|hwnd=0|title=
-RobloxStudioBeta=NONE
-DESKTOP_PROCESSES_END
+ administrator         rdp-tcp#0           2  Active          .  8/22/2026 5:10 PM
+QUSER_BEFORE_END
+admin_session=2|state=Active
+tscon_error=Could not connect sessionID 2 to sessionname console, Error code 1326
+studio_exe=C:\Program Files\Roblox\Versions\version-dcbeee682ce74ee0\RobloxStudioBeta.exe
+scheduled_task_error=Access is denied.
+
+STUDIO_VISIBLE=false|process=NONE
+QUSER_AFTER_BEGIN
+USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+ administrator         rdp-tcp#0           2  Active          2  8/22/2026 5:10 PM
+QUSER_AFTER_END
