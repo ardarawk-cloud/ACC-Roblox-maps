@@ -1,5 +1,5 @@
 -- BECAK E-BIKE — Nusakarya street-level realism surface pass v1.0
--- Adds visible street-level detail, restrained post-processing and material depth.
+-- Enhancement v1.1 adds road wear, manholes, tactile paving, utility cabinets and curb seams.
 -- Dedicated to maps/becak-e-bike; generated geometry is anchored and non-collision.
 
 local Workspace=game:GetService('Workspace')
@@ -39,6 +39,7 @@ local bloom=Lighting:FindFirstChild('BecakBloom') or Instance.new('BloomEffect')
 bloom.Name='BecakBloom';bloom.Intensity=.12;bloom.Size=20;bloom.Threshold=1.45;bloom.Parent=Lighting
 
 local roadCount,streetFurnitureCount,storeCount,greenCount=0,0,0,0
+local microRoadCount,utilityStreetCount=0,0
 
 -- Street gutters, drains and reflectors create scale cues at driving height.
 for x=-500,500,50 do
@@ -62,6 +63,52 @@ for z=-450,450,36 do
  local marker=part('LaneReflector',Vector3.new(.18,.08,.38),CFrame.new(0,.57,z),Color3.fromRGB(245,220,126),Enum.Material.Neon);marker.CastShadow=false;roadCount+=1
 end
 
+-- v1.1 road micro-detail: sparse enough for mobile, visible from normal driving height.
+local manholes={Vector3.new(-305,.57,-7.5),Vector3.new(-145,.57,8),Vector3.new(135,.57,-8),Vector3.new(305,.57,7.5),Vector3.new(-8,.57,-305),Vector3.new(7.5,.57,-145),Vector3.new(-7.5,.57,145),Vector3.new(8,.57,305)}
+for _,pos in ipairs(manholes) do
+ local cover=cylinder('ManholeCover',.08,1.35,CFrame.new(pos),Color3.fromRGB(57,59,61),Enum.Material.Metal);cover.CastShadow=false;microRoadCount+=1
+ local ring=cylinder('ManholeRing',.04,1.62,CFrame.new(pos-Vector3.new(0,.025,0)),Color3.fromRGB(78,79,78),Enum.Material.Metal);ring.CastShadow=false;microRoadCount+=1
+end
+
+local patches={
+ {Vector3.new(-240,.535,-6),Vector3.new(18,.025,7),8},{Vector3.new(215,.535,7),Vector3.new(14,.025,8),-6},
+ {Vector3.new(-7,.535,-245),Vector3.new(7,.025,17),-4},{Vector3.new(6,.535,235),Vector3.new(8,.025,15),5}
+}
+for _,spec in ipairs(patches) do
+ local patch=part('AsphaltRepairPatch',spec[2],CFrame.new(spec[1])*CFrame.Angles(0,math.rad(spec[3]),0),Color3.fromRGB(53,54,55),Enum.Material.Concrete);patch.CastShadow=false;microRoadCount+=1
+end
+
+-- Sidewalk/curb expansion seams prevent long perfect slabs from reading like blockout geometry.
+for x=-430,430,43 do
+ for _,z in ipairs({-25.05,25.05}) do
+  local seam=part('CurbExpansionJoint',Vector3.new(.09,.025,3.6),CFrame.new(x,.62,z),Color3.fromRGB(77,76,73),Enum.Material.Concrete);seam.CastShadow=false;microRoadCount+=1
+ end
+end
+for z=-430,430,43 do
+ for _,x in ipairs({-25.05,25.05}) do
+  local seam=part('CurbExpansionJoint',Vector3.new(3.6,.025,.09),CFrame.new(x,.62,z),Color3.fromRGB(77,76,73),Enum.Material.Concrete);seam.CastShadow=false;microRoadCount+=1
+ end
+end
+
+-- Tactile paving at the four central crossing approaches.
+for _,spec in ipairs({
+ {Vector3.new(-80,.64,-24.6),Vector3.new(7,.035,2.1)},{Vector3.new(90,.64,24.6),Vector3.new(7,.035,2.1)},
+ {Vector3.new(-24.6,.64,-90),Vector3.new(2.1,.035,7)},{Vector3.new(24.6,.64,90),Vector3.new(2.1,.035,7)}
+}) do
+ local tactile=part('TactilePaving',spec[2],CFrame.new(spec[1]),Color3.fromRGB(205,174,70),Enum.Material.Concrete);tactile.CastShadow=false;microRoadCount+=1
+end
+
+-- Small utility cabinets and hydrants add believable curbside infrastructure without collision.
+local utilityPoints={Vector3.new(-165,0,-27.2),Vector3.new(160,0,27.2),Vector3.new(-27.2,0,175),Vector3.new(27.2,0,-175)}
+for i,pos in ipairs(utilityPoints) do
+ local cabinet=part('StreetUtilityCabinet',Vector3.new(1.55,2.35,.82),CFrame.new(pos+Vector3.new(0,1.18,0)),Color3.fromRGB(81,91,83),Enum.Material.Metal);utilityStreetCount+=1
+ local cap=part('UtilityCabinetTop',Vector3.new(1.72,.12,.98),cabinet.CFrame*CFrame.new(0,1.23,0),Color3.fromRGB(63,70,66),Enum.Material.Metal);utilityStreetCount+=1
+ if i%2==0 then
+  local post=cylinder('FireHydrantBody',1.28,.42,CFrame.new(pos+Vector3.new(2.3,.72,0)),Color3.fromRGB(160,54,43),Enum.Material.Metal);utilityStreetCount+=1
+  local top=part('FireHydrantCap',Vector3.new(.9,.35,.9),post.CFrame*CFrame.new(0,.78,0),Color3.fromRGB(187,64,48),Enum.Material.Metal,Enum.PartType.Ball);utilityStreetCount+=1
+ end
+end
+
 -- Benches, bins and planter clusters: simple rounded silhouettes, sparse placement for mobile.
 local furniturePoints={
  Vector3.new(115,0,-105),Vector3.new(185,0,-105),Vector3.new(255,0,-105),
@@ -71,7 +118,7 @@ for i,pos in ipairs(furniturePoints) do
  local seat=part('StreetBenchSeat',Vector3.new(6.5,.38,1.6),CFrame.new(pos+Vector3.new(0,1.8,0)),Color3.fromRGB(112,76,48),Enum.Material.Wood);streetFurnitureCount+=1
  local back=part('StreetBenchBack',Vector3.new(6.5,1.7,.28),CFrame.new(pos+Vector3.new(0,2.75,.7))*CFrame.Angles(math.rad(-8),0,0),Color3.fromRGB(100,68,43),Enum.Material.Wood);streetFurnitureCount+=1
  for _,x in ipairs({-2.5,2.5}) do cylinder('BenchLeg',1.55,.09,CFrame.new(pos+Vector3.new(x,1.0,0)),Color3.fromRGB(58,60,62),Enum.Material.Metal);streetFurnitureCount+=1 end
- local bin=cylinder('StreetBin',2.2,.7,CFrame.new(pos+Vector3.new(4.2,1.1,0)),Color3.fromRGB(48,74,58),Enum.Material.Metal);streetFurnitureCount+=1
+ cylinder('StreetBin',2.2,.7,CFrame.new(pos+Vector3.new(4.2,1.1,0)),Color3.fromRGB(48,74,58),Enum.Material.Metal);streetFurnitureCount+=1
 end
 
 -- Storefront depth: doors, transom glass, side lamps and varied material accents on existing building models.
@@ -91,7 +138,7 @@ for _,model in ipairs(world:GetChildren()) do
      local lamp=part('FacadeLamp',Vector3.new(.26,.54,.54),cf*CFrame.new(x,-size.Y/2+math.clamp(size.Y*.32,5.4,7.6),front-.3),Color3.fromRGB(255,220,152),Enum.Material.Neon,Enum.PartType.Ball);lamp.CastShadow=false;storeCount+=1
     end
    end
-   local plinth=part('MaterialPlinth',Vector3.new(size.X*.88,.5,.48),cf*CFrame.new(0,-size.Y/2+.26,front+.08),accent,Enum.Material.Brick);storeCount+=1
+   part('MaterialPlinth',Vector3.new(size.X*.88,.5,.48),cf*CFrame.new(0,-size.Y/2+.26,front+.08),accent,Enum.Material.Brick);storeCount+=1
   end
  end
 end
@@ -105,16 +152,22 @@ for i,pos in ipairs(greenPoints) do
  end
  for a=0,2 do
   local ang=a*math.pi*2/3
-  local shrub=part('GroundShrub',Vector3.new(2.0,1.4,2.0),CFrame.new(pos+Vector3.new(math.cos(ang)*2.5,.7,math.sin(ang)*2.5)),Color3.fromRGB(58,128,69),Enum.Material.Grass,Enum.PartType.Ball);greenCount+=1
+  part('GroundShrub',Vector3.new(2.0,1.4,2.0),CFrame.new(pos+Vector3.new(math.cos(ang)*2.5,.7,math.sin(ang)*2.5)),Color3.fromRGB(58,128,69),Enum.Material.Grass,Enum.PartType.Ball);greenCount+=1
  end
 end
 
 Workspace:SetAttribute('ACC_BecakCityRealismSurface','v1.0')
+Workspace:SetAttribute('ACC_BecakCityRealismSurfaceEnhancement','v1.1')
 Workspace:SetAttribute('BecakRealismLighting','ON')
 Workspace:SetAttribute('BecakStreetSurfaceDetail','ON')
 Workspace:SetAttribute('BecakStorefrontDepth','ON')
 Workspace:SetAttribute('BecakVegetationLayering','ON')
+Workspace:SetAttribute('BecakRoadMicroDetail','ON')
+Workspace:SetAttribute('BecakTactilePaving','ON')
+Workspace:SetAttribute('BecakCurbsideInfrastructure','ON')
 Workspace:SetAttribute('BecakRealismRoadSurfaceCount',roadCount)
 Workspace:SetAttribute('BecakRealismStreetFurnitureCount',streetFurnitureCount)
 Workspace:SetAttribute('BecakRealismStoreDetailCount',storeCount)
 Workspace:SetAttribute('BecakRealismGreenDetailCount',greenCount)
+Workspace:SetAttribute('BecakRealismRoadMicroCount',microRoadCount)
+Workspace:SetAttribute('BecakRealismUtilityStreetCount',utilityStreetCount)
