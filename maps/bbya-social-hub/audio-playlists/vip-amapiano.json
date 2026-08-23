@@ -70,6 +70,19 @@
       "bbyaPermission": false,
       "status": "PREPARED_LOCAL",
       "moderationLastKnown": null
+    },
+    {
+      "index": 6,
+      "title": "The Changcuters - I Love U Bibeh (Phatbee & Berco Edit)",
+      "driveFileId": "1_-SFgPzdaZj8rABAy7paPgxSyzAQ0wVZ",
+      "musicalKey": "F# minor",
+      "camelot": "11A",
+      "sourceDurationSeconds": 240.07,
+      "sourceSizeBytes": 3965001,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
