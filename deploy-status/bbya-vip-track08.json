@@ -1,0 +1,134 @@
+{
+  "status": "MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 8,
+  "title": "SZA - The Weekend (Davejaxx Amapiano Edit)",
+  "driveFileId": "1Zw1Rx1vYhWbrVTAY58IHzdWFzZ3cFivV",
+  "musicalKey": "D# minor / Eb minor",
+  "camelot": "2A",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "97273908516657",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/a4f86553-e847-47ac-b3c8-d9e9cb0d0aa2",
+    "operationId": "a4f86553-e847-47ac-b3c8-d9e9cb0d0aa2",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a4f86553-e847-47ac-b3c8-d9e9cb0d0aa2",
+    "operationId": "a4f86553-e847-47ac-b3c8-d9e9cb0d0aa2",
+    "done": true,
+    "response": {
+      "path": "assets/97273908516657",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T17:11:28.040696700Z",
+      "assetId": "97273908516657",
+      "displayName": "SZA - The Weekend (Davejaxx Amapiano Edit)",
+      "description": "BBYA VIP Amapiano Track 08",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ]
+}
