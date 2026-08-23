@@ -82,7 +82,7 @@ local engineNames={"BasementIndoAutoDJ","FunkotVenueMusicV2","AudioWatchdog","Au
 local function disableOldAudioEngines()
  for _,name in ipairs(engineNames) do
   local s=ServerScriptService:FindFirstChild(name)
-  if s and s:IsA("BaseScript") and s~=script then pcall(function()s.Enabled=false end) end
+  if s and s:IsA("BaseScript") and s~=script then pcall(function()s.Disabled=true end) end
  end
 end
 
