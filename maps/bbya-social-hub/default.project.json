@@ -86,6 +86,7 @@
       "FishingPremiumUpgradeV3": {"$path": "125-fishing-premium-v3.server.lua"},
       "FishingFeedbackHotfixV394": {"$path": "127-fishing-feedback-hotfix.server.lua"},
       "FishingProgressionV4": {"$path": "128-fishing-progression-v4.server.lua"},
+      "FishingSatisfactionV6": {"$path": "130-fishing-satisfaction-v6.server.lua"},
       "DeveloperDJMixerV1": {"$path": "126-developer-dj-mixer.server.lua"},
       "DeveloperDJPerformanceV4": {"$path": "129-developer-dj-performance-v4.server.lua"},
       "VIPTrack01AuthorityV2": {"$path": "110-vip-track01.server.lua"}
@@ -130,6 +131,7 @@
         "FishingPremiumClientV3": {"$path": "125-fishing-premium-v3.client.lua"},
         "FishingFeedbackHotfixClientV394": {"$path": "127-fishing-feedback-hotfix.client.lua"},
         "FishingProgressionClientV4": {"$path": "128-fishing-progression-v4.client.lua"},
+        "FishingGateSatisfactionV6": {"$path": "130-fishing-gate-v6.client.lua"},
         "DeveloperDJMixerClientV1": {"$path": "126-developer-dj-mixer.client.lua"},
         "DeveloperDJPerformanceClientV4": {"$path": "129-developer-dj-performance-v4.client.lua"}
       }
