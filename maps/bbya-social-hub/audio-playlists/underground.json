@@ -1,0 +1,27 @@
+{
+  "playlistId": "underground",
+  "venue": "UNDERGROUND",
+  "genre": "Underground / Breakbeat / BKB",
+  "sourceFolder": "https://drive.google.com/drive/folders/1ukwoQNlDl7VMhA0BSg_DVUe3qwojfTJk",
+  "expectedUploaderUserId": "9296030038",
+  "oneTrackPerInjection": true,
+  "policy": {
+    "noBatchUpload": true,
+    "noAutomaticDuplicateRetry": true,
+    "blacklistOnModerationRejection": true,
+    "publishOnlyAfterApprovalAndPermission": true
+  },
+  "tracks": [
+    {
+      "index": 1,
+      "title": "Vemouz - Hotel Room BKB (Extended Mix)",
+      "driveFileId": "1ueSSvIhCwgiNMwKes8XGvgTKikkrblUz",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 9863235,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    }
+  ]
+}
