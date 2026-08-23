@@ -21,18 +21,16 @@ jobs:
     timeout-minutes: 20
     env:
       BBYA_UNIVERSE: '8116636513'
-      BBYA_PLACE: '131894120482837'
       VIP_ASSET_ID: '105859685125263'
       VIP_TRACK_TITLE: 'Wonder Girls - Nobody (ROOKIE Amapiano Edit)'
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Patch final VIP music authorities
+      - name: Patch actual compact VIP UI and hard server authority
         shell: bash
         run: |
           set -euo pipefail
@@ -43,7 +41,6 @@ jobs:
           title='Wonder Girls - Nobody (ROOKIE Amapiano Edit)'
           asset='105859685125263'
 
-          # 103 is the actual compact UI shown in-game. Make VIP survive global catalog reset.
           p=root/'103-music-ui-final.client.lua'
           s=p.read_text(encoding='utf-8')
           old='''local state={}
@@ -52,16 +49,14 @@ jobs:
            if resetActive() then return {} end
            return (state[v] and state[v].tracks) or {}
           end'''
-          new=f'''local VIP_TRACK={{title={title!r},assetId={asset!r}}}
-          local state={{}}
-          for key in pairs(VENUES) do state[key]={{title="",index=0,playing=false,tracks={{}},history={{}},cover=""}} end
+          new='''local VIP_TRACK={title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263"}
+          local state={}
+          for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
           local function effectiveTracks(v)
-           if v=="VIP" then return {{VIP_TRACK}} end
-           if resetActive() then return {{}} end
-           return (state[v] and state[v].tracks) or {{}}
+           if v=="VIP" then return {VIP_TRACK} end
+           if resetActive() then return {} end
+           return (state[v] and state[v].tracks) or {}
           end'''
-          # Convert Python repr quotes to Lua-compatible double-quoted literals.
-          new=new.replace("'Wonder Girls - Nobody (ROOKIE Amapiano Edit)'", '"Wonder Girls - Nobody (ROOKIE Amapiano Edit)"').replace("'105859685125263'", '"105859685125263"')
           if old not in s:
               raise SystemExit('103 effectiveTracks block not found')
           s=s.replace(old,new,1)
@@ -96,25 +91,6 @@ jobs:
           s=s.replace(old2,new2,1)
           p.write_text(s,encoding='utf-8')
 
-          # Reset authority must never zero the active VIP group again.
-          p=root/'109-music-catalog-reset.server.lua'
-          s=p.read_text(encoding='utf-8')
-          old=''' for _,g in pairs(groups) do
-           g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
-          end'''
-          new=''' for name,g in pairs(groups) do
-           if name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then
-            g.Volume=.62;g:SetAttribute("PlaylistReady",true);g:SetAttribute("PlaylistCount",1);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","VIP_TRACK01_ACTIVE")
-           else
-            g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
-           end
-          end'''
-          if old not in s:
-              raise SystemExit('109 group reset block not found')
-          s=s.replace(old,new,1)
-          p.write_text(s,encoding='utf-8')
-
-          # Track 01 authority: immediate + persistent, so delayed resets/races cannot erase it.
           p=root/'110-vip-track01.server.lua'
           p.write_text(f'''-- BBYA SOCIAL HUB - VIP TRACK 01 HARD AUTHORITY v3
           local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -125,7 +101,6 @@ jobs:
            ReplicatedStorage:SetAttribute("BBYAVIPTrack01Enabled",true)
            ReplicatedStorage:SetAttribute("BBYAVIPTrack01Title",TRACK.title)
            ReplicatedStorage:SetAttribute("BBYAVIPTrack01AssetId",TRACK.assetId)
-
            local group=SoundService:FindFirstChild("BBYAVIPMaster")
            if group and not group:IsA("SoundGroup") then group:Destroy();group=nil end
            if not group then group=Instance.new("SoundGroup");group.Name="BBYAVIPMaster";group.Parent=SoundService end
@@ -137,29 +112,16 @@ jobs:
            group:SetAttribute("RecoveryActive",false)
            group:SetAttribute("RecoveryFallbackCount",0)
            group:SetAttribute("MusicCatalogState","VIP_TRACK01_ACTIVE")
-
            local snd=SoundService:FindFirstChild("BBYAVIPTrack01")
            if snd and not snd:IsA("Sound") then snd:Destroy();snd=nil end
-           if not snd then
-            snd=Instance.new("Sound")
-            snd.Name="BBYAVIPTrack01"
-            snd.Looped=true
-            snd.Parent=SoundService
-           end
+           if not snd then snd=Instance.new("Sound");snd.Name="BBYAVIPTrack01";snd.Looped=true;snd.Parent=SoundService end
            snd.SoundId="rbxassetid://"..TRACK.assetId
-           snd.Volume=.72
-           snd.Looped=true
-           snd.SoundGroup=group
-           snd:SetAttribute("Title",TRACK.title)
-           snd:SetAttribute("Venue","VIP")
-           snd:SetAttribute("PlaylistIndex",1)
+           snd.Volume=.72;snd.Looped=true;snd.SoundGroup=group
+           snd:SetAttribute("Title",TRACK.title);snd:SetAttribute("Venue","VIP");snd:SetAttribute("PlaylistIndex",1)
            if not snd.IsPlaying then pcall(function() snd:Play() end) end
           end
-
           enforce()
-          task.spawn(function()
-           while task.wait(1) do enforce() end
-          end)
+          task.spawn(function() while task.wait(1) do enforce() end end)
           print("[BBYA] VIP Track 01 HARD AUTHORITY v3:",TRACK.title,TRACK.assetId)
           ''',encoding='utf-8')
           PY
@@ -208,28 +170,20 @@ jobs:
 
       - name: Persist source and receipt
         shell: bash
+        env:
+          RESTART_HTTP: ${{ steps.restart.outputs.http }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json, pathlib, os
-          p=pathlib.Path('deploy-status/bbya-vip-track01-ui-fix.json')
           receipt=pathlib.Path('deploy-status/a-club.json')
-          d={
-            'status':'LIVE_PUBLISHED',
-            'track':'Wonder Girls - Nobody (ROOKIE Amapiano Edit)',
-            'assetId':'105859685125263',
-            'uiAuthority':'103-music-ui-final.client.lua',
-            'serverAuthority':'110-vip-track01.server.lua v3',
-            'restartHttp':os.environ.get('RESTART_HTTP','')
-          }
+          d={'status':'LIVE_PUBLISHED','track':'Wonder Girls - Nobody (ROOKIE Amapiano Edit)','assetId':'105859685125263','uiAuthority':'103-music-ui-final.client.lua','serverAuthority':'110-vip-track01.server.lua v3','restartHttp':os.environ.get('RESTART_HTTP','')}
           if receipt.exists(): d['publishReceipt']=json.loads(receipt.read_text())
-          p.write_text(json.dumps(d,indent=2)+'\n')
+          pathlib.Path('deploy-status/bbya-vip-track01-ui-fix.json').write_text(json.dumps(d,indent=2)+'\n')
           PY
           git config user.name 'ACC Roblox Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/109-music-catalog-reset.server.lua maps/bbya-social-hub/110-vip-track01.server.lua deploy-status/a-club.json deploy-status/bbya-vip-track01-ui-fix.json
+          git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/110-vip-track01.server.lua deploy-status/a-club.json deploy-status/bbya-vip-track01-ui-fix.json
           git commit -m 'Fix BBYA VIP Track 01 live UI authority [skip ci]'
           git pull --rebase origin main
           git push origin HEAD:main
-        env:
-          RESTART_HTTP: ${{ steps.restart.outputs.http }}
