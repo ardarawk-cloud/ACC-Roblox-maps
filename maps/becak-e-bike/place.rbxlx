@@ -964,10 +964,10 @@ task.spawn(function()
   task.wait(BREAK_DURATION)
  end
 end)
-]]></ProtectedString></Properties></Item><Item class="Script" referent="TR"><Properties><string name="Name">BecakEBike_TrafficNPC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.15
+]]></ProtectedString></Properties></Item><Item class="Script" referent="TR"><Properties><string name="Name">BecakEBike_TrafficNPC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.16
 -- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
 -- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, adaptive cadence,
--- and per-tick proximity snapshots to avoid repeated character/vehicle tree scans.
+-- per-tick proximity snapshots, and logic-only model LOD for off-screen actors.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -1033,7 +1033,7 @@ local actors={}
 for i=1,6 do
  local route=routes[((i-1)%#routes)+1]
  local m=makeVehicle('Traffic_'..i,colors[((i-1)%#colors)+1])
- actors[#actors+1]={model=m,route=route,seg=((i-1)%#route)+1,t=(i*.13)%1,speed=18+(i%3)*3,yielding=false}
+ actors[#actors+1]={model=m,route=route,seg=((i-1)%#route)+1,t=(i*.13)%1,speed=18+(i%3)*3,yielding=false,logicalPos=nil}
 end
 local walkers={}
 for i=1,8 do
@@ -1042,9 +1042,7 @@ for i=1,8 do
  walkers[#walkers+1]={model=m,a=route[1],b=route[2],t=(i*.17)%1,dir=(i%2==0) and 1 or -1,speed=4+(i%2)}
 end
 
--- v1.15: snapshot relevant player/vehicle parts once per simulation step.
--- This avoids repeated Players:GetPlayers(), Character:FindFirstChild(), and Vehicles:GetChildren()
--- work for every traffic actor and pedestrian while preserving the same proximity behavior.
+-- Snapshot relevant player/vehicle parts once per simulation step.
 local function buildProximitySnapshot()
  local playerTargets={}
  for _,plr in ipairs(Players:GetPlayers()) do
@@ -1072,15 +1070,27 @@ local function nearestFromSnapshot(targets,pos)
  return best,bestPart
 end
 
+local function actorRouteState(a)
+ local from=a.route[a.seg]
+ local to=a.route[a.seg%#a.route+1]
+ local len=(to-from).Magnitude
+ local pos=from:Lerp(to,a.t)
+ local travel=(to-from).Unit
+ return from,to,len,pos,travel
+end
+
 local function trafficAhead(selfActor,pos,travel)
  local nearest=math.huge
  for _,other in ipairs(actors) do
-  if other~=selfActor and other.model.PrimaryPart then
-   local relative=other.model.PrimaryPart.Position-pos
-   local ahead=relative:Dot(travel)
-   if ahead>0 and ahead<28 then
-    local lateral=(relative-travel*ahead).Magnitude
-    if lateral<7 then nearest=math.min(nearest,ahead) end
+  if other~=selfActor then
+   local otherPos=other.logicalPos or (other.model.PrimaryPart and other.model.PrimaryPart.Position)
+   if otherPos then
+    local relative=otherPos-pos
+    local ahead=relative:Dot(travel)
+    if ahead>0 and ahead<28 then
+     local lateral=(relative-travel*ahead).Magnitude
+     if lateral<7 then nearest=math.min(nearest,ahead) end
+    end
    end
   end
  end
@@ -1103,6 +1113,8 @@ local function intersectionScale(pos,travel)
 end
 
 local function setBrakeLights(model,on)
+ if model:GetAttribute('BrakeState')==on then return end
+ model:SetAttribute('BrakeState',on)
  local c=on and Color3.fromRGB(255,40,28) or Color3.fromRGB(90,15,15)
  for _,x in ipairs(model:GetChildren()) do if x.Name=='BrakeLight' and x:IsA('BasePart') then x.Color=c end end
 end
@@ -1126,10 +1138,15 @@ RunService.Heartbeat:Connect(function(dt)
  Workspace:SetAttribute('BecakTrafficSnapshotPlayers',#playerSnapshot)
  Workspace:SetAttribute('BecakTrafficSnapshotVehicles',#vehicleSnapshot)
 
+ -- Precompute logical positions once. Headway uses these positions even when models are culled.
  for _,a in ipairs(actors) do
-  local from=a.route[a.seg];local to=a.route[a.seg%#a.route+1];local len=(to-from).Magnitude
-  local pos=from:Lerp(to,a.t)
-  local travel=(to-from).Unit
+  local _,_,_,pos=actorRouteState(a)
+  a.logicalPos=pos
+ end
+
+ local fullTrafficModels=0
+ for _,a in ipairs(actors) do
+  local from,to,len,pos,travel=actorRouteState(a)
   local playerDist,hrp=nearestFromSnapshot(playerSnapshot,pos)
   local vehicleDist,vehiclePart=nearestFromSnapshot(vehicleSnapshot,pos)
   local yieldNow=false
@@ -1154,14 +1171,22 @@ RunService.Heartbeat:Connect(function(dt)
    if a.t>=1 then a.t-=1;a.seg=a.seg%#a.route+1;from=a.route[a.seg];to=a.route[a.seg%#a.route+1] end
    pos=from:Lerp(to,a.t)
   end
-  local cf=CFrame.lookAt(pos,to)
-  a.model:PivotTo(cf)
+  a.logicalPos=pos
+
+  local visible=playerDist<430 or vehicleDist<430
   a.model:SetAttribute('Yielding',yieldNow)
   a.model:SetAttribute('IntersectionSpeedScale',speedScale)
-  setBrakeLights(a.model,yieldNow or speedScale<.7)
-  setVisible(a.model,playerDist<430 or vehicleDist<430)
+  a.model:SetAttribute('SimulationLOD',visible and 'FULL' or 'LOGIC_ONLY')
+  setVisible(a.model,visible)
+  if visible then
+   fullTrafficModels+=1
+   local cf=CFrame.lookAt(pos,to)
+   a.model:PivotTo(cf)
+   setBrakeLights(a.model,yieldNow or speedScale<.7)
+  end
  end
 
+ local fullPedestrianModels=0
  for _,w in ipairs(walkers) do
   local len=(w.b-w.a).Magnitude
   local pos=w.a:Lerp(w.b,w.t)
@@ -1170,12 +1195,22 @@ RunService.Heartbeat:Connect(function(dt)
   local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1 -- pause before clipping through player/becak
   w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
   if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
-  pos=w.a:Lerp(w.b,w.t);local target=w.dir>0 and w.b or w.a
-  w.model:PivotTo(CFrame.lookAt(pos,target));setVisible(w.model,playerDist<240 or vehicleDist<240)
+  pos=w.a:Lerp(w.b,w.t)
+  local visible=playerDist<240 or vehicleDist<240
+  w.model:SetAttribute('SimulationLOD',visible and 'FULL' or 'LOGIC_ONLY')
+  setVisible(w.model,visible)
+  if visible then
+   fullPedestrianModels+=1
+   local target=w.dir>0 and w.b or w.a
+   w.model:PivotTo(CFrame.lookAt(pos,target))
+  end
  end
+
+ Workspace:SetAttribute('BecakTrafficFullModelCount',fullTrafficModels)
+ Workspace:SetAttribute('BecakPedestrianFullModelCount',fullPedestrianModels)
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.15')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.16')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
@@ -1185,9 +1220,11 @@ Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
 Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
 Workspace:SetAttribute('BecakTrafficProximitySnapshot','ON')
+Workspace:SetAttribute('BecakTrafficModelLOD','ON')
+Workspace:SetAttribute('BecakTrafficLogicOnlyCull','ON')
 Workspace:SetAttribute('BecakTrafficOccupiedHz',20)
 Workspace:SetAttribute('BecakTrafficEmptyHz',4)
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.15 ready: cached proximity snapshots + intersection pacing + yield')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.16 ready: snapshot + logic-only model LOD + intersection pacing + yield')
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="V"><Properties><string name="Name">BecakEBike_VehicleMasterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — Cargo E-Bike 01 masterplan vehicle visual v1.0
 -- Canon visual: 3 wheels, 2x front 20in, 1x rear 26in, front cargo box,
 -- rider saddle behind cargo, upright handlebar, matte-black carbon-steel look.
