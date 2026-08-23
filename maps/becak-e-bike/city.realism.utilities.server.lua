@@ -65,8 +65,8 @@ local function addPole(position, axis)
     local pole = setup(Instance.new("Part"), Color3.fromRGB(70, 67, 61), Enum.Material.Wood)
     pole.Name = "Pole"
     pole.Shape = Enum.PartType.Cylinder
-    pole.Size = Vector3.new(0.8, 11.5, 0.8)
-    pole.CFrame = CFrame.new(position + Vector3.new(0, 5.75, 0))
+    pole.Size = Vector3.new(11.5, 0.8, 0.8)
+    pole.CFrame = CFrame.new(position + Vector3.new(0, 5.75, 0)) * CFrame.Angles(0, 0, math.rad(90))
     pole.Parent = model
 
     local arm = setup(Instance.new("Part"), Color3.fromRGB(69, 72, 75), Enum.Material.Metal)
@@ -77,7 +77,7 @@ local function addPole(position, axis)
 
     local attachments = {}
     for i, offset in ipairs({-1.55, 0, 1.55}) do
-        local insulator = setup(Instance.new("Part"), Color3.fromRGB(170, 166, 150), Enum.Material.Ceramic)
+        local insulator = setup(Instance.new("Part"), Color3.fromRGB(170, 166, 150), Enum.Material.SmoothPlastic)
         insulator.Name = "Insulator"
         insulator.Shape = Enum.PartType.Ball
         insulator.Size = Vector3.new(0.28, 0.28, 0.28)
@@ -134,7 +134,7 @@ for z = -430, 430, 86 do
 end
 utilityLine(northSouth, "Z")
 
--- Realistic road surface cues: zebra crossings, parking bays and edge reflectors.
+-- Realistic road surface cues: zebra crossings and parking-bay edge markings.
 local function zebra(center, alongX)
     for i = -4, 4 do
         local offset = i * 2.35
