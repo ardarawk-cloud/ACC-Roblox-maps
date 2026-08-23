@@ -1,4 +1,4 @@
--- BBYAVATAR FPS authoritative game server v0.2
+-- BBYAVATAR FPS authoritative game server v0.2.1
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
@@ -6,6 +6,18 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("FPSConfig"))
 Players.RespawnTime = Config.RespawnTime
+
+local function ensureTeam(name, color)
+    local team = Teams:FindFirstChild(name) or Instance.new("Team")
+    team.Name = name
+    team.TeamColor = color
+    team.AutoAssignable = false
+    team.Parent = Teams
+    return team
+end
+
+local AlphaTeam = ensureTeam("ALPHA", BrickColor.new("Bright blue"))
+local BravoTeam = ensureTeam("BRAVO", BrickColor.new("Bright red"))
 
 local remotes = ReplicatedStorage:FindFirstChild("FPSRemotes") or Instance.new("Folder")
 remotes.Name = "FPSRemotes"
@@ -29,6 +41,23 @@ local teamScores = {ALPHA = 0, BRAVO = 0}
 local roundNumber = 1
 local roundEnding = false
 local roundEndsAt = Workspace:GetServerTimeNow() + Config.RoundTime
+local spawnCursor = {ALPHA = 0, BRAVO = 0}
+
+local spawnNames = {
+    ALPHA = {"AlphaSpawn1", "AlphaSpawn2"},
+    BRAVO = {"BravoSpawn1", "BravoSpawn2"},
+}
+
+local fallbackSpawns = {
+    ALPHA = {
+        CFrame.new(-194, 6, -45) * CFrame.Angles(0, math.rad(-90), 0),
+        CFrame.new(-194, 6, 45) * CFrame.Angles(0, math.rad(-90), 0),
+    },
+    BRAVO = {
+        CFrame.new(194, 6, -45) * CFrame.Angles(0, math.rad(90), 0),
+        CFrame.new(194, 6, 45) * CFrame.Angles(0, math.rad(90), 0),
+    },
+}
 
 local function cloneAmmo()
     local result = {}
@@ -44,7 +73,20 @@ local function chooseTeam()
         if p.Team and p.Team.Name == "ALPHA" then alphaCount += 1 end
         if p.Team and p.Team.Name == "BRAVO" then bravoCount += 1 end
     end
-    return (alphaCount <= bravoCount) and Teams:FindFirstChild("ALPHA") or Teams:FindFirstChild("BRAVO")
+    return (alphaCount <= bravoCount) and AlphaTeam or BravoTeam
+end
+
+local function nextSpawnCFrame(player)
+    local teamName = player.Team and player.Team.Name or "ALPHA"
+    if not spawnNames[teamName] then teamName = "ALPHA" end
+    spawnCursor[teamName] = (spawnCursor[teamName] % #spawnNames[teamName]) + 1
+    local index = spawnCursor[teamName]
+    local spawnPart = Workspace:FindFirstChild(spawnNames[teamName][index])
+    if spawnPart and spawnPart:IsA("BasePart") then
+        local facing = teamName == "ALPHA" and -90 or 90
+        return CFrame.new(spawnPart.Position + Vector3.new(0, 4.8, 0)) * CFrame.Angles(0, math.rad(facing), 0)
+    end
+    return fallbackSpawns[teamName][index]
 end
 
 local function sendSnapshot(player)
@@ -148,7 +190,14 @@ local function validateOrigin(player, origin)
     return (origin - head.Position).Magnitude <= 12
 end
 
+local function clearSpawnProtection(character)
+    local shield = character and character:FindFirstChild("SpawnProtection")
+    if shield then shield:Destroy() end
+    if character and character.Parent then character:SetAttribute("SpawnProtectedUntil", nil) end
+end
+
 local function applySpawnProtection(character)
+    clearSpawnProtection(character)
     local shield = Instance.new("ForceField")
     shield.Name = "SpawnProtection"
     shield.Visible = false
@@ -165,6 +214,24 @@ local function isProtected(player)
     return character and character:FindFirstChild("SpawnProtection") ~= nil
 end
 
+local function placeCharacterSafely(player, character, restoreHealth)
+    if not character or character ~= player.Character then return false end
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not hum or not root or hum.Health <= 0 then return false end
+
+    local target = nextSpawnCFrame(player)
+    root.AssemblyLinearVelocity = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    character:PivotTo(target)
+    hum.PlatformStand = false
+    hum.Sit = false
+    if restoreHealth then hum.Health = hum.MaxHealth end
+    applySpawnProtection(character)
+    State:FireClient(player, "spawnSafe", {duration = Config.SpawnProtection})
+    return true
+end
+
 local function isMilestone(count)
     for _, value in ipairs(Config.KillstreakMilestones) do
         if value == count then return true end
@@ -174,12 +241,18 @@ end
 
 local function setupCharacter(player, character)
     local hum = character:WaitForChild("Humanoid", 10)
-    if not hum then return end
+    local root = character:WaitForChild("HumanoidRootPart", 10)
+    if not hum or not root then return end
     hum.MaxHealth = Config.MaxHealth
     hum.Health = Config.MaxHealth
     hum.WalkSpeed = Config.WalkSpeed
     hum.JumpPower = 46
-    applySpawnProtection(character)
+
+    task.defer(function()
+        if character.Parent and player.Character == character then
+            placeCharacterSafely(player, character, true)
+        end
+    end)
 
     local creator = Instance.new("ObjectValue")
     creator.Name = "LastAttacker"
@@ -344,11 +417,13 @@ Fire.OnServerEvent:Connect(function(player, packet)
         return
     end
 
+    local char = player.Character
+    if not char then return end
+    clearSpawnProtection(char)
+
     ammo.mag -= 1
     State:FireClient(player, "ammo", {weapon = key, mag = ammo.mag, reserve = ammo.reserve})
 
-    local char = player.Character
-    if not char then return end
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Exclude
     params.FilterDescendantsInstances = {char}
@@ -382,6 +457,24 @@ end)
 
 task.spawn(function()
     while true do
+        task.wait(0.25)
+        for _, player in ipairs(Players:GetPlayers()) do
+            local character = player.Character
+            local hum = character and character:FindFirstChildOfClass("Humanoid")
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            if hum and root and hum.Health > 0 then
+                local p = root.Position
+                local outside = p.Y < Config.FallRescueY or math.abs(p.X) > Config.SafeBoundsX or math.abs(p.Z) > Config.SafeBoundsZ
+                if outside then
+                    placeCharacterSafely(player, character, true)
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
         task.wait(1)
         if not roundEnding and Workspace:GetServerTimeNow() >= roundEndsAt then
             finishRound("TIME", nil)
@@ -389,4 +482,4 @@ task.spawn(function()
     end
 end)
 
-print("[BBYAVATAR FPS] Authoritative combat server v0.2 ready")
+print("[BBYAVATAR FPS] Authoritative combat server v0.2.1 ready")

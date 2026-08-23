@@ -1,12 +1,15 @@
 -- BBYAVATAR FPS vertical slice configuration
 return {
-    Version = "FPS-PROTOTYPE-0.2",
+    Version = "FPS-PROTOTYPE-0.2.1",
     Mode = "TEAM DEATHMATCH",
     ScoreLimit = 50,
     RoundTime = 480,
     RoundIntermission = 6,
     RespawnTime = 3,
-    SpawnProtection = 2.5,
+    SpawnProtection = 5,
+    FallRescueY = -18,
+    SafeBoundsX = 232,
+    SafeBoundsZ = 172,
     WalkSpeed = 16,
     SprintSpeed = 22,
     MaxHealth = 100,
