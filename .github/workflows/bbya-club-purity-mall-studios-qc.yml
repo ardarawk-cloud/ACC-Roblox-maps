@@ -1,0 +1,69 @@
+name: BBYA Club Purity + Mall Studios QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-club-purity-mall-studios-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-club-purity-mall-studios.rbxl
+          test -s /tmp/bbya-club-purity-mall-studios.rbxl
+      - name: Validate club purity and relocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
+          manifest='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'CLUB_PURITY_MALL_STUDIOS_V1' "$f"
+          grep -q 'ClubPureNightclub' "$f"
+          grep -q 'DJGrounding' "$f"
+          grep -q 'RearSocialRail' "$f"
+          grep -q 'MainClubFrontExtension' "$f"
+          grep -q 'PhotoAreaPremium' "$f"
+          grep -q 'SalonLookStudioPremium' "$f"
+          grep -q 'Tenant_glow' "$f"
+          grep -q 'LOOK_LAB_AND_PHOTO_STUDIO' "$f"
+          grep -q 'LookLabSeat' "$f"
+          grep -q 'AutoStyleTrigger' "$f"
+          grep -q 'ApplyDescriptionAsync' "$f"
+          grep -q 'MallPhotoStudio' "$f"
+          grep -q 'MallPhotoInteract' "$f"
+          grep -q 'Classic=CFrame.lookAt' "$f"
+          grep -q 'Editorial=CFrame.lookAt' "$f"
+          grep -q 'GLOW LAB' "$f"
+          grep -q '117-club-purity-mall-studios.server.lua' "$manifest"
+          grep -q 'ClubPurityMallStudiosV1' "$manifest"
+
+          if grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)' "$f"; then
+            echo 'Relocation pass must not change global Lighting.' >&2
+            exit 1
+          fi
+          if grep -Eq 'SoundId|SoundGroup|TimePosition|MarketplaceService|PromptPurchase' "$f"; then
+            echo 'Relocation pass must not touch audio or monetization.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA Club Purity + Mall Studios QC passed.'
