@@ -1,6 +1,6 @@
 name: BBYA Open Cloud Live Inspector
 
-# mainclub authority inspect trigger: 2026-08-23
+# mainclub authority inspect trigger: 2026-08-23 v2
 on:
   push:
     branches: [main]
@@ -28,7 +28,7 @@ jobs:
           python3 - <<'PY'
           import json, os, time, urllib.request, urllib.error
           key=os.environ.get('ROBLOX_API_KEY','');U=os.environ['UNIVERSE_ID'];P=os.environ['PLACE_ID']
-          out={'universeId':U,'placeId':P,'api':'Open Cloud Instance API','ok':False,'serverScriptService':[],'targets':{},'errors':[]}
+          out={'universeId':U,'placeId':P,'api':'Open Cloud Instance API','ok':False,'root':[],'serverScriptService':[],'targets':{},'errors':[]}
           headers={'x-api-key':key,'Accept':'application/json'}
           def get(url):
               req=urllib.request.Request(url,headers=headers,method='GET')
@@ -49,10 +49,14 @@ jobs:
                   if last.get('done'):return last
                   time.sleep(.7)
               return {'error':'operation timeout','last':last}
+          def rows_from(done):
+              if not isinstance(done,dict):return []
+              payload=done.get('response') or done
+              return payload.get('instances') or [] if isinstance(payload,dict) else []
           def children(iid):
               st,data=get(f'https://apis.roblox.com/cloud/v2/universes/{U}/places/{P}/instances/{iid}:listChildren')
               if st>=400:return st,[],data
-              done=poll(data);return st,((done.get('response') or {}).get('instances') or []),done
+              done=poll(data);return st,rows_from(done),done
           def instance(iid):
               st,data=get(f'https://apis.roblox.com/cloud/v2/universes/{U}/places/{P}/instances/{iid}')
               if st>=400:return st,data
@@ -67,6 +71,9 @@ jobs:
                       if s:return s
               return ''
           st,root,raw=children('root')
+          out['root_http']=st
+          for r in root:
+              e=r.get('engineInstance') or {};out['root'].append({'name':e.get('Name'),'id':e.get('Id'),'hasChildren':r.get('hasChildren')})
           if st>=400:
               out['errors'].append({'stage':'root','http':st,'body':raw})
           else:
