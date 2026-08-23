@@ -1,9 +1,9 @@
--- BBYA SOCIAL HUB — COMPACT SECONDARY PANELS v1
--- Late, event-driven layout authority for SUPPORT / TRAVEL / MESSAGE.
--- Keeps existing purchase, teleport and DJ-wall remotes intact; only compacts presentation.
+-- BBYA SOCIAL HUB — COMPACT SECONDARY PANELS v2
+-- MENU is the visual master. SUPPORT / TRAVEL / MESSAGE copy its compact shell metrics.
+-- Existing purchase, teleport and DJ-wall remotes remain untouched; this script owns presentation only.
 
 local Players=game:GetService("Players")
-local RunService=game:GetService("RunService")
+local UserInputService=game:GetService("UserInputService")
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
@@ -14,21 +14,35 @@ if not clubUI then return end
 local hub=clubUI:WaitForChild("HubPanel",30)
 if not hub then return end
 
-local C={
- panel=Color3.fromRGB(10,10,14),card=Color3.fromRGB(25,24,31),line=Color3.fromRGB(70,68,80),
- white=Color3.fromRGB(245,244,248),muted=Color3.fromRGB(158,156,168),pink=Color3.fromRGB(247,55,158),
- cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),
-}
+local C={panel=Color3.fromRGB(9,10,14),card=Color3.fromRGB(27,28,37),line=Color3.fromRGB(72,75,89)}
 
 local function viewport()
  camera=workspace.CurrentCamera or camera
  return (camera and camera.ViewportSize) or Vector2.new(1280,720)
 end
 
+local function menuDrawer()
+ local menuGui=pg:FindFirstChild("BBYACommandMenuUI")
+ return menuGui and menuGui:FindFirstChild("FeatureDrawer") or nil
+end
+
+local function masterMetrics()
+ local drawer=menuDrawer()
+ if drawer and drawer:IsA("Frame") then
+  return drawer.Size.X.Offset,drawer.Size.Y.Offset,drawer.Position
+ end
+ local vp=viewport()
+ local touch=UserInputService.TouchEnabled
+ local w=touch and math.clamp(math.floor(vp.X*.30),296,330) or math.clamp(math.floor(vp.X*.25),304,340)
+ local h=(vp.Y<620) and 286 or 308
+ return w,h,UDim2.new(.5,0,0,54)
+end
+
 local function findSupport()
  local intro=hub:FindFirstChild("SupportIntro",true)
  return intro and intro.Parent or nil
 end
+
 local function findTravel()
  local scroller=hub:FindFirstChild("TravelDestinationScroller",true)
  if scroller then return scroller.Parent end
@@ -39,6 +53,7 @@ local function findTravel()
   end
  end
 end
+
 local function findHeader()
  for _,f in ipairs(hub:GetChildren()) do
   if f:IsA("Frame") then
@@ -49,26 +64,51 @@ local function findHeader()
  end
 end
 
+local function setHeader(page)
+ local header=findHeader()
+ if not header then return end
+ header.Visible=true
+ header.Position=UDim2.fromOffset(10,10)
+ header.Size=UDim2.new(1,-20,0,52)
+ header.BackgroundColor3=Color3.fromRGB(16,17,23)
+ header.BackgroundTransparency=.25
+ local labels={}
+ for _,d in ipairs(header:GetChildren()) do
+  if d:IsA("TextLabel") then table.insert(labels,d) end
+  if d:IsA("TextButton") and (d.Text=="×" or d.Text=="X") then
+   d.Position=UDim2.new(1,-42,0,8);d.Size=UDim2.fromOffset(32,32);d.TextSize=17;d.BackgroundTransparency=.18
+  end
+ end
+ table.sort(labels,function(a,b)return a.Position.Y.Offset<b.Position.Y.Offset end)
+ local title=(page=="SUPPORT") and "SUPPORT BBYA" or "TRAVEL"
+ local sub=(page=="SUPPORT") and "Choose an amount" or "Choose destination"
+ if labels[1] then labels[1].Text=title;labels[1].Position=UDim2.fromOffset(12,5);labels[1].Size=UDim2.new(1,-58,0,22);labels[1].TextSize=14;labels[1].Visible=true end
+ if labels[2] then labels[2].Text=sub;labels[2].Position=UDim2.fromOffset(12,26);labels[2].Size=UDim2.new(1,-58,0,16);labels[2].TextSize=8;labels[2].Visible=true end
+ for i=3,#labels do labels[i].Visible=false end
+end
+
 local applyingHub=false
-local function compactHubShell(content)
+local function compactHubShell(content,page)
  if applyingHub then return end
  applyingHub=true
- local vp=viewport()
- local w=math.clamp(math.floor(vp.X*.44),420,560)
- local h=math.clamp(math.floor(vp.Y*.56),310,390)
- hub.AnchorPoint=Vector2.new(.5,.5)
- hub.Position=UDim2.fromScale(.5,.52)
+ local w,h,pos=masterMetrics()
+ hub.AnchorPoint=Vector2.new(.5,0)
+ hub.Position=pos
  hub.Size=UDim2.fromOffset(w,h)
  hub.BackgroundColor3=C.panel
- hub.BackgroundTransparency=.25
+ hub.BackgroundTransparency=.34
  hub.ClipsDescendants=true
- local header=findHeader()
- if header then header.Position=UDim2.fromOffset(14,8);header.Size=UDim2.new(1,-28,0,48) end
- if content then content.Position=UDim2.fromOffset(14,62);content.Size=UDim2.new(1,-28,1,-74) end
- for _,d in ipairs(hub:GetChildren()) do
-  if d:IsA("Frame") and d~=content and d~=header and d.Size.Y.Offset<=3 then
-   d.Position=UDim2.fromOffset(14,58);d.Size=UDim2.new(1,-28,0,1);d.BackgroundTransparency=.55
+ setHeader(page)
+ if content then
+  content.Position=UDim2.fromOffset(10,70)
+  content.Size=UDim2.new(1,-20,1,-80)
+  content.BackgroundTransparency=1
+  for _,child in ipairs(content:GetChildren()) do
+   if child:IsA("Frame") then child.Visible=(child==findSupport() and page=="SUPPORT") or (child==findTravel() and page=="TRAVEL") end
   end
+ end
+ for _,d in ipairs(hub:GetChildren()) do
+  if d:IsA("Frame") and d~=content and d~=findHeader() and d.Size.Y.Offset<=4 then d.Visible=false end
  end
  applyingHub=false
 end
@@ -78,51 +118,36 @@ local function applySupport()
  local support=findSupport()
  if not support or not support.Visible or not hub.Visible then return end
  local content=support.Parent
- compactHubShell(content)
- support.Position=UDim2.fromScale(0,0);support.Size=UDim2.fromScale(1,1);support.BackgroundTransparency=1
+ compactHubShell(content,"SUPPORT")
+ support.Visible=true;support.Position=UDim2.fromScale(0,0);support.Size=UDim2.fromScale(1,1);support.BackgroundTransparency=1
  local intro=support:FindFirstChild("SupportIntro",true)
  local gridCard=support:FindFirstChild("SupportGrid",true)
  local scroller=support:FindFirstChild("SupportScroller",true)
- if intro then
-  intro.Position=UDim2.fromOffset(0,0);intro.Size=UDim2.new(1,0,0,78);intro.BackgroundTransparency=.30
-  for _,d in ipairs(intro:GetChildren()) do
-   if d:IsA("TextLabel") then
-    local up=string.upper(d.Text or "")
-    if up:find("SUPPORT BBYA",1,true) then
-     d.Position=UDim2.fromOffset(14,8);d.Size=UDim2.new(1,-28,0,24);d.TextSize=15
-    elseif up:find("COMMUNITY FUNDS",1,true) then
-     d.Visible=false
-    else
-     d.Position=UDim2.fromOffset(14,32);d.Size=UDim2.new(1,-28,0,34);d.Text="Support BBYA upgrades and community. Choose an amount below.";d.TextSize=9;d.TextWrapped=true;d.Visible=true
-    end
-   end
-  end
- end
+ if intro then intro.Visible=false end
  if gridCard then
-  gridCard.Position=UDim2.fromOffset(0,86);gridCard.Size=UDim2.new(1,0,1,-86);gridCard.BackgroundTransparency=.30
+  gridCard.Visible=true;gridCard.Position=UDim2.fromScale(0,0);gridCard.Size=UDim2.fromScale(1,1);gridCard.BackgroundTransparency=.30
   for _,d in ipairs(gridCard:GetChildren()) do
    if d:IsA("TextLabel") and string.upper(d.Text or ""):find("CHOOSE AMOUNT",1,true) then
-    d.Position=UDim2.fromOffset(12,7);d.Size=UDim2.new(1,-24,0,20);d.TextSize=11
+    d.Position=UDim2.fromOffset(10,5);d.Size=UDim2.new(1,-20,0,18);d.TextSize=10;d.Visible=true
    end
   end
  end
  if scroller then
-  scroller.Position=UDim2.fromOffset(12,32);scroller.Size=UDim2.new(1,-24,1,-40);scroller.ScrollBarThickness=3;scroller.BackgroundTransparency=1
+  scroller.Position=UDim2.fromOffset(8,28);scroller.Size=UDim2.new(1,-16,1,-34);scroller.ScrollBarThickness=3;scroller.BackgroundTransparency=1
   local grid=scroller:FindFirstChildWhichIsA("UIGridLayout")
   if grid and not supportGridGuard then
    supportGridGuard=true
-   local narrow=hub.AbsoluteSize.X<450
-   grid.FillDirectionMaxCells=narrow and 1 or 2
-   grid.CellSize=narrow and UDim2.new(1,-4,0,44) or UDim2.new(.5,-5,0,44)
-   grid.CellPadding=UDim2.fromOffset(7,7)
-   scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+10))
+   grid.FillDirectionMaxCells=2
+   grid.CellSize=UDim2.new(.5,-4,0,40)
+   grid.CellPadding=UDim2.fromOffset(6,6)
+   scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+8))
    supportGridGuard=false
   end
   for _,d in ipairs(scroller:GetChildren()) do
-   if d:IsA("TextButton") then d.BackgroundTransparency=.15;d.TextSize=10 end
+   if d:IsA("TextButton") then d.BackgroundTransparency=.22;d.TextSize=9 end
   end
  end
- hub:SetAttribute("BBYACompactPage","SUPPORT")
+ hub:SetAttribute("BBYACompactPage","SUPPORT_MENU_SIZE")
 end
 
 local travelGridGuard=false
@@ -130,39 +155,34 @@ local function applyTravel()
  local travel=findTravel()
  if not travel or not travel.Visible or not hub.Visible then return end
  local content=travel.Parent
- compactHubShell(content)
- travel.Position=UDim2.fromScale(0,0);travel.Size=UDim2.fromScale(1,1);travel.BackgroundTransparency=1
- local topLabels={}
- for _,d in ipairs(travel:GetChildren()) do if d:IsA("TextLabel") then table.insert(topLabels,d) end end
- table.sort(topLabels,function(a,b)return a.Position.Y.Offset<b.Position.Y.Offset end)
- if topLabels[1] then topLabels[1].Text="TRAVEL";topLabels[1].Position=UDim2.fromOffset(0,0);topLabels[1].Size=UDim2.new(1,0,0,20);topLabels[1].TextSize=14 end
- if topLabels[2] then topLabels[2].Text="Choose destination • permanent unlocks stay unlocked.";topLabels[2].Position=UDim2.fromOffset(0,21);topLabels[2].Size=UDim2.new(1,0,0,17);topLabels[2].TextSize=8 end
+ compactHubShell(content,"TRAVEL")
+ travel.Visible=true;travel.Position=UDim2.fromScale(0,0);travel.Size=UDim2.fromScale(1,1);travel.BackgroundTransparency=1
+ for _,d in ipairs(travel:GetChildren()) do if d:IsA("TextLabel") then d.Visible=false end end
  local scroller=travel:FindFirstChild("TravelDestinationScroller")
  if scroller and scroller:IsA("ScrollingFrame") then
-  scroller.Position=UDim2.fromOffset(0,42);scroller.Size=UDim2.new(1,0,1,-42);scroller.ScrollBarThickness=3;scroller.BackgroundTransparency=1
+  scroller.Position=UDim2.fromScale(0,0);scroller.Size=UDim2.fromScale(1,1);scroller.ScrollBarThickness=3;scroller.BackgroundTransparency=1
   local grid=scroller:FindFirstChildWhichIsA("UIGridLayout")
   if grid and not travelGridGuard then
    travelGridGuard=true
-   local twoCols=hub.AbsoluteSize.X>=450
-   grid.FillDirectionMaxCells=twoCols and 2 or 1
-   grid.CellSize=twoCols and UDim2.new(.5,-5,0,58) or UDim2.new(1,-4,0,58)
-   grid.CellPadding=UDim2.fromOffset(7,7)
+   grid.FillDirectionMaxCells=2
+   grid.CellSize=UDim2.new(.5,-4,0,48)
+   grid.CellPadding=UDim2.fromOffset(6,6)
    local pad=scroller:FindFirstChildWhichIsA("UIPadding")
-   if pad then pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,12);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4) end
-   scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+18))
+   if pad then pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,10);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4) end
+   scroller.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+14))
    travelGridGuard=false
   end
   for _,card in ipairs(scroller:GetChildren()) do
    if card:IsA("Frame") then
-    card.BackgroundTransparency=.24
+    card.BackgroundTransparency=.28
     for _,d in ipairs(card:GetDescendants()) do
-     if d:IsA("TextButton") then d.BackgroundTransparency=.14;d.TextSize=8 end
-     if d:IsA("TextLabel") and d.TextSize>11 then d.TextSize=10 end
+     if d:IsA("TextButton") then d.BackgroundTransparency=.20;d.TextSize=7;d.Size=UDim2.new(.40,0,0,30) end
+     if d:IsA("TextLabel") then d.TextSize=math.min(d.TextSize,8) end
     end
    end
   end
  end
- hub:SetAttribute("BBYACompactPage","TRAVEL")
+ hub:SetAttribute("BBYACompactPage","TRAVEL_MENU_SIZE")
 end
 
 local messageGuard=false
@@ -173,36 +193,68 @@ local function applyMessage()
  local panel=wallUI:FindFirstChild("DJWallComposerPanel",true)
  if not panel or not panel:IsA("Frame") or not panel.Visible then return end
  messageGuard=true
- local vp=viewport()
- local w=math.clamp(math.floor(vp.X*.39),360,470)
- local h=math.clamp(math.floor(vp.Y*.55),320,380)
- panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.52);panel.Size=UDim2.fromOffset(w,h);panel.BackgroundTransparency=.24
+ local w,h,pos=masterMetrics()
+ wallUI.IgnoreGuiInset=true
+ panel.AnchorPoint=Vector2.new(.5,0);panel.Position=pos;panel.Size=UDim2.fromOffset(w,h);panel.BackgroundTransparency=.34
  local shade
  for _,d in ipairs(wallUI:GetChildren()) do if d:IsA("Frame") and d.Size.X.Scale==1 and d.Size.Y.Scale==1 then shade=d;break end end
- if shade then shade.BackgroundTransparency=.62 end
+ if shade then shade.BackgroundTransparency=.70 end
  local header=panel:FindFirstChild("StickyHeader")
  local footer=panel:FindFirstChild("StickyFooter")
  local body=panel:FindFirstChild("ComposerBody")
  if header then
-  header.Size=UDim2.new(1,0,0,58);header.BackgroundTransparency=.22
+  header.Size=UDim2.new(1,0,0,52);header.BackgroundTransparency=.25
   local labels={}
   for _,d in ipairs(header:GetChildren()) do if d:IsA("TextLabel") then table.insert(labels,d) end end
   table.sort(labels,function(a,b)return a.Position.Y.Offset<b.Position.Y.Offset end)
-  if labels[1] then labels[1].Position=UDim2.fromOffset(16,7);labels[1].Size=UDim2.new(1,-62,0,24);labels[1].TextSize=15 end
-  if labels[2] then labels[2].Position=UDim2.fromOffset(16,31);labels[2].Size=UDim2.new(1,-62,0,16);labels[2].TextSize=8 end
-  for _,d in ipairs(header:GetChildren()) do if d:IsA("TextButton") and (d.Text=="×" or d.Text=="X") then d.Position=UDim2.new(1,-44,0,8);d.Size=UDim2.fromOffset(34,34) end end
+  if labels[1] then labels[1].Position=UDim2.fromOffset(12,5);labels[1].Size=UDim2.new(1,-54,0,22);labels[1].TextSize=14 end
+  if labels[2] then labels[2].Position=UDim2.fromOffset(12,26);labels[2].Size=UDim2.new(1,-54,0,16);labels[2].TextSize=8 end
+  for _,d in ipairs(header:GetChildren()) do if d:IsA("TextButton") and (d.Text=="×" or d.Text=="X") then d.Position=UDim2.new(1,-42,0,8);d.Size=UDim2.fromOffset(32,32);d.TextSize=17 end end
  end
  if footer then
-  footer.Size=UDim2.new(1,0,0,56);footer.BackgroundTransparency=.20
-  for _,d in ipairs(footer:GetChildren()) do if d:IsA("TextButton") then d.Position=UDim2.fromOffset(14,10);d.Size=UDim2.new(1,-28,0,36);d.TextSize=10;d.BackgroundTransparency=.12 end end
+  footer.Size=UDim2.new(1,0,0,52);footer.BackgroundTransparency=.25
+  for _,d in ipairs(footer:GetChildren()) do if d:IsA("TextButton") then d.Position=UDim2.fromOffset(10,8);d.Size=UDim2.new(1,-20,0,36);d.TextSize=9;d.BackgroundTransparency=.18 end end
  end
- if body then body.Position=UDim2.fromOffset(0,58);body.Size=UDim2.new(1,0,1,-114);body.ScrollBarThickness=3 end
+ if body then
+  body.Position=UDim2.fromOffset(0,52);body.Size=UDim2.new(1,0,1,-104);body.ScrollBarThickness=3
+  local content=body:FindFirstChild("BodyContent")
+  if content then
+   content.Size=UDim2.new(1,0,0,258)
+   local pricePill,filterPill,catsHolder,preview
+   local momentTitle,writeTitle,countLabel
+   local box=content:FindFirstChildWhichIsA("TextBox")
+   for _,child in ipairs(content:GetChildren()) do
+    if child:IsA("Frame") then
+     local text=""
+     for _,x in ipairs(child:GetDescendants()) do if x:IsA("TextLabel") then text=text.." "..string.upper(x.Text or "") end end
+     if text:find("ROBUX",1,true) or text:find("OWNER TEST",1,true) then pricePill=child
+     elseif text:find("ROBLOX FILTER",1,true) then filterPill=child
+     elseif child:FindFirstChildWhichIsA("TextButton") then catsHolder=child
+     else preview=child end
+    elseif child:IsA("TextLabel") then
+     local t=string.upper(child.Text or "")
+     if t:find("PILIH MOMEN",1,true) then momentTitle=child
+     elseif t:find("TULIS PESAN",1,true) then writeTitle=child
+     elseif t:find(" / ",1,true) then countLabel=child end
+    end
+   end
+   if pricePill then pricePill.Position=UDim2.fromOffset(10,8);pricePill.Size=UDim2.new(.48,-3,0,30) end
+   if filterPill then filterPill.Position=UDim2.new(.5,3,0,8);filterPill.Size=UDim2.new(.48,-13,0,30) end
+   if momentTitle then momentTitle.Position=UDim2.fromOffset(10,44);momentTitle.Size=UDim2.new(1,-20,0,16);momentTitle.TextSize=8 end
+   if catsHolder then catsHolder.Position=UDim2.fromOffset(10,63);catsHolder.Size=UDim2.new(1,-20,0,34);for _,b in ipairs(catsHolder:GetChildren()) do if b:IsA("TextButton") then b.TextSize=7 end end end
+   if writeTitle then writeTitle.Position=UDim2.fromOffset(10,106);writeTitle.Size=UDim2.new(1,-20,0,16);writeTitle.TextSize=8 end
+   if box then box.Position=UDim2.fromOffset(10,126);box.Size=UDim2.new(1,-20,0,64);box.TextSize=9 end
+   if countLabel then countLabel.Position=UDim2.new(1,-80,0,191);countLabel.Size=UDim2.fromOffset(70,16);countLabel.TextSize=8 end
+   if preview then preview.Position=UDim2.fromOffset(10,214);preview.Size=UDim2.new(1,-20,0,38) end
+   body.CanvasSize=UDim2.fromOffset(0,258)
+  end
+ end
  for _,d in ipairs(panel:GetDescendants()) do
-  if d:IsA("Frame") and d~=header and d~=footer and d~=body and d.BackgroundTransparency<.20 then d.BackgroundTransparency=.20 end
-  if d:IsA("TextButton") and d.BackgroundTransparency<.12 then d.BackgroundTransparency=.12 end
-  if d:IsA("TextBox") then d.BackgroundTransparency=.18 end
+  if d:IsA("Frame") and d~=header and d~=footer and d~=body and d.BackgroundTransparency<.24 then d.BackgroundTransparency=.24 end
+  if d:IsA("TextButton") and d.BackgroundTransparency<.18 then d.BackgroundTransparency=.18 end
+  if d:IsA("TextBox") then d.BackgroundTransparency=.24 end
  end
- panel:SetAttribute("BBYACompactMessage","V1")
+ panel:SetAttribute("BBYACompactMessage","V2_MENU_SIZE")
  messageGuard=false
 end
 
@@ -215,16 +267,17 @@ end
 
 local bound={}
 local function bind(obj,prop)
- if not obj or bound[obj] then return end
- bound[obj]=true
- if prop then obj:GetPropertyChangedSignal(prop):Connect(function()task.defer(applyVisible);task.delay(.04,applyVisible)end) end
+ if not obj then return end
+ local key=tostring(obj)..":"..tostring(prop)
+ if bound[key] then return end
+ bound[key]=true
+ if prop then obj:GetPropertyChangedSignal(prop):Connect(function()task.defer(applyVisible);task.delay(.03,applyVisible)end) end
 end
 
 local function bindAll()
- local support=findSupport();local travel=findTravel()
+ local support=findSupport();local travel=findTravel();local drawer=menuDrawer()
  bind(hub,"Visible");bind(support,"Visible");bind(travel,"Visible")
- local ss=support and support:FindFirstChild("SupportScroller",true);bind(ss,"AbsoluteSize")
- local ts=travel and travel:FindFirstChild("TravelDestinationScroller",true);bind(ts,"AbsoluteSize")
+ bind(drawer,"Size");bind(drawer,"Position")
  local wallUI=pg:FindFirstChild("BBYADJWallUI");local mp=wallUI and wallUI:FindFirstChild("DJWallComposerPanel",true);bind(mp,"Visible")
 end
 
@@ -234,7 +287,7 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(applyVisible)end) end
 
 task.defer(function()bindAll();applyVisible()end)
-task.delay(1,function()bindAll();applyVisible()end)
-task.delay(2,function()bindAll();applyVisible()end)
+task.delay(.5,function()bindAll();applyVisible()end)
+task.delay(1.5,function()bindAll();applyVisible()end)
 
-print("[BBYA] Compact Secondary Panels v1: SUPPORT / TRAVEL / MESSAGE compact + translucent")
+print("[BBYA] Compact Secondary Panels v2: SUPPORT / TRAVEL / MESSAGE now match MENU shell size")
