@@ -1,3 +1,4 @@
+# live runner state probe: 2026-08-23T23:16+08:00
 name: BBYA Studio Worker Diagnostic
 
 on:
@@ -20,7 +21,7 @@ jobs:
       - name: Find existing interactive launch helpers
         shell: powershell
         run: |
-          $lines=@("timestamp=$(Get-Date -Format o)","whoami=$(whoami)")
+          $lines=@("timestamp=$(Get-Date -Format o)","whoami=$(whoami)","current_session=$([System.Diagnostics.Process]::GetCurrentProcess().SessionId)")
           $lines += 'QUSER_BEGIN';try{$lines += ((quser 2>&1|Out-String).Trim())}catch{$lines += $_.Exception.Message};$lines += 'QUSER_END'
           $lines += 'TASKS_BEGIN'
           try{
@@ -31,15 +32,15 @@ jobs:
           $lines += 'SERVICES_BEGIN'
           try{Get-CimInstance Win32_Service | Where-Object {$_.Name -match 'actions.runner|github|roblox|bbya' -or $_.DisplayName -match 'actions runner|github|roblox|bbya'} | ForEach-Object {$lines += "SERVICE|name=$($_.Name)|start=$($_.StartName)|state=$($_.State)|path=$($_.PathName)"}}catch{$lines += "service_query_error=$($_.Exception.Message)"}
           $lines += 'SERVICES_END'
-          $lines += 'PROCESSES_BEGIN'
-          try{Get-Process | Where-Object {$_.SessionId -eq 2} | Sort-Object ProcessName | ForEach-Object {$lines += "PROC|$($_.ProcessName)|pid=$($_.Id)|session=$($_.SessionId)|hwnd=$($_.MainWindowHandle)|title=$($_.MainWindowTitle)"}}catch{$lines += "process_query_error=$($_.Exception.Message)"}
-          $lines += 'PROCESSES_END'
+          $lines += 'RUNNER_PROCESSES_BEGIN'
+          try{Get-CimInstance Win32_Process | Where-Object {$_.Name -match 'Runner.Listener|Runner.Worker|cmd.exe' -and $_.CommandLine -match 'actions-runner|run\.cmd|Runner.Listener'} | ForEach-Object {$p=Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue;$sid=if($p){$p.SessionId}else{-1};$lines += "RUNNER|name=$($_.Name)|pid=$($_.ProcessId)|session=$sid|cmd=$($_.CommandLine)"}}catch{$lines += "runner_process_query_error=$($_.Exception.Message)"}
+          $lines += 'RUNNER_PROCESSES_END'
           $text=($lines -join "`n")+"`n"
           $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
           $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-worker.txt"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
           $sha=$null
           try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
-          $body=@{message='Record BBYA interactive helper diagnostic [skip ci]';content=$content;branch='main'}
+          $body=@{message='Record BBYA runner state diagnostic [skip ci]';content=$content;branch='main'}
           if($sha){$body.sha=$sha}
           Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json' | Out-Null
