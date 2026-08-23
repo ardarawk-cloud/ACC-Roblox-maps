@@ -1,7 +1,9 @@
--- BBYAVATAR functional Photo Studio v3.
--- Local-only camera and grading tools: no uploads, arbitrary assets, or user data collection.
+-- BBYAVATAR functional Photo Studio v4.
+-- Adds Roblox-native screenshot save/share while keeping camera tools local-only.
+-- No capture bytes, gallery contents, or user-generated media are persisted by BBYAVATAR.
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
+local CaptureService = game:GetService("CaptureService")
 local camera = workspace.CurrentCamera
 local photoConnection
 local activePreset
@@ -9,6 +11,7 @@ local cleanViewToken = 0
 local orbitEnabled = false
 local orbitStartedAt = 0
 local orbitDirection = 1
+local captureBusy = false
 local photoRemote = root:FindFirstChild("TrackEvent")
 local originalFov = camera.FieldOfView
 
@@ -112,6 +115,70 @@ local function startPhotoCamera(name)
     status.Text = name:gsub("_", " ") .. " camera active."
 end
 
+local function takeNativeCapture(mode)
+    if captureBusy then
+        status.Text = "A capture is already being prepared."
+        return
+    end
+    if not activePreset then startPhotoCamera("PORTRAIT") end
+    captureBusy = true
+    status.Text = mode == "SHARE" and "Preparing share-ready photo…" or "Preparing photo…"
+    trackPhoto("PHOTO_CAPTURE_REQUEST")
+
+    local ok, err = pcall(function()
+        CaptureService:TakeScreenshotCaptureAsync(function(result, screenshotCapture)
+            captureBusy = false
+            if result ~= Enum.ScreenshotCaptureResult.Success or not screenshotCapture then
+                status.Text = "Roblox could not capture this photo on the current device."
+                trackPhoto("PHOTO_CAPTURE_FAILED")
+                return
+            end
+
+            trackPhoto("PHOTO_CAPTURE_SUCCESS")
+            if mode == "SHARE" then
+                local shareOk = pcall(function()
+                    local captureContent = Content.fromObject(screenshotCapture)
+                    CaptureService:PromptShareCapture(
+                        captureContent,
+                        "bbyavatar-photo",
+                        function()
+                            status.Text = "Roblox share sheet opened for your photo."
+                            trackPhoto("PHOTO_SHARE_ACCEPTED")
+                        end,
+                        function()
+                            status.Text = "Photo sharing was cancelled."
+                            trackPhoto("PHOTO_SHARE_DENIED")
+                        end
+                    )
+                end)
+                if not shareOk then
+                    status.Text = "Native sharing is unavailable on this device."
+                    trackPhoto("PHOTO_SHARE_DENIED")
+                end
+            else
+                local saveOk = pcall(function()
+                    CaptureService:PromptSaveCapturesToGallery({screenshotCapture}, function(results)
+                        local accepted = results and results[screenshotCapture] == true
+                        status.Text = accepted and "Photo saved to your Roblox captures." or "Photo save was cancelled."
+                        trackPhoto(accepted and "PHOTO_SAVE_ACCEPTED" or "PHOTO_SAVE_DENIED")
+                    end)
+                end)
+                if not saveOk then
+                    status.Text = "Saving captures is unavailable on this device."
+                    trackPhoto("PHOTO_SAVE_DENIED")
+                end
+            end
+        end, {UICaptureMode = Enum.UICaptureMode.None})
+    end)
+
+    if not ok then
+        captureBusy = false
+        status.Text = "Native capture is unavailable right now."
+        trackPhoto("PHOTO_CAPTURE_FAILED")
+        warn("[BBYAVATAR] CaptureService screenshot failed:", err)
+    end
+end
+
 local function makePhotoButton(parent, text, callback)
     local b = Instance.new("TextButton")
     b.Size = UDim2.new(1, 0, 0, 44)
@@ -157,7 +224,7 @@ renderPhoto = function()
     d.Position = UDim2.fromOffset(0, 44)
     d.Size = UDim2.new(1, 0, 0, 54)
     d.Font = Enum.Font.Gotham
-    d.Text = "Frame, grade, and orbit your avatar locally. Use Roblox's own screenshot controls when the look is ready."
+    d.Text = "Frame, grade, capture, save, and share your look using Roblox-native capture tools. BBYAVATAR never stores your photo."
     d.TextWrapped = true
     d.TextColor3 = Color3.fromRGB(194, 199, 214)
     d.TextSize = 14
@@ -212,7 +279,9 @@ renderPhoto = function()
     makePhotoButton(actions, "MONO", function() setGrade("MONO") end)
     makePhotoButton(actions, "RESET GRADE", function() setGrade(nil) end)
 
-    makeSection(actions, "CAPTURE")
+    makeSection(actions, "ROBLOX CAPTURE")
+    makePhotoButton(actions, "TAKE & SAVE PHOTO", function() takeNativeCapture("SAVE") end)
+    makePhotoButton(actions, "TAKE & SHARE PHOTO", function() takeNativeCapture("SHARE") end)
     makePhotoButton(actions, "CLEAN VIEW • 6 SECONDS", function()
         if not activePreset then startPhotoCamera("PORTRAIT") end
         cleanViewToken += 1
@@ -245,9 +314,10 @@ end)
 
 player.CharacterAdded:Connect(function()
     task.defer(function()
+        captureBusy = false
         stopPhotoCamera()
         photoGrade.Enabled = false
     end)
 end)
 
-print("[BBYAVATAR] Photo Studio v3 framing + grades + orbit controls ready")
+print("[BBYAVATAR] Photo Studio v4 Roblox-native capture + save/share ready")
