@@ -1,5 +1,5 @@
--- BECAK E-BIKE — Nusakarya architectural realism v1.1
--- Shapes blockout bodies into layered urban silhouettes without changing collision.
+-- BECAK E-BIKE — Nusakarya architectural realism v1.2
+-- Shapes blockout bodies into layered urban silhouettes and adds human-scale frontage without changing collision.
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',30)
 if not root then return end
@@ -22,9 +22,13 @@ end
 local function cylinder(name,height,radius,cf,color,material)
  local p=part(name,Vector3.new(height,radius*2,radius*2),cf*CFrame.Angles(0,0,math.rad(90)),color,material);p.Shape=Enum.PartType.Cylinder;return p
 end
+local function ball(name,size,cf,color,material)
+ local p=part(name,size,cf,color,material);p.Shape=Enum.PartType.Ball;return p
+end
 
 local shaped,roofCount,bayCount,arcadeCount,balconyCount=0,0,0,0,0
 local entryCount,cornerCount,utilityCount=0,0,0
+local frontageCount,streetFurnitureCount=0,0
 local glass=Color3.fromRGB(95,126,139)
 for _,model in ipairs(world:GetChildren()) do
  if model:IsA('Model') then
@@ -100,13 +104,44 @@ for _,model in ipairs(world:GetChildren()) do
      part('SideFacadeFin',Vector3.new(.28,math.clamp(s.Y*.52,7,13),s.Z*.18),cf*CFrame.new(s.X/2+.16,0,z),dark,Enum.Material.Concrete)
      part('SideFacadeFin',Vector3.new(.28,math.clamp(s.Y*.52,7,13),s.Z*.18),cf*CFrame.new(-s.X/2-.16,0,z),dark,Enum.Material.Concrete)
     end
+
+    -- v1.2 human-scale frontage: sparse, facade-hugging detail only; never enters the vehicle lane envelope.
+    local groundY=-s.Y/2
+    local streetFront=-s.Z/2-1.45
+    if seed%3==0 then
+     local signW=math.clamp(s.X*.24,4.5,8)
+     part('StoreSignBand',Vector3.new(signW,.72,.18),cf*CFrame.new(-s.X*.18,groundY+4.8,streetFront+.18),trim,Enum.Material.Metal)
+     local lamp=part('WarmEntryLamp',Vector3.new(.34,.34,.24),cf*CFrame.new(-s.X*.18,groundY+4.2,streetFront-.08),Color3.fromRGB(255,221,154),Enum.Material.Neon);lamp.CastShadow=false
+     frontageCount+=2
+    end
+    if seed%4==1 then
+     local px=s.X*.31
+     part('FacadePlanter',Vector3.new(2.3,.72,.86),cf*CFrame.new(px,groundY+.36,streetFront),Color3.fromRGB(137,132,119),Enum.Material.Concrete)
+     for i=-1,1 do
+      cylinder('PlanterStem',1.1,.055,cf*CFrame.new(px+i*.58,groundY+1.02,streetFront),Color3.fromRGB(67,112,73),Enum.Material.SmoothPlastic)
+     end
+     ball('PlanterCrown',Vector3.new(2.0,.7,.72),cf*CFrame.new(px,groundY+1.55,streetFront),Color3.fromRGB(72,132,77),Enum.Material.Grass)
+     streetFurnitureCount+=5
+    end
+    if seed%5==2 then
+     local bx=-s.X*.31
+     for _,dx in ipairs({0,1.9}) do cylinder('FacadeBollard',1.05,.11,cf*CFrame.new(bx+dx,groundY+.53,streetFront),Color3.fromRGB(63,66,68),Enum.Material.Metal) end
+     part('BikeRackRail',Vector3.new(2.6,.12,.12),cf*CFrame.new(bx+.95,groundY+.72,streetFront),Color3.fromRGB(68,71,73),Enum.Material.Metal)
+     streetFurnitureCount+=3
+    end
+    if seed%6==3 then
+     local ax=s.X*.27
+     part('CafeAwning',Vector3.new(4.4,.16,1.35),cf*CFrame.new(ax,groundY+3.2,streetFront-.2)*CFrame.Angles(math.rad(-8),0,0),Color3.fromRGB(184,122,68),Enum.Material.Fabric)
+     part('CafeCounter',Vector3.new(3.4,1.05,.68),cf*CFrame.new(ax,groundY+.53,streetFront+.08),dark,Enum.Material.Wood)
+     frontageCount+=2
+    end
     shaped+=1
    end
   end
  end
 end
 Workspace:SetAttribute('ACC_BecakCityRealismArchitecture','v1.0')
-Workspace:SetAttribute('ACC_BecakCityRealismArchitectureEnhancement','v1.1')
+Workspace:SetAttribute('ACC_BecakCityRealismArchitectureEnhancement','v1.2')
 Workspace:SetAttribute('BecakNonBoxBuildingSilhouette','ON')
 Workspace:SetAttribute('BecakArchitecturalBayDepth','ON')
 Workspace:SetAttribute('BecakArchitecturalRoofVariation','ON')
@@ -114,6 +149,7 @@ Workspace:SetAttribute('BecakArchitecturalArcades','ON')
 Workspace:SetAttribute('BecakArchitecturalRecessedEntries','ON')
 Workspace:SetAttribute('BecakArchitecturalCornerBreakup','ON')
 Workspace:SetAttribute('BecakArchitecturalRooftopUtilities','ON')
+Workspace:SetAttribute('BecakArchitecturalHumanScaleFrontage','ON')
 Workspace:SetAttribute('BecakArchitecturalShapedBuildings',shaped)
 Workspace:SetAttribute('BecakArchitecturalRoofPieces',roofCount)
 Workspace:SetAttribute('BecakArchitecturalBayPieces',bayCount)
@@ -122,3 +158,5 @@ Workspace:SetAttribute('BecakArchitecturalBalconyPieces',balconyCount)
 Workspace:SetAttribute('BecakArchitecturalEntryPieces',entryCount)
 Workspace:SetAttribute('BecakArchitecturalCornerPieces',cornerCount)
 Workspace:SetAttribute('BecakArchitecturalUtilityPieces',utilityCount)
+Workspace:SetAttribute('BecakArchitecturalFrontagePieces',frontageCount)
+Workspace:SetAttribute('BecakArchitecturalStreetFurniturePieces',streetFurnitureCount)
