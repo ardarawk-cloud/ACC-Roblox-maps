@@ -1,0 +1,273 @@
+name: BBYA VIP Amapiano Extra Folder Batch Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.vip-extra-batch-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-vip-audio-single-upload
+  cancel-in-progress: false
+
+jobs:
+  batch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      BBYA_UNIVERSE: '8116636513'
+      MODERATION_WAIT_SECONDS: '480'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install audio tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet gdown
+
+      - name: Merge extra Amapiano queue into VIP registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          mainp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          extrap=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json')
+          main=json.loads(mainp.read_text())
+          extra=json.loads(extrap.read_text())
+          ids={str(t.get('driveFileId')) for t in main.get('tracks',[])}
+          for t in extra.get('tracks',[]):
+              if str(t.get('driveFileId')) not in ids:
+                  main['tracks'].append(t)
+                  ids.add(str(t.get('driveFileId')))
+          main['tracks']=sorted(main.get('tracks',[]), key=lambda x:int(x.get('index',999999)))
+          mainp.write_text(json.dumps(main,indent=2,ensure_ascii=False)+'\n')
+          PY
+
+      - name: Upload each unique extra file once
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >/tmp/vip-extra-unique.tsv
+          import json
+          x=json.load(open('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json'))
+          for t in x.get('tracks',[]):
+              if t.get('status')=='PREPARED_LOCAL':
+                  print(f"{int(t['index'])}\t{t['driveFileId']}")
+          PY
+
+          while IFS=$'\t' read -r idx drive_id; do
+            [ -n "$idx" ] || continue
+            status=$(python3 - "$idx" <<'PY'
+          import json,sys
+          idx=int(sys.argv[1])
+          d=json.load(open('maps/bbya-social-hub/audio-playlists/vip-amapiano.json'))
+          t=next(x for x in d['tracks'] if int(x.get('index',0))==idx)
+          print(t.get('status',''))
+          PY
+            )
+            if [ "$status" = "MODERATION_REJECTED" ] || [ "$status" = "LIVE_IN_PLAYLIST" ] || [ "$status" = "READY_TO_INJECT" ]; then
+              echo "Track $idx already terminal/ready: $status; skip upload"
+              continue
+            fi
+
+            asset=$(python3 - "$idx" <<'PY'
+          import json,sys
+          idx=int(sys.argv[1])
+          d=json.load(open('maps/bbya-social-hub/audio-playlists/vip-amapiano.json'))
+          t=next(x for x in d['tracks'] if int(x.get('index',0))==idx)
+          print(t.get('assetId') or '')
+          PY
+            )
+
+            audio="/tmp/bbya-vip-extra-${idx}.mp3"
+            if [ -z "$asset" ]; then
+              src="/tmp/bbya-vip-extra-${idx}-src"
+              gdown "https://drive.google.com/uc?id=${drive_id}" -O "$src"
+              test -s "$src"
+              ffmpeg -y -hide_banner -loglevel error -i "$src" -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame "$audio"
+              test -s "$audio"
+            fi
+
+            echo "Processing VIP extra Track $idx exactly once"
+            TRACK_INDEX="$idx" AUDIO_PATH="$audio" python3 scripts/bbya-vip-single-inject.py
+
+            result=$(python3 - "$idx" <<'PY'
+          import json,sys,pathlib
+          idx=int(sys.argv[1])
+          p=pathlib.Path(f'deploy-status/bbya-vip-track{idx:02d}.json')
+          d=json.loads(p.read_text()) if p.exists() else {}
+          print(d.get('status','NO_REPORT'))
+          PY
+            )
+            echo "Track $idx result: $result"
+            if [ "$result" = "MODERATION_REJECTED" ]; then
+              echo "Roblox rejected Track $idx: permanent stop for this source; no retry."
+            fi
+          done </tmp/vip-extra-unique.tsv
+
+      - name: Sync extra queue statuses and write batch report
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          mainp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          extrap=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json')
+          outp=pathlib.Path('deploy-status/bbya-vip-extra-folder-batch.json')
+          main=json.loads(mainp.read_text()); extra=json.loads(extrap.read_text())
+          byid={str(t.get('driveFileId')):t for t in main.get('tracks',[])}
+          for t in extra.get('tracks',[]):
+              if t.get('status')=='DUPLICATE_SOURCE_SKIPPED':
+                  continue
+              m=byid.get(str(t.get('driveFileId')))
+              if m:
+                  for k in ('assetId','bbyaPermission','status','moderationLastKnown'):
+                      t[k]=m.get(k)
+          extrap.write_text(json.dumps(extra,indent=2,ensure_ascii=False)+'\n')
+          statuses=[t.get('status') for t in extra.get('tracks',[])]
+          report={
+              'status':'BATCH_UPLOAD_PASS_COMPLETE',
+              'sourceFolderId':extra.get('sourceFolderId'),
+              'sourceFileCount':extra.get('sourceFileCount'),
+              'uniqueAudioCount':extra.get('uniqueAudioCount'),
+              'duplicateSourceCount':extra.get('duplicateSourceCount'),
+              'readyToInjectCount':sum(s=='READY_TO_INJECT' for s in statuses),
+              'rejectedCount':sum(s=='MODERATION_REJECTED' for s in statuses),
+              'pendingCount':sum(s in ('MODERATION_PENDING','UPLOADED_MODERATION_PENDING') for s in statuses),
+              'uploadFailureCount':sum(s in ('UPLOAD_FAILED','ASSET_ID_MISSING','SECRET_MISSING','KEY_SCOPE_FAILED','AUDIO_FILE_MISSING') for s in statuses),
+              'duplicateSkippedCount':sum(s=='DUPLICATE_SOURCE_SKIPPED' for s in statuses),
+              'tracks':[{'index':t.get('index'),'driveFileId':t.get('driveFileId'),'assetId':t.get('assetId'),'status':t.get('status'),'moderationLastKnown':t.get('moderationLastKnown')} for t in extra.get('tracks',[])]
+          }
+          outp.parent.mkdir(parents=True,exist_ok=True)
+          outp.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
+          PY
+
+      - name: Persist asset IDs and moderation outcomes before publish
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/audio-playlists/vip-amapiano.json maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json deploy-status/bbya-vip-track*.json deploy-status/bbya-vip-extra-folder-batch.json 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'Checkpoint VIP Amapiano extra folder batch [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Check whether batch has approved tracks to publish
+        id: ready
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          x=json.load(open('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json'))
+          ready=any(t.get('status')=='READY_TO_INJECT' for t in x.get('tracks',[]))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f"has_ready={str(ready).lower()}\n")
+          print('has_ready=',ready)
+          PY
+
+      - name: Build VIP playlist once
+        if: steps.ready.outputs.has_ready == 'true'
+        run: python3 scripts/bbya-vip-amapiano-build.py
+
+      - uses: actions/setup-node@v4
+        if: steps.ready.outputs.has_ready == 'true'
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo
+        if: steps.ready.outputs.has_ready == 'true'
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.ready.outputs.has_ready == 'true' && steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Publish all approved batch tracks once
+        if: steps.ready.outputs.has_ready == 'true'
+        shell: bash
+        env:
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-extra-batch.rbxl
+          test -s /tmp/bbya-vip-extra-batch.rbxl
+          PLACE_FILE_OVERRIDE=/tmp/bbya-vip-extra-batch.rbxl node scripts/publish-map.js a-club
+
+      - name: Restart old BBYA servers once
+        if: steps.ready.outputs.has_ready == 'true'
+        id: restart
+        shell: bash
+        run: |
+          set +e
+          body=/tmp/restart-vip-extra-batch.txt
+          http=$(curl -sS -o "$body" -w '%{http_code}' -X POST "https://apis.roblox.com/cloud/v2/universes/${BBYA_UNIVERSE}:restartServers" -H "x-api-key: ${ROBLOX_API_KEY}" -H 'Content-Type: application/json' -d '{}')
+          echo "http=$http" >> "$GITHUB_OUTPUT"
+          cat "$body" || true
+          exit 0
+
+      - name: Mark approved batch tracks live
+        if: steps.ready.outputs.has_ready == 'true'
+        env:
+          RESTART_HTTP: ${{ steps.restart.outputs.http }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, os
+          mainp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          extrap=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json')
+          receiptp=pathlib.Path('deploy-status/a-club.json')
+          main=json.loads(mainp.read_text()); extra=json.loads(extrap.read_text())
+          extra_ids={str(t.get('driveFileId')) for t in extra.get('tracks',[]) if t.get('status')!='DUPLICATE_SOURCE_SKIPPED'}
+          receipt=json.loads(receiptp.read_text()) if receiptp.exists() else None
+          for t in main.get('tracks',[]):
+              if str(t.get('driveFileId')) in extra_ids and t.get('status')=='READY_TO_INJECT':
+                  t['status']='LIVE_IN_PLAYLIST'
+                  idx=int(t['index'])
+                  rp=pathlib.Path(f'deploy-status/bbya-vip-track{idx:02d}.json')
+                  if rp.exists():
+                      d=json.loads(rp.read_text()); d['status']='LIVE_PUBLISHED'; d['restartHttp']=os.environ.get('RESTART_HTTP','')
+                      if receipt is not None: d['publishReceipt']=receipt
+                      rp.write_text(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+          byid={str(t.get('driveFileId')):t for t in main.get('tracks',[])}
+          for t in extra.get('tracks',[]):
+              if t.get('status')=='DUPLICATE_SOURCE_SKIPPED': continue
+              m=byid.get(str(t.get('driveFileId')))
+              if m:
+                  for k in ('assetId','bbyaPermission','status','moderationLastKnown'): t[k]=m.get(k)
+          mainp.write_text(json.dumps(main,indent=2,ensure_ascii=False)+'\n')
+          extrap.write_text(json.dumps(extra,indent=2,ensure_ascii=False)+'\n')
+          PY
+
+      - name: Persist final batch live state
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/audio-playlists/vip-amapiano.json maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json deploy-status/bbya-vip-track*.json deploy-status/bbya-vip-extra-folder-batch.json 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish BBYA VIP Amapiano extra folder batch [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
