@@ -1,34 +1,46 @@
--- BBYA SOCIAL HUB — MAIN CLUB SOCIAL LOUNGE v1
--- Converts the former Floor 1 Photo Studio + Salon footprints into one connected premium social lounge.
--- Open access / Main Club hospitality only. Does not recreate the old studio functions.
--- No global Lighting, audio, DJ, monetization, VIP, Mall, restroom, fishing or stage changes.
+-- BBYA SOCIAL HUB — MAIN CLUB SOCIAL LOUNGE UPGRADE v1
+-- Upgrades the two Arrival Lounge bays already created by ClubPurityMallStudiosV1
+-- in the former Floor 1 Photo Studio + Salon footprint.
+-- Reuses the existing MainClubFrontExtension architecture; does not stack a second floor/ceiling shell.
+-- Open access. No VIP gate, global Lighting, audio, DJ, monetization, Mall, restroom, fishing or stage changes.
 
 local Workspace=game:GetService("Workspace")
 
-local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
+local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",60)
 if not root then return end
-local floor1=root:WaitForChild("Floor1Core",30)
-local front=root:WaitForChild("Floor1FrontPremium",30)
-local realism=root:WaitForChild("MainClubRealism",30)
-if not floor1 or not front or not realism then
- warn("[BBYA] Main Club Social Lounge v1 prerequisites unavailable")
+
+-- ClubPurity is the authoritative owner of this former-studio footprint.
+-- Wait for it to finish so the upgrade replaces its simple lounges deterministically.
+local purity=root:WaitForChild("ClubPurityMallStudiosV1",150)
+if not purity then
+ warn("[BBYA] Main Club Social Lounge upgrade: ClubPurityMallStudiosV1 unavailable")
+ return
+end
+local extension=purity:WaitForChild("MainClubFrontExtension",30)
+if not extension then
+ warn("[BBYA] Main Club Social Lounge upgrade: MainClubFrontExtension unavailable")
  return
 end
 
 local old=root:FindFirstChild("MainClubSocialLoungeV1")
 if old then old:Destroy() end
 
-for _,name in ipairs({"PhotoAreaPremium","SalonLookStudioPremium"}) do
- local stale=front:FindFirstChild(name,true)
- if stale then stale:Destroy() end
+-- Replace only the primitive arrival lounge furniture. Keep ClubPurity floor, ceiling,
+-- portal, wall recesses, warm coves and bronze datum as the architectural base.
+for _,name in ipairs({"ArrivalLounge1","ArrivalLounge2"}) do
+ local obj=extension:FindFirstChild(name)
+ if obj then obj:Destroy() end
 end
 
 local out=Instance.new("Model")
 out.Name="MainClubSocialLoungeV1"
-out:SetAttribute("Pass","MAIN_CLUB_SOCIAL_LOUNGE_V1")
-out:SetAttribute("Scope","FORMER_PHOTO_AND_SALON_FOOTPRINTS")
-out:SetAttribute("FormerPhotoStudioConverted",true)
-out:SetAttribute("FormerSalonConverted",true)
+out:SetAttribute("Pass","MAIN_CLUB_SOCIAL_LOUNGE_UPGRADE_V1")
+out:SetAttribute("Authority","CLUB_PURITY_MAIN_CLUB_FRONT_EXTENSION")
+out:SetAttribute("FormerPhotoStudioLoungeUpgraded",true)
+out:SetAttribute("FormerSalonLoungeUpgraded",true)
+out:SetAttribute("ReplacedArrivalLounge1",true)
+out:SetAttribute("ReplacedArrivalLounge2",true)
+out:SetAttribute("ReusedExistingArchitecture",true)
 out:SetAttribute("OpenAccess",true)
 out:SetAttribute("VIPGateAdded",false)
 out:SetAttribute("MainClubSightlinePreserved",true)
@@ -39,11 +51,12 @@ out:SetAttribute("MonetizationUntouched",true)
 out.Parent=root
 
 local C={
- black=Color3.fromRGB(8,8,10),ink=Color3.fromRGB(14,13,17),charcoal=Color3.fromRGB(24,23,28),
- graphite=Color3.fromRGB(42,40,46),fabric=Color3.fromRGB(48,39,49),plum=Color3.fromRGB(76,48,67),
- taupe=Color3.fromRGB(93,76,78),brass=Color3.fromRGB(181,137,81),champagne=Color3.fromRGB(214,177,119),
- marble=Color3.fromRGB(126,120,129),smoked=Color3.fromRGB(73,83,94),warm=Color3.fromRGB(255,216,178),
- pink=Color3.fromRGB(243,53,151),cyan=Color3.fromRGB(35,191,216),green=Color3.fromRGB(65,91,70),white=Color3.fromRGB(239,236,241),
+ black=Color3.fromRGB(8,8,10),ink=Color3.fromRGB(14,13,17),charcoal=Color3.fromRGB(25,23,28),
+ graphite=Color3.fromRGB(43,40,46),fabric=Color3.fromRGB(48,39,49),fabric2=Color3.fromRGB(61,48,58),
+ plum=Color3.fromRGB(79,49,69),taupe=Color3.fromRGB(92,75,79),brass=Color3.fromRGB(181,137,81),
+ champagne=Color3.fromRGB(214,177,119),marble=Color3.fromRGB(124,118,128),smoked=Color3.fromRGB(78,88,99),
+ warm=Color3.fromRGB(255,216,178),pink=Color3.fromRGB(243,53,151),cyan=Color3.fromRGB(35,191,216),
+ green=Color3.fromRGB(64,88,70),white=Color3.fromRGB(240,237,242),
 }
 
 local function model(name,parent)
@@ -64,99 +77,121 @@ local function cylinder(name,height,diameter,cf,color,material,transparency,pare
 end
 
 local function point(parent,color,brightness,range)
- local l=Instance.new("PointLight");l.Name="LoungeLocalWarmth";l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
+ local l=Instance.new("PointLight")
+ l.Name="LoungeLocalWarmth";l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
 end
 
 local function surface(parent,color,brightness,range,angle)
- local l=Instance.new("SurfaceLight");l.Name="LoungeLocalWash";l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=brightness;l.Range=range;l.Angle=angle or 110;l.Shadows=false;l.Parent=parent;return l
+ local l=Instance.new("SurfaceLight")
+ l.Name="LoungeLocalWash";l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=brightness;l.Range=range;l.Angle=angle or 110;l.Shadows=false;l.Parent=parent;return l
 end
 
 local function textPlate(parent,name,size,cf,textValue,color)
  local plate=block(name,size,cf,C.black,Enum.Material.Glass,.08,parent,false)
- local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.LightInfluence=.2;gui.PixelsPerStud=70;gui.Parent=plate
- local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text=textValue;text.TextColor3=color or C.white
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.LightInfluence=.18;gui.PixelsPerStud=72;gui.Parent=plate
+ local text=Instance.new("TextLabel")
+ text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text=textValue;text.TextColor3=color or C.white
  text.Font=Enum.Font.GothamBold;text.TextScaled=true;text.Parent=gui
  return plate
 end
 
-local function lowTable(parent,name,x,z,accent)
+local function cocktailTable(parent,name,x,z,accent)
  local m=model(name,parent)
- cylinder("Foot",.16,2.45,CFrame.new(x,1.12,z),C.black,Enum.Material.Metal,0,m,false)
- cylinder("Stem",.95,.20,CFrame.new(x,1.63,z),C.brass,Enum.Material.Metal,0,m,false)
- local top=cylinder("Top",.16,3.05,CFrame.new(x,2.18,z),C.marble,Enum.Material.Marble,0,m,false);top.Reflectance=.08
- local lamp=cylinder("Lamp",.50,.66,CFrame.new(x,2.58,z),Color3.fromRGB(58,43,47),Enum.Material.Fabric,0,m,false);point(lamp,accent or C.warm,.27,6.5)
- cylinder("GlassA",.36,.28,CFrame.new(x-.62,2.40,z-.26),C.smoked,Enum.Material.Glass,.45,m,false)
- cylinder("GlassB",.36,.28,CFrame.new(x+.58,2.40,z+.18),C.smoked,Enum.Material.Glass,.45,m,false)
+ cylinder("Foot",.14,2.25,CFrame.new(x,1.18,z),C.black,Enum.Material.Metal,0,m,false)
+ cylinder("Stem",.98,.18,CFrame.new(x,1.70,z),C.brass,Enum.Material.Metal,0,m,false)
+ local top=cylinder("StoneTop",.16,2.95,CFrame.new(x,2.25,z),C.marble,Enum.Material.Marble,0,m,false);top.Reflectance=.08
+ local lamp=cylinder("TableLamp",.48,.68,CFrame.new(x,2.62,z),Color3.fromRGB(58,43,47),Enum.Material.Fabric,0,m,false)
+ point(lamp,accent or C.warm,.28,6.2)
+ -- restrained hospitality props
+ cylinder("GlassA",.34,.27,CFrame.new(x-.58,2.47,z-.28),C.smoked,Enum.Material.Glass,.44,m,false)
+ cylinder("GlassB",.34,.27,CFrame.new(x+.55,2.47,z+.20),C.smoked,Enum.Material.Glass,.44,m,false)
+ cylinder("Bottle",.95,.28,CFrame.new(x+.10,2.80,z-.48)*CFrame.Angles(0,0,math.rad(8)),Color3.fromRGB(66,86,70),Enum.Material.Glass,.10,m,false)
 end
 
 local function loungeChair(parent,name,cf,accent)
  local m=model(name,parent)
- block("Base",Vector3.new(3.7,.46,3.6),cf*CFrame.new(0,.32,0),C.black,Enum.Material.Metal,0,m,false)
- block("Seat",Vector3.new(3.35,.70,3.25),cf*CFrame.new(0,.82,0),accent or C.fabric,Enum.Material.Fabric,0,m,true)
- block("Back",Vector3.new(3.35,2.65,.66),cf*CFrame.new(0,1.82,1.30)*CFrame.Angles(math.rad(-6),0,0),accent or C.fabric,Enum.Material.Fabric,0,m,false)
- block("ArmL",Vector3.new(.52,1.40,3.05),cf*CFrame.new(-1.68,1.22,0),C.taupe,Enum.Material.Fabric,0,m,false)
- block("ArmR",Vector3.new(.52,1.40,3.05),cf*CFrame.new(1.68,1.22,0),C.taupe,Enum.Material.Fabric,0,m,false)
+ block("Base",Vector3.new(3.55,.46,3.45),cf*CFrame.new(0,.28,0),C.black,Enum.Material.Metal,0,m,false)
+ block("Seat",Vector3.new(3.20,.70,3.08),cf*CFrame.new(0,.76,0),accent or C.taupe,Enum.Material.Fabric,0,m,true)
+ block("Back",Vector3.new(3.18,2.45,.64),cf*CFrame.new(0,1.73,1.22)*CFrame.Angles(math.rad(-6),0,0),accent or C.taupe,Enum.Material.Fabric,0,m,false)
+ block("ArmL",Vector3.new(.48,1.28,2.88),cf*CFrame.new(-1.61,1.13,0),C.fabric2,Enum.Material.Fabric,0,m,false)
+ block("ArmR",Vector3.new(.48,1.28,2.88),cf*CFrame.new(1.61,1.13,0),C.fabric2,Enum.Material.Fabric,0,m,false)
+ -- one small throw cushion keeps the chair from reading as a block prop
+ block("Cushion",Vector3.new(1.18,.30,1.12),cf*CFrame.new(.48,1.22,.42)*CFrame.Angles(math.rad(-18),math.rad(10),math.rad(8)),C.plum,Enum.Material.Fabric,0,m,false)
 end
 
 local function planter(parent,name,x,z)
  local m=model(name,parent)
- cylinder("Pot",1.45,2.0,CFrame.new(x,1.35,z),C.charcoal,Enum.Material.Slate,0,m,false)
- block("Stem",Vector3.new(.20,3.2,.20),CFrame.new(x,3.15,z),C.green,Enum.Material.SmoothPlastic,0,m,false)
+ cylinder("Pot",1.35,1.90,CFrame.new(x,1.78,z),C.charcoal,Enum.Material.Slate,0,m,false)
+ block("Stem",Vector3.new(.18,2.8,.18),CFrame.new(x,3.35,z),C.green,Enum.Material.SmoothPlastic,0,m,false)
  for i=1,5 do
   local a=math.rad((i-1)*72)
-  block("Leaf"..i,Vector3.new(.14,1.75,.56),CFrame.new(x+math.cos(a)*.60,4.15,z+math.sin(a)*.60)*CFrame.Angles(math.rad(18),-a,0),C.green,Enum.Material.SmoothPlastic,0,m,false)
+  block("Leaf"..i,Vector3.new(.13,1.55,.50),CFrame.new(x+math.cos(a)*.55,4.18,z+math.sin(a)*.55)*CFrame.Angles(math.rad(18),-a,0),C.green,Enum.Material.SmoothPlastic,0,m,false)
  end
 end
 
--- ZONE A — former Photo Studio: intimate arrival lounge.
-local photoLounge=model("FormerPhotoLounge",out)
-local photoFloor=block("LoungeRug",Vector3.new(20,.08,15.5),CFrame.new(-39.0,1.04,-25.0),Color3.fromRGB(32,29,35),Enum.Material.Fabric,0,photoLounge,false);photoFloor.Reflectance=0
-block("Backdrop",Vector3.new(.42,8.8,15.8),CFrame.new(-50.0,5.55,-25.0),C.ink,Enum.Material.Slate,0,photoLounge,false)
-for i,z in ipairs({-31.0,-28.0,-25.0,-22.0,-19.0}) do
- block("WallSlat"..i,Vector3.new(.10,6.2,.22),CFrame.new(-49.72,5.4,z),i==3 and C.champagne or C.brass,Enum.Material.Metal,0,photoLounge,false)
-end
-textPlate(photoLounge,"LoungeMark",Vector3.new(.10,1.45,6.0),CFrame.new(-49.62,7.2,-25)*CFrame.Angles(0,math.rad(90),0),"BBYA  LOUNGE",C.white)
+local function premiumBay(index,z,accent,seatColor)
+ local bay=model("PremiumLoungeBay"..index,out)
+ bay:SetAttribute("FormerStudioBay",index==1 and "PHOTO" or "SALON")
+ bay:SetAttribute("OpenToMainClub",true)
 
-local sofaA=model("SofaWest",photoLounge)
-block("Plinth",Vector3.new(3.9,.40,10.3),CFrame.new(-45.2,1.20,-25),C.black,Enum.Material.Metal,0,sofaA,false)
-for i,z in ipairs({-28.2,-25.0,-21.8}) do
- block("Seat"..i,Vector3.new(3.35,.72,2.75),CFrame.new(-44.7,1.72,z),i==2 and C.plum or C.fabric,Enum.Material.Fabric,0,sofaA,true)
- block("Back"..i,Vector3.new(.66,2.55,2.70),CFrame.new(-46.35,2.82,z)*CFrame.Angles(0,0,math.rad(-5)),i==2 and Color3.fromRGB(86,56,75) or C.fabric,Enum.Material.Fabric,0,sofaA,false)
-end
-loungeChair(photoLounge,"ChairNorth",CFrame.new(-34.7,1.08,-29.4)*CFrame.Angles(0,math.rad(-58),0),C.taupe)
-loungeChair(photoLounge,"ChairSouth",CFrame.new(-34.7,1.08,-20.6)*CFrame.Angles(0,math.rad(-122),0),C.taupe)
-lowTable(photoLounge,"ConversationTable",-38.3,-25,C.warm)
-planter(photoLounge,"PlanterNorth",-47.0,-32.1);planter(photoLounge,"PlanterSouth",-47.0,-17.9)
-block("CeilingRaft",Vector3.new(17.5,.26,11.5),CFrame.new(-39.0,11.6,-25),C.charcoal,Enum.Material.Fabric,0,photoLounge,false)
-for i,z in ipairs({-29,-25,-21}) do
- local strip=block("CeilingGlow"..i,Vector3.new(12.0,.035,.38),CFrame.new(-39.0,11.43,z),C.warm,Enum.Material.Neon,.72,photoLounge,false);strip.CastShadow=false;surface(strip,C.warm,.25,10,110)
-end
-block("GlassDivider",Vector3.new(.10,3.0,12.0),CFrame.new(-28.6,2.55,-25.0),C.smoked,Enum.Material.Glass,.64,photoLounge,false)
-block("GlassCap",Vector3.new(.14,.10,12.0),CFrame.new(-28.6,4.10,-25.0),C.champagne,Enum.Material.Metal,0,photoLounge,false)
+ -- Existing FrontClubFloor remains underneath. This is only a soft rug/inlay.
+ local rug=block("Rug",Vector3.new(12.8,.055,9.2),CFrame.new(-39.1,1.13,z),Color3.fromRGB(31,28,34),Enum.Material.Fabric,0,bay,false)
+ rug.Reflectance=0
 
--- ZONE B — former Salon: long social lounge facing the Main Club.
-local salonLounge=model("FormerSalonLounge",out)
-block("LoungeFloorInset",Vector3.new(22,.08,19),CFrame.new(-38.5,1.04,-3.5),Color3.fromRGB(31,29,34),Enum.Material.SmoothPlastic,0,salonLounge,false)
-block("WallPanel",Vector3.new(.46,8.0,19.0),CFrame.new(-49.2,5.2,-3.5),C.ink,Enum.Material.Slate,0,salonLounge,false)
-block("BrassDatum",Vector3.new(.08,.08,17.0),CFrame.new(-48.92,8.75,-3.5),C.brass,Enum.Material.Metal,0,salonLounge,false)
-local banquette=model("LongBanquette",salonLounge)
-block("SeatBase",Vector3.new(4.3,.48,16.5),CFrame.new(-45.4,1.25,-3.5),C.black,Enum.Material.Metal,0,banquette,false)
-for i,z in ipairs({-9.0,-5.35,-1.70,1.95}) do
- block("Seat"..i,Vector3.new(3.65,.72,3.25),CFrame.new(-44.9,1.73,z),(i%2==0) and C.plum or C.fabric,Enum.Material.Fabric,0,banquette,true)
- block("Back"..i,Vector3.new(.68,2.60,3.18),CFrame.new(-46.65,2.85,z)*CFrame.Angles(0,0,math.rad(-5)),(i%2==0) and Color3.fromRGB(83,54,73) or C.fabric,Enum.Material.Fabric,0,banquette,false)
-end
-lowTable(salonLounge,"SocialTableA",-37.0,-7.2,C.pink);lowTable(salonLounge,"SocialTableB",-37.0,1.0,C.cyan)
-loungeChair(salonLounge,"ClubChairA",CFrame.new(-31.8,1.08,-9.5)*CFrame.Angles(0,math.rad(-72),0),C.taupe)
-loungeChair(salonLounge,"ClubChairB",CFrame.new(-31.8,1.08,3.2)*CFrame.Angles(0,math.rad(-108),0),C.taupe)
-for i,z in ipairs({-8.4,-3.3,1.8}) do
- local glass=block("DanceEdgeGlass"..i,Vector3.new(.10,2.45,4.2),CFrame.new(-27.8,2.30,z),C.smoked,Enum.Material.Glass,.70,salonLounge,false);glass.Reflectance=.08
- block("DanceEdgeCap"..i,Vector3.new(.14,.08,4.2),CFrame.new(-27.8,3.58,z),C.champagne,Enum.Material.Metal,0,salonLounge,false)
-end
-for i,z in ipairs({-8.0,-2.5,3.0}) do
- block("PendantStem"..i,Vector3.new(.06,1.55,.06),CFrame.new(-39.0,11.7,z),C.brass,Enum.Material.Metal,0,salonLounge,false)
- cylinder("Pendant"..i,.40,.74,CFrame.new(-39.0,10.82,z),C.black,Enum.Material.Metal,0,salonLounge,false)
- local bulb=block("PendantBulb"..i,Vector3.new(.24,.18,.24),CFrame.new(-39.0,10.55,z),C.warm,Enum.Material.Neon,.26,salonLounge,false);bulb.CastShadow=false;point(bulb,C.warm,.30,7.5)
-end
-local marker=textPlate(out,"SocialLoungeMarker",Vector3.new(7.0,1.15,.10),CFrame.new(-38.5,7.7,-14.2),"SOCIAL  LOUNGE",C.champagne);marker:SetAttribute("FormerStudioConnector",true)
+ -- Built-in banquette against the existing west-wall architecture.
+ block("BanquettePlinth",Vector3.new(3.95,.38,8.65),CFrame.new(-44.25,1.31,z),C.black,Enum.Material.Metal,0,bay,false)
+ for n=1,3 do
+  local zz=z-2.55+(n-1)*2.55
+  block("Seat"..n,Vector3.new(3.45,.72,2.28),CFrame.new(-43.82,1.78,zz),n==2 and seatColor or C.fabric,Enum.Material.Fabric,0,bay,true)
+  block("Back"..n,Vector3.new(.66,2.55,2.20),CFrame.new(-45.52,2.82,zz)*CFrame.Angles(0,0,math.rad(-5)),n==2 and seatColor or C.fabric2,Enum.Material.Fabric,0,bay,false)
+  if n~=2 then
+   block("Throw"..n,Vector3.new(.34,1.00,.92),CFrame.new(-43.55,2.20,zz+.35)*CFrame.Angles(math.rad(3),0,math.rad(n==1 and -12 or 12)),accent,Enum.Material.Fabric,0,bay,false)
+  end
+ end
 
-print("[BBYA] Main Club Social Lounge v1 online: former Photo Studio + Salon converted into connected premium open-access lounge")
+ cocktailTable(bay,"CocktailTable",-37.3,z,accent)
+
+ -- One sculpted chair per bay, positioned safely west of the club portal/circulation edge.
+ local chairZ=z+(index==1 and -3.65 or 3.65)
+ local yaw=index==1 and -62 or -118
+ loungeChair(bay,"ClubChair",CFrame.new(-32.25,1.10,chairZ)*CFrame.Angles(0,math.rad(yaw),0),C.taupe)
+
+ -- Low smoked divider: mood separation without rebuilding a room or blocking sightlines.
+ local divider=block("SmokedDivider",Vector3.new(.10,2.15,6.55),CFrame.new(-29.45,2.25,z),C.smoked,Enum.Material.Glass,.72,bay,false)
+ divider.Reflectance=.08
+ block("DividerCap",Vector3.new(.14,.08,6.55),CFrame.new(-29.45,3.36,z),C.champagne,Enum.Material.Metal,0,bay,false)
+
+ -- Small hospitality planter near the outer wall, not in circulation.
+ planter(bay,"Planter",-47.35,z+3.70)
+
+ -- Ceiling pendant drops from ClubPurity's existing CeilingField.
+ block("PendantStem",Vector3.new(.06,1.75,.06),CFrame.new(-38.8,11.55,z),C.brass,Enum.Material.Metal,0,bay,false)
+ cylinder("PendantShade",.42,.78,CFrame.new(-38.8,10.55,z),C.black,Enum.Material.Metal,0,bay,false)
+ local bulb=block("PendantBulb",Vector3.new(.25,.18,.25),CFrame.new(-38.8,10.26,z),C.warm,Enum.Material.Neon,.28,bay,false)
+ bulb.CastShadow=false;point(bulb,C.warm,.31,7.8)
+
+ -- Soft local wash makes faces/seating readable without changing Lighting service.
+ local wash=block("LocalWash",Vector3.new(5.8,.035,.42),CFrame.new(-41.2,11.92,z),C.warm,Enum.Material.Neon,.82,bay,false)
+ wash.CastShadow=false;surface(wash,C.warm,.18,8.5,105)
+end
+
+-- Bay 1 = former Photo Studio / quieter intimate lounge.
+premiumBay(1,-27.0,C.warm,C.taupe)
+-- Bay 2 = former Salon / closer to Main Club, slightly stronger plum identity.
+premiumBay(2,-13.0,C.pink,C.plum)
+
+-- Upgrade the existing extension's floor edge subtly; no additional structural floor is created.
+local floor=extension:FindFirstChild("FrontClubFloor")
+if floor and floor:IsA("BasePart") then
+ floor.Color=Color3.fromRGB(24,23,28)
+ floor.Material=Enum.Material.SmoothPlastic
+ floor.Reflectance=.07
+end
+
+-- A single brand marker ties both bays together. Mounted on the existing west wall line.
+textPlate(out,"SocialLoungeMark",Vector3.new(.10,1.35,7.2),CFrame.new(-49.42,8.05,-14.5)*CFrame.Angles(0,math.rad(90),0),"BBYA  SOCIAL  LOUNGE",C.champagne)
+
+-- Thin champagne connector inlay between both lounge rugs. Decorative only.
+block("LoungeConnectorInlay",Vector3.new(8.8,.035,.055),CFrame.new(-39.0,1.135,-20.0),C.champagne,Enum.Material.Metal,0,out,false)
+
+print("[BBYA] Main Club Social Lounge Upgrade v1 online: ClubPurity ArrivalLounge1/2 replaced with premium former-studio lounge bays")
