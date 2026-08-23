@@ -543,7 +543,7 @@ end
 
 Workspace:SetAttribute('ACC_BecakCityDetails','v1.1')
 print('[BECAK E-BIKE] Nusakarya detail pass v1.1 ready')
-]]></ProtectedString></Properties></Item><Item class="Script" referent="CP"><Properties><string name="Name">BecakEBike_CityPolish</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE city polish v1.1
+]]></ProtectedString></Properties></Item><Item class="Script" referent="CP"><Properties><string name="Name">BecakEBike_CityPolish</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE city polish v1.2
 -- Dedicated Nusakarya visual pass: breaks up primitive/blockout silhouettes without touching gameplay collision.
 
 local Workspace = game:GetService("Workspace")
@@ -601,11 +601,23 @@ local roofPalette = {
     Color3.fromRGB(93,55,46),
     Color3.fromRGB(70,78,73),
 }
+local storefrontPalette = {
+    Color3.fromRGB(106,64,45),
+    Color3.fromRGB(49,83,68),
+    Color3.fromRGB(48,72,94),
+    Color3.fromRGB(124,87,43),
+    Color3.fromRGB(88,58,78),
+}
+
+local function nameSeed(name)
+    local seed = 0
+    for i=1,#name do seed += string.byte(name,i) end
+    return seed
+end
 
 local function addRoofSilhouette(detail, model, body)
     local size, cf = body.Size, body.CFrame
-    local seed = 0
-    for i=1,#model.Name do seed += string.byte(model.Name,i) end
+    local seed = nameSeed(model.Name)
     local roofColor = roofPalette[(seed % #roofPalette)+1]
     local roofY = size.Y/2 + 1.2
 
@@ -624,6 +636,36 @@ local function addRoofSilhouette(detail, model, body)
         local capD = math.min(size.Z*0.40,18)
         visualPart(detail,"RoofServiceCore",Vector3.new(capW,3.2,capD),cf*CFrame.new(size.X*0.16,size.Y/2+2.0,0),Color3.fromRGB(94,96,91),Enum.Material.Concrete)
         visualPart(detail,"RoofVent",Vector3.new(2.2,2.8,2.2),cf*CFrame.new(-size.X*0.22,size.Y/2+1.7,0),Color3.fromRGB(61,66,68),Enum.Material.Metal)
+    end
+end
+
+local function addStorefrontIdentity(detail, model, body)
+    local size, cf = body.Size, body.CFrame
+    local seed = nameSeed(model.Name)
+    local accent = storefrontPalette[(seed % #storefrontPalette)+1]
+    local commercial = model.Name:find("Ruko") or model.Name=="Mall" or model.Name=="Hotel" or model.Name=="Terminal" or model.Name=="RumahSakit" or model.Name=="Sekolah" or model.Name=="Factory"
+    if not commercial then return end
+
+    local frontage = math.min(size.X*0.76, 28)
+    local canopyWidth = math.max(10, frontage)
+    local canopy = awning(detail,cf*CFrame.new(0,-size.Y/2+8.4,-size.Z/2-2.15),canopyWidth,accent)
+    canopy.Name = "StorefrontCanopy"
+
+    local bladeX = math.min(size.X/2-2.2, 11)
+    visualPart(detail,"BladeSign",Vector3.new(0.5,4.8,2.8),cf*CFrame.new(bladeX,-size.Y/2+10.5,-size.Z/2-1.65),accent,Enum.Material.Metal)
+
+    local pillarOffset = math.min(size.X*0.31, 10)
+    for _,x in ipairs({-pillarOffset,pillarOffset}) do
+        local col = visualPart(detail,"RoundEntryColumn",Vector3.new(1.15,8.6,1.15),cf*CFrame.new(x,-size.Y/2+4.3,-size.Z/2-0.8),Color3.fromRGB(78,75,68),Enum.Material.Concrete,Enum.PartType.Cylinder)
+        col.CFrame = cf*CFrame.new(x,-size.Y/2+4.3,-size.Z/2-0.8)*CFrame.Angles(0,0,math.rad(90))
+    end
+
+    local panelCount = math.clamp(math.floor(frontage/7),2,4)
+    for i=1,panelCount do
+        local x = -frontage/2 + (i-0.5)*(frontage/panelCount)
+        local glass = visualPart(detail,"StoreGlass",Vector3.new(frontage/panelCount-0.65,5.4,0.22),cf*CFrame.new(x,-size.Y/2+4.0,-size.Z/2-0.5),Color3.fromRGB(65,103,111),Enum.Material.Glass)
+        glass.Transparency = 0.28
+        visualPart(detail,"StoreMullion",Vector3.new(0.18,5.7,0.32),glass.CFrame*CFrame.new((frontage/panelCount)/2,0,0),Color3.fromRGB(47,49,48),Enum.Material.Metal)
     end
 end
 
@@ -664,7 +706,9 @@ local function facade(model)
     local houseIndex = tonumber(model.Name:match("Rumah_(%d+)"))
     if commercial or (houseIndex and houseIndex%3==0) then
         visualPart(detail,"Entrance",Vector3.new(math.min(9,size.X*0.25),7,0.35),cf*CFrame.new(0,-size.Y/2+3.5,-size.Z/2-0.22),Color3.fromRGB(46,49,50),Enum.Material.Glass)
-        awning(detail,cf*CFrame.new(0,-size.Y/2+8,-size.Z/2-2.0),math.min(16,size.X*0.48),Color3.fromRGB(112,75,54))
+        if not commercial then
+            awning(detail,cf*CFrame.new(0,-size.Y/2+8,-size.Z/2-2.0),math.min(16,size.X*0.48),Color3.fromRGB(112,75,54))
+        end
         if commercial then
             local entryW = math.min(12,size.X*0.34)
             visualPart(detail,"EntryPierL",Vector3.new(0.7,8.4,0.65),cf*CFrame.new(-entryW/2,-size.Y/2+4.2,-size.Z/2-0.35),Color3.fromRGB(86,79,69),Enum.Material.Brick)
@@ -674,6 +718,7 @@ local function facade(model)
 
     visualPart(detail,"CorniceFront",Vector3.new(size.X+2.8,0.55,0.75),cf*CFrame.new(0,size.Y/2+0.65,-size.Z/2-0.35),Color3.fromRGB(72,70,66),Enum.Material.Concrete)
     addRoofSilhouette(detail,model,body)
+    addStorefrontIdentity(detail,model,body)
     return true
 end
 
@@ -689,6 +734,7 @@ local streets = {
     {axis="z", fixed=28, from=-500, to=500, step=70},
 }
 local streetCount = 0
+local furnitureCount = 0
 for laneIndex,s in ipairs(streets) do
     local sequence = 0
     for v=s.from,s.to,s.step do
@@ -704,19 +750,224 @@ for laneIndex,s in ipairs(streets) do
             visualPart(polish,"Shrub",Vector3.new(3.6,2.4,3.6),CFrame.new(x+3.2,1.2,z),Color3.fromRGB(63,126,64),Enum.Material.Grass,Enum.PartType.Ball)
         end
         visualPart(polish,"Bollard",Vector3.new(0.75,2.4,0.75),CFrame.new(x+5,1.35,z),Color3.fromRGB(48,52,54),Enum.Material.Metal,Enum.PartType.Cylinder)
+
+        -- Every other cluster receives rounded street furniture so sidewalks do not read as repeated boxes.
+        if sequence % 2 == 1 then
+            local lampX = x-4.5
+            local pole = visualPart(polish,"LampPole",Vector3.new(0.45,8.8,0.45),CFrame.new(lampX,4.6,z),Color3.fromRGB(46,49,50),Enum.Material.Metal,Enum.PartType.Cylinder)
+            pole.CFrame = CFrame.new(lampX,4.6,z)*CFrame.Angles(0,0,math.rad(90))
+            visualPart(polish,"LampHead",Vector3.new(1.65,0.65,1.65),CFrame.new(lampX,9.0,z),Color3.fromRGB(212,205,170),Enum.Material.Glass,Enum.PartType.Ball)
+            local planter = visualPart(polish,"RoundPlanter",Vector3.new(3.4,1.2,3.4),CFrame.new(x+4.2,0.7,z+3.0),Color3.fromRGB(90,73,58),Enum.Material.Brick,Enum.PartType.Cylinder)
+            planter.CFrame = CFrame.new(x+4.2,0.7,z+3.0)*CFrame.Angles(0,0,math.rad(90))
+            visualPart(polish,"PlanterCrown",Vector3.new(3.0,2.2,3.0),CFrame.new(x+4.2,1.9,z+3.0),Color3.fromRGB(55,118,61),Enum.Material.Grass,Enum.PartType.Ball)
+            furnitureCount += 2
+        end
         streetCount += 1
     end
 end
 
--- Compatibility marker kept at v1.0 until the dedicated build validator is version-bumped.
+-- Compatibility marker retained for the current dedicated builder; enhancement marker carries the visual revision.
 world:SetAttribute("ACC_BecakCityPolish","v1.0")
-world:SetAttribute("BecakCityPolishEnhancement","v1.1")
+world:SetAttribute("BecakCityPolishEnhancement","v1.2")
 world:SetAttribute("BecakAntiBlockoutFacades","ON")
 world:SetAttribute("BecakPitchedRoofSilhouettes","ON")
 world:SetAttribute("BecakFacadeDepthPass","ON")
+world:SetAttribute("BecakStorefrontIdentityPass","ON")
+world:SetAttribute("BecakRoundedStreetFurniture","ON")
 world:SetAttribute("BecakVariedVegetation","ON")
 world:SetAttribute("BecakCityPolishBuildingCount",buildingCount)
 world:SetAttribute("BecakCityPolishStreetClusters",streetCount)
+world:SetAttribute("BecakCityPolishFurnitureCount",furnitureCount)
+]]></ProtectedString></Properties></Item><Item class="Script" referent="CO"><Properties><string name="Name">BecakEBike_CityOrganicPolish</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE city organic polish v1.3
+-- Secondary Nusakarya visual pass: breaks box silhouettes with side depth, rounded accents and district landmarks.
+-- Visual-only: no gameplay collision, touch or query surfaces are introduced.
+
+local Workspace = game:GetService("Workspace")
+local root = Workspace:WaitForChild("BecakEBike", 30)
+if not root then return end
+local world = root:WaitForChild("Nusakarya", 30)
+if not world then return end
+
+local old = world:FindFirstChild("CityOrganicPolish")
+if old then old:Destroy() end
+local polish = Instance.new("Folder")
+polish.Name = "CityOrganicPolish"
+polish.Parent = world
+
+local function part(parent,name,size,cf,color,material,shape)
+    local p=Instance.new("Part")
+    p.Name=name
+    p.Size=size
+    p.CFrame=cf
+    p.Anchored=true
+    p.CanCollide=false
+    p.CanTouch=false
+    p.CanQuery=false
+    p.CastShadow=true
+    p.Color=color
+    p.Material=material or Enum.Material.SmoothPlastic
+    if shape then p.Shape=shape end
+    p.Parent=parent
+    return p
+end
+
+local function sphere(parent,name,size,cf,color,material)
+    return part(parent,name,size,cf,color,material or Enum.Material.SmoothPlastic,Enum.PartType.Ball)
+end
+
+local function cylinder(parent,name,size,cf,color,material)
+    local p=part(parent,name,size,cf,color,material or Enum.Material.Concrete,Enum.PartType.Cylinder)
+    p.CFrame=cf*CFrame.Angles(0,0,math.rad(90))
+    return p
+end
+
+local function seedOf(name)
+    local n=0
+    for i=1,#name do n=(n*33+string.byte(name,i))%9973 end
+    return n
+end
+
+local accentPalette={
+    Color3.fromRGB(126,84,54),
+    Color3.fromRGB(59,91,78),
+    Color3.fromRGB(61,78,103),
+    Color3.fromRGB(132,105,57),
+    Color3.fromRGB(98,67,75),
+}
+
+local organicCount=0
+local sideFacadeCount=0
+local landmarkCount=0
+local marketCount=0
+
+local function sideFacade(model,body)
+    local size,cf=body.Size,body.CFrame
+    if size.Y<16 or size.Z<14 then return end
+    local folder=Instance.new("Folder")
+    folder.Name="OrganicSideFacade"
+    folder.Parent=model
+    local seed=seedOf(model.Name)
+    local accent=accentPalette[(seed%#accentPalette)+1]
+    local rows=math.clamp(math.floor(size.Y/13),1,4)
+    local bays=math.clamp(math.floor(size.Z/14),1,4)
+    local side=(seed%2==0) and 1 or -1
+    local x=side*(size.X/2+0.24)
+    for row=1,rows do
+        local y=-size.Y/2+6.3+(row-1)*10.5
+        if y<size.Y/2-1.8 then
+            for bay=1,bays do
+                local z=-size.Z/2+(bay-0.5)*(size.Z/bays)
+                local win=part(folder,"SideWindow",Vector3.new(0.24,4.2,math.min(6.2,size.Z/bays*0.58)),cf*CFrame.new(x,y,z),Color3.fromRGB(70,104,113),Enum.Material.Glass)
+                win.Transparency=0.25
+                part(folder,"SideWindowCap",Vector3.new(0.42,0.35,math.min(7.0,size.Z/bays*0.68)),cf*CFrame.new(x+side*0.08,y+2.35,z),accent,Enum.Material.Metal)
+            end
+        end
+    end
+    local ribCount=math.clamp(math.floor(size.Z/18),1,3)
+    for i=1,ribCount do
+        local z=-size.Z/2+i*(size.Z/(ribCount+1))
+        part(folder,"SidePilaster",Vector3.new(0.55,size.Y*0.78,0.65),cf*CFrame.new(x+side*0.13,0,z),Color3.fromRGB(91,84,72),Enum.Material.Brick)
+    end
+    sideFacadeCount+=1
+    organicCount+=rows*bays+ribCount
+end
+
+local function roundedCorner(model,body)
+    local size,cf=body.Size,body.CFrame
+    if size.X<32 or size.Y<20 then return end
+    local seed=seedOf(model.Name)
+    if seed%3~=0 and model.Name~="Mall" and model.Name~="Hotel" then return end
+    local folder=Instance.new("Folder")
+    folder.Name="RoundedCornerAccent"
+    folder.Parent=model
+    local side=(seed%2==0) and 1 or -1
+    local frontZ=-size.Z/2-0.55
+    local x=side*(size.X/2-2.4)
+    local towerH=math.min(size.Y*0.72,24)
+    cylinder(folder,"CornerTower",Vector3.new(4.8,towerH,4.8),cf*CFrame.new(x,-size.Y/2+towerH/2+1.1,frontZ),Color3.fromRGB(105,96,82),Enum.Material.Concrete)
+    sphere(folder,"CornerDome",Vector3.new(5.2,3.1,5.2),cf*CFrame.new(x,-size.Y/2+towerH+1.6,frontZ),Color3.fromRGB(76,83,78),Enum.Material.Metal)
+    local ringY=-size.Y/2+towerH*0.56
+    cylinder(folder,"TowerRing",Vector3.new(5.15,0.45,5.15),cf*CFrame.new(x,ringY,frontZ),Color3.fromRGB(61,61,58),Enum.Material.Metal)
+    organicCount+=3
+end
+
+local function rooftopVariation(model,body)
+    local size,cf=body.Size,body.CFrame
+    if size.X<28 or size.Y<18 then return end
+    local seed=seedOf(model.Name)
+    local folder=Instance.new("Folder")
+    folder.Name="OrganicRoofDetail"
+    folder.Parent=model
+    if seed%2==0 then
+        local tank=cylinder(folder,"RoofWaterTank",Vector3.new(4.2,3.8,4.2),cf*CFrame.new(-size.X*0.18,size.Y/2+2.3,size.Z*0.12),Color3.fromRGB(54,63,65),Enum.Material.Metal)
+        tank.Transparency=0.02
+        cylinder(folder,"TankCap",Vector3.new(4.45,0.35,4.45),cf*CFrame.new(-size.X*0.18,size.Y/2+4.25,size.Z*0.12),Color3.fromRGB(40,45,47),Enum.Material.Metal)
+        organicCount+=2
+    else
+        part(folder,"PergolaTop",Vector3.new(math.min(12,size.X*0.32),0.35,math.min(9,size.Z*0.32)),cf*CFrame.new(size.X*0.16,size.Y/2+3.0,0),Color3.fromRGB(102,79,57),Enum.Material.Wood)
+        for _,dx in ipairs({-1,1}) do
+            for _,dz in ipairs({-1,1}) do
+                cylinder(folder,"PergolaPost",Vector3.new(0.45,5.4,0.45),cf*CFrame.new(size.X*0.16+dx*4.2,size.Y/2+0.4,dz*3.0),Color3.fromRGB(92,72,55),Enum.Material.Wood)
+            end
+        end
+        organicCount+=5
+    end
+end
+
+for _,obj in ipairs(world:GetChildren()) do
+    if obj:IsA("Model") then
+        local body=obj:FindFirstChild("Body")
+        if body and body:IsA("BasePart") then
+            sideFacade(obj,body)
+            roundedCorner(obj,body)
+            rooftopVariation(obj,body)
+        end
+    end
+end
+
+-- Sparse district anchors: visual-only circular forms to break the repeated rectangular street rhythm.
+local anchors={
+    {name="PasarPocketPlaza",pos=Vector3.new(-145,0,95),accent=Color3.fromRGB(147,92,55)},
+    {name="PusatKotaPocketPlaza",pos=Vector3.new(145,0,-95),accent=Color3.fromRGB(53,91,78)},
+}
+for _,a in ipairs(anchors) do
+    local f=Instance.new("Folder")
+    f.Name=a.name
+    f.Parent=polish
+    cylinder(f,"PlazaRing",Vector3.new(12,0.55,12),CFrame.new(a.pos+Vector3.new(0,0.35,0)),Color3.fromRGB(114,105,91),Enum.Material.Cobblestone)
+    cylinder(f,"PlanterBowl",Vector3.new(6.8,1.25,6.8),CFrame.new(a.pos+Vector3.new(0,0.75,0)),a.accent,Enum.Material.Brick)
+    sphere(f,"PlanterGreen",Vector3.new(5.8,3.6,5.8),CFrame.new(a.pos+Vector3.new(0,2.3,0)),Color3.fromRGB(57,121,62),Enum.Material.Grass)
+    local pole=cylinder(f,"DistrictPole",Vector3.new(0.55,9.5,0.55),CFrame.new(a.pos+Vector3.new(0,5.3,0)),Color3.fromRGB(48,51,52),Enum.Material.Metal)
+    sphere(f,"DistrictLamp",Vector3.new(1.9,1.2,1.9),CFrame.new(a.pos+Vector3.new(0,10.1,0)),Color3.fromRGB(224,210,166),Enum.Material.Glass)
+    landmarkCount+=1
+    organicCount+=5
+end
+
+-- Lightweight market clusters use cylinders/umbrellas rather than box stalls.
+local marketSpots={Vector3.new(-205,0,145),Vector3.new(-175,0,145),Vector3.new(185,0,-145)}
+for i,pos in ipairs(marketSpots) do
+    local f=Instance.new("Folder")
+    f.Name="OrganicMarketCluster_"..i
+    f.Parent=polish
+    local pole=cylinder(f,"UmbrellaPole",Vector3.new(0.35,5.5,0.35),CFrame.new(pos+Vector3.new(0,3,0)),Color3.fromRGB(72,62,53),Enum.Material.Wood)
+    local canopy=cylinder(f,"UmbrellaCanopy",Vector3.new(7.2,0.45,7.2),CFrame.new(pos+Vector3.new(0,5.9,0)),accentPalette[(i%#accentPalette)+1],Enum.Material.Fabric)
+    canopy.CFrame=canopy.CFrame*CFrame.Angles(0,math.rad(i*17),0)
+    cylinder(f,"ProduceBasket",Vector3.new(2.2,1.1,2.2),CFrame.new(pos+Vector3.new(2.8,0.7,1.2)),Color3.fromRGB(123,91,55),Enum.Material.Wood)
+    sphere(f,"ProducePile",Vector3.new(1.8,1.3,1.8),CFrame.new(pos+Vector3.new(2.8,1.5,1.2)),Color3.fromRGB(133,76+20*i,49),Enum.Material.SmoothPlastic)
+    marketCount+=1
+    organicCount+=4
+end
+
+world:SetAttribute("ACC_BecakCityOrganicPolish","v1.3")
+world:SetAttribute("BecakSideFacadeDepth","ON")
+world:SetAttribute("BecakRoundedCornerArchitecture","ON")
+world:SetAttribute("BecakOrganicRoofVariation","ON")
+world:SetAttribute("BecakDistrictPocketLandmarks","ON")
+world:SetAttribute("BecakOrganicMarketClusters","ON")
+world:SetAttribute("BecakOrganicPolishPartCount",organicCount)
+world:SetAttribute("BecakOrganicSideFacadeCount",sideFacadeCount)
+world:SetAttribute("BecakOrganicLandmarkCount",landmarkCount)
+world:SetAttribute("BecakOrganicMarketCount",marketCount)
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan systems v1.4
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
