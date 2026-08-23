@@ -1,0 +1,59 @@
+name: BBYA Role Panel QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/92-player-progression.server.lua'
+      - 'maps/bbya-social-hub/91-owner-ui.client.lua'
+      - 'maps/bbya-social-hub/32-teleport.server.lua'
+      - '.github/workflows/bbya-role-panel-qc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/rojo
+          key: rojo-7.7.0-linux
+      - name: Install Rojo
+        run: |
+          if [ ! -x "$HOME/.local/bin/rojo" ]; then
+            mkdir -p "$HOME/.local/bin"
+            curl -L --fail -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+            unzip -o /tmp/rojo.zip -d "$HOME/.local/bin"
+            chmod +x "$HOME/.local/bin/rojo"
+          fi
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Full Rojo build
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-role-panel.rbxl
+          test -s /tmp/bbya-role-panel.rbxl
+      - name: Validate role authority and UI
+        run: |
+          set -euo pipefail
+          s='maps/bbya-social-hub/92-player-progression.server.lua'
+          c='maps/bbya-social-hub/91-owner-ui.client.lua'
+          t='maps/bbya-social-hub/32-teleport.server.lua'
+          grep -q 'BBYA_MANAGED_ROLES_V1' "$s"
+          grep -q 'OWNER_USERNAME="nadmo97"' "$s"
+          grep -q 'RolePanelSnapshot' "$s"
+          grep -q 'RolePanelAction' "$s"
+          grep -q 'OWNER role is locked' "$s"
+          grep -q 'VALID_ROLES={VIP=true,CREW=true,ADMIN=true,NONE=true}' "$s"
+          grep -q 'canManageRoles' "$s"
+          grep -q 'BBYARolePanelUI' "$c"
+          grep -q 'VIP + Rooftop + staff' "$c"
+          grep -q 'snapshot.authorized~=true' "$c"
+          grep -q 'BBYAVIPBypass' "$t"
+          grep -q 'BBYARooftopBypass' "$t"
+          grep -q 'paid access preserved' "$t"
+          ! grep -Eq 'SoundId|Lighting\.|PromptProductPurchase|ProcessReceipt' "$s" "$c" "$t"
