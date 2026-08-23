@@ -1,0 +1,115 @@
+name: BBYA Fishing Premium v3 QC
+
+on:
+  push:
+    branches: [feature/bbya-fishing-premium-v3]
+    paths:
+      - 'maps/bbya-social-hub/125-fishing-premium-v3.server.lua'
+      - 'maps/bbya-social-hub/125-fishing-premium-v3.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v3-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/125-fishing-premium-v3.server.lua'
+      - 'maps/bbya-social-hub/125-fishing-premium-v3.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v3-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout v3 branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static premium fishing v3 checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$pattern,[string]$message){if($text -notmatch $pattern){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          $serverPath='maps/bbya-social-hub/125-fishing-premium-v3.server.lua'
+          $clientPath='maps/bbya-social-hub/125-fishing-premium-v3.client.lua'
+          $projectPath='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($serverPath,$clientPath,$projectPath)){if(-not (Test-Path $p)){throw "Missing $p"}}
+          $server=Get-Content $serverPath -Raw
+          $client=Get-Content $clientPath -Raw
+          $project=Get-Content $projectPath -Raw
+          $null=$project | ConvertFrom-Json
+
+          Require $server 'PREMIUM_FISHING_UPGRADE_V3' 'v3 pass marker missing'
+          Require $server 'AdditiveOnly", true' 'Additive safety marker missing'
+          Require $server 'GlobalLightingUntouched", true' 'Local lighting safety marker missing'
+          Require $server 'AudioInjected", false' 'Audio safety marker missing'
+          Require $server 'MoonfallGrotto' 'Moonfall grotto missing'
+          Require $server 'WaterfallGlow' 'Waterfall signature missing'
+          Require $server 'WaterGarden' 'Water garden missing'
+          Require $server 'MoonCoveSignature' 'Moon Cove signature missing'
+          Require $server 'ScenicPhotoSignature' 'Scenic photo signature missing'
+          Require $server 'SignatureRowboat' 'Rowboat detail missing'
+          Require $server 'AmbientFishSchools' 'Ambient 3D fish schools missing'
+          Require $server 'BBYAFishSchool' 'Fish school animation marker missing'
+          Require $server 'CelestialKoiSculpture' 'Rare 3D fish sculpture missing'
+          Require $server 'PhotoCrown' 'Dimensional photo crown missing'
+          Require $server 'BBYAWaterfallShimmer' 'Waterfall shimmer marker missing'
+          Require $server 'BBYACovePulse' 'Moon Cove pulse marker missing'
+
+          Forbid $server 'game:GetService\("Lighting"\)' 'v3 server must not touch global Lighting service'
+          Forbid $server 'Instance\.new\("Sound"\)' 'v3 must not inject audio'
+          Forbid $server 'MarketplaceService|TeleportService|DataStoreService' 'v3 visual pass touches protected systems'
+          Forbid $server 'Instance\.new\("(ImageLabel|ImageButton|Decal|Texture)"\)' 'v3 hero visuals must remain dimensional 3D'
+
+          Require $client 'BBYAFishingRemotes' 'Fishing state bridge missing'
+          Require $client 'WaterRipple' 'Bite/catch ripple VFX missing'
+          Require $client 'CatchShard' 'Catch shard VFX missing'
+          Require $client 'cameraPulse' 'Legendary/Mythic camera emphasis missing'
+          Require $client 'RenderStepped' 'Ambient motion loop missing'
+          Require $client 'BBYAFishSchool' 'Client fish school animation missing'
+          Require $client 'BBYAFloatingLantern' 'Lantern motion missing'
+          Require $client 'BBYALily' 'Lily motion missing'
+          Forbid $client 'game:GetService\("Lighting"\)' 'v3 client must not touch global Lighting service'
+          Forbid $client 'Instance\.new\("ScreenGui"\)' 'v3 must not add another permanent HUD'
+          Forbid $client 'Instance\.new\("Sound"\)' 'v3 client must not inject audio'
+
+          Require $project '125-fishing-premium-v3\.server\.lua' 'v3 server is not mounted'
+          Require $project '125-fishing-premium-v3\.client\.lua' 'v3 client is not mounted'
+          Require $project '124-fishing-core\.server\.lua' 'stable fishing core v2 disappeared'
+          Require $project '122-fishing-ui\.client\.lua' 'stable compact fishing UI disappeared'
+          Write-Host 'BBYA_FISHING_V3_STATIC_QC_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-fishing-v3'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-fishing-v3.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full canonical BBYA build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-v3-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Build unexpectedly small: $bytes"}
+          Write-Host "BBYA_FISHING_V3_BUILD_PASS bytes=$bytes"

@@ -241,6 +241,9 @@
       "FishingCoreV2": {
         "$path": "124-fishing-core.server.lua"
       },
+      "FishingPremiumUpgradeV3": {
+        "$path": "125-fishing-premium-v3.server.lua"
+      },
       "VIPTrack01AuthorityV2": {
         "$path": "110-vip-track01.server.lua"
       }
@@ -349,6 +352,9 @@
         },
         "PremiumFishingUIV1": {
           "$path": "122-fishing-ui.client.lua"
+        },
+        "FishingPremiumClientV3": {
+          "$path": "125-fishing-premium-v3.client.lua"
         }
       }
     },
