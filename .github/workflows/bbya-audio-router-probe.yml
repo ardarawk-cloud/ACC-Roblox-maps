@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p deploy-status
-          printf '{"status":"STARTED","workflow":"BBYA Audio Router Probe","triggerCommit":"%s","routing":"PROGRESIVE_MAIN_OTHERS_BASEMENT"}\n' "$GITHUB_SHA" > deploy-status/bbya-audio-run-start.json
+          printf '{"status":"STARTED","workflow":"BBYA Audio Router Probe","triggerCommit":"%s","routing":"PROGRESIVE_MAIN_OTHERS_BASEMENT","probe":"2026-08-24"}\n' "$GITHUB_SHA" > deploy-status/bbya-audio-run-start.json
           git config user.name "ACC Roblox Deploy Bot"
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/bbya-audio-run-start.json
