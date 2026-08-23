@@ -58,6 +58,9 @@
       "MainClubRealism": {
         "$path": "42-main-club-realism.server.lua"
       },
+      "MainClubPremiumV4": {
+        "$path": "120-mainclub-premium-v4.server.lua"
+      },
       "Floor1FrontPremium": {
         "$path": "43-floor1-front-premium.server.lua"
       },
