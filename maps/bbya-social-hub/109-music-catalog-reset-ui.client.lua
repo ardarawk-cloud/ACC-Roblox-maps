@@ -188,11 +188,24 @@ local function enforce()
  local playerCard,libraryCard=core()
  if not playerCard or not libraryCard then return end
  local v=currentVenue();local spec=VENUES[v] or VENUES.NONE
+ local vipActive=v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true
+ local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") or "VIP Track 01")
  local musicFrame=playerCard.Parent
  local empty=ensureEmpty(libraryCard)
  removeLegacyLibrary(libraryCard,empty)
  hideTransport()
  syncPlayerCard(playerCard,spec)
+ if vipActive then
+  local biggest=nil
+  for _,d in ipairs(playerCard:GetDescendants()) do
+   if d:IsA("TextLabel") then
+    local up=string.upper(d.Text or "")
+    if up~="NOW PLAYING" and (not biggest or d.TextSize>biggest.TextSize) then biggest=d end
+    if up:find("0 TRACKS",1,true) then d.Text="VIP • 1 TRACK" end
+   end
+  end
+  if biggest then biggest.Text=vipTitle end
+ end
  syncVenueChip(musicFrame,spec)
  local header=findHeader();local pageTitle,pageSub=headerLabels(header)
  if pageTitle and musicFrame and musicFrame.Visible then pageTitle.Text=spec.title end
@@ -200,13 +213,13 @@ local function enforce()
  local emptyTitle=empty and empty:FindFirstChild("EmptyTitle")
  local emptySub=empty and empty:FindFirstChild("EmptySub")
  local stroke=empty and empty:FindFirstChild("ResetStroke")
- if emptyTitle then emptyTitle.Text=spec.short.." PLAYLIST • 0 TRACKS" end
- if emptySub then emptySub.Text="Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end
+ if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" or (spec.short.." PLAYLIST • 0 TRACKS") end
+ if emptySub then emptySub.Text=vipActive and vipTitle or "Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end
  if stroke and stroke:IsA("UIStroke") then stroke.Color=spec.accent end
  makeHubTranslucent()
  moveEditorToggle()
  panel:SetAttribute("BBYAMusicPanelVenue",v)
- panel:SetAttribute("BBYAMusicPlaylistCount",0)
+ panel:SetAttribute("BBYAMusicPlaylistCount",vipActive and 1 or 0)
  panel:SetAttribute("BBYALegacyPlaylistHidden",true)
  panel:SetAttribute("BBYAResetUIVersion","V2_CLEAN")
 end

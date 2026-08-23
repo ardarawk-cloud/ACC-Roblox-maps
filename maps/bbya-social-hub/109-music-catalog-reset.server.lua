@@ -57,6 +57,7 @@ local function controlledSound(s)
  if not s:IsA("Sound") then return false end
  if knownSounds[s.Name] or s:GetAttribute("BBYARecovery")==true then return true end
  local sg=s.SoundGroup
+ if sg and sg.Name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end
  return sg and groups[sg.Name]~=nil or false
 end
 local function scrubSound(s,destroy)
@@ -69,6 +70,7 @@ local function scrubSound(s,destroy)
 end
 
 local function scrubWorkspaceVIP()
+ if ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return end
  local vipGroup=groups.BBYAVIPMaster
  for _,o in ipairs(Workspace:GetDescendants()) do
   if o:IsA("Sound") and o.Name=="CornerSpatialAudio" then

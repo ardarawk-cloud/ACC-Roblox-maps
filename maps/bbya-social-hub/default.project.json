@@ -2,122 +2,338 @@
   "name": "BBYAZeroPreview",
   "tree": {
     "$className": "DataModel",
-    "Workspace": {"$className": "Workspace"},
+    "Workspace": {
+      "$className": "Workspace"
+    },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "TravelPasses": {"$path": "monetization/passes.luau"},
-      "Entrance": {"$path": "20-entrance.server.lua"},
-      "SiteBasement": {"$path": "21-site-basement.server.lua"},
-      "RuntimeEditorServer": {"$path": "22-editor.server.lua"},
-      "Floor1Core": {"$path": "24-floor1-core.server.lua"},
-      "UpperLevels": {"$path": "25-upper-levels.server.lua"},
-      "ShellAndDressing": {"$path": "27-shell-and-dressing.server.lua"},
-      "LightingAmbience": {"$path": "28-lighting-ambience.server.lua"},
-      "SocialInteractions": {"$path": "29-social-interactions.server.lua"},
-      "ClubSystems": {"$path": "30-club-systems.server.lua"},
-      "BasementIndoAutoDJ": {"$path": "85-basement-autodj.server.lua"},
-      "TeleportSystem": {"$path": "32-teleport.server.lua"},
-      "FinalPolish": {"$path": "32-final-polish.server.lua"},
-      "RuntimeQC": {"$path": "33-runtime-qc.server.lua"},
-      "SupportDashboard": {"$path": "34-support-dashboard.server.lua"},
-      "MeshAssetPass": {"$path": "41-mesh-assets.server.lua"},
-      "MainClubRealism": {"$path": "42-main-club-realism.server.lua"},
-      "Floor1FrontPremium": {"$path": "43-floor1-front-premium.server.lua"},
-      "Floor1ReceptionPlanterCleanup": {"$path": "64-floor1-reception-planter-cleanup.server.lua"},
-      "Floor1VisualCleanup": {"$path": "44-floor1-visual-cleanup.server.lua"},
-      "Floor1LuxuryFinish": {"$path": "45-floor1-luxury-finish.server.lua"},
-      "Floor1UltraPremium": {"$path": "46-floor1-ultra-premium.server.lua"},
-      "Floor1Features": {"$path": "47-floor1-features.server.lua"},
-      "MainClubInteractionCleanupV1": {"$path": "115-mainclub-interaction-cleanup.server.lua"},
-      "LookLabAvatarEditorV1": {"$path": "116-looklab-avatar-editor.server.lua"},
-      "ClubPurityMallStudiosV1": {"$path": "117-club-purity-mall-studios.server.lua"},
-      "PhotoStudioLightingUpgrade": {"$path": "67-photo-studio-lighting.server.lua"},
-      "EntranceStreetIcons": {"$path": "69-entrance-street-icons.server.lua"},
-      "DJWallPrestige": {"$path": "50-dj-wall-message.server.lua"},
-      "DJWallTypography": {"$path": "54-dj-wall-typography.server.lua"},
-      "AudioWatchdog": {"$path": "55-audio-watchdog.server.lua"},
-      "AudioHealthGuardV3": {"$path": "83-audio-health-guard.server.lua"},
-      "DJWallRandomVisuals": {"$path": "59-dj-wall-visuals.server.lua"},
-      "VIPSkyLounge": {"$path": "60-vip-sky-lounge.server.lua"},
-      "VIPWhiteTriangleNetwork": {"$path": "65-vip-white-triangle-network.server.lua"},
-      "RooftopResort": {"$path": "70-rooftop-resort.server.lua"},
-      "DJWallFinalMount": {"$path": "61-dj-wall-final-mount.server.lua"},
-      "DJWallRenderBridge": {"$path": "62-dj-wall-render-bridge.server.lua"},
-      "SocialHangout": {"$path": "63-social-hangout.server.lua"},
-      "WorldPromptCleanup": {"$path": "71-world-prompt-cleanup.server.lua"},
-      "VIPFloorNeonFix": {"$path": "72-vip-floor-neon-fix.server.lua"},
-      "RearSkatepark": {"$path": "73-skatepark.server.lua"},
-      "SkateparkUpgradeV2": {"$path": "79-skatepark-upgrade.server.lua"},
-      "BasementPremiumUpgrade": {"$path": "74-basement-premium-upgrade.server.lua"},
-      "BasementAcousticV3": {"$path": "80-basement-acoustic.server.lua"},
-      "BasementFullUpgradeV1": {"$path": "87-basement-full-upgrade.server.lua"},
-      "ClubGear": {"$path": "75-club-gear.server.lua"},
-      "EntranceCarCleanup": {"$path": "77-entrance-car-cleanup.server.lua"},
-      "VIPEnclosureSoundV6": {"$path": "82-vip-enclosure-sound.server.lua"},
-      "VenueLightingBoostV1": {"$path": "86-vip-skate-lighting-boost.server.lua"},
-      "VIPPrivateClubUpgradeV2": {"$path": "90-vip-private-club-upgrade.server.lua"},
-      "VIPLoungeSeatingV1": {"$path": "113-vip-lounge-seating.server.lua"},
-      "SkateparkExposureFixV2": {"$path": "88-skatepark-exposure-fix.server.lua"},
-      "OwnerGeometryFixesV1": {"$path": "91-owner-geometry-fixes.server.lua"},
-      "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
-      "FunkotClubV1": {"$path": "92-funkot-club.server.lua"},
-      "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
-      "VenueAudioMastersV1": {"$path": "104-venue-audio-groups.server.lua"},
-      "AdminNextEditorHotfixV1": {"$path": "107-admin-next-editor-hotfix.server.lua"},
-      "MusicCatalogResetV2": {"$path": "109-music-catalog-reset.server.lua"},
-      "SharedRestroomSoftClubLightV1": {"$path": "112-shared-restroom-soft-club-light.server.lua"},
-      "ActiveRearMallV1": {"$path": "94-mall.server.lua"},
-      "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"},
-      "MallLiveUpgradeV2": {"$path": "95-mall-live-upgrade.server.lua"},
-      "WorldPremiumV338": {"$path": "94-world-premium-v338.server.lua"},
-      "PaidZoneHardSealV2": {"$path": "95-paid-zone-hard-seal.server.lua"},
-      "PaidZonePortalsV1": {"$path": "96-paid-zone-portals.server.lua"},
-      "MallSafeSecurityOverrideV1": {"$path": "97-mall-safe-security-override.server.lua"},
-      "NightMarketV1": {"$path": "98-night-market.server.lua"},
-      "NightMarketPremiumV3": {"$path": "99-night-market-premium.server.lua"},
-      "NightMarketControlFixV344": {"$path": "100-night-market-control-fix.server.lua"},
-      "DistrictServicePromenadeV1": {"$path": "101-district-promenade.server.lua"},
-      "NightMarketBoundaryLayoutGuardV1": {"$path": "102-night-market-boundary-layout-fix.server.lua"}
+      "TravelPasses": {
+        "$path": "monetization/passes.luau"
+      },
+      "Entrance": {
+        "$path": "20-entrance.server.lua"
+      },
+      "SiteBasement": {
+        "$path": "21-site-basement.server.lua"
+      },
+      "RuntimeEditorServer": {
+        "$path": "22-editor.server.lua"
+      },
+      "Floor1Core": {
+        "$path": "24-floor1-core.server.lua"
+      },
+      "UpperLevels": {
+        "$path": "25-upper-levels.server.lua"
+      },
+      "ShellAndDressing": {
+        "$path": "27-shell-and-dressing.server.lua"
+      },
+      "LightingAmbience": {
+        "$path": "28-lighting-ambience.server.lua"
+      },
+      "SocialInteractions": {
+        "$path": "29-social-interactions.server.lua"
+      },
+      "ClubSystems": {
+        "$path": "30-club-systems.server.lua"
+      },
+      "BasementIndoAutoDJ": {
+        "$path": "85-basement-autodj.server.lua"
+      },
+      "TeleportSystem": {
+        "$path": "32-teleport.server.lua"
+      },
+      "FinalPolish": {
+        "$path": "32-final-polish.server.lua"
+      },
+      "RuntimeQC": {
+        "$path": "33-runtime-qc.server.lua"
+      },
+      "SupportDashboard": {
+        "$path": "34-support-dashboard.server.lua"
+      },
+      "MeshAssetPass": {
+        "$path": "41-mesh-assets.server.lua"
+      },
+      "MainClubRealism": {
+        "$path": "42-main-club-realism.server.lua"
+      },
+      "Floor1FrontPremium": {
+        "$path": "43-floor1-front-premium.server.lua"
+      },
+      "Floor1ReceptionPlanterCleanup": {
+        "$path": "64-floor1-reception-planter-cleanup.server.lua"
+      },
+      "Floor1VisualCleanup": {
+        "$path": "44-floor1-visual-cleanup.server.lua"
+      },
+      "Floor1LuxuryFinish": {
+        "$path": "45-floor1-luxury-finish.server.lua"
+      },
+      "Floor1UltraPremium": {
+        "$path": "46-floor1-ultra-premium.server.lua"
+      },
+      "Floor1Features": {
+        "$path": "47-floor1-features.server.lua"
+      },
+      "MainClubInteractionCleanupV1": {
+        "$path": "115-mainclub-interaction-cleanup.server.lua"
+      },
+      "LookLabAvatarEditorV1": {
+        "$path": "116-looklab-avatar-editor.server.lua"
+      },
+      "ClubPurityMallStudiosV1": {
+        "$path": "117-club-purity-mall-studios.server.lua"
+      },
+      "PhotoStudioLightingUpgrade": {
+        "$path": "67-photo-studio-lighting.server.lua"
+      },
+      "EntranceStreetIcons": {
+        "$path": "69-entrance-street-icons.server.lua"
+      },
+      "DJWallPrestige": {
+        "$path": "50-dj-wall-message.server.lua"
+      },
+      "DJWallTypography": {
+        "$path": "54-dj-wall-typography.server.lua"
+      },
+      "AudioWatchdog": {
+        "$path": "55-audio-watchdog.server.lua"
+      },
+      "AudioHealthGuardV3": {
+        "$path": "83-audio-health-guard.server.lua"
+      },
+      "DJWallRandomVisuals": {
+        "$path": "59-dj-wall-visuals.server.lua"
+      },
+      "VIPSkyLounge": {
+        "$path": "60-vip-sky-lounge.server.lua"
+      },
+      "VIPWhiteTriangleNetwork": {
+        "$path": "65-vip-white-triangle-network.server.lua"
+      },
+      "RooftopResort": {
+        "$path": "70-rooftop-resort.server.lua"
+      },
+      "DJWallFinalMount": {
+        "$path": "61-dj-wall-final-mount.server.lua"
+      },
+      "DJWallRenderBridge": {
+        "$path": "62-dj-wall-render-bridge.server.lua"
+      },
+      "SocialHangout": {
+        "$path": "63-social-hangout.server.lua"
+      },
+      "WorldPromptCleanup": {
+        "$path": "71-world-prompt-cleanup.server.lua"
+      },
+      "VIPFloorNeonFix": {
+        "$path": "72-vip-floor-neon-fix.server.lua"
+      },
+      "RearSkatepark": {
+        "$path": "73-skatepark.server.lua"
+      },
+      "SkateparkUpgradeV2": {
+        "$path": "79-skatepark-upgrade.server.lua"
+      },
+      "BasementPremiumUpgrade": {
+        "$path": "74-basement-premium-upgrade.server.lua"
+      },
+      "BasementAcousticV3": {
+        "$path": "80-basement-acoustic.server.lua"
+      },
+      "BasementFullUpgradeV1": {
+        "$path": "87-basement-full-upgrade.server.lua"
+      },
+      "ClubGear": {
+        "$path": "75-club-gear.server.lua"
+      },
+      "EntranceCarCleanup": {
+        "$path": "77-entrance-car-cleanup.server.lua"
+      },
+      "VIPEnclosureSoundV6": {
+        "$path": "82-vip-enclosure-sound.server.lua"
+      },
+      "VenueLightingBoostV1": {
+        "$path": "86-vip-skate-lighting-boost.server.lua"
+      },
+      "VIPPrivateClubUpgradeV2": {
+        "$path": "90-vip-private-club-upgrade.server.lua"
+      },
+      "VIPLoungeSeatingV1": {
+        "$path": "113-vip-lounge-seating.server.lua"
+      },
+      "SkateparkExposureFixV2": {
+        "$path": "88-skatepark-exposure-fix.server.lua"
+      },
+      "OwnerGeometryFixesV1": {
+        "$path": "91-owner-geometry-fixes.server.lua"
+      },
+      "PlayerProgressionV1": {
+        "$path": "92-player-progression.server.lua"
+      },
+      "FunkotClubV1": {
+        "$path": "92-funkot-club.server.lua"
+      },
+      "FunkotVenueMusicV2": {
+        "$path": "93-funkot-music.server.lua"
+      },
+      "VenueAudioMastersV1": {
+        "$path": "104-venue-audio-groups.server.lua"
+      },
+      "AdminNextEditorHotfixV1": {
+        "$path": "107-admin-next-editor-hotfix.server.lua"
+      },
+      "MusicCatalogResetV2": {
+        "$path": "109-music-catalog-reset.server.lua"
+      },
+      "SharedRestroomSoftClubLightV1": {
+        "$path": "112-shared-restroom-soft-club-light.server.lua"
+      },
+      "ActiveRearMallV1": {
+        "$path": "94-mall.server.lua"
+      },
+      "ActiveMallPolishV1": {
+        "$path": "94-mall-polish.server.lua"
+      },
+      "MallLiveUpgradeV2": {
+        "$path": "95-mall-live-upgrade.server.lua"
+      },
+      "WorldPremiumV338": {
+        "$path": "94-world-premium-v338.server.lua"
+      },
+      "PaidZoneHardSealV2": {
+        "$path": "95-paid-zone-hard-seal.server.lua"
+      },
+      "PaidZonePortalsV1": {
+        "$path": "96-paid-zone-portals.server.lua"
+      },
+      "MallSafeSecurityOverrideV1": {
+        "$path": "97-mall-safe-security-override.server.lua"
+      },
+      "NightMarketV1": {
+        "$path": "98-night-market.server.lua"
+      },
+      "NightMarketPremiumV3": {
+        "$path": "99-night-market-premium.server.lua"
+      },
+      "NightMarketControlFixV344": {
+        "$path": "100-night-market-control-fix.server.lua"
+      },
+      "DistrictServicePromenadeV1": {
+        "$path": "101-district-promenade.server.lua"
+      },
+      "NightMarketBoundaryLayoutGuardV1": {
+        "$path": "102-night-market-boundary-layout-fix.server.lua"
+      },
+      "VIPTrack01AuthorityV2": {
+        "$path": "110-vip-track01.server.lua"
+      }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
-        "RuntimeEditorClient": {"$path": "23-editor.client.lua"},
-        "ClubUI": {"$path": "31-club-ui.client.lua"},
-        "ResponsiveUIPatch": {"$path": "35-ui-responsive-patch.client.lua"},
-        "Floor1FeatureClient": {"$path": "47-floor1-features.client.lua"},
-        "LookLabAvatarEditorClientV1": {"$path": "116-looklab-avatar-editor.client.lua"},
-        "DJRequestCompactPatch": {"$path": "48-dj-request-compact.client.lua"},
-        "UIClarityPatch": {"$path": "49-ui-clarity-patch.client.lua"},
-        "DJWallPrestigeClient": {"$path": "50-dj-wall-message.client.lua"},
-        "MenuMessageScrollPatch": {"$path": "51-menu-message-scroll.client.lua"},
-        "CommunityTab": {"$path": "52-community-tab.client.lua"},
-        "DockStabilityV2": {"$path": "56-dock-stability.client.lua"},
-        "DJWallClientRenderer": {"$path": "62-dj-wall-render.client.lua"},
-        "SocialHangoutClient": {"$path": "63-social-hangout.client.lua"},
-        "TravelUIPatchV7": {"$path": "76-travel-ui-patch.client.lua"},
-        "BasementAudioUIPatchV5": {"$path": "81-basement-audio-ui.client.lua"},
-        "OwnerStableUIV4": {"$path": "91-owner-ui.client.lua"},
-        "DashboardUpgradeV1": {"$path": "92-dashboard-ui.client.lua"},
-        "FreecamV2": {"$path": "92-freecam.client.lua"},
-        "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
-        "ThreeVenueMusicUIV2": {"$path": "93-venue-music-ui.client.lua"},
-        "StructuralDashboardV3": {"$path": "93-dashboard-structural.client.lua"},
-        "MusicUIFinalV6": {"$path": "103-music-ui-final.client.lua"},
-        "VenueAudioRouterV1": {"$path": "104-venue-audio-router.client.lua"},
-        "MusicUIIntegrityV1": {"$path": "105-music-ui-integrity.client.lua"},
-        "ActualNowPlayingTitleV1": {"$path": "106-now-playing-title.client.lua"},
-        "PartyStuffMenuV1": {"$path": "108-party-stuff-menu.client.lua"},
-        "MusicCatalogResetUIV1": {"$path": "109-music-catalog-reset-ui.client.lua"},
-        "CompactSecondaryPanelsV1": {"$path": "111-compact-secondary-panels.client.lua"},
-        "VenueAwareMenuMusicV1": {"$path": "114-venue-aware-menu-music.client.lua"},
-        "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
-        "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
+        "RuntimeEditorClient": {
+          "$path": "23-editor.client.lua"
+        },
+        "ClubUI": {
+          "$path": "31-club-ui.client.lua"
+        },
+        "ResponsiveUIPatch": {
+          "$path": "35-ui-responsive-patch.client.lua"
+        },
+        "Floor1FeatureClient": {
+          "$path": "47-floor1-features.client.lua"
+        },
+        "LookLabAvatarEditorClientV1": {
+          "$path": "116-looklab-avatar-editor.client.lua"
+        },
+        "DJRequestCompactPatch": {
+          "$path": "48-dj-request-compact.client.lua"
+        },
+        "UIClarityPatch": {
+          "$path": "49-ui-clarity-patch.client.lua"
+        },
+        "DJWallPrestigeClient": {
+          "$path": "50-dj-wall-message.client.lua"
+        },
+        "MenuMessageScrollPatch": {
+          "$path": "51-menu-message-scroll.client.lua"
+        },
+        "CommunityTab": {
+          "$path": "52-community-tab.client.lua"
+        },
+        "DockStabilityV2": {
+          "$path": "56-dock-stability.client.lua"
+        },
+        "DJWallClientRenderer": {
+          "$path": "62-dj-wall-render.client.lua"
+        },
+        "SocialHangoutClient": {
+          "$path": "63-social-hangout.client.lua"
+        },
+        "TravelUIPatchV7": {
+          "$path": "76-travel-ui-patch.client.lua"
+        },
+        "BasementAudioUIPatchV5": {
+          "$path": "81-basement-audio-ui.client.lua"
+        },
+        "OwnerStableUIV4": {
+          "$path": "91-owner-ui.client.lua"
+        },
+        "DashboardUpgradeV1": {
+          "$path": "92-dashboard-ui.client.lua"
+        },
+        "FreecamV2": {
+          "$path": "92-freecam.client.lua"
+        },
+        "FunkotZoneV1": {
+          "$path": "92-funkot-zone.client.lua"
+        },
+        "ThreeVenueMusicUIV2": {
+          "$path": "93-venue-music-ui.client.lua"
+        },
+        "StructuralDashboardV3": {
+          "$path": "93-dashboard-structural.client.lua"
+        },
+        "MusicUIFinalV6": {
+          "$path": "103-music-ui-final.client.lua"
+        },
+        "VenueAudioRouterV1": {
+          "$path": "104-venue-audio-router.client.lua"
+        },
+        "MusicUIIntegrityV1": {
+          "$path": "105-music-ui-integrity.client.lua"
+        },
+        "ActualNowPlayingTitleV1": {
+          "$path": "106-now-playing-title.client.lua"
+        },
+        "PartyStuffMenuV1": {
+          "$path": "108-party-stuff-menu.client.lua"
+        },
+        "MusicCatalogResetUIV1": {
+          "$path": "109-music-catalog-reset-ui.client.lua"
+        },
+        "CompactSecondaryPanelsV1": {
+          "$path": "111-compact-secondary-panels.client.lua"
+        },
+        "VenueAwareMenuMusicV1": {
+          "$path": "114-venue-aware-menu-music.client.lua"
+        },
+        "ActiveMallUIV1": {
+          "$path": "94-mall-ui.client.lua"
+        },
+        "MallLiveClientV2": {
+          "$path": "95-mall-live.client.lua"
+        }
       }
     },
     "Lighting": {
       "$className": "Lighting",
-      "$properties": {"Brightness": 2.35,"ClockTime": 21}
+      "$properties": {
+        "Brightness": 2.35,
+        "ClockTime": 21
+      }
     }
   }
 }

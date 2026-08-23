@@ -4,45 +4,18 @@
   "target": "BBYA Social Hub VIP",
   "bbyaUniverseId": "8116636513",
   "amStudioUniverseId": "4187755690",
-  "status": "PERMISSION_FAILED",
+  "status": "LIVE_PUBLISHED_AM_STUDIO_PERMISSION_PENDING",
   "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
   "authorizedUserId": "9296030038",
   "assetReadWrite": true,
   "assetPermissionsWrite": true,
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
-    "operationId": "179d709a-728b-4872-b7c0-ac306acbea2b",
-    "done": false
-  },
-  "operationPath": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
-  "operationResult": {
-    "path": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
-    "operationId": "179d709a-728b-4872-b7c0-ac306acbea2b",
-    "done": true,
-    "response": {
-      "path": "assets/105859685125263",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-23T15:21:02.466724300Z",
-      "assetId": "105859685125263",
-      "displayName": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
-      "description": "BBYA VIP Track 01",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
-  },
   "assetId": "105859685125263",
+  "uploadReused": true,
   "moderationState": "Reviewing",
+  "previousUploadStatus": "PERMISSION_FAILED",
   "permissions": {
     "bbya": {
+      "key": "AMSTUDIO_AUDIO_UPLOADER_01",
       "http": 200,
       "successAssetIds": [
         "105859685125263"
@@ -56,15 +29,50 @@
       }
     },
     "amStudioCreativeLab": {
-      "http": 403,
-      "successAssetIds": [],
       "ok": false,
-      "response": {
-        "error": {
-          "code": "CannotManageSubject",
-          "message": "Requester cannot manage permissions for the subject Universe 4187755690."
+      "attempts": [
+        {
+          "key": "AMSTUDIO_AUDIO_UPLOADER_01",
+          "http": 403,
+          "successAssetIds": [],
+          "ok": false,
+          "response": {
+            "error": {
+              "code": "CannotManageSubject",
+              "message": "Requester cannot manage permissions for the subject Universe 4187755690."
+            }
+          }
+        },
+        {
+          "key": "AM_STUDIO",
+          "http": 403,
+          "successAssetIds": [],
+          "ok": false,
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          }
         }
-      }
+      ]
+    }
+  },
+  "prePublishStatus": "READY_TO_PUBLISH_AM_STUDIO_PERMISSION_PENDING",
+  "bbyaLivePublished": true,
+  "publishReceipt": {
+    "status": "PUBLISHED",
+    "mapId": "a-club",
+    "name": "BBYA Social Hub",
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "sourceCommit": "a9246693fe564afba3e54329b130fb49c77b0f5a",
+    "publishedAt": "2026-08-23T15:23:30.281Z",
+    "publishedFile": "/tmp/bbya-vip-track01.rbxl",
+    "response": {
+      "versionNumber": 378
     }
   }
 }
