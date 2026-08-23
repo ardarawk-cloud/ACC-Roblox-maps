@@ -39,7 +39,7 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
           "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Static authority and v2 mixer QC
+      - name: Static authority and v3 mixer QC
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -73,36 +73,50 @@ jobs:
           }
 
           foreach($needle in @(
-            'V2_FULLSCREEN_VINYL',
+            'V3_FULLSCREEN_VINYL_PLAYLIST',
             'panel.Size=UDim2.fromScale(1,1)',
-            'Vinyl',
-            'PERFORMANCE FX',
+            'VinylHero',
+            'PLAYLIST "..deck',
+            'playlistTarget',
+            'PlaylistPopup',
+            'FXPopup',
+            'FX A',
+            'FX B',
             'CROSSFADER',
             'SYNC',
-            'ROLL 1/2',
-            'ROLL 1/4',
-            'BRAKE',
-            'FLANGE',
-            'CHORUS',
-            'DISTORT',
-            'BBYADeveloperDJVenueGateV2',
-            'ROTATE PHONE'
+            'rbxthumb://type=Asset&id=',
+            'BBYADeveloperDJVenueGateV3',
+            'ROTATE PHONE',
+            'Approved/PREPARED_LOCAL audio is deliberately absent',
+            'actionRemote:FireServer("load",{deck=target,assetId=item.assetId})'
           )){if($client -notmatch [regex]::Escape($needle)){throw "Missing client marker: $needle"}}
-          if($client -match 'LOW 0|MID 0|HI 0'){throw 'Legacy EQ controls still exposed in DJ v2 UI'}
-          if($client -match 'nadmo97|styxraasoraaa'){throw 'Client exposes non-developer account authority'}
+
+          foreach($forbidden in @(
+            'PERFORMANCE FX',
+            'LOW 0','MID 0','HI 0',
+            'LOAD TO A','LOAD TO B',
+            'nadmo97','styxraasoraaa'
+          )){if($client -match [regex]::Escape($forbidden)){throw "Forbidden v3 client marker: $forbidden"}}
+
+          foreach($approved in @('105859685125263','136681158481930','131557279061872')){
+            if($client -notmatch $approved){throw "Approved DJ library asset missing: $approved"}
+          }
+          foreach($rejected in @('91272579368335','88779022569755','130739349177807','105001220022210','97273908516657')){
+            if($client -match $rejected){throw "Rejected audio leaked into DJ library: $rejected"}
+          }
 
           foreach($needle in @('126-developer-dj-mixer.server.lua','126-developer-dj-mixer.client.lua')){
             if($project -notmatch [regex]::Escape($needle)){throw "Manifest mount missing: $needle"}
           }
-          Write-Host 'DJ MIXER V2 STATIC QC PASS'
+          Write-Host 'DJ MIXER V3 STATIC QC PASS'
 
       - name: Full BBYA Rojo build
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $out=Join-Path $env:RUNNER_TEMP 'bbya-developer-dj-v2-qc.rbxl'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-developer-dj-v3-qc.rbxl'
           & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
           if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
           if(-not (Test-Path $out)){throw 'RBXL output missing'}
           if((Get-Item $out).Length -lt 1024){throw 'RBXL output too small'}
-          Write-Host "DJ MIXER V2 ROJO PASS bytes=$((Get-Item $out).Length)"
+          Write-Host "DJ MIXER V3 ROJO PASS bytes=$((Get-Item $out).Length)"
