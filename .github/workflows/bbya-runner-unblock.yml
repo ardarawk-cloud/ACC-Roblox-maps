@@ -1,4 +1,4 @@
-# BBYA runner watchdog/report v16 — mainclub cloud audit 2026-08-23
+# BBYA runner watchdog/report v17 — refresh after mainclub MCP trigger
 name: BBYA Runner Unblock
 
 on:
