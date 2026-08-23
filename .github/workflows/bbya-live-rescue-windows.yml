@@ -19,20 +19,29 @@ permissions:
   contents: write
 
 jobs:
-  runner_probe:
+  hosted_probe:
     runs-on: windows-latest
     timeout-minutes: 5
     steps:
-      - name: Prove Windows runner allocation
+      - name: Prove hosted Windows runner allocation
         shell: powershell
         run: |
-          Write-Host "BBYA_WINDOWS_RUNNER_OK"
-          Write-Host "event=$env:GITHUB_EVENT_NAME"
-          Write-Host "sha=$env:GITHUB_SHA"
+          Write-Host "BBYA_WINDOWS_HOSTED_OK"
+          Write-Host "event=$env:GITHUB_EVENT_NAME sha=$env:GITHUB_SHA"
+
+  selfhosted_probe:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - name: Prove self-hosted runner allocation
+        shell: powershell
+        run: |
+          Write-Host "BBYA_SELF_HOSTED_OK"
+          Write-Host "computer=$env:COMPUTERNAME event=$env:GITHUB_EVENT_NAME sha=$env:GITHUB_SHA"
 
   publish:
     if: github.event_name != 'pull_request'
-    needs: runner_probe
+    needs: hosted_probe
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
@@ -75,12 +84,7 @@ jobs:
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5')
           }
-          foreach($path in $checks.Keys){
-            $text=Get-Content $path -Raw
-            foreach($needle in $checks[$path]){
-              if($text -notmatch [regex]::Escape($needle)){throw "Missing $needle in $path"}
-            }
-          }
+          foreach($path in $checks.Keys){$text=Get-Content $path -Raw;foreach($needle in $checks[$path]){if($text -notmatch [regex]::Escape($needle)){throw "Missing $needle in $path"}}}
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
           Write-Host 'BBYA_FINAL_SOURCE_QC_PASS'
@@ -126,9 +130,5 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add deploy-status/a-club.json
           git diff --cached --quiet
-          if($LASTEXITCODE -ne 0){
-            git commit -m 'Record BBYA Windows rescue live deploy [skip ci]'
-            git push origin HEAD:main
-            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
-          }
+          if($LASTEXITCODE -ne 0){git commit -m 'Record BBYA Windows rescue live deploy [skip ci]';git push origin HEAD:main;if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}}
           Write-Host "BBYA_LIVE_RESCUE_PASS version=$($receipt.response.versionNumber) source=$($receipt.sourceCommit)"
