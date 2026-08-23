@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/.audio-safe-batch-trigger'
+      - 'maps/bbya-social-hub/audio-rights-confirmation.json'
   schedule:
     - cron: '27,57 * * * *'
   workflow_dispatch:
@@ -34,6 +35,36 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: Require explicit legal-rights confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, sys
+          folder='1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
+          p=pathlib.Path('maps/bbya-social-hub/audio-rights-confirmation.json')
+          ok=False
+          if p.exists():
+              try:
+                  d=json.loads(p.read_text(encoding='utf-8'))
+                  ok=(d.get('confirmed') is True and d.get('driveFolderId')==folder and d.get('scope')=='ALL_AUDIO_IN_FOLDER')
+              except Exception:
+                  ok=False
+          if ok:
+              print('Audio rights confirmation present for this exact Drive folder.')
+              raise SystemExit(0)
+          out=pathlib.Path('deploy-status/bbya-audio-safe-batch.json')
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps({
+              'version':1,
+              'status':'BLOCKED_RIGHTS_UNVERIFIED',
+              'driveFolderId':folder,
+              'uploadAttempted':False,
+              'reason':'Roblox requires the uploader to own or have all legal rights/licenses needed for uploaded audio. Explicit confirmation for this batch is not present.'
+          },indent=2)+'\n',encoding='utf-8')
+          raise SystemExit(3)
+          PY
 
       - name: Mark runner booted
         shell: bash
