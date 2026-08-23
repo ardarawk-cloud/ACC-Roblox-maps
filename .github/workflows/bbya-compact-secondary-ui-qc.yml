@@ -1,0 +1,60 @@
+name: BBYA Compact Secondary UI QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-compact-secondary-ui-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-secondary-ui.rbxl
+          test -s /tmp/bbya-compact-secondary-ui.rbxl
+      - name: Validate compact support travel message authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ui='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
+          manifest='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'COMPACT SECONDARY PANELS v1' "$ui"
+          grep -q 'BBYACompactPage","SUPPORT"' "$ui"
+          grep -q 'BBYACompactPage","TRAVEL"' "$ui"
+          grep -q 'BBYACompactMessage","V1"' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.44),420,560)' "$ui"
+          grep -q 'math.clamp(math.floor(vp.Y\*.56),310,390)' "$ui"
+          grep -q 'grid.FillDirectionMaxCells=twoCols and 2 or 1' "$ui"
+          grep -q 'grid.FillDirectionMaxCells=narrow and 1 or 2' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.39),360,470)' "$ui"
+          grep -q 'math.clamp(math.floor(vp.Y\*.55),320,380)' "$ui"
+          grep -q 'panel.BackgroundTransparency=.24' "$ui"
+          grep -q 'shade.BackgroundTransparency=.62' "$ui"
+          grep -q 'CompactSecondaryPanelsV1' "$manifest"
+          grep -q '111-compact-secondary-panels.client.lua' "$manifest"
+
+          if grep -q 'FireServer' "$ui"; then
+            echo 'Compact secondary authority must not own purchase/teleport/message remotes.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA Compact Secondary UI QC passed.'
