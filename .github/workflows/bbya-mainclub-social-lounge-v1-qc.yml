@@ -46,13 +46,31 @@ jobs:
           $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
           $null=$project | ConvertFrom-Json
           foreach($needle in @(
-            'MAIN_CLUB_SOCIAL_LOUNGE_V1','FormerPhotoStudioConverted','FormerSalonConverted','OpenAccess','VIPGateAdded',
-            'FormerPhotoLounge','FormerSalonLounge','LongBanquette','ConversationTable','MainClubSightlinePreserved',
-            'GlobalLightingUntouched','AudioUntouched','DJUntouched','MonetizationUntouched'
+            'MAIN_CLUB_SOCIAL_LOUNGE_UPGRADE_V1',
+            'ClubPurityMallStudiosV1',
+            'MainClubFrontExtension',
+            'ArrivalLounge1',
+            'ArrivalLounge2',
+            'ReusedExistingArchitecture',
+            'PremiumLoungeBay',
+            'FormerPhotoStudioLoungeUpgraded',
+            'FormerSalonLoungeUpgraded',
+            'OpenAccess',
+            'VIPGateAdded',
+            'MainClubSightlinePreserved',
+            'GlobalLightingUntouched',
+            'AudioUntouched',
+            'DJUntouched',
+            'MonetizationUntouched'
           )){if($src -notmatch [regex]::Escape($needle)){throw "Missing lounge marker: $needle"}}
-          foreach($forbidden in @('Lighting%.Brightness','Lighting%.ClockTime','SoundId%s*=','GamePass','PromptPurchase','MarketplaceService')){
-            if($src -match $forbidden){throw "Forbidden lounge mutation: $forbidden"}
-          }
+          foreach($forbidden in @(
+            'Lighting%.Brightness',
+            'Lighting%.ClockTime',
+            'SoundId%s*=',
+            'GamePass',
+            'PromptPurchase',
+            'MarketplaceService'
+          )){if($src -match $forbidden){throw "Forbidden lounge mutation: $forbidden"}}
           if($project -notmatch [regex]::Escape('132-mainclub-social-lounge-v1.server.lua')){throw 'Social lounge manifest mount missing'}
           Write-Host 'MAIN CLUB SOCIAL LOUNGE STATIC QC PASS'
 
