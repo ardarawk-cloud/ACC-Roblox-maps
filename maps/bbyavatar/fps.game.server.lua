@@ -1,12 +1,11 @@
--- BBYAVATAR FPS authoritative game server
+-- BBYAVATAR FPS authoritative game server v0.2
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
-local Debris = game:GetService("Debris")
-
-Players.RespawnTime = 3
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("FPSConfig"))
+Players.RespawnTime = Config.RespawnTime
 
 local remotes = ReplicatedStorage:FindFirstChild("FPSRemotes") or Instance.new("Folder")
 remotes.Name = "FPSRemotes"
@@ -28,6 +27,8 @@ local FX = remote("FX")
 local playerState = {}
 local teamScores = {ALPHA = 0, BRAVO = 0}
 local roundNumber = 1
+local roundEnding = false
+local roundEndsAt = Workspace:GetServerTimeNow() + Config.RoundTime
 
 local function cloneAmmo()
     local result = {}
@@ -55,30 +56,65 @@ local function sendSnapshot(player)
         scores = teamScores,
         round = roundNumber,
         scoreLimit = Config.ScoreLimit,
+        roundEndsAt = roundEndsAt,
+        roundEnding = roundEnding,
+        mode = Config.Mode,
+        streak = ps.streak,
     })
 end
 
 local function broadcastScore()
-    State:FireAllClients("score", {scores = teamScores, round = roundNumber, scoreLimit = Config.ScoreLimit})
+    State:FireAllClients("score", {
+        scores = teamScores,
+        round = roundNumber,
+        scoreLimit = Config.ScoreLimit,
+        roundEndsAt = roundEndsAt,
+    })
 end
 
-local function resetRound(winner)
-    State:FireAllClients("roundEnd", {winner = winner, scores = teamScores})
-    task.delay(6, function()
+local function winnerFromScore()
+    if teamScores.ALPHA > teamScores.BRAVO then return "ALPHA" end
+    if teamScores.BRAVO > teamScores.ALPHA then return "BRAVO" end
+    return "DRAW"
+end
+
+local function finishRound(reason, forcedWinner)
+    if roundEnding then return end
+    roundEnding = true
+    local winner = forcedWinner or winnerFromScore()
+    State:FireAllClients("roundEnd", {
+        winner = winner,
+        reason = reason or "TIME",
+        scores = {ALPHA = teamScores.ALPHA, BRAVO = teamScores.BRAVO},
+        nextRoundIn = Config.RoundIntermission,
+        round = roundNumber,
+    })
+
+    task.delay(Config.RoundIntermission, function()
         teamScores.ALPHA = 0
         teamScores.BRAVO = 0
         roundNumber += 1
+        roundEndsAt = Workspace:GetServerTimeNow() + Config.RoundTime
+        roundEnding = false
+
         for _, p in ipairs(Players:GetPlayers()) do
             local ps = playerState[p]
             if ps then
                 ps.ammo = cloneAmmo()
                 ps.weapon = Config.Loadout[1]
-                sendSnapshot(p)
+                ps.streak = 0
+                ps.lastShot = 0
                 p:LoadCharacter()
             end
         end
+
+        State:FireAllClients("roundStart", {
+            round = roundNumber,
+            roundEndsAt = roundEndsAt,
+            scores = teamScores,
+        })
         broadcastScore()
-        State:FireAllClients("roundStart", {round = roundNumber})
+        for _, p in ipairs(Players:GetPlayers()) do sendSnapshot(p) end
     end)
 end
 
@@ -95,7 +131,16 @@ local function findHumanoidFromHit(hit)
     return hum, Players:GetPlayerFromCharacter(model)
 end
 
+local function isFiniteNumber(n)
+    return typeof(n) == "number" and n == n and n > -1e9 and n < 1e9
+end
+
+local function validVector(v)
+    return typeof(v) == "Vector3" and isFiniteNumber(v.X) and isFiniteNumber(v.Y) and isFiniteNumber(v.Z)
+end
+
 local function validateOrigin(player, origin)
+    if not validVector(origin) then return false end
     local char = player.Character
     if not char then return false end
     local head = char:FindFirstChild("Head")
@@ -103,37 +148,89 @@ local function validateOrigin(player, origin)
     return (origin - head.Position).Magnitude <= 12
 end
 
+local function applySpawnProtection(character)
+    local shield = Instance.new("ForceField")
+    shield.Name = "SpawnProtection"
+    shield.Visible = false
+    shield.Parent = character
+    character:SetAttribute("SpawnProtectedUntil", Workspace:GetServerTimeNow() + Config.SpawnProtection)
+    task.delay(Config.SpawnProtection, function()
+        if shield.Parent then shield:Destroy() end
+        if character.Parent then character:SetAttribute("SpawnProtectedUntil", nil) end
+    end)
+end
+
+local function isProtected(player)
+    local character = player.Character
+    return character and character:FindFirstChild("SpawnProtection") ~= nil
+end
+
+local function isMilestone(count)
+    for _, value in ipairs(Config.KillstreakMilestones) do
+        if value == count then return true end
+    end
+    return false
+end
+
 local function setupCharacter(player, character)
     local hum = character:WaitForChild("Humanoid", 10)
     if not hum then return end
-    hum.MaxHealth = 100
-    hum.Health = 100
-    hum.WalkSpeed = 16
+    hum.MaxHealth = Config.MaxHealth
+    hum.Health = Config.MaxHealth
+    hum.WalkSpeed = Config.WalkSpeed
     hum.JumpPower = 46
+    applySpawnProtection(character)
 
     local creator = Instance.new("ObjectValue")
     creator.Name = "LastAttacker"
     creator.Parent = hum
+    hum:SetAttribute("LastAttackerAt", 0)
 
     hum.Died:Connect(function()
         local victimState = playerState[player]
-        if victimState then victimState.deaths += 1 end
+        if victimState then
+            victimState.deaths += 1
+            victimState.streak = 0
+        end
+
         local stats = player:FindFirstChild("leaderstats")
         if stats and stats:FindFirstChild("Deaths") then stats.Deaths.Value += 1 end
+
         local tag = hum:FindFirstChild("LastAttacker")
         local killer = tag and tag.Value
-        if killer and killer:IsA("Player") and killer ~= player and playerState[killer] then
-            playerState[killer].kills += 1
+        local hitAge = Workspace:GetServerTimeNow() - (hum:GetAttribute("LastAttackerAt") or 0)
+
+        if killer and killer:IsA("Player") and killer ~= player and playerState[killer] and hitAge <= 8 then
+            local killerState = playerState[killer]
+            killerState.kills += 1
+            killerState.streak += 1
+
             local kstats = killer:FindFirstChild("leaderstats")
             if kstats and kstats:FindFirstChild("Kills") then kstats.Kills.Value += 1 end
+
             if killer.Team then
                 teamScores[killer.Team.Name] = (teamScores[killer.Team.Name] or 0) + 1
             end
-            State:FireAllClients("killfeed", {killer = killer.DisplayName, victim = player.DisplayName, weapon = playerState[killer].weapon})
-            State:FireClient(killer, "kill", {victim = player.DisplayName})
+
+            State:FireAllClients("killfeed", {
+                killer = killer.DisplayName,
+                victim = player.DisplayName,
+                weapon = killerState.weapon,
+                streak = killerState.streak,
+            })
+            State:FireClient(killer, "kill", {victim = player.DisplayName, streak = killerState.streak})
+            State:FireClient(player, "death", {killer = killer.DisplayName})
+
+            if isMilestone(killerState.streak) then
+                State:FireAllClients("streak", {
+                    player = killer.DisplayName,
+                    count = killerState.streak,
+                })
+            end
+
             broadcastScore()
             if killer.Team and teamScores[killer.Team.Name] >= Config.ScoreLimit then
-                resetRound(killer.Team.Name)
+                finishRound("SCORE_LIMIT", killer.Team.Name)
             end
         else
             State:FireAllClients("killfeed", {killer = "ENV", victim = player.DisplayName, weapon = ""})
@@ -161,17 +258,18 @@ Players.PlayerAdded:Connect(function(player)
         lastShot = 0,
         kills = 0,
         deaths = 0,
+        streak = 0,
     }
 
     player.CharacterAdded:Connect(function(character)
         setupCharacter(player, character)
-        task.delay(1, function()
+        task.delay(0.7, function()
             if player.Parent then sendSnapshot(player) end
         end)
     end)
 
     if player.Character then setupCharacter(player, player.Character) end
-    task.delay(1, function() if player.Parent then sendSnapshot(player) end end)
+    task.delay(0.8, function() if player.Parent then sendSnapshot(player) end end)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
@@ -179,10 +277,13 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 Equip.OnServerEvent:Connect(function(player, weaponKey)
+    if roundEnding then return end
     local ps = playerState[player]
     if not ps or type(weaponKey) ~= "string" or not Config.Weapons[weaponKey] then return end
     local allowed = false
-    for _, key in ipairs(Config.Loadout) do if key == weaponKey then allowed = true break end end
+    for _, key in ipairs(Config.Loadout) do
+        if key == weaponKey then allowed = true break end
+    end
     if not allowed then return end
     ps.weapon = weaponKey
     ps.ammo[weaponKey].reloading = false
@@ -191,16 +292,19 @@ Equip.OnServerEvent:Connect(function(player, weaponKey)
 end)
 
 Reload.OnServerEvent:Connect(function(player)
+    if roundEnding then return end
     local ps = playerState[player]
     if not ps then return end
     local key = ps.weapon
     local cfg = Config.Weapons[key]
     local ammo = ps.ammo[key]
     if not cfg or not ammo or ammo.reloading or ammo.mag >= cfg.Magazine or ammo.reserve <= 0 then return end
+
     ammo.reloading = true
     ammo.token += 1
     local token = ammo.token
     State:FireClient(player, "reload", {weapon = key, active = true, duration = cfg.ReloadTime})
+
     task.delay(cfg.ReloadTime, function()
         local live = playerState[player]
         if not live or live.weapon ~= key then return end
@@ -217,6 +321,7 @@ Reload.OnServerEvent:Connect(function(player)
 end)
 
 Fire.OnServerEvent:Connect(function(player, packet)
+    if roundEnding then return end
     local ps = playerState[player]
     if not ps or type(packet) ~= "table" then return end
     local key = ps.weapon
@@ -226,18 +331,19 @@ Fire.OnServerEvent:Connect(function(player, packet)
 
     local origin = packet.origin
     local direction = packet.direction
-    if typeof(origin) ~= "Vector3" or typeof(direction) ~= "Vector3" then return end
+    if not validVector(direction) or not validateOrigin(player, origin) then return end
     if direction.Magnitude < 0.9 or direction.Magnitude > 1.1 then return end
-    if not validateOrigin(player, origin) then return end
 
     local now = os.clock()
     local minInterval = 60 / cfg.RPM
     if now - ps.lastShot < minInterval * 0.86 then return end
     ps.lastShot = now
+
     if ammo.mag <= 0 then
         State:FireClient(player, "dry", {weapon = key})
         return
     end
+
     ammo.mag -= 1
     State:FireClient(player, "ammo", {weapon = key, mag = ammo.mag, reserve = ammo.reserve})
 
@@ -248,23 +354,39 @@ Fire.OnServerEvent:Connect(function(player, packet)
     params.FilterDescendantsInstances = {char}
     params.IgnoreWater = true
 
-    local result = workspace:Raycast(origin, direction.Unit * cfg.Range, params)
+    local result = Workspace:Raycast(origin, direction.Unit * cfg.Range, params)
     local hitPos = origin + direction.Unit * cfg.Range
     if result then hitPos = result.Position end
     FX:FireAllClients("shot", {from = origin, to = hitPos, shooter = player.UserId, weapon = key})
 
     if result then
         local hum, victimPlayer = findHumanoidFromHit(result.Instance)
-        if hum and hum.Health > 0 and victimPlayer and isEnemy(player, victimPlayer) then
+        if hum and hum.Health > 0 and victimPlayer and isEnemy(player, victimPlayer) and not isProtected(victimPlayer) then
             local damage = cfg.Damage
             local headshot = result.Instance.Name == "Head"
             if headshot then damage *= cfg.HeadMultiplier end
+
             local tag = hum:FindFirstChild("LastAttacker")
             if tag then tag.Value = player end
+            hum:SetAttribute("LastAttackerAt", Workspace:GetServerTimeNow())
             hum:TakeDamage(damage)
-            State:FireClient(player, "hit", {damage = damage, headshot = headshot, killed = hum.Health <= 0})
+
+            State:FireClient(player, "hit", {
+                damage = damage,
+                headshot = headshot,
+                killed = hum.Health <= 0,
+            })
         end
     end
 end)
 
-print("[BBYAVATAR FPS] Authoritative combat server ready")
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if not roundEnding and Workspace:GetServerTimeNow() >= roundEndsAt then
+            finishRound("TIME", nil)
+        end
+    end
+end)
+
+print("[BBYAVATAR FPS] Authoritative combat server v0.2 ready")
