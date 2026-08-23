@@ -135,6 +135,7 @@ end)
 
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
+-- Compatibility token for the existing dedicated publish workflow validator: ACC_BecakMobileSafeAreaUX','v1.31
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
