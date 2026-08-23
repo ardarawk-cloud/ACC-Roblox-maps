@@ -1,0 +1,70 @@
+name: BBYA Music Reset + VIP Panel QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/104-venue-audio-groups.server.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
+      - 'maps/bbya-social-hub/109-music-catalog-reset.server.lua'
+      - 'maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-music-reset-vip-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-music-reset.rbxl
+          test -s /tmp/bbya-music-reset.rbxl
+      - name: Validate hard music reset and VIP split
+        shell: bash
+        run: |
+          set -euo pipefail
+          reset='maps/bbya-social-hub/109-music-catalog-reset.server.lua'
+          ui='maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua'
+          groups='maps/bbya-social-hub/104-venue-audio-groups.server.lua'
+          router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'BBYAMusicCatalogReset' "$reset"
+          grep -q 'PlaylistCount",0' "$reset"
+          grep -q 'BBYAMainPublicFallbackV4' "$reset"
+          grep -q 'BBYAUndergroundBreakbeatFallbackV4' "$reset"
+          grep -q 'BBYAFunkotClubFeed' "$reset"
+          grep -q 'ClubSystems is intentionally NOT disabled' "$reset"
+          grep -q 'BasementIndoAutoDJ' "$reset"
+          grep -q 'FunkotVenueMusicV2' "$reset"
+          grep -q 'AudioWatchdog' "$reset"
+          grep -q 'AudioHealthGuardV3' "$reset"
+          grep -q 'task.defer(applyReset)' "$reset"
+          if grep -q 'rbxassetid://' "$reset"; then echo 'Reset authority must not contain music asset IDs.' >&2; exit 1; fi
+
+          grep -q 'BBYAVIPMaster' "$groups"
+          grep -q 'PlaylistCount",0' "$groups"
+          grep -q 'VIP={name="BBYAVIPMaster"}' "$router"
+          grep -q 'return "VIP"' "$router"
+          grep -q 'VIP MUSIC' "$ui"
+          grep -q 'PRIVATE CLUB • SEPARATE CHANNEL' "$ui"
+          grep -q 'PLAYLIST KOSONG' "$ui"
+          grep -q '0 TRACKS' "$ui"
+          grep -q 'MusicCatalogResetV2' "$project"
+          grep -q 'MusicCatalogResetUIV1' "$project"
+
+          echo 'BBYA music reset + VIP panel QC passed.'

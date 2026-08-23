@@ -60,6 +60,7 @@
       "FunkotVenueMusicV2": {"$path": "93-funkot-music.server.lua"},
       "VenueAudioMastersV1": {"$path": "104-venue-audio-groups.server.lua"},
       "AdminNextEditorHotfixV1": {"$path": "107-admin-next-editor-hotfix.server.lua"},
+      "MusicCatalogResetV2": {"$path": "109-music-catalog-reset.server.lua"},
       "ActiveRearMallV1": {"$path": "94-mall.server.lua"},
       "ActiveMallPolishV1": {"$path": "94-mall-polish.server.lua"},
       "MallLiveUpgradeV2": {"$path": "95-mall-live-upgrade.server.lua"},
@@ -101,6 +102,7 @@
         "MusicUIIntegrityV1": {"$path": "105-music-ui-integrity.client.lua"},
         "ActualNowPlayingTitleV1": {"$path": "106-now-playing-title.client.lua"},
         "PartyStuffMenuV1": {"$path": "108-party-stuff-menu.client.lua"},
+        "MusicCatalogResetUIV1": {"$path": "109-music-catalog-reset-ui.client.lua"},
         "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
         "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
       }

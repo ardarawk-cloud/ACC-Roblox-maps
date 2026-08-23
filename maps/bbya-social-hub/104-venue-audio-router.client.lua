@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v2
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v3
 -- Each music channel is audible only inside its own physical venue.
--- Uses a local Equalizer gate so older volume mixers cannot leak audio across zones.
+-- VIP is now a separate channel instead of inheriting Main Club audio.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -12,6 +12,7 @@ local pg=player:WaitForChild("PlayerGui")
 local GROUPS={
  MAIN={name="BBYAClubMaster"},
  UNDERGROUND={name="BBYABasementMaster"},
+ VIP={name="BBYAVIPMaster"},
  FUNKOT={name="BBYAFunkotMaster"},
  SKATEPARK={name="BBYASkateparkMaster"},
  ROOFTOP={name="BBYARooftopMaster"},
@@ -22,9 +23,9 @@ local gates={}
 local muteButton
 
 local function ensureGate(key,g)
- local gate=g:FindFirstChild("BBYAVenueGateV2")
+ local gate=g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
  if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
- if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Name="BBYAVenueGateV2";gate.Parent=g end
+ if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Name="BBYAVenueGateV3";gate.Parent=g else gate.Name="BBYAVenueGateV3" end
  gate.Enabled=true;gates[key]=gate;return gate
 end
 local function resolveGroups()
@@ -53,6 +54,7 @@ end
 local function venueAtPosition(p)
  if p.Y<-4.5 then return "UNDERGROUND" end
  if p.Y>=40 and p.Y<=60 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48 then return "ROOFTOP" end
+ if p.Y>=20 and p.Y<40 and math.abs(p.X)<=58 and p.Z>=-46 and p.Z<=46 then return "VIP" end
  if p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253 then return "FUNKOT" end
  if p.Y>-4 and p.Y<20 and math.abs(p.X)<=61 and p.Z>=72 and p.Z<=152 then return "SKATEPARK" end
  if p.Y>-4 and p.Y<18 and math.abs(p.X)<=61 and p.Z>=0 and p.Z<70 then return "MAIN" end
@@ -88,8 +90,8 @@ end
 
 local function bindMute()
  local b=resolveMuteButton()
- if b and not b:GetAttribute("BBYAAudioMuteGuardV2") then
-  b:SetAttribute("BBYAAudioMuteGuardV2",true)
+ if b and not b:GetAttribute("BBYAAudioMuteGuardV3") then
+  b:SetAttribute("BBYAAudioMuteGuardV3",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()task.defer(enforce)end)
  end
 end
@@ -104,4 +106,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v2: EQ-gated MAIN / UNDERGROUND / FUNKOT; SKATEPARK / ROOFTOP ready")
+print("[BBYA] Strict venue audio router v3: MAIN / UNDERGROUND / VIP / FUNKOT / SKATEPARK / ROOFTOP isolated")
