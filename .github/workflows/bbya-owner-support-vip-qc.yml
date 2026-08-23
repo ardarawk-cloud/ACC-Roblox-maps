@@ -44,8 +44,9 @@ jobs:
           set -euo pipefail
           f='maps/bbya-social-hub/92-player-progression.server.lua'
           grep -q 'PLAYER PROGRESSION + IDENTITY v2' "$f"
-          grep -q 'QUEEN BBYA • OWNER' "$f"
+          grep -q 'title.Text=queen and "OWNER"' "$f"
           grep -q 'BBYAOwner' "$f"
+          ! grep -q 'QUEEN BBYA • OWNER' "$f"
           ! grep -q 'QUEEN BBYA • CO-OWNER' "$f"
       - name: Validate support purchase client
         shell: bash
