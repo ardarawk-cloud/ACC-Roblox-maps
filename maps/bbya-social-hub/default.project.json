@@ -29,7 +29,7 @@
       "Floor1VisualCleanup": {"$path": "44-floor1-visual-cleanup.server.lua"},
       "Floor1LuxuryFinish": {"$path": "45-floor1-luxury-finish.server.lua"},
       "Floor1UltraPremium": {"$path": "46-floor1-ultra-premium.server.lua"},
-      "Floor1Features": {"$path": "47-floor1-features.server.lua"},
+      "Floor1Features": {"$path": "47-floor1-features.client.lua"},
       "MainClubInteractionCleanupV1": {"$path": "115-mainclub-interaction-cleanup.server.lua"},
       "LookLabAvatarEditorV1": {"$path": "116-looklab-avatar-editor.server.lua"},
       "ClubPurityMallStudiosV1": {"$path": "117-club-purity-mall-studios.server.lua"},
@@ -132,6 +132,7 @@
         "FishingFeedbackHotfixClientV394": {"$path": "127-fishing-feedback-hotfix.client.lua"},
         "FishingProgressionClientV4": {"$path": "128-fishing-progression-v4.client.lua"},
         "FishingGateSatisfactionV6": {"$path": "130-fishing-gate-v6.client.lua"},
+        "FishingVisualIndexV7": {"$path": "131-fishing-index-visual-v7.client.lua"},
         "DeveloperDJMixerClientV1": {"$path": "126-developer-dj-mixer.client.lua"},
         "DeveloperDJPerformanceClientV4": {"$path": "129-developer-dj-performance-v4.client.lua"}
       }
