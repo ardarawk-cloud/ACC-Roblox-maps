@@ -39,7 +39,7 @@ const reputationCargo=raw('maps/becak-e-bike/reputation.cargo.server.lua');
 const reputationPassenger=raw('maps/becak-e-bike/reputation.passenger.server.lua');
 const achievements=raw('maps/becak-e-bike/achievements.server.lua');
 const polish=raw('maps/becak-e-bike/polish.server.lua');
-const roadAccess=raw('maps/becak-e-bike/road-access.server.lua');
+const roadAccess=mustHave(raw('maps/becak-e-bike/road-access.server.lua'),["ACC_BecakRoadAccessEnhancement','v1.36","BecakValidatedRecoverySurface','ON","BecakRecoveryRaycastDepth',10","BecakLastSafeRoadRecovery','ON"],'Becak road-access recovery v1.36');
 const worldQC=raw('maps/becak-e-bike/world-qc.server.lua');
 const client=raw('maps/becak-e-bike/runtime.client.lua');
 const masterClient=raw('maps/becak-e-bike/masterplan.client.lua');
@@ -54,4 +54,4 @@ const serverItems=[['B','BecakEBike_Runtime',server],['D','BecakEBike_CityDetail
 const clientItems=[['C','BecakEBike_Client',client],['MC','BecakEBike_MasterplanClient',masterClient],['PH','BecakEBike_DriverPhone',phoneClient],['MS','BecakEBike_MobileSafeArea',mobileSafe],['NV','BecakEBike_DriverNavigation',navigation],['DCUI','BecakEBike_DailyContractsUI',contractsClient]].map(([r,n,s])=>localScriptItem(r,n,s)).join('');
 const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>${clientItems}</Item></Item></roblox>`;
 fs.writeFileSync(path.join(root,'maps/becak-e-bike/place.rbxlx'),xml);
-console.log('[Becak E-Bike] Built v1.45 + mobile safe-area v1.32 + streetscape v1.2 + street-life v1.0 + city architecture v1.2 + vehicle realism v1.1 + vehicle geometry v1.0 + dedicated safety/gameplay systems:',Buffer.byteLength(xml),'bytes');
+console.log('[Becak E-Bike] Built v1.45 + road-access v1.36 + mobile safe-area v1.32 + streetscape v1.2 + street-life v1.0 + city architecture v1.2 + vehicle realism v1.1 + vehicle geometry v1.0 + dedicated safety/gameplay systems:',Buffer.byteLength(xml),'bytes');
