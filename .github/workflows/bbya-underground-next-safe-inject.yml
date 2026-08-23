@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: bbya-underground-audio-single-upload
+  group: bbya-audio-safe-batch-gudangpet88
   cancel-in-progress: false
 
 jobs:
