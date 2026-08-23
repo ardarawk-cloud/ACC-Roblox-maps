@@ -1,0 +1,180 @@
+name: BBYA Underground Next Safe Inject
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.underground-next-safe-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-underground-audio-single-upload
+  cancel-in-progress: false
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      BBYA_UNIVERSE: '8116636513'
+      EXPECTED_AUDIO_OWNER_USER_ID: '9296030038'
+      MODERATION_WAIT_SECONDS: '480'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select exactly one Underground track
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, os
+          p=pathlib.Path('maps/bbya-social-hub/audio-playlists/underground.json')
+          reg=json.loads(p.read_text())
+          allowed={'PREPARED_LOCAL','UPLOADED_MODERATION_PENDING','MODERATION_PENDING','PERMISSION_FAILED','READY_TO_INJECT'}
+          cand=sorted([t for t in reg.get('tracks',[]) if t.get('status') in allowed and not t.get('blacklisted')],key=lambda t:int(t.get('index',999999)))
+          if not cand: raise SystemExit('NO_PENDING_UNDERGROUND_TRACKS')
+          t=cand[0]; idx=int(t['index']); has_asset=bool(str(t.get('assetId') or '').strip())
+          env=pathlib.Path(os.environ['GITHUB_ENV'])
+          with env.open('a') as f:
+              f.write(f'TRACK_INDEX={idx}\n')
+              f.write(f'DRIVE_FILE_ID={t["driveFileId"]}\n')
+              f.write(f'AUDIO_PATH=/tmp/bbya-underground-track{idx:03d}-ready.mp3\n')
+              f.write(f'REPORT_PATH=deploy-status/bbya-underground-track{idx:03d}.json\n')
+              f.write('HAS_ASSET=' + ('true' if has_asset else 'false') + '\n')
+          print(json.dumps({'selectedIndex':idx,'title':t.get('title'),'driveFileId':t.get('driveFileId'),'hasAsset':has_asset},indent=2))
+          PY
+
+      - name: Prepare selected source only when upload is needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${HAS_ASSET}" = "true" ]; then
+            echo 'Existing Roblox asset found; moderation/permission recheck only. No re-upload.'
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet gdown
+          gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O /tmp/bbya-underground-source
+          test -s /tmp/bbya-underground-source
+          ffmpeg -y -hide_banner -loglevel error -i /tmp/bbya-underground-source -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame "${AUDIO_PATH}"
+          test -s "${AUDIO_PATH}"
+          ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
+
+      - name: Upload or recheck selected track only
+        shell: bash
+        run: python3 scripts/bbya-underground-single-inject.py
+
+      - name: Persist moderation checkpoint
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/audio-playlists/underground.json "${REPORT_PATH}" 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Checkpoint Underground Track ${TRACK_INDEX} [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Approval gate
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, os
+          p=pathlib.Path(os.environ['REPORT_PATH'])
+          d=json.loads(p.read_text())
+          ready=d.get('readyToInject') is True
+          print(json.dumps({k:d.get(k) for k in ['status','trackIndex','assetId','moderationState','readyToInject','blacklisted']},indent=2))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('ready=' + ('true' if ready else 'false') + '\n')
+          PY
+
+      - name: Build Underground playlist from approved registry
+        if: steps.gate.outputs.ready == 'true'
+        run: python3 scripts/bbya-underground-build.py
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo
+        if: steps.gate.outputs.ready == 'true'
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.gate.outputs.ready == 'true' && steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build and publish BBYA Underground playlist
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
+        env:
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-underground-next.rbxl
+          test -s /tmp/bbya-underground-next.rbxl
+          PLACE_FILE_OVERRIDE=/tmp/bbya-underground-next.rbxl node scripts/publish-map.js a-club
+
+      - name: Restart old BBYA servers
+        if: steps.gate.outputs.ready == 'true'
+        id: restart
+        shell: bash
+        run: |
+          set +e
+          body=/tmp/restart-underground-next.txt
+          http=$(curl -sS -o "$body" -w '%{http_code}' -X POST "https://apis.roblox.com/cloud/v2/universes/${BBYA_UNIVERSE}:restartServers" -H "x-api-key: ${ROBLOX_API_KEY}" -H 'Content-Type: application/json' -d '{}')
+          echo "http=$http" >> "$GITHUB_OUTPUT"
+          echo "restart HTTP $http"
+          cat "$body" || true
+          exit 0
+
+      - name: Mark selected track live
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
+        env:
+          RESTART_HTTP: ${{ steps.restart.outputs.http }}
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, os
+          idx=int(os.environ['TRACK_INDEX'])
+          regp=pathlib.Path('maps/bbya-social-hub/audio-playlists/underground.json')
+          rep=pathlib.Path(os.environ['REPORT_PATH'])
+          receipt=pathlib.Path('deploy-status/a-club.json')
+          reg=json.loads(regp.read_text()); d=json.loads(rep.read_text())
+          for t in reg.get('tracks',[]):
+              if int(t.get('index',0))==idx: t['status']='LIVE_IN_PLAYLIST'
+          d['status']='LIVE_PUBLISHED'; d['restartHttp']=os.environ.get('RESTART_HTTP','')
+          if receipt.exists(): d['publishReceipt']=json.loads(receipt.read_text())
+          regp.write_text(json.dumps(reg,indent=2,ensure_ascii=False)+'\n')
+          rep.write_text(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+          PY
+
+      - name: Persist live Underground track
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/85-basement-autodj.server.lua maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/109-music-catalog-reset.server.lua maps/bbya-social-hub/audio-playlists/underground.json "${REPORT_PATH}" deploy-status/a-club.json
+          git commit -m "Inject Underground Track ${TRACK_INDEX} and publish playlist [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
