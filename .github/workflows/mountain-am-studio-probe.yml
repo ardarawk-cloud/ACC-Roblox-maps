@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v5.2-lowland-authoritative-20260824
+# trigger: mountain-v5.3-lowland-polish-20260824
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           git fetch origin agent/mountain-master-v3
           git checkout origin/agent/mountain-master-v3 -- maps/mountain-social maps/registry.json scripts/inject-mountain.js scripts/publish-mountain-closed-test.js
 
-      - name: Build authoritative Spawn-to-CP1 RBXLX
+      - name: Build Spawn-to-CP1 v5.3 RBXLX
         shell: bash
         run: |
           set -euo pipefail
@@ -35,16 +35,17 @@ jobs:
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'v5.2-lowland-authoritative' maps/mountain-social/place.rbxlx
+          grep -q 'v5.3-lowland-polish' maps/mountain-social/place.rbxlx
           grep -q 'LowlandMasterAuthoritative' maps/mountain-social/place.rbxlx
           grep -q 'LowlandMasterReady' maps/mountain-social/place.rbxlx
           grep -q 'SPAWN_TO_CP1_ONLY' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandRoadSegmentCount' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandHouseCount' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandPaddyCount' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandGroundedTreeCount' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandUtilityPoleCount' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandCP1Ready' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandPolishReady' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandTerraceDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandIrrigationCount' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandYardDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandRoadsideDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandFoothillDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'LowlandCP1PolishCount' maps/mountain-social/place.rbxlx
           grep -q 'v2.8-local-lod' maps/mountain-social/place.rbxlx
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
@@ -62,7 +63,7 @@ jobs:
           {
             if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
             echo 'secret=AM_STUDIO'
-            echo 'build=v5.2-lowland-authoritative'
+            echo 'build=v5.3-lowland-polish'
             echo 'universeId=4187755690'
             echo 'placeId=11832985967'
             echo "exitCode=$code"
@@ -76,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v5.2-lowland-authoritative\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v5.3-lowland-polish\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
