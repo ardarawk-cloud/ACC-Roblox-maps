@@ -92,7 +92,8 @@ if old then old:Destroy() end
 local C={
  bg=Color3.fromRGB(8,9,13),panel=Color3.fromRGB(15,16,22),card=Color3.fromRGB(23,25,33),line=Color3.fromRGB(67,71,85),
  white=Color3.fromRGB(247,247,250),muted=Color3.fromRGB(148,153,169),pink=Color3.fromRGB(235,48,163),
- cyan=Color3.fromRGB(47,199,225),gold=Color3.fromRGB(226,178,88),green=Color3.fromRGB(72,211,132),red=Color3.fromRGB(235,76,91),
+ cyan=Color3.fromRGB(47,199,225),gold=Color3.fromRGB(226,178,88),purple=Color3.fromRGB(145,84,255),
+ green=Color3.fromRGB(72,211,132),red=Color3.fromRGB(235,76,91),
 }
 local function corner(o,r)local x=Instance.new("UICorner");x.CornerRadius=UDim.new(0,r or 8);x.Parent=o;return x end
 local function stroke(o,c,t)local x=Instance.new("UIStroke");x.Color=c or C.line;x.Thickness=1;x.Transparency=t or .45;x.Parent=o;return x end
@@ -136,10 +137,12 @@ label(venueCard,"OUTPUT VENUE",UDim2.fromOffset(8,2),UDim2.fromOffset(120,14),En
 local venueNames={{"MAIN","MAIN"},{"UNDER","UNDERGROUND"},{"VIP","VIP"},{"FUNKOT","FUNKOT"},{"SKATE","SKATEPARK"},{"ROOF","ROOFTOP"}}
 local venueButtons={}
 for i,spec in ipairs(venueNames) do
+ local labelText=spec[1]
+ local venueKey=spec[2]
  local col=(i-1)%3;local row=math.floor((i-1)/3)
- local b=button(venueCard,spec[1],UDim2.fromOffset(8+col*109,18+row*18),UDim2.fromOffset(101,16),C.gold)
- b.TextSize=7;venueButtons[spec[2]]=b
- b.Activated:Connect(function()actionRemote:FireServer("venue",{value=spec[2]})end)
+ local b=button(venueCard,labelText,UDim2.fromOffset(8+col*109,18+row*18),UDim2.fromOffset(101,16),C.gold)
+ b.TextSize=7;venueButtons[venueKey]=b
+ b.Activated:Connect(function()actionRemote:FireServer("venue",{value=venueKey})end)
 end
 
 local current=initial
@@ -174,7 +177,7 @@ local function createDeck(deck,x,accent)
  local mid=button(card,"MID 0",UDim2.fromOffset(60,213),UDim2.fromOffset(45,25),C.gold)
  local high=button(card,"HI 0",UDim2.fromOffset(109,213),UDim2.fromOffset(48,25),C.gold)
  local echo=button(card,"ECHO",UDim2.fromOffset(9,242),UDim2.fromOffset(72,20),C.pink)
- local reverb=button(card,"REVERB",UDim2.fromOffset(85,242),UDim2.fromOffset(72,20),C.purple or C.cyan)
+ local reverb=button(card,"REVERB",UDim2.fromOffset(85,242),UDim2.fromOffset(72,20),C.purple)
 
  load.Activated:Connect(function()if box.Text~="" then actionRemote:FireServer("load",{deck=deck,assetId=box.Text})end end)
  play.Activated:Connect(function()actionRemote:FireServer("play_toggle",{deck=deck})end)
@@ -186,7 +189,14 @@ local function createDeck(deck,x,accent)
  pitchMinus.Activated:Connect(function()local d=current.decks and current.decks[deck];if d then actionRemote:FireServer("pitch",{deck=deck,value=(d.pitch or 1)-.01})end end)
  pitchPlus.Activated:Connect(function()local d=current.decks and current.decks[deck];if d then actionRemote:FireServer("pitch",{deck=deck,value=(d.pitch or 1)+.01})end end)
  pitch.Activated:Connect(function()actionRemote:FireServer("pitch",{deck=deck,value=1})end)
- for band,b in pairs({low=low,mid=mid,high=high}) do b.Activated:Connect(function()local d=current.decks and current.decks[deck];if d then actionRemote:FireServer("eq",{deck=deck,band=band,value=nextEq(d[band])})end end) end
+ for band,b in pairs({low=low,mid=mid,high=high}) do
+  local bandKey=band
+  local eqButton=b
+  eqButton.Activated:Connect(function()
+   local d=current.decks and current.decks[deck]
+   if d then actionRemote:FireServer("eq",{deck=deck,band=bandKey,value=nextEq(d[bandKey])})end
+  end)
+ end
  echo.Activated:Connect(function()local d=current.decks and current.decks[deck];if d then actionRemote:FireServer("echo",{deck=deck,value=not d.echo})end end)
  reverb.Activated:Connect(function()local d=current.decks and current.decks[deck];if d then actionRemote:FireServer("reverb",{deck=deck,value=not d.reverb})end end)
 
@@ -237,7 +247,7 @@ local function updateUI(s)
    u.vol.Text=string.format("VOL %d",math.floor((tonumber(d.volume) or 0)*100+.5))
    u.pitch.Text=string.format("%.2fx",tonumber(d.pitch) or 1)
    u.low.Text="LOW "..tostring(math.floor(tonumber(d.low) or 0));u.mid.Text="MID "..tostring(math.floor(tonumber(d.mid) or 0));u.high.Text="HI "..tostring(math.floor(tonumber(d.high) or 0))
-   u.echo.BackgroundColor3=d.echo and C.pink or C.card;u.reverb.BackgroundColor3=d.reverb and C.cyan or C.card
+   u.echo.BackgroundColor3=d.echo and C.pink or C.card;u.reverb.BackgroundColor3=d.reverb and C.purple or C.card
   end
  end
 end
@@ -245,13 +255,13 @@ stateRemote.OnClientEvent:Connect(updateUI)
 updateUI(initial)
 
 local competing={HubPanel=true,CompactMusicCardV7=true,PlaylistDrawerV7=true,CommunityPanel=true,DancePanel=true,CarryPanel=true,DJWallComposerPanel=true}
+local function isRoleShade(d)
+ return d.Name=="Shade" and d:FindFirstAncestor("BBYARolePanelUI")~=nil
+end
 local function hideOtherPanels()
  for _,d in ipairs(pg:GetDescendants()) do
-  if d:IsA("GuiObject") and competing[d.Name] and d.Visible then d.Visible=false end
+  if d:IsA("GuiObject") and ((competing[d.Name] and d.Visible) or (isRoleShade(d) and d.Visible)) then d.Visible=false end
  end
- local roleGui=pg:FindFirstChild("BBYARolePanelUI")
- local shade=roleGui and roleGui:FindFirstChild("Shade",true)
- if shade and shade:IsA("GuiObject") then shade.Visible=false end
  local menu=pg:FindFirstChild("BBYACommandMenuUI")
  if menu then
   local drawer=menu:FindFirstChild("FeatureDrawer",true)
@@ -262,7 +272,8 @@ local function hideOtherPanels()
 end
 local watched={}
 local function watchCompeting(d)
- if watched[d] or not d:IsA("GuiObject") or not competing[d.Name] then return end
+ if watched[d] or not d:IsA("GuiObject") then return end
+ if not competing[d.Name] and not isRoleShade(d) then return end
  watched[d]=true
  d:GetPropertyChangedSignal("Visible"):Connect(function()if d.Visible and panel.Visible then panel.Visible=false end end)
 end
@@ -286,6 +297,10 @@ local function installMenuEntry()
  local slot=Instance.new("Frame");slot.Name="Slot_DJ_LIVE";slot.LayoutOrder=10;slot.BackgroundColor3=C.card;slot.BorderSizePixel=0;slot.ZIndex=202;slot.Parent=body;corner(slot,9);stroke(slot,C.gold,.45)
  local b=Instance.new("TextButton");b.Name="DeveloperDJMenuButton";b.Size=UDim2.fromScale(1,1);b.BackgroundTransparency=1;b.Text="DJ LIVE";b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.ZIndex=206;b.Parent=slot
  b.Activated:Connect(togglePanel)
+ local drawer=menu:FindFirstChild("FeatureDrawer",true)
+ if drawer and drawer:IsA("GuiObject") then
+  drawer:GetPropertyChangedSignal("Visible"):Connect(function()if drawer.Visible and panel.Visible then panel.Visible=false end end)
+ end
  return true
 end
 
