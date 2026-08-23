@@ -1,6 +1,7 @@
 name: BBYA Live Self Heal
 
 # v2: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
+# Premium Fishing District live retrigger: 2026-08-24
 on:
   push:
     branches: [main]
