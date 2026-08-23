@@ -937,7 +937,7 @@ for _,a in ipairs(anchors) do
     cylinder(f,"PlazaRing",Vector3.new(12,0.55,12),CFrame.new(a.pos+Vector3.new(0,0.35,0)),Color3.fromRGB(114,105,91),Enum.Material.Cobblestone)
     cylinder(f,"PlanterBowl",Vector3.new(6.8,1.25,6.8),CFrame.new(a.pos+Vector3.new(0,0.75,0)),a.accent,Enum.Material.Brick)
     sphere(f,"PlanterGreen",Vector3.new(5.8,3.6,5.8),CFrame.new(a.pos+Vector3.new(0,2.3,0)),Color3.fromRGB(57,121,62),Enum.Material.Grass)
-    local pole=cylinder(f,"DistrictPole",Vector3.new(0.55,9.5,0.55),CFrame.new(a.pos+Vector3.new(0,5.3,0)),Color3.fromRGB(48,51,52),Enum.Material.Metal)
+    cylinder(f,"DistrictPole",Vector3.new(0.55,9.5,0.55),CFrame.new(a.pos+Vector3.new(0,5.3,0)),Color3.fromRGB(48,51,52),Enum.Material.Metal)
     sphere(f,"DistrictLamp",Vector3.new(1.9,1.2,1.9),CFrame.new(a.pos+Vector3.new(0,10.1,0)),Color3.fromRGB(224,210,166),Enum.Material.Glass)
     landmarkCount+=1
     organicCount+=5
@@ -949,7 +949,7 @@ for i,pos in ipairs(marketSpots) do
     local f=Instance.new("Folder")
     f.Name="OrganicMarketCluster_"..i
     f.Parent=polish
-    local pole=cylinder(f,"UmbrellaPole",Vector3.new(0.35,5.5,0.35),CFrame.new(pos+Vector3.new(0,3,0)),Color3.fromRGB(72,62,53),Enum.Material.Wood)
+    cylinder(f,"UmbrellaPole",Vector3.new(0.35,5.5,0.35),CFrame.new(pos+Vector3.new(0,3,0)),Color3.fromRGB(72,62,53),Enum.Material.Wood)
     local canopy=cylinder(f,"UmbrellaCanopy",Vector3.new(7.2,0.45,7.2),CFrame.new(pos+Vector3.new(0,5.9,0)),accentPalette[(i%#accentPalette)+1],Enum.Material.Fabric)
     canopy.CFrame=canopy.CFrame*CFrame.Angles(0,math.rad(i*17),0)
     cylinder(f,"ProduceBasket",Vector3.new(2.2,1.1,2.2),CFrame.new(pos+Vector3.new(2.8,0.7,1.2)),Color3.fromRGB(123,91,55),Enum.Material.Wood)
@@ -968,6 +968,115 @@ world:SetAttribute("BecakOrganicPolishPartCount",organicCount)
 world:SetAttribute("BecakOrganicSideFacadeCount",sideFacadeCount)
 world:SetAttribute("BecakOrganicLandmarkCount",landmarkCount)
 world:SetAttribute("BecakOrganicMarketCount",marketCount)
+
+-- v1.4 enhancement: add depth layers and curved street accents without increasing gameplay collision.
+-- This deliberately reuses the v1.3 compatibility marker above so existing build/publish validation remains safe.
+local depthCount=0
+local arcadeCount=0
+local rooflineCount=0
+
+local function addFacadeDepth(model,body)
+    local size,cf=body.Size,body.CFrame
+    if size.X<24 or size.Y<16 then return end
+    local f=Instance.new("Folder")
+    f.Name="OrganicDepthV14"
+    f.Parent=model
+    local seed=seedOf(model.Name)
+    local accent=accentPalette[(seed%#accentPalette)+1]
+    local front=-size.Z/2-0.78
+
+    -- Deep entrance canopy: cylinder nose + thin slab creates a less blocky street frontage.
+    local canopyWidth=math.clamp(size.X*0.34,8,18)
+    part(f,"EntryCanopySlab",Vector3.new(canopyWidth,0.32,2.8),cf*CFrame.new(0,-size.Y/2+8.8,front-1.2),accent,Enum.Material.Metal)
+    local nose=cylinder(f,"EntryCanopyNose",Vector3.new(0.9,canopyWidth,0.9),cf*CFrame.new(0,-size.Y/2+8.65,front-2.55),accent,Enum.Material.Metal)
+    nose.CFrame=cf*CFrame.new(0,-size.Y/2+8.65,front-2.55)*CFrame.Angles(0,math.rad(90),0)
+
+    -- Vertical fins cast real shadow and visually split the original rectangular body.
+    local fins=math.clamp(math.floor(size.X/18),2,4)
+    for i=1,fins do
+        local x=-size.X/2+i*(size.X/(fins+1))
+        part(f,"FacadeFin",Vector3.new(0.5,math.min(size.Y*0.64,22),1.25),cf*CFrame.new(x,1.0,front+0.2),Color3.fromRGB(78,73,66),Enum.Material.Concrete)
+        depthCount+=1
+    end
+
+    -- Small rounded planters soften the ground line and hide hard box corners.
+    for _,side in ipairs({-1,1}) do
+        local px=side*math.min(size.X/2-2.5,12)
+        cylinder(f,"EntryPlanter",Vector3.new(2.5,1.0,2.5),cf*CFrame.new(px,-size.Y/2+0.6,front-1.55),Color3.fromRGB(91,72,55),Enum.Material.Brick)
+        sphere(f,"EntryPlant",Vector3.new(2.1,2.4,2.1),cf*CFrame.new(px,-size.Y/2+2.0,front-1.55),Color3.fromRGB(55,119,60),Enum.Material.Grass)
+        depthCount+=2
+    end
+
+    -- Commercial/public buildings receive a shallow arcade rhythm using round columns.
+    local commercial=model.Name:find("Ruko") or model.Name=="Mall" or model.Name=="Hotel" or model.Name=="Terminal" or model.Name=="RumahSakit" or model.Name=="Sekolah"
+    if commercial then
+        local span=math.min(size.X*0.62,24)
+        for _,x in ipairs({-span/2,0,span/2}) do
+            local col=cylinder(f,"ArcadeColumn",Vector3.new(0.85,7.5,0.85),cf*CFrame.new(x,-size.Y/2+3.8,front-0.55),Color3.fromRGB(96,90,79),Enum.Material.Concrete)
+            col.CFrame=cf*CFrame.new(x,-size.Y/2+3.8,front-0.55)*CFrame.Angles(0,0,math.rad(90))
+        end
+        part(f,"ArcadeBeam",Vector3.new(span+2.5,0.65,1.0),cf*CFrame.new(0,-size.Y/2+7.75,front-0.55),accent,Enum.Material.Brick)
+        arcadeCount+=1
+        depthCount+=4
+    end
+
+    -- Roofline ornaments vary per building and prevent a flat repeated skyline.
+    local roofY=size.Y/2+1.7
+    if seed%3==0 then
+        for _,x in ipairs({-size.X*0.22,size.X*0.22}) do
+            sphere(f,"RoofFinial",Vector3.new(1.5,1.8,1.5),cf*CFrame.new(x,roofY,0),accent,Enum.Material.Metal)
+            depthCount+=1
+        end
+    elseif seed%3==1 then
+        local screenW=math.min(size.X*0.4,16)
+        part(f,"RoofScreen",Vector3.new(screenW,2.2,0.45),cf*CFrame.new(0,roofY,0),Color3.fromRGB(77,82,80),Enum.Material.Metal)
+        for _,x in ipairs({-screenW/2,screenW/2}) do
+            cylinder(f,"RoofScreenPost",Vector3.new(0.35,2.8,0.35),cf*CFrame.new(x,roofY,0),Color3.fromRGB(55,58,59),Enum.Material.Metal)
+            depthCount+=1
+        end
+        depthCount+=1
+    else
+        local cap=cylinder(f,"RoofRoundCap",Vector3.new(5.0,0.65,5.0),cf*CFrame.new(size.X*0.18,roofY,0),accent,Enum.Material.Metal)
+        cap.CFrame=cap.CFrame*CFrame.Angles(0,math.rad(seed%45),0)
+        depthCount+=1
+    end
+    rooflineCount+=1
+end
+
+for _,obj in ipairs(world:GetChildren()) do
+    if obj:IsA("Model") then
+        local body=obj:FindFirstChild("Body")
+        if body and body:IsA("BasePart") then addFacadeDepth(obj,body) end
+    end
+end
+
+-- Curved roadside micro-landmarks make long straight roads read as a city, not a blockout grid.
+local microLandmarks={
+    Vector3.new(-280,0,30),Vector3.new(-70,0,-30),Vector3.new(70,0,30),Vector3.new(280,0,-30),
+}
+for i,pos in ipairs(microLandmarks) do
+    local f=Instance.new("Folder")
+    f.Name="RoadsideOrganicNode_"..i
+    f.Parent=polish
+    cylinder(f,"RoundBase",Vector3.new(4.4,0.55,4.4),CFrame.new(pos+Vector3.new(0,0.3,0)),Color3.fromRGB(102,93,79),Enum.Material.Cobblestone)
+    cylinder(f,"SlimPole",Vector3.new(0.38,6.5,0.38),CFrame.new(pos+Vector3.new(0,3.6,0)),Color3.fromRGB(48,51,52),Enum.Material.Metal)
+    sphere(f,"GlowHead",Vector3.new(1.25,1.05,1.25),CFrame.new(pos+Vector3.new(0,7.0,0)),Color3.fromRGB(224,208,165),Enum.Material.Glass)
+    for j=1,3 do
+        local angle=(j/3)*math.pi*2
+        sphere(f,"ShrubOrb",Vector3.new(1.55,1.25,1.55),CFrame.new(pos+Vector3.new(math.cos(angle)*2.3,0.85,math.sin(angle)*2.3)),Color3.fromRGB(57,118+((i+j)%2)*8,61),Enum.Material.Grass)
+    end
+    depthCount+=6
+end
+
+world:SetAttribute("ACC_BecakCityOrganicEnhancement","v1.4")
+world:SetAttribute("BecakFacadeDepthLayering","ON")
+world:SetAttribute("BecakRoundedEntranceCanopies","ON")
+world:SetAttribute("BecakArcadeStreetRhythm","ON")
+world:SetAttribute("BecakVariableRoofline","ON")
+world:SetAttribute("BecakOrganicRoadsideNodes","ON")
+world:SetAttribute("BecakOrganicDepthPartCount",depthCount)
+world:SetAttribute("BecakOrganicArcadeCount",arcadeCount)
+world:SetAttribute("BecakOrganicRooflineCount",rooflineCount)
 ]]></ProtectedString></Properties></Item><Item class="Script" referent="M"><Properties><string name="Name">BecakEBike_Masterplan</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[-- BECAK E-BIKE — masterplan systems v1.4
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
