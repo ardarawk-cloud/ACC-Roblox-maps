@@ -1,0 +1,49 @@
+name: BBYA Party Stuff UI QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/108-party-stuff-menu.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-party-stuff-ui-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-party-stuff.rbxl
+          test -s /tmp/bbya-party-stuff.rbxl
+      - name: Validate Party Stuff and transparency
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/108-party-stuff-menu.client.lua'
+          p='maps/bbya-social-hub/default.project.json'
+          grep -q 'PARTY STUFF' "$f"
+          grep -q 'Money Gun' "$f"
+          grep -q 'Glowstick' "$f"
+          grep -q 'Party Sparkler' "$f"
+          grep -q 'Enum.CoreGuiType.Backpack,false' "$f"
+          grep -q 'BackgroundTransparency=.34' "$f"
+          grep -q 'hum:EquipTool' "$f"
+          grep -q 'BBYACustomPartyGearUI' "$f"
+          grep -q '108-party-stuff-menu.client.lua' "$p"
+          if grep -q 'RemoteEvent' "$f"; then echo 'Party menu must not create new remote authority.' >&2; exit 1; fi
+          echo 'BBYA Party Stuff UI QC passed.'
