@@ -49,6 +49,7 @@ jobs:
           grep -q 'BBYAMobileControlsGuard' "$f"
           grep -q 'AdminNextV7' "$f"
           grep -q 'maxRight=cw-pad' "$f"
-          grep -q 'VenueAwareMenuMusicV1.*114-venue-aware-menu-music.client.lua' "$project"
+          grep -q '"VenueAwareMenuMusicV1"' "$project"
+          grep -q '"$path": "114-venue-aware-menu-music.client.lua"' "$project"
           ! grep -q 'FireServer' "$f"
           echo 'BBYA venue-aware menu music v2 QC passed.'
