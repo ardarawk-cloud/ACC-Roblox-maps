@@ -4,7 +4,7 @@ const path = require('path');
 const ROOT = process.cwd();
 const TARGET_UNIVERSE = '10744157359';
 const TARGET_PLACE = '85866320744490';
-const BUILD = 'FPS-PROTOTYPE-0.2';
+const BUILD = 'FPS-PROTOTYPE-0.2.1';
 
 function read(rel) { return fs.readFileSync(path.join(ROOT, rel), 'utf8'); }
 function fail(message) { console.error(`[BBYAVATAR FPS QC] FAIL: ${message}`); process.exit(1); }
@@ -36,7 +36,10 @@ requireAll(cfg, [
   BUILD,
   'TEAM DEATHMATCH',
   'RoundTime = 480',
-  'SpawnProtection = 2.5',
+  'SpawnProtection = 5',
+  'FallRescueY = -18',
+  'SafeBoundsX = 232',
+  'SafeBoundsZ = 172',
   'SprintSpeed = 22',
   'KillstreakMilestones',
   'AR4','SM9','DMR7','P12',
@@ -51,12 +54,17 @@ requireAll(world, [
 ], 'fps.world.server.lua');
 
 requireAll(server, [
-  'Authoritative combat server v0.2',
+  'Authoritative combat server v0.2.1',
   'FPSRemotes',
   'Fire.OnServerEvent','Reload.OnServerEvent','Equip.OnServerEvent',
   'Workspace:Raycast',
   'HeadMultiplier',
   'SpawnProtection',
+  'placeCharacterSafely',
+  'nextSpawnCFrame',
+  'FallRescueY',
+  'SafeBoundsX',
+  'clearSpawnProtection',
   'roundEndsAt',
   'finishRound',
   'KillstreakMilestones',
@@ -86,7 +94,8 @@ requireAll(place, [
   BUILD,
   'FPS_URBAN_BLOCK',
   'MATCH SCOREBOARD',
-  'SELECT LOADOUT'
+  'SELECT LOADOUT',
+  'placeCharacterSafely'
 ], 'place.rbxlx');
 
 const weaponCount = (cfg.match(/DisplayName\s*=/g) || []).length;
@@ -108,7 +117,9 @@ console.log(JSON.stringify({
   systems: [
     'TDM timed rounds',
     'server-authoritative hitscan',
-    'spawn protection',
+    '5s spawn protection',
+    'deterministic safe respawn',
+    'fall/out-of-bounds rescue',
     'killstreaks',
     'ADS + recoil recovery',
     'dynamic crosshair',
