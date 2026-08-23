@@ -1,0 +1,89 @@
+name: BBYA Developer DJ Mixer QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/126-developer-dj-mixer.server.lua'
+      - 'maps/bbya-social-hub/126-developer-dj-mixer.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-developer-dj-mixer-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: self-hosted
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-dj-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-dj-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Static authority and mixer QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $server=Get-Content 'maps/bbya-social-hub/126-developer-dj-mixer.server.lua' -Raw
+          $client=Get-Content 'maps/bbya-social-hub/126-developer-dj-mixer.client.lua' -Raw
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+          $null=$project | ConvertFrom-Json
+
+          foreach($needle in @(
+            'AM_STUDIO_USERNAME="arda_moron123"',
+            'player.UserId==game.CreatorId',
+            'DeveloperDJAction',
+            'DeveloperDJGetState',
+            'BBYADeveloperDJDeckA',
+            'BBYADeveloperDJDeckB',
+            'BBYADeveloperDJLiveSuppressed',
+            'crossfader',
+            'EqualizerSoundEffect',
+            'EchoSoundEffect',
+            'ReverbSoundEffect',
+            'Roblox Audio Asset ID only'
+          )){if($server -notmatch [regex]::Escape($needle)){throw "Missing server marker: $needle"}}
+
+          foreach($forbidden in @('nadmo97','styxraasoraaa','BBYAAdmin\)==true','HttpService','google%.com','drive%.google','file://')){
+            if($server -match $forbidden){throw "Forbidden server access/streaming marker: $forbidden"}
+          }
+
+          foreach($needle in @('DJ LIVE','CROSSFADER','OUTPUT VENUE','ROBLOX ASSET IDs ONLY','BBYADeveloperDJVenueGateV1','DeveloperDJMixerPanel')){
+            if($client -notmatch [regex]::Escape($needle)){throw "Missing client marker: $needle"}
+          }
+          if($client -match 'nadmo97|styxraasoraaa'){throw 'Client exposes non-developer account authority'}
+
+          foreach($needle in @('126-developer-dj-mixer.server.lua','126-developer-dj-mixer.client.lua')){
+            if($project -notmatch [regex]::Escape($needle)){throw "Manifest mount missing: $needle"}
+          }
+          Write-Host 'DJ MIXER STATIC QC PASS'
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-developer-dj-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $out)){throw 'RBXL output missing'}
+          if((Get-Item $out).Length -lt 1024){throw 'RBXL output too small'}
+          Write-Host "DJ MIXER ROJO PASS bytes=$((Get-Item $out).Length)"

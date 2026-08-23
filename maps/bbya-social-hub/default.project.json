@@ -244,6 +244,9 @@
       "FishingPremiumUpgradeV3": {
         "$path": "125-fishing-premium-v3.server.lua"
       },
+      "DeveloperDJMixerV1": {
+        "$path": "126-developer-dj-mixer.server.lua"
+      },
       "VIPTrack01AuthorityV2": {
         "$path": "110-vip-track01.server.lua"
       }
@@ -355,6 +358,9 @@
         },
         "FishingPremiumClientV3": {
           "$path": "125-fishing-premium-v3.client.lua"
+        },
+        "DeveloperDJMixerClientV1": {
+          "$path": "126-developer-dj-mixer.client.lua"
         }
       }
     },
