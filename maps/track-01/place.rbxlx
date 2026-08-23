@@ -2569,6 +2569,64 @@ root:SetAttribute("OperationsVersion","2.7.0")
 Workspace:SetAttribute("ACC_TRACK01_OPERATIONS_READY",true)
 Workspace:SetAttribute("ACC_TRACK01_VERSION","2.7.0")
 print("[TRACK 01] operational realism ready v2.7.0")
+]]></ProtectedString></Properties></Item><Item class="Script" referent="TQ"><Properties><string name="Name">TRACK01_PerformanceQC</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Workspace=game:GetService("Workspace")
+
+-- TRACK 01 v2.8 performance/QC pass.
+-- Keeps all venue detail while trimming avoidable mobile render/query cost.
+local deadline=os.clock()+55
+repeat task.wait(0.15) until Workspace:GetAttribute("ACC_TRACK01_OPERATIONS_READY") or os.clock()>deadline
+
+local root=Workspace:FindFirstChild("ACC_TRACK01")
+if not root then return end
+local world=root:FindFirstChild("World")
+local dynamicLights=root:FindFirstChild("DynamicLights")
+if not (world and dynamicLights) then return end
+
+local noShadowNames={
+    RustPatch=true,RustDrip=true,Rivet=true,BodyRib=true,FadedRedRepairPanel=true,
+    VentSlat=true,MeterNeedle=true,LeverCap=true,SignalMarker=true,YardStringBulb=true,
+    FireGlow=true,FacadeLampBulb=true,FloorGuide=true,LockerVent=true,LockerHandle=true,
+    ExtinguisherBracket=true,ColumnBolt=true,MaintenanceScar=true,RoofOxide=true,
+}
+
+local optimizedParts=0
+local queryDisabled=0
+for _,obj in ipairs(world:GetDescendants()) do
+    if obj:IsA("BasePart") then
+        obj.CanTouch=false
+        local small=obj.Size.X*obj.Size.Y*obj.Size.Z < 8
+        local decorative=noShadowNames[obj.Name] or obj.Material==Enum.Material.Neon
+        if decorative or small then
+            obj.CastShadow=false
+            optimizedParts+=1
+        end
+        -- Only remove query cost from parts that were already non-collidable.
+        if not obj.CanCollide and (decorative or small) then
+            obj.CanQuery=false
+            queryDisabled+=1
+        end
+    end
+end
+
+local pulseCount=0
+for _,obj in ipairs(dynamicLights:GetDescendants()) do
+    if obj:IsA("PointLight") or obj:IsA("SpotLight") then
+        if obj:GetAttribute("ACCBaseBrightness")==nil then
+            obj:SetAttribute("ACCBaseBrightness",obj.Brightness)
+        end
+        -- Dynamic club lights do not need expensive per-frame shadow maps.
+        obj.Shadows=false
+        pulseCount+=1
+    end
+end
+
+root:SetAttribute("PerformanceVersion","2.8.0")
+root:SetAttribute("OptimizedDecorativeParts",optimizedParts)
+root:SetAttribute("QueryDisabledDecorativeParts",queryDisabled)
+root:SetAttribute("PulseLightCount",pulseCount)
+Workspace:SetAttribute("ACC_TRACK01_PERFORMANCE_READY",true)
+Workspace:SetAttribute("ACC_TRACK01_VERSION","2.8.0")
+print(string.format("[TRACK 01] performance QC ready v2.8.0 | decor=%d queryOff=%d pulse=%d",optimizedParts,queryDisabled,pulseCount))
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="TC"><Properties><string name="Name">TRACK01_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -2578,23 +2636,48 @@ local player = Players.LocalPlayer
 local root = Workspace:WaitForChild("ACC_TRACK01",20)
 if not root then return end
 
+-- Mobile-friendly club pulse. Lights are cached once and appended as later upgrade
+-- scripts add fixtures; no descendant scan is performed every frame.
 local lights = root:WaitForChild("DynamicLights",10)
 if lights then
     local pulseLights={}
-    for _,obj in ipairs(lights:GetDescendants()) do
+    local known={}
+    local function register(obj)
+        if known[obj] then return end
         if obj:IsA("PointLight") or obj:IsA("SpotLight") then
-            table.insert(pulseLights,obj)
+            known[obj]=true
+            local base=obj:GetAttribute("ACCBaseBrightness")
+            if base==nil then
+                base=obj.Brightness
+                obj:SetAttribute("ACCBaseBrightness",base)
+            end
+            table.insert(pulseLights,{light=obj,base=base})
         end
     end
-    local phase = 0
-    RunService.RenderStepped:Connect(function(dt)
-        phase = phase + dt
-        local pulse = 0.72 + (math.sin(phase*2.4)+1)*0.24
-        for _,obj in ipairs(pulseLights) do
-            if obj.Parent then
-                obj.Brightness = math.max(0.25, pulse * 1.45)
+    for _,obj in ipairs(lights:GetDescendants()) do register(obj) end
+    lights.DescendantAdded:Connect(register)
+
+    local phase=0
+    local accumulator=0
+    RunService.Heartbeat:Connect(function(dt)
+        phase+=dt
+        accumulator+=dt
+        if accumulator<0.08 then return end
+        accumulator=0
+        local factor=0.84+(math.sin(phase*2.2)+1)*0.10
+        local write=1
+        for read=1,#pulseLights do
+            local entry=pulseLights[read]
+            local light=entry.light
+            if light and light.Parent then
+                light.Brightness=math.max(0.12,entry.base*factor)
+                pulseLights[write]=entry
+                write+=1
+            elseif light then
+                known[light]=nil
             end
         end
+        for i=#pulseLights,write,-1 do pulseLights[i]=nil end
     end)
 end
 
