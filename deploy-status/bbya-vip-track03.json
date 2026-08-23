@@ -1,0 +1,94 @@
+{
+  "status": "MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 3,
+  "title": "Tyla - Water (Vidojean X Oliver Loenn Amapiano Remix)",
+  "driveFileId": "1_CyhgknlthvqFx4YrurXSM_fSMzSfqcV",
+  "musicalKey": "D# minor / Eb minor",
+  "camelot": "2A",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "91272579368335",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/aefda890-0613-4658-a88e-5dbf98729c6f",
+    "operationId": "aefda890-0613-4658-a88e-5dbf98729c6f",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/aefda890-0613-4658-a88e-5dbf98729c6f",
+    "operationId": "aefda890-0613-4658-a88e-5dbf98729c6f",
+    "done": true,
+    "response": {
+      "path": "assets/91272579368335",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T16:23:55.490571200Z",
+      "assetId": "91272579368335",
+      "displayName": "Tyla - Water (Vidojean X Oliver Loenn Amapiano Rem",
+      "description": "BBYA VIP Amapiano Track 03",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ]
+}
