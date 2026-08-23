@@ -1,0 +1,88 @@
+name: BBYA Fishing Visual Index v7 QC
+
+on:
+  push:
+    branches: [feature/bbya-fishing-index-visual-v7]
+    paths:
+      - 'maps/bbya-social-hub/131-fishing-index-visual-v7.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-index-visual-v7-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/131-fishing-index-visual-v7.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-index-visual-v7-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout visual index branch
+        uses: actions/checkout@v4
+
+      - name: Static visual index checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$pattern,[string]$message){if($text -notmatch $pattern){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          $clientPath='maps/bbya-social-hub/131-fishing-index-visual-v7.client.lua'
+          $projectPath='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($clientPath,$projectPath)){if(-not (Test-Path $p)){throw "Missing $p"}}
+          $client=Get-Content $clientPath -Raw
+          $project=Get-Content $projectPath -Raw
+          $null=$project | ConvertFrom-Json
+
+          Require $client 'ViewportFrame' 'Fish index must use ViewportFrame previews'
+          Require $client 'WorldModel' '3D fish preview world missing'
+          Require $client 'LockedFishUseSilhouetteV7' 'Locked silhouette marker missing'
+          Require $client 'VisualIndexSimpleTwoColumnV7' 'Simple two-column index marker missing'
+          Require $client 'NOT DISCOVERED' 'Locked fish state missing'
+          Require $client 'BEST %.2f kg' 'Best-weight metadata missing'
+          Require $client 'Moon Carp' 'Species preview registry incomplete'
+          Require $client 'Royal Koi' 'Koi preview missing'
+          Require $client 'Obsidian Ray' 'Ray preview missing'
+          Require $client 'Phantom Leviathan' 'Leviathan preview missing'
+          Require $client 'FishPreviewV7' 'Fish thumbnail object missing'
+          Require $project '131-fishing-index-visual-v7\.client\.lua' 'Visual index v7 is not mounted'
+          Require $project '47-floor1-features\.server\.lua' 'Untouched Floor1Features server mount was altered'
+
+          Forbid $client 'DataStoreService' 'Client visual pass must not touch DataStore'
+          Forbid $client 'ImageLabel' 'Visual index should use live 3D previews, not uploaded image assets'
+          Forbid $client 'GetService\("Lighting"\)' 'Visual index must not change global lighting'
+          Write-Host 'Fishing Visual Index v7 static QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojoExe=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-index-v7'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-index-v7.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw "Rojo version check failed: $LASTEXITCODE"}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full canonical BBYA build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-index-v7-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Built place unexpectedly small: $bytes bytes"}
+          Write-Host "BBYA FISHING VISUAL INDEX V7 QC PASS - canonical build: $bytes bytes"
