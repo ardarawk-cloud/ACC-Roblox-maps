@@ -38,14 +38,23 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-owner-support-vip.rbxl
           test -s /tmp/bbya-owner-support-vip.rbxl
-      - name: Validate owner identity
+      - name: Validate owner and admin identity
         shell: bash
         run: |
           set -euo pipefail
           f='maps/bbya-social-hub/92-player-progression.server.lua'
-          grep -q 'PLAYER PROGRESSION + IDENTITY v2' "$f"
-          grep -q 'title.Text=queen and "OWNER"' "$f"
+          grep -q 'PLAYER PROGRESSION + IDENTITY v3' "$f"
+          grep -q 'OWNER_USERNAME="nadmo97"' "$f"
+          grep -q '\["styxraasoraaa"\]=true' "$f"
+          grep -q 'title.Text="OWNER"' "$f"
+          grep -q 'title.Text="ADMIN"' "$f"
           grep -q 'BBYAOwner' "$f"
+          grep -q 'BBYAAdmin' "$f"
+          grep -q 'BBYAStaff' "$f"
+          grep -q 'BBYAVIPBypass' "$f"
+          grep -q 'BBYARooftopBypass' "$f"
+          grep -q 'BBYASecretRoomBypass' "$f"
+          grep -q 'BBYATravelBypass' "$f"
           ! grep -q 'QUEEN BBYA • OWNER' "$f"
           ! grep -q 'QUEEN BBYA • CO-OWNER' "$f"
       - name: Validate support purchase client
