@@ -106,6 +106,7 @@
         "PartyStuffMenuV1": {"$path": "108-party-stuff-menu.client.lua"},
         "MusicCatalogResetUIV1": {"$path": "109-music-catalog-reset-ui.client.lua"},
         "CompactSecondaryPanelsV1": {"$path": "111-compact-secondary-panels.client.lua"},
+        "VenueAwareMenuMusicV1": {"$path": "114-venue-aware-menu-music.client.lua"},
         "ActiveMallUIV1": {"$path": "94-mall-ui.client.lua"},
         "MallLiveClientV2": {"$path": "95-mall-live.client.lua"}
       }
