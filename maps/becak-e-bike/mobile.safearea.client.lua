@@ -1,6 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.31
+-- BECAK E-BIKE — mobile safe-area controller v1.32
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.31 also reserves the lower touch-control zone so the open phone cannot cover the movement thumbstick.
+-- v1.32 adds compact-landscape scaling for short phones and reduces periodic layout polling overhead.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -38,30 +38,34 @@ local function layoutMetrics()
     local topLeft,bottomRight=readInset()
     local portrait=v.Y>v.X
     local touch=UserInputService.TouchEnabled
-    local topBand=math.max(104,math.floor(topLeft.Y+64))
-    local leftPad=math.max(12,math.floor(topLeft.X+12))
-    return v,topLeft,bottomRight,portrait,touch,topBand,leftPad
+    local compactLandscape=touch and not portrait and v.Y<=520
+    local topBand=math.max(compactLandscape and 82 or 104,math.floor(topLeft.Y+(compactLandscape and 48 or 64)))
+    local leftPad=math.max(10,math.floor(topLeft.X+10))
+    return v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad
 end
 
 local function desiredScale()
-    local v,topLeft,bottomRight,portrait,touch,topBand=layoutMetrics()
-    local usableW=math.max(220,v.X-topLeft.X-bottomRight.X-24)
-    -- Reserve the lower-left thumb-control zone on touch devices. This keeps the phone readable
-    -- without covering DynamicThumbstick/vehicle movement controls on narrow landscape screens.
-    local controlReserve=18
-    if touch then controlReserve=portrait and 148 or 112 end
-    local usableH=math.max(260,v.Y-topBand-bottomRight.Y-controlReserve)
-    if portrait then
-        return math.clamp(math.min(usableW/326,usableH/566),0.52,0.80)
+    local v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand=layoutMetrics()
+    local usableW=math.max(200,v.X-topLeft.X-bottomRight.X-20)
+    local controlReserve=16
+    if touch then
+        if portrait then controlReserve=148
+        elseif compactLandscape then controlReserve=92
+        else controlReserve=112 end
     end
-    -- Keep the phone within the left third so steering/throttle controls remain clear.
-    return math.clamp(math.min((usableW*0.34)/326,usableH/566),0.54,0.88)
+    local usableH=math.max(220,v.Y-topBand-bottomRight.Y-controlReserve)
+    if portrait then
+        return math.clamp(math.min(usableW/326,usableH/566),0.46,0.80)
+    end
+    local widthShare=compactLandscape and 0.30 or 0.34
+    local minScale=compactLandscape and 0.40 or 0.50
+    return math.clamp(math.min((usableW*widthShare)/326,usableH/566),minScale,0.88)
 end
 
 local function pinOpenPhone()
     if enforcing or not phone.Visible then return end
     enforcing=true
-    local _,_,_,_,_,topBand,leftPad=layoutMetrics()
+    local _,_,_,_,_,_,topBand,leftPad=layoutMetrics()
     local desired=UDim2.fromOffset(leftPad,topBand)
     if phone.AnchorPoint~=Vector2.new(0,0) then phone.AnchorPoint=Vector2.new(0,0) end
     if phone.Position~=desired then phone.Position=desired end
@@ -77,32 +81,26 @@ local function pinScale()
 end
 
 local function applySafeArea(force)
-    local v,topLeft,bottomRight,portrait,touch,topBand,leftPad=layoutMetrics()
-
-    local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),portrait and 1 or 0,touch and 1 or 0,phone.Visible and 1 or 0},':')
+    local v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad=layoutMetrics()
+    local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),math.floor(bottomRight.X),math.floor(bottomRight.Y),portrait and 1 or 0,touch and 1 or 0,compactLandscape and 1 or 0,phone.Visible and 1 or 0},':')
     if not force and key==lastKey then
-        -- Re-assert final ownership even when dimensions did not change.
         pinOpenPhone()
         pinScale()
         return
     end
     lastKey=key
 
-    -- Closed launcher stays on the left edge, below CoreGui. On touch landscape it sits
-    -- around the upper-middle left so it cannot overlap the Roblox menu/chat/mic cluster
-    -- or the lower-left movement thumbstick.
     launcher.AnchorPoint=Vector2.new(0,0.5)
     local launcherY
     if touch and not portrait then
-        launcherY=math.clamp(math.floor(v.Y*0.34),topBand+30,v.Y-150)
+        launcherY=math.clamp(math.floor(v.Y*(compactLandscape and 0.29 or 0.34)),topBand+24,v.Y-(compactLandscape and 108 or 150))
     else
         launcherY=math.clamp(topBand+34,topBand+30,v.Y-120)
     end
     launcher.Position=UDim2.fromOffset(leftPad,launcherY)
-    local launcherSize=portrait and 46 or 48
+    local launcherSize=compactLandscape and 42 or (portrait and 46 or 48)
     launcher.Size=UDim2.fromOffset(launcherSize,launcherSize)
 
-    -- Open phone remains left-aligned and scales to the actual usable viewport.
     phone.AnchorPoint=Vector2.new(0,0)
     pinScale()
     pinOpenPhone()
@@ -112,12 +110,10 @@ applySafeArea(true)
 launcher:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Position'):Connect(function()
-    -- Legacy phone UI can still animate toward the right edge. Reclaim the left-safe-area immediately.
     if phone.Visible then task.defer(pinOpenPhone) end
 end)
 if scaler then
     scaler:GetPropertyChangedSignal('Scale'):Connect(function()
-        -- Legacy phone UI also has its own viewport scaler. Reclaim the safe mobile scale immediately.
         task.defer(pinScale)
     end)
 end
@@ -128,24 +124,25 @@ Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
     applySafeArea(true)
 end)
 
--- Low-frequency inset recheck handles mobile orientation/CoreGui changes without a busy layout loop.
+-- Low-frequency fallback catches CoreGui/inset changes without running layout work every frame.
 local acc=0
-RunService.RenderStepped:Connect(function(dt)
+RunService.Heartbeat:Connect(function(dt)
     acc += dt
-    if acc < 0.25 then return end
+    if acc < 0.5 then return end
     acc=0
     applySafeArea(false)
 end)
 
--- Keep established compatibility markers while exposing the current adaptive implementation separately.
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.31')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
-Workspace:SetAttribute('BecakMobileSafeAreaPollHz',4)
+Workspace:SetAttribute('BecakMobileSafeAreaPollHz',2)
 Workspace:SetAttribute('BecakPhoneLeftPin','ON')
 Workspace:SetAttribute('BecakPhoneScalePin','ON')
 Workspace:SetAttribute('BecakTouchControlReserve','ON')
 Workspace:SetAttribute('BecakTouchControlReservePortraitPx',148)
 Workspace:SetAttribute('BecakTouchControlReserveLandscapePx',112)
+Workspace:SetAttribute('BecakCompactLandscapeGuard','ON')
+Workspace:SetAttribute('BecakCompactLandscapeMaxHeightPx',520)
