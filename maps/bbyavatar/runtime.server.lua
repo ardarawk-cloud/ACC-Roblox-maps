@@ -1,27 +1,46 @@
-local ReplicatedStorage=game:GetService("ReplicatedStorage");local Workspace=game:GetService("Workspace");local Lighting=game:GetService("Lighting")
-local ROOT="BBYAVATAR_SHOWROOM";local old=Workspace:FindFirstChild(ROOT);if old then old:Destroy() end;local oroot=ReplicatedStorage:FindFirstChild("BBYAVATAR");if oroot then oroot:Destroy() end
-for _,n in ipairs({"BBYAVATAR_Color","BBYAVATAR_Atmosphere"}) do local x=Lighting:FindFirstChild(n);if x then x:Destroy() end end
-Lighting.ClockTime=14.2;Lighting.Brightness=3;Lighting.Ambient=Color3.fromRGB(125,128,142);Lighting.OutdoorAmbient=Color3.fromRGB(150,152,166)
-local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAVATAR_Color";cc.Contrast=.04;cc.Saturation=.02;cc.Brightness=.04;cc.Parent=Lighting
-local atm=Instance.new("Atmosphere");atm.Name="BBYAVATAR_Atmosphere";atm.Density=.08;atm.Haze=.25;atm.Parent=Lighting
-local function part(pa,n,s,c,m,col)local p=Instance.new("Part");p.Name=n;p.Size=s;p.CFrame=c;p.Anchored=true;p.Material=m or Enum.Material.SmoothPlastic;p.Color=col or Color3.fromRGB(32,34,42);p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=pa;return p end
-local function sign(p,t)local g=Instance.new("SurfaceGui");g.Face=Enum.NormalId.Front;g.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;g.PixelsPerStud=28;g.Parent=p;local l=Instance.new("TextLabel");l.Size=UDim2.fromScale(1,1);l.BackgroundTransparency=1;l.Font=Enum.Font.GothamBold;l.Text=t;l.TextColor3=Color3.fromRGB(245,245,248);l.TextScaled=true;l.TextWrapped=true;l.Parent=g end
-local root=Instance.new("Folder");root.Name=ROOT;root.Parent=Workspace;root:SetAttribute("BuildVersion","3.4");root:SetAttribute("UXRevision","CLEAN_ENTRANCE_HIERARCHY")
-local rem=Instance.new("Folder");rem.Name="BBYAVATAR";rem.Parent=ReplicatedStorage;local open=Instance.new("RemoteEvent");open.Name="OpenCatalog";open.Parent=rem
-local function prompt(p,a,o,c)local q=Instance.new("ProximityPrompt");q.ActionText=a;q.ObjectText=o;q.HoldDuration=0;q.MaxActivationDistance=10;q.RequiresLineOfSight=true;q.Parent=p;q.Triggered:Connect(function(plr)open:FireClient(plr,c)end)end
-part(root,"Floor",Vector3.new(196,1,156),CFrame.new(0,0,0),Enum.Material.Concrete,Color3.fromRGB(37,39,46));part(root,"BackWall",Vector3.new(196,34,1),CFrame.new(0,17,-77.5),nil,Color3.fromRGB(22,23,29));part(root,"LeftWall",Vector3.new(1,34,156),CFrame.new(-97.5,17,0),nil,Color3.fromRGB(22,23,29));part(root,"RightWall",Vector3.new(1,34,156),CFrame.new(97.5,17,0),nil,Color3.fromRGB(22,23,29))
-local head=part(root,"BrandHeader",Vector3.new(54,5,1),CFrame.new(0,19,-72),Enum.Material.Metal,Color3.fromRGB(31,34,43));sign(head,"BBYAVATAR  /  FIND YOUR NEXT LOOK")
-local spawn=Instance.new("SpawnLocation");spawn.Name="BBYAVATAR_Spawn";spawn.Size=Vector3.new(10,1,10);spawn.CFrame=CFrame.new(0,1.5,70)*CFrame.Angles(0,math.rad(180),0);spawn.Anchored=true;spawn.Neutral=true;spawn.Transparency=.8;spawn.Parent=root
-part(root,"Runway",Vector3.new(26,1,118),CFrame.new(0,.7,3),nil,Color3.fromRGB(52,55,66));for _,x in ipairs({-13,13})do local r=part(root,"RunwayGlow",Vector3.new(.22,.06,118),CFrame.new(x,.57,3),Enum.Material.Neon,Color3.fromRGB(105,116,165));r.CanCollide=false end
-local hero=part(root,"HeroStage",Vector3.new(34,1.4,18),CFrame.new(0,1,-52),Enum.Material.Marble,Color3.fromRGB(225,225,230));prompt(hero,"DISCOVER","FEATURED LOOKS","FEATURED");local hs=part(root,"HeroSign",Vector3.new(36,5,1),CFrame.new(0,5.5,-62),nil,Color3.fromRGB(75,66,110));sign(hs,"FEATURED LOOKS  /  CURATED DAILY")
-local cats={{"TRENDING",-66,38,Color3.fromRGB(101,72,170)},{"NEW DROPS",66,38,Color3.fromRGB(45,112,170)},{"STREETWEAR",-66,8,Color3.fromRGB(135,77,55)},{"CYBER",66,8,Color3.fromRGB(39,128,136)},{"LUXURY",-66,-22,Color3.fromRGB(142,112,49)},{"CUTE",66,-22,Color3.fromRGB(154,79,130)},{"BALI",-66,-52,Color3.fromRGB(116,84,52)},{"CREATORS",66,-52,Color3.fromRGB(61,105,75)}}
-local function mannequin(pa,x,z,id,cat)local m=Instance.new("Model");m.Name="LookPreview_"..id;m.Parent=pa;local col=Color3.fromRGB(205,207,216);local torso=part(m,"Torso",Vector3.new(2.6,3.4,1.4),CFrame.new(x,4,z),nil,col);part(m,"Head",Vector3.new(2,2,2),CFrame.new(x,6.7,z),nil,col).Shape=Enum.PartType.Ball;part(m,"LeftArm",Vector3.new(.9,3.2,.9),CFrame.new(x-1.75,4,z),nil,col);part(m,"RightArm",Vector3.new(.9,3.2,.9),CFrame.new(x+1.75,4,z),nil,col);part(m,"LeftLeg",Vector3.new(1,3.4,1),CFrame.new(x-.7,1.2,z),nil,col);part(m,"RightLeg",Vector3.new(1,3.4,1),CFrame.new(x+.7,1.2,z),nil,col);prompt(torso,"VIEW",cat,cat) end
-for i,c in ipairs(cats)do local model=Instance.new("Model");model.Name="Boutique_"..c[1];model.Parent=root;local base=part(model,"Base",Vector3.new(32,1,20),CFrame.new(c[2],.7,c[3]),nil,Color3.fromRGB(44,46,54));prompt(base,"BROWSE",c[1],c[1]);local wall=part(model,"Header",Vector3.new(28,4,1),CFrame.new(c[2],7,c[3]-9.5),nil,c[4]);sign(wall,c[1]);for s=-1,1 do local px=c[2]+s*8;part(model,"Pod",Vector3.new(5.5,1,5.5),CFrame.new(px,1,c[3]+2),Enum.Material.Marble,Color3.fromRGB(218,218,223));mannequin(model,px,c[3]+2,tostring(s+2),c[1])end end
--- Utility destinations are deliberately moved off the entrance sightline.
-local studio=part(root,"AvatarStudio",Vector3.new(22,1,14),CFrame.new(-82,.7,62),nil,Color3.fromRGB(50,58,82));prompt(studio,"CREATE","AVATAR STUDIO","STUDIO");local ss=part(root,"AvatarStudioSign",Vector3.new(20,3.5,1),CFrame.new(-82,4.5,55.5),nil,Color3.fromRGB(55,67,105));sign(ss,"AVATAR STUDIO")
-local photo=part(root,"PhotoStudio",Vector3.new(22,1,14),CFrame.new(82,.7,62),nil,Color3.fromRGB(73,51,70));prompt(photo,"OPEN","PHOTO STUDIO","PHOTO");local ps=part(root,"PhotoStudioSign",Vector3.new(20,3.5,1),CFrame.new(82,4.5,55.5),nil,Color3.fromRGB(95,64,91));sign(ps,"PHOTO STUDIO")
--- Community wall is placed deep in the experience instead of blocking spawn.
-local board=part(root,"CommunityBoard",Vector3.new(28,6,1),CFrame.new(0,5,-70.5),nil,Color3.fromRGB(42,48,58));sign(board,"COMMUNITY LOOKS  /  STYLE • SAVE • SHARE");prompt(board,"EXPLORE","COMMUNITY LOOKS","TRENDING")
--- Discovery kiosks sit along the runway edges and never overlap the center view.
-for i,d in ipairs({{"HOT NOW",-25},{"NEW TODAY",0},{"CREATOR PICKS",25}})do local side=(i==2 and 1 or (i==1 and -1 or 1));local x=(i==2 and -25 or d[2]);local z=50-(i-1)*10;local k=part(root,"DiscoveryKiosk"..i,Vector3.new(15,3.5,1),CFrame.new(x,4,z),nil,Color3.fromRGB(50+i*6,54+i*4,70+i*5));sign(k,d[1]);prompt(k,"EXPLORE",d[1],i==1 and "TRENDING" or (i==2 and "NEW DROPS" or "CREATORS"))end
-root:SetAttribute("ZoneCount",14);root:SetAttribute("LookPreviewCount",24);root:SetAttribute("MobileSafe",true);root:SetAttribute("CatalogRemoteReady",true);root:SetAttribute("EntranceSightline","CLEAR");print("[BBYAVATAR] v3.4 clean entrance hierarchy ready")
+local RS=game:GetService("ReplicatedStorage");local W=game:GetService("Workspace");local L=game:GetService("Lighting")
+local old=W:FindFirstChild("BBYAVATAR_SHOWROOM");if old then old:Destroy() end;local rr=RS:FindFirstChild("BBYAVATAR");if rr then rr:Destroy() end
+for _,n in ipairs({"BBYAVATAR_Color","BBYAVATAR_Atmosphere","BBYAVATAR_Bloom"})do local x=L:FindFirstChild(n);if x then x:Destroy() end end
+L.ClockTime=13.8;L.Brightness=3.2;L.Ambient=Color3.fromRGB(145,145,155);L.OutdoorAmbient=Color3.fromRGB(170,170,178);L.EnvironmentDiffuseScale=.55;L.EnvironmentSpecularScale=.8
+local cc=Instance.new("ColorCorrectionEffect");cc.Name="BBYAVATAR_Color";cc.Contrast=.06;cc.Saturation=-.02;cc.Brightness=.03;cc.Parent=L
+local bloom=Instance.new("BloomEffect");bloom.Name="BBYAVATAR_Bloom";bloom.Intensity=.12;bloom.Size=18;bloom.Threshold=1.4;bloom.Parent=L
+local root=Instance.new("Folder");root.Name="BBYAVATAR_SHOWROOM";root.Parent=W;root:SetAttribute("BuildVersion","4.0");root:SetAttribute("Design","PREMIUM_FASHION_GALLERY")
+local rem=Instance.new("Folder");rem.Name="BBYAVATAR";rem.Parent=RS;local open=Instance.new("RemoteEvent");open.Name="OpenCatalog";open.Parent=rem
+local function p(pa,n,s,cf,col,mat)local x=Instance.new("Part");x.Name=n;x.Size=s;x.CFrame=cf;x.Anchored=true;x.Color=col;x.Material=mat or Enum.Material.SmoothPlastic;x.TopSurface=Enum.SurfaceType.Smooth;x.BottomSurface=Enum.SurfaceType.Smooth;x.Parent=pa;return x end
+local function label(part,text,dark)local g=Instance.new("SurfaceGui");g.Face=Enum.NormalId.Front;g.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;g.PixelsPerStud=24;g.Parent=part;local t=Instance.new("TextLabel");t.Size=UDim2.fromScale(1,1);t.BackgroundTransparency=1;t.Text=text;t.Font=Enum.Font.GothamMedium;t.TextScaled=true;t.TextWrapped=true;t.TextColor3=dark and Color3.fromRGB(25,25,29) or Color3.fromRGB(245,245,245);t.Parent=g end
+local function prompt(x,title,cat)local q=Instance.new("ProximityPrompt");q.ActionText="EXPLORE";q.ObjectText=title;q.MaxActivationDistance=9;q.RequiresLineOfSight=true;q.Parent=x;q.Triggered:Connect(function(plr)open:FireClient(plr,cat)end)end
+local ivory=Color3.fromRGB(224,221,213);local charcoal=Color3.fromRGB(30,31,35);local stone=Color3.fromRGB(94,94,99);local gold=Color3.fromRGB(171,145,91)
+-- gallery shell
+p(root,"Floor",Vector3.new(180,1,180),CFrame.new(0,0,0),Color3.fromRGB(202,199,192),Enum.Material.Marble)
+p(root,"Ceiling",Vector3.new(180,1,180),CFrame.new(0,24,0),Color3.fromRGB(42,43,47),Enum.Material.SmoothPlastic)
+p(root,"Back",Vector3.new(180,24,1),CFrame.new(0,12,-90),ivory);p(root,"Left",Vector3.new(1,24,180),CFrame.new(-90,12,0),ivory);p(root,"Right",Vector3.new(1,24,180),CFrame.new(90,12,0),ivory)
+-- ceiling light rails
+for _,x in ipairs({-48,-16,16,48})do p(root,"LightRail",Vector3.new(1,1,150),CFrame.new(x,23.2,0),charcoal,Enum.Material.Metal);for z=-60,60,20 do local lamp=p(root,"Spot",Vector3.new(2.2,.4,2.2),CFrame.new(x,22.5,z),Color3.fromRGB(255,244,218),Enum.Material.Neon);lamp.CanCollide=false;local li=Instance.new("PointLight");li.Brightness=.8;li.Range=18;li.Color=Color3.fromRGB(255,240,215);li.Parent=lamp end end
+-- spawn foyer: intentionally almost empty
+local spawn=Instance.new("SpawnLocation");spawn.Name="BBYAVATAR_Spawn";spawn.Size=Vector3.new(8,1,8);spawn.CFrame=CFrame.new(0,1,76)*CFrame.Angles(0,math.rad(180),0);spawn.Anchored=true;spawn.Transparency=1;spawn.Neutral=true;spawn.Parent=root
+local brand=p(root,"Brand",Vector3.new(42,5,1),CFrame.new(0,12,-88.8),charcoal);label(brand,"BBYAVATAR",false)
+local sub=p(root,"Subtitle",Vector3.new(26,2,1),CFrame.new(0,8,-88.7),ivory);label(sub,"CURATED AVATAR GALLERY",true)
+-- central sculptural runway, no text clutter
+p(root,"Runway",Vector3.new(24,.35,132),CFrame.new(0,.7,-1),Color3.fromRGB(45,46,52),Enum.Material.Slate)
+for _,x in ipairs({-12.3,12.3})do local line=p(root,"EdgeLight",Vector3.new(.12,.08,132),CFrame.new(x,.9,-1),gold,Enum.Material.Neon);line.CanCollide=false end
+-- simple premium mannequins
+local function mannequin(pa,x,z,cat,accent)
+ local m=Instance.new("Model");m.Name="Look_"..cat;m.Parent=pa
+ local skin=Color3.fromRGB(190,188,184);local torso=p(m,"Torso",Vector3.new(2.8,3.5,1.5),CFrame.new(x,4,z),accent);local h=p(m,"Head",Vector3.new(2,2,2),CFrame.new(x,6.8,z),skin);h.Shape=Enum.PartType.Ball
+ p(m,"ArmL",Vector3.new(.8,3.4,.8),CFrame.new(x-1.8,4,z),accent);p(m,"ArmR",Vector3.new(.8,3.4,.8),CFrame.new(x+1.8,4,z),accent);p(m,"LegL",Vector3.new(1,3.4,1),CFrame.new(x-.7,1.3,z),charcoal);p(m,"LegR",Vector3.new(1,3.4,1),CFrame.new(x+.7,1.3,z),charcoal);prompt(torso,cat,cat)
+end
+local zones={{"TRENDING",-55,48,Color3.fromRGB(93,78,116)},{"NEW DROPS",55,48,Color3.fromRGB(73,99,119)},{"STREETWEAR",-55,14,Color3.fromRGB(105,82,72)},{"CYBER",55,14,Color3.fromRGB(65,104,108)},{"LUXURY",-55,-20,Color3.fromRGB(125,105,68)},{"CUTE",55,-20,Color3.fromRGB(125,88,111)},{"BALI",-55,-54,Color3.fromRGB(112,91,70)},{"CREATORS",55,-54,Color3.fromRGB(72,105,83)}}
+for _,z in ipairs(zones)do
+ local alc=Instance.new("Model");alc.Name=z[1];alc.Parent=root
+ p(alc,"Platform",Vector3.new(42,.8,24),CFrame.new(z[2],.5,z[3]),Color3.fromRGB(232,229,222),Enum.Material.Marble)
+ p(alc,"Backdrop",Vector3.new(42,11,1),CFrame.new(z[2],6,z[3]-11.5),z[4])
+ local plaque=p(alc,"Plaque",Vector3.new(18,2.2,.4),CFrame.new(z[2],10,z[3]-10.9),charcoal);label(plaque,z[1],false)
+ mannequin(alc,z[2]-10,z[3]+2,z[1],Color3.fromRGB(69,70,78));mannequin(alc,z[2],z[3]+2,z[1],z[4]);mannequin(alc,z[2]+10,z[3]+2,z[1],Color3.fromRGB(219,216,209))
+end
+-- one focal featured stage at the far end
+local stage=p(root,"FeaturedStage",Vector3.new(30,1,20),CFrame.new(0,.7,-67),Color3.fromRGB(236,233,226),Enum.Material.Marble);prompt(stage,"FEATURED LOOKS","FEATURED")
+local feature=p(root,"FeaturedLabel",Vector3.new(24,2.5,.5),CFrame.new(0,8,-78),gold);label(feature,"FEATURED / 01",true)
+mannequin(root,-8,-67,"FEATURED",Color3.fromRGB(30,31,35));mannequin(root,0,-67,"FEATURED",gold);mannequin(root,8,-67,"FEATURED",Color3.fromRGB(232,229,222))
+-- utility lounges are discrete, small and at entrance corners
+for _,d in ipairs({{"AVATAR STUDIO",-73,70,"STUDIO"},{"PHOTO STUDIO",73,70,"PHOTO"}})do local pad=p(root,d[1],Vector3.new(24,.8,14),CFrame.new(d[2],.5,d[3]),charcoal);prompt(pad,d[1],d[4]);local s=p(root,d[1].."Label",Vector3.new(18,2,.5),CFrame.new(d[2],4,d[3]-6),charcoal);label(s,d[1],false) end
+root:SetAttribute("MobileSightline","CLEAR");root:SetAttribute("TextClutter","MINIMAL");root:SetAttribute("LookPreviewCount",27);print("[BBYAVATAR] premium fashion gallery v4 ready")
