@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v5.1-world-life-20260824
+# trigger: mountain-v5.1-world-life-runner22-20260824
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
