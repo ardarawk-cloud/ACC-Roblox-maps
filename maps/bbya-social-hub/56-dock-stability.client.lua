@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — COMMAND MENU AUTHORITY v5
--- One compact launcher; original feature buttons are preserved and reparented into a centered drawer.
--- v5 removes the 0.18s polling loop and uses event/property guards instead.
+-- BBYA SOCIAL HUB — COMMAND MENU AUTHORITY v6
+-- One compact launcher; original feature buttons are preserved and reparented into a side drawer.
+-- v6 keeps gameplay center clear: MENU drawer + normal feature panels dock LEFT of MENU, never below it.
+-- Bottom-right jump controls remain unobstructed. Critical consent modals are intentionally not moved.
 
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
@@ -28,15 +29,18 @@ end
 
 local menuGui=Instance.new("ScreenGui")
 menuGui.Name="BBYACommandMenuUI";menuGui.ResetOnSpawn=false;menuGui.IgnoreGuiInset=true;menuGui.DisplayOrder=220;menuGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;menuGui.Parent=pg
-menuGui:SetAttribute("BBYACommandMenuAuthority","V5_EVENT_DRIVEN")
+menuGui:SetAttribute("BBYACommandMenuAuthority","V6_MENU_SIDE_DOCK")
 
 local menuButton=Instance.new("TextButton")
 menuButton.Name="MenuButton";menuButton.AnchorPoint=Vector2.new(1,0);menuButton.Size=UDim2.fromOffset(74,36);menuButton.Position=UDim2.new(1,-12,0,8)
 menuButton.BackgroundColor3=Color3.fromRGB(18,18,25);menuButton.BorderSizePixel=0;menuButton.Text="MENU";menuButton.TextColor3=C.white;menuButton.Font=Enum.Font.GothamBold;menuButton.TextSize=10;menuButton.ZIndex=210;menuButton.Parent=menuGui
 corner(menuButton,10);stroke(menuButton,C.pink,.28)
 
+local SIDE_RIGHT_OFFSET=96
+local SIDE_TOP=8
+
 local drawer=Instance.new("Frame")
-drawer.Name="FeatureDrawer";drawer.AnchorPoint=Vector2.new(.5,0);drawer.Position=UDim2.new(.5,0,0,54);drawer.Size=UDim2.fromOffset(320,308)
+drawer.Name="FeatureDrawer";drawer.AnchorPoint=Vector2.new(1,0);drawer.Position=UDim2.new(1,-SIDE_RIGHT_OFFSET,0,SIDE_TOP);drawer.Size=UDim2.fromOffset(320,308)
 drawer.BackgroundColor3=C.bg;drawer.BackgroundTransparency=.025;drawer.BorderSizePixel=0;drawer.Visible=false;drawer.ZIndex=201;drawer.Parent=menuGui
 corner(drawer,15);stroke(drawer,C.line,.18)
 
@@ -69,9 +73,53 @@ end
 local rebinding=false
 local attached={}
 local observed={}
+local panelBound={}
 local scanAndAttach
+local dockKnownPanels
+local docking=false
 
-local function closeDrawer()drawer.Visible=false;menuButton.Text="MENU" end
+local function dockPanel(panel)
+ if not panel or not panel:IsA("GuiObject") or not panel.Visible then return end
+ docking=true
+ panel.AnchorPoint=Vector2.new(1,0)
+ panel.Position=UDim2.new(1,-SIDE_RIGHT_OFFSET,0,SIDE_TOP)
+ panel:SetAttribute("BBYAMenuSideDock","LEFT_OF_MENU_V1")
+ docking=false
+ if not panelBound[panel] then
+  panelBound[panel]=true
+  panel:GetPropertyChangedSignal("Visible"):Connect(function()
+   if panel.Visible then task.defer(function()dockPanel(panel)end);task.delay(.05,function()dockPanel(panel)end) end
+  end)
+  panel:GetPropertyChangedSignal("Position"):Connect(function()
+   if not docking and panel.Visible then task.defer(function()dockPanel(panel)end) end
+  end)
+  panel:GetPropertyChangedSignal("AnchorPoint"):Connect(function()
+   if not docking and panel.Visible then task.defer(function()dockPanel(panel)end) end
+  end)
+ end
+end
+
+local function findNamed(root,name)return root and root:FindFirstChild(name,true) or nil end
+
+dockKnownPanels=function()
+ local social=pg:FindFirstChild("BBYASocialHangoutUI")
+ dockPanel(findNamed(social,"DancePanel"))
+ dockPanel(findNamed(social,"CarryPanel"))
+ dockPanel(findNamed(clubUI,"HubPanel"))
+ dockPanel(findNamed(clubUI,"CommunityPanel"))
+ local wall=pg:FindFirstChild("BBYADJWallUI")
+ dockPanel(findNamed(wall,"DJWallComposerPanel"))
+ local musicLayer=clubUI:FindFirstChild("BBYACompactMusicLayerV7",true)
+ dockPanel(findNamed(musicLayer,"CompactMusicCardV7"))
+ dockPanel(findNamed(musicLayer,"PlaylistDrawerV7"))
+ local roleGui=pg:FindFirstChild("BBYARolePanelUI")
+ dockPanel(findNamed(roleGui,"RolePanel"))
+end
+
+local function closeDrawer()
+ drawer.Visible=false;menuButton.Text="MENU"
+ task.defer(dockKnownPanels);task.delay(.05,dockKnownPanels);task.delay(.15,dockKnownPanels)
+end
 local function enforceButton(id,btn)
  local slot=slots[id]
  if not slot or not btn or not btn:IsA("TextButton") then return end
@@ -82,8 +130,8 @@ local function enforceButton(id,btn)
  btn.BackgroundColor3=C.card;btn.BackgroundTransparency=0;btn.BorderSizePixel=0;btn.TextColor3=C.white;btn.Font=Enum.Font.GothamBold;btn.TextSize=8;btn.ZIndex=206
  corner(btn,9);stroke(btn,slot.accent,.73);btn:SetAttribute("BBYACommandMenuItem",true);btn:SetAttribute("BBYACommandMenuId",id)
  rebinding=false
- if not btn:GetAttribute("BBYACommandMenuGuardV5") then
-  btn:SetAttribute("BBYACommandMenuGuardV5",true)
+ if not btn:GetAttribute("BBYACommandMenuGuardV6") then
+  btn:SetAttribute("BBYACommandMenuGuardV6",true)
   btn.Activated:Connect(closeDrawer)
   btn.AncestryChanged:Connect(function(_,parent)if not rebinding and parent~=slot.frame then task.defer(scanAndAttach) end end)
   for _,prop in ipairs({"Position","Size","Visible"}) do
@@ -95,7 +143,10 @@ end
 local function observe(container)
  if not container or observed[container] then return end
  observed[container]=true
- container.DescendantAdded:Connect(function(d)if d:IsA("TextButton") then task.defer(scanAndAttach) end end)
+ container.DescendantAdded:Connect(function(d)
+  if d:IsA("TextButton") then task.defer(scanAndAttach) end
+  task.defer(dockKnownPanels);task.delay(.05,dockKnownPanels)
+ end)
 end
 
 scanAndAttach=function()
@@ -110,6 +161,10 @@ scanAndAttach=function()
  end
  local free=pg:FindFirstChild("BBYAFreecamUI")
  if free then observe(free);local b=free:FindFirstChild("FreecamToggle");if b and b:IsA("TextButton") then enforceButton("FREECAM",b) end end
+ observe(clubUI)
+ local wall=pg:FindFirstChild("BBYADJWallUI");if wall then observe(wall) end
+ local roleGui=pg:FindFirstChild("BBYARolePanelUI");if roleGui then observe(roleGui) end
+ dockKnownPanels()
 end
 
 local function layout()
@@ -119,18 +174,22 @@ local function layout()
  menuButton.Position=UDim2.new(1,-12,0,8)
  local w=touch and math.clamp(math.floor(vp.X*.30),296,330) or math.clamp(math.floor(vp.X*.25),304,340)
  local h=(vp.Y<620) and 286 or 308
- drawer.AnchorPoint=Vector2.new(.5,0);drawer.Position=UDim2.new(.5,0,0,54);drawer.Size=UDim2.fromOffset(w,h)
+ drawer.AnchorPoint=Vector2.new(1,0);drawer.Position=UDim2.new(1,-SIDE_RIGHT_OFFSET,0,SIDE_TOP);drawer.Size=UDim2.fromOffset(w,h)
  grid.CellSize=UDim2.new(.5,-4,0,h<300 and 36 or 40)
+ task.defer(dockKnownPanels);task.delay(.05,dockKnownPanels)
 end
 
-menuButton.Activated:Connect(function()drawer.Visible=not drawer.Visible;menuButton.Text=drawer.Visible and "CLOSE" or "MENU";scanAndAttach() end)
+menuButton.Activated:Connect(function()
+ drawer.Visible=not drawer.Visible;menuButton.Text=drawer.Visible and "CLOSE" or "MENU";scanAndAttach();layout()
+end)
 dock:GetPropertyChangedSignal("Visible"):Connect(function()if dock.Visible then dock.Visible=false end end)
 dock.ChildAdded:Connect(function(d)if d:IsA("TextButton") then task.defer(scanAndAttach) end end)
-observe(dock)
-pg.ChildAdded:Connect(function(child)observe(child);task.defer(scanAndAttach) end)
+observe(dock);observe(clubUI)
+pg.ChildAdded:Connect(function(child)observe(child);task.defer(scanAndAttach);task.delay(.08,dockKnownPanels) end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layout)end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end) end
 
-task.defer(function()scanAndAttach();layout()end)
+task.defer(function()scanAndAttach();layout();dockKnownPanels()end)
+task.delay(.5,function()scanAndAttach();layout();dockKnownPanels()end)
 
-print("[BBYA] Command Menu v5 online: centered compact drawer / event-driven authority / 9 original features preserved")
+print("[BBYA] Command Menu v6 online: MENU + normal feature panels dock left of MENU / center gameplay + jump zone clear")
