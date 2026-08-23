@@ -1,7 +1,7 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v4.9-environmental-realism
+build=v5.0-immersive-biome
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 12 }
+log=Mountain AM STUDIO publish success { versionNumber: 13 }
