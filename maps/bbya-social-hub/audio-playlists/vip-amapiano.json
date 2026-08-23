@@ -96,6 +96,19 @@
       "bbyaPermission": false,
       "status": "PREPARED_LOCAL",
       "moderationLastKnown": null
+    },
+    {
+      "index": 8,
+      "title": "SZA - The Weekend (Davejaxx Amapiano Edit)",
+      "driveFileId": "1Zw1Rx1vYhWbrVTAY58IHzdWFzZ3cFivV",
+      "musicalKey": "D# minor / Eb minor",
+      "camelot": "2A",
+      "sourceDurationSeconds": 209.53,
+      "sourceSizeBytes": 3352867,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
