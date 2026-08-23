@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — MUSIC CATALOG RESET AUTHORITY v1
+-- BBYA SOCIAL HUB — MUSIC CATALOG RESET AUTHORITY v2
 -- Hard reset requested by owner: no active tracks in Main / Underground / Funkot / VIP.
--- Old AutoDJ/recovery engines are disabled at runtime and all known venue music Sounds are scrubbed.
+-- Audio-only engines/recovery are disabled; ClubSystems stays alive because it also owns non-audio support logic.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local ServerScriptService=game:GetService("ServerScriptService")
@@ -8,7 +8,7 @@ local SoundService=game:GetService("SoundService")
 local Workspace=game:GetService("Workspace")
 
 ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",true)
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","RESET_EMPTY_V1")
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","RESET_EMPTY_V2")
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -77,10 +77,9 @@ local function scrubWorkspaceVIP()
  end
 end
 
-local engineNames={
- "ClubSystems","BasementIndoAutoDJ","FunkotVenueMusicV2","AudioWatchdog","AudioHealthGuardV3",
-}
-local function disableOldEngines()
+-- These are audio-only authorities. ClubSystems is intentionally NOT disabled because SUPPORT still depends on it.
+local engineNames={"BasementIndoAutoDJ","FunkotVenueMusicV2","AudioWatchdog","AudioHealthGuardV3"}
+local function disableOldAudioEngines()
  for _,name in ipairs(engineNames) do
   local s=ServerScriptService:FindFirstChild(name)
   if s and s:IsA("BaseScript") and s~=script then pcall(function()s.Enabled=false end) end
@@ -102,7 +101,7 @@ Workspace.DescendantAdded:Connect(function(o)
 end)
 
 local function applyReset()
- disableOldEngines()
+ disableOldAudioEngines()
  for _,o in ipairs(SoundService:GetDescendants()) do
   if o:IsA("Sound") and controlledSound(o) then scrubSound(o,true) end
  end
@@ -113,8 +112,9 @@ local function applyReset()
  Workspace:SetAttribute("BBYAMusicCatalogReset",true)
 end
 
--- Funkot architecture v1 has its own delayed legacy feed. Wait past that startup, then scrub once more.
+-- Reset immediately. Repeat after legacy delayed Funkot startup windows to guarantee zero music.
+task.defer(applyReset)
 task.delay(4,applyReset)
 task.delay(8,applyReset)
 
-print("[BBYA] Music Catalog Reset v1 armed: MAIN / UNDERGROUND / FUNKOT / VIP = 0 tracks; old recovery disabled")
+print("[BBYA] Music Catalog Reset v2 armed: MAIN / UNDERGROUND / FUNKOT / VIP = 0 tracks; SUPPORT preserved")
