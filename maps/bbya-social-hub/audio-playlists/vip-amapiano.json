@@ -66,10 +66,10 @@
       "camelot": "11B",
       "sourceDurationSeconds": 203.6,
       "sourceSizeBytes": 3370468,
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "assetId": "131557279061872",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved"
     },
     {
       "index": 6,

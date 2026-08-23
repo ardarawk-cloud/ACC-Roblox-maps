@@ -1,0 +1,108 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 5,
+  "title": "Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",
+  "driveFileId": "1_86uzyLCJHCMgzz7H6cxE3k7Lz-lYUnp",
+  "musicalKey": "A major",
+  "camelot": "11B",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "131557279061872",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/3bcb0654-2227-4b94-b9ad-ea15ece7755e",
+    "operationId": "3bcb0654-2227-4b94-b9ad-ea15ece7755e",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/3bcb0654-2227-4b94-b9ad-ea15ece7755e",
+    "operationId": "3bcb0654-2227-4b94-b9ad-ea15ece7755e",
+    "done": true,
+    "response": {
+      "path": "assets/131557279061872",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T16:45:48.721046400Z",
+      "assetId": "131557279061872",
+      "displayName": "Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",
+      "description": "BBYA VIP Amapiano Track 05",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        131557279061872
+      ],
+      "errors": []
+    }
+  }
+}
