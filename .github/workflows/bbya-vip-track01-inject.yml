@@ -41,13 +41,18 @@ jobs:
           git config user.name 'ACC Roblox Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add deploy-status/bbya-vip-track01-run.json
-          git commit -m 'Mark BBYA VIP Track 01 direct upload started [skip ci]'
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m 'Mark BBYA VIP Track 01 direct upload started [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
-      - name: Download exact Track 01 from Drive
+      - name: Download and prepare exact Track 01 from Drive
         shell: bash
         run: |
           set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
           python3 -m pip install --quiet gdown
           gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O /tmp/bbya-vip-track01-source.mp3
           test -s /tmp/bbya-vip-track01-source.mp3
@@ -56,6 +61,7 @@ jobs:
             -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame \
             "${AUDIO_PATH}"
           test -s "${AUDIO_PATH}"
+          ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
 
       - name: Upload, grant and patch VIP
         run: python3 scripts/bbya-vip-track01-direct.py
