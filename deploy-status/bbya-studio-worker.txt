@@ -1,17 +1,35 @@
-timestamp=2026-08-23T14:44:36.2432209+00:00
+timestamp=2026-08-23T14:49:24.6165154+00:00
 whoami=nt authority\network service
-runner_session=0
-QUSER_BEFORE_BEGIN
+QUSER_BEGIN
 USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
- administrator         rdp-tcp#0           2  Active          .  8/22/2026 5:10 PM
-QUSER_BEFORE_END
-admin_session=2|state=Active
-tscon_error=Could not connect sessionID 2 to sessionname console, Error code 1326
-studio_exe=C:\Program Files\Roblox\Versions\version-dcbeee682ce74ee0\RobloxStudioBeta.exe
-scheduled_task_error=Access is denied.
-
-STUDIO_VISIBLE=false|process=NONE
-QUSER_AFTER_BEGIN
-USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
- administrator         rdp-tcp#0           2  Active          2  8/22/2026 5:10 PM
-QUSER_AFTER_END
+ administrator         rdp-tcp#0           2  Active          5  8/22/2026 5:10 PM
+QUSER_END
+TASKS_BEGIN
+TASKS=NONE
+TASKS_END
+SERVICES_BEGIN
+SERVICE|name=actions.runner.ardarawk-cloud-ACC-Roblox-maps.BBYA-STUDIO-WORKER|start=NT AUTHORITY\NETWORK SERVICE|state=Running|path="C:\actions-runner\bin\RunnerService.exe"
+SERVICES_END
+PROCESSES_BEGIN
+PROC|csrss|pid=4500|session=2|hwnd=0|title=
+PROC|ctfmon|pid=4932|session=2|hwnd=0|title=
+PROC|dwm|pid=3704|session=2|hwnd=0|title=
+PROC|explorer|pid=5288|session=2|hwnd=0|title=
+PROC|fontdrvhost|pid=4580|session=2|hwnd=0|title=
+PROC|rdpclip|pid=1160|session=2|hwnd=0|title=
+PROC|rdpinput|pid=3360|session=2|hwnd=0|title=
+PROC|RuntimeBroker|pid=2876|session=2|hwnd=0|title=
+PROC|SearchHost|pid=6104|session=2|hwnd=0|title=
+PROC|ShellHost|pid=5344|session=2|hwnd=0|title=
+PROC|sihost|pid=1688|session=2|hwnd=0|title=
+PROC|StartMenuExperienceHost|pid=6112|session=2|hwnd=0|title=
+PROC|svchost|pid=6432|session=2|hwnd=0|title=
+PROC|svchost|pid=6900|session=2|hwnd=0|title=
+PROC|svchost|pid=4248|session=2|hwnd=0|title=
+PROC|svchost|pid=1764|session=2|hwnd=0|title=
+PROC|svchost|pid=2152|session=2|hwnd=0|title=
+PROC|TabTip|pid=2492|session=2|hwnd=0|title=
+PROC|TabTip32|pid=4268|session=2|hwnd=0|title=
+PROC|taskhostw|pid=2160|session=2|hwnd=0|title=
+PROC|winlogon|pid=3848|session=2|hwnd=0|title=
+PROCESSES_END
