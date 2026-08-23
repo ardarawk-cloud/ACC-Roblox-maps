@@ -9,8 +9,6 @@ local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",60)
 if not root then return end
 
--- ClubPurity is the authoritative owner of this former-studio footprint.
--- Wait for it to finish so the upgrade replaces its simple lounges deterministically.
 local purity=root:WaitForChild("ClubPurityMallStudiosV1",150)
 if not purity then
  warn("[BBYA] Main Club Social Lounge upgrade: ClubPurityMallStudiosV1 unavailable")
@@ -22,15 +20,19 @@ if not extension then
  return
 end
 
+-- MainClubFrontExtension is parented before ClubPurity creates its two simple lounge bays.
+-- Wait for both bays explicitly so the premium replacement cannot race and leave duplicates behind.
+local arrival1=extension:WaitForChild("ArrivalLounge1",30)
+local arrival2=extension:WaitForChild("ArrivalLounge2",30)
+if not arrival1 or not arrival2 then
+ warn("[BBYA] Main Club Social Lounge upgrade: legacy ArrivalLounge1/2 unavailable")
+ return
+end
+
 local old=root:FindFirstChild("MainClubSocialLoungeV1")
 if old then old:Destroy() end
-
--- Replace only the primitive arrival lounge furniture. Keep ClubPurity floor, ceiling,
--- portal, wall recesses, warm coves and bronze datum as the architectural base.
-for _,name in ipairs({"ArrivalLounge1","ArrivalLounge2"}) do
- local obj=extension:FindFirstChild(name)
- if obj then obj:Destroy() end
-end
+arrival1:Destroy()
+arrival2:Destroy()
 
 local out=Instance.new("Model")
 out.Name="MainClubSocialLoungeV1"
@@ -40,6 +42,7 @@ out:SetAttribute("FormerPhotoStudioLoungeUpgraded",true)
 out:SetAttribute("FormerSalonLoungeUpgraded",true)
 out:SetAttribute("ReplacedArrivalLounge1",true)
 out:SetAttribute("ReplacedArrivalLounge2",true)
+out:SetAttribute("WaitedForLegacyLounges",true)
 out:SetAttribute("ReusedExistingArchitecture",true)
 out:SetAttribute("OpenAccess",true)
 out:SetAttribute("VIPGateAdded",false)
@@ -102,7 +105,6 @@ local function cocktailTable(parent,name,x,z,accent)
  local top=cylinder("StoneTop",.16,2.95,CFrame.new(x,2.25,z),C.marble,Enum.Material.Marble,0,m,false);top.Reflectance=.08
  local lamp=cylinder("TableLamp",.48,.68,CFrame.new(x,2.62,z),Color3.fromRGB(58,43,47),Enum.Material.Fabric,0,m,false)
  point(lamp,accent or C.warm,.28,6.2)
- -- restrained hospitality props
  cylinder("GlassA",.34,.27,CFrame.new(x-.58,2.47,z-.28),C.smoked,Enum.Material.Glass,.44,m,false)
  cylinder("GlassB",.34,.27,CFrame.new(x+.55,2.47,z+.20),C.smoked,Enum.Material.Glass,.44,m,false)
  cylinder("Bottle",.95,.28,CFrame.new(x+.10,2.80,z-.48)*CFrame.Angles(0,0,math.rad(8)),Color3.fromRGB(66,86,70),Enum.Material.Glass,.10,m,false)
@@ -115,7 +117,6 @@ local function loungeChair(parent,name,cf,accent)
  block("Back",Vector3.new(3.18,2.45,.64),cf*CFrame.new(0,1.73,1.22)*CFrame.Angles(math.rad(-6),0,0),accent or C.taupe,Enum.Material.Fabric,0,m,false)
  block("ArmL",Vector3.new(.48,1.28,2.88),cf*CFrame.new(-1.61,1.13,0),C.fabric2,Enum.Material.Fabric,0,m,false)
  block("ArmR",Vector3.new(.48,1.28,2.88),cf*CFrame.new(1.61,1.13,0),C.fabric2,Enum.Material.Fabric,0,m,false)
- -- one small throw cushion keeps the chair from reading as a block prop
  block("Cushion",Vector3.new(1.18,.30,1.12),cf*CFrame.new(.48,1.22,.42)*CFrame.Angles(math.rad(-18),math.rad(10),math.rad(8)),C.plum,Enum.Material.Fabric,0,m,false)
 end
 
@@ -134,11 +135,9 @@ local function premiumBay(index,z,accent,seatColor)
  bay:SetAttribute("FormerStudioBay",index==1 and "PHOTO" or "SALON")
  bay:SetAttribute("OpenToMainClub",true)
 
- -- Existing FrontClubFloor remains underneath. This is only a soft rug/inlay.
  local rug=block("Rug",Vector3.new(12.8,.055,9.2),CFrame.new(-39.1,1.13,z),Color3.fromRGB(31,28,34),Enum.Material.Fabric,0,bay,false)
  rug.Reflectance=0
 
- -- Built-in banquette against the existing west-wall architecture.
  block("BanquettePlinth",Vector3.new(3.95,.38,8.65),CFrame.new(-44.25,1.31,z),C.black,Enum.Material.Metal,0,bay,false)
  for n=1,3 do
   local zz=z-2.55+(n-1)*2.55
@@ -151,36 +150,28 @@ local function premiumBay(index,z,accent,seatColor)
 
  cocktailTable(bay,"CocktailTable",-37.3,z,accent)
 
- -- One sculpted chair per bay, positioned safely west of the club portal/circulation edge.
  local chairZ=z+(index==1 and -3.65 or 3.65)
  local yaw=index==1 and -62 or -118
  loungeChair(bay,"ClubChair",CFrame.new(-32.25,1.10,chairZ)*CFrame.Angles(0,math.rad(yaw),0),C.taupe)
 
- -- Low smoked divider: mood separation without rebuilding a room or blocking sightlines.
  local divider=block("SmokedDivider",Vector3.new(.10,2.15,6.55),CFrame.new(-29.45,2.25,z),C.smoked,Enum.Material.Glass,.72,bay,false)
  divider.Reflectance=.08
  block("DividerCap",Vector3.new(.14,.08,6.55),CFrame.new(-29.45,3.36,z),C.champagne,Enum.Material.Metal,0,bay,false)
 
- -- Small hospitality planter near the outer wall, not in circulation.
  planter(bay,"Planter",-47.35,z+3.70)
 
- -- Ceiling pendant drops from ClubPurity's existing CeilingField.
  block("PendantStem",Vector3.new(.06,1.75,.06),CFrame.new(-38.8,11.55,z),C.brass,Enum.Material.Metal,0,bay,false)
  cylinder("PendantShade",.42,.78,CFrame.new(-38.8,10.55,z),C.black,Enum.Material.Metal,0,bay,false)
  local bulb=block("PendantBulb",Vector3.new(.25,.18,.25),CFrame.new(-38.8,10.26,z),C.warm,Enum.Material.Neon,.28,bay,false)
  bulb.CastShadow=false;point(bulb,C.warm,.31,7.8)
 
- -- Soft local wash makes faces/seating readable without changing Lighting service.
  local wash=block("LocalWash",Vector3.new(5.8,.035,.42),CFrame.new(-41.2,11.92,z),C.warm,Enum.Material.Neon,.82,bay,false)
  wash.CastShadow=false;surface(wash,C.warm,.18,8.5,105)
 end
 
--- Bay 1 = former Photo Studio / quieter intimate lounge.
 premiumBay(1,-27.0,C.warm,C.taupe)
--- Bay 2 = former Salon / closer to Main Club, slightly stronger plum identity.
 premiumBay(2,-13.0,C.pink,C.plum)
 
--- Upgrade the existing extension's floor edge subtly; no additional structural floor is created.
 local floor=extension:FindFirstChild("FrontClubFloor")
 if floor and floor:IsA("BasePart") then
  floor.Color=Color3.fromRGB(24,23,28)
@@ -188,10 +179,7 @@ if floor and floor:IsA("BasePart") then
  floor.Reflectance=.07
 end
 
--- A single brand marker ties both bays together. Mounted on the existing west wall line.
 textPlate(out,"SocialLoungeMark",Vector3.new(.10,1.35,7.2),CFrame.new(-49.42,8.05,-14.5)*CFrame.Angles(0,math.rad(90),0),"BBYA  SOCIAL  LOUNGE",C.champagne)
-
--- Thin champagne connector inlay between both lounge rugs. Decorative only.
 block("LoungeConnectorInlay",Vector3.new(8.8,.035,.055),CFrame.new(-39.0,1.135,-20.0),C.champagne,Enum.Material.Metal,0,out,false)
 
-print("[BBYA] Main Club Social Lounge Upgrade v1 online: ClubPurity ArrivalLounge1/2 replaced with premium former-studio lounge bays")
+print("[BBYA] Main Club Social Lounge Upgrade v1 online: waited for ClubPurity ArrivalLounge1/2, then replaced both with premium former-studio lounge bays")
