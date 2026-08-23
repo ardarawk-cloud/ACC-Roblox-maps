@@ -1,0 +1,28 @@
+name: BBYA Actions Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.actions-smoke-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write smoke status
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          printf 'ok %s\n' "$(date -u +%FT%TZ)" > deploy-status/bbya-actions-smoke-test.txt
+          git config user.name 'ACC Roblox Smoke Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-actions-smoke-test.txt
+          git commit -m 'BBYA Actions smoke test [skip ci]'
+          git push origin HEAD:main
