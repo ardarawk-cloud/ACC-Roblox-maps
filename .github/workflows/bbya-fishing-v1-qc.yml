@@ -124,4 +124,4 @@ jobs:
           if(-not (Test-Path $place)){throw 'Built place file missing'}
           $bytes=(Get-Item $place).Length
           if($bytes -lt 1024){throw "Built place unexpectedly small: $bytes bytes"}
-          Write-Host "BBYA PREMIUM FISHING QC PASS — canonical Rojo build: $bytes bytes"
+          Write-Host "BBYA PREMIUM FISHING QC PASS - canonical Rojo build: $bytes bytes"
