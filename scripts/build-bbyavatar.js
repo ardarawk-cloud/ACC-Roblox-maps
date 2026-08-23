@@ -1,51 +1,15 @@
 const fs=require('fs'),path=require('path');
 const root=process.cwd();
-const readLua=f=>fs.readFileSync(path.join(root,f),'utf8').replaceAll(']]>',']]]]><![CDATA[>');
 
-// Keep the physical world bootstrap isolated from feature modules. A syntax/runtime
-// regression in analytics, persistence, or commerce must never blank the showroom.
-const coreServerFiles=[
-  ['BBYAVATAR_WorldSafety','maps/bbyavatar/world-safety.server.lua'],
-  ['BBYAVATAR_Runtime','maps/bbyavatar/runtime.server.lua'],
-  ['BBYAVATAR_NativeMannequins','maps/bbyavatar/showroom-native-mannequins.server.lua'],
-  ['BBYAVATAR_PremiumShowroom','maps/bbyavatar/showroom-premium.server.lua']
-];
-const featureServerFiles=[
-  ['BBYAVATAR_Telemetry','maps/bbyavatar/telemetry.server.lua'],
-  ['BBYAVATAR_PhotoAnalytics','maps/bbyavatar/photo-analytics.server.lua'],
-  ['BBYAVATAR_LookShareAnalytics','maps/bbyavatar/look-share-analytics.server.lua'],
-  ['BBYAVATAR_DailyAggregate','maps/bbyavatar/daily-aggregate.server.lua'],
-  ['BBYAVATAR_SavedPicks','maps/bbyavatar/saved-picks.server.lua'],
-  ['BBYAVATAR_LookShare','maps/bbyavatar/look-share.server.lua'],
-  ['BBYAVATAR_BulkPurchase','maps/bbyavatar/bulk-purchase.server.lua'],
-  ['BBYAVATAR_RecentViews','maps/bbyavatar/recent-views.server.lua'],
-  ['BBYAVATAR_VisitStreak','maps/bbyavatar/visit-streak.server.lua'],
-  ['BBYAVATAR_DailyChallenge','maps/bbyavatar/daily-style-challenge.server.lua'],
-  ['BBYAVATAR_BoardPersistence','maps/bbyavatar/style-board-persistence.server.lua'],
-  ['BBYAVATAR_LookVault','maps/bbyavatar/look-vault.server.lua']
-];
-const clientFiles=[
-  'maps/bbyavatar/runtime.client.lua','maps/bbyavatar/mobile.client.lua','maps/bbyavatar/catalog-grid.client.lua',
-  'maps/bbyavatar/tryon.client.lua','maps/bbyavatar/tryon-actions.client.lua','maps/bbyavatar/saved-picks.client.lua',
-  'maps/bbyavatar/owned-items.client.lua','maps/bbyavatar/style-board.client.lua','maps/bbyavatar/look-share.client.lua',
-  'maps/bbyavatar/style-board-save.client.lua','maps/bbyavatar/style-board-persistence.client.lua','maps/bbyavatar/look-vault.client.lua',
-  'maps/bbyavatar/catalog-filters.client.lua','maps/bbyavatar/wardrobe.client.lua','maps/bbyavatar/prompt-feedback.client.lua',
-  'maps/bbyavatar/photo-studio.client.lua','maps/bbyavatar/daily-spotlight.client.lua','maps/bbyavatar/discovery.client.lua',
-  'maps/bbyavatar/recommendations.client.lua','maps/bbyavatar/item-detail.client.lua','maps/bbyavatar/item-detail-responsive.client.lua',
-  'maps/bbyavatar/catalog-card-responsive.client.lua','maps/bbyavatar/recent-views.client.lua','maps/bbyavatar/visit-streak.client.lua',
-  'maps/bbyavatar/daily-style-challenge.client.lua','maps/bbyavatar/accessibility.client.lua','maps/bbyavatar/tab-scroll.client.lua',
-  'maps/bbyavatar/category-autoload.client.lua','maps/bbyavatar/navigation.client.lua'
-];
+// BBYAVATAR RESET BUILD
+// Intentionally minimal: preserve only a neutral baseplate + spawn so the Place
+// remains enterable while all previous catalog/showroom systems are removed from
+// the production payload. Historical source files stay in git for reference but
+// are not bundled into the live experience.
+const server=`local W=game:GetService("Workspace")\nfor _,child in ipairs(W:GetChildren()) do\n if not child:IsA("Terrain") then child:Destroy() end\nend\nlocal base=Instance.new("Part")\nbase.Name="Baseplate"\nbase.Size=Vector3.new(256,1,256)\nbase.CFrame=CFrame.new(0,0,0)\nbase.Anchored=true\nbase.Material=Enum.Material.SmoothPlastic\nbase.Color=Color3.fromRGB(163,162,165)\nbase.TopSurface=Enum.SurfaceType.Smooth\nbase.BottomSurface=Enum.SurfaceType.Smooth\nbase.Parent=W\nlocal spawn=Instance.new("SpawnLocation")\nspawn.Name="Spawn"\nspawn.Size=Vector3.new(8,1,8)\nspawn.CFrame=CFrame.new(0,1.5,0)\nspawn.Anchored=true\nspawn.Neutral=true\nspawn.Parent=W\nprint("[BBYAVATAR] RESET SHELL READY")`;
 
-const scriptItem=(name,source,ref)=>`<Item class="Script" referent="${ref}"><Properties><string name="Name">${name}</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${source}]]></ProtectedString></Properties></Item>`;
-const serverItems=[...coreServerFiles,...featureServerFiles].map(([name,file],i)=>scriptItem(name,readLua(file),`S${i}`)).join('');
-const client=clientFiles.map(readLua).join('\n\n');
+const client=`-- BBYAVATAR reset shell. Intentionally empty.\n`;
 
-const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">18.2</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BBYAVATAR_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${client}]]></ProtectedString></Properties></Item></Item></Item></roblox>`;
+const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2</float><double name="ClockTime">14</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="R"><Properties><string name="Name">BBYAVATAR_Runtime</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${server}]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BBYAVATAR_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${client}]]></ProtectedString></Properties></Item></Item></Item></roblox>`;
 fs.writeFileSync(path.join(root,'maps/bbyavatar/place.rbxlx'),xml);
-
-if(!xml.includes('<string name="Name">BBYAVATAR_WorldSafety</string>')) throw new Error('Missing isolated world safety sentinel');
-if(!xml.includes('<string name="Name">BBYAVATAR_Runtime</string>')) throw new Error('Missing isolated runtime bootstrap');
-if(!xml.includes('<string name="Name">BBYAVATAR_NativeMannequins</string>')) throw new Error('Missing isolated native mannequin upgrade');
-if(!xml.includes('<string name="Name">BBYAVATAR_PremiumShowroom</string>')) throw new Error('Missing isolated premium showroom');
-console.log(`[BBYAVATAR] Built resilient place.rbxlx with ${coreServerFiles.length} isolated world scripts, ${featureServerFiles.length} isolated feature scripts, and responsive client bundle`);
+console.log('[BBYAVATAR] Built empty reset shell for new project');
