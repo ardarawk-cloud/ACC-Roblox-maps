@@ -51,7 +51,7 @@ jobs:
           grep -q 'DarkLoungeRug' "$f"
           grep -q 'TableDetail' "$f"
           grep -q 'BottleBody' "$f"
-          grep -q 'Glass1' "$f"
+          grep -q 'verticalCylinder("Glass"..i' "$f"
           grep -q 'LoungeWarmWash' "$f"
           grep -q 'PlinthAccent' "$f"
           grep -q 'VIPLoungeSeatingV1.*113-vip-lounge-seating.server.lua' "$project"
