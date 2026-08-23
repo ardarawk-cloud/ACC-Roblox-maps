@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v1
--- Prepares independent SoundGroups for future venue-specific playlists.
--- Existing MAIN / UNDERGROUND / FUNKOT engines keep owning their own groups.
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v2
+-- Independent local-only SoundGroups for every music venue.
+-- All playlists are currently reset/empty until the owner rebuilds them.
 
 local SoundService=game:GetService("SoundService")
 
@@ -12,10 +12,13 @@ local function ensure(name,venue)
  g:SetAttribute("Venue",venue)
  g:SetAttribute("BBYALocalZoneOnly",true)
  g:SetAttribute("PlaylistReady",false)
+ g:SetAttribute("PlaylistCount",0)
+ g:SetAttribute("MusicCatalogState","RESET_EMPTY")
  return g
 end
 
 ensure("BBYASkateparkMaster","SKATEPARK")
 ensure("BBYARooftopMaster","ROOFTOP")
+ensure("BBYAVIPMaster","VIP")
 
-print("[BBYA] Venue audio masters ready: Skatepark + Rooftop isolated channels")
+print("[BBYA] Venue audio masters v2 ready: VIP + Skatepark + Rooftop isolated / playlists empty")
