@@ -32,6 +32,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Mark direct upload runner started
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          printf '{"status":"STARTED","workflow":"BBYA VIP Track 01 Direct Upload","triggerCommit":"%s"}\n' "$GITHUB_SHA" > deploy-status/bbya-vip-track01-run.json
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-vip-track01-run.json
+          git commit -m 'Mark BBYA VIP Track 01 direct upload started [skip ci]'
+          git push origin HEAD:main
+
       - name: Download exact Track 01 from Drive
         shell: bash
         run: |
