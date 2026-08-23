@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/56-dock-stability.client.lua'
+      - 'maps/bbya-social-hub/91-owner-ui.client.lua'
       - 'maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
       - 'maps/bbya-social-hub/93-dashboard-structural.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
@@ -37,6 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           menu='maps/bbya-social-hub/56-dock-stability.client.lua'
+          owner='maps/bbya-social-hub/91-owner-ui.client.lua'
           secondary='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
           dash='maps/bbya-social-hub/93-dashboard-structural.client.lua'
 
@@ -59,6 +61,12 @@ jobs:
           if grep -q 'drawer.Position=UDim2.new(.5,0,0,54)' "$menu"; then echo 'Command drawer must stay beside MENU.' >&2; exit 1; fi
           if grep -q 'task.wait(.18)' "$menu"; then echo 'Command menu must remain event-driven.' >&2; exit 1; fi
           if grep -q 'while menuGui.Parent' "$menu"; then echo 'Command menu polling loop still present.' >&2; exit 1; fi
+
+          grep -q 'OWNER UI COMPATIBILITY + ROLE PANEL v8' "$owner"
+          grep -q 'COMMAND_MENU_V7' "$owner"
+          if grep -q 'p.AnchorPoint=Vector2.new(.5,.5)' "$owner"; then echo 'Owner UI must not recenter feature panels.' >&2; exit 1; fi
+          if grep -q 'p.Position=UDim2.fromScale(.5,.55)' "$owner"; then echo 'Dance/Carry center write must stay removed.' >&2; exit 1; fi
+          if grep -q 'p.Position=UDim2.fromScale(.5,.54)' "$owner"; then echo 'Community center write must stay removed.' >&2; exit 1; fi
 
           grep -q 'COMPACT SECONDARY PANELS v3' "$secondary"
           grep -q 'COMMAND_MENU_V7' "$secondary"
