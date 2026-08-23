@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v4.8-microdetail-realism-20260823
+# trigger: mountain-v4.9-environmental-realism-20260823
 
 on:
   push:
@@ -35,13 +35,15 @@ jobs:
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'v4.8-microdetail-realism' maps/mountain-social/place.rbxlx
+          grep -q 'v4.9-environmental-realism' maps/mountain-social/place.rbxlx
           grep -q 'TerrainGroundingReady' maps/mountain-social/place.rbxlx
           grep -q 'RealismPassReady' maps/mountain-social/place.rbxlx
           grep -q 'MicroDetailReady' maps/mountain-social/place.rbxlx
-          grep -q 'DetailedTreesReplaced' maps/mountain-social/place.rbxlx
-          grep -q 'SagWireSpans' maps/mountain-social/place.rbxlx
-          grep -q 'NaturalRockCount' maps/mountain-social/place.rbxlx
+          grep -q 'EnvironmentRealismReady' maps/mountain-social/place.rbxlx
+          grep -q 'ErosionPatchCount' maps/mountain-social/place.rbxlx
+          grep -q 'RoadWeatherDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'MixedVegetationCount' maps/mountain-social/place.rbxlx
+          grep -q 'IrregularOutcropCount' maps/mountain-social/place.rbxlx
           grep -q 'SummitScenicReady' maps/mountain-social/place.rbxlx
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
@@ -59,7 +61,7 @@ jobs:
           {
             if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
             echo 'secret=AM_STUDIO'
-            echo 'build=v4.8-microdetail-realism'
+            echo 'build=v4.9-environmental-realism'
             echo 'universeId=4187755690'
             echo 'placeId=11832985967'
             echo "exitCode=$code"
@@ -73,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v4.8-microdetail-realism\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v4.9-environmental-realism\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
