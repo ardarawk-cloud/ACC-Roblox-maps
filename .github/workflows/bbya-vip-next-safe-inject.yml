@@ -1,0 +1,171 @@
+name: BBYA VIP Amapiano Next Safe Inject
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.vip-next-safe-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-vip-audio-single-upload
+  cancel-in-progress: false
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      BBYA_UNIVERSE: '8116636513'
+      MODERATION_WAIT_SECONDS: '480'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select exactly one next prepared VIP track
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, os
+          p=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          reg=json.loads(p.read_text())
+          cand=sorted(
+              [t for t in reg.get('tracks',[]) if t.get('status')=='PREPARED_LOCAL' and not t.get('assetId')],
+              key=lambda t:int(t.get('index',999999))
+          )
+          if not cand:
+              raise SystemExit('NO_PREPARED_TRACKS')
+          t=cand[0]
+          idx=int(t['index'])
+          env=pathlib.Path(os.environ['GITHUB_ENV'])
+          with env.open('a') as f:
+              f.write(f'TRACK_INDEX={idx}\n')
+              f.write(f'DRIVE_FILE_ID={t["driveFileId"]}\n')
+              f.write(f'AUDIO_PATH=/tmp/bbya-vip-track{idx:02d}-ready.mp3\n')
+              f.write(f'REPORT_PATH=deploy-status/bbya-vip-track{idx:02d}.json\n')
+          print(json.dumps({'selectedIndex':idx,'title':t.get('title'),'driveFileId':t.get('driveFileId')},indent=2))
+          PY
+
+      - name: Prepare selected track only
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet gdown
+          gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O /tmp/bbya-vip-next-source
+          test -s /tmp/bbya-vip-next-source
+          ffmpeg -y -hide_banner -loglevel error -i /tmp/bbya-vip-next-source -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame "${AUDIO_PATH}"
+          test -s "${AUDIO_PATH}"
+          ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
+
+      - name: Upload selected track once and wait moderation
+        shell: bash
+        run: python3 scripts/bbya-vip-single-inject.py
+
+      - name: Persist selected-track checkpoint
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/audio-playlists/vip-amapiano.json "${REPORT_PATH}" 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Checkpoint VIP Amapiano Track ${TRACK_INDEX} asset [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Safety gate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, os, sys
+          p=pathlib.Path(os.environ['REPORT_PATH'])
+          d=json.loads(p.read_text())
+          print(json.dumps({k:d.get(k) for k in ['status','trackIndex','assetId','moderationState','readyToInject']},indent=2))
+          if d.get('readyToInject') is not True:
+              print('SAFE STOP: selected track not approved/permissioned. No playlist publish and no second upload.')
+              sys.exit(1)
+          PY
+
+      - name: Build VIP Amapiano playlist from registry
+        run: python3 scripts/bbya-vip-amapiano-build.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build and publish BBYA VIP playlist
+        shell: bash
+        env:
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-next.rbxl
+          test -s /tmp/bbya-vip-next.rbxl
+          PLACE_FILE_OVERRIDE=/tmp/bbya-vip-next.rbxl node scripts/publish-map.js a-club
+
+      - name: Restart old BBYA servers
+        id: restart
+        shell: bash
+        run: |
+          set +e
+          body=/tmp/restart-vip-next.txt
+          http=$(curl -sS -o "$body" -w '%{http_code}' -X POST "https://apis.roblox.com/cloud/v2/universes/${BBYA_UNIVERSE}:restartServers" -H "x-api-key: ${ROBLOX_API_KEY}" -H 'Content-Type: application/json' -d '{}')
+          echo "http=$http" >> "$GITHUB_OUTPUT"
+          echo "restart HTTP $http"
+          cat "$body" || true
+          exit 0
+
+      - name: Mark selected track live
+        shell: bash
+        env:
+          RESTART_HTTP: ${{ steps.restart.outputs.http }}
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, os
+          idx=int(os.environ['TRACK_INDEX'])
+          regp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          rep=pathlib.Path(os.environ['REPORT_PATH'])
+          receipt=pathlib.Path('deploy-status/a-club.json')
+          reg=json.loads(regp.read_text()); d=json.loads(rep.read_text())
+          for t in reg.get('tracks',[]):
+              if int(t.get('index',0))==idx: t['status']='LIVE_IN_PLAYLIST'
+          d['status']='LIVE_PUBLISHED'
+          d['restartHttp']=os.environ.get('RESTART_HTTP','')
+          if receipt.exists(): d['publishReceipt']=json.loads(receipt.read_text())
+          regp.write_text(json.dumps(reg,indent=2,ensure_ascii=False)+'\n')
+          rep.write_text(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+          PY
+
+      - name: Persist live selected track
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/audio-playlists/vip-amapiano.json "${REPORT_PATH}"
+          git commit -m "Inject VIP Amapiano Track ${TRACK_INDEX} and publish playlist [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
