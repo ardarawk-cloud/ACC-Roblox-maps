@@ -1,0 +1,94 @@
+{
+  "status": "MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 4,
+  "title": "Tommy Montana & Not.FX - Lean On (Amapiano Edit)",
+  "driveFileId": "1_CQR3yahBu7QJDMjfb_9eY_lqlcuU_sR",
+  "musicalKey": "G minor",
+  "camelot": "6A",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "88779022569755",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/c0c7fcae-8b72-4d20-b5c6-68cc47276536",
+    "operationId": "c0c7fcae-8b72-4d20-b5c6-68cc47276536",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/c0c7fcae-8b72-4d20-b5c6-68cc47276536",
+    "operationId": "c0c7fcae-8b72-4d20-b5c6-68cc47276536",
+    "done": true,
+    "response": {
+      "path": "assets/88779022569755",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T16:33:34.314842400Z",
+      "assetId": "88779022569755",
+      "displayName": "Tommy Montana & Not.FX - Lean On (Amapiano Edit)",
+      "description": "BBYA VIP Amapiano Track 04",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ]
+}

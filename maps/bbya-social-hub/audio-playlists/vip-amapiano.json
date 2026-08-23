@@ -53,10 +53,10 @@
       "camelot": "6A",
       "sourceDurationSeconds": 137.97,
       "sourceSizeBytes": 2528652,
-      "assetId": null,
+      "assetId": "88779022569755",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected"
     },
     {
       "index": 5,
