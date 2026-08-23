@@ -1,11 +1,12 @@
--- BBYAVATAR advanced Marketplace discovery filters v2.
--- Extends the catalog grid with native CatalogSearchParams filtering/sorting.
--- User input stays client-side and is passed only to Roblox-native catalog search.
+-- BBYAVATAR advanced Marketplace discovery filters v3.
+-- Adds session-continuous search fields and bounded near-bottom auto-pagination.
+-- User input remains client-side and is sent only to Roblox-native catalog search.
 local searchSequence = 0
 local lastSearchAt = 0
 local FILTER_COOLDOWN = 0.7
 local MAX_QUERY_LENGTH = 80
 local MAX_CREATOR_LENGTH = 50
+local MAX_AUTO_PAGES = 2
 
 local filterModes = {
     {label = "ALL", value = Enum.CatalogCategoryFilter.None},
@@ -32,6 +33,15 @@ local aggregationModes = {
     {label = "ALL TIME", value = Enum.CatalogSortAggregation.AllTime},
 }
 local aggregationIndex = 2
+
+-- Session-only continuity. Nothing here is persisted or sent anywhere except the
+-- actual Roblox Marketplace query when the player explicitly searches.
+local searchMemory = {
+    query = "",
+    creator = "",
+    minPrice = "",
+    maxPrice = "",
+}
 
 local function compactField(parent, placeholder, width)
     local box = Instance.new("TextBox")
@@ -86,6 +96,7 @@ renderSearch = function()
     searchBox.ClearTextOnFocus = false
     searchBox.Font = Enum.Font.Gotham
     searchBox.TextSize = 15
+    searchBox.Text = searchMemory.query
     searchBox.Parent = top
     Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 12)
 
@@ -118,6 +129,9 @@ renderSearch = function()
     local minBox = compactField(filters, "Min R$", 76)
     local maxBox = compactField(filters, "Max R$", 76)
     local resetButton = compactButton(filters, "RESET", 72)
+    creatorBox.Text = searchMemory.creator
+    minBox.Text = searchMemory.minPrice
+    maxBox.Text = searchMemory.maxPrice
 
     local chips = Instance.new("ScrollingFrame")
     chips.BackgroundTransparency = 1
@@ -149,12 +163,17 @@ renderSearch = function()
     local loading = false
     local loadedCount = 0
     local mySequence = 0
+    local autoPagesLoaded = 0
+    local loadMoreButton = nil
 
     local function clearResults()
         for _, child in ipairs(results:GetChildren()) do
             if child ~= layout then child:Destroy() end
         end
         loadedCount = 0
+        autoPagesLoaded = 0
+        loadMoreButton = nil
+        results.CanvasPosition = Vector2.new(0, 0)
     end
 
     local function showEmptyState(query)
@@ -171,7 +190,28 @@ renderSearch = function()
         Instance.new("UICorner", empty).CornerRadius = UDim.new(0, 12)
     end
 
-    local function appendCurrentPage()
+    local appendCurrentPage
+    local loadNextPage
+
+    loadNextPage = function(isAutomatic)
+        if loading or not pagesCache or pagesCache.IsFinished then return end
+        if isAutomatic and autoPagesLoaded >= MAX_AUTO_PAGES then return end
+        loading = true
+        if loadMoreButton and loadMoreButton.Parent then loadMoreButton.Text = "LOADING…" end
+        status.Text = isAutomatic and "Loading more as you browse…" or "Loading more Marketplace items…"
+        local ok = pcall(function() pagesCache:AdvanceToNextPageAsync() end)
+        if loadMoreButton and loadMoreButton.Parent then loadMoreButton:Destroy() end
+        loadMoreButton = nil
+        if ok then
+            if isAutomatic then autoPagesLoaded += 1 end
+            appendCurrentPage()
+        else
+            status.Text = "Could not load more right now."
+        end
+        loading = false
+    end
+
+    appendCurrentPage = function()
         if not pagesCache then return end
         local current = pagesCache:GetCurrentPage()
         for _, item in ipairs(current) do
@@ -188,18 +228,18 @@ renderSearch = function()
         more.TextColor3 = Color3.new(1, 1, 1)
         more.Font = Enum.Font.GothamBold
         more.TextSize = 13
-        more.Text = "LOAD MORE"
+        more.Text = autoPagesLoaded < MAX_AUTO_PAGES and "SCROLL FOR MORE • OR TAP" or "LOAD MORE"
         more.Parent = results
         Instance.new("UICorner", more).CornerRadius = UDim.new(0, 12)
-        more.Activated:Connect(function()
-            if loading or not pagesCache or pagesCache.IsFinished then return end
-            loading = true
-            more.Text = "LOADING…"
-            local ok = pcall(function() pagesCache:AdvanceToNextPageAsync() end)
-            more:Destroy()
-            if ok then appendCurrentPage() else status.Text = "Could not load more right now." end
-            loading = false
-        end)
+        loadMoreButton = more
+        more.Activated:Connect(function() loadNextPage(false) end)
+    end
+
+    local function rememberFields()
+        searchMemory.query = trimAndLimit(searchBox.Text, MAX_QUERY_LENGTH)
+        searchMemory.creator = trimAndLimit(creatorBox.Text, MAX_CREATOR_LENGTH)
+        searchMemory.minPrice = tostring(minBox.Text or "")
+        searchMemory.maxPrice = tostring(maxBox.Text or "")
     end
 
     local function runSearch()
@@ -225,6 +265,7 @@ renderSearch = function()
 
         searchBox.Text = query
         creatorBox.Text = creator
+        rememberFields()
         loading = true
         searchSequence += 1
         mySequence = searchSequence
@@ -248,10 +289,7 @@ renderSearch = function()
             return AvatarEditorService:SearchCatalogAsync(params)
         end)
 
-        if mySequence ~= searchSequence then
-            loading = false
-            return
-        end
+        if mySequence ~= searchSequence then loading = false return end
         if not ok or not pages then
             status.Text = "Marketplace search unavailable right now."
             loading = false
@@ -266,6 +304,14 @@ renderSearch = function()
         end
         loading = false
     end
+
+    -- Mobile-first browsing: automatically advance a bounded number of pages when
+    -- the player nears the end, while always retaining a manual LOAD MORE fallback.
+    results:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+        if loading or not pagesCache or pagesCache.IsFinished or autoPagesLoaded >= MAX_AUTO_PAGES then return end
+        local remaining = results.AbsoluteCanvasSize.Y - (results.CanvasPosition.Y + results.AbsoluteWindowSize.Y)
+        if remaining <= 220 then loadNextPage(true) end
+    end)
 
     modeButton.Activated:Connect(function()
         filterIndex = (filterIndex % #filterModes) + 1
@@ -287,6 +333,7 @@ renderSearch = function()
         creatorBox.Text = ""
         minBox.Text = ""
         maxBox.Text = ""
+        searchMemory = {query = searchBox.Text, creator = "", minPrice = "", maxPrice = ""}
         filterIndex = 1
         sortIndex = 1
         aggregationIndex = 2
@@ -301,13 +348,18 @@ renderSearch = function()
         local button = compactButton(chips, chip, 88)
         button.Activated:Connect(function()
             searchBox.Text = string.lower(chip)
+            searchMemory.query = searchBox.Text
             runSearch()
         end)
     end
 
+    searchBox:GetPropertyChangedSignal("Text"):Connect(rememberFields)
+    creatorBox:GetPropertyChangedSignal("Text"):Connect(rememberFields)
+    minBox:GetPropertyChangedSignal("Text"):Connect(rememberFields)
+    maxBox:GetPropertyChangedSignal("Text"):Connect(rememberFields)
     searchButton.Activated:Connect(runSearch)
     searchBox.FocusLost:Connect(function(enterPressed) if enterPressed then runSearch() end end)
 end
 
 renderers.SEARCH = renderSearch
-print("[BBYAVATAR] Advanced catalog filters + sort/aggregation resilience ready")
+print("[BBYAVATAR] Advanced catalog filters v3 + session continuity + bounded infinite browse ready")
