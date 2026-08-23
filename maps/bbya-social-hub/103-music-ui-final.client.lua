@@ -142,9 +142,11 @@ local function showToast(text)
  task.delay(1.8,function()if toastToken==token then toast.Visible=false end end)
 end
 
+local VIP_TRACK={title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263"}
 local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
 local function effectiveTracks(v)
+ if v=="VIP" then return {VIP_TRACK} end
  if resetActive() then return {} end
  return (state[v] and state[v].tracks) or {}
 end
@@ -165,13 +167,14 @@ local function refreshAdmin()
 end
 local function refreshCard()
  local v,spec=currentSpec();local s=state[v] or state.NONE;local tracks=effectiveTracks(v)
- local empty=resetActive() or #tracks==0 or s.title==""
+ local vipTrack=(v=="VIP" and tracks[1]) or nil
+ local empty=(resetActive() and v~="VIP") or #tracks==0 or (s.title=="" and not vipTrack)
  cardStroke.Color=spec.accent;coverStroke.Color=spec.accent;drawerStroke.Color=spec.accent;nowSmall.TextColor3=spec.accent;coverVenue.TextColor3=spec.accent
  coverVenue.Text=spec.short
- nowTitle.Text=empty and "BELUM ADA LAGU" or s.title
- nowMeta.Text=empty and (spec.short.." • PLAYLIST EMPTY") or (spec.short..(s.playing and " • PLAYING" or " • READY"))
- local item=(s.index>0 and tracks[s.index]) or nil;setCover(v,item,s)
- drawerTitle.Text=spec.short.." PLAYLIST";drawerCount.Text=tostring(#tracks).." TRACKS"
+ nowTitle.Text=vipTrack and VIP_TRACK.title or (empty and "BELUM ADA LAGU" or s.title)
+ nowMeta.Text=vipTrack and "VIP • 1 TRACK" or (empty and (spec.short.." • PLAYLIST EMPTY") or (spec.short..(s.playing and " • PLAYING" or " • READY")))
+ local item=vipTrack or ((s.index>0 and tracks[s.index]) or nil);setCover(v,item,s)
+ drawerTitle.Text=spec.short.." PLAYLIST";drawerCount.Text=tostring(#tracks)..(#tracks==1 and " TRACK" or " TRACKS")
  muteBtn.Text=player:GetAttribute("BBYAMusicMuted")==true and "UNMUTE" or "MUTE"
  refreshAdmin()
 end

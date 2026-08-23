@@ -1,0 +1,21 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "track": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
+  "assetId": "105859685125263",
+  "uiAuthority": "103-music-ui-final.client.lua",
+  "serverAuthority": "110-vip-track01.server.lua v3",
+  "restartHttp": "200",
+  "publishReceipt": {
+    "status": "PUBLISHED",
+    "mapId": "a-club",
+    "name": "BBYA Social Hub",
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "sourceCommit": "a02b8d5ced4d4b40f4beb8482c13431f471bb297",
+    "publishedAt": "2026-08-23T15:35:10.706Z",
+    "publishedFile": "/tmp/bbya-vip-track01-ui-fix.rbxl",
+    "response": {
+      "versionNumber": 379
+    }
+  }
+}
