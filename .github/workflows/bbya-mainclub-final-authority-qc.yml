@@ -3,6 +3,7 @@ name: BBYA Main Club Final Authority QC
 on:
   pull_request:
     paths:
+      - 'maps/bbya-social-hub/43-floor1-front-premium.server.lua'
       - 'maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
       - 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
       - '.github/workflows/bbya-mainclub-final-authority-qc.yml'
@@ -28,25 +29,38 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Build BBYA place
         run: rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-final-authority.rbxl
-      - name: Validate final authority
+      - name: Validate source-purity authority v2
         shell: bash
         run: |
           set -euo pipefail
-          F='maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
-          grep -q 'MAIN CLUB FINAL AUTHORITY v1' "$F"
-          grep -q 'MainClubFinalAuthorityV1' "$F"
-          grep -q 'SalonLookStudioPremium' "$F"
-          grep -q 'PhotoAreaPremium' "$F"
-          grep -q 'RearSocialRail' "$F"
-          grep -q 'DJBoothGroundedBase' "$F"
-          grep -q 'PureClubFrontExtension' "$F"
-          grep -q 'LookLabAvatarEditorV1' "$F"
-          grep -q 'ClubPurityMallStudiosV1' "$F"
-          grep -q 'DescendantAdded' "$F"
-          ! grep -q 'PHOTO STUDIO LIGHTING UPGRADE' "$F"
-          ! grep -q 'KeySoftbox' "$F"
-          ! grep -q 'OverheadStudioPanel' "$F"
-          ! grep -q 'Vector3.new(-42.0, 4.0, -25.0)' "$F"
-          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)' "$F"
-          ! grep -Eq 'SoundId|SoundGroup|TimePosition' "$F"
+          FRONT='maps/bbya-social-hub/43-floor1-front-premium.server.lua'
+          AUTH='maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
+
+          grep -q 'FRONT-OF-HOUSE PREMIUM PASS v2' "$FRONT"
+          grep -q 'SalonInMall' "$FRONT"
+          grep -q 'PhotoStudioInMall' "$FRONT"
+          grep -q '03_PhotoArea' "$FRONT"
+          grep -q '04_SalonLookStudio' "$FRONT"
+          ! grep -q 'local photo=model("PhotoAreaPremium")' "$FRONT"
+          ! grep -q 'local salon=model("SalonLookStudioPremium")' "$FRONT"
+          ! grep -q 'ProductShelf' "$FRONT"
+          ! grep -q 'CameraPedestal' "$FRONT"
+
+          grep -q 'MAIN CLUB FINAL AUTHORITY v2' "$AUTH"
+          grep -q 'MainClubFinalAuthorityV2' "$AUTH"
+          grep -q 'SalonLookStudioPremium' "$AUTH"
+          grep -q 'PhotoAreaPremium' "$AUTH"
+          grep -q 'RearSocialRail' "$AUTH"
+          grep -q 'RearCocktail_' "$AUTH"
+          grep -q 'DJBoothGroundedBase' "$AUTH"
+          grep -q 'PureClubFrontExtension' "$AUTH"
+          grep -q 'LookLabAvatarEditorV1' "$AUTH"
+          grep -q 'ClubPurityMallStudiosV1' "$AUTH"
+          grep -q 'DJRequestInteract' "$AUTH"
+          grep -q 'DescendantAdded' "$AUTH"
+          ! grep -q 'PHOTO STUDIO LIGHTING UPGRADE' "$AUTH"
+          ! grep -q 'KeySoftbox' "$AUTH"
+          ! grep -q 'OverheadStudioPanel' "$AUTH"
+          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)' "$AUTH"
+          ! grep -Eq 'SoundId|SoundGroup|TimePosition' "$AUTH"
           test -s /tmp/bbya-final-authority.rbxl
