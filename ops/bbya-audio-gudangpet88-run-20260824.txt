@@ -1,0 +1,5 @@
+RUN BBYA AUDIO GUDANGPET88
+source_folder=1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd
+mode=one-by-one-approved-only
+rejected=permanent-blacklist
+requested_at=2026-08-24T02:08:00+08:00
