@@ -1,4 +1,4 @@
--- BECAK E-BIKE — masterplan systems v1.3
+-- BECAK E-BIKE — masterplan systems v1.4
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
@@ -86,9 +86,10 @@ repairPrompt.Triggered:Connect(function(player)
  b:SetAttribute('Condition',100);toast:FireClient(player,'Servis selesai • kondisi kembali 100%.')
 end)
 
--- Cargo / logistics jobs.
+-- Cargo / logistics jobs v1.4: route variety + distance-based payout + player telemetry.
 local cargoFolder=Instance.new('Folder');cargoFolder.Name='CargoJobs';cargoFolder.Parent=systems
 local cargoActive={}
+local lastCargoDestination={}
 local cargoPickup=part(cargoFolder,'CargoDepot',Vector3.new(30,1,22),CFrame.new(365,.6,430),Color3.fromRGB(210,145,55),Enum.Material.Neon,true)
 label(cargoPickup,'CARGO DEPOT')
 local cargoPrompt=prompt(cargoPickup,'Ambil Cargo','Nusakarya Logistics')
@@ -97,12 +98,32 @@ local cargoDrops={
  {name='Terminal Raya',pos=Vector3.new(390,2,60)},
  {name='Hotel Bahari',pos=Vector3.new(340,2,-220)},
  {name='Sekolah Nusakarya',pos=Vector3.new(-300,2,-80)},
+ {name='Pusat Kota',pos=Vector3.new(20,2,120)},
+ {name='Pantai Bahari',pos=Vector3.new(75,2,-360)},
 }
 for i,d in ipairs(cargoDrops) do local x=part(cargoFolder,'CargoDrop_'..i,Vector3.new(13,.5,13),CFrame.new(d.pos),Color3.fromRGB(235,165,60),Enum.Material.Neon,false);x.Transparency=.55;x:SetAttribute('DropName',d.name) end
+local function chooseCargoDrop(player)
+ local previous=lastCargoDestination[player]
+ local available={}
+ for _,d in ipairs(cargoDrops) do if d.name~=previous then table.insert(available,d) end end
+ local pool=#available>0 and available or cargoDrops
+ return pool[math.random(1,#pool)]
+end
+local function cargoPayout(distance)
+ return math.floor(math.clamp(22000+distance*55,30000,65000))
+end
 cargoPrompt.Triggered:Connect(function(player)
  if cargoActive[player] then toast:FireClient(player,'Cargo aktif: '..cargoActive[player].name) return end
  local b=playerBecak(player);if not b or not b.PrimaryPart or (b.PrimaryPart.Position-cargoPickup.Position).Magnitude>30 then toast:FireClient(player,'Dekatkan Becak E-Bike ke Cargo Depot.') return end
- local d=cargoDrops[math.random(1,#cargoDrops)];cargoActive[player]=d;player:SetAttribute('CargoDestination',d.name);toast:FireClient(player,'Cargo dimuat • antar ke '..d.name..'.')
+ local d=chooseCargoDrop(player)
+ local distance=(cargoPickup.Position-d.pos).Magnitude
+ local reward=cargoPayout(distance)
+ cargoActive[player]={name=d.name,pos=d.pos,startedAt=os.clock(),distance=distance,reward=reward}
+ lastCargoDestination[player]=d.name
+ player:SetAttribute('CargoDestination',d.name)
+ player:SetAttribute('CargoDistanceStuds',math.floor(distance))
+ player:SetAttribute('CargoBaseReward',reward)
+ toast:FireClient(player,'Cargo dimuat • '..d.name..' • estimasi Rp'..reward)
 end)
 
 -- Session challenge and story progression based on persistent trip total.
@@ -131,8 +152,19 @@ RunService.Heartbeat:Connect(function(dt)
   if player.Parent then
    local b=playerBecak(player)
    if b and b.PrimaryPart and (b.PrimaryPart.Position-d.pos).Magnitude<25 then
-    cargoActive[player]=nil;player:SetAttribute('CargoDestination',nil)
-    if transact(player,35000,45,'cargo') then player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1);toast:FireClient(player,'Cargo terkirim ke '..d.name..' • +Rp35.000 +45 XP') end
+    cargoActive[player]=nil
+    player:SetAttribute('CargoDestination',nil)
+    player:SetAttribute('CargoDistanceStuds',0)
+    player:SetAttribute('CargoBaseReward',0)
+    local duration=math.max(1,os.clock()-(d.startedAt or os.clock()))
+    local xp=math.floor(math.clamp(30+(d.distance or 0)/16,35,90))
+    if transact(player,d.reward or 35000,xp,'cargo') then
+     player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1)
+     player:SetAttribute('CargoLastReward',d.reward or 35000)
+     player:SetAttribute('CargoLastDurationSeconds',math.floor(duration))
+     player:SetAttribute('CargoLastDistanceStuds',math.floor(d.distance or 0))
+     toast:FireClient(player,'Cargo terkirim ke '..d.name..' • +Rp'..(d.reward or 35000)..' +'..xp..' XP')
+    end
    end
   end
  end
@@ -143,15 +175,25 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 local function setupPlayer(player)
- player:SetAttribute('DailyTripGoal',10);player:SetAttribute('CargoJobs',player:GetAttribute('CargoJobs') or 0);player:SetAttribute('Session10Claimed',false)
+ player:SetAttribute('DailyTripGoal',10)
+ player:SetAttribute('CargoJobs',player:GetAttribute('CargoJobs') or 0)
+ player:SetAttribute('CargoDistanceStuds',0)
+ player:SetAttribute('CargoBaseReward',0)
+ player:SetAttribute('CargoLastReward',player:GetAttribute('CargoLastReward') or 0)
+ player:SetAttribute('CargoLastDurationSeconds',player:GetAttribute('CargoLastDurationSeconds') or 0)
+ player:SetAttribute('CargoLastDistanceStuds',player:GetAttribute('CargoLastDistanceStuds') or 0)
+ player:SetAttribute('Session10Claimed',false)
  task.delay(2,function() if player.Parent then local total=player:GetAttribute('BecakTrips') or 0;joinTrips[player]=total;syncProgress(player) end end)
  task.delay(4,function() if player.Parent then toast:FireClient(player,'Nusakarya aktif • penumpang • cargo • charging • bengkel • cuaca • upgrade') end end)
 end
 for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil end)
+Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil;lastCargoDestination[player]=nil end)
 
-Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.3')
+Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.4')
 Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
 Workspace:SetAttribute('BecakSystemsTickHz',5)
-print('[BECAK E-BIKE] masterplan systems v1.3 ready: duplicate traffic removed + 5 Hz gameplay maintenance')
+Workspace:SetAttribute('BecakCargoDynamicPayout','ON')
+Workspace:SetAttribute('BecakCargoDestinationCount',#cargoDrops)
+Workspace:SetAttribute('BecakCargoNoImmediateRepeat','ON')
+print('[BECAK E-BIKE] masterplan systems v1.4 ready: cargo route variety + distance payout + telemetry + 5 Hz maintenance')
