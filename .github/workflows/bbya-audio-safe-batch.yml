@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, pathlib, sys
+          import json, pathlib
           folder='1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
           p=pathlib.Path('maps/bbya-social-hub/audio-rights-confirmation.json')
           ok=False
@@ -65,6 +65,21 @@ jobs:
           },indent=2)+'\n',encoding='utf-8')
           raise SystemExit(3)
           PY
+
+      - name: Persist legal-rights safety block
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f deploy-status/bbya-audio-safe-batch.json ]; then exit 0; fi
+          git config user.name 'ACC Roblox Audio Safety Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-audio-safe-batch.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record BBYA audio rights safety block [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - name: Mark runner booted
         shell: bash
