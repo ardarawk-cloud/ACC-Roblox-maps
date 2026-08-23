@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/bbya-audio-safe-batch.yml'
       - 'maps/bbya-social-hub/.audio-safe-batch-trigger'
   workflow_dispatch:
 
