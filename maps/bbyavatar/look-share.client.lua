@@ -1,7 +1,8 @@
--- BBYAVATAR Look Share v2 client
+-- BBYAVATAR Look Share v3 client
 -- Creates short share codes and imports shared looks atomically into Saved Picks + Style Board.
 -- A failed import never clears or partially replaces the player's current Style Board.
 -- Shared records contain only Roblox asset IDs; catalog metadata is hydrated transiently from Roblox.
+-- v3 gives explicit, non-alarming feedback for server budget guards introduced by Look Share v2.
 
 local lookShareRequest = root:WaitForChild("LookShareRequest")
 
@@ -162,7 +163,13 @@ local function renderLookShare()
         else
             shareTrack("SHARE_FAILED")
             local code = ok and typeof(response) == "table" and response.code or "FAILED"
-            status.Text = code == "THROTTLED" and "Share-code creation is cooling down • try again shortly." or ("Could not create share code • " .. tostring(code))
+            if code == "THROTTLED" then
+                status.Text = "Share-code creation is cooling down • try again shortly."
+            elseif code == "RATE_LIMITED" then
+                status.Text = "Share-code limit reached for now • keep styling and try again later."
+            else
+                status.Text = "Could not create share code • " .. tostring(code)
+            end
         end
     end)
 
@@ -218,6 +225,8 @@ local function renderLookShare()
                 status.Text = "That look code is unavailable or expired."
             elseif reason == "THROTTLED" then
                 status.Text = "Look import is cooling down • try again in a moment."
+            elseif reason == "RATE_LIMITED" then
+                status.Text = "Too many look-code checks in a short time • browse for a bit, then try again."
             else
                 status.Text = "Could not load that look code."
             end
@@ -266,4 +275,4 @@ shareTab.Parent = tabs
 Instance.new("UICorner", shareTab).CornerRadius = UDim.new(0,10)
 shareTab.Activated:Connect(function() selectTab("SHARE") end)
 
-print("[BBYAVATAR] Look Share v2 atomic import + board preservation ready")
+print("[BBYAVATAR] Look Share v3 budget-aware client feedback ready")
