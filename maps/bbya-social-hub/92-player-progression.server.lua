@@ -1,10 +1,13 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v2
--- Persistent social level based on time spent in BBYA. Owner identity overrides visitor rank display.
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v3
+-- Persistent social level based on time spent in BBYA. Owner/admin identities override visitor rank display.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
 
 local store=DataStoreService:GetDataStore("BBYA_SOCIAL_LEVEL_V1")
-local QUEEN_USERNAME="nadmo97"
+local OWNER_USERNAME="nadmo97"
+local ADMIN_USERNAMES={
+ ["styxraasoraaa"]=true,
+}
 local LEVEL_MINUTES=10
 local sessionMinutes={}
 local loadedMinutes={}
@@ -16,7 +19,8 @@ local COLORS={
  Aristokrat=Color3.fromRGB(73,214,129),
  Monarch=Color3.fromRGB(235,184,74),
  GreatMonarch=Color3.fromRGB(255,205,82),
- Queen=Color3.fromRGB(255,113,196),
+ Owner=Color3.fromRGB(255,113,196),
+ Admin=Color3.fromRGB(73,207,235),
 }
 
 local function rankFor(level)
@@ -28,8 +32,14 @@ local function rankFor(level)
  return "NEWBIE",COLORS.Newbie,false
 end
 
-local function isQueen(player)
- return player and string.lower(player.Name)==QUEEN_USERNAME
+local function usernameKey(player)
+ return player and string.lower(player.Name) or ""
+end
+local function isOwner(player)
+ return usernameKey(player)==OWNER_USERNAME
+end
+local function isAdmin(player)
+ return ADMIN_USERNAMES[usernameKey(player)]==true
 end
 
 local function levelFromMinutes(minutes)
@@ -50,8 +60,10 @@ local function makeTag(player)
 
  local level=player:GetAttribute("BBYALevel") or 1
  local rank,color,crown=rankFor(level)
- local queen=isQueen(player)
- if queen then rank="OWNER";color=COLORS.Queen;crown=true end
+ local owner=isOwner(player)
+ local admin=isAdmin(player)
+ if owner then rank="OWNER";color=COLORS.Owner;crown=true
+ elseif admin then rank="ADMIN";color=COLORS.Admin;crown=false end
 
  local gui=Instance.new("BillboardGui")
  gui.Name="BBYAIdentityTag"
@@ -74,8 +86,8 @@ local function makeTag(player)
   c.BackgroundTransparency=1
   c.Position=UDim2.fromOffset(0,-4)
   c.Size=UDim2.new(1,0,0,20)
-  c.Text=queen and "♕" or "♛"
-  c.TextColor3=queen and Color3.fromRGB(255,190,225) or Color3.fromRGB(255,208,84)
+  c.Text="♕"
+  c.TextColor3=Color3.fromRGB(255,190,225)
   c.TextStrokeTransparency=.35
   c.Font=Enum.Font.GothamBlack
   c.TextSize=18
@@ -97,12 +109,21 @@ local function makeTag(player)
  title.BackgroundTransparency=1
  title.Position=UDim2.fromOffset(0,crown and 30 or 22)
  title.Size=UDim2.new(1,0,0,16)
- title.Text=queen and "OWNER" or string.format("LV %d • %s",level,rank)
+ if owner then title.Text="OWNER"
+ elseif admin then title.Text="ADMIN"
+ else title.Text=string.format("LV %d • %s",level,rank) end
  title.TextColor3=color
  title.TextStrokeTransparency=.45
  title.Font=Enum.Font.GothamBold
  title.TextSize=11
  title.Parent=holder
+end
+
+local function grantTravelBypasses(player)
+ player:SetAttribute("BBYAVIPBypass",true)
+ player:SetAttribute("BBYARooftopBypass",true)
+ player:SetAttribute("BBYASecretRoomBypass",true)
+ player:SetAttribute("BBYATravelBypass",true)
 end
 
 local function applyIdentity(player)
@@ -111,16 +132,17 @@ local function applyIdentity(player)
  player:SetAttribute("BBYALevel",level)
  local rank=select(1,rankFor(level))
  player:SetAttribute("BBYARank",rank)
- if isQueen(player) then
+ if isOwner(player) then
   player:SetAttribute("BBYAAdmin",true)
   player:SetAttribute("BBYAOwner",true)
-  -- Legacy compatibility only: older systems may still read BBYACoOwner.
+  -- Legacy compatibility only: older systems may still read BBYACoOwner/BBYAQueen.
   player:SetAttribute("BBYACoOwner",true)
   player:SetAttribute("BBYAQueen",true)
-  player:SetAttribute("BBYAVIPBypass",true)
-  player:SetAttribute("BBYARooftopBypass",true)
-  player:SetAttribute("BBYASecretRoomBypass",true)
-  player:SetAttribute("BBYATravelBypass",true)
+  grantTravelBypasses(player)
+ elseif isAdmin(player) then
+  player:SetAttribute("BBYAAdmin",true)
+  player:SetAttribute("BBYAStaff",true)
+  grantTravelBypasses(player)
  end
  makeTag(player)
 end
@@ -165,4 +187,4 @@ game:BindToClose(function()
  for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end
 end)
 
-print("[BBYA] Player progression v2 online: OWNER label + persistent visitor levels")
+print("[BBYA] Player progression v3 online: OWNER + full-travel ADMIN staff + persistent visitor levels")
