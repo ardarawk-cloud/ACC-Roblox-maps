@@ -24,6 +24,7 @@
       "MainClubRealism": {"$path": "42-main-club-realism.server.lua"},
       "MainClubPremiumV4": {"$path": "120-mainclub-premium-v4.server.lua"},
       "MainClubBeautyV5": {"$path": "121-mainclub-beauty-v5.server.lua"},
+      "MainClubSocialLoungeV1": {"$path": "132-mainclub-social-lounge-v1.server.lua"},
       "Floor1FrontPremium": {"$path": "43-floor1-front-premium.server.lua"},
       "Floor1ReceptionPlanterCleanup": {"$path": "64-floor1-reception-planter-cleanup.server.lua"},
       "Floor1VisualCleanup": {"$path": "44-floor1-visual-cleanup.server.lua"},
