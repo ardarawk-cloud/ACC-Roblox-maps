@@ -53,6 +53,7 @@
       "VIPEnclosureSoundV6": {"$path": "82-vip-enclosure-sound.server.lua"},
       "VenueLightingBoostV1": {"$path": "86-vip-skate-lighting-boost.server.lua"},
       "VIPPrivateClubUpgradeV2": {"$path": "90-vip-private-club-upgrade.server.lua"},
+      "VIPLoungeSeatingV1": {"$path": "113-vip-lounge-seating.server.lua"},
       "SkateparkExposureFixV2": {"$path": "88-skatepark-exposure-fix.server.lua"},
       "OwnerGeometryFixesV1": {"$path": "91-owner-geometry-fixes.server.lua"},
       "PlayerProgressionV1": {"$path": "92-player-progression.server.lua"},
