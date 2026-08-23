@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/.vip-track01-inject-trigger'
+      - '.github/workflows/bbya-vip-track01-inject.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,10 +24,54 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify AMSTUDIO audio uploader key
+        env:
+          AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request, urllib.error
+          key=os.environ.get('AUDIO_KEY','').strip()
+          out=pathlib.Path('deploy-status/bbya-vip-track01-key.json')
+          out.parent.mkdir(parents=True,exist_ok=True)
+          if not key:
+              out.write_text(json.dumps({'status':'SECRET_MISSING','secret':'AMSTUDIO_AUDIO_UPLOADER_01'},indent=2)+'\n')
+              raise SystemExit('AMSTUDIO_AUDIO_UPLOADER_01 secret missing')
+          req=urllib.request.Request(
+              'https://apis.roblox.com/api-keys/v1/introspect',
+              data=json.dumps({'apiKey':key}).encode(),
+              headers={'Content-Type':'application/json'},method='POST')
+          try:
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  data=json.loads(r.read().decode())
+          except urllib.error.HTTPError as e:
+              body=e.read().decode('utf-8','replace')
+              out.write_text(json.dumps({'status':'INTROSPECT_FAILED','http':e.code,'body':body[-1000:]},indent=2)+'\n')
+              raise
+          scopes=[]
+          for s in data.get('scopes') or []:
+              scopes.append({'name':s.get('name'),'operations':s.get('operations') or []})
+          result={
+              'status':'OK',
+              'keyName':data.get('name'),
+              'authorizedUserId':str(data.get('authorizedUserId')) if data.get('authorizedUserId') is not None else None,
+              'enabled':data.get('enabled'),
+              'expired':data.get('expired'),
+              'scopes':scopes,
+          }
+          asset_rw=any(s['name']=='asset' and 'read' in s['operations'] and 'write' in s['operations'] for s in scopes)
+          perm_w=any(s['name']=='asset-permissions:write' or (s['name']=='asset-permissions' and 'write' in s['operations']) for s in scopes)
+          result['assetReadWrite']=asset_rw
+          result['assetPermissionsWrite']=perm_w
+          out.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
+          print(json.dumps(result,ensure_ascii=False))
+          if not (asset_rw and perm_w):
+              raise SystemExit('Required audio scopes not present')
+          PY
+
       - name: Resolve owned Track 01, grant both universes, and patch VIP
         env:
-          AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
-          AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
+          AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
         shell: bash
         run: |
           python3 - <<'PY'
@@ -35,10 +80,10 @@ jobs:
           ROOT=pathlib.Path('.')
           MAP=ROOT/'maps'/'bbya-social-hub'
           REPORT=ROOT/'deploy-status'/'bbya-vip-track01.json'
-          AUDIO_OWNER_USER_ID='8878884630'
           BBYA_UNIVERSE='8116636513'
           AM_STUDIO_UNIVERSE='4187755690'
           TRACK_TITLE='Wonder Girls - Nobody (ROOKIE Amapiano Edit)'
+          key=os.environ.get('AUDIO_KEY','').strip()
 
           def request_json(url, method='GET', payload=None, headers=None):
               body=None if payload is None else json.dumps(payload).encode('utf-8')
@@ -56,45 +101,37 @@ jobs:
                   except Exception: data={'raw':raw[-3000:]}
                   return e.code,data
 
-          keys=[('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip())]
+          info_code,info=request_json('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key})
+          owner_id=str((info or {}).get('authorizedUserId') or '')
+          key_name=(info or {}).get('name')
+
           query=urllib.parse.urlencode({
               'searchCategoryType':'Audio',
               'query':'Nobody',
-              'userId':AUDIO_OWNER_USER_ID,
+              'userId':owner_id,
               'maxPageSize':'100',
               'searchView':'Full',
               'sortCategory':'UpdatedTime',
               'sortDirection':'Descending',
           })
           search_url='https://apis.roblox.com/toolbox-service/v2/assets:search?'+query
-          searches=[]
-          result=None
-          for label,key in keys:
-              if not key: continue
-              code,data=request_json(search_url,headers={'x-api-key':key})
-              searches.append({'key':label,'http':code})
-              if code==200 and isinstance(data,dict):
-                  result=data;break
+          search_code,result=request_json(search_url,headers={'x-api-key':key})
 
           def collect(o,out):
               if isinstance(o,dict):
                   aid=o.get('assetId') or o.get('id')
                   name=o.get('name') or o.get('title') or o.get('displayName')
                   if aid is not None and name:
-                      out.append({'id':str(aid),'name':str(name),'raw':o})
+                      out.append({'id':str(aid),'name':str(name)})
                   for v in o.values(): collect(v,out)
               elif isinstance(o,list):
                   for v in o: collect(v,out)
 
           candidates=[]
-          if result: collect(result,candidates)
-          unique={}
-          for c in candidates:
-              if c['id'].isdigit(): unique[c['id']]=c
+          if search_code==200: collect(result,candidates)
+          unique={c['id']:c for c in candidates if c['id'].isdigit()}
           candidates=list(unique.values())
-
-          def norm(s):
-              return re.sub(r'[^a-z0-9]+',' ',s.casefold()).strip()
+          def norm(s): return re.sub(r'[^a-z0-9]+',' ',s.casefold()).strip()
           def score(name):
               n=norm(name); sc=0
               if 'nobody' in n: sc+=100
@@ -108,8 +145,9 @@ jobs:
 
           report={
               'track':TRACK_TITLE,
-              'audioOwnerUserId':AUDIO_OWNER_USER_ID,
-              'searchAttempts':searches,
+              'keyName':key_name,
+              'audioOwnerUserId':owner_id,
+              'searchHttp':search_code,
               'candidateCount':len(candidates),
               'topCandidates':[{'id':c['id'],'name':c['name'],'score':score(c['name'])} for c in candidates[:10]],
               'chosen':({'assetId':chosen['id'],'name':chosen['name']} if chosen else None),
@@ -124,31 +162,24 @@ jobs:
 
           asset_id=chosen['id']
           def grant(universe):
-              attempts=[]
-              for label,key in keys:
-                  if not key: continue
-                  payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(asset_id)}]}
-                  code,data=request_json(
-                      'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions',
-                      'PATCH',payload,
-                      {'x-api-key':key,'Content-Type':'application/json-patch+json'}
-                  )
-                  success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
-                  attempts.append({'key':label,'http':code,'successAssetIds':success,'response':data})
-                  if asset_id in success or code in (200,201,204):
-                      return True,attempts
-              return False,attempts
+              payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(asset_id)}]}
+              code,data=request_json(
+                  'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions',
+                  'PATCH',payload,
+                  {'x-api-key':key,'Content-Type':'application/json-patch+json'}
+              )
+              success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+              return (asset_id in success or code in (200,201,204)), {'http':code,'successAssetIds':success,'response':data}
 
-          bbya_ok,bbya_attempts=grant(BBYA_UNIVERSE)
-          am_ok,am_attempts=grant(AM_STUDIO_UNIVERSE)
+          bbya_ok,bbya_attempt=grant(BBYA_UNIVERSE)
+          am_ok,am_attempt=grant(AM_STUDIO_UNIVERSE)
           report['permissions']={
-              'bbya':{'universeId':BBYA_UNIVERSE,'ok':bbya_ok,'attempts':bbya_attempts},
-              'amStudioCreativeLab':{'universeId':AM_STUDIO_UNIVERSE,'ok':am_ok,'attempts':am_attempts},
+              'bbya':{'universeId':BBYA_UNIVERSE,'ok':bbya_ok,'attempt':bbya_attempt},
+              'amStudioCreativeLab':{'universeId':AM_STUDIO_UNIVERSE,'ok':am_ok,'attempt':am_attempt},
           }
           if not (bbya_ok and am_ok):
               report['status']='PERMISSION_FAILED'
               REPORT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
-              print(json.dumps(report,ensure_ascii=False))
               raise SystemExit(3)
 
           reset_path=MAP/'109-music-catalog-reset.server.lua'
@@ -163,70 +194,44 @@ jobs:
           )
           reset_path.write_text(reset,encoding='utf-8')
 
-          vip_script=f'''-- BBYA SOCIAL HUB — VIP TRACK 01 AUTHORITY v1\n-- Owner-selected single-track VIP test.\nlocal ReplicatedStorage=game:GetService("ReplicatedStorage")\nlocal SoundService=game:GetService("SoundService")\n\nlocal TRACK={{title={json.dumps(TRACK_TITLE)},assetId={json.dumps(asset_id)}}}\nReplicatedStorage:SetAttribute("BBYAVIPTrack01Enabled",true)\nReplicatedStorage:SetAttribute("BBYAVIPTrack01Title",TRACK.title)\nReplicatedStorage:SetAttribute("BBYAVIPTrack01AssetId",TRACK.assetId)\n\ntask.delay(9.25,function()\n local group=SoundService:FindFirstChild("BBYAVIPMaster")\n if not group or not group:IsA("SoundGroup") then\n  group=Instance.new("SoundGroup");group.Name="BBYAVIPMaster";group.Parent=SoundService\n end\n group.Volume=.62\n group:SetAttribute("Venue","VIP")\n group:SetAttribute("BBYALocalZoneOnly",true)\n group:SetAttribute("PlaylistReady",true)\n group:SetAttribute("PlaylistCount",1)\n group:SetAttribute("MusicCatalogState","VIP_TRACK01_ACTIVE")\n\n local old=SoundService:FindFirstChild("BBYAVIPTrack01")\n if old then old:Destroy() end\n local s=Instance.new("Sound")\n s.Name="BBYAVIPTrack01"\n s.SoundId="rbxassetid://"..TRACK.assetId\n s.Volume=.72\n s.Looped=true\n s.SoundGroup=group\n s:SetAttribute("Title",TRACK.title)\n s:SetAttribute("Venue","VIP")\n s:SetAttribute("PlaylistIndex",1)\n s.Parent=SoundService\n s:Play()\n print("[BBYA] VIP Track 01 active:",TRACK.title,TRACK.assetId)\nend)\n'''
+          vip_script=f'''-- BBYA SOCIAL HUB — VIP TRACK 01 AUTHORITY v1\nlocal ReplicatedStorage=game:GetService("ReplicatedStorage")\nlocal SoundService=game:GetService("SoundService")\nlocal TRACK={{title={json.dumps(TRACK_TITLE)},assetId={json.dumps(asset_id)}}}\nReplicatedStorage:SetAttribute("BBYAVIPTrack01Enabled",true)\nReplicatedStorage:SetAttribute("BBYAVIPTrack01Title",TRACK.title)\nReplicatedStorage:SetAttribute("BBYAVIPTrack01AssetId",TRACK.assetId)\ntask.delay(9.25,function()\n local group=SoundService:FindFirstChild("BBYAVIPMaster")\n if not group or not group:IsA("SoundGroup") then group=Instance.new("SoundGroup");group.Name="BBYAVIPMaster";group.Parent=SoundService end\n group.Volume=.62\n group:SetAttribute("Venue","VIP")\n group:SetAttribute("BBYALocalZoneOnly",true)\n group:SetAttribute("PlaylistReady",true)\n group:SetAttribute("PlaylistCount",1)\n group:SetAttribute("MusicCatalogState","VIP_TRACK01_ACTIVE")\n local old=SoundService:FindFirstChild("BBYAVIPTrack01"); if old then old:Destroy() end\n local s=Instance.new("Sound")\n s.Name="BBYAVIPTrack01"\n s.SoundId="rbxassetid://"..TRACK.assetId\n s.Volume=.72\n s.Looped=true\n s.SoundGroup=group\n s:SetAttribute("Title",TRACK.title)\n s:SetAttribute("Venue","VIP")\n s:SetAttribute("PlaylistIndex",1)\n s.Parent=SoundService\n s:Play()\n print("[BBYA] VIP Track 01 active:",TRACK.title,TRACK.assetId)\nend)\n'''
           (MAP/'110-vip-track01.server.lua').write_text(vip_script,encoding='utf-8')
 
           project_path=MAP/'default.project.json'
           project=json.loads(project_path.read_text(encoding='utf-8'))
-          sss=project['tree']['ServerScriptService']
-          sss['VIPTrack01AuthorityV1']={'$path':'110-vip-track01.server.lua'}
+          project['tree']['ServerScriptService']['VIPTrack01AuthorityV1']={'$path':'110-vip-track01.server.lua'}
           project_path.write_text(json.dumps(project,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
 
           ui_path=MAP/'109-music-catalog-reset-ui.client.lua'
           ui=ui_path.read_text(encoding='utf-8')
-          marker='local function enforce()\n if not resetActive() then return end'
-          if marker in ui and 'BBYAVIPTrack01Enabled' not in ui:
-              ui=ui.replace(marker,'''local function enforce()\n if not resetActive() then return end''')
-              ui=ui.replace(
-                  ' local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n local musicFrame=playerCard.Parent',
-                  ' local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n local vipActive=v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true\n local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") or "VIP Track 01")\n local musicFrame=playerCard.Parent'
-              )
-              ui=ui.replace(
-                  ' if emptyTitle then emptyTitle.Text=spec.short.." PLAYLIST • 0 TRACKS" end\n if emptySub then emptySub.Text="Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
-                  ' if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" or (spec.short.." PLAYLIST • 0 TRACKS") end\n if emptySub then emptySub.Text=vipActive and vipTitle or "Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end'
-              )
-              ui=ui.replace(
-                  ' panel:SetAttribute("BBYAMusicPlaylistCount",0)',
-                  ' panel:SetAttribute("BBYAMusicPlaylistCount",vipActive and 1 or 0)'
-              )
-              ui=ui.replace(
-                  ' syncPlayerCard(playerCard,spec)\n syncVenueChip(musicFrame,spec)',
-                  ' syncPlayerCard(playerCard,spec)\n if vipActive then\n  for _,d in ipairs(playerCard:GetDescendants()) do\n   if d:IsA("TextLabel") and d.TextSize>=16 and string.upper(d.Text or "")~="NOW PLAYING" then d.Text=vipTitle end\n  end\n end\n syncVenueChip(musicFrame,spec)'
-              )
-              ui_path.write_text(ui,encoding='utf-8')
+          ui=ui.replace(
+              ' local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n local musicFrame=playerCard.Parent',
+              ' local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n local vipActive=v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true\n local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") or "VIP Track 01")\n local musicFrame=playerCard.Parent'
+          )
+          ui=ui.replace(
+              ' if emptyTitle then emptyTitle.Text=spec.short.." PLAYLIST • 0 TRACKS" end\n if emptySub then emptySub.Text="Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
+              ' if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" or (spec.short.." PLAYLIST • 0 TRACKS") end\n if emptySub then emptySub.Text=vipActive and vipTitle or "Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end'
+          )
+          ui=ui.replace(' panel:SetAttribute("BBYAMusicPlaylistCount",0)',' panel:SetAttribute("BBYAMusicPlaylistCount",vipActive and 1 or 0)')
+          ui_path.write_text(ui,encoding='utf-8')
 
           report['status']='READY_TO_PUBLISH'
           REPORT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
-          print(json.dumps({'status':report['status'],'assetId':asset_id,'title':TRACK_TITLE,'bbyaPermission':bbya_ok,'amStudioPermission':am_ok},ensure_ascii=False))
+          print(json.dumps({'status':report['status'],'assetId':asset_id,'keyName':key_name},ensure_ascii=False))
           PY
 
-      - name: Persist resolved VIP Track 01 source
-        if: success()
+      - name: Persist result
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'ACC Roblox Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add maps/bbya-social-hub/109-music-catalog-reset.server.lua maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/default.project.json deploy-status/bbya-vip-track01.json
+          git add deploy-status/bbya-vip-track01-key.json deploy-status/bbya-vip-track01.json maps/bbya-social-hub/109-music-catalog-reset.server.lua maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/default.project.json 2>/dev/null || true
           if ! git diff --cached --quiet; then
-            git commit -m 'Inject Track 01 into BBYA VIP and grant AM Studio use [skip ci]'
+            git commit -m 'Record BBYA VIP Track 01 uploader result [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
-          fi
-
-      - name: Persist failed resolution report
-        if: failure()
-        shell: bash
-        run: |
-          if [ -f deploy-status/bbya-vip-track01.json ]; then
-            git config user.name 'ACC Roblox Deploy Bot'
-            git config user.email 'actions@users.noreply.github.com'
-            git add deploy-status/bbya-vip-track01.json
-            if ! git diff --cached --quiet; then
-              git commit -m 'Record BBYA VIP Track 01 resolution result [skip ci]'
-              git pull --rebase origin main
-              git push origin HEAD:main
-            fi
           fi
 
       - name: Setup Node
