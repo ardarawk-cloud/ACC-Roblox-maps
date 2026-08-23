@@ -1,4 +1,4 @@
--- BECAK E-BIKE city polish v1.1
+-- BECAK E-BIKE city polish v1.2
 -- Dedicated Nusakarya visual pass: breaks up primitive/blockout silhouettes without touching gameplay collision.
 
 local Workspace = game:GetService("Workspace")
@@ -56,11 +56,23 @@ local roofPalette = {
     Color3.fromRGB(93,55,46),
     Color3.fromRGB(70,78,73),
 }
+local storefrontPalette = {
+    Color3.fromRGB(106,64,45),
+    Color3.fromRGB(49,83,68),
+    Color3.fromRGB(48,72,94),
+    Color3.fromRGB(124,87,43),
+    Color3.fromRGB(88,58,78),
+}
+
+local function nameSeed(name)
+    local seed = 0
+    for i=1,#name do seed += string.byte(name,i) end
+    return seed
+end
 
 local function addRoofSilhouette(detail, model, body)
     local size, cf = body.Size, body.CFrame
-    local seed = 0
-    for i=1,#model.Name do seed += string.byte(model.Name,i) end
+    local seed = nameSeed(model.Name)
     local roofColor = roofPalette[(seed % #roofPalette)+1]
     local roofY = size.Y/2 + 1.2
 
@@ -79,6 +91,36 @@ local function addRoofSilhouette(detail, model, body)
         local capD = math.min(size.Z*0.40,18)
         visualPart(detail,"RoofServiceCore",Vector3.new(capW,3.2,capD),cf*CFrame.new(size.X*0.16,size.Y/2+2.0,0),Color3.fromRGB(94,96,91),Enum.Material.Concrete)
         visualPart(detail,"RoofVent",Vector3.new(2.2,2.8,2.2),cf*CFrame.new(-size.X*0.22,size.Y/2+1.7,0),Color3.fromRGB(61,66,68),Enum.Material.Metal)
+    end
+end
+
+local function addStorefrontIdentity(detail, model, body)
+    local size, cf = body.Size, body.CFrame
+    local seed = nameSeed(model.Name)
+    local accent = storefrontPalette[(seed % #storefrontPalette)+1]
+    local commercial = model.Name:find("Ruko") or model.Name=="Mall" or model.Name=="Hotel" or model.Name=="Terminal" or model.Name=="RumahSakit" or model.Name=="Sekolah" or model.Name=="Factory"
+    if not commercial then return end
+
+    local frontage = math.min(size.X*0.76, 28)
+    local canopyWidth = math.max(10, frontage)
+    local canopy = awning(detail,cf*CFrame.new(0,-size.Y/2+8.4,-size.Z/2-2.15),canopyWidth,accent)
+    canopy.Name = "StorefrontCanopy"
+
+    local bladeX = math.min(size.X/2-2.2, 11)
+    visualPart(detail,"BladeSign",Vector3.new(0.5,4.8,2.8),cf*CFrame.new(bladeX,-size.Y/2+10.5,-size.Z/2-1.65),accent,Enum.Material.Metal)
+
+    local pillarOffset = math.min(size.X*0.31, 10)
+    for _,x in ipairs({-pillarOffset,pillarOffset}) do
+        local col = visualPart(detail,"RoundEntryColumn",Vector3.new(1.15,8.6,1.15),cf*CFrame.new(x,-size.Y/2+4.3,-size.Z/2-0.8),Color3.fromRGB(78,75,68),Enum.Material.Concrete,Enum.PartType.Cylinder)
+        col.CFrame = cf*CFrame.new(x,-size.Y/2+4.3,-size.Z/2-0.8)*CFrame.Angles(0,0,math.rad(90))
+    end
+
+    local panelCount = math.clamp(math.floor(frontage/7),2,4)
+    for i=1,panelCount do
+        local x = -frontage/2 + (i-0.5)*(frontage/panelCount)
+        local glass = visualPart(detail,"StoreGlass",Vector3.new(frontage/panelCount-0.65,5.4,0.22),cf*CFrame.new(x,-size.Y/2+4.0,-size.Z/2-0.5),Color3.fromRGB(65,103,111),Enum.Material.Glass)
+        glass.Transparency = 0.28
+        visualPart(detail,"StoreMullion",Vector3.new(0.18,5.7,0.32),glass.CFrame*CFrame.new((frontage/panelCount)/2,0,0),Color3.fromRGB(47,49,48),Enum.Material.Metal)
     end
 end
 
@@ -119,7 +161,9 @@ local function facade(model)
     local houseIndex = tonumber(model.Name:match("Rumah_(%d+)"))
     if commercial or (houseIndex and houseIndex%3==0) then
         visualPart(detail,"Entrance",Vector3.new(math.min(9,size.X*0.25),7,0.35),cf*CFrame.new(0,-size.Y/2+3.5,-size.Z/2-0.22),Color3.fromRGB(46,49,50),Enum.Material.Glass)
-        awning(detail,cf*CFrame.new(0,-size.Y/2+8,-size.Z/2-2.0),math.min(16,size.X*0.48),Color3.fromRGB(112,75,54))
+        if not commercial then
+            awning(detail,cf*CFrame.new(0,-size.Y/2+8,-size.Z/2-2.0),math.min(16,size.X*0.48),Color3.fromRGB(112,75,54))
+        end
         if commercial then
             local entryW = math.min(12,size.X*0.34)
             visualPart(detail,"EntryPierL",Vector3.new(0.7,8.4,0.65),cf*CFrame.new(-entryW/2,-size.Y/2+4.2,-size.Z/2-0.35),Color3.fromRGB(86,79,69),Enum.Material.Brick)
@@ -129,6 +173,7 @@ local function facade(model)
 
     visualPart(detail,"CorniceFront",Vector3.new(size.X+2.8,0.55,0.75),cf*CFrame.new(0,size.Y/2+0.65,-size.Z/2-0.35),Color3.fromRGB(72,70,66),Enum.Material.Concrete)
     addRoofSilhouette(detail,model,body)
+    addStorefrontIdentity(detail,model,body)
     return true
 end
 
@@ -144,6 +189,7 @@ local streets = {
     {axis="z", fixed=28, from=-500, to=500, step=70},
 }
 local streetCount = 0
+local furnitureCount = 0
 for laneIndex,s in ipairs(streets) do
     local sequence = 0
     for v=s.from,s.to,s.step do
@@ -159,16 +205,31 @@ for laneIndex,s in ipairs(streets) do
             visualPart(polish,"Shrub",Vector3.new(3.6,2.4,3.6),CFrame.new(x+3.2,1.2,z),Color3.fromRGB(63,126,64),Enum.Material.Grass,Enum.PartType.Ball)
         end
         visualPart(polish,"Bollard",Vector3.new(0.75,2.4,0.75),CFrame.new(x+5,1.35,z),Color3.fromRGB(48,52,54),Enum.Material.Metal,Enum.PartType.Cylinder)
+
+        -- Every other cluster receives rounded street furniture so sidewalks do not read as repeated boxes.
+        if sequence % 2 == 1 then
+            local lampX = x-4.5
+            local pole = visualPart(polish,"LampPole",Vector3.new(0.45,8.8,0.45),CFrame.new(lampX,4.6,z),Color3.fromRGB(46,49,50),Enum.Material.Metal,Enum.PartType.Cylinder)
+            pole.CFrame = CFrame.new(lampX,4.6,z)*CFrame.Angles(0,0,math.rad(90))
+            visualPart(polish,"LampHead",Vector3.new(1.65,0.65,1.65),CFrame.new(lampX,9.0,z),Color3.fromRGB(212,205,170),Enum.Material.Glass,Enum.PartType.Ball)
+            local planter = visualPart(polish,"RoundPlanter",Vector3.new(3.4,1.2,3.4),CFrame.new(x+4.2,0.7,z+3.0),Color3.fromRGB(90,73,58),Enum.Material.Brick,Enum.PartType.Cylinder)
+            planter.CFrame = CFrame.new(x+4.2,0.7,z+3.0)*CFrame.Angles(0,0,math.rad(90))
+            visualPart(polish,"PlanterCrown",Vector3.new(3.0,2.2,3.0),CFrame.new(x+4.2,1.9,z+3.0),Color3.fromRGB(55,118,61),Enum.Material.Grass,Enum.PartType.Ball)
+            furnitureCount += 2
+        end
         streetCount += 1
     end
 end
 
--- Compatibility marker kept at v1.0 until the dedicated build validator is version-bumped.
+-- Compatibility marker retained for the current dedicated builder; enhancement marker carries the visual revision.
 world:SetAttribute("ACC_BecakCityPolish","v1.0")
-world:SetAttribute("BecakCityPolishEnhancement","v1.1")
+world:SetAttribute("BecakCityPolishEnhancement","v1.2")
 world:SetAttribute("BecakAntiBlockoutFacades","ON")
 world:SetAttribute("BecakPitchedRoofSilhouettes","ON")
 world:SetAttribute("BecakFacadeDepthPass","ON")
+world:SetAttribute("BecakStorefrontIdentityPass","ON")
+world:SetAttribute("BecakRoundedStreetFurniture","ON")
 world:SetAttribute("BecakVariedVegetation","ON")
 world:SetAttribute("BecakCityPolishBuildingCount",buildingCount)
 world:SetAttribute("BecakCityPolishStreetClusters",streetCount)
+world:SetAttribute("BecakCityPolishFurnitureCount",furnitureCount)
