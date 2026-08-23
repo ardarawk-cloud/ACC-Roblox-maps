@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v3
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v4
 -- Each music channel is audible only inside its own physical venue.
--- VIP is now a separate channel instead of inheriting Main Club audio.
+-- VIP is a separate channel. Compact Music v7 can mute locally through BBYAMusicMuted.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -23,9 +23,9 @@ local gates={}
 local muteButton
 
 local function ensureGate(key,g)
- local gate=g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
+ local gate=g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
  if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
- if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Name="BBYAVenueGateV3";gate.Parent=g else gate.Name="BBYAVenueGateV3" end
+ if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Name="BBYAVenueGateV4";gate.Parent=g else gate.Name="BBYAVenueGateV4" end
  gate.Enabled=true;gates[key]=gate;return gate
 end
 local function resolveGroups()
@@ -47,6 +47,7 @@ local function resolveMuteButton()
  end
 end
 local function locallyMuted()
+ if player:GetAttribute("BBYAMusicMuted")==true then return true end
  local b=resolveMuteButton()
  return b and string.upper(b.Text or "")=="UNMUTE LOCAL" or false
 end
@@ -90,14 +91,15 @@ end
 
 local function bindMute()
  local b=resolveMuteButton()
- if b and not b:GetAttribute("BBYAAudioMuteGuardV3") then
-  b:SetAttribute("BBYAAudioMuteGuardV3",true)
+ if b and not b:GetAttribute("BBYAAudioMuteGuardV4") then
+  b:SetAttribute("BBYAAudioMuteGuardV4",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()task.defer(enforce)end)
  end
 end
 SoundService.ChildAdded:Connect(function(child)if child:IsA("SoundGroup") then task.defer(enforce)end end)
 pg.ChildAdded:Connect(function()task.defer(function()bindMute();enforce()end)end)
 player.CharacterAdded:Connect(function()task.delay(.35,enforce)end)
+player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function()task.defer(enforce)end)
 
 local acc=0
 RunService.Heartbeat:Connect(function(dt)
@@ -106,4 +108,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v3: MAIN / UNDERGROUND / VIP / FUNKOT / SKATEPARK / ROOFTOP isolated")
+print("[BBYA] Strict venue audio router v4: six venue isolation + compact local mute")

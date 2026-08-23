@@ -1,0 +1,70 @@
+name: BBYA Compact Music v7 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/103-music-ui-final.client.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-compact-music-v7-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-music-v7.rbxl
+          test -s /tmp/bbya-compact-music-v7.rbxl
+      - name: Validate compact music authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ui='maps/bbya-social-hub/103-music-ui-final.client.lua'
+          router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
+
+          grep -q 'COMPACT MUSIC UI FINAL AUTHORITY v7' "$ui"
+          grep -q 'CompactMusicCardV7' "$ui"
+          grep -q 'PlaylistDrawerV7' "$ui"
+          grep -q 'TrackCover' "$ui"
+          grep -q 'PlaylistButtonV7' "$ui"
+          grep -q 'REQUEST' "$ui"
+          grep -q 'PlaylistScrollerV7' "$ui"
+          grep -q 'PLAYLIST KOSONG' "$ui"
+          grep -q 'BELUM ADA LAGU' "$ui"
+          grep -q 'legacyMusicFrame.Visible=false' "$ui"
+          grep -q 'visualAcc<1/20' "$ui"
+          grep -q 'PlaybackLoudness' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.43),340,470)' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.53),350,580)' "$ui"
+          grep -q 'VIP={label="VIP"' "$ui"
+          grep -q 'SKATEPARK={label="SKATEPARK"' "$ui"
+          grep -q 'ROOFTOP={label="ROOFTOP"' "$ui"
+          grep -q 'resetActive()' "$ui"
+          grep -q 'BBYAMusicMuted' "$ui"
+
+          grep -q 'STRICT VENUE AUDIO ROUTER v4' "$router"
+          grep -q 'player:GetAttribute("BBYAMusicMuted")' "$router"
+          grep -q 'VIP={name="BBYAVIPMaster"}' "$router"
+
+          if grep -q 'Size=UDim2.fromOffset(760' "$ui"; then
+            echo 'Old oversized 760px music dashboard returned.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA Compact Music v7 QC passed.'
