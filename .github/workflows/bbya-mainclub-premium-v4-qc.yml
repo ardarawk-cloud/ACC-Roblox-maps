@@ -1,10 +1,12 @@
-name: BBYA Main Club Premium v4 QC
+name: BBYA Main Club Premium v5 QC
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/120-mainclub-premium-v4.server.lua'
+      - 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'
+      - 'maps/bbya-social-hub/121-mainclub-brand-cleanup.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
       - '.github/workflows/bbya-mainclub-premium-v4-qc.yml'
   workflow_dispatch:
@@ -34,25 +36,55 @@ jobs:
       - name: Full Rojo build
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mainclub-premium-v4.rbxl
-          test -s /tmp/bbya-mainclub-premium-v4.rbxl
-      - name: Validate Main Club premium pass
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mainclub-premium-v5.rbxl
+          test -s /tmp/bbya-mainclub-premium-v5.rbxl
+      - name: Validate Main Club premium and beauty passes
         shell: bash
         run: |
           set -euo pipefail
-          f='maps/bbya-social-hub/120-mainclub-premium-v4.server.lua'
-          p='maps/bbya-social-hub/default.project.json'
-          grep -q 'MAIN CLUB PREMIUM v4' "$f"
-          grep -q 'MainClubEntranceReveal' "$f"
-          grep -q 'MainBarServiceFinish' "$f"
-          grep -q 'DanceFloorMovingHeads' "$f"
-          grep -q 'MovingHeadFixtures",8' "$f"
-          grep -q 'RearCocktailPockets",4' "$f"
-          grep -q 'StageSideCocktailPockets' "$f"
-          grep -q 'NoGlobalLightingChanges",true' "$f"
-          grep -q 'AudioUntouched",true' "$f"
-          grep -q 'DJBoothUntouched",true' "$f"
-          grep -q 'MainClubPremiumV4' "$p"
-          grep -q '120-mainclub-premium-v4.server.lua' "$p"
-          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)' "$f"
-          ! grep -Eq 'SoundId|SoundGroup|MarketplaceService|TeleportService' "$f"
+          premium='maps/bbya-social-hub/120-mainclub-premium-v4.server.lua'
+          beauty='maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'
+          brand='maps/bbya-social-hub/121-mainclub-brand-cleanup.client.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'MAIN CLUB PREMIUM v4' "$premium"
+          grep -q 'MainClubEntranceReveal' "$premium"
+          grep -q 'MainBarServiceFinish' "$premium"
+          grep -q 'DanceFloorMovingHeads' "$premium"
+          grep -q 'MovingHeadFixtures",8' "$premium"
+          grep -q 'RearCocktailPockets",4' "$premium"
+          grep -q 'StageSideCocktailPockets' "$premium"
+          grep -q 'NoGlobalLightingChanges",true' "$premium"
+          grep -q 'AudioUntouched",true' "$premium"
+          grep -q 'DJBoothUntouched",true' "$premium"
+
+          grep -q 'MAIN CLUB BEAUTY v5' "$beauty"
+          grep -q 'LocalBrightnessOnly",true' "$beauty"
+          grep -q 'GlobalLightingUntouched",true' "$beauty"
+          grep -q 'AudioUntouched",true' "$beauty"
+          grep -q 'StageUntouched",true' "$beauty"
+          grep -q 'DJBoothUntouched",true' "$beauty"
+          grep -q 'VIPUntouched",true' "$beauty"
+          grep -q 'MallUntouched",true' "$beauty"
+          grep -q 'RestroomUntouched",true' "$beauty"
+          grep -q 'MonetizationUntouched",true' "$beauty"
+          grep -q 'CeilingFillCount",6' "$beauty"
+          grep -q 'BarPendantCount",3' "$beauty"
+          grep -q 'MainClubCeilingFill' "$beauty"
+          grep -q 'MainClubLocalFill' "$beauty"
+
+          grep -q 'MAIN CLUB BRAND CLEANUP v1' "$brand"
+          grep -q 'BBYAMainClubSingleBrand' "$brand"
+          grep -q 'label.Text="BBYA"' "$brand"
+
+          grep -q 'MainClubPremiumV4' "$project"
+          grep -q '120-mainclub-premium-v4.server.lua' "$project"
+          grep -q 'MainClubBeautyV5' "$project"
+          grep -q '121-mainclub-beauty-v5.server.lua' "$project"
+          grep -q 'MainClubBrandCleanupV1' "$project"
+          grep -q '121-mainclub-brand-cleanup.client.lua' "$project"
+
+          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)' "$premium" "$beauty" "$brand"
+          ! grep -Eq 'SoundId|SoundGroup|MarketplaceService|TeleportService' "$premium" "$beauty" "$brand"
+
+          echo 'BBYA Main Club Premium v5 QC passed.'
