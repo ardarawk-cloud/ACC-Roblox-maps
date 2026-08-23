@@ -65,7 +65,7 @@ end
 local pageTitle=findTitleLabel();local pageSub=findSubtitle();local nowTitle=findNowTitle();local nowMeta=findMeta();local libHead=findLibraryHead()
 
 local venueBadge=panel:FindFirstChild("VenueBadgeV4") or Instance.new("TextLabel")
-venueBadge.Name="VenueBadgeV4";venueBadge.AnchorPoint=Vector2.new(1,0);venueBadge.Position=UDim2.new(1,-68,0,44);venueBadge.Size=UDim2.fromOffset(112,26);venueBadge.BackgroundColor3=C.card2;venueBadge.BorderSizePixel=0;venueBadge.TextColor3=C.white;venueBadge.Font=Enum.Font.GothamBold;venueBadge.TextSize=9;venueBadge.ZIndex=70;venueBadge.Parent=panel;corner(venueBadge,9);stroke(venueBadge,C.pink,.52)
+venueBadge.Name="VenueBadgeV4";venueBadge.AnchorPoint=Vector2.new(1,0);venueBadge.Position=UDim2.new(1,-68,0,58);venueBadge.Size=UDim2.fromOffset(112,26);venueBadge.BackgroundColor3=C.card2;venueBadge.BorderSizePixel=0;venueBadge.TextColor3=C.white;venueBadge.Font=Enum.Font.GothamBold;venueBadge.TextSize=9;venueBadge.ZIndex=70;venueBadge.Parent=panel;corner(venueBadge,9);stroke(venueBadge,C.pink,.52)
 
 -- Main / Underground playlist scroller is created by 31-club-ui. Keep it front-and-center.
 local nativeScrollers={}
