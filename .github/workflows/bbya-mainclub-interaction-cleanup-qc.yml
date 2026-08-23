@@ -1,0 +1,45 @@
+name: BBYA Main Club Interaction Cleanup QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/115-mainclub-interaction-cleanup.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-mainclub-interaction-cleanup-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mainclub-interactions.rbxl
+          test -s /tmp/bbya-mainclub-interactions.rbxl
+      - name: Validate interaction cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/115-mainclub-interaction-cleanup.server.lua'
+          manifest='maps/bbya-social-hub/default.project.json'
+          grep -q 'MainClubInteractionCleanupV1' "$f"
+          grep -q 'AUTO_SEAT' "$f"
+          grep -q 'DJRequestInteract' "$f"
+          grep -q 'VIP Banquette' "$f"
+          grep -q 'MainClubInteractionCleanupV1' "$manifest"
+          grep -q '115-mainclub-interaction-cleanup.server.lua' "$manifest"
+          echo 'BBYA Main Club interaction cleanup QC passed.'
