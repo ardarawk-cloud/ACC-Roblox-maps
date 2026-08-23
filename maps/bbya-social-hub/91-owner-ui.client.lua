@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — OWNER UI COMPATIBILITY + ROLE PANEL v7
+-- BBYA SOCIAL HUB — OWNER UI COMPATIBILITY + ROLE PANEL v8
 -- Keeps existing panels mobile-safe and exposes a compact role manager only to authorized owner/admin accounts.
+-- Command Menu v7 is the sole position authority for normal feature panels.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -28,7 +29,9 @@ local function stabilize()
   for _,name in ipairs({"DancePanel","CarryPanel"}) do
    local p=social:FindFirstChild(name)
    if p and p:IsA("Frame") then
-    p.AnchorPoint=Vector2.new(.5,.5);p.Position=UDim2.fromScale(.5,.55);p.Size=UDim2.fromOffset(390,390);p.ClipsDescendants=true;p.ZIndex=100
+    -- Size/scale only. Never write AnchorPoint/Position here; Command Menu v7 owns placement.
+    p.Size=UDim2.fromOffset(390,390);p.ClipsDescendants=true;p.ZIndex=100
+    p:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7")
     scaleFor(p,"BBYAOwnerPanelScaleV7",sc);for _,d in ipairs(p:GetDescendants()) do lift(d) end
    end
   end
@@ -38,7 +41,8 @@ local function stabilize()
  local p=shade and shade:FindFirstChild("CommunityPanel")
  if p and p:IsA("Frame") then
   local sc=touch and math.clamp(math.min(vp.X/760,vp.Y/600),.58,.76) or .86
-  p.AnchorPoint=Vector2.new(.5,.5);p.Position=UDim2.fromScale(.5,.54);p.Size=UDim2.fromOffset(560,480);p.ZIndex=81;scaleFor(p,"BBYAOwnerCommunityScaleV7",sc)
+  -- Size/scale only. Never write AnchorPoint/Position here; Command Menu v7 owns placement.
+  p.Size=UDim2.fromOffset(560,480);p.ZIndex=81;p:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7");scaleFor(p,"BBYAOwnerCommunityScaleV7",sc)
  end
 end
 
@@ -81,6 +85,7 @@ open.AnchorPoint=Vector2.new(0,0);open.TextColor3=C.gold;open.ZIndex=150
 
 local shade=Instance.new("Frame");shade.Name="Shade";shade.Size=UDim2.fromScale(1,1);shade.BackgroundColor3=Color3.new(0,0,0);shade.BackgroundTransparency=.38;shade.Visible=false;shade.BorderSizePixel=0;shade.ZIndex=150;shade.Parent=gui
 local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.52);panel.Size=UDim2.fromOffset(520,390);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.ZIndex=151;panel.Parent=shade;corner(panel,12);stroke(panel,C.stroke,.08)
+panel:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7")
 local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
 
 text(panel,"Title","BBYA ROLE PANEL",UDim2.fromOffset(300,26),UDim2.fromOffset(18,13),Enum.Font.GothamBlack,18,C.white)
@@ -134,7 +139,7 @@ local function renderSnapshot(snap)
   local row=button(list,"P_"..tostring(entry.userId),"",UDim2.new(1,0,0,49),UDim2.new(),C.panel2);row.LayoutOrder=i;row.ZIndex=153
   local n=text(row,"Name",entry.displayName,UDim2.new(1,-78,0,18),UDim2.fromOffset(9,7),Enum.Font.GothamSemibold,12,C.white)
   local u=text(row,"User","@"..entry.username,UDim2.new(1,-78,0,15),UDim2.fromOffset(9,26),Enum.Font.Gotham,9,C.muted)
-  local r=text(row,"Role",entry.role,UDim2.fromOffset(64,18),UDim2.new(1,-71,0,15),Enum.Font.GothamBold,9,roleColor(entry.role),Enum.TextXAlignment.Right)
+  local r=text(row,"Role",entry.role,UDim2.fromOffset(64,18),UDim2.new(1,-71,0,15),UDim2.new(1,-71,0,15) and Enum.Font.GothamBold or Enum.Font.GothamBold,9,roleColor(entry.role),Enum.TextXAlignment.Right)
   n.ZIndex=154;u.ZIndex=154;r.ZIndex=154
   row.Activated:Connect(function()setSelection(entry)end)
   if selectedUserId==entry.userId then keepSelection=entry end
@@ -176,4 +181,4 @@ resizeRolePanel()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeRolePanel) end
 renderSnapshot(snapshot);setSelection(nil)
 
-print("[BBYA] Owner UI v7 online: compact persistent Role Panel enabled for authorized OWNER/ADMIN including @nadmo97")
+print("[BBYA] Owner UI v8 online: size/scale compatibility only; Command Menu v7 owns feature panel placement")
