@@ -5,12 +5,16 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes")
-local Placement = remotes:WaitForChild("Placement")
 
+-- Create the local command bus immediately. Premium UI only waits a bounded
+-- amount of time for this object, so it must not depend on server remote timing.
 local bus = playerGui:FindFirstChild("WP_BuildCommand") or Instance.new("BindableEvent")
 bus.Name = "WP_BuildCommand"
 bus.Parent = playerGui
+player:SetAttribute("WP_BuildPreviewReady", false)
+
+local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes")
+local Placement = remotes:WaitForChild("Placement")
 
 local activeItem, ghost = nil, nil
 local rotation = 0
@@ -135,4 +139,5 @@ Placement.OnClientEvent:Connect(function(action,ok,reason)
     end
 end)
 
-print("[WONDERPOCKET] Own-surface mobile build preview loaded")
+player:SetAttribute("WP_BuildPreviewReady", true)
+print("[WONDERPOCKET] Own-surface mobile build preview ready")
