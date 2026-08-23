@@ -6,7 +6,8 @@
   "policy": {
     "noBatchUpload": true,
     "noAutomaticDuplicateRetry": true,
-    "stopOnModerationRejection": true
+    "stopOnModerationRejection": true,
+    "prepareNextTrackWhileModerating": true
   },
   "tracks": [
     {
@@ -30,6 +31,32 @@
       "bbyaPermission": true,
       "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved"
+    },
+    {
+      "index": 3,
+      "title": "Tyla - Water (Vidojean X Oliver Loenn Amapiano Remix)",
+      "driveFileId": "1_CyhgknlthvqFx4YrurXSM_fSMzSfqcV",
+      "musicalKey": "D# minor / Eb minor",
+      "camelot": "2A",
+      "sourceDurationSeconds": 251.93,
+      "sourceSizeBytes": 4351790,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 4,
+      "title": "Tommy Montana & Not.FX - Lean On (Amapiano Edit)",
+      "driveFileId": "1_CQR3yahBu7QJDMjfb_9eY_lqlcuU_sR",
+      "musicalKey": "G minor",
+      "camelot": "6A",
+      "sourceDurationSeconds": 137.97,
+      "sourceSizeBytes": 2528652,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
