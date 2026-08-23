@@ -30,25 +30,27 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-secondary-ui.rbxl
           test -s /tmp/bbya-compact-secondary-ui.rbxl
-      - name: Validate compact support travel message authority
+      - name: Validate menu-sized support travel message authority
         shell: bash
         run: |
           set -euo pipefail
           ui='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
           manifest='maps/bbya-social-hub/default.project.json'
 
-          grep -q 'COMPACT SECONDARY PANELS v1' "$ui"
-          grep -q 'BBYACompactPage","SUPPORT"' "$ui"
-          grep -q 'BBYACompactPage","TRAVEL"' "$ui"
-          grep -q 'BBYACompactMessage","V1"' "$ui"
-          grep -q 'math.clamp(math.floor(vp.X\*.44),420,560)' "$ui"
-          grep -q 'math.clamp(math.floor(vp.Y\*.56),310,390)' "$ui"
-          grep -q 'grid.FillDirectionMaxCells=twoCols and 2 or 1' "$ui"
-          grep -q 'grid.FillDirectionMaxCells=narrow and 1 or 2' "$ui"
-          grep -q 'math.clamp(math.floor(vp.X\*.39),360,470)' "$ui"
-          grep -q 'math.clamp(math.floor(vp.Y\*.55),320,380)' "$ui"
-          grep -q 'panel.BackgroundTransparency=.24' "$ui"
-          grep -q 'shade.BackgroundTransparency=.62' "$ui"
+          grep -q 'COMPACT SECONDARY PANELS v2' "$ui"
+          grep -q 'FeatureDrawer' "$ui"
+          grep -q 'SUPPORT_MENU_SIZE' "$ui"
+          grep -q 'TRAVEL_MENU_SIZE' "$ui"
+          grep -q 'V2_MENU_SIZE' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.30),296,330)' "$ui"
+          grep -q 'math.clamp(math.floor(vp.X\*.25),304,340)' "$ui"
+          grep -q 'local h=(vp.Y<620) and 286 or 308' "$ui"
+          grep -q 'hub.AnchorPoint=Vector2.new(.5,0)' "$ui"
+          grep -q 'hub.BackgroundTransparency=.34' "$ui"
+          grep -q 'grid.FillDirectionMaxCells=2' "$ui"
+          grep -q 'panel.AnchorPoint=Vector2.new(.5,0)' "$ui"
+          grep -q 'panel.BackgroundTransparency=.34' "$ui"
+          grep -q 'shade.BackgroundTransparency=.70' "$ui"
           grep -q 'CompactSecondaryPanelsV1' "$manifest"
           grep -q '111-compact-secondary-panels.client.lua' "$manifest"
 
@@ -56,5 +58,9 @@ jobs:
             echo 'Compact secondary authority must not own purchase/teleport/message remotes.' >&2
             exit 1
           fi
+          if grep -q '420,560\|360,470\|320,380' "$ui"; then
+            echo 'Old oversized secondary panel sizing returned.' >&2
+            exit 1
+          fi
 
-          echo 'BBYA Compact Secondary UI QC passed.'
+          echo 'BBYA menu-sized secondary UI QC passed.'
