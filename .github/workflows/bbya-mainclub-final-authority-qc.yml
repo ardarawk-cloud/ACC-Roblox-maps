@@ -1,0 +1,52 @@
+name: BBYA Main Club Final Authority QC
+
+on:
+  pull_request:
+    paths:
+      - 'maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
+      - 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
+      - '.github/workflows/bbya-mainclub-final-authority-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/rojo
+          key: rojo-7.7.0-linux
+      - name: Install Rojo
+        run: |
+          if [ ! -x "$HOME/.local/bin/rojo" ]; then
+            mkdir -p "$HOME/.local/bin"
+            curl -L --fail -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+            unzip -o /tmp/rojo.zip -d "$HOME/.local/bin"
+            chmod +x "$HOME/.local/bin/rojo"
+          fi
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Build BBYA place
+        run: rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-final-authority.rbxl
+      - name: Validate final authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
+          grep -q 'MAIN CLUB FINAL AUTHORITY v1' "$F"
+          grep -q 'MainClubFinalAuthorityV1' "$F"
+          grep -q 'SalonLookStudioPremium' "$F"
+          grep -q 'PhotoAreaPremium' "$F"
+          grep -q 'RearSocialRail' "$F"
+          grep -q 'DJBoothGroundedBase' "$F"
+          grep -q 'PureClubFrontExtension' "$F"
+          grep -q 'LookLabAvatarEditorV1' "$F"
+          grep -q 'ClubPurityMallStudiosV1' "$F"
+          grep -q 'DescendantAdded' "$F"
+          ! grep -q 'PHOTO STUDIO LIGHTING UPGRADE' "$F"
+          ! grep -q 'KeySoftbox' "$F"
+          ! grep -q 'OverheadStudioPanel' "$F"
+          ! grep -q 'Vector3.new(-42.0, 4.0, -25.0)' "$F"
+          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)' "$F"
+          ! grep -Eq 'SoundId|SoundGroup|TimePosition' "$F"
+          test -s /tmp/bbya-final-authority.rbxl
