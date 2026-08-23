@@ -1,0 +1,107 @@
+name: BBYA Live Retry 20260824
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-live-retry-20260824.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-live-retry-20260824
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-retry'
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-retry.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe missing'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo unavailable'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Verify Role Panel source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $progress=Get-Content 'maps/bbya-social-hub/92-player-progression.server.lua' -Raw
+          $ui=Get-Content 'maps/bbya-social-hub/91-owner-ui.client.lua' -Raw
+          $travel=Get-Content 'maps/bbya-social-hub/32-teleport.server.lua' -Raw
+          foreach($needle in @('nadmo97','BBYA_MANAGED_ROLES_V1','RolePanelSnapshot','RolePanelAction')){if($progress -notmatch [regex]::Escape($needle)){throw "Missing progression marker: $needle"}}
+          foreach($needle in @('BBYARolePanelUI','RolePanelSnapshot','RolePanelAction')){if($ui -notmatch [regex]::Escape($needle)){throw "Missing UI marker: $needle"}}
+          foreach($needle in @('BBYAVIPBypass','BBYARooftopBypass','BBYASecretRoomBypass')){if($travel -notmatch [regex]::Escape($needle)){throw "Missing travel marker: $needle"}}
+          Write-Host 'ROLE PANEL SOURCE QC PASS'
+
+      - name: Full Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-live-retry-20260824.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Place file missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Place file too small'}
+          "PLACE_FILE_OVERRIDE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS $((Get-Item $place).Length) bytes"
+
+      - name: Publish BBYA live
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/publish-map.js a-club
+          if($LASTEXITCODE -ne 0){throw 'Publish failed'}
+
+      - name: Persist live receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not (Test-Path 'deploy-status/a-club.json')){throw 'Publish receipt missing'}
+          $tmp=Join-Path $env:RUNNER_TEMP 'a-club-live-retry.json'
+          Copy-Item 'deploy-status/a-club.json' $tmp -Force
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          New-Item -ItemType Directory -Path 'deploy-status' -Force | Out-Null
+          Copy-Item $tmp 'deploy-status/a-club.json' -Force
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/a-club.json
+          git diff --cached --quiet
+          if($LASTEXITCODE -ne 0){
+            git commit -m 'Record BBYA one-shot live retry [skip ci]'
+            git push origin HEAD:main
+            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
+          }
+          Write-Host 'BBYA ONE-SHOT LIVE RETRY PASS'
