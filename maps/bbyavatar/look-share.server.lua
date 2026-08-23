@@ -1,7 +1,8 @@
--- BBYAVATAR Look Share v1
+-- BBYAVATAR Look Share v2
 -- Cross-player Style Board sharing using short codes. Persisted payloads contain only
 -- Roblox asset IDs plus creation timestamp; no UserId, names, prices, creator text, or chat data.
--- The server validates every CREATE request against the caller's persistent Saved Picks.
+-- v2 adds bounded positive/negative caches and rolling per-user budgets so random code scans
+-- cannot burn persistent DataStore read budget at one request per second.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -15,6 +16,20 @@ local CREATE_COOLDOWN = 30
 local LOAD_COOLDOWN = 1
 local MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 local ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+
+-- Budget protection. Short per-action cooldowns keep the UI responsive while rolling windows
+-- prevent sustained probing from becoming a DataStore-budget problem.
+local LOAD_WINDOW_SECONDS = 60
+local LOAD_WINDOW_MAX = 12
+local CREATE_WINDOW_SECONDS = 600
+local CREATE_WINDOW_MAX = 3
+
+-- Bounded server-local cache. Positive records change only by expiry, so a short cache is safe.
+-- Negative cache prevents repeated invalid/missing codes from hammering GetAsync.
+local POSITIVE_CACHE_TTL = 120
+local NEGATIVE_CACHE_TTL = 15
+local CACHE_MAX = 256
+
 local rng = Random.new()
 
 local request = rem:FindFirstChild("LookShareRequest")
@@ -26,6 +41,12 @@ end
 
 local lastByUser = {}
 local inFlight = {}
+local loadWindows = {}
+local createWindows = {}
+
+local shareCache = {}
+local cacheOrder = {}
+local cacheSerial = 0
 
 local function cleanId(value)
     local id = tonumber(value)
@@ -49,6 +70,12 @@ local function normalizeIds(value, limit)
     return ids
 end
 
+local function cloneIds(ids)
+    local out = table.create(#ids)
+    for index, id in ipairs(ids) do out[index] = id end
+    return out
+end
+
 local function normalizeCode(value)
     if typeof(value) ~= "string" then return nil end
     local code = string.upper(value):gsub("%s+", "")
@@ -70,6 +97,57 @@ end
 
 local function keyForSaved(player)
     return "u:" .. tostring(player.UserId)
+end
+
+local function withinRollingBudget(store, userId, now, windowSeconds, maxRequests)
+    local state = store[userId]
+    if not state or now - state.startedAt >= windowSeconds then
+        store[userId] = {startedAt = now, count = 1}
+        return true
+    end
+    if state.count >= maxRequests then return false end
+    state.count += 1
+    return true
+end
+
+local function cachePut(code, result, ttl)
+    cacheSerial += 1
+    local serial = cacheSerial
+    shareCache[code] = {
+        value = result,
+        expiresAt = os.clock() + ttl,
+        serial = serial,
+    }
+    table.insert(cacheOrder, {code = code, serial = serial})
+
+    while #cacheOrder > CACHE_MAX do
+        local oldest = table.remove(cacheOrder, 1)
+        local current = shareCache[oldest.code]
+        if current and current.serial == oldest.serial then
+            shareCache[oldest.code] = nil
+        end
+    end
+end
+
+local function cacheGet(code)
+    local entry = shareCache[code]
+    if not entry then return nil end
+    if os.clock() >= entry.expiresAt then
+        shareCache[code] = nil
+        return nil
+    end
+    local value = entry.value
+    if typeof(value) ~= "table" then return nil end
+    local copy = {}
+    for key, item in pairs(value) do
+        if key == "ids" and typeof(item) == "table" then
+            copy.ids = cloneIds(item)
+        else
+            copy[key] = item
+        end
+    end
+    copy.cacheHit = true
+    return copy
 end
 
 local function validateOwnedSavedPicks(player, submitted)
@@ -105,7 +183,9 @@ local function createShare(player, submitted)
             end)
         end)
         if ok and wrote and typeof(result) == "table" and result.nonce == nonce then
-            return {ok=true, code=code, count=#ids}
+            local response = {ok=true, code=code, count=#ids}
+            cachePut(code, {ok=true, code=code, ids=cloneIds(ids), count=#ids}, POSITIVE_CACHE_TTL)
+            return response
         end
     end
     return {ok=false, code="CODE_ALLOCATION_FAILED"}
@@ -114,18 +194,37 @@ end
 local function loadShare(rawCode)
     local code = normalizeCode(rawCode)
     if not code then return {ok=false, code="INVALID_CODE"} end
+
+    local cached = cacheGet(code)
+    if cached then return cached end
+
     local ok, value = pcall(function()
         return SHARE_STORE:GetAsync("c:" .. code)
     end)
     if not ok then return {ok=false, code="DATASTORE_READ_FAILED"} end
-    if typeof(value) ~= "table" then return {ok=false, code="NOT_FOUND"} end
+    if typeof(value) ~= "table" then
+        local miss = {ok=false, code="NOT_FOUND"}
+        cachePut(code, miss, NEGATIVE_CACHE_TTL)
+        return miss
+    end
+
     local createdAt = tonumber(value.createdAt) or 0
     if createdAt <= 0 or os.time() - createdAt > MAX_AGE_SECONDS then
-        return {ok=false, code="EXPIRED"}
+        local expired = {ok=false, code="EXPIRED"}
+        cachePut(code, expired, NEGATIVE_CACHE_TTL)
+        return expired
     end
+
     local ids = normalizeIds(value.ids, MAX_ITEMS)
-    if #ids == 0 then return {ok=false, code="EMPTY_LOOK"} end
-    return {ok=true, code=code, ids=ids, count=#ids}
+    if #ids == 0 then
+        local empty = {ok=false, code="EMPTY_LOOK"}
+        cachePut(code, empty, NEGATIVE_CACHE_TTL)
+        return empty
+    end
+
+    local response = {ok=true, code=code, ids=ids, count=#ids}
+    cachePut(code, response, POSITIVE_CACHE_TTL)
+    return response
 end
 
 request.OnServerInvoke = function(player, action, payload)
@@ -139,6 +238,15 @@ request.OnServerInvoke = function(player, action, payload)
     local now = os.clock()
     local cooldown = action == "CREATE" and CREATE_COOLDOWN or LOAD_COOLDOWN
     if now - (state[action] or 0) < cooldown then return {ok=false, code="THROTTLED"} end
+
+    local budgetOk
+    if action == "CREATE" then
+        budgetOk = withinRollingBudget(createWindows, userId, now, CREATE_WINDOW_SECONDS, CREATE_WINDOW_MAX)
+    else
+        budgetOk = withinRollingBudget(loadWindows, userId, now, LOAD_WINDOW_SECONDS, LOAD_WINDOW_MAX)
+    end
+    if not budgetOk then return {ok=false, code="RATE_LIMITED"} end
+
     if inFlight[userId] then return {ok=false, code="BUSY"} end
     state[action] = now
     inFlight[userId] = true
@@ -153,13 +261,21 @@ request.OnServerInvoke = function(player, action, payload)
 end
 
 Players.PlayerRemoving:Connect(function(player)
-    lastByUser[player.UserId] = nil
-    inFlight[player.UserId] = nil
+    local userId = player.UserId
+    lastByUser[userId] = nil
+    inFlight[userId] = nil
+    loadWindows[userId] = nil
+    createWindows[userId] = nil
 end)
 
-root:SetAttribute("LookShareRevision", "V1_SERVER_VALIDATED_CODES")
+root:SetAttribute("LookShareRevision", "V2_BUDGET_GUARDED_CACHE")
 root:SetAttribute("LookShareMaxItems", MAX_ITEMS)
 root:SetAttribute("LookShareCodeLength", CODE_LENGTH)
 root:SetAttribute("LookShareMaxAgeDays", math.floor(MAX_AGE_SECONDS / 86400))
 root:SetAttribute("LookSharePrivacy", "ASSET_IDS_AND_TIMESTAMP_ONLY_NO_USERID")
-print("[BBYAVATAR] Look Share v1 server-validated privacy-minimal codes ready")
+root:SetAttribute("LookSharePositiveCacheTTL", POSITIVE_CACHE_TTL)
+root:SetAttribute("LookShareNegativeCacheTTL", NEGATIVE_CACHE_TTL)
+root:SetAttribute("LookShareCacheMax", CACHE_MAX)
+root:SetAttribute("LookShareLoadBudgetPerMinute", LOAD_WINDOW_MAX)
+root:SetAttribute("LookShareCreateBudgetPer10Minutes", CREATE_WINDOW_MAX)
+print("[BBYAVATAR] Look Share v2 budget-guarded cache ready")
