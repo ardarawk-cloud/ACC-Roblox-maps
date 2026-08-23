@@ -1,0 +1,57 @@
+name: BBYA Club Match + Mobile Music QC
+
+on:
+  pull_request:
+    paths:
+      - 'maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
+      - 'maps/bbya-social-hub/114-venue-aware-menu-music.client.lua'
+      - '.github/workflows/bbya-club-match-mobile-music-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/rojo
+          key: rojo-7.7.0-linux
+      - name: Install Rojo
+        run: |
+          if [ ! -x "$HOME/.local/bin/rojo" ]; then
+            mkdir -p "$HOME/.local/bin"
+            curl -L --fail -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+            unzip -o /tmp/rojo.zip -d "$HOME/.local/bin"
+            chmod +x "$HOME/.local/bin/rojo"
+          fi
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Build BBYA place
+        run: rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-club-match-mobile-music.rbxl
+      - name: Validate matching lounge
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='maps/bbya-social-hub/67-photo-studio-lighting.server.lua'
+          grep -q 'FrontExtensionMatchesMainClub' "$F"
+          grep -q 'BuiltInVIPContinuation' "$F"
+          grep -q 'matchingBanquette(1,-28)' "$F"
+          grep -q 'matchingBanquette(2,-14)' "$F"
+          grep -q 'LeftBronzeDatumContinuation' "$F"
+          grep -q 'DJBoothGroundedBase' "$F"
+          ! grep -q 'ball("Seat' "$F"
+      - name: Validate mobile-safe music controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='maps/bbya-social-hub/114-venue-aware-menu-music.client.lua'
+          grep -q 'VENUE-AWARE MENU MUSIC v2' "$F"
+          grep -q 'BBYAMobileControlsGuard' "$F"
+          grep -q 'AdminNextV7' "$F"
+          grep -q 'card.ClipsDescendants=true' "$F"
+          grep -q 'maxRight=cw-pad' "$F"
+          grep -q 'nextBtn.Position=UDim2.fromOffset' "$F"
+          grep -q 'ROOFTOP="ROOFTOP"' "$F"
+          ! grep -Eq 'SoundId|TimePosition|SoundGroup' "$F"
+          ! grep -q 'FireServer' "$F"
+          test -s /tmp/bbya-club-match-mobile-music.rbxl
