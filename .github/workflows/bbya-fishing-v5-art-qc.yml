@@ -1,0 +1,86 @@
+name: BBYA Fishing Art v5 QC
+
+on:
+  push:
+    branches: [feature/bbya-fishing-v5-art]
+    paths:
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua'
+      - '.github/workflows/bbya-fishing-v5-art-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua'
+      - '.github/workflows/bbya-fishing-v5-art-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout v5 art branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static fish art checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua'
+          $text=Get-Content $path -Raw
+          function Require([string]$pattern,[string]$message){if($text -notmatch $pattern){throw $message}}
+          function Forbid([string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          Require 'GripDirectionFixedV5' 'Rod grip direction correction missing'
+          Require 'math\.rad\(248\)' 'Rod 180-degree grip flip missing'
+          Require 'SpeciesSpecificCatchArtV5' 'Species-specific art marker missing'
+          Require 'FishingChanceMathUntouchedV5' 'Chance-math protection marker missing'
+          Require 'buildGourami' 'Gourami silhouette missing'
+          Require 'buildCatfish' 'Catfish silhouette missing'
+          Require 'buildKoi' 'Koi silhouette missing'
+          Require 'buildArowana' 'Arowana/Arapaima silhouette missing'
+          Require 'buildRay' 'Ray silhouette missing'
+          Require 'buildLeviathan' 'Leviathan silhouette missing'
+          Require 'VentralFeelers' 'Gourami feelers missing'
+          Require 'Whisker' 'Catfish whiskers missing'
+          Require 'KoiPatch' 'Koi color pattern geometry missing'
+          Require 'BassBand' 'Peacock bass banding missing'
+          Require 'LongDorsal' 'Arowana/Arapaima fin profile missing'
+          Require 'RayStinger' 'Ray stinger profile missing'
+          Require 'Horn' 'Leviathan head silhouette missing'
+          Require 'tailParts' 'Catch tail motion missing'
+          Require 'MutationV4' 'Mutation visual compatibility missing'
+          Require 'SizeGradeV4' 'Size-grade compatibility missing'
+          Forbid 'chance\s*=' 'V5 art pass must not define or alter fish chance values'
+          Write-Host 'Fishing Art v5 static QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojoExe=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-v5art'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-v5art.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full canonical BBYA build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-v5-art-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Built place unexpectedly small'}
+          Write-Host "Fishing Art v5 canonical build PASS: $((Get-Item $place).Length) bytes"
