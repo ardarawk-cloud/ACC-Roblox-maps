@@ -1,5 +1,5 @@
 {
-  "status": "READY_TO_INJECT",
+  "status": "LIVE_PUBLISHED",
   "readyToInject": true,
   "playlistId": "vip-amapiano",
   "trackIndex": 2,
@@ -102,6 +102,20 @@
         136681158481930
       ],
       "errors": []
+    }
+  },
+  "restartHttp": "200",
+  "publishReceipt": {
+    "status": "PUBLISHED",
+    "mapId": "a-club",
+    "name": "BBYA Social Hub",
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "sourceCommit": "657d490d33e8591498341a68710d4c2372003c7b",
+    "publishedAt": "2026-08-23T15:52:06.604Z",
+    "publishedFile": "/tmp/bbya-vip-track02.rbxl",
+    "response": {
+      "versionNumber": 381
     }
   }
 }

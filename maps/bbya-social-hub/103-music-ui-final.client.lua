@@ -142,11 +142,14 @@ local function showToast(text)
  task.delay(1.8,function()if toastToken==token then toast.Visible=false end end)
 end
 
-local VIP_TRACK={title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263"}
+local VIP_TRACKS={
+ {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
+ {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"}
+}
 local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
 local function effectiveTracks(v)
- if v=="VIP" then return {VIP_TRACK} end
+ if v=="VIP" then return VIP_TRACKS end
  if resetActive() then return {} end
  return (state[v] and state[v].tracks) or {}
 end
@@ -167,12 +170,15 @@ local function refreshAdmin()
 end
 local function refreshCard()
  local v,spec=currentSpec();local s=state[v] or state.NONE;local tracks=effectiveTracks(v)
- local vipTrack=(v=="VIP" and tracks[1]) or nil
+ local vipIndex=tonumber(ReplicatedStorage:GetAttribute("BBYAVIPCurrentIndex")) or 1
+ local vipTrack=(v=="VIP" and tracks[vipIndex]) or nil
+ if v=="VIP" and not vipTrack and #tracks>0 then vipTrack=tracks[1] end
+ local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPCurrentTitle") or (vipTrack and vipTrack.title) or "")
  local empty=(resetActive() and v~="VIP") or #tracks==0 or (s.title=="" and not vipTrack)
  cardStroke.Color=spec.accent;coverStroke.Color=spec.accent;drawerStroke.Color=spec.accent;nowSmall.TextColor3=spec.accent;coverVenue.TextColor3=spec.accent
  coverVenue.Text=spec.short
- nowTitle.Text=vipTrack and VIP_TRACK.title or (empty and "BELUM ADA LAGU" or s.title)
- nowMeta.Text=vipTrack and "VIP • 1 TRACK" or (empty and (spec.short.." • PLAYLIST EMPTY") or (spec.short..(s.playing and " • PLAYING" or " • READY")))
+ nowTitle.Text=(v=="VIP" and vipTitle~="") and vipTitle or (empty and "BELUM ADA LAGU" or s.title)
+ nowMeta.Text=v=="VIP" and ("VIP • "..tostring(#tracks)..(#tracks==1 and " TRACK" or " TRACKS")) or (empty and (spec.short.." • PLAYLIST EMPTY") or (spec.short..(s.playing and " • PLAYING" or " • READY")))
  local item=vipTrack or ((s.index>0 and tracks[s.index]) or nil);setCover(v,item,s)
  drawerTitle.Text=spec.short.." PLAYLIST";drawerCount.Text=tostring(#tracks)..(#tracks==1 and " TRACK" or " TRACKS")
  muteBtn.Text=player:GetAttribute("BBYAMusicMuted")==true and "UNMUTE" or "MUTE"
