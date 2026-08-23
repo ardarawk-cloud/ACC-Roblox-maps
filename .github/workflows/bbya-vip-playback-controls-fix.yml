@@ -1,0 +1,143 @@
+name: BBYA VIP Playback Controls Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-vip-playback-controls-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-vip-playback-control-hotfix
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      BBYA_UNIVERSE: '8116636513'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Audit currently live VIP assets only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request, urllib.error
+          regp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          outp=pathlib.Path('deploy-status/bbya-vip-live-asset-audit.json')
+          reg=json.loads(regp.read_text())
+          key=os.environ['AUDIO_KEY']
+          audited=[]
+          for t in reg.get('tracks',[]):
+              if t.get('status') not in {'LIVE_IN_PLAYLIST','READY_TO_INJECT','MODERATION_PENDING'} or not t.get('assetId'):
+                  continue
+              aid=str(t['assetId'])
+              urls=[
+                  f'https://apis.roblox.com/assets/v1/assets/{aid}?readMask=moderationResult,state,displayName',
+                  f'https://apis.roblox.com/assets/v1/assets/{aid}',
+              ]
+              code=0; data={}
+              for url in urls:
+                  req=urllib.request.Request(url,headers={'x-api-key':key})
+                  try:
+                      with urllib.request.urlopen(req,timeout=30) as r:
+                          code=r.status; raw=r.read().decode('utf-8','replace'); data=json.loads(raw) if raw else {}
+                      if code==200: break
+                  except urllib.error.HTTPError as e:
+                      code=e.code
+                      try: data=json.loads(e.read().decode('utf-8','replace'))
+                      except Exception: data={}
+              state=str(((data or {}).get('moderationResult') or {}).get('moderationState') or '')
+              old=t.get('status')
+              if state:
+                  t['moderationLastKnown']=state
+              up=state.upper()
+              if 'REJECTED' in up or 'DENIED' in up or 'FAILED' in up:
+                  t['status']='MODERATION_REJECTED'; t['bbyaPermission']=False
+              elif 'APPROVED' in up:
+                  if t.get('bbyaPermission') is True and old!='MODERATION_REJECTED':
+                      t['status']='LIVE_IN_PLAYLIST'
+              else:
+                  t['status']='MODERATION_PENDING'
+              audited.append({'index':t.get('index'),'title':t.get('title'),'assetId':aid,'http':code,'moderationState':state,'oldStatus':old,'newStatus':t.get('status')})
+          regp.write_text(json.dumps(reg,indent=2,ensure_ascii=False)+'\n')
+          outp.parent.mkdir(exist_ok=True)
+          outp.write_text(json.dumps({'status':'AUDITED','assets':audited},indent=2,ensure_ascii=False)+'\n')
+          print(json.dumps(audited,indent=2,ensure_ascii=False))
+          PY
+
+      - name: Build persistent VIP controls from audited registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/bbya-vip-amapiano-build.py
+          python3 scripts/bbya-vip-amapiano-build.py
+          grep -q 'VIPMusic' maps/bbya-social-hub/103-music-ui-final.client.lua
+          grep -q 'VIP AMAPIANO PLAYLIST AUTHORITY v5' maps/bbya-social-hub/110-vip-track01.server.lua
+          grep -q 'v=="VIP" then vipRemote:FireServer("next")' maps/bbya-social-hub/103-music-ui-final.client.lua
+          grep -q 'v=="VIP" then vipRemote:FireServer("request",index)' maps/bbya-social-hub/103-music-ui-final.client.lua
+
+      - name: Persist source before publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add \
+            maps/bbya-social-hub/103-music-ui-final.client.lua \
+            maps/bbya-social-hub/110-vip-track01.server.lua \
+            maps/bbya-social-hub/audio-playlists/vip-amapiano.json \
+            deploy-status/bbya-vip-live-asset-audit.json
+          git commit -m 'Wire VIP REQUEST PREV NEXT to playlist authority [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Build and publish fixed VIP playback
+        shell: bash
+        env:
+          PUBLISH_RECEIPT_DIR: /tmp/bbya-vip-playback-receipt
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-playback-fix.rbxl
+          test -s /tmp/bbya-vip-playback-fix.rbxl
+          PLACE_FILE_OVERRIDE=/tmp/bbya-vip-playback-fix.rbxl node scripts/publish-map.js a-club
+          cat /tmp/bbya-vip-playback-receipt/a-club.json
+
+      - name: Restart old BBYA servers
+        shell: bash
+        run: |
+          set -euo pipefail
+          body=/tmp/restart-vip-playback.txt
+          http=$(curl -sS -o "$body" -w '%{http_code}' -X POST \
+            "https://apis.roblox.com/cloud/v2/universes/${BBYA_UNIVERSE}:restartServers" \
+            -H "x-api-key: ${ROBLOX_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -d '{}')
+          echo "restart HTTP $http"
+          cat "$body" || true
+          test "$http" = '200'
