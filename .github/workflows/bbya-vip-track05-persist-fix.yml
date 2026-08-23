@@ -1,0 +1,115 @@
+name: BBYA VIP Track 05 Persist Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-vip-track05-persist-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-vip-track05-persist-fix
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      BBYA_UNIVERSE: '8116636513'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Lock approved Track 05 into VIP registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, sys
+          regp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          rep=pathlib.Path('deploy-status/bbya-vip-track05.json')
+          reg=json.loads(regp.read_text())
+          d=json.loads(rep.read_text())
+          if d.get('assetId')!='131557279061872' or d.get('moderationState')!='Approved' or d.get('readyToInject') is not True:
+              raise SystemExit('Track 05 approved checkpoint not present; refusing to reupload or guess')
+          found=False
+          for t in reg.get('tracks',[]):
+              if int(t.get('index',0))==5:
+                  found=True
+                  t['assetId']='131557279061872'
+                  t['bbyaPermission']=True
+                  t['moderationLastKnown']='Approved'
+                  t['status']='LIVE_IN_PLAYLIST'
+          if not found: raise SystemExit('Track 05 missing from registry')
+          regp.write_text(json.dumps(reg,indent=2,ensure_ascii=False)+'\n')
+          PY
+          python3 scripts/bbya-vip-amapiano-build.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Republish current 3-track VIP authority
+        shell: bash
+        env:
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-track05-persist.rbxl
+          test -s /tmp/bbya-vip-track05-persist.rbxl
+          PLACE_FILE_OVERRIDE=/tmp/bbya-vip-track05-persist.rbxl node scripts/publish-map.js a-club
+
+      - name: Restart old BBYA servers
+        id: restart
+        shell: bash
+        run: |
+          set +e
+          body=/tmp/restart-track05-persist.txt
+          http=$(curl -sS -o "$body" -w '%{http_code}' -X POST "https://apis.roblox.com/cloud/v2/universes/${BBYA_UNIVERSE}:restartServers" -H "x-api-key: ${ROBLOX_API_KEY}" -H 'Content-Type: application/json' -d '{}')
+          echo "http=$http" >> "$GITHUB_OUTPUT"
+          echo "restart HTTP $http"
+          cat "$body" || true
+          exit 0
+
+      - name: Persist source without receipt conflict
+        shell: bash
+        env:
+          RESTART_HTTP: ${{ steps.restart.outputs.http }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, os
+          rep=pathlib.Path('deploy-status/bbya-vip-track05.json')
+          receipt=pathlib.Path('deploy-status/a-club.json')
+          d=json.loads(rep.read_text())
+          d['status']='LIVE_PUBLISHED'
+          d['restartHttp']=os.environ.get('RESTART_HTTP','')
+          if receipt.exists(): d['publishReceipt']=json.loads(receipt.read_text())
+          rep.write_text(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+          PY
+          # Receipt is intentionally not persisted here; other publishers own this shared file.
+          git restore deploy-status/a-club.json || true
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/audio-playlists/vip-amapiano.json deploy-status/bbya-vip-track05.json
+          git commit -m 'Persist VIP Amapiano Track 05 live authority [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
