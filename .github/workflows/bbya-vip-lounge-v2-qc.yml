@@ -1,4 +1,4 @@
-name: BBYA VIP Lounge v2 QC
+name: BBYA VIP Lounge v3 QC
 
 on:
   pull_request:
@@ -28,17 +28,17 @@ jobs:
       - name: Build BBYA place
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-lounge-v2.rbxl
-          test -s /tmp/bbya-vip-lounge-v2.rbxl
-      - name: Validate four-corner VIP lounge
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-lounge-v3.rbxl
+          test -s /tmp/bbya-vip-lounge-v3.rbxl
+      - name: Validate VIP lounge v3 premium polish
         shell: bash
         run: |
           set -euo pipefail
           f='maps/bbya-social-hub/113-vip-lounge-seating.server.lua'
           project='maps/bbya-social-hub/default.project.json'
 
-          grep -q 'VIP LOUNGE SEATING v2' "$f"
-          grep -q 'VIPLoungeSeatingV2' "$f"
+          grep -q 'VIP LOUNGE SEATING v3' "$f"
+          grep -q 'VIPLoungeSeatingV3' "$f"
           grep -q 'FOUR_CORNER_L_LOUNGES' "$f"
           grep -q 'buildLounge("NW_Lounge",-1,1,false)' "$f"
           grep -q 'buildLounge("NE_Lounge",1,1,false)' "$f"
@@ -47,13 +47,18 @@ jobs:
           grep -q 'VIPLoungeSeatCount",24' "$f"
           grep -q 'VIPLoungeTableCount",4' "$f"
           grep -q 'VIPLoungeRugCount",4' "$f"
-          grep -q 'VIPLoungeWarmAccentCount",4' "$f"
-          grep -q 'DarkLoungeRug' "$f"
-          grep -q 'TableDetail' "$f"
-          grep -q 'BottleBody' "$f"
-          grep -q 'verticalCylinder("Glass"..i' "$f"
-          grep -q 'LoungeWarmWash' "$f"
-          grep -q 'PlinthAccent' "$f"
+          grep -q 'VIPLoungeToeGlowCount",8' "$f"
+          grep -q 'VIPLoungePlaqueCount",4' "$f"
+          grep -q 'VIPLoungeIceBucketCount",4' "$f"
+          grep -q 'LayeredLoungeRug' "$f"
+          grep -q 'RugInset' "$f"
+          grep -q 'TableDetailV3' "$f"
+          grep -q 'IceBucket' "$f"
+          grep -q 'HiddenToeGlowV3' "$f"
+          grep -q 'ToeKickWash' "$f"
+          grep -q 'DimensionalWallAccentV3' "$f"
+          grep -q 'BBYABrassPlaque' "$f"
+          grep -q 'AccentPillow' "$f"
           grep -q 'VIPLoungeSeatingV1.*113-vip-lounge-seating.server.lua' "$project"
 
           if grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)[[:space:]]*=' "$f"; then
@@ -65,8 +70,12 @@ jobs:
             exit 1
           fi
           if grep -q 'ProximityPrompt' "$f"; then
-            echo 'VIP lounge v2 must not add world prompts.' >&2
+            echo 'VIP lounge v3 must not add world prompts.' >&2
+            exit 1
+          fi
+          if grep -Eq 'SoundId|SoundGroup|TimePosition' "$f"; then
+            echo 'VIP lounge v3 must not touch audio ownership.' >&2
             exit 1
           fi
 
-          echo 'BBYA VIP Lounge v2 QC passed.'
+          echo 'BBYA VIP Lounge v3 QC passed.'
