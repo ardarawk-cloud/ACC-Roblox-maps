@@ -57,6 +57,19 @@
       "bbyaPermission": false,
       "status": "PREPARED_LOCAL",
       "moderationLastKnown": null
+    },
+    {
+      "index": 5,
+      "title": "Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",
+      "driveFileId": "1_86uzyLCJHCMgzz7H6cxE3k7Lz-lYUnp",
+      "musicalKey": "A major",
+      "camelot": "11B",
+      "sourceDurationSeconds": 203.6,
+      "sourceSizeBytes": 3370468,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
