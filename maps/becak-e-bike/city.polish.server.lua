@@ -1,6 +1,6 @@
--- BECAK E-BIKE city polish v1.3
+-- BECAK E-BIKE city polish v1.4
 -- Dedicated Nusakarya visual pass: breaks up primitive/blockout silhouettes without touching gameplay collision.
--- v1.3 adds inset window trim, roof eaves, facade material layering, organic tree crowns and richer street lighting.
+-- v1.4 adds sparse facade micro-details and roadside drainage cues on top of v1.3 realism depth.
 
 local Workspace = game:GetService("Workspace")
 local root = Workspace:WaitForChild("BecakEBike", 30)
@@ -74,6 +74,8 @@ end
 local realismDetailCount = 0
 local organicCrownCount = 0
 local lightingDetailCount = 0
+local facadeMicroDetailCount = 0
+local drainageDetailCount = 0
 
 local function addRoofSilhouette(detail, model, body)
     local size, cf = body.Size, body.CFrame
@@ -137,6 +139,38 @@ local function addStorefrontIdentity(detail, model, body)
     end
 end
 
+local function addFacadeMicroRealism(detail, model, body)
+    local size, cf = body.Size, body.CFrame
+    local seed = nameSeed(model.Name)
+    if size.X < 22 or size.Y < 15 then return end
+
+    local side = (seed % 2 == 0) and -1 or 1
+    local frontZ = -size.Z/2 - 0.58
+    local x = side * math.max(3.2, math.min(size.X/2-2.0, size.X*0.34))
+
+    -- Sparse rainwater pipe: one thin cylindrical vertical line adds believable facade utility without part spam.
+    local pipeH = math.clamp(size.Y*0.62, 7, 15)
+    local pipe = visualPart(detail,"RainwaterPipe",Vector3.new(0.26,pipeH,0.26),cf*CFrame.new(x,-size.Y/2+pipeH/2+1.0,frontZ),Color3.fromRGB(74,76,74),Enum.Material.Metal,Enum.PartType.Cylinder)
+    pipe.CFrame = cf*CFrame.new(x,-size.Y/2+pipeH/2+1.0,frontZ)*CFrame.Angles(0,0,math.rad(90))
+    facadeMicroDetailCount += 1
+
+    -- Only some buildings get AC condensers, keeping mobile part count controlled and avoiding copy-paste repetition.
+    if seed % 3 == 0 then
+        local acY = math.min(size.Y/2-3.0, -size.Y/2+9.0)
+        visualPart(detail,"ACCondenser",Vector3.new(3.0,2.1,0.72),cf*CFrame.new(-x*0.72,acY,frontZ-0.10),Color3.fromRGB(154,157,153),Enum.Material.Metal)
+        local fan = visualPart(detail,"ACFan",Vector3.new(1.25,0.18,1.25),cf*CFrame.new(-x*0.72,acY,frontZ-0.52),Color3.fromRGB(68,72,73),Enum.Material.Metal,Enum.PartType.Cylinder)
+        fan.CFrame = cf*CFrame.new(-x*0.72,acY,frontZ-0.52)*CFrame.Angles(0,math.rad(90),0)
+        facadeMicroDetailCount += 2
+    end
+
+    -- Thin sun/rain brow creates a real shadow break across taller facades without changing collision.
+    if size.Y >= 19 and seed % 2 == 1 then
+        local browW = math.clamp(size.X*0.28,6,11)
+        visualPart(detail,"FacadeRainBrow",Vector3.new(browW,0.24,1.15),cf*CFrame.new(-x*0.35,math.min(size.Y*0.16,4.0),frontZ-0.40),Color3.fromRGB(105,101,92),Enum.Material.Concrete)
+        facadeMicroDetailCount += 1
+    end
+end
+
 local function facade(model)
     local body = model:FindFirstChild("Body")
     if not body or not body:IsA("BasePart") then return false end
@@ -195,6 +229,7 @@ local function facade(model)
     visualPart(detail,"CorniceFront",Vector3.new(size.X+2.8,0.55,0.75),cf*CFrame.new(0,size.Y/2+0.65,-size.Z/2-0.35),Color3.fromRGB(72,70,66),Enum.Material.Concrete)
     addRoofSilhouette(detail,model,body)
     addStorefrontIdentity(detail,model,body)
+    addFacadeMicroRealism(detail,model,body)
     return true
 end
 
@@ -232,6 +267,14 @@ for laneIndex,s in ipairs(streets) do
         end
         visualPart(polish,"Bollard",Vector3.new(0.75,2.4,0.75),CFrame.new(x+5,1.35,z),Color3.fromRGB(48,52,54),Enum.Material.Metal,Enum.PartType.Cylinder)
 
+        if sequence % 3 == 0 then
+            local drainX,drainZ=x,z
+            if s.axis=="x" then drainZ = z + ((laneIndex%2==0) and 5.6 or -5.6) else drainX = x + ((laneIndex%2==0) and 5.6 or -5.6) end
+            local drainSize = s.axis=="x" and Vector3.new(4.2,0.12,1.05) or Vector3.new(1.05,0.12,4.2)
+            visualPart(polish,"StormDrain",drainSize,CFrame.new(drainX,0.12,drainZ),Color3.fromRGB(55,58,59),Enum.Material.DiamondPlate)
+            drainageDetailCount += 1
+        end
+
         if sequence % 2 == 1 then
             local lampX = x-4.5
             local pole = visualPart(polish,"LampPole",Vector3.new(0.45,8.8,0.45),CFrame.new(lampX,4.6,z),Color3.fromRGB(46,49,50),Enum.Material.Metal,Enum.PartType.Cylinder)
@@ -251,7 +294,7 @@ end
 
 -- Compatibility marker retained for the current dedicated builder; enhancement marker carries the visual revision.
 world:SetAttribute("ACC_BecakCityPolish","v1.0")
-world:SetAttribute("BecakCityPolishEnhancement","v1.3")
+world:SetAttribute("BecakCityPolishEnhancement","v1.4")
 world:SetAttribute("BecakAntiBlockoutFacades","ON")
 world:SetAttribute("BecakPitchedRoofSilhouettes","ON")
 world:SetAttribute("BecakFacadeDepthPass","ON")
@@ -263,9 +306,13 @@ world:SetAttribute("BecakRoofEaveDetail","ON")
 world:SetAttribute("BecakFacadeMaterialLayering","ON")
 world:SetAttribute("BecakOrganicTreeCrownLayering","ON")
 world:SetAttribute("BecakRealisticStreetLighting","ON")
+world:SetAttribute("BecakFacadeMicroDetails","ON")
+world:SetAttribute("BecakRoadsideDrainageDetails","ON")
 world:SetAttribute("BecakCityPolishBuildingCount",buildingCount)
 world:SetAttribute("BecakCityPolishStreetClusters",streetCount)
 world:SetAttribute("BecakCityPolishFurnitureCount",furnitureCount)
 world:SetAttribute("BecakCityRealismDetailCount",realismDetailCount)
 world:SetAttribute("BecakCityOrganicCrownCount",organicCrownCount)
 world:SetAttribute("BecakCityLightingDetailCount",lightingDetailCount)
+world:SetAttribute("BecakFacadeMicroDetailCount",facadeMicroDetailCount)
+world:SetAttribute("BecakDrainageDetailCount",drainageDetailCount)
