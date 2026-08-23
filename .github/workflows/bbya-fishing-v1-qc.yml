@@ -1,0 +1,127 @@
+name: BBYA Premium Fishing v1 QC
+
+on:
+  push:
+    branches: [feature/bbya-premium-fishing-v1]
+    paths:
+      - 'maps/bbya-social-hub/122-fishing-ui.client.lua'
+      - 'maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+      - 'maps/bbya-social-hub/124-fishing-core.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v1-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/122-fishing-ui.client.lua'
+      - 'maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+      - 'maps/bbya-social-hub/124-fishing-core.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v1-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout fishing branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static fishing architecture checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$pattern,[string]$message){if($text -notmatch $pattern){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          $uiPath='maps/bbya-social-hub/122-fishing-ui.client.lua'
+          $envPath='maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+          $corePath='maps/bbya-social-hub/124-fishing-core.server.lua'
+          $projectPath='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($uiPath,$envPath,$corePath,$projectPath)){if(-not (Test-Path $p)){throw "Missing $p"}}
+
+          $ui=Get-Content $uiPath -Raw
+          $env=Get-Content $envPath -Raw
+          $core=Get-Content $corePath -Raw
+          $project=Get-Content $projectPath -Raw
+          $null=$project | ConvertFrom-Json
+
+          Require $env 'MarketRearBoundaryZ",\s*685' 'Rear Night Market boundary binding missing'
+          Require $env 'LakeCenterZ",\s*790' 'Lake center binding missing'
+          Require $env 'PremiumFishingDistrictV2' 'Fishing district marker missing'
+          Require $env 'MainFishingPier' 'Main pier missing'
+          Require $env 'FishingAtelier' 'Fishing atelier missing'
+          Require $env 'RareFishingCove' 'Rare cove missing'
+          Require $env 'ScenicPier' 'Scenic pier missing'
+
+          Require $core 'RodSegment1' 'Rod first segment missing'
+          Require $core 'RodSegment2' 'Rod second segment missing'
+          Require $core 'TipSegment' 'Rod tip missing'
+          Require $core 'ReelSpool' '3D reel spool missing'
+          Require $core 'ReelArm' '3D reel arm missing'
+          Require $core 'LineTip' 'Fishing line attachment missing'
+          Require $core 'SkinOrnaments' 'Geometry-changing rod skin system missing'
+          Require $core 'TridentCore' 'Poseidon geometry missing'
+          Require $core 'DragonSpine' 'Dragon geometry missing'
+          Require $core 'Crown' 'Royal geometry missing'
+
+          foreach($fish in @('Crimson Arowana','Obsidian Ray','Aurora Arapaima','Celestial Koi','Phantom Leviathan')){Require $core ([regex]::Escape($fish)) "3D fish catalog missing $fish"}
+          Require $core 'fishWedge\("TailTop"' '3D tail geometry missing'
+          Require $core 'fishWedge\("Dorsal"' '3D dorsal geometry missing'
+          Require $core 'Whisker' 'Catfish geometry missing'
+          Require $core 'WingL' 'Ray wing geometry missing'
+          Require $core 'RunService\.Heartbeat' 'Server fishing fight loop missing'
+          Require $core 'DataStoreService:GetDataStore\("BBYA_FISHING_V1"\)' 'Fishing persistence missing'
+          Require $core 'action=="BuySkin"' 'Skin purchase authority missing'
+          Require $core 'action=="Reel"' 'Server reel authority missing'
+
+          Require $ui 'button\(hud,"CAST"\)' 'Single CAST action missing'
+          Require $ui 'button\(nav,"BAG"\)' 'Compact BAG button missing'
+          Require $ui 'button\(nav,"ROD"\)' 'Compact ROD button missing'
+          Require $ui 'button\(nav,"SHOP"\)' 'Compact SHOP button missing'
+          Require $ui 'progressBg' 'Thin fight progress bar missing'
+          Require $ui 'tensionBg' 'Thin fight tension bar missing'
+          Require $ui 'HOLD REEL' 'Hold-reel control missing'
+
+          Forbid $core 'Instance\.new\("(ImageLabel|ImageButton|Decal|Texture)"\)' 'Core fishing hero asset became 2D/image based'
+          Forbid $env 'Instance\.new\("(ImageLabel|ImageButton|Decal|Texture)"\)' 'Fishing environment hero asset became 2D/image based'
+
+          Require $project '123-fishing-lake-environment\.server\.lua' 'Environment is not wired into Rojo project'
+          Require $project '124-fishing-core\.server\.lua' 'Core is not wired into Rojo project'
+          Require $project '122-fishing-ui\.client\.lua' 'Fishing UI is not wired into Rojo project'
+          Write-Host 'Static fishing architecture QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-fishing'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-fishing.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found after download'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw "Rojo version check failed: $LASTEXITCODE"}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-v1-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
+          if(-not (Test-Path $place)){throw 'Built place file missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Built place unexpectedly small: $bytes bytes"}
+          Write-Host "BBYA PREMIUM FISHING QC PASS - canonical Rojo build: $bytes bytes"
