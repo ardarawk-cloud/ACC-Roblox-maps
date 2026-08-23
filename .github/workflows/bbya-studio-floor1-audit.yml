@@ -17,7 +17,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Audit Floor 1 through Codex and Roblox Studio MCP
+      - name: Audit Main Club v377 through Codex and Roblox Studio MCP
         shell: powershell
         run: |
           $env:USERPROFILE = 'C:\Users\Administrator'
@@ -27,7 +27,18 @@ jobs:
           $outFile = Join-Path $env:RUNNER_TEMP 'bbya-floor1-audit.txt'
           $promptFile = Join-Path $env:RUNNER_TEMP 'bbya-floor1-prompt.txt'
           @'
-Inspect the currently open BBYA Social Hub place in Roblox Studio using the enabled Roblox_Studio MCP server. LIVE 3D AUDIT ONLY; do not modify anything. Focus only Floor 1: Main Club, Photo Area, and Salon/Look Studio. Read the actual Studio hierarchy and transforms, not repository scripts. Identify duplicates or legacy objects, overlapping or badly placed seating/tables, DJ booth versus background depth/sightline issues, Photo Area composition/spacing issues, Salon station/chair spacing issues, and list the important object paths with Position/CFrame/Size values needed for corrections. End with AUDIT_STATUS=VERIFIED if MCP inspection succeeds, otherwise AUDIT_STATUS=FAILED with the reason.
+Inspect the currently open BBYA Social Hub place in Roblox Studio using the enabled Roblox_Studio MCP server. LIVE 3D AUDIT ONLY; DO NOT MODIFY ANYTHING. Focus specifically on the currently published Main Club after v377. Read actual Studio hierarchy, object names, positions, CFrames, sizes, and visible layout rather than repository intent.
+
+Verify all of the following:
+1. Whether Floor1FrontPremium still contains PhotoAreaPremium or SalonLookStudioPremium or any shelves/product displays/softboxes/mirrors that visually belong to the old Salon/Photo Studio.
+2. Whether Floor1LuxuryFinish still contains EditorialPhotoRoom, LookLab, RearSocialRail, cocktail tables, stools, seats, or any other loose furniture around the DJ/stage-front footprint.
+3. Whether Floor1UltraPremium still contains EditorialPhotoRefinement or LookLabRefinement.
+4. Whether MainClubFinalAuthorityV1 exists at runtime and list its direct children.
+5. Inspect the DJ booth from the dance-floor side. Identify every table/chair/stool/seat/stand in X=-22..28, Z=27..45, Y<13 and whether the booth/platform visually touches a grounded base or appears floating.
+6. Inspect the former Salon/Photo footprint X=-52..-27, Z=-36..7, Y<15 and identify any remaining legacy retail/studio geometry by full object path.
+7. Confirm whether BBYAMall/Tenant_glow exists and is the new Look Lab + Photo Studio destination.
+
+Give concise findings with exact full object paths and transforms for anything wrong. End with AUDIT_STATUS=VERIFIED if live MCP inspection succeeds, otherwise AUDIT_STATUS=FAILED with the reason.
 '@ | Set-Content -Encoding UTF8 $promptFile
 
           $stream = Get-Content $promptFile -Raw | & $codex exec --full-auto --skip-git-repo-check -o $outFile - 2>&1 | Out-String
