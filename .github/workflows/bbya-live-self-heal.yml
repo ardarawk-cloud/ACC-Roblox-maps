@@ -1,13 +1,15 @@
 name: BBYA Live Self Heal
 
-# v3: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
+# v4: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
 # Uses GitHub Contents API for receipt persistence because the Studio worker may not have git in PATH.
-# Premium Fishing District live retrigger: 2026-08-24
+# Auto-publishes BBYA Lua source changes so gameplay/admin fixes do not need manual retriggers.
 on:
   push:
     branches: [main]
     paths:
       - '.github/workflows/bbya-live-self-heal.yml'
+      - 'maps/bbya-social-hub/**/*.lua'
+      - 'maps/bbya-social-hub/default.project.json'
   workflow_dispatch:
 
 concurrency:
