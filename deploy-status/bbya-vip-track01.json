@@ -1,19 +1,70 @@
 {
   "track": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
-  "audioOwnerUserId": "8878884630",
-  "searchAttempts": [
-    {
-      "key": "ROBLOX_AUDIO_API_KEY",
-      "http": 403
-    },
-    {
-      "key": "AM_STUDIO",
-      "http": 403
+  "driveFileId": "1_E34wIMN6YNHyZmpyy8kybTD7bIbNDmO",
+  "target": "BBYA Social Hub VIP",
+  "bbyaUniverseId": "8116636513",
+  "amStudioUniverseId": "4187755690",
+  "status": "PERMISSION_FAILED",
+  "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+  "authorizedUserId": "9296030038",
+  "assetReadWrite": true,
+  "assetPermissionsWrite": true,
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
+    "operationId": "179d709a-728b-4872-b7c0-ac306acbea2b",
+    "done": false
+  },
+  "operationPath": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
+  "operationResult": {
+    "path": "operations/179d709a-728b-4872-b7c0-ac306acbea2b",
+    "operationId": "179d709a-728b-4872-b7c0-ac306acbea2b",
+    "done": true,
+    "response": {
+      "path": "assets/105859685125263",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T15:21:02.466724300Z",
+      "assetId": "105859685125263",
+      "displayName": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
+      "description": "BBYA VIP Track 01",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
     }
-  ],
-  "candidateCount": 0,
-  "topCandidates": [],
-  "chosen": null,
-  "permissions": {},
-  "status": "ASSET_NOT_RESOLVED"
+  },
+  "assetId": "105859685125263",
+  "moderationState": "Reviewing",
+  "permissions": {
+    "bbya": {
+      "http": 200,
+      "successAssetIds": [
+        "105859685125263"
+      ],
+      "ok": true,
+      "response": {
+        "successAssetIds": [
+          105859685125263
+        ],
+        "errors": []
+      }
+    },
+    "amStudioCreativeLab": {
+      "http": 403,
+      "successAssetIds": [],
+      "ok": false,
+      "response": {
+        "error": {
+          "code": "CannotManageSubject",
+          "message": "Requester cannot manage permissions for the subject Universe 4187755690."
+        }
+      }
+    }
+  }
 }

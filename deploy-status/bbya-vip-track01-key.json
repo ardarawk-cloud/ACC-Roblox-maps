@@ -1,0 +1,34 @@
+{
+  "http": 200,
+  "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+  "authorizedUserId": "9296030038",
+  "enabled": true,
+  "expired": false,
+  "scopes": [
+    {
+      "name": "asset-permissions",
+      "operations": [
+        "write"
+      ],
+      "userIds": [],
+      "groupIds": [],
+      "universeIds": []
+    },
+    {
+      "name": "asset",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "userIds": [
+        "*"
+      ],
+      "groupIds": [
+        "*"
+      ],
+      "universeIds": []
+    }
+  ],
+  "assetReadWrite": true,
+  "assetPermissionsWrite": true
+}
