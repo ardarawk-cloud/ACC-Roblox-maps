@@ -87,7 +87,7 @@ jobs:
             'rbxthumb://type=Asset&id=',
             'BBYADeveloperDJVenueGateV3',
             'ROTATE PHONE',
-            'Approved/PREPARED_LOCAL audio is deliberately absent',
+            'Rejected/PREPARED_LOCAL audio is deliberately absent',
             'actionRemote:FireServer("load",{deck=target,assetId=item.assetId})'
           )){if($client -notmatch [regex]::Escape($needle)){throw "Missing client marker: $needle"}}
 
