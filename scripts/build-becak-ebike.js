@@ -35,6 +35,7 @@ server += `\nWorkspace:SetAttribute("ACC_BecakRuntime","v1.45")\nWorkspace:SetAt
 
 const details=raw('maps/becak-e-bike/world.details.server.lua');
 const systems=raw('maps/becak-e-bike/masterplan.systems.server.lua');
+if(!systems.includes("ACC_BecakMasterplanSystems','v1.4") || !systems.includes("BecakCargoDynamicPayout','ON") || !systems.includes("BecakCargoNoImmediateRepeat','ON") || !systems.includes("BecakCargoDestinationCount',#cargoDrops")) throw new Error('Becak cargo masterplan v1.4 validation failed');
 const cargoVisual=raw('maps/becak-e-bike/cargo.visual.server.lua');
 const events=raw('maps/becak-e-bike/masterplan.events.server.lua');
 const traffic=raw('maps/becak-e-bike/traffic.npc.server.lua');
@@ -98,4 +99,4 @@ const clientItems=[
 const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2.5</float><double name="ClockTime">8</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties>${serverItems}</Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>${clientItems}</Item></Item></roblox>`;
 
 fs.writeFileSync(path.join(root,'maps/becak-e-bike/place.rbxlx'),xml);
-console.log('[Becak E-Bike] Built v1.45 with startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + v1.36 smooth ground contact + v1.41 steering stability + v1.45 driver-aware vehicle signals + progression systems:',Buffer.byteLength(xml),'bytes');
+console.log('[Becak E-Bike] Built v1.45 with cargo masterplan v1.4 + startup ownership guard + cargo payload + adaptive left phone + road-edge audit + recovery + v1.36 smooth ground contact + v1.41 steering stability + v1.45 driver-aware vehicle signals + progression systems:',Buffer.byteLength(xml),'bytes');
