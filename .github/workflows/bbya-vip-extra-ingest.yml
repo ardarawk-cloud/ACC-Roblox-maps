@@ -1,0 +1,69 @@
+name: BBYA VIP Extra Amapiano Queue Ingest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-vip-audio-single-upload
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge extra VIP Amapiano candidates safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          python3 - <<'PY'
+          import json, pathlib
+          regp=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
+          extrap=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano-extra.json')
+          reg=json.loads(regp.read_text())
+          extra=json.loads(extrap.read_text())
+          existing_ids={str(t.get('driveFileId')) for t in reg.get('tracks',[]) if t.get('driveFileId')}
+          existing_indexes={int(t.get('index',0)) for t in reg.get('tracks',[]) if t.get('index') is not None}
+          added=[]
+          for src in extra.get('tracks',[]):
+              if str(src.get('driveFileId')) in existing_ids:
+                  continue
+              item=dict(src)
+              idx=int(item.get('index',0))
+              if idx in existing_indexes:
+                  idx=max(existing_indexes or {0})+1
+                  item['index']=idx
+              reg.setdefault('tracks',[]).append(item)
+              existing_ids.add(str(item.get('driveFileId')))
+              existing_indexes.add(idx)
+              added.append({'index':idx,'title':item.get('title'),'status':item.get('status')})
+          reg['tracks']=sorted(reg.get('tracks',[]),key=lambda x:int(x.get('index',999999)))
+          regp.write_text(json.dumps(reg,indent=2,ensure_ascii=False)+'\n')
+          print(json.dumps({'added':added,'count':len(added)},indent=2,ensure_ascii=False))
+          PY
+
+      - name: Persist merged VIP queue and wake single-track runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'mode=single-next\nrequestedBy=vip-extra-ingest\nrequestedAt=%s\n' "$(date -u +%FT%TZ)" > maps/bbya-social-hub/.vip-next-safe-trigger
+          git config user.name 'ACC Roblox Audio Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/audio-playlists/vip-amapiano.json maps/bbya-social-hub/.vip-next-safe-trigger
+          if ! git diff --cached --quiet; then
+            git commit -m 'Merge extra VIP Amapiano candidates [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
