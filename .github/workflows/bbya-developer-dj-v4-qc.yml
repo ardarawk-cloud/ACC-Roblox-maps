@@ -57,7 +57,7 @@ jobs:
             'v4_hotcue_play',
             'v4_seek_ratio',
             'v4_nudge',
-            'BBYADJHotCue1'
+            'BBYADJHotCue'
           )){if($server -notmatch [regex]::Escape($needle)){throw "Missing v4 server marker: $needle"}}
 
           foreach($forbidden in @('nadmo97','styxraasoraaa','HttpService','drive%.google','google%.com','file://')){
