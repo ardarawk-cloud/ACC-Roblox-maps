@@ -17,6 +17,7 @@ BBYA_UNIVERSE = os.environ.get("BBYA_UNIVERSE", "8116636513").strip()
 AM_STUDIO_UNIVERSE = os.environ.get("AM_STUDIO_UNIVERSE", "4187755690").strip()
 DRIVE_FILE_ID = os.environ.get("DRIVE_FILE_ID", "1_E34wIMN6YNHyZmpyy8kybTD7bIbNDmO").strip()
 AUDIO_KEY = os.environ.get("AUDIO_KEY", "").strip()
+AM_STUDIO_KEY = os.environ.get("AM_STUDIO_KEY", "").strip()
 AUDIO_PATH = pathlib.Path(os.environ.get("AUDIO_PATH", "/tmp/bbya-vip-track01-ready.mp3"))
 
 REPORT.parent.mkdir(parents=True, exist_ok=True)
@@ -45,57 +46,44 @@ def req_json(url, method="GET", payload=None, headers=None, timeout=30):
         return e.code, data
 
 
-def introspect_key():
+def introspect(key):
+    if not key:
+        return {"present": False, "scopes": []}
     code, info = req_json(
         "https://apis.roblox.com/api-keys/v1/introspect",
         "POST",
-        {"apiKey": AUDIO_KEY},
+        {"apiKey": key},
     )
+    info = info if isinstance(info, dict) else {}
     scopes = []
-    if isinstance(info, dict):
-        for s in info.get("scopes") or []:
-            scopes.append(
-                {
-                    "name": s.get("name"),
-                    "operations": s.get("operations") or [],
-                    "userIds": [str(x) for x in (s.get("userIds") or [])],
-                    "groupIds": [str(x) for x in (s.get("groupIds") or [])],
-                    "universeIds": [str(x) for x in (s.get("universeIds") or [])],
-                }
-            )
-    key_report = {
+    for s in info.get("scopes") or []:
+        scopes.append({
+            "name": s.get("name"),
+            "operations": s.get("operations") or [],
+            "userIds": [str(x) for x in (s.get("userIds") or [])],
+            "groupIds": [str(x) for x in (s.get("groupIds") or [])],
+            "universeIds": [str(x) for x in (s.get("universeIds") or [])],
+        })
+    return {
+        "present": True,
         "http": code,
-        "keyName": info.get("name") if isinstance(info, dict) else None,
-        "authorizedUserId": (
-            str(info.get("authorizedUserId"))
-            if isinstance(info, dict) and info.get("authorizedUserId") is not None
-            else None
-        ),
-        "enabled": info.get("enabled") if isinstance(info, dict) else None,
-        "expired": info.get("expired") if isinstance(info, dict) else None,
+        "keyName": info.get("name"),
+        "authorizedUserId": str(info.get("authorizedUserId")) if info.get("authorizedUserId") is not None else None,
+        "enabled": info.get("enabled"),
+        "expired": info.get("expired"),
         "scopes": scopes,
-    }
-    asset_rw = any(
-        s.get("name") == "asset"
-        and "read" in (s.get("operations") or [])
-        and "write" in (s.get("operations") or [])
-        for s in scopes
-    )
-    perm_w = any(
-        s.get("name") == "asset-permissions:write"
-        or (
-            s.get("name") == "asset-permissions"
+        "assetReadWrite": any(
+            s.get("name") == "asset"
+            and "read" in (s.get("operations") or [])
             and "write" in (s.get("operations") or [])
-        )
-        for s in scopes
-    )
-    key_report["assetReadWrite"] = asset_rw
-    key_report["assetPermissionsWrite"] = perm_w
-    KEY_REPORT.write_text(
-        json.dumps(key_report, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    return key_report
+            for s in scopes
+        ),
+        "assetPermissionsWrite": any(
+            s.get("name") == "asset-permissions:write"
+            or (s.get("name") == "asset-permissions" and "write" in (s.get("operations") or []))
+            for s in scopes
+        ),
+    }
 
 
 def create_audio_asset(creator_user_id):
@@ -106,18 +94,11 @@ def create_audio_asset(creator_user_id):
         "creationContext": {"creator": {"userId": str(creator_user_id)}},
     }
     cmd = [
-        "curl",
-        "-sS",
-        "--location",
-        "https://apis.roblox.com/assets/v1/assets",
-        "--header",
-        f"x-api-key: {AUDIO_KEY}",
-        "--form-string",
-        "request=" + json.dumps(payload, separators=(",", ":")),
-        "--form",
-        f"fileContent=@{AUDIO_PATH};type=audio/mpeg",
-        "--write-out",
-        "\n%{http_code}",
+        "curl", "-sS", "--location", "https://apis.roblox.com/assets/v1/assets",
+        "--header", f"x-api-key: {AUDIO_KEY}",
+        "--form-string", "request=" + json.dumps(payload, separators=(",", ":")),
+        "--form", f"fileContent=@{AUDIO_PATH};type=audio/mpeg",
+        "--write-out", "\n%{http_code}",
     ]
     p = subprocess.run(cmd, text=True, capture_output=True)
     body, _, code_text = p.stdout.rpartition("\n")
@@ -146,7 +127,9 @@ def poll_asset_operation(path, timeout=300):
     return last or {"timeout": True}
 
 
-def grant_use(asset_id, universe_id):
+def grant_use(key, asset_id, universe_id, key_label):
+    if not key:
+        return {"key": key_label, "ok": False, "result": "KEY_MISSING"}
     payload = {
         "subjectType": "Universe",
         "subjectId": str(universe_id),
@@ -157,17 +140,11 @@ def grant_use(asset_id, universe_id):
         "https://apis.roblox.com/asset-permissions-api/v1/assets/permissions",
         "PATCH",
         payload,
-        {
-            "x-api-key": AUDIO_KEY,
-            "Content-Type": "application/json-patch+json",
-        },
+        {"x-api-key": key, "Content-Type": "application/json-patch+json"},
     )
-    success = (
-        [str(x) for x in (data.get("successAssetIds") or [])]
-        if isinstance(data, dict)
-        else []
-    )
+    success = [str(x) for x in (data.get("successAssetIds") or [])] if isinstance(data, dict) else []
     return {
+        "key": key_label,
         "http": code,
         "successAssetIds": success,
         "ok": str(asset_id) in success or code in (200, 201, 204),
@@ -178,17 +155,14 @@ def grant_use(asset_id, universe_id):
 def patch_reset():
     path = MAP / "109-music-catalog-reset.server.lua"
     text = path.read_text(encoding="utf-8")
-
     old = ' local sg=s.SoundGroup\n return sg and groups[sg.Name]~=nil or false'
     new = (
         ' local sg=s.SoundGroup\n'
-        ' if sg and sg.Name=="BBYAVIPMaster" and '
-        'ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end\n'
+        ' if sg and sg.Name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end\n'
         ' return sg and groups[sg.Name]~=nil or false'
     )
     if old in text:
         text = text.replace(old, new, 1)
-
     old2 = "local function scrubWorkspaceVIP()\n local vipGroup=groups.BBYAVIPMaster"
     new2 = (
         'local function scrubWorkspaceVIP()\n'
@@ -197,7 +171,6 @@ def patch_reset():
     )
     if old2 in text:
         text = text.replace(old2, new2, 1)
-
     path.write_text(text, encoding="utf-8")
 
 
@@ -226,7 +199,6 @@ task.delay(9.25,function()
  group:SetAttribute("PlaylistReady",true)
  group:SetAttribute("PlaylistCount",1)
  group:SetAttribute("MusicCatalogState","VIP_TRACK01_ACTIVE")
-
  local oldSound=SoundService:FindFirstChild("BBYAVIPTrack01")
  if oldSound then oldSound:Destroy() end
  local s=Instance.new("Sound")
@@ -252,38 +224,24 @@ def patch_project():
     scripts = project["tree"]["ServerScriptService"]
     scripts.pop("VIPTrack01AuthorityV1", None)
     scripts["VIPTrack01AuthorityV2"] = {"$path": "110-vip-track01.server.lua"}
-    path.write_text(
-        json.dumps(project, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    path.write_text(json.dumps(project, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def patch_ui():
     path = MAP / "109-music-catalog-reset-ui.client.lua"
     text = path.read_text(encoding="utf-8")
-
     if 'local vipActive=v=="VIP"' not in text:
-        anchor = (
-            " local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n"
-            " local musicFrame=playerCard.Parent"
-        )
+        anchor = " local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n local musicFrame=playerCard.Parent"
         repl = (
             " local v=currentVenue();local spec=VENUES[v] or VENUES.NONE\n"
-            ' local vipActive=v=="VIP" and '
-            'ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true\n'
-            ' local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") '
-            'or "VIP Track 01")\n'
+            ' local vipActive=v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true\n'
+            ' local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") or "VIP Track 01")\n'
             " local musicFrame=playerCard.Parent"
         )
         text = text.replace(anchor, repl, 1)
-
         text = text.replace(
-            ' if emptyTitle then emptyTitle.Text=spec.short.." PLAYLIST • 0 TRACKS" end\n'
-            ' if emptySub then emptySub.Text="Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
-            ' if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" '
-            'or (spec.short.." PLAYLIST • 0 TRACKS") end\n'
-            ' if emptySub then emptySub.Text=vipActive and vipTitle or '
-            '"Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
+            ' if emptyTitle then emptyTitle.Text=spec.short.." PLAYLIST • 0 TRACKS" end\n if emptySub then emptySub.Text="Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
+            ' if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" or (spec.short.." PLAYLIST • 0 TRACKS") end\n if emptySub then emptySub.Text=vipActive and vipTitle or "Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end',
             1,
         )
         text = text.replace(
@@ -308,8 +266,19 @@ def patch_ui():
  syncVenueChip(musicFrame,spec)''',
             1,
         )
-
     path.write_text(text, encoding="utf-8")
+
+
+def prior_asset():
+    if not REPORT.exists():
+        return None, None
+    try:
+        old = json.loads(REPORT.read_text(encoding="utf-8"))
+    except Exception:
+        return None, None
+    if old.get("track") != TRACK_TITLE or not old.get("assetId"):
+        return None, None
+    return str(old["assetId"]), old
 
 
 def main():
@@ -321,25 +290,19 @@ def main():
         "amStudioUniverseId": AM_STUDIO_UNIVERSE,
         "status": "STARTED",
     }
-
     if not AUDIO_KEY:
         report["status"] = "SECRET_MISSING"
         write_report(report)
         raise SystemExit("AMSTUDIO_AUDIO_UPLOADER_01 missing")
-    if not AUDIO_PATH.exists() or AUDIO_PATH.stat().st_size < 10000:
-        report["status"] = "AUDIO_FILE_MISSING"
-        write_report(report)
-        raise SystemExit("prepared Track 01 audio missing")
 
-    key_info = introspect_key()
-    report.update(
-        {
-            "keyName": key_info.get("keyName"),
-            "authorizedUserId": key_info.get("authorizedUserId"),
-            "assetReadWrite": key_info.get("assetReadWrite"),
-            "assetPermissionsWrite": key_info.get("assetPermissionsWrite"),
-        }
-    )
+    key_info = introspect(AUDIO_KEY)
+    report.update({
+        "keyName": key_info.get("keyName"),
+        "authorizedUserId": key_info.get("authorizedUserId"),
+        "assetReadWrite": key_info.get("assetReadWrite"),
+        "assetPermissionsWrite": key_info.get("assetPermissionsWrite"),
+    })
+    KEY_REPORT.write_text(json.dumps(key_info, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if (
         key_info.get("http") != 200
         or not key_info.get("authorizedUserId")
@@ -352,65 +315,77 @@ def main():
         write_report(report)
         raise SystemExit("audio key scope check failed")
 
-    create_http, create_data = create_audio_asset(key_info["authorizedUserId"])
-    report["uploadHttp"] = create_http
-    report["uploadResponse"] = create_data
-    if create_http not in (200, 201, 202):
-        report["status"] = "UPLOAD_FAILED"
+    asset_id, old = prior_asset()
+    moderation = None
+    if asset_id:
+        report["assetId"] = asset_id
+        report["uploadReused"] = True
+        moderation = old.get("moderationState")
+        report["moderationState"] = moderation
+        report["previousUploadStatus"] = old.get("status")
+    else:
+        if not AUDIO_PATH.exists() or AUDIO_PATH.stat().st_size < 10000:
+            report["status"] = "AUDIO_FILE_MISSING"
+            write_report(report)
+            raise SystemExit("prepared Track 01 audio missing")
+        create_http, create_data = create_audio_asset(key_info["authorizedUserId"])
+        report["uploadHttp"] = create_http
+        report["uploadResponse"] = create_data
+        if create_http not in (200, 201, 202):
+            report["status"] = "UPLOAD_FAILED"
+            write_report(report)
+            raise SystemExit(f"Roblox audio upload failed HTTP {create_http}")
+        op_path = (create_data or {}).get("path")
+        if not op_path:
+            report["status"] = "UPLOAD_OPERATION_MISSING"
+            write_report(report)
+            raise SystemExit("upload operation path missing")
+        operation = poll_asset_operation(op_path)
+        report["operationPath"] = op_path
+        report["operationResult"] = operation
+        response = (operation or {}).get("response") or {}
+        asset_id = response.get("assetId")
+        moderation = (response.get("moderationResult") or {}).get("moderationState")
+        if not asset_id:
+            report["status"] = "ASSET_ID_MISSING"
+            write_report(report)
+            raise SystemExit("asset upload returned no assetId")
+        asset_id = str(asset_id)
+        report["assetId"] = asset_id
+        report["moderationState"] = moderation
+        report["uploadReused"] = False
+
+    bbya_grant = grant_use(AUDIO_KEY, asset_id, BBYA_UNIVERSE, "AMSTUDIO_AUDIO_UPLOADER_01")
+    if not bbya_grant["ok"]:
+        report["permissions"] = {"bbya": bbya_grant}
+        report["status"] = "BBYA_PERMISSION_FAILED"
         write_report(report)
-        raise SystemExit(f"Roblox audio upload failed HTTP {create_http}")
+        raise SystemExit("BBYA audio permission grant failed")
 
-    op_path = (create_data or {}).get("path")
-    if not op_path:
-        report["status"] = "UPLOAD_OPERATION_MISSING"
-        write_report(report)
-        raise SystemExit("upload operation path missing")
-
-    operation = poll_asset_operation(op_path)
-    report["operationPath"] = op_path
-    report["operationResult"] = operation
-    response = (operation or {}).get("response") or {}
-    asset_id = response.get("assetId")
-    moderation = (response.get("moderationResult") or {}).get("moderationState")
-    if not asset_id:
-        report["status"] = "ASSET_ID_MISSING"
-        write_report(report)
-        raise SystemExit("asset upload returned no assetId")
-
-    asset_id = str(asset_id)
-    report["assetId"] = asset_id
-    report["moderationState"] = moderation
-
-    bbya_grant = grant_use(asset_id, BBYA_UNIVERSE)
-    am_grant = grant_use(asset_id, AM_STUDIO_UNIVERSE)
+    am_attempts = [grant_use(AUDIO_KEY, asset_id, AM_STUDIO_UNIVERSE, "AMSTUDIO_AUDIO_UPLOADER_01")]
+    if not am_attempts[-1]["ok"] and AM_STUDIO_KEY:
+        am_attempts.append(grant_use(AM_STUDIO_KEY, asset_id, AM_STUDIO_UNIVERSE, "AM_STUDIO"))
+    am_ok = any(x.get("ok") for x in am_attempts)
     report["permissions"] = {
         "bbya": bbya_grant,
-        "amStudioCreativeLab": am_grant,
+        "amStudioCreativeLab": {"ok": am_ok, "attempts": am_attempts},
     }
-    if not bbya_grant["ok"] or not am_grant["ok"]:
-        report["status"] = "PERMISSION_FAILED"
-        write_report(report)
-        raise SystemExit("audio universe permission grant failed")
 
     patch_reset()
     write_vip_authority(asset_id)
     patch_project()
     patch_ui()
 
-    report["status"] = "READY_TO_PUBLISH"
+    report["status"] = "READY_TO_PUBLISH" if am_ok else "READY_TO_PUBLISH_AM_STUDIO_PERMISSION_PENDING"
     write_report(report)
-    print(
-        json.dumps(
-            {
-                "status": report["status"],
-                "assetId": asset_id,
-                "moderationState": moderation,
-                "bbyaPermission": bbya_grant["ok"],
-                "amStudioPermission": am_grant["ok"],
-            },
-            ensure_ascii=False,
-        )
-    )
+    print(json.dumps({
+        "status": report["status"],
+        "assetId": asset_id,
+        "uploadReused": report.get("uploadReused"),
+        "moderationState": moderation,
+        "bbyaPermission": True,
+        "amStudioPermission": am_ok,
+    }, ensure_ascii=False))
 
 
 if __name__ == "__main__":
