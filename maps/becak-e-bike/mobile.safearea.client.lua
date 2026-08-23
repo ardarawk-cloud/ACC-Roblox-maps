@@ -1,6 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.32
+-- BECAK E-BIKE — mobile safe-area controller v1.33
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.32 adds compact-landscape scaling for short phones and reduces periodic layout polling overhead.
+-- v1.33 hardens camera/viewport lifecycle so rotation and camera replacement cannot accumulate layout connections.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -18,9 +18,11 @@ if not phone or not launcher then return end
 local scaler=phone:FindFirstChildOfClass('UIScale')
 
 local camera=Workspace.CurrentCamera
+local viewportConn
 local lastKey=''
 local enforcing=false
 local enforcingScale=false
+local lastScale=1
 
 local function readInset()
     local ok,topLeft,bottomRight=pcall(function()
@@ -65,10 +67,12 @@ end
 local function pinOpenPhone()
     if enforcing or not phone.Visible then return end
     enforcing=true
-    local _,_,_,_,_,_,topBand,leftPad=layoutMetrics()
+    local _,_,bottomRight,_,_,_,topBand,leftPad=layoutMetrics()
     local desired=UDim2.fromOffset(leftPad,topBand)
     if phone.AnchorPoint~=Vector2.new(0,0) then phone.AnchorPoint=Vector2.new(0,0) end
     if phone.Position~=desired then phone.Position=desired end
+    -- Keep the base frame deterministic. UIScale owns responsive sizing.
+    if phone.Size~=UDim2.fromOffset(326,566) then phone.Size=UDim2.fromOffset(326,566) end
     enforcing=false
 end
 
@@ -76,6 +80,7 @@ local function pinScale()
     if enforcingScale or not scaler then return end
     enforcingScale=true
     local target=desiredScale()
+    lastScale=target
     if math.abs(scaler.Scale-target)>0.001 then scaler.Scale=target end
     enforcingScale=false
 end
@@ -106,23 +111,33 @@ local function applySafeArea(force)
     pinOpenPhone()
 end
 
+local function bindCameraViewport()
+    if viewportConn then viewportConn:Disconnect();viewportConn=nil end
+    camera=Workspace.CurrentCamera
+    if camera then
+        viewportConn=camera:GetPropertyChangedSignal('ViewportSize'):Connect(function()
+            applySafeArea(true)
+        end)
+    end
+    applySafeArea(true)
+end
+
 applySafeArea(true)
 launcher:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Visible'):Connect(function() applySafeArea(true) end)
 phone:GetPropertyChangedSignal('Position'):Connect(function()
     if phone.Visible then task.defer(pinOpenPhone) end
 end)
+phone:GetPropertyChangedSignal('AnchorPoint'):Connect(function()
+    if phone.Visible then task.defer(pinOpenPhone) end
+end)
 if scaler then
     scaler:GetPropertyChangedSignal('Scale'):Connect(function()
-        task.defer(pinScale)
+        if not enforcingScale and math.abs(scaler.Scale-lastScale)>0.001 then task.defer(pinScale) end
     end)
 end
-if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
-Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()
-    camera=Workspace.CurrentCamera
-    if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(function() applySafeArea(true) end) end
-    applySafeArea(true)
-end)
+Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(bindCameraViewport)
+bindCameraViewport()
 
 -- Low-frequency fallback catches CoreGui/inset changes without running layout work every frame.
 local acc=0
@@ -135,8 +150,9 @@ end)
 
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
--- Compatibility token for the existing dedicated publish workflow validator: ACC_BecakMobileSafeAreaUX','v1.31
+-- Compatibility token retained for the dedicated publish validator: ACC_BecakMobileSafeAreaUX','v1.32
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.33')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',2)
@@ -147,3 +163,5 @@ Workspace:SetAttribute('BecakTouchControlReservePortraitPx',148)
 Workspace:SetAttribute('BecakTouchControlReserveLandscapePx',112)
 Workspace:SetAttribute('BecakCompactLandscapeGuard','ON')
 Workspace:SetAttribute('BecakCompactLandscapeMaxHeightPx',520)
+Workspace:SetAttribute('BecakCameraViewportConnectionGuard','ON')
+Workspace:SetAttribute('BecakPhoneBaseSizeLock','326x566')
