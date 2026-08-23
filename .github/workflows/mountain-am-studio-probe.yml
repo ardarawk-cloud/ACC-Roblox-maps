@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v5.0-immersive-biome-20260823
+# trigger: mountain-v5.1-world-life-20260824
 
 on:
   push:
@@ -35,15 +35,17 @@ jobs:
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
           grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'v5.0-immersive-biome' maps/mountain-social/place.rbxlx
+          grep -q 'v5.1-world-life' maps/mountain-social/place.rbxlx
           grep -q 'TerrainGroundingReady' maps/mountain-social/place.rbxlx
           grep -q 'EnvironmentRealismReady' maps/mountain-social/place.rbxlx
           grep -q 'ImmersiveBiomeReady' maps/mountain-social/place.rbxlx
-          grep -q 'RoadCrackDetailCount' maps/mountain-social/place.rbxlx
-          grep -q 'TrailRootCount' maps/mountain-social/place.rbxlx
-          grep -q 'RiverMicroDetailCount' maps/mountain-social/place.rbxlx
-          grep -q 'HighlandBiomeDetailCount' maps/mountain-social/place.rbxlx
-          grep -q 'NightLanternCount' maps/mountain-social/place.rbxlx
+          grep -q 'WorldLifeReady' maps/mountain-social/place.rbxlx
+          grep -q 'VillageLifeDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'IrrigationDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'ForestDepthDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'SummitPolishDetailCount' maps/mountain-social/place.rbxlx
+          grep -q 'NightFireflyEmitterCount' maps/mountain-social/place.rbxlx
+          grep -q 'v2.8-local-lod' maps/mountain-social/place.rbxlx
           grep -q 'SummitScenicReady' maps/mountain-social/place.rbxlx
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
@@ -61,7 +63,7 @@ jobs:
           {
             if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
             echo 'secret=AM_STUDIO'
-            echo 'build=v5.0-immersive-biome'
+            echo 'build=v5.1-world-life'
             echo 'universeId=4187755690'
             echo 'placeId=11832985967'
             echo "exitCode=$code"
@@ -75,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v5.0-immersive-biome\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v5.1-world-life\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
