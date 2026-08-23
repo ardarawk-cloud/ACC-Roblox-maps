@@ -1,15 +1,40 @@
-const fs=require('fs'),path=require('path');
-const root=process.cwd();
+const fs = require('fs');
+const path = require('path');
 
-// BBYAVATAR RESET BUILD
-// Intentionally minimal: preserve only a neutral baseplate + spawn so the Place
-// remains enterable while all previous catalog/showroom systems are removed from
-// the production payload. Historical source files stay in git for reference but
-// are not bundled into the live experience.
-const server=`local W=game:GetService("Workspace")\nfor _,child in ipairs(W:GetChildren()) do\n if not child:IsA("Terrain") then child:Destroy() end\nend\nlocal base=Instance.new("Part")\nbase.Name="Baseplate"\nbase.Size=Vector3.new(256,1,256)\nbase.CFrame=CFrame.new(0,0,0)\nbase.Anchored=true\nbase.Material=Enum.Material.SmoothPlastic\nbase.Color=Color3.fromRGB(163,162,165)\nbase.TopSurface=Enum.SurfaceType.Smooth\nbase.BottomSurface=Enum.SurfaceType.Smooth\nbase.Parent=W\nlocal spawn=Instance.new("SpawnLocation")\nspawn.Name="Spawn"\nspawn.Size=Vector3.new(8,1,8)\nspawn.CFrame=CFrame.new(0,1.5,0)\nspawn.Anchored=true\nspawn.Neutral=true\nspawn.Parent=W\nprint("[BBYAVATAR] RESET SHELL READY")`;
+const root = process.cwd();
+const mapDir = path.join(root, 'maps', 'bbyavatar');
 
-const client=`-- BBYAVATAR reset shell. Intentionally empty.\n`;
+function read(name) {
+  return fs.readFileSync(path.join(mapDir, name), 'utf8');
+}
+function cdata(source) {
+  return source.replace(/\]\]>/g, ']]]]><![CDATA[>');
+}
 
-const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="Lighting" referent="L"><Properties><float name="Brightness">2</float><double name="ClockTime">14</double><string name="Name">Lighting</string></Properties></Item><Item class="ServerScriptService" referent="S"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="R"><Properties><string name="Name">BBYAVATAR_Runtime</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${server}]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="P"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="PS"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="C"><Properties><string name="Name">BBYAVATAR_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${client}]]></ProtectedString></Properties></Item></Item></Item></roblox>`;
-fs.writeFileSync(path.join(root,'maps/bbyavatar/place.rbxlx'),xml);
-console.log('[BBYAVATAR] Built empty reset shell for new project');
+const config = read('fps.config.lua');
+const world = read('fps.world.server.lua');
+const gameServer = read('fps.game.server.lua');
+const client = read('fps.client.lua');
+
+const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+<External>null</External><External>nil</External>
+<Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties></Item>
+<Item class="Lighting" referent="L"><Properties><string name="Name">Lighting</string><float name="Brightness">2</float><double name="ClockTime">16.4</double></Properties></Item>
+<Item class="Teams" referent="T"><Properties><string name="Name">Teams</string></Properties></Item>
+<Item class="ReplicatedStorage" referent="RS"><Properties><string name="Name">ReplicatedStorage</string></Properties>
+  <Item class="ModuleScript" referent="CFG"><Properties><string name="Name">FPSConfig</string><ProtectedString name="Source"><![CDATA[${cdata(config)}]]></ProtectedString></Properties></Item>
+</Item>
+<Item class="ServerScriptService" referent="SSS"><Properties><string name="Name">ServerScriptService</string></Properties>
+  <Item class="Script" referent="WORLD"><Properties><string name="Name">FPS_World</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(world)}]]></ProtectedString></Properties></Item>
+  <Item class="Script" referent="GAME"><Properties><string name="Name">FPS_GameServer</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(gameServer)}]]></ProtectedString></Properties></Item>
+</Item>
+<Item class="StarterPlayer" referent="SP"><Properties><string name="Name">StarterPlayer</string></Properties>
+  <Item class="StarterPlayerScripts" referent="SPS"><Properties><string name="Name">StarterPlayerScripts</string></Properties>
+    <Item class="LocalScript" referent="CLIENT"><Properties><string name="Name">FPS_Client</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(client)}]]></ProtectedString></Properties></Item>
+  </Item>
+</Item>
+</roblox>`;
+
+const out = path.join(mapDir, 'place.rbxlx');
+fs.writeFileSync(out, xml);
+console.log(`[BBYAVATAR FPS] Built ${path.relative(root,out)} (${Buffer.byteLength(xml)} bytes)`);
