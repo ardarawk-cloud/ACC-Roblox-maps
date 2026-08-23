@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 20
     env:
       AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
       BBYA_UNIVERSE: '8116636513'
       AM_STUDIO_UNIVERSE: '4187755690'
       DRIVE_FILE_ID: '1_E34wIMN6YNHyZmpyy8kybTD7bIbNDmO'
@@ -47,23 +48,35 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Download and prepare exact Track 01 from Drive
+      - name: Prepare Track 01 only if not already uploaded
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
-          python3 -m pip install --quiet gdown
-          gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O /tmp/bbya-vip-track01-source.mp3
-          test -s /tmp/bbya-vip-track01-source.mp3
-          ffmpeg -y -hide_banner -loglevel error \
-            -i /tmp/bbya-vip-track01-source.mp3 \
-            -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame \
-            "${AUDIO_PATH}"
-          test -s "${AUDIO_PATH}"
-          ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
+          if python3 - <<'PY'
+          import json,pathlib,sys
+          p=pathlib.Path('deploy-status/bbya-vip-track01.json')
+          if not p.exists(): sys.exit(1)
+          try: d=json.loads(p.read_text())
+          except Exception: sys.exit(1)
+          sys.exit(0 if d.get('track')=='Wonder Girls - Nobody (ROOKIE Amapiano Edit)' and d.get('assetId') else 1)
+          PY
+          then
+            echo 'Existing Track 01 Asset ID found; skipping Drive download and upload preparation.'
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+            python3 -m pip install --quiet gdown
+            gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O /tmp/bbya-vip-track01-source.mp3
+            test -s /tmp/bbya-vip-track01-source.mp3
+            ffmpeg -y -hide_banner -loglevel error \
+              -i /tmp/bbya-vip-track01-source.mp3 \
+              -t 410 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame \
+              "${AUDIO_PATH}"
+            test -s "${AUDIO_PATH}"
+            ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
+          fi
 
-      - name: Upload, grant and patch VIP
+      - name: Reuse asset, grant and patch VIP
         run: python3 scripts/bbya-vip-track01-direct.py
 
       - name: Setup Node
@@ -100,10 +113,12 @@ jobs:
           import json, pathlib
           p=pathlib.Path('deploy-status/bbya-vip-track01.json')
           d=json.loads(p.read_text())
-          d['status']='LIVE_PUBLISHED'
+          d['prePublishStatus']=d.get('status')
+          am_ok=bool(((d.get('permissions') or {}).get('amStudioCreativeLab') or {}).get('ok'))
+          d['status']='LIVE_PUBLISHED' if am_ok else 'LIVE_PUBLISHED_AM_STUDIO_PERMISSION_PENDING'
+          d['bbyaLivePublished']=True
           receipt=pathlib.Path('deploy-status/a-club.json')
-          if receipt.exists():
-              d['publishReceipt']=json.loads(receipt.read_text())
+          if receipt.exists(): d['publishReceipt']=json.loads(receipt.read_text())
           p.write_text(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
           PY
 
@@ -122,7 +137,7 @@ jobs:
             deploy-status/bbya-vip-track01.json \
             deploy-status/a-club.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Upload Track 01 and publish BBYA VIP [skip ci]'
+            git commit -m 'Publish existing Track 01 asset to BBYA VIP [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
