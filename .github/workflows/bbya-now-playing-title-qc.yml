@@ -1,0 +1,48 @@
+name: BBYA Actual Now Playing Title QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/106-now-playing-title.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-now-playing-title-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-now-playing.rbxl
+          test -s /tmp/bbya-now-playing.rbxl
+      - name: Validate actual audio title authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/106-now-playing-title.client.lua'
+          p='maps/bbya-social-hub/default.project.json'
+          grep -q 'ACTUAL NOW PLAYING TITLE v1' "$f"
+          grep -q 'RecoveryActive' "$f"
+          grep -q 'RecoveryTrack' "$f"
+          grep -q 'RecoveryTrackId' "$f"
+          grep -q 'CurrentTitle' "$f"
+          grep -q 'kind~="music"' "$f"
+          grep -q 'kind~="state"' "$f"
+          grep -q 'ActualSourceBadgeV1' "$f"
+          grep -q 'ActualNowPlayingTitleV1' "$p"
+          echo 'BBYA actual now-playing title QC passed.'
