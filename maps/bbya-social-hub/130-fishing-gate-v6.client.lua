@@ -26,9 +26,10 @@ local action = gui:FindFirstChild("Action", true)
 local actionScale
 
 local function resolveAction()
-    if action and action.Parent then return action end
-    action = gui:FindFirstChild("Action", true)
-    if action then
+    if not action or not action.Parent then
+        action = gui:FindFirstChild("Action", true)
+    end
+    if action and not actionScale then
         actionScale = action:FindFirstChild("FishingActionScaleV394") or action:FindFirstChildOfClass("UIScale")
         if not actionScale then
             actionScale = Instance.new("UIScale")
@@ -61,8 +62,7 @@ local function shouldEnable()
         gateEntered = true
     end
 
-    -- Walking back into the market fully disarms it. This prevents the old radius-based UI
-    -- from turning on while the player is still among Pasar Malam stalls.
+    -- Returning through the gate or leaving the district disarms it completely.
     if not inside or pos.Z <= EXIT_Z then
         gateEntered = false
     end
@@ -70,17 +70,25 @@ local function shouldEnable()
     return gateEntered and inside and pos.Z >= GATE_Z
 end
 
--- The original v1 UI has its own wide-radius enable loop. Run after normal render callbacks
--- and make this gate the final visual authority, so no fishing panel flashes in Pasar Malam.
+local function closeTransientFishingPanels()
+    -- Base fishing UI creates its modal shade/sheet as top-level high-Z children.
+    -- Hide only high-Z modal children; the detached round Action button uses Z45 and remains untouched.
+    for _, child in ipairs(gui:GetChildren()) do
+        if (child:IsA("Frame") or child:IsA("TextButton")) and child.ZIndex >= 50 then
+            child.Visible = false
+        end
+    end
+end
+
+-- The original v1 UI owns a wide radius. This render-step is the final authority so that
+-- no fishing UI can flash on while the player is still walking through Pasar Malam.
 pcall(function() RunService:UnbindFromRenderStep("BBYAFishingGateAuthorityV6") end)
 RunService:BindToRenderStep("BBYAFishingGateAuthorityV6", Enum.RenderPriority.Last.Value, function()
     local active = shouldEnable()
     if gui.Enabled ~= active then
         gui.Enabled = active
         if not active then
-            local shade = gui:FindFirstChildWhichIsA("TextButton")
-            if shade and shade.ZIndex >= 50 then shade.Visible = false end
-            local sheet = gui:FindFirstChild("Frame")
+            closeTransientFishingPanels()
             player:SetAttribute("BBYAFishingPanelGateV6", false)
         else
             player:SetAttribute("BBYAFishingPanelGateV6", true)
@@ -91,9 +99,7 @@ end)
 local pulseSerial = 0
 local function pulse(scaleTo, duration)
     local btn = resolveAction()
-    if not btn then return end
-    actionScale = actionScale or btn:FindFirstChildOfClass("UIScale")
-    if not actionScale then return end
+    if not btn or not actionScale then return end
 
     pulseSerial += 1
     local serial = pulseSerial
@@ -105,7 +111,7 @@ local function pulse(scaleTo, duration)
 end
 
 if stateRemote then
-    stateRemote.OnClientEvent:Connect(function(kind, payload)
+    stateRemote.OnClientEvent:Connect(function(kind)
         if not gui.Enabled then return end
         if kind == "Bite" then
             pulse(1.14, .08)
@@ -119,7 +125,6 @@ if stateRemote then
     end)
 end
 
--- Markers are useful for live inspection without adding visible UI.
 gui:SetAttribute("GateAuthorityV6", true)
 gui:SetAttribute("GateZV6", GATE_Z)
 gui:SetAttribute("MarketSideUIBlockedV6", true)
