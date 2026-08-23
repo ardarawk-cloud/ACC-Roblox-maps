@@ -1,0 +1,115 @@
+name: BBYA Fishing Progression v4 QC
+
+on:
+  push:
+    branches: [feature/bbya-fishing-v4-progression]
+    paths:
+      - 'maps/bbya-social-hub/128-fishing-progression-v4.server.lua'
+      - 'maps/bbya-social-hub/128-fishing-progression-v4.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v4-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/128-fishing-progression-v4.server.lua'
+      - 'maps/bbya-social-hub/128-fishing-progression-v4.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v4-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout progression branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static progression architecture checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$pattern,[string]$message){if($text -notmatch $pattern){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          $serverPath='maps/bbya-social-hub/128-fishing-progression-v4.server.lua'
+          $clientPath='maps/bbya-social-hub/128-fishing-progression-v4.client.lua'
+          $projectPath='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($serverPath,$clientPath,$projectPath)){if(-not (Test-Path $p)){throw "Missing $p"}}
+
+          $server=Get-Content $serverPath -Raw
+          $client=Get-Content $clientPath -Raw
+          $project=Get-Content $projectPath -Raw
+          $null=$project | ConvertFrom-Json
+
+          Require $server 'BBYA_FISHING_PROGRESSION_V4' 'Persistent v4 store missing'
+          Require $server 'CastQuality' 'Cast quality authority missing'
+          Require $server 'PERFECT' 'Perfect cast grade missing'
+          Require $server 'species=\{\}' 'Fish Index persistence missing'
+          Require $server 'variants=\{\}' 'Variant persistence missing'
+          Require $server 'mutations=\{\}' 'Mutation persistence missing'
+          Require $server 'mastery=\{\}' 'Rod mastery persistence missing'
+          Require $server 'WATER_GARDEN' 'Water Garden biome missing'
+          Require $server 'MOON_COVE' 'Moon Cove biome missing'
+          Require $server 'MOONFALL' 'Moonfall biome missing'
+          Require $server 'DEEP' 'Deep Water biome missing'
+          Require $server 'GOLDEN CURRENT' 'Golden Current event missing'
+          Require $server 'MOON SURGE' 'Moon Surge event missing'
+          Require $server 'CRYSTAL RAIN' 'Crystal Rain event missing'
+          Require $server 'DEEP CURRENT' 'Deep Current event missing'
+          Require $server 'Lotus Crown Koi' 'Secret variant catalog missing'
+          Require $server 'Abyssal Leviathan' 'Abyssal secret variant missing'
+          Require $server 'ProcessedProgressionV4' 'Catch de-duplication marker missing'
+          Require $server 'nearestPlayer' 'Catch ownership association missing'
+          Require $server 'SetAsync' 'Progression persistence write missing'
+
+          Require $client 'FishingIndexV4' 'INDEX button missing'
+          Require $client 'CastMeterV4' 'Temporary cast meter missing'
+          Require $client 'PERFECT ZONE' 'Perfect cast visual missing'
+          Require $client 'JournalV4' 'Compact Fish Index panel missing'
+          Require $client 'CatchEnhanced' 'Enhanced catch banner missing'
+          Require $client 'AREA DISCOVERED' 'Biome discovery feedback missing'
+          Require $client 'LAKE EVENT' 'Lake event feedback missing'
+
+          Require $project '128-fishing-progression-v4\.server\.lua' 'v4 server not mounted in canonical project'
+          Require $project '128-fishing-progression-v4\.client\.lua' 'v4 client not mounted in canonical project'
+
+          Forbid $server 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)' 'v4 must not mutate global Lighting'
+          Forbid $server 'MarketplaceService|PromptProductPurchase|TeleportService' 'v4 must not touch monetization or travel'
+          Forbid $server 'SoundId|SoundGroup' 'v4 must not touch map audio'
+          Forbid $client 'ImageLabel|ImageButton' 'v4 UI must remain simple vector/text UI'
+
+          Write-Host 'Fishing progression v4 static QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojoExe=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-v4'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0-v4.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw "Rojo version failed: $LASTEXITCODE"}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full canonical BBYA build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-v4-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Built place unexpectedly small: $bytes"}
+          Write-Host "BBYA FISHING V4 QC PASS - canonical build: $bytes bytes"
