@@ -1,0 +1,19 @@
+{
+  "track": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
+  "audioOwnerUserId": "8878884630",
+  "searchAttempts": [
+    {
+      "key": "ROBLOX_AUDIO_API_KEY",
+      "http": 403
+    },
+    {
+      "key": "AM_STUDIO",
+      "http": 403
+    }
+  ],
+  "candidateCount": 0,
+  "topCandidates": [],
+  "chosen": null,
+  "permissions": {},
+  "status": "ASSET_NOT_RESOLVED"
+}
