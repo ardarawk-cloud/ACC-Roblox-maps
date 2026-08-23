@@ -1,5 +1,5 @@
 {
-  "jobId": "bbya-mainclub-v377-visual-audit-001",
+  "jobId": "bbya-mainclub-v377-visual-audit-002",
   "calls": [
     {
       "name": "get_studio_state",
@@ -30,7 +30,7 @@
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "MainClub_DJ_v377",
+        "capture_id": "MainClub_DJ_v377_2",
         "camera_position": [3, 8, -14],
         "look_at_position": [3, 5, 39]
       }
@@ -38,7 +38,7 @@
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "FormerSalonPhoto_v377",
+        "capture_id": "FormerSalonPhoto_v377_2",
         "camera_position": [-24, 8, -13],
         "look_at_position": [-43, 4, -15]
       }
@@ -46,7 +46,7 @@
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "MainClub_Wide_v377",
+        "capture_id": "MainClub_Wide_v377_2",
         "camera_position": [2, 18, -40],
         "look_at_position": [2, 5, 18]
       }
