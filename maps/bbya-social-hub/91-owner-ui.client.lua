@@ -1,6 +1,6 @@
 -- BBYA SOCIAL HUB — OWNER UI COMPATIBILITY + ROLE PANEL v8
 -- Keeps existing panels mobile-safe and exposes a compact role manager only to authorized owner/admin accounts.
--- Command Menu v7 is the sole position authority for normal feature panels.
+-- Command Menu v7 is the sole ongoing position authority for normal feature panels.
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -83,8 +83,8 @@ end
 local open=button(gui,"RolePanelOpen","ROLES",UDim2.fromOffset(78,34),UDim2.new(1,-92,0,82),C.panel)
 open.AnchorPoint=Vector2.new(0,0);open.TextColor3=C.gold;open.ZIndex=150
 
-local shade=Instance.new("Frame");shade.Name="Shade";shade.Size=UDim2.fromScale(1,1);shade.BackgroundColor3=Color3.new(0,0,0);shade.BackgroundTransparency=.38;shade.Visible=false;shade.BorderSizePixel=0;shade.ZIndex=150;shade.Parent=gui
-local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.52);panel.Size=UDim2.fromOffset(520,390);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.ZIndex=151;panel.Parent=shade;corner(panel,12);stroke(panel,C.stroke,.08)
+local shade=Instance.new("Frame");shade.Name="Shade";shade.Size=UDim2.fromScale(1,1);shade.BackgroundColor3=Color3.new(0,0,0);shade.BackgroundTransparency=.82;shade.Visible=false;shade.BorderSizePixel=0;shade.ZIndex=150;shade.Parent=gui
+local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(1,-96,0,8);panel.Size=UDim2.fromOffset(520,390);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.ZIndex=151;panel.Parent=shade;corner(panel,12);stroke(panel,C.stroke,.08)
 panel:SetAttribute("BBYAPositionAuthority","COMMAND_MENU_V7")
 local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
 
@@ -139,7 +139,7 @@ local function renderSnapshot(snap)
   local row=button(list,"P_"..tostring(entry.userId),"",UDim2.new(1,0,0,49),UDim2.new(),C.panel2);row.LayoutOrder=i;row.ZIndex=153
   local n=text(row,"Name",entry.displayName,UDim2.new(1,-78,0,18),UDim2.fromOffset(9,7),Enum.Font.GothamSemibold,12,C.white)
   local u=text(row,"User","@"..entry.username,UDim2.new(1,-78,0,15),UDim2.fromOffset(9,26),Enum.Font.Gotham,9,C.muted)
-  local r=text(row,"Role",entry.role,UDim2.fromOffset(64,18),UDim2.new(1,-71,0,15),UDim2.new(1,-71,0,15) and Enum.Font.GothamBold or Enum.Font.GothamBold,9,roleColor(entry.role),Enum.TextXAlignment.Right)
+  local r=text(row,"Role",entry.role,UDim2.fromOffset(64,18),UDim2.new(1,-71,0,15),Enum.Font.GothamBold,9,roleColor(entry.role),Enum.TextXAlignment.Right)
   n.ZIndex=154;u.ZIndex=154;r.ZIndex=154
   row.Activated:Connect(function()setSelection(entry)end)
   if selectedUserId==entry.userId then keepSelection=entry end
