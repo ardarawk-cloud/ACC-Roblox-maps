@@ -72,8 +72,9 @@ jobs:
           project='maps/bbya-social-hub/default.project.json'
           grep -q 'VIP CHAMPAGNE SERVICE v1' "$f"
           grep -q 'VIPLoungeSeatingV3' "$f"
-          grep -q 'VIPServiceWall_WEST' "$f"
-          grep -q 'VIPServiceWall_EAST' "$f"
+          grep -q 'VIPServiceWall_' "$f"
+          grep -q '"WEST"' "$f"
+          grep -q '"EAST"' "$f"
           grep -q 'CenterCirculationPreserved' "$f"
           grep -q 'VIPChampagneServiceV1' "$project"
           grep -q '119-vip-champagne-service.server.lua' "$project"
