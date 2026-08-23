@@ -13,38 +13,72 @@ permissions:
 jobs:
   diagnose:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 5
+    timeout-minutes: 7
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Inspect Windows interactive session and Studio state
+      - name: Repair interactive desktop and launch BBYA Studio
         shell: powershell
         run: |
           $env:USERPROFILE='C:\Users\Administrator'
           $env:HOME='C:\Users\Administrator'
-          $lines=@()
-          $lines += "timestamp=$(Get-Date -Format o)"
-          $lines += "whoami=$(whoami)"
-          $lines += "PROCESS_SESSION_ID=$([System.Diagnostics.Process]::GetCurrentProcess().SessionId)"
-          $lines += 'QUSER_BEGIN'
-          try{$lines += (quser 2>&1 | Out-String).Trim()}catch{$lines += $_.Exception.Message}
-          $lines += 'QUSER_END'
-          $lines += 'QWINSTA_BEGIN'
-          try{$lines += (qwinsta 2>&1 | Out-String).Trim()}catch{$lines += $_.Exception.Message}
-          $lines += 'QWINSTA_END'
-          $lines += 'DESKTOP_PROCESSES_BEGIN'
-          foreach($n in @('explorer','LogonUI','dwm','RobloxStudioBeta')){
-            $ps=Get-Process $n -ErrorAction SilentlyContinue
-            if(-not $ps){$lines += "$n=NONE";continue}
-            foreach($p in $ps){$lines += "$n|pid=$($p.Id)|session=$($p.SessionId)|hwnd=$($p.MainWindowHandle)|title=$($p.MainWindowTitle)"}
+          $env:LOCALAPPDATA='C:\Users\Administrator\AppData\Local'
+          $lines=@("timestamp=$(Get-Date -Format o)","whoami=$(whoami)","runner_session=$([System.Diagnostics.Process]::GetCurrentProcess().SessionId)")
+
+          $adminSession=2
+          try{
+            $q=(quser 2>&1 | Out-String)
+            $lines += 'QUSER_BEFORE_BEGIN';$lines += $q.Trim();$lines += 'QUSER_BEFORE_END'
+            $m=[regex]::Match($q,'(?im)^\s*administrator\s+(?:\S+\s+)?(\d+)\s+(Active|Disc)')
+            if($m.Success){$adminSession=[int]$m.Groups[1].Value;$lines += "admin_session=$adminSession|state=$($m.Groups[2].Value)"}
+          }catch{$lines += "quser_error=$($_.Exception.Message)"}
+
+          try{
+            $ts=(tscon $adminSession /dest:console 2>&1 | Out-String).Trim()
+            $lines += "tscon_result=$ts"
+          }catch{$lines += "tscon_error=$($_.Exception.Message)"}
+          Start-Sleep -Seconds 3
+
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
+          $roots=@((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')
+          $exe=$null
+          foreach($r in $roots){
+            if(-not (Test-Path $r)){continue}
+            $c=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if($c){$exe=$c.FullName;break}
           }
-          $lines += 'DESKTOP_PROCESSES_END'
+          if(-not $exe){$lines += 'studio_exe=NOT_FOUND'}else{
+            $lines += "studio_exe=$exe"
+            try{
+              Import-Module ScheduledTasks -ErrorAction Stop
+              $action=New-ScheduledTaskAction -Execute $exe -Argument '--task EditPlace --placeId 131894120482837 --universeId 8116636513'
+              $principal=New-ScheduledTaskPrincipal -UserId 'Administrator' -LogonType Interactive -RunLevel Highest
+              $settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
+              Register-ScheduledTask -TaskName 'BBYAStudioInteractiveLaunch' -Action $action -Principal $principal -Settings $settings -Force | Out-Null
+              Start-ScheduledTask -TaskName 'BBYAStudioInteractiveLaunch'
+              $lines += 'scheduled_task_started=true'
+            }catch{$lines += "scheduled_task_error=$($_.Exception.Message)"}
+          }
+
+          $deadline=(Get-Date).AddSeconds(80)
+          $visible=$null
+          do{
+            Start-Sleep -Seconds 4
+            $visible=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Sort-Object StartTime -Descending | Select-Object -First 1
+          }while(-not $visible -and (Get-Date)-lt $deadline)
+          if($visible){$lines += "STUDIO_VISIBLE=true|pid=$($visible.Id)|session=$($visible.SessionId)|hwnd=$($visible.MainWindowHandle)|title=$($visible.MainWindowTitle)"}else{
+            $all=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue
+            if($all){foreach($p in $all){$lines += "STUDIO_VISIBLE=false|pid=$($p.Id)|session=$($p.SessionId)|hwnd=$($p.MainWindowHandle)|title=$($p.MainWindowTitle)"}}else{$lines += 'STUDIO_VISIBLE=false|process=NONE'}
+          }
+          try{$lines += 'QUSER_AFTER_BEGIN';$lines += ((quser 2>&1|Out-String).Trim());$lines += 'QUSER_AFTER_END'}catch{}
+
           $text=($lines -join "`n")+"`n"
           $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
           $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-worker.txt"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
           $sha=$null
           try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
-          $body=@{message='Record BBYA Studio worker diagnostic [skip ci]';content=$content;branch='main'}
+          $body=@{message='Record BBYA Studio worker repair [skip ci]';content=$content;branch='main'}
           if($sha){$body.sha=$sha}
           Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json' | Out-Null
