@@ -1,0 +1,26 @@
+name: BBYA Stage Studio Worker Repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-stage-studio-worker-repair.yml'
+      - 'scripts/repair-bbya-studio-worker.ps1'
+  workflow_dispatch:
+
+jobs:
+  stage:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage repair script in runner root
+        shell: powershell
+        run: |
+          $src=Join-Path $env:GITHUB_WORKSPACE 'scripts\repair-bbya-studio-worker.ps1'
+          $dst='C:\actions-runner\repair-bbya-studio-worker.ps1'
+          if(-not (Test-Path $src)){throw "Missing repair source: $src"}
+          Copy-Item $src $dst -Force
+          $hash=(Get-FileHash $dst -Algorithm SHA256).Hash
+          Write-Host "STAGED=$dst"
+          Write-Host "SHA256=$hash"
