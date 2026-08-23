@@ -1,0 +1,75 @@
+name: BBYA Fishing Feedback v394 QC
+
+on:
+  push:
+    branches: [fix/bbya-fishing-mobile-v394]
+    paths:
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua'
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v394-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua'
+      - 'maps/bbya-social-hub/127-fishing-feedback-hotfix.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v394-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static feedback checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $server=Get-Content 'maps/bbya-social-hub/127-fishing-feedback-hotfix.server.lua' -Raw
+          $client=Get-Content 'maps/bbya-social-hub/127-fishing-feedback-hotfix.client.lua' -Raw
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+          $null=$project | ConvertFrom-Json
+          foreach($needle in @('RodAutoStoredOutsideLake','DeepLakeVolumeV394','CenterY','clearFishingRodsFrom')){if($server -notmatch $needle){throw "Missing server fix: $needle"}}
+          foreach($needle in @('RoundFishingActionV394','CornerRadius = UDim.new\(1, 0\)','UDim2.new\(1, -185, 1, -150\)')){if($client -notmatch $needle){throw "Missing client fix: $needle"}}
+          if($server -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Fishing hotfix must not touch global Lighting'}
+          if($server -match 'SoundId|MarketplaceService|TeleportService'){throw 'Fishing hotfix touches protected systems'}
+          if($project -notmatch '127-fishing-feedback-hotfix\.server\.lua'){throw 'Server hotfix not mounted'}
+          if($project -notmatch '127-fishing-feedback-hotfix\.client\.lua'){throw 'Client hotfix not mounted'}
+          Write-Host 'Fishing feedback v394 static QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojoExe=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-v394'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-rojo-v394.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full canonical BBYA build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-fishing-v394-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Built place unexpectedly small: $bytes"}
+          Write-Host "BBYA FISHING FEEDBACK V394 QC PASS - $bytes bytes"
