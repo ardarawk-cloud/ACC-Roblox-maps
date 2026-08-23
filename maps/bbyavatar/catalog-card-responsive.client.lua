@@ -1,15 +1,10 @@
--- BBYAVATAR responsive catalog card layout v1.
+-- BBYAVATAR responsive catalog card layout v1.1.
 -- Runs after all catalog-card decorators so BUY/FAVORITE/TRY ON/SAVE PICK/DETAILS
 -- remain usable on narrow phones without changing purchase or avatar behavior.
 -- Session-local layout only; no data is persisted or transmitted.
 local CARD_MOBILE_BREAKPOINT = 520
 local CARD_TABLET_BREAKPOINT = 720
-
-local function findTextChild(card, name)
-    for _, child in ipairs(card:GetChildren()) do
-        if child:IsA("TextLabel") and child.Name == name then return child end
-    end
-end
+local cardDesktopState = setmetatable({}, {__mode = "k"})
 
 local function findUnnamedText(card, predicate)
     for _, child in ipairs(card:GetChildren()) do
@@ -24,8 +19,9 @@ local function orderedActionButtons(card)
         if child:IsA("TextButton") then
             local rank = priority[child.Name]
             if not rank then
-                if child.Text == "BUY" or string.sub(child.Text or "", 1, 3) == "BUY" then rank = 3
-                elseif child.Text == "FAVORITE" then rank = 4
+                local text = tostring(child.Text or "")
+                if text == "BUY" or string.sub(text, 1, 3) == "BUY" then rank = 3
+                elseif text == "FAVORITE" then rank = 4
                 else rank = 20 end
             end
             table.insert(buttons, {button = child, rank = rank})
@@ -38,6 +34,60 @@ local function orderedActionButtons(card)
     return buttons
 end
 
+local function rememberDesktopState(card, preview, name, meta, actions)
+    if cardDesktopState[card] then return cardDesktopState[card] end
+    local state = {
+        cardSize = card.Size,
+        preview = preview and {Position = preview.Position, Size = preview.Size} or nil,
+        name = name and {Position = name.Position, Size = name.Size, TextSize = name.TextSize} or nil,
+        meta = meta and {Position = meta.Position, Size = meta.Size, TextSize = meta.TextSize} or nil,
+        buttons = {},
+    }
+    for _, entry in ipairs(actions) do
+        local button = entry.button
+        state.buttons[button] = {
+            AnchorPoint = button.AnchorPoint,
+            Position = button.Position,
+            Size = button.Size,
+            TextSize = button.TextSize,
+        }
+    end
+    cardDesktopState[card] = state
+    return state
+end
+
+local function restoreDesktopState(card, preview, name, meta, actions, state)
+    if not state then return end
+    card.Size = state.cardSize
+    if preview and state.preview then
+        preview.Position = state.preview.Position
+        preview.Size = state.preview.Size
+    end
+    if name and state.name then
+        name.Position = state.name.Position
+        name.Size = state.name.Size
+        name.TextSize = state.name.TextSize
+    end
+    if meta and state.meta then
+        meta.Position = state.meta.Position
+        meta.Size = state.meta.Size
+        meta.TextSize = state.meta.TextSize
+    end
+    for _, entry in ipairs(actions) do
+        local button = entry.button
+        local original = state.buttons[button]
+        if original then
+            button.AnchorPoint = original.AnchorPoint
+            button.Position = original.Position
+            button.Size = original.Size
+            button.TextSize = original.TextSize
+        end
+        button.TextScaled = false
+        button.TextWrapped = false
+        button.TextTruncate = Enum.TextTruncate.AtEnd
+    end
+end
+
 local function applyCatalogCardLayout(card)
     if not card or not card.Parent then return end
     local width = card.AbsoluteSize.X
@@ -48,12 +98,13 @@ local function applyCatalogCardLayout(card)
 
     local preview = card:FindFirstChild("Preview")
     local name = findUnnamedText(card, function(label)
-        return label.Position.X.Offset >= 110 and label.Position.Y.Offset <= 20
+        return label.Position.X.Offset >= 100 and label.Position.Y.Offset <= 24
     end)
     local meta = findUnnamedText(card, function(label)
-        return label.Position.X.Offset >= 110 and label.Position.Y.Offset >= 40
+        return label.Position.X.Offset >= 100 and label.Position.Y.Offset >= 38
     end)
     local actions = orderedActionButtons(card)
+    local desktop = rememberDesktopState(card, preview, name, meta, actions)
 
     if width < CARD_MOBILE_BREAKPOINT then
         card.Size = UDim2.new(1, -4, 0, 214)
@@ -74,17 +125,17 @@ local function applyCatalogCardLayout(card)
 
         local usable = math.max(240, width - 20)
         local gap = 8
-        local columns = 2
-        local buttonWidth = math.floor((usable - gap) / columns)
+        local buttonWidth = math.floor((usable - gap) / 2)
         for index, entry in ipairs(actions) do
             local button = entry.button
             local zero = index - 1
-            local row = math.floor(zero / columns)
-            local col = zero % columns
+            local row = math.floor(zero / 2)
+            local col = zero % 2
             button.AnchorPoint = Vector2.new(0, 0)
             button.Position = UDim2.fromOffset(10 + col * (buttonWidth + gap), 108 + row * 46)
             button.Size = UDim2.fromOffset(buttonWidth, 38)
-            button.TextSize = math.min(button.TextSize, 11)
+            button.TextSize = math.min((desktop.buttons[button] and desktop.buttons[button].TextSize) or button.TextSize, 11)
+            button.TextTruncate = Enum.TextTruncate.AtEnd
         end
     elseif width < CARD_TABLET_BREAKPOINT then
         card.Size = UDim2.new(1, -4, 0, 172)
@@ -95,10 +146,12 @@ local function applyCatalogCardLayout(card)
         if name then
             name.Position = UDim2.fromOffset(118, 10)
             name.Size = UDim2.new(1, -220, 0, 38)
+            name.TextSize = (desktop.name and desktop.name.TextSize) or name.TextSize
         end
         if meta then
             meta.Position = UDim2.fromOffset(118, 52)
             meta.Size = UDim2.new(1, -220, 0, 46)
+            meta.TextSize = (desktop.meta and desktop.meta.TextSize) or meta.TextSize
         end
 
         local count = #actions
@@ -111,16 +164,11 @@ local function applyCatalogCardLayout(card)
             button.AnchorPoint = Vector2.new(0, 0)
             button.Position = UDim2.fromOffset(10 + (index - 1) * (buttonWidth + gap), 120)
             button.Size = UDim2.fromOffset(buttonWidth, 38)
-            button.TextSize = math.min(button.TextSize, 11)
+            button.TextSize = math.min((desktop.buttons[button] and desktop.buttons[button].TextSize) or button.TextSize, 11)
+            button.TextTruncate = Enum.TextTruncate.AtEnd
         end
     else
-        -- Preserve the established desktop/tablet card arrangement created by the
-        -- base decorators; only ensure action labels do not overflow their buttons.
-        for _, entry in ipairs(actions) do
-            entry.button.TextScaled = false
-            entry.button.TextWrapped = false
-            entry.button.TextTruncate = Enum.TextTruncate.AtEnd
-        end
+        restoreDesktopState(card, preview, name, meta, actions, desktop)
     end
 end
 
@@ -137,4 +185,4 @@ catalogCard = function(parent, item)
     return card
 end
 
-print("[BBYAVATAR] Responsive catalog cards v1 ready")
+print("[BBYAVATAR] Responsive catalog cards v1.1 orientation-safe ready")
