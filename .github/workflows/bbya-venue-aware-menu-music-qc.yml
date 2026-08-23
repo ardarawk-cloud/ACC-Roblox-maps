@@ -30,13 +30,13 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-venue-aware-menu.rbxl
           test -s /tmp/bbya-venue-aware-menu.rbxl
-      - name: Validate venue-aware menu music label
+      - name: Validate venue-aware menu music label and mobile guard
         shell: bash
         run: |
           set -euo pipefail
           f='maps/bbya-social-hub/114-venue-aware-menu-music.client.lua'
           project='maps/bbya-social-hub/default.project.json'
-          grep -q 'VENUE-AWARE MENU MUSIC v1' "$f"
+          grep -q 'VENUE-AWARE MENU MUSIC v2' "$f"
           grep -q 'MAIN="CLUB"' "$f"
           grep -q 'UNDERGROUND="UNDERGROUND"' "$f"
           grep -q 'VIP="VIP"' "$f"
@@ -46,5 +46,9 @@ jobs:
           grep -q 'BBYAAudioVenue' "$f"
           grep -q 'BBYACommandMenuId' "$f"
           grep -q 'updateMusicLabel' "$f"
+          grep -q 'BBYAMobileControlsGuard' "$f"
+          grep -q 'AdminNextV7' "$f"
+          grep -q 'maxRight=cw-pad' "$f"
           grep -q 'VenueAwareMenuMusicV1.*114-venue-aware-menu-music.client.lua' "$project"
-          echo 'BBYA venue-aware menu music QC passed.'
+          ! grep -q 'FireServer' "$f"
+          echo 'BBYA venue-aware menu music v2 QC passed.'
