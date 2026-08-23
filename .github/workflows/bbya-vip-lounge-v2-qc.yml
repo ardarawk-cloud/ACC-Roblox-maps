@@ -1,0 +1,72 @@
+name: BBYA VIP Lounge v2 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/113-vip-lounge-seating.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-vip-lounge-v2-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-vip-lounge-v2.rbxl
+          test -s /tmp/bbya-vip-lounge-v2.rbxl
+      - name: Validate four-corner VIP lounge
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/113-vip-lounge-seating.server.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'VIP LOUNGE SEATING v2' "$f"
+          grep -q 'VIPLoungeSeatingV2' "$f"
+          grep -q 'FOUR_CORNER_L_LOUNGES' "$f"
+          grep -q 'buildLounge("NW_Lounge",-1,1,false)' "$f"
+          grep -q 'buildLounge("NE_Lounge",1,1,false)' "$f"
+          grep -q 'buildLounge("SW_Lounge",-1,-1,true)' "$f"
+          grep -q 'buildLounge("SE_Lounge",1,-1,true)' "$f"
+          grep -q 'VIPLoungeSeatCount",24' "$f"
+          grep -q 'VIPLoungeTableCount",4' "$f"
+          grep -q 'VIPLoungeRugCount",4' "$f"
+          grep -q 'VIPLoungeWarmAccentCount",4' "$f"
+          grep -q 'DarkLoungeRug' "$f"
+          grep -q 'TableDetail' "$f"
+          grep -q 'BottleBody' "$f"
+          grep -q 'Glass1' "$f"
+          grep -q 'LoungeWarmWash' "$f"
+          grep -q 'PlinthAccent' "$f"
+          grep -q 'VIPLoungeSeatingV1.*113-vip-lounge-seating.server.lua' "$project"
+
+          if grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)[[:space:]]*=' "$f"; then
+            echo 'VIP furniture pass must not edit global Lighting.' >&2
+            exit 1
+          fi
+          if grep -Eq 'PreciseInnerFloorNeon.*Destroy|SafetyRails.*Destroy|SuspendedCornerSound.*Destroy' "$f"; then
+            echo 'VIP furniture pass must not delete protected VIP systems.' >&2
+            exit 1
+          fi
+          if grep -q 'ProximityPrompt' "$f"; then
+            echo 'VIP lounge v2 must not add world prompts.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA VIP Lounge v2 QC passed.'
