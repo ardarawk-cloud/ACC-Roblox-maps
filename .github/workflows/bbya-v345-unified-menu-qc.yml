@@ -1,14 +1,10 @@
 name: BBYA v345 Unified Menu QC
 
 on:
-  push:
-    branches: [agent/bbya-unified-menu-v345]
-    paths:
-      - 'maps/bbya-social-hub/91-owner-ui.client.lua'
-      - '.github/workflows/bbya-v345-unified-menu-qc.yml'
   pull_request:
     branches: [main]
     paths:
+      - 'maps/bbya-social-hub/56-dock-stability.client.lua'
       - 'maps/bbya-social-hub/91-owner-ui.client.lua'
       - '.github/workflows/bbya-v345-unified-menu-qc.yml'
 
@@ -34,24 +30,30 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-v345-menu.rbxl
           test -s /tmp/bbya-v345-menu.rbxl
-      - name: Validate unified HUD authority
+      - name: Validate current unified command authority
         shell: bash
         run: |
           set -euo pipefail
-          f='maps/bbya-social-hub/91-owner-ui.client.lua'
-          grep -q 'OWNER UNIFIED MENU v5' "$f"
-          grep -q 'BBYAUnifiedMenuUI' "$f"
-          grep -q 'MenuButton' "$f"
-          grep -q 'btn.Parent=s.frame' "$f"
-          grep -q 'dock.Visible=false' "$f"
-          grep -q 'id="BBYA"' "$f"
-          grep -q 'id="MUSIC"' "$f"
-          grep -q 'id="SUPPORT"' "$f"
-          grep -q 'id="TRAVEL"' "$f"
-          grep -q 'id="MESSAGE"' "$f"
-          grep -q 'id="COMMUNITY"' "$f"
-          grep -q 'id="DANCE"' "$f"
-          grep -q 'id="CARRY"' "$f"
-          grep -q 'id="FREECAM"' "$f"
-          grep -q '9 integrated features' "$f"
-          echo 'BBYA v345 unified menu QC PASS'
+          menu='maps/bbya-social-hub/56-dock-stability.client.lua'
+          owner='maps/bbya-social-hub/91-owner-ui.client.lua'
+          grep -q 'COMMAND MENU AUTHORITY v7' "$menu"
+          grep -q 'V7_SINGLE_COMPACT_AUTHORITY' "$menu"
+          grep -q 'BBYASinglePanelMode",true' "$menu"
+          grep -q 'MenuButton' "$menu"
+          grep -q 'btn.Parent~=slot.frame' "$menu"
+          grep -q 'dock.Visible=false' "$menu"
+          grep -q '{"BBYA",1' "$menu"
+          grep -q '{"MUSIC",2' "$menu"
+          grep -q '{"SUPPORT",3' "$menu"
+          grep -q '{"TRAVEL",4' "$menu"
+          grep -q '{"MESSAGE",5' "$menu"
+          grep -q '{"COMMUNITY",6' "$menu"
+          grep -q '{"DANCE",7' "$menu"
+          grep -q '{"CARRY",8' "$menu"
+          grep -q '{"FREECAM",9' "$menu"
+          grep -q 'hideCompetingPanels' "$menu"
+          grep -q 'LEFT_OF_MENU_V2_PRECISE' "$menu"
+          grep -q 'OWNER UI COMPATIBILITY + ROLE PANEL v8' "$owner"
+          grep -q 'COMMAND_MENU_V7' "$owner"
+          if grep -q 'p.Position=UDim2.fromScale(.5,.55)' "$owner"; then echo 'Owner UI must not restore centered social panels.' >&2; exit 1; fi
+          echo 'BBYA unified command authority v7 QC PASS'
