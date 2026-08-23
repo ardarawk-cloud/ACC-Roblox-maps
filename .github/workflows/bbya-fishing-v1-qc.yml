@@ -1,0 +1,125 @@
+name: BBYA Premium Fishing v1 QC
+
+on:
+  push:
+    branches: [feature/bbya-premium-fishing-v1]
+    paths:
+      - 'maps/bbya-social-hub/122-fishing-ui.client.lua'
+      - 'maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+      - 'maps/bbya-social-hub/124-fishing-core.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v1-qc.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/122-fishing-ui.client.lua'
+      - 'maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+      - 'maps/bbya-social-hub/124-fishing-core.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-fishing-v1-qc.yml'
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout fishing branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Static fishing architecture checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          ui='maps/bbya-social-hub/122-fishing-ui.client.lua'
+          env='maps/bbya-social-hub/123-fishing-lake-environment.server.lua'
+          core='maps/bbya-social-hub/124-fishing-core.server.lua'
+          project='maps/bbya-social-hub/default.project.json'
+
+          test -s "$ui"
+          test -s "$env"
+          test -s "$core"
+          python3 -m json.tool "$project" >/dev/null
+
+          # Correct placement and district structure behind the Night Market.
+          grep -q 'MarketRearBoundaryZ", 685' "$env"
+          grep -q 'LakeCenterZ", 790' "$env"
+          grep -q 'PremiumFishingDistrictV2' "$env"
+          grep -q 'MainFishingPier' "$env"
+          grep -q 'FishingAtelier' "$env"
+          grep -q 'RareFishingCove' "$env"
+          grep -q 'ScenicPier' "$env"
+
+          # Dimensional rods: multiple cylindrical segments, reel, line tip and geometry-changing skins.
+          grep -q 'RodSegment1' "$core"
+          grep -q 'RodSegment2' "$core"
+          grep -q 'TipSegment' "$core"
+          grep -q 'ReelSpool' "$core"
+          grep -q 'ReelArm' "$core"
+          grep -q 'LineTip' "$core"
+          grep -q 'SkinOrnaments' "$core"
+          grep -q 'TridentCore' "$core"
+          grep -q 'DragonSpine' "$core"
+          grep -q 'Crown' "$core"
+
+          # Full 3D fish families and premium rarity progression.
+          grep -q 'Crimson Arowana' "$core"
+          grep -q 'Obsidian Ray' "$core"
+          grep -q 'Aurora Arapaima' "$core"
+          grep -q 'Celestial Koi' "$core"
+          grep -q 'Phantom Leviathan' "$core"
+          grep -q 'fishWedge("TailTop"' "$core"
+          grep -q 'fishWedge("Dorsal"' "$core"
+          grep -q 'Whisker' "$core"
+          grep -q 'WingL' "$core"
+
+          # Server authority and persistence.
+          grep -q 'RunService.Heartbeat' "$core"
+          grep -q 'DataStoreService:GetDataStore("BBYA_FISHING_V1")' "$core"
+          grep -q 'action=="BuySkin"' "$core"
+          grep -q 'action=="Reel"' "$core"
+
+          # Simple UI: one primary action plus BAG / ROD / SHOP and thin fight bars.
+          grep -q 'button(hud,"CAST")' "$ui"
+          grep -q 'button(nav,"BAG")' "$ui"
+          grep -q 'button(nav,"ROD")' "$ui"
+          grep -q 'button(nav,"SHOP")' "$ui"
+          grep -q 'progressBg' "$ui"
+          grep -q 'tensionBg' "$ui"
+          grep -q 'HOLD REEL' "$ui"
+
+          # No 2D image-based rod/fish hero assets in the fishing implementation.
+          if grep -En 'Instance\.new\("(ImageLabel|ImageButton|Decal|Texture)"\)' "$core" "$env"; then
+            echo 'Fishing hero assets must remain dimensional 3D, not image/decal based.' >&2
+            exit 1
+          fi
+
+          # Rojo wiring.
+          grep -q '123-fishing-lake-environment.server.lua' "$project"
+          grep -q '124-fishing-core.server.lua' "$project"
+          grep -q '122-fishing-ui.client.lua' "$project"
+
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Full BBYA Rojo build
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-fishing-v1-qc.rbxl
+          test -s /tmp/bbya-fishing-v1-qc.rbxl
+          bytes=$(stat -c%s /tmp/bbya-fishing-v1-qc.rbxl)
+          echo "Fishing QC PASS — canonical BBYA build bytes: $bytes"
+          ls -lh /tmp/bbya-fishing-v1-qc.rbxl
