@@ -1,0 +1,126 @@
+name: BBYA Live Rescue Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-live-rescue-windows.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-live-rescue-windows
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact rescue source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){throw 'rojo.exe not found'}
+          & $exe.FullName --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Verify BBYA final source markers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $menu=Get-Content 'maps/bbya-social-hub/56-dock-stability.client.lua' -Raw
+          $secondary=Get-Content 'maps/bbya-social-hub/111-compact-secondary-panels.client.lua' -Raw
+          $owner=Get-Content 'maps/bbya-social-hub/91-owner-ui.client.lua' -Raw
+          $progress=Get-Content 'maps/bbya-social-hub/92-player-progression.server.lua' -Raw
+          $travel=Get-Content 'maps/bbya-social-hub/32-teleport.server.lua' -Raw
+          $party=Get-Content 'maps/bbya-social-hub/108-party-stuff-menu.client.lua' -Raw
+          $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+
+          foreach($needle in @('COMMAND MENU AUTHORITY v7','V7_SINGLE_COMPACT_AUTHORITY','LEFT_OF_MENU_V2_PRECISE')){
+            if($menu -notmatch [regex]::Escape($needle)){throw "Missing UI marker: $needle"}
+          }
+          if($secondary -notmatch 'COMMAND_MENU_V7'){throw 'Secondary panel authority mismatch'}
+          if($owner -notmatch 'ROLE PANEL v8'){throw 'Role Panel v8 marker missing'}
+          foreach($needle in @('BBYA_MANAGED_ROLES_V1','RolePanelSnapshot','RolePanelAction','nadmo97')){
+            if($progress -notmatch [regex]::Escape($needle)){throw "Missing role marker: $needle"}
+          }
+          foreach($needle in @('BBYAVIPBypass','BBYARooftopBypass','BBYASecretRoomBypass')){
+            if($travel -notmatch [regex]::Escape($needle)){throw "Missing travel bypass marker: $needle"}
+          }
+          if($party -notmatch 'SIMPAN / PUT AWAY'){throw 'Party Stuff put-away fix missing'}
+          if($beauty -notmatch 'MAIN CLUB BEAUTY v5'){throw 'Main Club Beauty v5 missing'}
+          if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Main Club pass touches global Lighting'}
+          foreach($needle in @('121-mainclub-beauty-v5.server.lua','121-mainclub-brand-cleanup.client.lua')){
+            if($project -notmatch [regex]::Escape($needle)){throw "Project mount missing: $needle"}
+          }
+          Write-Host 'BBYA FINAL SOURCE QC PASS'
+
+      - name: Build canonical BBYA place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-live-rescue-windows.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Built place unexpectedly small'}
+          "PLACE_FILE_OVERRIDE=$place" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS: $((Get-Item $place).Length) bytes"
+
+      - name: Publish BBYA with AM STUDIO authority
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/publish-map.js a-club
+          if($LASTEXITCODE -ne 0){throw 'Roblox publish failed after retry policy'}
+
+      - name: Persist verified live receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not (Test-Path 'deploy-status/a-club.json')){throw 'Deploy receipt missing'}
+          $receipt=Get-Content 'deploy-status/a-club.json' -Raw | ConvertFrom-Json
+          if($receipt.status -ne 'PUBLISHED'){throw 'Receipt is not PUBLISHED'}
+          if($receipt.sourceCommit -ne $env:GITHUB_SHA){throw "Receipt source mismatch: $($receipt.sourceCommit) != $env:GITHUB_SHA"}
+          $tmp=Join-Path $env:RUNNER_TEMP 'a-club-rescue.json'
+          Copy-Item 'deploy-status/a-club.json' $tmp -Force
+
+          git reset --hard HEAD
+          git clean -fd
+          git pull --rebase origin main
+          New-Item -ItemType Directory -Path 'deploy-status' -Force | Out-Null
+          Copy-Item $tmp 'deploy-status/a-club.json' -Force
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/a-club.json
+          git diff --cached --quiet
+          if($LASTEXITCODE -ne 0){
+            git commit -m 'Record BBYA Windows rescue live deploy [skip ci]'
+            git push origin HEAD:main
+            if($LASTEXITCODE -ne 0){throw 'Failed to persist live receipt'}
+          }
+          Write-Host "BBYA LIVE RESCUE PASS version=$($receipt.response.versionNumber) source=$($receipt.sourceCommit)"
