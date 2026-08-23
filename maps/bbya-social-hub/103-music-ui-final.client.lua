@@ -144,7 +144,8 @@ end
 
 local VIP_TRACKS={
  {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
- {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"}
+ {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"},
+ {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",assetId="131557279061872",key="A major",camelot="11B"}
 }
 local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end

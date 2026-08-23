@@ -3,7 +3,8 @@ local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local PLAYLIST={
  {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
- {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"}
+ {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"},
+ {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",assetId="131557279061872",key="A major",camelot="11B"}
 }
 
 if #PLAYLIST==0 then return end
