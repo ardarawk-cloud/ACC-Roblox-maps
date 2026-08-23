@@ -1,6 +1,7 @@
 name: BBYA Live Self Heal
 
-# v2: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
+# v3: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
+# Uses GitHub Contents API for receipt persistence because the Studio worker may not have git in PATH.
 # Premium Fishing District live retrigger: 2026-08-24
 on:
   push:
@@ -157,9 +158,11 @@ jobs:
             throw 'BBYA publish did not succeed after retry policy'
           }
 
-      - name: Persist deploy receipt and diagnostics
+      - name: Persist deploy receipt and diagnostics through GitHub API
         if: always()
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
           $tmp=Join-Path $env:RUNNER_TEMP 'bbya-selfheal-persist'
@@ -167,7 +170,6 @@ jobs:
           New-Item -ItemType Directory -Path $tmp -Force | Out-Null
 
           $receipt='deploy-status/a-club.json'
-          if(Test-Path $receipt){Copy-Item $receipt (Join-Path $tmp 'a-club.json') -Force}
           $diag=Join-Path $tmp 'a-club-self-heal.txt'
           @(
             "source_commit=$env:GITHUB_SHA",
@@ -185,22 +187,35 @@ jobs:
           '--- publish tail ---' | Add-Content $diag
           Get-Content (Join-Path $env:RUNNER_TEMP 'bbya-publish.log') -Tail 120 -ErrorAction SilentlyContinue | Add-Content $diag
 
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-          New-Item -ItemType Directory -Path 'deploy-status' -Force | Out-Null
-          Copy-Item $diag 'deploy-status/a-club-self-heal.txt' -Force
-          if(Test-Path (Join-Path $tmp 'a-club.json')){Copy-Item (Join-Path $tmp 'a-club.json') 'deploy-status/a-club.json' -Force}
-          git config user.name 'ACC Roblox Deploy Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/a-club-self-heal.txt
-          if(Test-Path 'deploy-status/a-club.json'){git add deploy-status/a-club.json}
-          git diff --cached --quiet
-          if($LASTEXITCODE -ne 0){
-            git commit -m 'Record BBYA self-hosted live repair diagnostics [skip ci]'
-            git push origin HEAD:main
-            if($LASTEXITCODE -ne 0){throw 'Failed to persist BBYA live receipt'}
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
           }
+          function PutRepoFile([string]$repoPath,[string]$localPath,[string]$message){
+            if(-not (Test-Path $localPath)){return}
+            $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$repoPath"
+            $sha=$null
+            try{
+              $existing=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+              $sha=$existing.sha
+            } catch {
+              if($_.Exception.Response.StatusCode.value__ -ne 404){throw}
+            }
+            $bytes=[System.IO.File]::ReadAllBytes($localPath)
+            $body=@{
+              message=$message
+              content=[Convert]::ToBase64String($bytes)
+              branch='main'
+            }
+            if($sha){$body.sha=$sha}
+            $json=$body | ConvertTo-Json -Compress
+            Invoke-RestMethod -Method Put -Uri $uri -Headers $headers -ContentType 'application/json' -Body $json | Out-Null
+          }
+
+          if(Test-Path $receipt){PutRepoFile 'deploy-status/a-club.json' $receipt 'Record BBYA self-hosted live receipt [skip ci]'}
+          PutRepoFile 'deploy-status/a-club-self-heal.txt' $diag 'Record BBYA self-hosted live repair diagnostics [skip ci]'
+          Write-Host 'BBYA deploy receipt persistence completed through GitHub Contents API'
 
       - name: Final gate
         if: always()
