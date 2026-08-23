@@ -26,10 +26,10 @@
       "driveFileId": "1_DuVnTGOg--pf6391IZcmgl3E3FJ9xBq",
       "musicalKey": "G major",
       "camelot": "9B",
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "PENDING_UPLOAD",
-      "moderationLastKnown": null
+      "assetId": "136681158481930",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved"
     }
   ]
 }

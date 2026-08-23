@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 2,
+  "title": "Utopia - Baby Doll (Phatbee Edit)",
+  "driveFileId": "1_DuVnTGOg--pf6391IZcmgl3E3FJ9xBq",
+  "musicalKey": "G major",
+  "camelot": "9B",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "136681158481930",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/4474e187-7665-4c13-a66a-376bc9cb7f10",
+    "operationId": "4474e187-7665-4c13-a66a-376bc9cb7f10",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/4474e187-7665-4c13-a66a-376bc9cb7f10",
+    "operationId": "4474e187-7665-4c13-a66a-376bc9cb7f10",
+    "done": true,
+    "response": {
+      "path": "assets/136681158481930",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T15:49:35.701438700Z",
+      "assetId": "136681158481930",
+      "displayName": "Utopia - Baby Doll (Phatbee Edit)",
+      "description": "BBYA VIP Amapiano Track 02",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "successAssetIds": [
+      "136681158481930"
+    ],
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        136681158481930
+      ],
+      "errors": []
+    }
+  }
+}
