@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v1
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v2
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
--- Also exposes the existing runtime EDIT button automatically to admins after join.
+-- Runtime editor stays hidden by default; authorized admins can still toggle it with /bbyaedit.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -50,15 +50,17 @@ local function stopRecovery(v)
  return false
 end
 
-local function showEditor(player)
+local function keepEditorHidden(player)
  if not isAdmin(player) then return end
- player:SetAttribute("BBYAEditorVisible",true)
- player:SetAttribute("BBYAEditorAutoShownV1",true)
+ -- Do not auto-expose the runtime editor. 22-editor.server.lua owns the explicit
+ -- /bbyaedit toggle and starts every authorized session hidden.
+ player:SetAttribute("BBYAEditorVisible",false)
+ player:SetAttribute("BBYAEditorAutoShownV1",false)
 end
 
-for _,p in ipairs(Players:GetPlayers()) do task.delay(2,function()if p.Parent then showEditor(p) end end) end
+for _,p in ipairs(Players:GetPlayers()) do task.delay(2,function()if p.Parent then keepEditorHidden(p) end end) end
 Players.PlayerAdded:Connect(function(p)
- task.delay(2,function()if p.Parent then showEditor(p) end end)
+ task.delay(2,function()if p.Parent then keepEditorHidden(p) end end)
 end)
 
 -- Observe the existing Music remote. Existing engine handlers still own normal playback.
@@ -86,4 +88,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v1 online")
+print("[BBYA] Admin NEXT + editor hotfix v2 online: EDIT hidden by default; /bbyaedit preserved")

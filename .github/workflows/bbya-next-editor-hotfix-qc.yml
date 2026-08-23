@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua'
+      - 'maps/bbya-social-hub/22-editor.server.lua'
       - 'maps/bbya-social-hub/default.project.json'
       - '.github/workflows/bbya-next-editor-hotfix-qc.yml'
 
@@ -30,19 +31,23 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-next-editor.rbxl
           test -s /tmp/bbya-next-editor.rbxl
-      - name: Validate NEXT and editor hotfix
+      - name: Validate NEXT and hidden editor behavior
         shell: bash
         run: |
           set -euo pipefail
           f='maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua'
+          e='maps/bbya-social-hub/22-editor.server.lua'
           p='maps/bbya-social-hub/default.project.json'
-          grep -q 'ADMIN NEXT + EDITOR HOTFIX v1' "$f"
+          grep -q 'ADMIN NEXT + EDITOR HOTFIX v2' "$f"
           grep -q 'action~="next"' "$f"
           grep -q 'BBYAMainPublicFallbackV4' "$f"
           grep -q 'BBYAUndergroundBreakbeatFallbackV4' "$f"
           grep -q 'fallback:Stop()' "$f"
           grep -q 'internalMusic:Fire("next",player)' "$f"
           grep -q 'basementMusic:Fire("next",player)' "$f"
-          grep -q 'BBYAEditorVisible",true' "$f"
+          grep -q 'BBYAEditorVisible",false' "$f"
+          ! grep -q 'BBYAEditorVisible",true' "$f"
+          grep -q 'BBYAEditorVisible",false' "$e"
+          grep -q '/bbyaedit' "$e"
           grep -q 'AdminNextEditorHotfixV1' "$p"
-          echo 'BBYA NEXT + editor hotfix QC passed.'
+          echo 'BBYA NEXT preserved + editor hidden-by-default QC passed.'
