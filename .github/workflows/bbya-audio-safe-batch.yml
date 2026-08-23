@@ -1,0 +1,74 @@
+name: BBYA Audio Safe Batch — gudangpet88
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.audio-safe-batch-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-audio-safe-batch-gudangpet88
+  cancel-in-progress: false
+
+jobs:
+  sequential_audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      DRIVE_FOLDER_URL: 'https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
+      EXPECTED_AUDIO_USERNAME: 'gudangpet88'
+      BBYA_UNIVERSE: '8116636513'
+      MAX_MODERATION_WAIT_SECONDS: '360'
+
+    steps:
+      - name: Checkout live main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install audio tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet 'gdown==6.1.0'
+          ffmpeg -version | head -1
+          gdown --version
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Run strict one-by-one audio pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/bbya-audio-safe-batch.py
