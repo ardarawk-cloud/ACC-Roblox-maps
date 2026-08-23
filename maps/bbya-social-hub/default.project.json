@@ -61,6 +61,9 @@
       "MainClubPremiumV4": {
         "$path": "120-mainclub-premium-v4.server.lua"
       },
+      "MainClubBeautyV5": {
+        "$path": "121-mainclub-beauty-v5.server.lua"
+      },
       "Floor1FrontPremium": {
         "$path": "43-floor1-front-premium.server.lua"
       },
@@ -274,6 +277,9 @@
         },
         "DJWallClientRenderer": {
           "$path": "62-dj-wall-render.client.lua"
+        },
+        "MainClubBrandCleanupV1": {
+          "$path": "121-mainclub-brand-cleanup.client.lua"
         },
         "SocialHangoutClient": {
           "$path": "63-social-hangout.client.lua"
