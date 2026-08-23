@@ -1,0 +1,35 @@
+{
+  "playlistId": "vip-amapiano",
+  "venue": "VIP",
+  "genre": "Amapiano",
+  "oneTrackPerInjection": true,
+  "policy": {
+    "noBatchUpload": true,
+    "noAutomaticDuplicateRetry": true,
+    "stopOnModerationRejection": true
+  },
+  "tracks": [
+    {
+      "index": 1,
+      "title": "Wonder Girls - Nobody (ROOKIE Amapiano Edit)",
+      "driveFileId": "1_E34wIMN6YNHyZmpyy8kybTD7bIbNDmO",
+      "musicalKey": "D# minor / Eb minor",
+      "camelot": "2A",
+      "assetId": "105859685125263",
+      "bbyaPermission": true,
+      "status": "LIVE_IN_PLAYLIST",
+      "moderationLastKnown": "Reviewing"
+    },
+    {
+      "index": 2,
+      "title": "Utopia - Baby Doll (Phatbee Edit)",
+      "driveFileId": "1_DuVnTGOg--pf6391IZcmgl3E3FJ9xBq",
+      "musicalKey": "G major",
+      "camelot": "9B",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    }
+  ]
+}
