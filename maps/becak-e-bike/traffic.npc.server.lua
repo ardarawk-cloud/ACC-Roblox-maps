@@ -1,6 +1,7 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.14
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.15
 -- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
--- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, and adaptive cadence.
+-- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, adaptive cadence,
+-- and per-tick proximity snapshots to avoid repeated character/vehicle tree scans.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -75,27 +76,31 @@ for i=1,8 do
  walkers[#walkers+1]={model=m,a=route[1],b=route[2],t=(i*.17)%1,dir=(i%2==0) and 1 or -1,speed=4+(i%2)}
 end
 
-local function nearestPlayerInfo(pos)
- local best=math.huge
- local bestHrp=nil
+-- v1.15: snapshot relevant player/vehicle parts once per simulation step.
+-- This avoids repeated Players:GetPlayers(), Character:FindFirstChild(), and Vehicles:GetChildren()
+-- work for every traffic actor and pedestrian while preserving the same proximity behavior.
+local function buildProximitySnapshot()
+ local playerTargets={}
  for _,plr in ipairs(Players:GetPlayers()) do
-  local ch=plr.Character;local hrp=ch and ch:FindFirstChild('HumanoidRootPart')
-  if hrp then
-   local d=(hrp.Position-pos).Magnitude
-   if d<best then best=d;bestHrp=hrp end
-  end
+  local ch=plr.Character
+  local hrp=ch and ch:FindFirstChild('HumanoidRootPart')
+  if hrp then playerTargets[#playerTargets+1]=hrp end
  end
- return best,bestHrp
-end
-
-local function nearestOwnedVehicleInfo(pos)
- local best=math.huge
- local bestPart=nil
+ local vehicleTargets={}
  for _,model in ipairs(playerVehicles:GetChildren()) do
   local primary=model:IsA('Model') and model.PrimaryPart
-  if primary then
-   local d=(primary.Position-pos).Magnitude
-   if d<best then best=d;bestPart=primary end
+  if primary then vehicleTargets[#vehicleTargets+1]=primary end
+ end
+ return playerTargets,vehicleTargets
+end
+
+local function nearestFromSnapshot(targets,pos)
+ local best=math.huge
+ local bestPart=nil
+ for _,part in ipairs(targets) do
+  if part.Parent then
+   local d=(part.Position-pos).Magnitude
+   if d<best then best=d;bestPart=part end
   end
  end
  return best,bestPart
@@ -145,17 +150,22 @@ end
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt
- local playerCount=#Players:GetPlayers()
+ local livePlayers=Players:GetPlayers()
+ local playerCount=#livePlayers
  local targetStep=playerCount>0 and .05 or .25 -- 20 Hz occupied, 4 Hz empty
  if accum<targetStep then return end
  dt=math.min(accum,.25);accum=0
+
+ local playerSnapshot,vehicleSnapshot=buildProximitySnapshot()
+ Workspace:SetAttribute('BecakTrafficSnapshotPlayers',#playerSnapshot)
+ Workspace:SetAttribute('BecakTrafficSnapshotVehicles',#vehicleSnapshot)
 
  for _,a in ipairs(actors) do
   local from=a.route[a.seg];local to=a.route[a.seg%#a.route+1];local len=(to-from).Magnitude
   local pos=from:Lerp(to,a.t)
   local travel=(to-from).Unit
-  local playerDist,hrp=nearestPlayerInfo(pos)
-  local vehicleDist,vehiclePart=nearestOwnedVehicleInfo(pos)
+  local playerDist,hrp=nearestFromSnapshot(playerSnapshot,pos)
+  local vehicleDist,vehiclePart=nearestFromSnapshot(vehicleSnapshot,pos)
   local yieldNow=false
 
   if hrp and playerDist<26 then
@@ -189,8 +199,8 @@ RunService.Heartbeat:Connect(function(dt)
  for _,w in ipairs(walkers) do
   local len=(w.b-w.a).Magnitude
   local pos=w.a:Lerp(w.b,w.t)
-  local playerDist=nearestPlayerInfo(pos)
-  local vehicleDist=nearestOwnedVehicleInfo(pos)
+  local playerDist=nearestFromSnapshot(playerSnapshot,pos)
+  local vehicleDist=nearestFromSnapshot(vehicleSnapshot,pos)
   local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1 -- pause before clipping through player/becak
   w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
   if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
@@ -199,7 +209,7 @@ RunService.Heartbeat:Connect(function(dt)
  end
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.14')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.15')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
@@ -208,4 +218,7 @@ Workspace:SetAttribute('BecakTrafficHeadway','ON')
 Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
 Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.14 ready: intersection pacing + becak-aware yield + headway')
+Workspace:SetAttribute('BecakTrafficProximitySnapshot','ON')
+Workspace:SetAttribute('BecakTrafficOccupiedHz',20)
+Workspace:SetAttribute('BecakTrafficEmptyHz',4)
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.15 ready: cached proximity snapshots + intersection pacing + yield')
