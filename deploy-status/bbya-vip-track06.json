@@ -1,0 +1,98 @@
+{
+  "status": "MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 6,
+  "title": "The Changcuters - I Love U Bibeh (Phatbee & Berco Edit)",
+  "driveFileId": "1_-SFgPzdaZj8rABAy7paPgxSyzAQ0wVZ",
+  "musicalKey": "F# minor",
+  "camelot": "11A",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "130739349177807",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/0cc50a02-26de-4eab-a636-a139723f5ec3",
+    "operationId": "0cc50a02-26de-4eab-a636-a139723f5ec3",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/0cc50a02-26de-4eab-a636-a139723f5ec3",
+    "operationId": "0cc50a02-26de-4eab-a636-a139723f5ec3",
+    "done": true,
+    "response": {
+      "path": "assets/130739349177807",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-23T17:02:50.433519300Z",
+      "assetId": "130739349177807",
+      "displayName": "The Changcuters - I Love U Bibeh (Phatbee & Berco ",
+      "description": "BBYA VIP Amapiano Track 06",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ]
+}
