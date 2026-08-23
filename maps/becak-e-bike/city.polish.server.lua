@@ -1,5 +1,6 @@
--- BECAK E-BIKE city polish v1.2
+-- BECAK E-BIKE city polish v1.3
 -- Dedicated Nusakarya visual pass: breaks up primitive/blockout silhouettes without touching gameplay collision.
+-- v1.3 adds inset window trim, roof eaves, facade material layering, organic tree crowns and richer street lighting.
 
 local Workspace = game:GetService("Workspace")
 local root = Workspace:WaitForChild("BecakEBike", 30)
@@ -70,6 +71,10 @@ local function nameSeed(name)
     return seed
 end
 
+local realismDetailCount = 0
+local organicCrownCount = 0
+local lightingDetailCount = 0
+
 local function addRoofSilhouette(detail, model, body)
     local size, cf = body.Size, body.CFrame
     local seed = nameSeed(model.Name)
@@ -82,15 +87,23 @@ local function addRoofSilhouette(detail, model, body)
         visualWedge(detail,"RoofSlopeA",Vector3.new(halfX,4.6,depth),cf*CFrame.new(-halfX/2,roofY,-0.1)*CFrame.Angles(0,math.rad(90),0),roofColor,Enum.Material.Slate)
         visualWedge(detail,"RoofSlopeB",Vector3.new(halfX,4.6,depth),cf*CFrame.new(halfX/2,roofY,-0.1)*CFrame.Angles(0,math.rad(-90),0),roofColor,Enum.Material.Slate)
         visualPart(detail,"RoofRidge",Vector3.new(0.45,0.45,depth+0.3),cf*CFrame.new(0,roofY+2.2,-0.1),Color3.fromRGB(72,61,54),Enum.Material.Metal)
+        visualPart(detail,"RoofEaveFront",Vector3.new(size.X+2.4,0.22,1.05),cf*CFrame.new(0,size.Y/2+0.35,-size.Z/2-0.65),roofColor,Enum.Material.Wood)
+        visualPart(detail,"RoofEaveRear",Vector3.new(size.X+2.4,0.22,1.05),cf*CFrame.new(0,size.Y/2+0.35,size.Z/2+0.65),roofColor,Enum.Material.Wood)
+        realismDetailCount += 2
     elseif model.Name:find("Ruko") then
         visualPart(detail,"ParapetFront",Vector3.new(size.X+2.2,2.2,0.55),cf*CFrame.new(0,size.Y/2+1.35,-size.Z/2-0.3),roofColor,Enum.Material.Concrete)
         local bandW = math.min(size.X*0.62,22)
         visualPart(detail,"SignBand",Vector3.new(bandW,1.8,0.28),cf*CFrame.new(0,size.Y/2-1.4,-size.Z/2-0.55),Color3.fromRGB(49,53,54),Enum.Material.Metal)
+        visualPart(detail,"ParapetCap",Vector3.new(size.X+2.8,0.28,0.9),cf*CFrame.new(0,size.Y/2+2.5,-size.Z/2-0.35),Color3.fromRGB(75,70,64),Enum.Material.Concrete)
+        realismDetailCount += 1
     elseif size.X >= 32 then
         local capW = math.min(size.X*0.42,24)
         local capD = math.min(size.Z*0.40,18)
         visualPart(detail,"RoofServiceCore",Vector3.new(capW,3.2,capD),cf*CFrame.new(size.X*0.16,size.Y/2+2.0,0),Color3.fromRGB(94,96,91),Enum.Material.Concrete)
         visualPart(detail,"RoofVent",Vector3.new(2.2,2.8,2.2),cf*CFrame.new(-size.X*0.22,size.Y/2+1.7,0),Color3.fromRGB(61,66,68),Enum.Material.Metal)
+        local tank = visualPart(detail,"RoofWaterTank",Vector3.new(3.0,3.5,3.0),cf*CFrame.new(-size.X*0.10,size.Y/2+2.15,size.Z*0.18),Color3.fromRGB(80,87,88),Enum.Material.Metal,Enum.PartType.Cylinder)
+        tank.CFrame = cf*CFrame.new(-size.X*0.10,size.Y/2+2.15,size.Z*0.18)*CFrame.Angles(0,0,math.rad(90))
+        realismDetailCount += 1
     end
 end
 
@@ -137,6 +150,8 @@ local function facade(model)
     detail.Parent = model
 
     visualPart(detail,"Plinth",Vector3.new(size.X*0.94,1.2,0.55),cf*CFrame.new(0,-size.Y/2+0.7,-size.Z/2-0.3),Color3.fromRGB(62,60,56),Enum.Material.Concrete)
+    visualPart(detail,"GroundFloorMaterialBand",Vector3.new(size.X*0.90,3.0,0.34),cf*CFrame.new(0,-size.Y/2+2.0,-size.Z/2-0.36),Color3.fromRGB(111,93,74),Enum.Material.Brick)
+    realismDetailCount += 1
 
     local floors = math.clamp(math.floor(size.Y/12),1,5)
     local cols = math.clamp(math.floor(size.X/13),2,8)
@@ -149,6 +164,12 @@ local function facade(model)
                 local win = visualPart(detail,"Window",Vector3.new(windowW,4.6,0.28),cf*CFrame.new(x,y,-size.Z/2-0.18),Color3.fromRGB(76,105,118),Enum.Material.Glass)
                 win.Transparency = 0.22
                 visualPart(detail,"WindowTop",Vector3.new(windowW+0.7,0.28,0.48),win.CFrame*CFrame.new(0,2.55,0),Color3.fromRGB(80,72,64),Enum.Material.Metal)
+                visualPart(detail,"WindowSill",Vector3.new(windowW+0.85,0.24,0.72),win.CFrame*CFrame.new(0,-2.55,-0.12),Color3.fromRGB(101,95,85),Enum.Material.Concrete)
+                if floor==1 or col%2==1 then
+                    visualPart(detail,"WindowRevealL",Vector3.new(0.22,5.05,0.52),win.CFrame*CFrame.new(-windowW/2-0.26,0,-0.12),Color3.fromRGB(96,90,81),Enum.Material.Concrete)
+                    visualPart(detail,"WindowRevealR",Vector3.new(0.22,5.05,0.52),win.CFrame*CFrame.new(windowW/2+0.26,0,-0.12),Color3.fromRGB(96,90,81),Enum.Material.Concrete)
+                    realismDetailCount += 2
+                end
                 if floor > 1 and col % 2 == 0 and size.X >= 28 then
                     visualPart(detail,"BalconySlab",Vector3.new(windowW+1.8,0.35,2.2),win.CFrame*CFrame.new(0,-2.7,-1.0),Color3.fromRGB(98,96,88),Enum.Material.Concrete)
                     visualPart(detail,"BalconyRail",Vector3.new(windowW+1.5,1.0,0.18),win.CFrame*CFrame.new(0,-2.1,-2.0),Color3.fromRGB(55,59,60),Enum.Material.Metal)
@@ -201,17 +222,24 @@ for laneIndex,s in ipairs(streets) do
         local trunk = visualPart(polish,"StreetTreeTrunk",Vector3.new(1.35,height,1.35),CFrame.new(x,height/2+0.2,z),Color3.fromRGB(104,75,48),Enum.Material.Wood,Enum.PartType.Cylinder)
         trunk.CFrame = CFrame.new(x,height/2+0.2,z)*CFrame.Angles(0,0,math.rad(90))
         visualPart(polish,"StreetTreeCrown",Vector3.new(crown,crown*0.9,crown),CFrame.new(x,height+2.4,z),Color3.fromRGB(55+(sequence%2)*8,112+(laneIndex%2)*10,58),Enum.Material.Grass,Enum.PartType.Ball)
+        if sequence % 3 == 0 then
+            visualPart(polish,"StreetTreeCrownSideA",Vector3.new(crown*0.62,crown*0.58,crown*0.62),CFrame.new(x-2.3,height+1.7,z+1.3),Color3.fromRGB(48,105,55),Enum.Material.Grass,Enum.PartType.Ball)
+            visualPart(polish,"StreetTreeCrownSideB",Vector3.new(crown*0.58,crown*0.54,crown*0.58),CFrame.new(x+2.0,height+2.0,z-1.4),Color3.fromRGB(64,122,61),Enum.Material.Grass,Enum.PartType.Ball)
+            organicCrownCount += 2
+        end
         if sequence % 2 == 0 then
             visualPart(polish,"Shrub",Vector3.new(3.6,2.4,3.6),CFrame.new(x+3.2,1.2,z),Color3.fromRGB(63,126,64),Enum.Material.Grass,Enum.PartType.Ball)
         end
         visualPart(polish,"Bollard",Vector3.new(0.75,2.4,0.75),CFrame.new(x+5,1.35,z),Color3.fromRGB(48,52,54),Enum.Material.Metal,Enum.PartType.Cylinder)
 
-        -- Every other cluster receives rounded street furniture so sidewalks do not read as repeated boxes.
         if sequence % 2 == 1 then
             local lampX = x-4.5
             local pole = visualPart(polish,"LampPole",Vector3.new(0.45,8.8,0.45),CFrame.new(lampX,4.6,z),Color3.fromRGB(46,49,50),Enum.Material.Metal,Enum.PartType.Cylinder)
             pole.CFrame = CFrame.new(lampX,4.6,z)*CFrame.Angles(0,0,math.rad(90))
-            visualPart(polish,"LampHead",Vector3.new(1.65,0.65,1.65),CFrame.new(lampX,9.0,z),Color3.fromRGB(212,205,170),Enum.Material.Glass,Enum.PartType.Ball)
+            local arm = visualPart(polish,"LampArm",Vector3.new(0.28,3.2,0.28),CFrame.new(lampX+1.25,8.7,z),Color3.fromRGB(46,49,50),Enum.Material.Metal,Enum.PartType.Cylinder)
+            arm.CFrame = CFrame.new(lampX+1.25,8.7,z)*CFrame.Angles(0,0,math.rad(55))
+            visualPart(polish,"LampHead",Vector3.new(1.65,0.65,1.65),CFrame.new(lampX+2.3,9.45,z),Color3.fromRGB(212,205,170),Enum.Material.Glass,Enum.PartType.Ball)
+            lightingDetailCount += 2
             local planter = visualPart(polish,"RoundPlanter",Vector3.new(3.4,1.2,3.4),CFrame.new(x+4.2,0.7,z+3.0),Color3.fromRGB(90,73,58),Enum.Material.Brick,Enum.PartType.Cylinder)
             planter.CFrame = CFrame.new(x+4.2,0.7,z+3.0)*CFrame.Angles(0,0,math.rad(90))
             visualPart(polish,"PlanterCrown",Vector3.new(3.0,2.2,3.0),CFrame.new(x+4.2,1.9,z+3.0),Color3.fromRGB(55,118,61),Enum.Material.Grass,Enum.PartType.Ball)
@@ -223,13 +251,21 @@ end
 
 -- Compatibility marker retained for the current dedicated builder; enhancement marker carries the visual revision.
 world:SetAttribute("ACC_BecakCityPolish","v1.0")
-world:SetAttribute("BecakCityPolishEnhancement","v1.2")
+world:SetAttribute("BecakCityPolishEnhancement","v1.3")
 world:SetAttribute("BecakAntiBlockoutFacades","ON")
 world:SetAttribute("BecakPitchedRoofSilhouettes","ON")
 world:SetAttribute("BecakFacadeDepthPass","ON")
 world:SetAttribute("BecakStorefrontIdentityPass","ON")
 world:SetAttribute("BecakRoundedStreetFurniture","ON")
 world:SetAttribute("BecakVariedVegetation","ON")
+world:SetAttribute("BecakInsetWindowTrim","ON")
+world:SetAttribute("BecakRoofEaveDetail","ON")
+world:SetAttribute("BecakFacadeMaterialLayering","ON")
+world:SetAttribute("BecakOrganicTreeCrownLayering","ON")
+world:SetAttribute("BecakRealisticStreetLighting","ON")
 world:SetAttribute("BecakCityPolishBuildingCount",buildingCount)
 world:SetAttribute("BecakCityPolishStreetClusters",streetCount)
 world:SetAttribute("BecakCityPolishFurnitureCount",furnitureCount)
+world:SetAttribute("BecakCityRealismDetailCount",realismDetailCount)
+world:SetAttribute("BecakCityOrganicCrownCount",organicCrownCount)
+world:SetAttribute("BecakCityLightingDetailCount",lightingDetailCount)
