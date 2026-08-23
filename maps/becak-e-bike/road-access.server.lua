@@ -1,6 +1,7 @@
--- BECAK E-BIKE — road access + drivability hardening v1.35
+-- BECAK E-BIKE — road access + drivability hardening v1.36
 -- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
--- v1.35 adds lightweight last-safe-road recovery so fallen vehicles return near their route instead of always HQ.
+-- v1.35 added lightweight last-safe-road recovery so fallen vehicles return near their route instead of always HQ.
+-- v1.36 only records recovery anchors above validated drive surfaces and rejects decorative/off-road anchors.
 -- Dedicated to maps/becak-e-bike only.
 
 local Workspace = game:GetService('Workspace')
@@ -15,6 +16,7 @@ if not world or not vehicles then return end
 local seamParts = 0
 local seamRegistry = {}
 local lastSafeCFrame = setmetatable({}, {__mode='k'})
+local lastSafeSurface = setmetatable({}, {__mode='k'})
 
 local function isRoadEdgeName(name)
     local n = string.lower(name)
@@ -124,12 +126,31 @@ curbCut('CurbCut_Merdeka_S',Vector3.new(26,0.08,12),CFrame.new(-80,0.05,25))
 curbCut('CurbCut_Nusantara_W',Vector3.new(12,0.08,26),CFrame.new(-25,0.05,-40))
 curbCut('CurbCut_Nusantara_E',Vector3.new(12,0.08,26),CFrame.new(25,0.05,-40))
 
-local function uprightRoadCFrame(chassis)
+local rayParams=RaycastParams.new()
+rayParams.FilterType=Enum.RaycastFilterType.Exclude
+rayParams.IgnoreWater=true
+
+local function uprightRoadCFrame(chassis,groundY)
     local look=chassis.CFrame.LookVector
     local flat=Vector3.new(look.X,0,look.Z)
     if flat.Magnitude < 0.05 then flat=Vector3.new(0,0,-1) else flat=flat.Unit end
-    local pos=chassis.Position
-    return CFrame.lookAt(Vector3.new(pos.X,math.max(2.4,pos.Y),pos.Z),Vector3.new(pos.X,math.max(2.4,pos.Y),pos.Z)+flat)
+    local y=math.max(2.4,(groundY or chassis.Position.Y)+2.15)
+    local pos=Vector3.new(chassis.Position.X,y,chassis.Position.Z)
+    return CFrame.lookAt(pos,pos+flat)
+end
+
+local function isValidatedDriveSurface(hit)
+    if not hit or not hit:IsA('BasePart') or not hit:IsDescendantOf(world) then return false end
+    if hit:GetAttribute('BecakDriveSurface')==true or hit:GetAttribute('BecakRoadSkin')==true or hit:GetAttribute('BecakCurbCut')==true then return true end
+    return string.match(hit.Name,'^Jalan_') ~= nil and not string.find(hit.Name,'_Mark',1,true)
+end
+
+local function validatedRoadAnchor(model,chassis)
+    rayParams.FilterDescendantsInstances={model}
+    local result=Workspace:Raycast(chassis.Position+Vector3.new(0,3,0),Vector3.new(0,-10,0),rayParams)
+    if not result or not isValidatedDriveSurface(result.Instance) then return nil,nil end
+    if result.Normal.Y < 0.72 then return nil,nil end
+    return uprightRoadCFrame(chassis,result.Position.Y),result.Instance
 end
 
 local function tuneVehicle(model)
@@ -138,12 +159,15 @@ local function tuneVehicle(model)
     if not chassis or not chassis:IsA('BasePart') then return end
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.35')
-    if chassis.Position.Y > -1 and chassis.Position.Y < 30 then lastSafeCFrame[model]=uprightRoadCFrame(chassis) end
+    model:SetAttribute('RoadAccessTune','v1.36')
+    if chassis.Position.Y > -1 and chassis.Position.Y < 30 and chassis.CFrame.UpVector.Y > 0.45 then
+        local safe,surface=validatedRoadAnchor(model,chassis)
+        if safe then lastSafeCFrame[model]=safe lastSafeSurface[model]=surface.Name end
+    end
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m) task.wait(.35) tuneVehicle(m) end)
-vehicles.ChildRemoved:Connect(function(m) lastSafeCFrame[m]=nil end)
+vehicles.ChildRemoved:Connect(function(m) lastSafeCFrame[m]=nil lastSafeSurface[m]=nil end)
 
 local auditAcc=0
 local recoveryAcc=0
@@ -173,13 +197,19 @@ RunService.Heartbeat:Connect(function(dt)
             local ch=m:IsA('Model') and (m:FindFirstChild('Chassis') or m.PrimaryPart)
             if ch and ch:IsA('BasePart') then
                 if ch.Position.Y >= -1 and ch.Position.Y < 30 and ch.CFrame.UpVector.Y > 0.45 then
-                    lastSafeCFrame[m]=uprightRoadCFrame(ch)
+                    local safe,surface=validatedRoadAnchor(m,ch)
+                    if safe then
+                        lastSafeCFrame[m]=safe
+                        lastSafeSurface[m]=surface.Name
+                        m:SetAttribute('LastSafeDriveSurface',surface.Name)
+                    end
                 elseif ch.Position.Y < -6 then
                     ch.AssemblyLinearVelocity=Vector3.zero
                     ch.AssemblyAngularVelocity=Vector3.zero
                     local safe=lastSafeCFrame[m] or (CFrame.new(-80,2.8,-38)*CFrame.Angles(0,math.rad(180),0))
-                    ch.CFrame=safe + Vector3.new(0,1.6,0)
+                    ch.CFrame=safe + Vector3.new(0,1.2,0)
                     Workspace:SetAttribute('BecakLastSafeRecoveries',(tonumber(Workspace:GetAttribute('BecakLastSafeRecoveries')) or 0)+1)
+                    Workspace:SetAttribute('BecakLastRecoverySurface',lastSafeSurface[m] or 'HQ_FALLBACK')
                 end
             end
         end
@@ -187,7 +217,7 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakRoadAccess','v1.34') -- compatibility marker
-Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.35')
+Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.36')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
@@ -196,7 +226,9 @@ Workspace:SetAttribute('ACC_BecakRoadEdgeAncestorAudit','ON')
 Workspace:SetAttribute('ACC_BecakRoadEdgeAliasAudit','ON')
 Workspace:SetAttribute('ACC_BecakRoadEdgeCachedAudit','ON')
 Workspace:SetAttribute('BecakLastSafeRoadRecovery','ON')
+Workspace:SetAttribute('BecakValidatedRecoverySurface','ON')
+Workspace:SetAttribute('BecakRecoveryRaycastDepth',10)
 Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
-print('[BECAK E-BIKE] Road access v1.35 active: cached seam audit + last-safe-road recovery')
+print('[BECAK E-BIKE] Road access v1.36 active: cached seam audit + validated drive-surface recovery')
