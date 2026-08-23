@@ -1,7 +1,7 @@
--- BECAK E-BIKE — world readability/performance QC v1.9
+-- BECAK E-BIKE — world readability/performance QC v2.0
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
--- v1.9 makes QC idempotent and keeps live telemetry accurate as streamed/runtime objects change.
+-- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -9,12 +9,27 @@ if not root then return end
 
 local tunedBillboards=setmetatable({}, {__mode='k'})
 local tunedDecor=setmetatable({}, {__mode='k'})
+local queued=setmetatable({}, {__mode='k'})
+local queue={}
 local billboardCount=0
 local decorCount=0
+local queueHead=1
+local telemetryDirty=true
+local workerRunning=false
+
+local BATCH_SIZE=48
+local BATCH_INTERVAL=.10
+local TELEMETRY_INTERVAL=.25
 
 local function publishTelemetry()
  Workspace:SetAttribute('BecakWorldQCBillboards',billboardCount)
  Workspace:SetAttribute('BecakWorldQCDecorParts',decorCount)
+ Workspace:SetAttribute('BecakWorldQCPending',math.max(0,#queue-queueHead+1))
+ telemetryDirty=false
+end
+
+local function markTelemetryDirty()
+ telemetryDirty=true
 end
 
 local function tuneBillboard(g)
@@ -35,6 +50,7 @@ local function tuneBillboard(g)
  if not tunedBillboards[g] then
   tunedBillboards[g]=true
   billboardCount+=1
+  markTelemetryDirty()
  end
 end
 
@@ -59,6 +75,7 @@ local function tunePart(p)
   if not tunedDecor[p] then
    tunedDecor[p]=true
    decorCount+=1
+   markTelemetryDirty()
   end
  end
  if string.find(n,'Traffic_',1,true) then
@@ -73,33 +90,84 @@ local function tune(d)
  if d:IsA('BillboardGui') then tuneBillboard(d) elseif d:IsA('BasePart') then tunePart(d) end
 end
 
+local function compactQueue()
+ if queueHead<=256 then return end
+ local fresh={}
+ for i=queueHead,#queue do
+  fresh[#fresh+1]=queue[i]
+ end
+ queue=fresh
+ queueHead=1
+end
+
+local function runWorker()
+ if workerRunning then return end
+ workerRunning=true
+ task.spawn(function()
+  while queueHead<=#queue do
+   local processed=0
+   while queueHead<=#queue and processed<BATCH_SIZE do
+    local d=queue[queueHead]
+    queue[queueHead]=nil
+    queueHead+=1
+    processed+=1
+    if d then
+     queued[d]=nil
+     if d:IsDescendantOf(root) then tune(d) end
+    end
+   end
+   compactQueue()
+   markTelemetryDirty()
+   task.wait(BATCH_INTERVAL)
+  end
+  queue={}
+  queueHead=1
+  workerRunning=false
+  markTelemetryDirty()
+ end)
+end
+
+local function enqueue(d)
+ if queued[d] then return end
+ queued[d]=true
+ queue[#queue+1]=d
+ runWorker()
+end
+
+-- Initial load is deterministic and done once before live streaming starts.
 for _,d in ipairs(root:GetDescendants()) do tune(d) end
 publishTelemetry()
 
-root.DescendantAdded:Connect(function(d)
- task.defer(function()
-  if not d:IsDescendantOf(root) then return end
-  tune(d)
-  publishTelemetry()
- end)
-end)
+root.DescendantAdded:Connect(enqueue)
 
 root.DescendantRemoving:Connect(function(d)
+ queued[d]=nil
  if tunedBillboards[d] then
   tunedBillboards[d]=nil
   billboardCount=math.max(0,billboardCount-1)
+  markTelemetryDirty()
  end
  if tunedDecor[d] then
   tunedDecor[d]=nil
   decorCount=math.max(0,decorCount-1)
+  markTelemetryDirty()
  end
- publishTelemetry()
 end)
 
-Workspace:SetAttribute('ACC_BecakWorldQC','v1.9')
+task.spawn(function()
+ while root.Parent do
+  task.wait(TELEMETRY_INTERVAL)
+  if telemetryDirty then publishTelemetry() end
+ end
+end)
+
+Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
 Workspace:SetAttribute('BecakWorldQCIdempotent','ON')
+Workspace:SetAttribute('BecakWorldQCBatchedStreaming','ON')
+Workspace:SetAttribute('BecakWorldQCBatchSize',BATCH_SIZE)
+Workspace:SetAttribute('BecakWorldQCTelemetryHz',1/TELEMETRY_INTERVAL)
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v1.9 ready | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.0 ready | batched streaming | billboards',billboardCount,'decor',decorCount)
