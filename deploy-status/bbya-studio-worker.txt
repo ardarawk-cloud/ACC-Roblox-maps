@@ -1,4 +1,4 @@
-timestamp=2026-08-23T15:18:02.6261470+00:00
+timestamp=2026-08-23T15:21:07.9100665+00:00
 whoami=ec2amaz-4r0t5go\administrator
 current_session=2
 QUSER_BEGIN
@@ -13,5 +13,5 @@ SERVICES_END
 RUNNER_PROCESSES_BEGIN
 RUNNER|name=cmd.exe|pid=7200|session=2|cmd="cmd.exe" /c cd /d C:\actions-runner && run.cmd
 RUNNER|name=Runner.Listener.exe|pid=132|session=2|cmd="C:\actions-runner\\bin\Runner.Listener.exe"  run 
-RUNNER|name=Runner.Worker.exe|pid=4448|session=2|cmd="C:\actions-runner\bin\Runner.Worker.exe" spawnclient 2216 2228
+RUNNER|name=Runner.Worker.exe|pid=2148|session=2|cmd="C:\actions-runner\bin\Runner.Worker.exe" spawnclient 2060 1656
 RUNNER_PROCESSES_END
