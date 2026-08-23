@@ -1,0 +1,28 @@
+name: BBYA Audio Account Lock Reset
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/.audio-account-lock-reset-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cancel_legacy_underground:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: bbya-underground-audio-single-upload
+      cancel-in-progress: true
+    steps:
+      - run: echo 'Legacy Underground audio run cancelled/cleared.'
+
+  cancel_shared_gudangpet88:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: bbya-audio-safe-batch-gudangpet88
+      cancel-in-progress: true
+    steps:
+      - run: echo 'Shared gudangpet88 audio run cancelled/cleared.'
