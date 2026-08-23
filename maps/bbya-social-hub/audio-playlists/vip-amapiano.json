@@ -83,6 +83,19 @@
       "bbyaPermission": false,
       "status": "PREPARED_LOCAL",
       "moderationLastKnown": null
+    },
+    {
+      "index": 7,
+      "title": "The Box (Bucks & Miciko Amapiano Edit)",
+      "driveFileId": "1_-BtqtZZZ4Ode49oyBUZ84UUsrCup-s6",
+      "musicalKey": "D# major / Eb major",
+      "camelot": "5B",
+      "sourceDurationSeconds": 219.74,
+      "sourceSizeBytes": 8924772,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
