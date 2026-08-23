@@ -1,55 +1,18 @@
-source_commit=fbee823f518e5c8b8badd7777174166aaf1c01e8
-run_id=32354289700
+source_commit=832b7e260246f1214af208607bb257d730127221
+run_id=32660385934
+runner=self-hosted/windows/x64
 rojo_exit=0
 build_exit=0
-publish_exit=1
+scope_exit=0
+publish_exit=0
 --- rojo tail ---
-   Compiling csv-core v0.1.13
-   Compiling mime v0.3.17
-   Compiling sync_wrapper v0.1.2
-   Compiling textwrap v0.16.2
-   Compiling either v1.15.0
-   Compiling htmlescape v0.3.1
-   Compiling ipnet v2.11.0
-   Compiling rustc-demangle v0.1.26
-   Compiling webpki-roots v0.25.4
-   Compiling arraydeque v0.5.1
-   Compiling humantime v2.3.0
-   Compiling strsim v0.10.0
-   Compiling clap v3.2.25
-   Compiling env_logger v0.9.3
-   Compiling yaml-rust2 v0.10.4
-   Compiling backtrace v0.3.76
-   Compiling reqwest v0.11.27
-   Compiling ritz v0.1.0
-   Compiling rayon v1.11.0
-   Compiling csv v1.4.0
-   Compiling futures v0.3.31
-   Compiling hyper-tungstenite v0.11.1
-   Compiling roblox_install v1.0.0
-   Compiling strum v0.27.2
-   Compiling rbx_xml v3.0.0
-   Compiling globset v0.4.18
-   Compiling zstd v0.13.3
-   Compiling rbx_binary v3.0.0
-   Compiling opener v0.5.2
-   Compiling jsonc-parser v0.27.1
-   Compiling uuid v1.18.1
-   Compiling float-cmp v0.9.0
-   Compiling serde_bytes v0.11.19
-   Compiling num_cpus v1.17.0
-   Compiling pathdiff v0.2.3
-   Compiling jod-thread v0.1.2
-    Finished `release` profile [optimized] target(s) in 1m 58s
-  Installing /home/runner/.cargo/bin/rojo
-   Installed package `rojo v7.7.0` (executable `rojo`)
 Rojo 7.7.0
 --- build tail ---
 Building project 'BBYAZeroPreview'
-Built project to bbya-zero-live.rbxl
+Built project to bbya-zero-live-selfhosted.rbxl
 --- publish tail ---
-Publishing BBYA Social Hub (a-club) from /tmp/bbya-zero-live.rbxl as application/octet-stream...
-Roblox publish failed: 409 {
-  code: 'Conflict',
-  message: 'Save failed. Server is busy and unable to process your upload request. Please try again in a couple minutes.'
-}
+=== publish attempt 1/7 2026-08-23T19:10:39.8965152+00:00 ===
+Publishing BBYA Social Hub (a-club) from C:\actions-runner\_work\_temp\bbya-zero-live-selfhosted.rbxl as application/octet-stream...
+Publish attempt 1/5...
+Deploy receipt written: deploy-status/a-club.json
+Publish success: { versionNumber: 391 }
