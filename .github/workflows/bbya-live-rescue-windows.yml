@@ -19,16 +19,6 @@ permissions:
   contents: write
 
 jobs:
-  hosted_probe:
-    runs-on: windows-latest
-    timeout-minutes: 5
-    steps:
-      - name: Prove hosted Windows runner allocation
-        shell: powershell
-        run: |
-          Write-Host "BBYA_WINDOWS_HOSTED_OK"
-          Write-Host "event=$env:GITHUB_EVENT_NAME sha=$env:GITHUB_SHA"
-
   selfhosted_probe:
     runs-on: self-hosted
     timeout-minutes: 5
@@ -41,8 +31,8 @@ jobs:
 
   publish:
     if: github.event_name != 'pull_request'
-    needs: hosted_probe
-    runs-on: windows-latest
+    needs: selfhosted_probe
+    runs-on: self-hosted
     timeout-minutes: 20
     steps:
       - name: Checkout exact rescue source
@@ -59,17 +49,23 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $dir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
-          $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
-          if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-          New-Item -ItemType Directory -Path $dir -Force | Out-Null
-          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-          Expand-Archive -Path $zip -DestinationPath $dir -Force
-          $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
-          if(-not $exe){throw 'rojo.exe not found'}
-          & $exe.FullName --version
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojo=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
           if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
-          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_EXE=$rojo" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Verify final BBYA source
         shell: powershell
@@ -84,7 +80,12 @@ jobs:
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5')
           }
-          foreach($path in $checks.Keys){$text=Get-Content $path -Raw;foreach($needle in $checks[$path]){if($text -notmatch [regex]::Escape($needle)){throw "Missing $needle in $path"}}}
+          foreach($path in $checks.Keys){
+            $text=Get-Content $path -Raw
+            foreach($needle in $checks[$path]){
+              if($text -notmatch [regex]::Escape($needle)){throw "Missing $needle in $path"}
+            }
+          }
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
           Write-Host 'BBYA_FINAL_SOURCE_QC_PASS'
@@ -93,7 +94,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'bbya-live-rescue-windows.rbxl'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-live-rescue-selfhosted.rbxl'
           & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
           if(-not (Test-Path $place)){throw 'Built place missing'}
@@ -130,5 +131,9 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add deploy-status/a-club.json
           git diff --cached --quiet
-          if($LASTEXITCODE -ne 0){git commit -m 'Record BBYA Windows rescue live deploy [skip ci]';git push origin HEAD:main;if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}}
+          if($LASTEXITCODE -ne 0){
+            git commit -m 'Record BBYA self-hosted rescue live deploy [skip ci]'
+            git push origin HEAD:main
+            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
+          }
           Write-Host "BBYA_LIVE_RESCUE_PASS version=$($receipt.response.versionNumber) source=$($receipt.sourceCommit)"
