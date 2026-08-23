@@ -17,36 +17,34 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Inspect Codex execution mode
+      - name: Inspect Windows interactive session and Studio state
         shell: powershell
         run: |
-          $env:USERPROFILE = 'C:\Users\Administrator'
-          $env:HOME = 'C:\Users\Administrator'
-          $env:PATH = 'C:\Users\Administrator\AppData\Roaming\npm;' + $env:PATH
-          $codexPath = 'C:\Users\Administrator\AppData\Roaming\npm\codex.cmd'
-          $lines = @()
+          $env:USERPROFILE='C:\Users\Administrator'
+          $env:HOME='C:\Users\Administrator'
+          $lines=@()
           $lines += "timestamp=$(Get-Date -Format o)"
           $lines += "whoami=$(whoami)"
-          $lines += "ROBLOX_STUDIO_VISIBLE=$([bool](Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue))"
-          $lines += "CODEX_VERSION=$((& $codexPath --version 2>&1 | Out-String).Trim())"
-          $lines += "CODEX_EXEC_HELP_BEGIN"
-          $lines += ((& $codexPath exec --help 2>&1 | Out-String).Trim())
-          $lines += "CODEX_EXEC_HELP_END"
-
-          $text = ($lines -join "`n") + "`n"
-          $content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
-          $api = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-worker.txt"
-          $headers = @{
-            Authorization = "Bearer $env:GH_TOKEN"
-            Accept = "application/vnd.github+json"
-            "X-GitHub-Api-Version" = "2022-11-28"
-            "User-Agent" = "BBYA-Studio-Worker"
+          $lines += "PROCESS_SESSION_ID=$([System.Diagnostics.Process]::GetCurrentProcess().SessionId)"
+          $lines += 'QUSER_BEGIN'
+          try{$lines += (quser 2>&1 | Out-String).Trim()}catch{$lines += $_.Exception.Message}
+          $lines += 'QUSER_END'
+          $lines += 'QWINSTA_BEGIN'
+          try{$lines += (qwinsta 2>&1 | Out-String).Trim()}catch{$lines += $_.Exception.Message}
+          $lines += 'QWINSTA_END'
+          $lines += 'DESKTOP_PROCESSES_BEGIN'
+          foreach($n in @('explorer','LogonUI','dwm','RobloxStudioBeta')){
+            $ps=Get-Process $n -ErrorAction SilentlyContinue
+            if(-not $ps){$lines += "$n=NONE";continue}
+            foreach($p in $ps){$lines += "$n|pid=$($p.Id)|session=$($p.SessionId)|hwnd=$($p.MainWindowHandle)|title=$($p.MainWindowTitle)"}
           }
-          $existing = Invoke-RestMethod -Method Get -Uri $api -Headers $headers
-          $body = @{
-            message = "Record BBYA Studio worker diagnostic [skip ci]"
-            content = $content
-            branch = "main"
-            sha = $existing.sha
-          } | ConvertTo-Json
-          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body $body -ContentType "application/json"
+          $lines += 'DESKTOP_PROCESSES_END'
+          $text=($lines -join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-studio-worker.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA Studio worker diagnostic [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json' | Out-Null
