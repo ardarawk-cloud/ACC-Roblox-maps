@@ -5,7 +5,7 @@ local Teams = game:GetService("Teams")
 
 local function clearWorld()
     for _, child in ipairs(Workspace:GetChildren()) do
-        if not child:IsA("Terrain") then
+        if not child:IsA("Terrain") and not child:IsA("Camera") then
             child:Destroy()
         end
     end
@@ -52,9 +52,9 @@ end
 
 clearWorld()
 Workspace.FallenPartsDestroyHeight = -120
-Workspace.StreamingEnabled = true
+pcall(function() Workspace.StreamingEnabled = true end)
+pcall(function() Lighting.Technology = Enum.Technology.Future end)
 
-Lighting.Technology = Enum.Technology.Future
 Lighting.Brightness = 2.1
 Lighting.ClockTime = 16.4
 Lighting.EnvironmentDiffuseScale = 0.55
@@ -63,6 +63,9 @@ Lighting.GlobalShadows = true
 Lighting.OutdoorAmbient = Color3.fromRGB(105, 111, 122)
 Lighting.Ambient = Color3.fromRGB(55, 60, 70)
 
+for _, effect in ipairs(Lighting:GetChildren()) do
+    if effect:IsA("Atmosphere") or effect:IsA("ColorCorrectionEffect") then effect:Destroy() end
+end
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Density = 0.28
 atmosphere.Offset = 0.2
@@ -93,7 +96,7 @@ part("SouthWall", Vector3.new(440, 28, 4), CFrame.new(0, 12, 160), Color3.fromRG
 part("WestWall", Vector3.new(4, 28, 320), CFrame.new(-220, 12, 0), Color3.fromRGB(45, 47, 50), Enum.Material.Concrete, map)
 part("EastWall", Vector3.new(4, 28, 320), CFrame.new(220, 12, 0), Color3.fromRGB(45, 47, 50), Enum.Material.Concrete, map)
 
--- roads and sidewalks
+-- roads and crossing lanes
 for _, z in ipairs({-92, 0, 92}) do
     part("Road_"..z, Vector3.new(430, 0.5, 42), CFrame.new(0, 0.05, z), Color3.fromRGB(43, 45, 47), Enum.Material.Asphalt, map)
 end
@@ -101,23 +104,21 @@ for _, x in ipairs({-132, 0, 132}) do
     part("Lane_"..x, Vector3.new(42, 0.55, 310), CFrame.new(x, 0.08, 0), Color3.fromRGB(48, 50, 52), Enum.Material.Asphalt, map)
 end
 
--- central warehouse
+-- central warehouse with four genuine entry lanes
 part("WarehouseFloor", Vector3.new(112, 1, 92), CFrame.new(0, 0.5, 0), Color3.fromRGB(72, 74, 78), Enum.Material.Concrete, map)
-for _, data in ipairs({
-    {Vector3.new(112, 22, 4), CFrame.new(0, 11, -46)},
-    {Vector3.new(112, 22, 4), CFrame.new(0, 11, 46)},
-    {Vector3.new(4, 22, 92), CFrame.new(-56, 11, 0)},
-    {Vector3.new(4, 22, 92), CFrame.new(56, 11, 0)},
-}) do
-    part("WarehouseWall", data[1], data[2], Color3.fromRGB(82, 86, 92), Enum.Material.Metal, map)
+local wallColor = Color3.fromRGB(82, 86, 92)
+for _, z in ipairs({-46,46}) do
+    part("WarehouseWall", Vector3.new(43,22,4), CFrame.new(-34.5,11,z), wallColor, Enum.Material.Metal, map)
+    part("WarehouseWall", Vector3.new(43,22,4), CFrame.new(34.5,11,z), wallColor, Enum.Material.Metal, map)
+    part("WarehouseHeader", Vector3.new(26,7,4), CFrame.new(0,18.5,z), wallColor, Enum.Material.Metal, map)
 end
--- openings through warehouse walls
-for _, side in ipairs({-1,1}) do
-    local x = 56 * side
-    local door = part("WarehouseDoorFrame", Vector3.new(4.2, 8, 22), CFrame.new(x, 4, 0), Color3.fromRGB(40, 42, 46), Enum.Material.Metal, map)
-    door.CanCollide = false
-    door.Transparency = 1
+for _, x in ipairs({-56,56}) do
+    part("WarehouseWall", Vector3.new(4,22,34), CFrame.new(x,11,-29), wallColor, Enum.Material.Metal, map)
+    part("WarehouseWall", Vector3.new(4,22,34), CFrame.new(x,11,29), wallColor, Enum.Material.Metal, map)
+    part("WarehouseHeader", Vector3.new(4,7,24), CFrame.new(x,18.5,0), wallColor, Enum.Material.Metal, map)
 end
+part("WarehouseRoofA", Vector3.new(56,1,92), CFrame.new(-28,22.5,0), Color3.fromRGB(54,58,64), Enum.Material.Metal, map)
+part("WarehouseRoofB", Vector3.new(56,1,92), CFrame.new(28,22.5,0), Color3.fromRGB(54,58,64), Enum.Material.Metal, map)
 
 -- cover rows
 local coverPositions = {
@@ -150,12 +151,11 @@ container(92,4,-72,90,Color3.fromRGB(78,96,102))
 for _, x in ipairs({-188,188}) do
     part("Catwalk", Vector3.new(16,1,170), CFrame.new(x,14,0), Color3.fromRGB(72,76,82), Enum.Material.DiamondPlate, map)
     for _, z in ipairs({-76,76}) do
-        local ramp = part("Ramp", Vector3.new(16,1,68), CFrame.new(x,7,z) * CFrame.Angles(math.rad(z>0 and -12 or 12),0,0), Color3.fromRGB(70,74,80), Enum.Material.Metal, map)
-        ramp.CanCollide = true
+        part("Ramp", Vector3.new(16,1,68), CFrame.new(x,7,z) * CFrame.Angles(math.rad(z>0 and -12 or 12),0,0), Color3.fromRGB(70,74,80), Enum.Material.Metal, map)
     end
 end
 
--- simple office blocks
+-- solid office blocks create long-range occlusion and flank cover
 for _, x in ipairs({-102,102}) do
     for _, z in ipairs({-118,118}) do
         part("Office", Vector3.new(54,18,32), CFrame.new(x,9,z), Color3.fromRGB(74,78,85), Enum.Material.Concrete, map)
