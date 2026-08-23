@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'maps/bbya-social-hub/.vip-next-safe-trigger'
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Select exactly one next prepared VIP track
+      - name: Select exactly one safe VIP track
+        id: select
         shell: bash
         run: |
           set -euo pipefail
@@ -37,24 +40,47 @@ jobs:
           import json, pathlib, os
           p=pathlib.Path('maps/bbya-social-hub/audio-playlists/vip-amapiano.json')
           reg=json.loads(p.read_text())
-          cand=sorted(
-              [t for t in reg.get('tracks',[]) if t.get('status')=='PREPARED_LOCAL' and not t.get('assetId')],
+          tracks=reg.get('tracks',[])
+          recoverable={'UPLOADED_MODERATION_PENDING','MODERATION_PENDING','READY_TO_INJECT','PERMISSION_FAILED'}
+          pending=sorted(
+              [t for t in tracks if t.get('assetId') and t.get('status') in recoverable],
               key=lambda t:int(t.get('index',999999))
           )
+          prepared=sorted(
+              [t for t in tracks if t.get('status')=='PREPARED_LOCAL' and not t.get('assetId')],
+              key=lambda t:int(t.get('index',999999))
+          )
+          cand=pending or prepared
+          out=pathlib.Path(os.environ['GITHUB_OUTPUT'])
           if not cand:
-              raise SystemExit('NO_PREPARED_TRACKS')
+              with out.open('a') as f:
+                  f.write('has_work=false\n')
+                  f.write('needs_audio=false\n')
+              print('VIP QUEUE: no pending/prepared tracks remain')
+              raise SystemExit(0)
           t=cand[0]
           idx=int(t['index'])
+          needs_audio=not bool(t.get('assetId'))
           env=pathlib.Path(os.environ['GITHUB_ENV'])
           with env.open('a') as f:
               f.write(f'TRACK_INDEX={idx}\n')
               f.write(f'DRIVE_FILE_ID={t["driveFileId"]}\n')
               f.write(f'AUDIO_PATH=/tmp/bbya-vip-track{idx:02d}-ready.mp3\n')
               f.write(f'REPORT_PATH=deploy-status/bbya-vip-track{idx:02d}.json\n')
-          print(json.dumps({'selectedIndex':idx,'title':t.get('title'),'driveFileId':t.get('driveFileId')},indent=2))
+          with out.open('a') as f:
+              f.write('has_work=true\n')
+              f.write(f'needs_audio={str(needs_audio).lower()}\n')
+          print(json.dumps({
+              'selectedIndex':idx,
+              'title':t.get('title'),
+              'status':t.get('status'),
+              'existingAssetId':t.get('assetId'),
+              'needsNewUpload':needs_audio
+          },indent=2))
           PY
 
-      - name: Prepare selected track only
+      - name: Prepare selected new track only
+        if: steps.select.outputs.has_work == 'true' && steps.select.outputs.needs_audio == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -67,12 +93,13 @@ jobs:
           test -s "${AUDIO_PATH}"
           ffprobe -v error -show_entries format=duration,size -of json "${AUDIO_PATH}"
 
-      - name: Upload selected track once and wait moderation
+      - name: Process selected track once and wait moderation
+        if: steps.select.outputs.has_work == 'true'
         shell: bash
         run: python3 scripts/bbya-vip-single-inject.py
 
       - name: Persist selected-track checkpoint
-        if: always()
+        if: always() && steps.select.outputs.has_work == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -86,6 +113,7 @@ jobs:
           fi
 
       - name: Safety gate
+        if: steps.select.outputs.has_work == 'true'
         shell: bash
         run: |
           python3 - <<'PY'
@@ -99,13 +127,16 @@ jobs:
           PY
 
       - name: Build VIP Amapiano playlist from registry
+        if: steps.select.outputs.has_work == 'true'
         run: python3 scripts/bbya-vip-amapiano-build.py
 
       - uses: actions/setup-node@v4
+        if: steps.select.outputs.has_work == 'true'
         with:
           node-version: '20'
 
       - name: Cache Rojo
+        if: steps.select.outputs.has_work == 'true'
         id: rojo-cache
         uses: actions/cache@v4
         with:
@@ -113,10 +144,11 @@ jobs:
           key: rojo-7.7.0-${{ runner.os }}
 
       - name: Install Rojo
-        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        if: steps.select.outputs.has_work == 'true' && steps.rojo-cache.outputs.cache-hit != 'true'
         run: cargo install rojo --version 7.7.0 --locked
 
       - name: Build and publish BBYA VIP playlist
+        if: steps.select.outputs.has_work == 'true'
         shell: bash
         env:
           PUBLISH_RECEIPT_DIR: deploy-status
@@ -127,6 +159,7 @@ jobs:
           PLACE_FILE_OVERRIDE=/tmp/bbya-vip-next.rbxl node scripts/publish-map.js a-club
 
       - name: Restart old BBYA servers
+        if: steps.select.outputs.has_work == 'true'
         id: restart
         shell: bash
         run: |
@@ -139,6 +172,7 @@ jobs:
           exit 0
 
       - name: Mark selected track live
+        if: steps.select.outputs.has_work == 'true'
         shell: bash
         env:
           RESTART_HTTP: ${{ steps.restart.outputs.http }}
@@ -160,12 +194,15 @@ jobs:
           PY
 
       - name: Persist live selected track
+        if: steps.select.outputs.has_work == 'true'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'ACC Roblox Audio Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add maps/bbya-social-hub/103-music-ui-final.client.lua maps/bbya-social-hub/110-vip-track01.server.lua maps/bbya-social-hub/audio-playlists/vip-amapiano.json "${REPORT_PATH}"
-          git commit -m "Inject VIP Amapiano Track ${TRACK_INDEX} and publish playlist [skip ci]"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m "Inject VIP Amapiano Track ${TRACK_INDEX} and publish playlist [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
