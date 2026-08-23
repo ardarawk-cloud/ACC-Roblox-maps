@@ -7,6 +7,7 @@ on:
       - 'maps/bbyavatar/**'
       - 'maps/registry.json'
       - 'scripts/build-bbyavatar.js'
+      - 'scripts/validate-bbyavatar-build.js'
       - 'scripts/publish-bbyavatar-direct.js'
       - '.github/workflows/publish-bbyavatar.yml'
   workflow_dispatch:
@@ -47,13 +48,8 @@ jobs:
       - name: Build place
         run: node scripts/build-bbyavatar.js
 
-      - name: Validate generated place
-        shell: bash
-        run: |
-          test -s maps/bbyavatar/place.rbxlx
-          grep -q 'BBYAVATAR_Runtime' maps/bbyavatar/place.rbxlx
-          grep -q 'BBYAVATAR_Client' maps/bbyavatar/place.rbxlx
-          echo 'Generated place validation PASS'
+      - name: Structural quality gate
+        run: node scripts/validate-bbyavatar-build.js
 
       - name: Publish BBYAVATAR to Roblox
         id: publish
