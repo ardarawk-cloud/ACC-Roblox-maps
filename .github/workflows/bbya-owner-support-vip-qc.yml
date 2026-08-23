@@ -1,0 +1,83 @@
+name: BBYA Owner Support VIP QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/92-player-progression.server.lua'
+      - 'maps/bbya-social-hub/119-support-purchase.client.lua'
+      - 'maps/bbya-social-hub/119-vip-champagne-service.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-owner-support-vip-qc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/rojo
+          key: rojo-7.7.0-linux
+      - name: Install Rojo
+        run: |
+          if [ ! -x "$HOME/.local/bin/rojo" ]; then
+            mkdir -p "$HOME/.local/bin"
+            curl -L --fail -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+            unzip -o /tmp/rojo.zip -d "$HOME/.local/bin"
+            chmod +x "$HOME/.local/bin/rojo"
+          fi
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-owner-support-vip.rbxl
+          test -s /tmp/bbya-owner-support-vip.rbxl
+      - name: Validate owner identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/92-player-progression.server.lua'
+          grep -q 'PLAYER PROGRESSION + IDENTITY v2' "$f"
+          grep -q 'QUEEN BBYA • OWNER' "$f"
+          grep -q 'BBYAOwner' "$f"
+          ! grep -q 'QUEEN BBYA • CO-OWNER' "$f"
+      - name: Validate support purchase client
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/119-support-purchase.client.lua'
+          project='maps/bbya-social-hub/default.project.json'
+          grep -q 'SUPPORT PURCHASE CLIENT v2' "$f"
+          grep -q 'MarketplaceService:GetProductInfo' "$f"
+          grep -q 'Enum.InfoType.Product' "$f"
+          grep -q 'MarketplaceService:PromptProductPurchase' "$f"
+          grep -q 'BBYASupportPurchaseClientV2' "$f"
+          grep -q '3709047095' "$f"
+          grep -q '3709048779' "$f"
+          grep -q 'SupportPurchaseClientV2' "$project"
+          grep -q '119-support-purchase.client.lua' "$project"
+          grep -q 'SUPPORT_BY_PRODUCT' maps/bbya-social-hub/50-dj-wall-message.server.lua
+          grep -q 'MarketplaceService.ProcessReceipt' maps/bbya-social-hub/50-dj-wall-message.server.lua
+      - name: Validate VIP service pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='maps/bbya-social-hub/119-vip-champagne-service.server.lua'
+          project='maps/bbya-social-hub/default.project.json'
+          grep -q 'VIP CHAMPAGNE SERVICE v1' "$f"
+          grep -q 'VIPLoungeSeatingV3' "$f"
+          grep -q 'VIPServiceWall_' "$f"
+          grep -q '"WEST"' "$f"
+          grep -q '"EAST"' "$f"
+          grep -q 'CenterCirculationPreserved' "$f"
+          grep -q 'VIPChampagneServiceV1' "$project"
+          grep -q '119-vip-champagne-service.server.lua' "$project"
+          ! grep -Eq 'SoundId|SoundGroup|TimePosition' "$f"
+          ! grep -Eq 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient)' "$f"
+          ! grep -q 'MarketplaceService' "$f"

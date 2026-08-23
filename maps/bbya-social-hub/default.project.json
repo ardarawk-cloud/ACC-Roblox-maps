@@ -163,6 +163,9 @@
       "VIPLoungeSeatingV1": {
         "$path": "113-vip-lounge-seating.server.lua"
       },
+      "VIPChampagneServiceV1": {
+        "$path": "119-vip-champagne-service.server.lua"
+      },
       "SkateparkExposureFixV2": {
         "$path": "88-skatepark-exposure-fix.server.lua"
       },
@@ -316,6 +319,9 @@
         },
         "CompactSecondaryPanelsV1": {
           "$path": "111-compact-secondary-panels.client.lua"
+        },
+        "SupportPurchaseClientV2": {
+          "$path": "119-support-purchase.client.lua"
         },
         "VenueAwareMenuMusicV1": {
           "$path": "114-venue-aware-menu-music.client.lua"

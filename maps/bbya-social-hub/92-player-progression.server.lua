@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v1
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v2
 -- Persistent social level based on time spent in BBYA. Queen BBYA overrides visitor rank display.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
@@ -97,7 +97,7 @@ local function makeTag(player)
  title.BackgroundTransparency=1
  title.Position=UDim2.fromOffset(0,crown and 30 or 22)
  title.Size=UDim2.new(1,0,0,16)
- title.Text=queen and "QUEEN BBYA • CO-OWNER" or string.format("LV %d • %s",level,rank)
+ title.Text=queen and "QUEEN BBYA • OWNER" or string.format("LV %d • %s",level,rank)
  title.TextColor3=color
  title.TextStrokeTransparency=.45
  title.Font=Enum.Font.GothamBold
@@ -113,6 +113,8 @@ local function applyIdentity(player)
  player:SetAttribute("BBYARank",rank)
  if isQueen(player) then
   player:SetAttribute("BBYAAdmin",true)
+  player:SetAttribute("BBYAOwner",true)
+  -- Legacy compatibility only: older systems may still read BBYACoOwner.
   player:SetAttribute("BBYACoOwner",true)
   player:SetAttribute("BBYAQueen",true)
   player:SetAttribute("BBYAVIPBypass",true)
@@ -163,4 +165,4 @@ game:BindToClose(function()
  for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end
 end)
 
-print("[BBYA] Player progression v1 online: Queen BBYA + persistent visitor levels")
+print("[BBYA] Player progression v2 online: Queen BBYA OWNER + persistent visitor levels")
