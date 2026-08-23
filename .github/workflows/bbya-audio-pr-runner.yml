@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   group: bbya-audio-safe-batch-gudangpet88
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   sequential_audio:
