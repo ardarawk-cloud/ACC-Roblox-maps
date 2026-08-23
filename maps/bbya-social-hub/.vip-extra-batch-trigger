@@ -1,0 +1,5 @@
+mode=folder-batch-test
+sourceFolderId=1JcsvFvjSwtgTDT2ZldWWNMaKK5Jc919z
+uniqueAudioCount=6
+policy=reject-means-stop-no-retry
+requestedAt=2026-08-23T20:44:00Z
