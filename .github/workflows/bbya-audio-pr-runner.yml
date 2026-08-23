@@ -1,22 +1,89 @@
-name: BBYA Audio Observable Runner — SAFETY HOLD
+name: BBYA Audio Observable Runner — gudangpet88
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: bbya-audio-observable-runner
+  group: bbya-audio-safe-batch-gudangpet88
   cancel-in-progress: true
 
 jobs:
-  safety_hold:
-    if: startsWith(github.event.pull_request.title, 'RUN BBYA AUDIO')
+  sequential_audio:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.title, 'RUN BBYA AUDIO GUDANGPET88')
     runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      DRIVE_FOLDER_URL: 'https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
+      EXPECTED_AUDIO_USERNAME: 'gudangpet88'
+      BBYA_UNIVERSE: '8116636513'
+      MAX_MODERATION_WAIT_SECONDS: '360'
+
     steps:
-      - name: Audio uploads disabled
+      - name: Checkout live main only
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Mark observable runner booted
+        shell: bash
         run: |
-          echo 'SAFETY HOLD: Roblox audio uploads are disabled after account moderation action.'
-          echo 'No Drive download, Create Asset request, routing publish, or retry is performed.'
+          set -euo pipefail
+          mkdir -p deploy-status
+          printf '{"status":"BOOTED","workflow":"BBYA Audio Observable Runner — gudangpet88","runId":"%s","triggerCommit":"%s","pr":"%s"}\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" "${{ github.event.pull_request.number }}" > deploy-status/bbya-audio-safe-batch-boot.json
+          git config user.name 'ACC Roblox Audio Safety Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/bbya-audio-safe-batch-boot.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Mark BBYA gudangpet88 observable audio runner booted [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install audio tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet 'gdown==6.1.0'
+          ffmpeg -version | head -1
+          gdown --version
+
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Run strict one-by-one audio pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/bbya-audio-safe-batch.py
