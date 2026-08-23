@@ -1,22 +1,23 @@
--- BBYA SOCIAL HUB — MAIN CLUB FINAL AUTHORITY v1
--- Replaces the legacy Floor 1 Photo Studio lighting generator.
--- Salon + Photo Studio now belong in the Mall. Main Club remains a pure nightclub.
+-- BBYA SOCIAL HUB — MAIN CLUB FINAL AUTHORITY v2
+-- Hard source/runtime authority: Main Club is nightclub-only.
+-- Salon + Photo Studio belong in Mall GLOW LAB. No loose DJ-front furniture.
 
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",60)
 if not root then return end
 
-root:SetAttribute("BBYAMainClubAuthority","FINAL_AUTHORITY_V1")
+root:SetAttribute("BBYAMainClubAuthority","FINAL_AUTHORITY_V2")
 root:SetAttribute("BBYAClubPureNightclub",true)
 
-local old=root:FindFirstChild("MainClubFinalAuthorityV1")
+local old=root:FindFirstChild("MainClubFinalAuthorityV1") or root:FindFirstChild("MainClubFinalAuthorityV2")
 if old then old:Destroy() end
 local out=Instance.new("Model")
-out.Name="MainClubFinalAuthorityV1"
-out:SetAttribute("Pass","MAINCLUB_FINAL_AUTHORITY_V1")
+out.Name="MainClubFinalAuthorityV2"
+out:SetAttribute("Pass","MAINCLUB_FINAL_AUTHORITY_V2")
 out:SetAttribute("LegacySalonGuard",true)
 out:SetAttribute("LegacyPhotoGuard",true)
 out:SetAttribute("DJGrounded",true)
+out:SetAttribute("DJFrontClear",true)
 out.Parent=root
 
 local C={
@@ -42,41 +43,67 @@ end
 
 local function purgeLegacy()
  local removed=0
+
+ -- Primitive source rooms are no longer part of Floor 1.
+ local core=root:FindFirstChild("Floor1Core")
+ if core then
+  for _,n in ipairs({"03_PhotoArea","04_SalonLookStudio"}) do if destroyChild(core,n) then removed+=1 end end
+ end
+
  local front=root:FindFirstChild("Floor1FrontPremium")
  if front then
   for _,n in ipairs({"PhotoAreaPremium","SalonLookStudioPremium"}) do if destroyChild(front,n) then removed+=1 end end
  end
+
  local luxury=root:FindFirstChild("Floor1LuxuryFinish")
  if luxury then
   for _,n in ipairs({"EditorialPhotoRoom","LookLab"}) do if destroyChild(luxury,n) then removed+=1 end end
   local main=luxury:FindFirstChild("MainClub")
   if main then
-   local rail=main:FindFirstChild("RearSocialRail");if rail then rail:Destroy();removed+=1 end
+   if destroyChild(main,"RearSocialRail") then removed+=1 end
   end
  end
+
  local ultra=root:FindFirstChild("Floor1UltraPremium")
  if ultra then
   for _,n in ipairs({"EditorialPhotoRefinement","LookLabRefinement"}) do if destroyChild(ultra,n) then removed+=1 end end
  end
+
+ -- Old Floor 1 feature anchors must never reopen the retired rooms.
  local features=root:FindFirstChild("Floor1Features")
  if features then
   for _,d in ipairs(features:GetDescendants()) do
    local n=d.Name
-   if n=="PhotoModeInteract" or n=="PhotoPrepInteract" or n=="LookWashInteract" or n:match("^LookChairInteract") then d:Destroy();removed+=1 end
+   if n=="PhotoModeInteract" or n=="PhotoPrepInteract" or n=="LookWashInteract" or n=="DJRequestInteract" or n:match("^LookChairInteract") then
+    d:Destroy();removed+=1
+   end
   end
  end
- -- Preserve the compatibility runtime model so the Mall relocation pass can resolve it,
- -- but kill its old Floor 1 auto-seat stations.
+
+ -- Keep AvatarEditorService/remotes alive for Mall, but remove the original club stations.
  local oldLook=root:FindFirstChild("LookLabAvatarEditorV1")
  if oldLook then
-  for _,d in ipairs(oldLook:GetChildren()) do if d.Name:match("^LookLabStation") then d:Destroy();removed+=1 end end
+  for _,d in ipairs(oldLook:GetChildren()) do
+   if d.Name:match("^LookLabStation") then d:Destroy();removed+=1 end
+  end
  end
- -- If the earlier relocation pass created club-side geometry, this authority owns the final version.
+
+ -- Relocation pass owns Mall functions only; final authority owns club-side geometry.
  local prior=root:FindFirstChild("ClubPurityMallStudiosV1")
  if prior then
   for _,n in ipairs({"MainClubFrontExtension","DJGrounding"}) do if destroyChild(prior,n) then removed+=1 end end
  end
- -- No physical chairs/seats are allowed in front of the DJ booth.
+
+ -- Remove the old round cocktail pockets directly in front of / beside the DJ.
+ local club=root:FindFirstChild("MainClubRealism")
+ local furniture=club and club:FindFirstChild("Furniture")
+ if furniture then
+  for _,d in ipairs(furniture:GetChildren()) do
+   if d.Name:match("^RearCocktail_") then d:Destroy();removed+=1 end
+  end
+ end
+
+ -- No real Seat/VehicleSeat instances in the stage-front/DJ footprint.
  for _,d in ipairs(root:GetDescendants()) do
   if d:IsA("Seat") or d:IsA("VehicleSeat") then
    local p=d.Position
@@ -86,16 +113,17 @@ local function purgeLegacy()
  return removed
 end
 
--- Start cleanup immediately and keep sweeping while all legacy ServerScripts finish booting.
+-- Sweep immediately and through the whole boot window so script start order cannot revive old rooms.
 local total=purgeLegacy()
 task.spawn(function()
- for _=1,120 do total+=purgeLegacy();task.wait(.25) end
+ for _=1,180 do total+=purgeLegacy();task.wait(.25) end
  out:SetAttribute("LegacyObjectsPurged",total)
+ out:SetAttribute("AuthoritySweepComplete",true)
 end)
 
--- Build final club-side replacement independently from Mall readiness.
 local club=root:WaitForChild("MainClubRealism",45)
 if club then
+ -- Former salon/photo footprint becomes one continuous club lounge zone.
  local extension=model("PureClubFrontExtension",out)
  part("ClubFloorExtension",Vector3.new(25,.16,42),CFrame.new(-39,1.02,-14.5),Color3.fromRGB(22,22,27),Enum.Material.SmoothPlastic,0,extension,true).Reflectance=.08
  part("FloorBrassDatum",Vector3.new(.07,.035,39.5),CFrame.new(-26.65,1.115,-14.5),C.brass,Enum.Material.Metal,0,extension,false)
@@ -123,25 +151,29 @@ if club then
  end
  lounge(1,-27);lounge(2,-13)
 
- -- Solid continuous plinth from Floor 1 to the existing DJ platform: no floating booth silhouette.
+ -- Ground the existing DJ platform continuously to Floor 1. Top meets DJPlatform bottom exactly.
  local djBase=model("DJBoothGroundedBase",out)
- part("Core",Vector3.new(15.2,2.10,8.4),CFrame.new(3,2.05,34.3),C.black,Enum.Material.Metal,0,djBase,true)
- part("WingL",Vector3.new(5.8,2.02,7.6),CFrame.new(-6.9,2.01,34.5)*CFrame.Angles(0,math.rad(-11),0),C.charcoal,Enum.Material.Metal,0,djBase,true)
- part("WingR",Vector3.new(5.8,2.02,7.6),CFrame.new(12.9,2.01,34.5)*CFrame.Angles(0,math.rad(11),0),C.charcoal,Enum.Material.Metal,0,djBase,true)
+ part("Core",Vector3.new(15.2,2.15,8.4),CFrame.new(3,2.05,34.3),C.black,Enum.Material.Metal,0,djBase,true)
+ part("WingL",Vector3.new(5.8,2.15,7.6),CFrame.new(-6.9,2.05,34.5)*CFrame.Angles(0,math.rad(-11),0),C.charcoal,Enum.Material.Metal,0,djBase,true)
+ part("WingR",Vector3.new(5.8,2.15,7.6),CFrame.new(12.9,2.05,34.5)*CFrame.Angles(0,math.rad(11),0),C.charcoal,Enum.Material.Metal,0,djBase,true)
  part("FrontFascia",Vector3.new(21.8,1.72,.42),CFrame.new(3,2.12,30.02),C.ink,Enum.Material.Metal,0,djBase,false)
- for i=1,9 do part("FrontRib"..i,Vector3.new(.14,1.15,.10),CFrame.new(-7+(i-1)*2.5,2.15,29.78),i==5 and C.brass or C.graphite,Enum.Material.Metal,0,djBase,false) end
- part("TopReveal",Vector3.new(19,.07,.08),CFrame.new(3,3.10,29.75),C.brass,Enum.Material.Metal,0,djBase,false)
+ for i=1,9 do
+  part("FrontRib"..i,Vector3.new(.14,1.15,.10),CFrame.new(-7+(i-1)*2.5,2.15,29.78),i==5 and C.brass or C.graphite,Enum.Material.Metal,0,djBase,false)
+ end
+ part("TopReveal",Vector3.new(19,.07,.08),CFrame.new(3,3.125,29.75),C.brass,Enum.Material.Metal,0,djBase,false)
 end
 
--- Late-object guard: legacy salon/photo models are never allowed to reappear in Floor 1.
+-- Permanent late-object guard for all retired Floor 1 room generators.
 root.DescendantAdded:Connect(function(d)
  task.defer(function()
   if not d.Parent then return end
   local p=d.Parent;local n=d.Name
+  if p.Name=="Floor1Core" and (n=="03_PhotoArea" or n=="04_SalonLookStudio") then d:Destroy();return end
   if p.Name=="Floor1FrontPremium" and (n=="PhotoAreaPremium" or n=="SalonLookStudioPremium") then d:Destroy();return end
   if p.Name=="Floor1LuxuryFinish" and (n=="EditorialPhotoRoom" or n=="LookLab") then d:Destroy();return end
   if p.Name=="Floor1UltraPremium" and (n=="EditorialPhotoRefinement" or n=="LookLabRefinement") then d:Destroy();return end
+  if p.Name=="Furniture" and n:match("^RearCocktail_") then d:Destroy();return end
  end)
 end)
 
-print("[BBYA] Main Club Final Authority v1 online: club-only layout, legacy salon/photo blocked, DJ grounded")
+print("[BBYA] Main Club Final Authority v2 online: source rooms retired, DJ grounded, DJ-front furniture cleared")
