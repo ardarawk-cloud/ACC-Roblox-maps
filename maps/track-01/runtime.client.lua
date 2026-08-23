@@ -7,23 +7,48 @@ local player = Players.LocalPlayer
 local root = Workspace:WaitForChild("ACC_TRACK01",20)
 if not root then return end
 
+-- Mobile-friendly club pulse. Lights are cached once and appended as later upgrade
+-- scripts add fixtures; no descendant scan is performed every frame.
 local lights = root:WaitForChild("DynamicLights",10)
 if lights then
     local pulseLights={}
-    for _,obj in ipairs(lights:GetDescendants()) do
+    local known={}
+    local function register(obj)
+        if known[obj] then return end
         if obj:IsA("PointLight") or obj:IsA("SpotLight") then
-            table.insert(pulseLights,obj)
+            known[obj]=true
+            local base=obj:GetAttribute("ACCBaseBrightness")
+            if base==nil then
+                base=obj.Brightness
+                obj:SetAttribute("ACCBaseBrightness",base)
+            end
+            table.insert(pulseLights,{light=obj,base=base})
         end
     end
-    local phase = 0
-    RunService.RenderStepped:Connect(function(dt)
-        phase = phase + dt
-        local pulse = 0.72 + (math.sin(phase*2.4)+1)*0.24
-        for _,obj in ipairs(pulseLights) do
-            if obj.Parent then
-                obj.Brightness = math.max(0.25, pulse * 1.45)
+    for _,obj in ipairs(lights:GetDescendants()) do register(obj) end
+    lights.DescendantAdded:Connect(register)
+
+    local phase=0
+    local accumulator=0
+    RunService.Heartbeat:Connect(function(dt)
+        phase+=dt
+        accumulator+=dt
+        if accumulator<0.08 then return end
+        accumulator=0
+        local factor=0.84+(math.sin(phase*2.2)+1)*0.10
+        local write=1
+        for read=1,#pulseLights do
+            local entry=pulseLights[read]
+            local light=entry.light
+            if light and light.Parent then
+                light.Brightness=math.max(0.12,entry.base*factor)
+                pulseLights[write]=entry
+                write+=1
+            elseif light then
+                known[light]=nil
             end
         end
+        for i=#pulseLights,write,-1 do pulseLights[i]=nil end
     end)
 end
 
