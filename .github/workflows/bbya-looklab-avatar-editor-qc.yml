@@ -1,0 +1,69 @@
+name: BBYA Look Lab Avatar Editor QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/116-looklab-avatar-editor.server.lua'
+      - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-looklab-avatar-editor-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-looklab-avatar-editor.rbxl
+          test -s /tmp/bbya-looklab-avatar-editor.rbxl
+      - name: Validate Look Lab avatar editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          server='maps/bbya-social-hub/116-looklab-avatar-editor.server.lua'
+          client='maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
+          manifest='maps/bbya-social-hub/default.project.json'
+
+          grep -q 'LookLabAvatarEditorV1' "$server"
+          grep -q 'ApplyDescriptionAsync' "$server"
+          grep -q 'GetAppliedDescription' "$server"
+          grep -q 'AutoStyleTrigger' "$server"
+          grep -q 'LookLabSeat' "$server"
+          grep -q 'obj.Enabled=false' "$server"
+          grep -q 'SearchCatalogAsync' "$client"
+          grep -q 'CatalogSearchParams.new' "$client"
+          grep -q 'PromptSaveAvatar' "$client"
+          grep -q 'HAIR' "$client"
+          grep -q 'TOP' "$client"
+          grep -q 'BOTTOM' "$client"
+          grep -q 'ACCESSORY' "$client"
+          grep -q 'LookLabAvatarEditorV1' "$manifest"
+          grep -q 'LookLabAvatarEditorClientV1' "$manifest"
+          grep -q '116-looklab-avatar-editor.server.lua' "$manifest"
+          grep -q '116-looklab-avatar-editor.client.lua' "$manifest"
+
+          if grep -q 'PromptPurchase' "$client"; then
+            echo 'V1 must not silently add purchase prompts.' >&2
+            exit 1
+          fi
+          if grep -q 'MarketplaceService' "$server" "$client"; then
+            echo 'V1 editor should remain preview/save only.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA Look Lab Avatar Editor v1 QC passed.'
