@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'maps/bbya-social-hub/93-dashboard-structural.client.lua'
       - 'maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
       - '.github/workflows/bbya-compact-secondary-ui-qc.yml'
@@ -30,11 +31,12 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-secondary-ui.rbxl
           test -s /tmp/bbya-compact-secondary-ui.rbxl
-      - name: Validate menu-sized support travel message authority
+      - name: Validate compact secondary UI and legacy dashboard retirement
         shell: bash
         run: |
           set -euo pipefail
           ui='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
+          legacy='maps/bbya-social-hub/93-dashboard-structural.client.lua'
           manifest='maps/bbya-social-hub/default.project.json'
 
           grep -q 'COMPACT SECONDARY PANELS v2' "$ui"
@@ -51,6 +53,18 @@ jobs:
           grep -q 'panel.AnchorPoint=Vector2.new(.5,0)' "$ui"
           grep -q 'panel.BackgroundTransparency=.34' "$ui"
           grep -q 'shade.BackgroundTransparency=.70' "$ui"
+
+          grep -q 'LEGACY DASHBOARD RETIREMENT v6' "$legacy"
+          grep -q 'V6_RETIRED_FOR_COMPACT_UI' "$legacy"
+          grep -q 'DashboardSideRailV2=true' "$legacy"
+          grep -q 'DashboardTopGlassV2=true' "$legacy"
+          grep -q 'DashboardShadow=true' "$legacy"
+          grep -q 'DashboardAccent=true' "$legacy"
+          if grep -q 'panelW=\|railW=\|DashboardSideRailV2.*Instance.new' "$legacy"; then
+            echo 'Legacy structural dashboard layout authority returned.' >&2
+            exit 1
+          fi
+
           grep -q 'CompactSecondaryPanelsV1' "$manifest"
           grep -q '111-compact-secondary-panels.client.lua' "$manifest"
 
@@ -63,4 +77,4 @@ jobs:
             exit 1
           fi
 
-          echo 'BBYA menu-sized secondary UI QC passed.'
+          echo 'BBYA compact secondary UI + legacy dashboard retirement QC passed.'
