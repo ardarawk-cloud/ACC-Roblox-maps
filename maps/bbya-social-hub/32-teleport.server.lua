@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v6
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v7
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
@@ -23,6 +23,7 @@ local destinations={
  Photo=CFrame.new(-39,3,-25),
  LookLab=CFrame.new(-38,3,-4),
  MainClub=CFrame.new(3,3,11),
+ Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,27,2),
  Rooftop=CFrame.new(43,47,-28),
  Pool=CFrame.new(0,47,-12),
@@ -101,4 +102,4 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId
 end)
 
 Players.PlayerRemoving:Connect(function(player)ownershipCache[player.UserId]=nil end)
-print("[BBYA] Travel v6 online: VIP 5R / Skatepark 5R / Rooftop 10R / Underground 20R / Funkot 10R / Mall 10R / Pasar Malam 10R")
+print("[BBYA] Travel v7 online: shared Toilet FREE / VIP 5R / Skatepark 5R / Rooftop 10R / Underground 20R / Funkot 10R / Mall 10R / Pasar Malam 10R")

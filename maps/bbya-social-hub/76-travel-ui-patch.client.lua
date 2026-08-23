@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v10
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v11
 -- Reliable touch-first Travel list. Never writes CanvasPosition after user scrolls.
--- Mobile uses one large card per row; Backpack is hidden only while Travel is actually open.
+-- Shared Toilet is a free common amenity destination from every venue.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -19,13 +19,13 @@ local function findTravel()
  end
 end
 local travel=findTravel();if not travel then task.wait(1);travel=findTravel() end
-if not travel then warn("[BBYA Travel v10] travel frame not found");return end
+if not travel then warn("[BBYA Travel v11] travel frame not found");return end
 travel.ClipsDescendants=true
 travel.ZIndex=70
 
 for _,d in ipairs(travel:GetDescendants()) do
  if d:IsA("TextLabel") and (d.Text:find("Only destinations") or d.Text:find("Paid destinations")) then
-  d.Text="Tap destination • paid access is a permanent one-time unlock.";d.TextSize=9;d.ZIndex=72
+  d.Text="Tap destination • shared Toilet is free • paid access is one-time permanent.";d.TextSize=9;d.ZIndex=72
  end
 end
 for _,child in ipairs(travel:GetChildren()) do
@@ -45,13 +45,14 @@ holder.ScrollingEnabled=true;holder.Active=true;holder.Selectable=false;holder.C
 
 local grid=Instance.new("UIGridLayout")
 grid.CellPadding=UDim2.fromOffset(7,7);grid.SortOrder=Enum.SortOrder.LayoutOrder
- grid.FillDirection=Enum.FillDirection.Horizontal;grid.FillDirectionMaxCells=1
- grid.HorizontalAlignment=Enum.HorizontalAlignment.Left;grid.VerticalAlignment=Enum.VerticalAlignment.Top;grid.Parent=holder
+grid.FillDirection=Enum.FillDirection.Horizontal;grid.FillDirectionMaxCells=1
+grid.HorizontalAlignment=Enum.HorizontalAlignment.Left;grid.VerticalAlignment=Enum.VerticalAlignment.Top;grid.Parent=holder
 local pad=Instance.new("UIPadding");pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,116);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4);pad.Parent=holder
 
-local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55)}
+local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55),restroom=Color3.fromRGB(92,194,204)}
 local destinations={
  {"ARRIVAL","Arrival","FREE",nil,C.cyan},{"PHOTO STUDIO","Photo","FREE",nil,C.cyan},{"LOOK LAB","LookLab","FREE",nil,C.cyan},{"MAIN CLUB","MainClub","FREE",nil,C.pink},
+ {"TOILET / RESTROOM","Toilet","SHARED AMENITY",nil,C.restroom},
  {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},{"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},{"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},{"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
  {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},{"BBYA MALL","Mall","ONE-TIME",10,C.mall},{"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
 }
@@ -63,7 +64,7 @@ for i,d in ipairs(destinations) do
  local card=Instance.new("Frame");card.Name="Travel_"..d[2];card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.LayoutOrder=i;card.ZIndex=81;card.Parent=holder;corner(card,10);stroke(card,d[5])
  local bar=Instance.new("Frame");bar.Size=UDim2.new(0,4,1,-14);bar.Position=UDim2.fromOffset(7,7);bar.BackgroundColor3=d[5];bar.BorderSizePixel=0;bar.ZIndex=82;bar.Parent=card;corner(bar,3)
  label(card,d[1],UDim2.fromOffset(19,7),UDim2.new(.55,-16,0,22),Enum.Font.GothamBold,11,C.white)
- local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or "FREE TELEPORT"
+ local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or (d[2]=="Toilet" and "FREE • ONE RESTROOM FOR ALL VENUES" or "FREE TELEPORT")
  label(card,meta,UDim2.fromOffset(19,30),UDim2.new(.55,-16,0,18),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
  local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.AnchorPoint=Vector2.new(1,.5);go.Position=UDim2.new(1,-9,.5,0);go.Size=UDim2.new(.40,0,0,38)
  go.BackgroundColor3=Color3.fromRGB(40,36,46);go.BorderSizePixel=0;go.Font=Enum.Font.GothamBold;go.TextSize=9;go.TextColor3=C.white;go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5])
@@ -90,7 +91,6 @@ holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyLayout)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyLayout) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(applyLayout)end)
 
--- CoreGui hotbar guard only while Travel itself is the visible page.
 local backpackWas=true
 local backpackHidden=false
 local function travelIsOpen()return travel.Visible and (not hubPanel or hubPanel.Visible) end
@@ -107,4 +107,4 @@ travel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBack
 if hubPanel then hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBackpack)end) end
 
 task.defer(function()applyLayout();updateCanvas();syncBackpack()end)
-print("[BBYA] Travel UI v10 online: no scroll snap / one-column mobile / full bottom touch access")
+print("[BBYA] Travel UI v11 online: shared Toilet FREE / touch-first list / full bottom access")
