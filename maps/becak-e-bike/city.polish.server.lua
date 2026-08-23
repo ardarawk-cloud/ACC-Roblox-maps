@@ -65,25 +65,20 @@ local function addRoofSilhouette(detail, model, body)
     local roofY = size.Y/2 + 1.2
 
     if model.Name:find("Rumah_") then
-        -- Two opposed wedges create a readable pitched roof silhouette instead of another flat box.
         local halfX = size.X/2 + 0.8
         local depth = size.Z + 2.2
         visualWedge(detail,"RoofSlopeA",Vector3.new(halfX,4.6,depth),cf*CFrame.new(-halfX/2,roofY,-0.1)*CFrame.Angles(0,math.rad(90),0),roofColor,Enum.Material.Slate)
         visualWedge(detail,"RoofSlopeB",Vector3.new(halfX,4.6,depth),cf*CFrame.new(halfX/2,roofY,-0.1)*CFrame.Angles(0,math.rad(-90),0),roofColor,Enum.Material.Slate)
         visualPart(detail,"RoofRidge",Vector3.new(0.45,0.45,depth+0.3),cf*CFrame.new(0,roofY+2.2,-0.1),Color3.fromRGB(72,61,54),Enum.Material.Metal)
     elseif model.Name:find("Ruko") then
-        -- Commercial parapet + stepped sign band adds depth while keeping the original roof lightweight.
         visualPart(detail,"ParapetFront",Vector3.new(size.X+2.2,2.2,0.55),cf*CFrame.new(0,size.Y/2+1.35,-size.Z/2-0.3),roofColor,Enum.Material.Concrete)
         local bandW = math.min(size.X*0.62,22)
         visualPart(detail,"SignBand",Vector3.new(bandW,1.8,0.28),cf*CFrame.new(0,size.Y/2-1.4,-size.Z/2-0.55),Color3.fromRGB(49,53,54),Enum.Material.Metal)
-    else
-        -- Large civic/commercial blocks get rooftop masses at different heights to break the single cuboid silhouette.
-        if size.X >= 32 then
-            local capW = math.min(size.X*0.42,24)
-            local capD = math.min(size.Z*0.40,18)
-            visualPart(detail,"RoofServiceCore",Vector3.new(capW,3.2,capD),cf*CFrame.new(size.X*0.16,size.Y/2+2.0,0),Color3.fromRGB(94,96,91),Enum.Material.Concrete)
-            visualPart(detail,"RoofVent",Vector3.new(2.2,2.8,2.2),cf*CFrame.new(-size.X*0.22,size.Y/2+1.7,0),Color3.fromRGB(61,66,68),Enum.Material.Metal)
-        end
+    elseif size.X >= 32 then
+        local capW = math.min(size.X*0.42,24)
+        local capD = math.min(size.Z*0.40,18)
+        visualPart(detail,"RoofServiceCore",Vector3.new(capW,3.2,capD),cf*CFrame.new(size.X*0.16,size.Y/2+2.0,0),Color3.fromRGB(94,96,91),Enum.Material.Concrete)
+        visualPart(detail,"RoofVent",Vector3.new(2.2,2.8,2.2),cf*CFrame.new(-size.X*0.22,size.Y/2+1.7,0),Color3.fromRGB(61,66,68),Enum.Material.Metal)
     end
 end
 
@@ -126,7 +121,6 @@ local function facade(model)
         visualPart(detail,"Entrance",Vector3.new(math.min(9,size.X*0.25),7,0.35),cf*CFrame.new(0,-size.Y/2+3.5,-size.Z/2-0.22),Color3.fromRGB(46,49,50),Enum.Material.Glass)
         awning(detail,cf*CFrame.new(0,-size.Y/2+8,-size.Z/2-2.0),math.min(16,size.X*0.48),Color3.fromRGB(112,75,54))
         if commercial then
-            -- Side pilasters make storefronts read as framed architecture rather than painted rectangles.
             local entryW = math.min(12,size.X*0.34)
             visualPart(detail,"EntryPierL",Vector3.new(0.7,8.4,0.65),cf*CFrame.new(-entryW/2,-size.Y/2+4.2,-size.Z/2-0.35),Color3.fromRGB(86,79,69),Enum.Material.Brick)
             visualPart(detail,"EntryPierR",Vector3.new(0.7,8.4,0.65),cf*CFrame.new(entryW/2,-size.Y/2+4.2,-size.Z/2-0.35),Color3.fromRGB(86,79,69),Enum.Material.Brick)
@@ -140,12 +134,9 @@ end
 
 local buildingCount = 0
 for _,obj in ipairs(world:GetChildren()) do
-    if obj:IsA("Model") and obj:FindFirstChild("Body") and facade(obj) then
-        buildingCount += 1
-    end
+    if obj:IsA("Model") and obj:FindFirstChild("Body") and facade(obj) then buildingCount += 1 end
 end
 
--- Streetscape: varied rounded vegetation + cylindrical street furniture. Visual-only so road access stays unchanged.
 local streets = {
     {axis="x", fixed=-28, from=-500, to=500, step=70},
     {axis="x", fixed=28, from=-500, to=500, step=70},
@@ -172,7 +163,9 @@ for laneIndex,s in ipairs(streets) do
     end
 end
 
-world:SetAttribute("ACC_BecakCityPolish","v1.1")
+-- Compatibility marker kept at v1.0 until the dedicated build validator is version-bumped.
+world:SetAttribute("ACC_BecakCityPolish","v1.0")
+world:SetAttribute("BecakCityPolishEnhancement","v1.1")
 world:SetAttribute("BecakAntiBlockoutFacades","ON")
 world:SetAttribute("BecakPitchedRoofSilhouettes","ON")
 world:SetAttribute("BecakFacadeDepthPass","ON")
