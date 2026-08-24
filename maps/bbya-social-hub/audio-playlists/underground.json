@@ -81,8 +81,11 @@
       "sourceSizeBytes": 18782042,
       "assetId": null,
       "bbyaPermission": false,
-      "status": "ASSET_ID_MISSING",
-      "moderationLastKnown": null
+      "status": "SOURCE_INVALID_DURATION_TOO_LONG",
+      "moderationLastKnown": null,
+      "terminal": true,
+      "terminalReason": "ROBLOX_UPLOAD_REJECTED_BEFORE_ASSET_CREATION_AUDIO_DURATION_TOO_LONG",
+      "doNotRetryUnmodified": true
     }
   ]
 }
