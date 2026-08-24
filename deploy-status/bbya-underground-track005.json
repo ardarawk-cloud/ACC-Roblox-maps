@@ -1,0 +1,103 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 5,
+  "title": "SIAPKAH JATUH CINTA LAGI [ DESTRA PRAYOGO ]#BKB2K25",
+  "driveFileId": "1pdH7vkEAPL14TOu_NKPzDZNCQ3YkCXmT",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "75709298846740",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/40912d53-51bb-41e8-907a-48a14426a0dd",
+    "operationId": "40912d53-51bb-41e8-907a-48a14426a0dd",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/40912d53-51bb-41e8-907a-48a14426a0dd",
+    "operationId": "40912d53-51bb-41e8-907a-48a14426a0dd",
+    "done": true,
+    "response": {
+      "path": "assets/75709298846740",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T18:28:35.811694200Z",
+      "assetId": "75709298846740",
+      "displayName": "SIAPKAH JATUH CINTA LAGI [ DESTRA PRAYOGO ]#BKB2K2",
+      "description": "BBYA Underground Track 005",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        75709298846740
+      ],
+      "errors": []
+    }
+  }
+}
