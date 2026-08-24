@@ -1,0 +1,50 @@
+{
+  "map": "becak-e-bike",
+  "runDate": "2026-08-24",
+  "upgrade": "Cargo Reputation Delta Guard v1.22",
+  "sourceCommit": "86f044a561c67c19f4b0a663760086a20cc047aa",
+  "target": {
+    "universeId": "10745325613",
+    "placeId": "80994730522893"
+  },
+  "scope": [
+    "maps/becak-e-bike/reputation.cargo.server.lua"
+  ],
+  "sourceIsolationVerified": true,
+  "otherMapsTouchedBySourceCommit": false,
+  "builder": {
+    "path": "scripts/build-becak-ebike.js",
+    "bundlesReputationCargo": true,
+    "generatedScriptName": "BecakEBike_ReputationCargo"
+  },
+  "compatibility": {
+    "ACC_BecakReputationCargo": "v1.20"
+  },
+  "markers": {
+    "ACC_BecakReputationCargoEnhancement": "v1.22",
+    "BecakReputationCargoDeltaGuard": "ON",
+    "BecakReputationCargoMaxDeltaPerSignal": 1
+  },
+  "invariants": {
+    "cargoIntegrityUnchanged": true,
+    "vehiclePhysicsUnchanged": true,
+    "collisionTopologyUnchanged": true,
+    "saveSchemaUnchanged": true,
+    "baseCargoPayoutUnchanged": true,
+    "actualRewardTelemetryPreserved": true
+  },
+  "publishIsolation": {
+    "workflow": ".github/workflows/becak-ebike-publish.yml",
+    "dedicatedTargetLock": true,
+    "expectedUniverseId": "10745325613",
+    "expectedPlaceId": "80994730522893"
+  },
+  "lastVerifiedReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "freshPublishVerified": false,
+  "liveClaimed": false
+}
