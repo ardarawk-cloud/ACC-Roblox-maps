@@ -1,0 +1,29 @@
+{
+  "project": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "10575c63e1733e7274bf94db8281155c701c428d",
+  "upgrade": "dedicated publisher curl retry hardening v1.1",
+  "scope": [
+    "scripts/publish-becak-direct.js"
+  ],
+  "otherMapsTouched": false,
+  "targetLockPreserved": true,
+  "dedicatedPublishIsolationPreserved": true,
+  "validation": {
+    "hardTargetLock": "PASS",
+    "curlBinaryUpload": "PASS",
+    "retryableHttpStatuses": [409, 429, 500, 502, 503, 504],
+    "retryDelaysSeconds": [15, 30, 60, 120],
+    "networkRetry": "ON",
+    "successAndFailureReceipt": "ON",
+    "receiptSourceCommit": "ON"
+  },
+  "previousLiveReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishVerification": "PENDING_FRESH_RECEIPT"
+}
