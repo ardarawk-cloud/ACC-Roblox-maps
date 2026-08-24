@@ -1,4 +1,4 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.4
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.5
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -42,7 +42,7 @@ if (!fs.existsSync(placePath)) {
 const contentType = selectedFile.endsWith('.rbxl') ? 'application/octet-stream' : 'application/xml';
 const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
 const retryableStatuses = new Set([409, 429, 500, 502, 503, 504]);
-const retryDelaysMs = [20_000, 45_000, 90_000, 180_000];
+const retryDelaysMs = [10_000, 20_000, 45_000];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -81,10 +81,13 @@ function publishOnce(attempt, maxAttempts) {
   const marker = '__ACC_HTTP_STATUS__:';
   const result = spawnSync('curl', [
     '--silent', '--show-error', '--location',
+    '--http1.1', '--ipv4',
     '--connect-timeout', '30', '--max-time', '300',
     '--request', 'POST',
     '--header', `x-api-key: ${apiKey}`,
     '--header', `Content-Type: ${contentType}`,
+    '--header', 'Expect:',
+    '--header', 'Connection: close',
     '--data-binary', `@${placePath}`,
     '--write-out', `\n${marker}%{http_code}`,
     url,
@@ -108,7 +111,7 @@ function publishOnce(attempt, maxAttempts) {
 }
 
 (async () => {
-  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType} via curl...`);
+  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType} via curl/http1.1...`);
 
   const maxAttempts = retryDelaysMs.length + 1;
   let lastFailure = null;
