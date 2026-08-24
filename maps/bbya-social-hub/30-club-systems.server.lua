@@ -31,6 +31,7 @@ local PLAYLIST={
  {title="11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix)",id="91900235935901",style="progressive"},
  {title="1A - 128 - Dreaming (Original Mix)",id="115774171488936",style="progressive"},
  {title="2A - 130 - 2A - 130 -tru love  - Viemix Remix",id="100162128635185",style="progressive"},
+ {title="2A - 132 - Stadium - The Time",id="82993942539950",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
