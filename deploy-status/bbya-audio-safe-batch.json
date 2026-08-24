@@ -1740,6 +1740,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T23:29:16.609003+00:00"
+    },
+    "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv": {
+      "driveId": "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv",
+      "title": "2A - 130 - 2A - 130 -tru love  - Viemix Remix",
+      "filename": "2A - 130 - 2A - 130 -tru love  - Viemix Remix.mp3",
+      "sequence": 22,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561250,
+        "sha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5"
+      },
+      "updatedAt": "2026-08-24T23:29:29.676289+00:00",
+      "normalizedSha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "operationId": "a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:29:30.703431+00:00",
+      "operationPath": "operations/a74e2a34-2396-41fa-a0fe-c15dcf738332",
+      "operationResult": {
+        "path": "operations/a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "operationId": "a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "done": true,
+        "response": {
+          "path": "assets/100162128635185",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:29:50.360570800Z",
+          "assetId": "100162128635185",
+          "displayName": "2A - 130 - 2A - 130 -tru love  - Viemix Remix",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "100162128635185",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
