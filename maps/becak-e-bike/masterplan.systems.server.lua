@@ -1,4 +1,4 @@
--- BECAK E-BIKE — masterplan systems v1.4
+-- BECAK E-BIKE — masterplan systems v1.5
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
@@ -17,6 +17,8 @@ local economy=root:WaitForChild('EconomyTransaction',20)
 if not world or not vehicles or not interactives or not remotes or not economy then return end
 local toast=remotes:WaitForChild('Toast')
 
+local oldSystems=root:FindFirstChild('MasterplanSystems')
+if oldSystems then oldSystems:Destroy() end
 local systems=Instance.new('Folder');systems.Name='MasterplanSystems';systems.Parent=root
 local function part(parent,name,size,cf,color,material,collide)
  local p=Instance.new('Part');p.Name=name;p.Size=size;p.CFrame=cf;p.Anchored=true;p.CanCollide=collide~=false;p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Color=color;p.Material=material or Enum.Material.SmoothPlastic;p.Parent=parent;return p
@@ -86,10 +88,11 @@ repairPrompt.Triggered:Connect(function(player)
  b:SetAttribute('Condition',100);toast:FireClient(player,'Servis selesai • kondisi kembali 100%.')
 end)
 
--- Cargo / logistics jobs v1.4: route variety + distance-based payout + player telemetry.
+-- Cargo / logistics jobs v1.5: route variety + distance payout + anti-instant-complete integrity.
 local cargoFolder=Instance.new('Folder');cargoFolder.Name='CargoJobs';cargoFolder.Parent=systems
 local cargoActive={}
 local lastCargoDestination={}
+local cargoPickupCooldown={}
 local cargoPickup=part(cargoFolder,'CargoDepot',Vector3.new(30,1,22),CFrame.new(365,.6,430),Color3.fromRGB(210,145,55),Enum.Material.Neon,true)
 label(cargoPickup,'CARGO DEPOT')
 local cargoPrompt=prompt(cargoPickup,'Ambil Cargo','Nusakarya Logistics')
@@ -112,17 +115,25 @@ end
 local function cargoPayout(distance)
  return math.floor(math.clamp(22000+distance*55,30000,65000))
 end
+local function minimumCargoDuration(distance)
+ -- Max upgraded motor is ~47 studs/s; this threshold is intentionally lenient but rejects instant teleports.
+ return math.clamp(distance/75,4.5,18)
+end
 cargoPrompt.Triggered:Connect(function(player)
+ local now=os.clock()
+ if (cargoPickupCooldown[player] or 0)>now then toast:FireClient(player,'Tunggu sebentar sebelum mengambil cargo berikutnya.') return end
  if cargoActive[player] then toast:FireClient(player,'Cargo aktif: '..cargoActive[player].name) return end
  local b=playerBecak(player);if not b or not b.PrimaryPart or (b.PrimaryPart.Position-cargoPickup.Position).Magnitude>30 then toast:FireClient(player,'Dekatkan Becak E-Bike ke Cargo Depot.') return end
  local d=chooseCargoDrop(player)
  local distance=(cargoPickup.Position-d.pos).Magnitude
  local reward=cargoPayout(distance)
- cargoActive[player]={name=d.name,pos=d.pos,startedAt=os.clock(),distance=distance,reward=reward}
+ cargoActive[player]={name=d.name,pos=d.pos,startedAt=now,distance=distance,reward=reward,lastPos=b.PrimaryPart.Position,drivenDistance=0,lastIntegrityToast=0}
  lastCargoDestination[player]=d.name
  player:SetAttribute('CargoDestination',d.name)
  player:SetAttribute('CargoDistanceStuds',math.floor(distance))
  player:SetAttribute('CargoBaseReward',reward)
+ player:SetAttribute('CargoDrivenDistanceStuds',0)
+ player:SetAttribute('CargoMinDurationSeconds',math.ceil(minimumCargoDuration(distance)))
  toast:FireClient(player,'Cargo dimuat • '..d.name..' • estimasi Rp'..reward)
 end)
 
@@ -144,26 +155,45 @@ local function syncProgress(player)
 end
 
 -- Gameplay maintenance loop. Traffic simulation lives only in traffic.npc.server.lua.
--- Run cargo completion + progression at 5 Hz instead of the legacy 12.5 Hz loop.
+-- Run cargo completion + progression at 5 Hz.
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt;if accum<.2 then return end;accum=0
  for player,d in pairs(cargoActive) do
   if player.Parent then
    local b=playerBecak(player)
-   if b and b.PrimaryPart and (b.PrimaryPart.Position-d.pos).Magnitude<25 then
-    cargoActive[player]=nil
-    player:SetAttribute('CargoDestination',nil)
-    player:SetAttribute('CargoDistanceStuds',0)
-    player:SetAttribute('CargoBaseReward',0)
-    local duration=math.max(1,os.clock()-(d.startedAt or os.clock()))
-    local xp=math.floor(math.clamp(30+(d.distance or 0)/16,35,90))
-    if transact(player,d.reward or 35000,xp,'cargo') then
-     player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1)
-     player:SetAttribute('CargoLastReward',d.reward or 35000)
-     player:SetAttribute('CargoLastDurationSeconds',math.floor(duration))
-     player:SetAttribute('CargoLastDistanceStuds',math.floor(d.distance or 0))
-     toast:FireClient(player,'Cargo terkirim ke '..d.name..' • +Rp'..(d.reward or 35000)..' +'..xp..' XP')
+   if b and b.PrimaryPart then
+    local pos=b.PrimaryPart.Position
+    local last=d.lastPos or pos
+    local step=(pos-last).Magnitude
+    -- Normal max speed is below 50 studs/s. Ignore implausibly large 5 Hz position jumps from distance proof.
+    if step<=18 then d.drivenDistance=(d.drivenDistance or 0)+step end
+    d.lastPos=pos
+    player:SetAttribute('CargoDrivenDistanceStuds',math.floor(d.drivenDistance or 0))
+    if (pos-d.pos).Magnitude<25 then
+     local duration=math.max(0,os.clock()-(d.startedAt or os.clock()))
+     local enoughTime=duration>=minimumCargoDuration(d.distance or 0)
+     local enoughTravel=(d.drivenDistance or 0)>=math.max(25,(d.distance or 0)*.55)
+     if enoughTime and enoughTravel then
+      cargoActive[player]=nil
+      cargoPickupCooldown[player]=os.clock()+3
+      player:SetAttribute('CargoDestination',nil)
+      player:SetAttribute('CargoDistanceStuds',0)
+      player:SetAttribute('CargoBaseReward',0)
+      player:SetAttribute('CargoDrivenDistanceStuds',0)
+      player:SetAttribute('CargoMinDurationSeconds',0)
+      local xp=math.floor(math.clamp(30+(d.distance or 0)/16,35,90))
+      if transact(player,d.reward or 35000,xp,'cargo') then
+       player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1)
+       player:SetAttribute('CargoLastReward',d.reward or 35000)
+       player:SetAttribute('CargoLastDurationSeconds',math.floor(duration))
+       player:SetAttribute('CargoLastDistanceStuds',math.floor(d.distance or 0))
+       toast:FireClient(player,'Cargo terkirim ke '..d.name..' • +Rp'..(d.reward or 35000)..' +'..xp..' XP')
+      end
+     elseif os.clock()-(d.lastIntegrityToast or 0)>3 then
+      d.lastIntegrityToast=os.clock()
+      toast:FireClient(player,'Cargo belum tervalidasi • selesaikan rute dengan Becak E-Bike.')
+     end
     end
    end
   end
@@ -179,6 +209,8 @@ local function setupPlayer(player)
  player:SetAttribute('CargoJobs',player:GetAttribute('CargoJobs') or 0)
  player:SetAttribute('CargoDistanceStuds',0)
  player:SetAttribute('CargoBaseReward',0)
+ player:SetAttribute('CargoDrivenDistanceStuds',0)
+ player:SetAttribute('CargoMinDurationSeconds',0)
  player:SetAttribute('CargoLastReward',player:GetAttribute('CargoLastReward') or 0)
  player:SetAttribute('CargoLastDurationSeconds',player:GetAttribute('CargoLastDurationSeconds') or 0)
  player:SetAttribute('CargoLastDistanceStuds',player:GetAttribute('CargoLastDistanceStuds') or 0)
@@ -188,12 +220,15 @@ local function setupPlayer(player)
 end
 for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil;lastCargoDestination[player]=nil end)
+Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil;lastCargoDestination[player]=nil;cargoPickupCooldown[player]=nil end)
 
-Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.4')
+Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.5')
 Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
 Workspace:SetAttribute('BecakSystemsTickHz',5)
 Workspace:SetAttribute('BecakCargoDynamicPayout','ON')
 Workspace:SetAttribute('BecakCargoDestinationCount',#cargoDrops)
 Workspace:SetAttribute('BecakCargoNoImmediateRepeat','ON')
-print('[BECAK E-BIKE] masterplan systems v1.4 ready: cargo route variety + distance payout + telemetry + 5 Hz maintenance')
+Workspace:SetAttribute('BecakCargoIntegrityValidation','ON')
+Workspace:SetAttribute('BecakCargoMinimumTravelRatio',0.55)
+Workspace:SetAttribute('BecakCargoTeleportJumpRejectStuds',18)
+print('[BECAK E-BIKE] masterplan systems v1.5 ready: cargo integrity + route variety + distance payout + telemetry + 5 Hz maintenance')
