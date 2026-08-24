@@ -1,0 +1,27 @@
+{
+  "map": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "8c3055910ff7e987c68dac3b7ac34b8c97885617",
+  "upgrade": "Daily Contracts + Story mobile-scroll v1.24",
+  "checks": {
+    "dedicatedSourcePath": "maps/becak-e-bike/daily.contracts.ui.client.lua",
+    "builderBundlesDailyContractsUI": true,
+    "missionPanelScrollable": true,
+    "storyAchievementContentMobileSafe": true,
+    "scrollResetsOnOpen": true,
+    "targetLockVerified": true,
+    "otherMapsTouchedBySourceCommit": false,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false
+  },
+  "publish": {
+    "workflow": ".github/workflows/becak-ebike-publish.yml",
+    "sourcePathTriggersDedicatedPublish": true,
+    "latestVerifiedReceiptVersion": 36,
+    "latestVerifiedReceiptAt": "2026-08-23T16:31:47.837Z",
+    "status": "PENDING_FRESH_RECEIPT"
+  }
+}
