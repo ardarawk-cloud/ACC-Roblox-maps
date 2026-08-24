@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 4,
+  "title": "SOLEDAD [ DESTRA PRAYOGO ]#BKB2K25",
+  "driveFileId": "1cPu4wV7m5W7K89gpldazsrlGtjSNn_fq",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "112400686884526",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/38c8b9aa-e50c-4c32-8b15-607d31208b9e",
+    "operationId": "38c8b9aa-e50c-4c32-8b15-607d31208b9e",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/38c8b9aa-e50c-4c32-8b15-607d31208b9e",
+    "operationId": "38c8b9aa-e50c-4c32-8b15-607d31208b9e",
+    "done": true,
+    "response": {
+      "path": "assets/112400686884526",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T17:20:51.931877400Z",
+      "assetId": "112400686884526",
+      "displayName": "SOLEDAD [ DESTRA PRAYOGO ]#BKB2K25",
+      "description": "BBYA Underground Track 004",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        112400686884526
+      ],
+      "errors": []
+    }
+  }
+}
