@@ -1915,6 +1915,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T23:30:34.963688+00:00"
+    },
+    "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv": {
+      "driveId": "1jN6bgqc5crvhJrjMIqUdXkYfytA-18cv",
+      "title": "2A - 132 - Stadium - The Time",
+      "filename": "2A - 132 - Stadium - The Time.mp3",
+      "sequence": 24,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561246,
+        "sha256": "0f73862060f477244ff5da296df8f549aac29ef493bf66a70b9f3bd5ed43d92a"
+      },
+      "updatedAt": "2026-08-24T23:30:46.804511+00:00",
+      "normalizedSha256": "0f73862060f477244ff5da296df8f549aac29ef493bf66a70b9f3bd5ed43d92a",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/c87052c8-486a-4ee3-ab9c-a0cf2f366cb9",
+        "operationId": "c87052c8-486a-4ee3-ab9c-a0cf2f366cb9",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:30:47.674787+00:00",
+      "operationPath": "operations/c87052c8-486a-4ee3-ab9c-a0cf2f366cb9",
+      "operationResult": {
+        "path": "operations/c87052c8-486a-4ee3-ab9c-a0cf2f366cb9",
+        "operationId": "c87052c8-486a-4ee3-ab9c-a0cf2f366cb9",
+        "done": true,
+        "response": {
+          "path": "assets/82993942539950",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:31:31.402615500Z",
+          "assetId": "82993942539950",
+          "displayName": "2A - 132 - Stadium - The Time",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "82993942539950",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
