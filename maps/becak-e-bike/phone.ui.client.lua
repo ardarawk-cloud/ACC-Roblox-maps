@@ -1,10 +1,8 @@
--- BECAK E-BIKE — Driver Phone UI v1.5
--- Compact driver app: Beranda, Peta, Job, Garasi, Profil. Keeps gameplay view clean on mobile.
+-- BECAK E-BIKE — Driver Phone UI v1.6
+-- Compact driver app: Beranda, Peta, Job, Garasi, Profil. Safe Area owns layout/scale.
 local Players=game:GetService('Players')
 local ReplicatedStorage=game:GetService('ReplicatedStorage')
 local Workspace=game:GetService('Workspace')
-local TweenService=game:GetService('TweenService')
-local RunService=game:GetService('RunService')
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild('PlayerGui')
@@ -34,7 +32,6 @@ local GREEN=Color3.fromRGB(21,155,73)
 local GREEN2=Color3.fromRGB(35,191,93)
 local DARK=Color3.fromRGB(12,16,19)
 local CARD=Color3.fromRGB(24,30,34)
-local CARD2=Color3.fromRGB(31,38,43)
 local MUTED=Color3.fromRGB(155,167,174)
 local WHITE=Color3.fromRGB(246,248,249)
 local BLUE=Color3.fromRGB(44,107,185)
@@ -64,14 +61,13 @@ local function card(parent,y,h)
     local f=Instance.new('Frame');f.Position=UDim2.fromOffset(0,y);f.Size=UDim2.new(1,0,0,h);f.BackgroundColor3=CARD;f.Parent=parent;corner(f,15);return f
 end
 
--- Launcher: small and low enough not to collide with Roblox top UI.
-local launcher=button(gui,'BE',UDim2.new(1,-72,1,-82),UDim2.fromOffset(52,52),GREEN)
+local launcher=button(gui,'BE',UDim2.fromOffset(10,140),UDim2.fromOffset(48,48),GREEN)
 launcher.Name='PhoneLauncher';launcher.TextSize=16;stroke(launcher,Color3.fromRGB(108,235,145),2,.12)
 
 local phone=Instance.new('Frame')
-phone.Name='Phone';phone.AnchorPoint=Vector2.new(1,1);phone.Position=UDim2.new(1,-16,1,-16);phone.Size=UDim2.fromOffset(326,566);phone.BackgroundColor3=Color3.fromRGB(5,7,8);phone.Visible=false;phone.Parent=gui
+phone.Name='Phone';phone.AnchorPoint=Vector2.new(0,0);phone.Position=UDim2.fromOffset(10,104);phone.Size=UDim2.fromOffset(326,566);phone.BackgroundColor3=Color3.fromRGB(5,7,8);phone.Visible=false;phone.Parent=gui
 corner(phone,32);stroke(phone,Color3.fromRGB(110,116,120),2,.1)
-local scaler=Instance.new('UIScale');scaler.Parent=phone
+local scaler=Instance.new('UIScale');scaler.Scale=1;scaler.Parent=phone
 
 local screen=Instance.new('Frame');screen.Position=UDim2.fromOffset(9,9);screen.Size=UDim2.new(1,-18,1,-18);screen.BackgroundColor3=DARK;screen.Parent=phone;corner(screen,25)
 local notch=Instance.new('Frame');notch.AnchorPoint=Vector2.new(.5,0);notch.Position=UDim2.new(.5,0,0,0);notch.Size=UDim2.fromOffset(92,18);notch.BackgroundColor3=Color3.fromRGB(2,3,4);notch.Parent=screen;corner(notch,9)
@@ -116,7 +112,7 @@ local vroad=Instance.new('Frame');vroad.AnchorPoint=Vector2.new(.5,.5);vroad.Pos
 local hroad=Instance.new('Frame');hroad.AnchorPoint=Vector2.new(.5,.5);hroad.Position=UDim2.new(.5,0,.5,0);hroad.Size=UDim2.new(.92,0,.09,0);hroad.BackgroundColor3=Color3.fromRGB(70,73,76);hroad.Parent=roads;corner(hroad,4)
 local playerDot=Instance.new('Frame');playerDot.AnchorPoint=Vector2.new(.5,.5);playerDot.Position=UDim2.new(.42,0,.59,0);playerDot.Size=UDim2.fromOffset(14,14);playerDot.BackgroundColor3=GREEN2;playerDot.Parent=roads;corner(playerDot,7);stroke(playerDot,WHITE,2,0)
 for _,it in ipairs({{'Pasar',.18,.25},{'Pusat Kota',.67,.36},{'Pantai',.72,.78},{'Terminal',.78,.52},{'Sekolah',.27,.66}}) do
-    local d=label(roads,it[1],UDim2.new(it[2],-35,it[3],-10),UDim2.fromOffset(70,20),9,true,WHITE,Enum.TextXAlignment.Center)
+    label(roads,it[1],UDim2.new(it[2],-35,it[3],-10),UDim2.fromOffset(70,20),9,true,WHITE,Enum.TextXAlignment.Center)
 end
 local mapJob=card(map,275,115)
 label(mapJob,'TUJUAN AKTIF',UDim2.fromOffset(14,9),UDim2.new(1,-28,0,20),11,true,MUTED)
@@ -213,33 +209,21 @@ Workspace:GetAttributeChangedSignal('BecakWeather'):Connect(refreshMeta)
 for _,n in ipairs({'StoryChapter','CargoDestination','SessionTrips'}) do player:GetAttributeChangedSignal(n):Connect(refreshMeta) end
 refreshMeta()
 
--- Local polish: any billboard created by gameplay is distance-limited and never dominates the screen.
 local function polishBillboard(x)
     if x:IsA('BillboardGui') then x.MaxDistance=48;x.AlwaysOnTop=false end
 end
 for _,x in ipairs(Workspace:GetDescendants()) do polishBillboard(x) end
 Workspace.DescendantAdded:Connect(polishBillboard)
 
-local opened=false
+-- Safe Area is the single source of truth for phone AnchorPoint, Position, Size and UIScale.
 local function setOpen(v)
-    opened=v
-    if v then
-        phone.Visible=true;phone.Position=UDim2.new(1,360,1,-16)
-        TweenService:Create(phone,TweenInfo.new(.22,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Position=UDim2.new(1,-16,1,-16)}):Play();launcher.Visible=false
-    else
-        TweenService:Create(phone,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{Position=UDim2.new(1,360,1,-16)}):Play()
-        task.delay(.2,function()phone.Visible=false;launcher.Visible=true end)
-    end
+    phone.Visible=v
+    launcher.Visible=not v
 end
-launcher.MouseButton1Click:Connect(function()setOpen(true)end);close.MouseButton1Click:Connect(function()setOpen(false)end)
+launcher.MouseButton1Click:Connect(function()setOpen(true)end)
+close.MouseButton1Click:Connect(function()setOpen(false)end)
 
-local camera=Workspace.CurrentCamera
-local function updateScale()
-    if not camera then return end
-    local v=camera.ViewportSize
-    scaler.Scale=math.clamp(math.min(v.X/900,v.Y/650),.72,1)
-end
-if camera then camera:GetPropertyChangedSignal('ViewportSize'):Connect(updateScale) end
-updateScale()
-
-Workspace:SetAttribute('ACC_BecakPhoneUI','v1.5')
+Workspace:SetAttribute('ACC_BecakPhoneUI','v1.6')
+Workspace:SetAttribute('BecakPhoneLayoutOwner','SAFE_AREA')
+Workspace:SetAttribute('BecakPhoneSelfScaling','OFF')
+Workspace:SetAttribute('BecakPhonePositionTween','OFF')
