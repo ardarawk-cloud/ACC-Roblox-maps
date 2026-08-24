@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "status": "RUNNING_SEQUENTIAL",
+  "items": {},
+  "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
+  "keyCheck": {
+    "ok": true,
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true,
+    "scopes": [
+      {
+        "name": "asset-permissions",
+        "operations": [
+          "write"
+        ],
+        "userIds": []
+      },
+      {
+        "name": "asset",
+        "operations": [
+          "read",
+          "write"
+        ],
+        "userIds": [
+          "*"
+        ]
+      }
+    ]
+  },
+  "accountCheck": {
+    "ok": true,
+    "http": 200,
+    "expectedUsername": "gudangpet88",
+    "resolvedUsername": "GudangPet88",
+    "userId": "9296030038",
+    "isBanned": false,
+    "displayName": "GudangPet88"
+  },
+  "folderItemCount": 68,
+  "updatedAt": "2026-08-24T14:51:34.082266+00:00"
+}
