@@ -2571,6 +2571,54 @@
           "versionNumber": 431
         }
       }
+    },
+    "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA": {
+      "driveId": "1DPRdr9gvrVzQmokKkJ3De4yA3i59OucA",
+      "title": "4A - 130 - because of u 4",
+      "filename": "4A - 130 - because of u 4.mp3",
+      "sequence": 31,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561222,
+        "sha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370"
+      },
+      "updatedAt": "2026-08-24T23:35:29.203053+00:00",
+      "normalizedSha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "operationId": "3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:35:30.171286+00:00",
+      "operationPath": "operations/3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+      "operationResult": {
+        "path": "operations/3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "operationId": "3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "done": true,
+        "response": {
+          "path": "assets/140096166371761",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:35:51.073618100Z",
+          "assetId": "140096166371761",
+          "displayName": "4A - 130 - because of u 4",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "140096166371761",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
