@@ -291,7 +291,7 @@
         "size": 6561244,
         "sha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9"
       },
-      "updatedAt": "2026-08-24T14:59:30.915726+00:00",
+      "updatedAt": "2026-08-24T15:00:09.849664+00:00",
       "normalizedSha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -326,7 +326,46 @@
       },
       "assetId": "94337788677482",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "operationId": "94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "done": true,
+        "response": {
+          "path": "assets/94337788677482",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:00:07.314540100Z",
+          "assetId": "94337788677482",
+          "displayName": "10A - 130 - 10A - 130 - Always Loving You",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:00:09.678138+00:00",
+      "approvedAt": "2026-08-24T15:00:09.678150+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "94337788677482"
+        ],
+        "response": {
+          "successAssetIds": [
+            94337788677482
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
