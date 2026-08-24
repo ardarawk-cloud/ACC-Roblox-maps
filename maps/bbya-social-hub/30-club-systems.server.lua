@@ -33,6 +33,7 @@ local PLAYLIST={
  {title="2A - 130 - 2A - 130 -tru love  - Viemix Remix",id="100162128635185",style="progressive"},
  {title="2A - 132 - Stadium - The Time",id="82993942539950",style="progressive"},
  {title="3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100",id="109286172792690",style="progressive"},
+ {title="3A - 128 - Desert Rose - Stadium Mix 2011",id="94547306143480",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 

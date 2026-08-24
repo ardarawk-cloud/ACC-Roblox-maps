@@ -2131,7 +2131,7 @@
         "size": 6683011,
         "sha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5"
       },
-      "updatedAt": "2026-08-24T23:32:18.158638+00:00",
+      "updatedAt": "2026-08-24T23:32:34.224385+00:00",
       "normalizedSha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2166,7 +2166,46 @@
       },
       "assetId": "94547306143480",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "operationId": "be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "done": true,
+        "response": {
+          "path": "assets/94547306143480",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:32:30.592619100Z",
+          "assetId": "94547306143480",
+          "displayName": "3A - 128 - Desert Rose - Stadium Mix 2011",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:32:34.003033+00:00",
+      "approvedAt": "2026-08-24T23:32:34.003048+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "94547306143480"
+        ],
+        "response": {
+          "successAssetIds": [
+            94547306143480
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
