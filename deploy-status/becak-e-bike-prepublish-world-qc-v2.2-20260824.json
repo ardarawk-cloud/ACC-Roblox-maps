@@ -1,0 +1,30 @@
+{
+  "status": "PREPUBLISH_VALIDATED",
+  "mapId": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "da1c4da6467cb0816ef43a60f1f9c38e2e49f58a",
+  "change": "World QC v2.2 adds runtime target identity plus passenger proof-of-travel and cargo resilience audits.",
+  "compatibility": {
+    "worldQCBaseMarker": "v2.0",
+    "worldQCEnhancement": "v2.2",
+    "passengerIntegrity": "v1.0",
+    "cargoResilience": "v1.6"
+  },
+  "safety": {
+    "otherMapsTouched": false,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "dedicatedPublishIsolationVerified": true
+  },
+  "lastObservedLiveReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishClaimed": false,
+  "note": "Dedicated Becak workflow hard-locks Universe/Place, rebuilds place.rbxlx, validates generated runtime, publishes with Becak-only Open Cloud path, and rejects stale or wrong-target evidence. Fresh receipt required before claiming live."
+}
