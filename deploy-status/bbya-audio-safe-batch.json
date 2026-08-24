@@ -2119,6 +2119,54 @@
           "versionNumber": 428
         }
       }
+    },
+    "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5": {
+      "driveId": "1IrXbqYLCrcUV8X69d6QiBtjAqkbZGQZ5",
+      "title": "3A - 128 - Desert Rose - Stadium Mix 2011",
+      "filename": "3A - 128 - Desert Rose - Stadium Mix 2011.mp3",
+      "sequence": 26,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6683011,
+        "sha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5"
+      },
+      "updatedAt": "2026-08-24T23:32:18.158638+00:00",
+      "normalizedSha256": "98abe51ca9788e675e824441380518589ceabeff6a44658ce0b61d1e0380d4e5",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "operationId": "be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:32:18.979475+00:00",
+      "operationPath": "operations/be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+      "operationResult": {
+        "path": "operations/be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "operationId": "be89deb9-b1e0-4cff-bd8b-5bd44f0605cd",
+        "done": true,
+        "response": {
+          "path": "assets/94547306143480",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:32:30.592619100Z",
+          "assetId": "94547306143480",
+          "displayName": "3A - 128 - Desert Rose - Stadium Mix 2011",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "94547306143480",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
