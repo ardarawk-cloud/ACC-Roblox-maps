@@ -1594,6 +1594,54 @@
           "versionNumber": 425
         }
       }
+    },
+    "1UHvz7yNB8FrJ-0KtqJDE4hmUXMIXBe86": {
+      "driveId": "1UHvz7yNB8FrJ-0KtqJDE4hmUXMIXBe86",
+      "title": "1B - 130 - RIGHT NOW - Unknown Artist.mp3",
+      "filename": "1B - 130 - RIGHT NOW - Unknown Artist.mp3 .mp3",
+      "sequence": 20,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561277,
+        "sha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686"
+      },
+      "updatedAt": "2026-08-24T23:28:02.912466+00:00",
+      "normalizedSha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/90de3167-49f3-4812-b509-41c269b3cbb2",
+        "operationId": "90de3167-49f3-4812-b509-41c269b3cbb2",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:28:03.793174+00:00",
+      "operationPath": "operations/90de3167-49f3-4812-b509-41c269b3cbb2",
+      "operationResult": {
+        "path": "operations/90de3167-49f3-4812-b509-41c269b3cbb2",
+        "operationId": "90de3167-49f3-4812-b509-41c269b3cbb2",
+        "done": true,
+        "response": {
+          "path": "assets/104350413208430",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:28:49.449685900Z",
+          "assetId": "104350413208430",
+          "displayName": "1B - 130 - RIGHT NOW - Unknown Artist.mp3",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "104350413208430",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
