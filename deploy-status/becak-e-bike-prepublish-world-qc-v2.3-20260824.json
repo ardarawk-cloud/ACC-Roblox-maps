@@ -1,0 +1,31 @@
+{
+  "project": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommits": [
+    "9a3bcef9693409ebe8c4ad27db338ed1ddb05122",
+    "3024aeb3df46aba4b422f793453ef6a46d37201b"
+  ],
+  "upgrade": "world runtime QC v2.3",
+  "checks": {
+    "targetIdentityAudit": true,
+    "cargoResilienceAudit": true,
+    "passengerIntegrityAudit": true,
+    "mobileSafeAreaAudit": true,
+    "phoneLayoutOwnerAudit": true,
+    "economySafetyAudit": true,
+    "garageSafetyCompatibilityAlias": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyPricingChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommits": false
+  },
+  "lastVerifiedReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "freshPublishVerified": false,
+  "status": "PREPUBLISH_SOURCE_COMMITTED_AWAITING_FRESH_RECEIPT"
+}
