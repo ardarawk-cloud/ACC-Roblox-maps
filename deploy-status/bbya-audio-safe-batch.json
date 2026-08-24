@@ -819,6 +819,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:03:28.187144+00:00"
+    },
+    "1oQTQ3q6pUxXFqW2rCBR1MbvjomuLFnA6": {
+      "driveId": "1oQTQ3q6pUxXFqW2rCBR1MbvjomuLFnA6",
+      "title": "11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix)",
+      "filename": "11A - 128 - 11A - 128 - Rihanna - russian Roullete (hendry Al.Vocal remix).mp3",
+      "sequence": 11,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6694275,
+        "sha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364"
+      },
+      "updatedAt": "2026-08-24T15:03:40.707412+00:00",
+      "normalizedSha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/ff86ae90-c102-4fbd-b8b2-21601b60a3d1",
+        "operationId": "ff86ae90-c102-4fbd-b8b2-21601b60a3d1",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:03:41.202994+00:00",
+      "operationPath": "operations/ff86ae90-c102-4fbd-b8b2-21601b60a3d1",
+      "operationResult": {
+        "path": "operations/ff86ae90-c102-4fbd-b8b2-21601b60a3d1",
+        "operationId": "ff86ae90-c102-4fbd-b8b2-21601b60a3d1",
+        "done": true,
+        "response": {
+          "path": "assets/124737582708784",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:04:01.437663800Z",
+          "assetId": "124737582708784",
+          "displayName": "11A - 128 - 11A - 128 - Rihanna - russian Roullete",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "124737582708784",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
