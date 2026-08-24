@@ -1,0 +1,29 @@
+{
+  "map": "becak-e-bike",
+  "scope": "maps/becak-e-bike + dedicated Becak build/workflow only",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "7a7955fa584398eecb51ef402419f8467cbd8753",
+  "buildGateCommit": "bc5b4e2a303c7ce43360371543df8a7972d19b36",
+  "workflowGateCommit": "a824d42eb253db21cb6c7e80ca6930aa02d27234",
+  "upgrade": "cargo loop integrity v1.5",
+  "validation": {
+    "targetLockPreserved": true,
+    "dynamicPayoutPreserved": true,
+    "noImmediateRepeatPreserved": true,
+    "minimumTravelRatio": 0.55,
+    "teleportJumpRejectStudsPer5HzSample": 18,
+    "minimumDurationGuard": true,
+    "drivenDistanceTelemetry": true,
+    "pickupCooldownSeconds": 3,
+    "buildRequiresIntegrityMarkers": true,
+    "publishWorkflowRequiresIntegrityMarkers": true,
+    "otherMapsTouched": false
+  },
+  "liveReceiptBeforeRun": {
+    "versionNumber": 36,
+    "httpStatus": 200,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "status": "PREPUBLISH_VALIDATED_PENDING_FRESH_LIVE_RECEIPT"
+}
