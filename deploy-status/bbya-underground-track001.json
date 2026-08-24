@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 1,
+  "title": "Vemouz - Hotel Room BKB (Extended Mix)",
+  "driveFileId": "1ueSSvIhCwgiNMwKes8XGvgTKikkrblUz",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "94093269262617",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/da8b35c1-b9c7-421a-87e7-525299462095",
+    "operationId": "da8b35c1-b9c7-421a-87e7-525299462095",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/da8b35c1-b9c7-421a-87e7-525299462095",
+    "operationId": "da8b35c1-b9c7-421a-87e7-525299462095",
+    "done": true,
+    "response": {
+      "path": "assets/94093269262617",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T14:02:45.634261700Z",
+      "assetId": "94093269262617",
+      "displayName": "Vemouz - Hotel Room BKB (Extended Mix)",
+      "description": "BBYA Underground Track 001",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}

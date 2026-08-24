@@ -18,10 +18,13 @@
       "driveFileId": "1ueSSvIhCwgiNMwKes8XGvgTKikkrblUz",
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 9863235,
-      "assetId": null,
+      "assetId": "94093269262617",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected",
+      "blacklisted": true,
+      "blacklistReason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAtUnix": 1787580302
     }
   ]
 }
