@@ -2408,7 +2408,7 @@
         "size": 6561245,
         "sha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d"
       },
-      "updatedAt": "2026-08-24T23:34:27.346997+00:00",
+      "updatedAt": "2026-08-24T23:34:49.189079+00:00",
       "normalizedSha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2443,7 +2443,32 @@
       },
       "assetId": "119214516459961",
       "initialModerationState": "Rejected",
-      "status": "PENDING_MODERATION"
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
+      "moderationProbe": {
+        "path": "operations/c07f436e-b8ed-48e1-949a-bcb68c796f72",
+        "operationId": "c07f436e-b8ed-48e1-949a-bcb68c796f72",
+        "done": true,
+        "response": {
+          "path": "assets/119214516459961",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:34:45.403536500Z",
+          "assetId": "119214516459961",
+          "displayName": "3A - 130 - Feels So Good 3a",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:34:49.189065+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
