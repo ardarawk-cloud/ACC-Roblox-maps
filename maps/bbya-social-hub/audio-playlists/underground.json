@@ -72,6 +72,17 @@
       "bbyaPermission": true,
       "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved"
+    },
+    {
+      "index": 6,
+      "title": "Sama Sama Suka (Maharetha & AL Fiandi BKB Edit)",
+      "driveFileId": "11fUdTKcrAcqtI8hh1DHMtoFyllCKG0ag",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 18782042,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
