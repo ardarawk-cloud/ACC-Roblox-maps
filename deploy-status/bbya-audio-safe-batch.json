@@ -1854,7 +1854,7 @@
         "size": 6561253,
         "sha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6"
       },
-      "updatedAt": "2026-08-24T23:30:10.130768+00:00",
+      "updatedAt": "2026-08-24T23:30:34.963703+00:00",
       "normalizedSha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1889,7 +1889,32 @@
       },
       "assetId": "109532505778317",
       "initialModerationState": "Rejected",
-      "status": "PENDING_MODERATION"
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
+      "moderationProbe": {
+        "path": "operations/7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "operationId": "7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "done": true,
+        "response": {
+          "path": "assets/109532505778317",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:30:30.522645Z",
+          "assetId": "109532505778317",
+          "displayName": "2A - 130 - Beggin You (Harto Remix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:30:34.963688+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

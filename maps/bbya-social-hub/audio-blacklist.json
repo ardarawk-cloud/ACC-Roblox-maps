@@ -95,6 +95,14 @@
       "blacklistedAt": "2026-08-24T23:29:16.609022+00:00",
       "assetId": "76398158193567",
       "moderationState": "Rejected"
+    },
+    "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR": {
+      "driveId": "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR",
+      "title": "2A - 130 - Beggin You (Harto Remix)",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T23:30:34.963706+00:00",
+      "assetId": "109532505778317",
+      "moderationState": "Rejected"
     }
   }
 }
