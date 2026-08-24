@@ -47,6 +47,14 @@
       "blacklistedAt": "2026-08-24T15:02:42.070688+00:00",
       "assetId": "103746314989693",
       "moderationState": "Rejected"
+    },
+    "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX": {
+      "driveId": "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX",
+      "title": "11A - 126 - Shadows (Stoopit mix)",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T15:03:03.846932+00:00",
+      "assetId": "115294275331227",
+      "moderationState": "Rejected"
     }
   }
 }
