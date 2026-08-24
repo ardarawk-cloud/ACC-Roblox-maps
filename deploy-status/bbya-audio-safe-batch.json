@@ -994,6 +994,54 @@
           "versionNumber": 414
         }
       }
+    },
+    "1lxYXlyA2vDS5MvqiVOaHTi-PLEaK6oiW": {
+      "driveId": "1lxYXlyA2vDS5MvqiVOaHTi-PLEaK6oiW",
+      "title": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",
+      "filename": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix.mp3",
+      "sequence": 13,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561264,
+        "sha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc"
+      },
+      "updatedAt": "2026-08-24T15:04:46.515210+00:00",
+      "normalizedSha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/79d16404-93cc-4290-8288-c4e8b7186a46",
+        "operationId": "79d16404-93cc-4290-8288-c4e8b7186a46",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:04:47.238045+00:00",
+      "operationPath": "operations/79d16404-93cc-4290-8288-c4e8b7186a46",
+      "operationResult": {
+        "path": "operations/79d16404-93cc-4290-8288-c4e8b7186a46",
+        "operationId": "79d16404-93cc-4290-8288-c4e8b7186a46",
+        "done": true,
+        "response": {
+          "path": "assets/89165355590583",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:05:07.151032400Z",
+          "assetId": "89165355590583",
+          "displayName": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "89165355590583",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
