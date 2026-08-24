@@ -1096,6 +1096,54 @@
           "versionNumber": 415
         }
       }
+    },
+    "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6": {
+      "driveId": "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6",
+      "title": "11A - 130 - RUN AWAY - Unknown Artist",
+      "filename": "11A - 130 - RUN AWAY - Unknown Artist.mp3",
+      "sequence": 14,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6625810,
+        "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830"
+      },
+      "updatedAt": "2026-08-24T15:05:27.781687+00:00",
+      "normalizedSha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "operationId": "ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:05:28.437469+00:00",
+      "operationPath": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+      "operationResult": {
+        "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "operationId": "ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "done": true,
+        "response": {
+          "path": "assets/99998363156285",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:05:39.566986100Z",
+          "assetId": "99998363156285",
+          "displayName": "11A - 130 - RUN AWAY - Unknown Artist",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "99998363156285",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
