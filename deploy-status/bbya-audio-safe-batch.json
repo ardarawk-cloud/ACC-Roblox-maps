@@ -2233,7 +2233,7 @@
         "size": 6561292,
         "sha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b"
       },
-      "updatedAt": "2026-08-24T23:32:49.981182+00:00",
+      "updatedAt": "2026-08-24T23:33:33.857564+00:00",
       "normalizedSha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2268,7 +2268,46 @@
       },
       "assetId": "109116552044147",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/fe16d143-540e-45a4-a605-8afcc6007de2",
+        "operationId": "fe16d143-540e-45a4-a605-8afcc6007de2",
+        "done": true,
+        "response": {
+          "path": "assets/109116552044147",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:33:31.153236800Z",
+          "assetId": "109116552044147",
+          "displayName": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Arti",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:33:33.638453+00:00",
+      "approvedAt": "2026-08-24T23:33:33.638467+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "109116552044147"
+        ],
+        "response": {
+          "successAssetIds": [
+            109116552044147
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
