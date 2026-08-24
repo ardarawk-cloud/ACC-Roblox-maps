@@ -1842,6 +1842,54 @@
           "versionNumber": 426
         }
       }
+    },
+    "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR": {
+      "driveId": "12LVqQJLWSbpcjxYGY1Yfxl8JoTqdoUwR",
+      "title": "2A - 130 - Beggin You (Harto Remix)",
+      "filename": "2A - 130 - Beggin You (Harto Remix).mp3",
+      "sequence": 23,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561253,
+        "sha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6"
+      },
+      "updatedAt": "2026-08-24T23:30:10.130768+00:00",
+      "normalizedSha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "operationId": "7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:30:11.029606+00:00",
+      "operationPath": "operations/7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+      "operationResult": {
+        "path": "operations/7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "operationId": "7ce1a98f-0a23-4d81-85cc-3892b8fcd22c",
+        "done": true,
+        "response": {
+          "path": "assets/109532505778317",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:30:30.522645Z",
+          "assetId": "109532505778317",
+          "displayName": "2A - 130 - Beggin You (Harto Remix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "109532505778317",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
