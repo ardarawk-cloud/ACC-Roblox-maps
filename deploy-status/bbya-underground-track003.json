@@ -1,0 +1,53 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 3,
+  "title": "STEPHANIE - BreakZ Ctrl (RONI JONI EDIT)",
+  "driveFileId": "17uXO9T-ik_QPx_3pcluFQfAsaBAx64pL",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "140570948179359",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/208496ab-a78c-4bbe-b049-2b570cb16f63",
+    "operationId": "208496ab-a78c-4bbe-b049-2b570cb16f63",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/208496ab-a78c-4bbe-b049-2b570cb16f63",
+    "operationId": "208496ab-a78c-4bbe-b049-2b570cb16f63",
+    "done": true,
+    "response": {
+      "path": "assets/140570948179359",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T16:26:56.270332500Z",
+      "assetId": "140570948179359",
+      "displayName": "STEPHANIE - BreakZ Ctrl (RONI JONI EDIT)",
+      "description": "BBYA Underground Track 003",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
+}
