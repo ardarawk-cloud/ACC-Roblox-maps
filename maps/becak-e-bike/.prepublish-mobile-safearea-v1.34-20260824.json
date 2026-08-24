@@ -1,0 +1,32 @@
+{
+  "mapId": "becak-e-bike",
+  "scope": "mobile safe-area responsiveness and client performance",
+  "version": "v1.34",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "596480140f43f04d35e5006e48c0c4eb6495c2d8",
+  "baselineLiveReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "checks": {
+    "dedicatedPathOnly": true,
+    "otherMapsTouched": false,
+    "workflowTargetLockPreserved": true,
+    "builderCompatibilityV132Preserved": true,
+    "workflowCompatibilityV131Preserved": true,
+    "cameraViewportConnectionGuardPreserved": true,
+    "phoneLeftPinPreserved": true,
+    "touchControlReservePreserved": true,
+    "compactLandscapeGuardPreserved": true,
+    "phoneBaseSizeLockPreserved": true,
+    "perFrameHeartbeatFallbackRemoved": true,
+    "fallbackPollHz": 2,
+    "vehiclePhysicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "playerDataSchemaChanged": false
+  },
+  "publishClaim": "PENDING_FRESH_RECEIPT"
+}
