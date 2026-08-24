@@ -1,0 +1,24 @@
+{
+  "project": "Becak E-Bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "95f831df547fc34fc9f215a87b449f4b4973e341",
+  "scope": ["maps/becak-e-bike/phone.ui.client.lua"],
+  "otherMapsTouched": false,
+  "upgrade": "Driver Phone UI v1.6 safe-area ownership",
+  "validation": {
+    "phoneLayoutOwner": "SAFE_AREA",
+    "phoneSelfScaling": "OFF",
+    "phonePositionTween": "OFF",
+    "baseSize": "326x566",
+    "safeAreaRuntime": "v1.34",
+    "safeAreaBuilderCompatibility": "v1.32"
+  },
+  "previousLiveReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishStatus": "awaiting fresh dedicated receipt"
+}
