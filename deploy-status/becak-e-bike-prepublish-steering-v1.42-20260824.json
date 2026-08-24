@@ -1,0 +1,25 @@
+{
+  "project": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "6060fd71b32f57b45949e8fade9702ee1c055043",
+  "upgrade": "steering stability idle throttle v1.42",
+  "validation": {
+    "occupiedUpdateHz": 10,
+    "idleUpdateHz": 2,
+    "occupiedHandlingPreserved": true,
+    "builderCompatibilityTokenPreserved": "ACC_BecakSteeringStability v1.41",
+    "enhancementToken": "ACC_BecakSteeringStabilityEnhancement v1.42",
+    "physicsConstantsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouched": false
+  },
+  "deployStateBeforeRun": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "receiptAt": "2026-08-23T16:31:47.837Z"
+  },
+  "status": "PREPUBLISH_VALIDATED_AWAITING_FRESH_RECEIPT"
+}
