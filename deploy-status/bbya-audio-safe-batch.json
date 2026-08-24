@@ -1312,7 +1312,7 @@
         "size": 6561278,
         "sha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701"
       },
-      "updatedAt": "2026-08-24T15:06:41.485235+00:00",
+      "updatedAt": "2026-08-24T15:07:01.999522+00:00",
       "normalizedSha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1347,7 +1347,46 @@
       },
       "assetId": "91900235935901",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "operationId": "ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "done": true,
+        "response": {
+          "path": "assets/91900235935901",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:06:59.865959900Z",
+          "assetId": "91900235935901",
+          "displayName": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_Peopl",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:07:01.799867+00:00",
+      "approvedAt": "2026-08-24T15:07:01.799882+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "91900235935901"
+        ],
+        "response": {
+          "successAssetIds": [
+            91900235935901
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
