@@ -2583,7 +2583,7 @@
         "size": 6561222,
         "sha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370"
       },
-      "updatedAt": "2026-08-24T23:35:29.203053+00:00",
+      "updatedAt": "2026-08-24T23:35:54.117877+00:00",
       "normalizedSha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2618,7 +2618,32 @@
       },
       "assetId": "140096166371761",
       "initialModerationState": "Rejected",
-      "status": "PENDING_MODERATION"
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
+      "moderationProbe": {
+        "path": "operations/3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "operationId": "3b9f93ef-0c45-4faa-b762-f6c6367489f9",
+        "done": true,
+        "response": {
+          "path": "assets/140096166371761",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:35:51.073618100Z",
+          "assetId": "140096166371761",
+          "displayName": "4A - 130 - because of u 4",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:35:54.117863+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
