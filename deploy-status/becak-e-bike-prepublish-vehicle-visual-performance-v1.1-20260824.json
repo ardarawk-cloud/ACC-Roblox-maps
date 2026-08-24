@@ -1,0 +1,32 @@
+{
+  "project": "Becak E-Bike",
+  "run": "vehicle-visual-performance-v1.1",
+  "sourceCommit": "8d01b1f1763610de16f60d40baa9bd1b181a5b59",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceScope": [
+    "maps/becak-e-bike/masterplan.vehicle.server.lua"
+  ],
+  "otherMapsTouchedBySourceCommit": false,
+  "validation": {
+    "decorativeCanCollide": false,
+    "decorativeCanTouch": false,
+    "decorativeCanQuery": false,
+    "decorativeMassless": true,
+    "vehiclePhysicsConstantsChanged": false,
+    "collisionTopologyChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "compatibilityMasterplanMarkerPreserved": "Cargo E-Bike 01 v1.0",
+    "enhancementMarker": "v1.1",
+    "builderBundlesMasterplanVehicle": true,
+    "dedicatedWorkflowTargetLockVerified": true
+  },
+  "deployBefore": {
+    "receipt": "deploy-status/becak-e-bike-direct.json",
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishStatus": "pending_fresh_receipt"
+}
