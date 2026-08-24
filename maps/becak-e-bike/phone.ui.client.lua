@@ -1,4 +1,4 @@
--- BECAK E-BIKE — Driver Phone UI v1.6
+-- BECAK E-BIKE — Driver Phone UI v1.7
 -- Compact driver app: Beranda, Peta, Job, Garasi, Profil. Safe Area owns layout/scale.
 local Players=game:GetService('Players')
 local ReplicatedStorage=game:GetService('ReplicatedStorage')
@@ -101,7 +101,7 @@ label(status,'STATUS HARI INI',UDim2.fromOffset(14,8),UDim2.new(1,-28,0,19),11,t
 local weather=label(status,'Cuaca  CERAH',UDim2.fromOffset(14,34),UDim2.new(1,-28,0,21),12,true)
 local story=label(status,'Story  Chapter 1',UDim2.fromOffset(14,60),UDim2.new(1,-28,0,21),12,true)
 local activeCargo=label(status,'Cargo  —',UDim2.fromOffset(14,86),UDim2.new(1,-28,0,21),12,true)
-local objective=label(status,'Job  Cari penumpang',UDim2.fromOffset(14,111),UDim2.new(1,-28,0,18),11,false,Color3.fromRGB(202,215,221))
+local objective=label(status,'Job  Cari penumpang / cargo',UDim2.fromOffset(14,111),UDim2.new(1,-28,0,18),11,false,Color3.fromRGB(202,215,221))
 
 -- MAP
 local mapHero=card(map,0,260);mapHero.BackgroundColor3=Color3.fromRGB(20,48,38)
@@ -183,12 +183,30 @@ hCargo.MouseButton1Click:Connect(function()setPage('Job')end)
 hGarage.MouseButton1Click:Connect(function()setPage('Garasi')end)
 hMission.MouseButton1Click:Connect(function()setPage('Profil')end)
 
+local function refreshObjective()
+    local passenger=lastState.trip
+    local cargo=player:GetAttribute('CargoDestination')
+    if passenger and passenger~='' then
+        objective.Text='Job  Antar ke '..tostring(passenger)
+        mapObjective.Text='Antar penumpang ke '..tostring(passenger)
+        return
+    end
+    if cargo and cargo~='' then
+        objective.Text='Cargo  Antar ke '..tostring(cargo)
+        mapObjective.Text='Antar cargo ke '..tostring(cargo)
+        return
+    end
+    objective.Text='Job  Cari penumpang / cargo'
+    mapObjective.Text='Belum ada perjalanan'
+end
+
 local function refreshMeta()
     weather.Text='Cuaca  '..tostring(Workspace:GetAttribute('BecakWeather') or 'CERAH')
     story.Text='Story  Chapter '..tostring(player:GetAttribute('StoryChapter') or 1)
     local c=player:GetAttribute('CargoDestination');activeCargo.Text='Cargo  '..(c or '—')
     sessionTarget.Text=tostring(player:GetAttribute('SessionTrips') or lastState.trips or 0)..' / 10 trip'
     pStory.Text='Chapter '..tostring(player:GetAttribute('StoryChapter') or 1)..' • '..(((player:GetAttribute('StoryChapter') or 1)==1) and 'Awal Perjalanan' or 'Perjalanan Berkembang')
+    refreshObjective()
 end
 
 stateEvent.OnClientEvent:Connect(function(s)
@@ -197,8 +215,6 @@ stateEvent.OnClientEvent:Connect(function(s)
     meta.Text='LV '..tostring(s.level or 1)..'  •  '..string.format('★ %.1f',s.reputation or 5)
     local max=math.max(1,s.batteryMax or 100);local pct=math.floor(((s.battery or 0)/max)*100)
     battery.Text='BATERAI '..pct..'%';trips.Text=tostring(s.trips or 0)..' trip'
-    objective.Text=s.trip and ('Job  Antar ke '..s.trip) or 'Job  Cari penumpang'
-    mapObjective.Text=s.trip and ('Antar penumpang ke '..s.trip) or 'Belum ada perjalanan'
     gMotor.Text='Motor  Level '..tostring(s.motorLevel or 1);gBattery.Text='Baterai  Level '..tostring(s.batteryLevel or 1)
     pMeta.Text='LV '..tostring(s.level or 1)..'  •  '..string.format('★ %.1f',s.reputation or 5)
     pTrips.Text='Total Trip  '..tostring(s.trips or 0);pMoney.Text='Saldo  '..rupiah(s.coins)
@@ -223,7 +239,9 @@ end
 launcher.MouseButton1Click:Connect(function()setOpen(true)end)
 close.MouseButton1Click:Connect(function()setOpen(false)end)
 
-Workspace:SetAttribute('ACC_BecakPhoneUI','v1.6')
+Workspace:SetAttribute('ACC_BecakPhoneUI','v1.7')
+Workspace:SetAttribute('BecakPhoneCargoObjective','ON')
+Workspace:SetAttribute('BecakPhoneObjectivePriority','PASSENGER_THEN_CARGO')
 Workspace:SetAttribute('BecakPhoneLayoutOwner','SAFE_AREA')
 Workspace:SetAttribute('BecakPhoneSelfScaling','OFF')
 Workspace:SetAttribute('BecakPhonePositionTween','OFF')
