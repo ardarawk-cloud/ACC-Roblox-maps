@@ -74,6 +74,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T14:51:57.934810+00:00"
+    },
+    "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta": {
+      "driveId": "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta",
+      "title": "1.Walking On Air",
+      "filename": "1.Walking On Air.mp3",
+      "sequence": 2,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6599471,
+        "sha256": "e9958dd47c6426f8eadda1512d24bc9d226847678fe147bcd55a9d5e63592361"
+      },
+      "updatedAt": "2026-08-24T14:52:09.586806+00:00",
+      "normalizedSha256": "e9958dd47c6426f8eadda1512d24bc9d226847678fe147bcd55a9d5e63592361",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/ac966ae8-7603-4ca2-9d55-fbf944ecb61c",
+        "operationId": "ac966ae8-7603-4ca2-9d55-fbf944ecb61c",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T14:52:10.250295+00:00",
+      "operationPath": "operations/ac966ae8-7603-4ca2-9d55-fbf944ecb61c",
+      "operationResult": {
+        "path": "operations/ac966ae8-7603-4ca2-9d55-fbf944ecb61c",
+        "operationId": "ac966ae8-7603-4ca2-9d55-fbf944ecb61c",
+        "done": true,
+        "response": {
+          "path": "assets/96983528563473",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T14:52:38.083428400Z",
+          "assetId": "96983528563473",
+          "displayName": "1.Walking On Air",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "96983528563473",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
