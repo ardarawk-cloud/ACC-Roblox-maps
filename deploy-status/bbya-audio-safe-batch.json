@@ -892,6 +892,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:04:04.519145+00:00"
+    },
+    "1sMF2Q0VvTAxKG-LUA-vjbvOOX2lFuQ9_": {
+      "driveId": "1sMF2Q0VvTAxKG-LUA-vjbvOOX2lFuQ9_",
+      "title": "11A - 130 - 01.runaway (mumu remix)",
+      "filename": "11A - 130 - 01.runaway (mumu remix).mp3",
+      "sequence": 12,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561294,
+        "sha256": "9ded6b427a16432baae480a05b7e061a3039208054d8c7c1a7245804165fcece"
+      },
+      "updatedAt": "2026-08-24T15:04:15.773242+00:00",
+      "normalizedSha256": "9ded6b427a16432baae480a05b7e061a3039208054d8c7c1a7245804165fcece",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/e6e9b383-2f25-4d95-993a-cdd5693be0f0",
+        "operationId": "e6e9b383-2f25-4d95-993a-cdd5693be0f0",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:04:16.522270+00:00",
+      "operationPath": "operations/e6e9b383-2f25-4d95-993a-cdd5693be0f0",
+      "operationResult": {
+        "path": "operations/e6e9b383-2f25-4d95-993a-cdd5693be0f0",
+        "operationId": "e6e9b383-2f25-4d95-993a-cdd5693be0f0",
+        "done": true,
+        "response": {
+          "path": "assets/112322493409786",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:04:26.139459200Z",
+          "assetId": "112322493409786",
+          "displayName": "11A - 130 - 01.runaway (mumu remix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "112322493409786",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
