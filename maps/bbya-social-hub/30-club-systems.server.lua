@@ -24,6 +24,7 @@ local PLAYLIST={
  {title="1.Walking On Air",id="96983528563473",style="progressive"},
  {title="10. CHRISYE - PERGILAH KASIH",id="105877233550276",style="progressive"},
  {title="10A - 130 - 10A - 130 - Always Loving You",id="94337788677482",style="progressive"},
+ {title="11A - 130 - 01.runaway (mumu remix)",id="112322493409786",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
