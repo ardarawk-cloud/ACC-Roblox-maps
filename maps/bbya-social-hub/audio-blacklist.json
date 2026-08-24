@@ -55,6 +55,14 @@
       "blacklistedAt": "2026-08-24T15:03:03.846932+00:00",
       "assetId": "115294275331227",
       "moderationState": "Rejected"
+    },
+    "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y": {
+      "driveId": "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y",
+      "title": "11A - 128 - 08.Shadow (Black Rework 2009)",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T15:03:28.187160+00:00",
+      "assetId": "70774170646231",
+      "moderationState": "Rejected"
     }
   }
 }
