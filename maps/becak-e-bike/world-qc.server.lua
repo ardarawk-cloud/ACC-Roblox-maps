@@ -1,12 +1,16 @@
--- BECAK E-BIKE — world readability/performance QC v2.1
+-- BECAK E-BIKE — world readability/performance QC v2.2
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
 -- v2.1 adds a delayed, non-destructive cargo resilience runtime audit.
+-- v2.2 adds hard target identity + passenger proof-of-travel runtime audits.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
 if not root then return end
+
+local EXPECTED_UNIVERSE_ID=10745325613
+local EXPECTED_PLACE_ID=80994730522893
 
 local tunedBillboards=setmetatable({}, {__mode='k'})
 local tunedDecor=setmetatable({}, {__mode='k'})
@@ -162,23 +166,53 @@ task.spawn(function()
  end
 end)
 
--- Scripts start concurrently. Audit additive cargo v1.6 markers after systems initialization settles.
+local function auditTargetIdentity()
+ local universeOk=game.GameId==EXPECTED_UNIVERSE_ID
+ local placeOk=game.PlaceId==EXPECTED_PLACE_ID
+ local pass=universeOk and placeOk
+ Workspace:SetAttribute('BecakWorldQCTargetIdentity',pass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCUniverseId',game.GameId)
+ Workspace:SetAttribute('BecakWorldQCPlaceId',game.PlaceId)
+ if not pass then
+  warn('[BECAK E-BIKE][QC] target identity FAIL',game.GameId,game.PlaceId,'expected',EXPECTED_UNIVERSE_ID,EXPECTED_PLACE_ID)
+ end
+ return pass
+end
+
+-- Scripts start concurrently. Audit additive systems after initialization settles.
 task.delay(3,function()
  if not root.Parent then return end
+ local targetPass=auditTargetIdentity()
+
  local resilience=Workspace:GetAttribute('ACC_BecakMasterplanSystemsResilience')
  local recovery=Workspace:GetAttribute('BecakCargoVehicleLossRecovery')
  local timeout=tonumber(Workspace:GetAttribute('BecakCargoVehicleMissingTimeoutSeconds'))
- local integrity=Workspace:GetAttribute('BecakCargoIntegrityValidation')
- local pass=resilience=='v1.6' and recovery=='ON' and timeout==45 and integrity=='ON'
- Workspace:SetAttribute('BecakWorldQCCargoResilience',pass and 'PASS' or 'FAIL')
+ local cargoIntegrity=Workspace:GetAttribute('BecakCargoIntegrityValidation')
+ local cargoPass=resilience=='v1.6' and recovery=='ON' and timeout==45 and cargoIntegrity=='ON'
+ Workspace:SetAttribute('BecakWorldQCCargoResilience',cargoPass and 'PASS' or 'FAIL')
  Workspace:SetAttribute('BecakWorldQCCargoResilienceVersion',tostring(resilience or 'missing'))
  Workspace:SetAttribute('BecakWorldQCCargoTimeoutSeconds',timeout or -1)
- if not pass then warn('[BECAK E-BIKE][QC] cargo resilience audit FAIL',resilience,recovery,timeout,integrity) end
+ if not cargoPass then warn('[BECAK E-BIKE][QC] cargo resilience audit FAIL',resilience,recovery,timeout,cargoIntegrity) end
+
+ local passengerVersion=Workspace:GetAttribute('ACC_BecakPassengerIntegrity')
+ local passengerIntegrity=Workspace:GetAttribute('BecakPassengerIntegrityValidation')
+ local minRatio=tonumber(Workspace:GetAttribute('BecakPassengerMinimumTravelRatio'))
+ local minStuds=tonumber(Workspace:GetAttribute('BecakPassengerMinimumTravelStuds'))
+ local jumpReject=tonumber(Workspace:GetAttribute('BecakPassengerTeleportJumpRejectStuds'))
+ local passengerPass=passengerVersion=='v1.0' and passengerIntegrity=='ON' and minRatio==0.55 and minStuds==30 and jumpReject==18
+ Workspace:SetAttribute('BecakWorldQCPassengerIntegrity',passengerPass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCPassengerIntegrityVersion',tostring(passengerVersion or 'missing'))
+ Workspace:SetAttribute('BecakWorldQCPassengerMinTravelRatio',minRatio or -1)
+ Workspace:SetAttribute('BecakWorldQCPassengerMinTravelStuds',minStuds or -1)
+ Workspace:SetAttribute('BecakWorldQCPassengerJumpRejectStuds',jumpReject or -1)
+ if not passengerPass then warn('[BECAK E-BIKE][QC] passenger integrity audit FAIL',passengerVersion,passengerIntegrity,minRatio,minStuds,jumpReject) end
+
+ Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass) and 'PASS' or 'FAIL')
 end)
 
--- Preserve the v2.0 compatibility marker and expose the additive v2.1 audit revision.
+-- Preserve the v2.0 compatibility marker and expose the additive v2.2 audit revision.
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
-Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.1')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.2')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -186,6 +220,9 @@ Workspace:SetAttribute('BecakWorldQCIdempotent','ON')
 Workspace:SetAttribute('BecakWorldQCBatchedStreaming','ON')
 Workspace:SetAttribute('BecakWorldQCBatchSize',BATCH_SIZE)
 Workspace:SetAttribute('BecakWorldQCTelemetryHz',1/TELEMETRY_INTERVAL)
+Workspace:SetAttribute('BecakWorldQCTargetIdentity','PENDING')
 Workspace:SetAttribute('BecakWorldQCCargoResilience','PENDING')
+Workspace:SetAttribute('BecakWorldQCPassengerIntegrity','PENDING')
+Workspace:SetAttribute('BecakWorldQCCoreSystems','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.1 ready | batched streaming | cargo resilience audit | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.2 ready | target + passenger + cargo audits | batched streaming | billboards',billboardCount,'decor',decorCount)
