@@ -2469,6 +2469,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T23:34:49.189065+00:00"
+    },
+    "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB": {
+      "driveId": "1wCF_eyLFSlyP1tidDvD_AoQe5tQM2qOB",
+      "title": "4. Stadium Club Remix - Stars of Edger",
+      "filename": "4. Stadium Club Remix - Stars of Edger.mp3",
+      "sequence": 30,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561167,
+        "sha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479"
+      },
+      "updatedAt": "2026-08-24T23:35:00.850416+00:00",
+      "normalizedSha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "operationId": "a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:35:01.795416+00:00",
+      "operationPath": "operations/a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+      "operationResult": {
+        "path": "operations/a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "operationId": "a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "done": true,
+        "response": {
+          "path": "assets/123077675190094",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:35:10.941630800Z",
+          "assetId": "123077675190094",
+          "displayName": "4. Stadium Club Remix - Stars of Edger",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "123077675190094",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
