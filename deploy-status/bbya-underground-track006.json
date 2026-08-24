@@ -1,0 +1,37 @@
+{
+  "status": "ASSET_ID_MISSING",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 6,
+  "title": "Sama Sama Suka (Maharetha & AL Fiandi BKB Edit)",
+  "driveFileId": "11fUdTKcrAcqtI8hh1DHMtoFyllCKG0ag",
+  "bbyaUniverseId": "8116636513",
+  "assetId": null,
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/e3771088-feaf-426a-a527-f1d6da0f8718",
+    "operationId": "e3771088-feaf-426a-a527-f1d6da0f8718",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/e3771088-feaf-426a-a527-f1d6da0f8718",
+    "operationId": "e3771088-feaf-426a-a527-f1d6da0f8718",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  }
+}
