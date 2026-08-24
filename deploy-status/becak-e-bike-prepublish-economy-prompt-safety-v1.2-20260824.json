@@ -1,0 +1,41 @@
+{
+  "mapId": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "upgrade": "economy-prompt-safety-v1.2",
+  "sourceCommit": "b091a0f085bd8818ca0b60c4f7af5c2e3e1c0575",
+  "sourceScope": [
+    "maps/becak-e-bike/garage.safety.server.lua"
+  ],
+  "otherMapsTouchedBySourceCommit": false,
+  "compatibility": {
+    "ACC_BecakGarageSafety": "v1.0",
+    "enhancement": "v1.2"
+  },
+  "changes": {
+    "garageLineOfSightPreserved": true,
+    "repairShopLineOfSight": true,
+    "cargoDepotLineOfSight": true,
+    "serviceHoldSeconds": 0.55,
+    "serviceMaxActivationDistance": 10
+  },
+  "invariants": {
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyPayoutChanged": false,
+    "saveSchemaChanged": false,
+    "passengerCargoIntegrityChanged": false
+  },
+  "publishIsolation": {
+    "workflow": ".github/workflows/becak-ebike-publish.yml",
+    "targetUniverseId": "10745325613",
+    "targetPlaceId": "80994730522893"
+  },
+  "lastVerifiedDirectReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishState": "SOURCE_COMMITTED_AWAITING_FRESH_DEDICATED_RECEIPT"
+}
