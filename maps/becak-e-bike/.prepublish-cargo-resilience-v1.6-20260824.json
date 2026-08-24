@@ -1,0 +1,25 @@
+{
+  "project": "becak-e-bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "upgrade": "cargo-vehicle-loss-resilience-v1.6",
+  "sourceCommit": "fdd8fea328e073d0dee6b1ca797499bda6aa2b9f",
+  "runtimeQcCommit": "5321594265cf46ee12b7dd0be74badedb15272c6",
+  "checks": {
+    "cargoIntegrityV15Preserved": true,
+    "vehicleMissingGraceSeconds": 45,
+    "noPayoutOnVehicleLossCancel": true,
+    "cargoStateClearedOnCancel": true,
+    "runtimeQcAuditAdded": true,
+    "dedicatedTargetPreserved": true,
+    "otherMapsTouched": false
+  },
+  "previousDeployEvidence": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishClaim": "pending fresh dedicated receipt"
+}
