@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 5,
+  "title": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
+  "driveFileId": "17gjrDpN7ZXOnBkwShKvazpXCxcoT3LbZ",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
+  "startedAt": "2026-08-24T15:19:21+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/fa14471d-a29b-40a3-8f08-0ce1e98277ff",
+    "operationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/fa14471d-a29b-40a3-8f08-0ce1e98277ff",
+    "operationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:19:25+00:00"
+}

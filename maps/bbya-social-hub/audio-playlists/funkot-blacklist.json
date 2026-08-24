@@ -48,6 +48,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
       "blacklistedAt": "2026-08-24T15:18:32+00:00"
+    },
+    {
+      "index": 5,
+      "title": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
+      "driveFileId": "17gjrDpN7ZXOnBkwShKvazpXCxcoT3LbZ",
+      "assetId": null,
+      "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
+      "blacklistedAt": "2026-08-24T15:19:25+00:00"
     }
   ]
 }
