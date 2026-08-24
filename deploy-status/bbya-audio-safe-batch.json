@@ -177,6 +177,54 @@
           "versionNumber": 411
         }
       }
+    },
+    "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj": {
+      "driveId": "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj",
+      "title": "10. CHRISYE - PERGILAH KASIH",
+      "filename": "10. CHRISYE - PERGILAH KASIH.mp3",
+      "sequence": 3,
+      "preflight": {
+        "status": "READY",
+        "duration": 232.96,
+        "size": 3727969,
+        "sha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff"
+      },
+      "updatedAt": "2026-08-24T14:59:05.211394+00:00",
+      "normalizedSha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "operationId": "381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T14:59:05.665324+00:00",
+      "operationPath": "operations/381fb009-002b-4edf-bfa6-81b814f5bab2",
+      "operationResult": {
+        "path": "operations/381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "operationId": "381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "done": true,
+        "response": {
+          "path": "assets/105877233550276",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T14:59:14.540382400Z",
+          "assetId": "105877233550276",
+          "displayName": "10. CHRISYE - PERGILAH KASIH",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "105877233550276",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
