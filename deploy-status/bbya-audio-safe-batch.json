@@ -2644,6 +2644,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T23:35:54.117863+00:00"
+    },
+    "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI": {
+      "driveId": "1VDbWq4AEhaplLGCoaMNS6Lt5K_nhlIxI",
+      "title": "4A - 130 - In and Out of Love    4a",
+      "filename": "4A - 130 - In and Out of Love    4a.mp3",
+      "sequence": 32,
+      "preflight": {
+        "status": "READY",
+        "duration": 407.771429,
+        "size": 6524890,
+        "sha256": "93d81a7fd85b021435b1b44a2406bdd5eab03882039513e90588782667b532f1"
+      },
+      "updatedAt": "2026-08-24T23:36:05.762464+00:00",
+      "normalizedSha256": "93d81a7fd85b021435b1b44a2406bdd5eab03882039513e90588782667b532f1",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/47ef48e8-153b-440e-a213-086e2d291e37",
+        "operationId": "47ef48e8-153b-440e-a213-086e2d291e37",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:36:06.984520+00:00",
+      "operationPath": "operations/47ef48e8-153b-440e-a213-086e2d291e37",
+      "operationResult": {
+        "path": "operations/47ef48e8-153b-440e-a213-086e2d291e37",
+        "operationId": "47ef48e8-153b-440e-a213-086e2d291e37",
+        "done": true,
+        "response": {
+          "path": "assets/103625349994129",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:36:32.337304900Z",
+          "assetId": "103625349994129",
+          "displayName": "4A - 130 - In and Out of Love    4a",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "103625349994129",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
