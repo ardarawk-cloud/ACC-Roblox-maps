@@ -244,7 +244,8 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakRoadAccess','v1.34') -- compatibility marker
-Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.37')
+Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.36') -- build compatibility marker
+Workspace:SetAttribute('ACC_BecakRoadAccessDrivability','v1.37')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
