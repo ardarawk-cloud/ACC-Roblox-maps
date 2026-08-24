@@ -60,6 +60,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
       "blacklistedAt": "2026-08-24T15:19:25+00:00"
+    },
+    {
+      "index": 6,
+      "title": "SUWUNG X KICAU MANIAKS - Jordan L3 Ft Viosena.mp3",
+      "driveFileId": "18u4O6XxkL4xbel9T7E9LuC13bUxe2vaK",
+      "assetId": null,
+      "sourceSha256": "793acac4a4c6a8689e9f1df5cbe016265d549f9a20ca7ff2a96035e94169e9f0",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
+      "blacklistedAt": "2026-08-24T15:20:48+00:00"
     }
   ]
 }

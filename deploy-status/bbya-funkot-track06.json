@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 6,
+  "title": "SUWUNG X KICAU MANIAKS - Jordan L3 Ft Viosena.mp3",
+  "driveFileId": "18u4O6XxkL4xbel9T7E9LuC13bUxe2vaK",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "793acac4a4c6a8689e9f1df5cbe016265d549f9a20ca7ff2a96035e94169e9f0",
+  "startedAt": "2026-08-24T15:20:10+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/22609e6c-7363-4b31-8ac9-36302b318f04",
+    "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/22609e6c-7363-4b31-8ac9-36302b318f04",
+    "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:20:48+00:00"
+}
