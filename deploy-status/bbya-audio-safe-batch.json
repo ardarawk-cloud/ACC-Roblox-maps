@@ -2017,6 +2017,54 @@
           "versionNumber": 427
         }
       }
+    },
+    "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP": {
+      "driveId": "1uDhxAJFPRjGMwZ1AcxXqpZfYPlU37tcP",
+      "title": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100",
+      "filename": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100.mp3",
+      "sequence": 25,
+      "preflight": {
+        "status": "READY",
+        "duration": 392.85551,
+        "size": 6286245,
+        "sha256": "6b7aa3c225c630655394e0a1d684fea7834ca6eca5668fcc5de949f1de066666"
+      },
+      "updatedAt": "2026-08-24T23:31:51.389290+00:00",
+      "normalizedSha256": "6b7aa3c225c630655394e0a1d684fea7834ca6eca5668fcc5de949f1de066666",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/1882224b-00f8-4dd7-b73c-a33e475fb874",
+        "operationId": "1882224b-00f8-4dd7-b73c-a33e475fb874",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:31:52.324938+00:00",
+      "operationPath": "operations/1882224b-00f8-4dd7-b73c-a33e475fb874",
+      "operationResult": {
+        "path": "operations/1882224b-00f8-4dd7-b73c-a33e475fb874",
+        "operationId": "1882224b-00f8-4dd7-b73c-a33e475fb874",
+        "done": true,
+        "response": {
+          "path": "assets/109286172792690",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:32:00.660712500Z",
+          "assetId": "109286172792690",
+          "displayName": "3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "109286172792690",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
