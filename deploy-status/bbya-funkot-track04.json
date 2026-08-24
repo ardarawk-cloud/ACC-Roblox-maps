@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 4,
+  "title": "Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",
+  "driveFileId": "1QhH5Vg59LjW9-oV1pOveT5diG6PVtJ3e",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "1241b906152cb9a9b94b51d4303a49d848e2053a60655623a5650fe5708102a8",
+  "startedAt": "2026-08-24T15:18:22+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
+    "operationId": "cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
+    "operationId": "cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:18:32+00:00"
+}

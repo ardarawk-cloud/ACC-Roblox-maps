@@ -36,6 +36,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
       "blacklistedAt": "2026-08-24T15:17:14+00:00"
+    },
+    {
+      "index": 4,
+      "title": "Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",
+      "driveFileId": "1QhH5Vg59LjW9-oV1pOveT5diG6PVtJ3e",
+      "assetId": null,
+      "sourceSha256": "1241b906152cb9a9b94b51d4303a49d848e2053a60655623a5650fe5708102a8",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
+      "blacklistedAt": "2026-08-24T15:18:32+00:00"
     }
   ]
 }
