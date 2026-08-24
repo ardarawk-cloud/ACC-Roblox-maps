@@ -1,0 +1,106 @@
+name: Publish Roblox Maps
+
+on:
+  workflow_dispatch:
+    inputs:
+      map:
+        description: Map to publish
+        required: true
+        default: a-club
+        type: choice
+        options:
+          - a-club
+          - bbyavatar
+          - becak-e-bike
+          - all
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish selected map(s)
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          SELECTED_MAP: ${{ inputs.map }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ROBLOX_API_KEY:-}" ]]; then
+            echo "Missing repository secret: ROBLOX_API_KEY"
+            exit 2
+          fi
+
+          publish_one() {
+            local key="$1"
+            local enabled universe place file name ctype response code body
+
+            enabled="$(jq -r --arg k "$key" '.maps[$k].enabled // false' maps/registry.json)"
+            universe="$(jq -r --arg k "$key" '.maps[$k].universeId // empty' maps/registry.json)"
+            place="$(jq -r --arg k "$key" '.maps[$k].placeId // empty' maps/registry.json)"
+            file="$(jq -r --arg k "$key" '.maps[$k].file // empty' maps/registry.json)"
+            name="$(jq -r --arg k "$key" '.maps[$k].name // $k' maps/registry.json)"
+
+            if [[ "$enabled" != "true" ]]; then
+              echo "SKIP: $key is disabled"
+              return 0
+            fi
+            if [[ -z "$universe" || -z "$place" || -z "$file" || ! -f "$file" ]]; then
+              echo "INVALID registry entry for $key"
+              return 1
+            fi
+
+            case "$file" in
+              *.rbxlx) ctype="application/xml" ;;
+              *.rbxl)  ctype="application/octet-stream" ;;
+              *) echo "Unsupported place file: $file"; return 1 ;;
+            esac
+
+            echo "Publishing $name ($key)"
+            echo "File: $file ($(wc -c < "$file") bytes)"
+
+            response="$(mktemp)"
+            code="$(curl --silent --show-error --location \
+              --output "$response" \
+              --write-out '%{http_code}' \
+              --request POST \
+              --header "x-api-key: $ROBLOX_API_KEY" \
+              --header "Content-Type: $ctype" \
+              --data-binary "@$file" \
+              "https://apis.roblox.com/universes/v1/${universe}/places/${place}/versions?versionType=Published")" || {
+                rc=$?
+                echo "Transport failure for $key (curl exit $rc)"
+                cat "$response" || true
+                rm -f "$response"
+                return "$rc"
+              }
+
+            body="$(cat "$response")"
+            rm -f "$response"
+            echo "HTTP $code"
+            [[ -n "$body" ]] && echo "$body"
+
+            if [[ "$code" =~ ^2 ]]; then
+              echo "PUBLISHED: $key"
+            else
+              echo "FAILED: $key"
+              return 1
+            fi
+          }
+
+          if [[ "$SELECTED_MAP" == "all" ]]; then
+            failed=0
+            while IFS= read -r key; do
+              publish_one "$key" || failed=1
+            done < <(jq -r '.maps | to_entries[] | select(.value.enabled == true) | .key' maps/registry.json)
+            exit "$failed"
+          else
+            publish_one "$SELECTED_MAP"
+          fi
