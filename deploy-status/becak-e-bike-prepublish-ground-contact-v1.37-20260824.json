@@ -1,0 +1,45 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "cdf2ee201a66712697748c3a1cb237cc2502759f",
+  "upgrade": "Ground Contact self-heal v1.37",
+  "validation": {
+    "sourceRefetched": true,
+    "compatibilityMarkerPreserved": "ACC_BecakGroundContact=v1.36",
+    "enhancementMarker": "ACC_BecakGroundContactEnhancement=v1.37",
+    "contactPodCountPreserved": 3,
+    "podShapePreserved": "BALL",
+    "podDiameterPreserved": 3.6,
+    "podFrictionPreserved": 0.22,
+    "podDensityPreserved": 0.72,
+    "chassisCollisionOffPreserved": true,
+    "selfHealEnabled": true,
+    "auditHz": 1,
+    "repairsMissingPods": true,
+    "repairsMissingOrIncorrectWelds": true,
+    "reassertsNonTouchNonQueryPods": true,
+    "saveSchemaChanged": false,
+    "economyChanged": false,
+    "passengerLoopChanged": false,
+    "cargoLoopChanged": false,
+    "cityChanged": false,
+    "sourceCommitOnlyTouchedBecakPath": true,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "deployStateBeforeRun": {
+    "receiptOk": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "receiptAt": "2026-08-23T16:31:47.837Z",
+    "fresh": false
+  },
+  "publishWorkflow": {
+    "path": ".github/workflows/becak-ebike-publish.yml",
+    "dedicatedPathTrigger": "maps/becak-e-bike/**",
+    "targetLockVerified": true,
+    "freshEvidenceRequired": true
+  },
+  "publishPolicy": "Dedicated Becak workflow must build and pass QC before publishing; do not claim live until a fresh target-matching receipt is recorded."
+}
