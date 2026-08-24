@@ -31,6 +31,14 @@
       "blacklistedAt": "2026-08-24T15:01:21.611529+00:00",
       "assetId": "99580144546633",
       "moderationState": "Rejected"
+    },
+    "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW": {
+      "driveId": "1H4IuTT4Kl4hSJVq2SD6HZ8Wm9dwE2AVW",
+      "title": "10B - 128 - Somewhere  10b",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T15:02:05.057308+00:00",
+      "assetId": "97485071120334",
+      "moderationState": "Rejected"
     }
   }
 }
