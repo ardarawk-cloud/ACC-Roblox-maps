@@ -1,7 +1,56 @@
 {
   "version": 1,
   "status": "RUNNING_SEQUENTIAL",
-  "items": {},
+  "items": {
+    "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
+      "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
+      "title": "07 I Know You Want Me (Calle Ocho) (Intro Dirty)",
+      "filename": "07 I Know You Want Me (Calle Ocho) (Intro Dirty).mp3",
+      "sequence": 1,
+      "preflight": {
+        "status": "READY",
+        "duration": 230.635102,
+        "size": 3691128,
+        "sha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba"
+      },
+      "updatedAt": "2026-08-24T14:51:43.941423+00:00",
+      "normalizedSha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/1f444ed1-bd01-4d09-b957-79b5779b45b8",
+        "operationId": "1f444ed1-bd01-4d09-b957-79b5779b45b8",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T14:51:44.401294+00:00",
+      "operationPath": "operations/1f444ed1-bd01-4d09-b957-79b5779b45b8",
+      "operationResult": {
+        "path": "operations/1f444ed1-bd01-4d09-b957-79b5779b45b8",
+        "operationId": "1f444ed1-bd01-4d09-b957-79b5779b45b8",
+        "done": true,
+        "response": {
+          "path": "assets/78219044448553",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T14:51:53.512106400Z",
+          "assetId": "78219044448553",
+          "displayName": "07 I Know You Want Me (Calle Ocho) (Intro Dirty)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "78219044448553",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
+    }
+  },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
   "keyCheck": {
     "ok": true,
