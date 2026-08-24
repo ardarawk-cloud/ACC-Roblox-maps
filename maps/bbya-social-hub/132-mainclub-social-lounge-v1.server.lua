@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MAIN CLUB SOCIAL LOUNGE UPGRADE v1
+-- BBYA SOCIAL HUB — MAIN CLUB SOCIAL LOUNGE UPGRADE v2
 -- Upgrades the two Arrival Lounge bays already created by ClubPurityMallStudiosV1
 -- in the former Floor 1 Photo Studio + Salon footprint.
+-- v2: owner screenshot correction — declutter overlapping left entrance stack and fill the empty right lounge edge.
 -- Reuses the existing MainClubFrontExtension architecture; does not stack a second floor/ceiling shell.
 -- Open access. No VIP gate, global Lighting, audio, DJ, monetization, Mall, restroom, fishing or stage changes.
 
@@ -9,11 +10,15 @@ local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",60)
 if not root then return end
 
+-- Wait for the club visual passes we are refining so this patch cannot race them.
+local premium=root:WaitForChild("MainClubPremiumV4",60)
+local beauty=root:WaitForChild("MainClubBeautyV5",60)
 local purity=root:WaitForChild("ClubPurityMallStudiosV1",150)
-if not purity then
- warn("[BBYA] Main Club Social Lounge upgrade: ClubPurityMallStudiosV1 unavailable")
+if not premium or not beauty or not purity then
+ warn("[BBYA] Main Club Social Lounge v2: required Main Club passes unavailable")
  return
 end
+
 local extension=purity:WaitForChild("MainClubFrontExtension",30)
 if not extension then
  warn("[BBYA] Main Club Social Lounge upgrade: MainClubFrontExtension unavailable")
@@ -36,7 +41,7 @@ arrival2:Destroy()
 
 local out=Instance.new("Model")
 out.Name="MainClubSocialLoungeV1"
-out:SetAttribute("Pass","MAIN_CLUB_SOCIAL_LOUNGE_UPGRADE_V1")
+out:SetAttribute("Pass","MAIN_CLUB_SOCIAL_LOUNGE_UPGRADE_V2")
 out:SetAttribute("Authority","CLUB_PURITY_MAIN_CLUB_FRONT_EXTENSION")
 out:SetAttribute("FormerPhotoStudioLoungeUpgraded",true)
 out:SetAttribute("FormerSalonLoungeUpgraded",true)
@@ -47,10 +52,16 @@ out:SetAttribute("ReusedExistingArchitecture",true)
 out:SetAttribute("OpenAccess",true)
 out:SetAttribute("VIPGateAdded",false)
 out:SetAttribute("MainClubSightlinePreserved",true)
+out:SetAttribute("LeftEntranceDeclutterV2",true)
+out:SetAttribute("RightLoungeAnchorV2",true)
+out:SetAttribute("MobileScreenshotCorrection",true)
 out:SetAttribute("GlobalLightingUntouched",true)
 out:SetAttribute("AudioUntouched",true)
 out:SetAttribute("DJUntouched",true)
 out:SetAttribute("MonetizationUntouched",true)
+out:SetAttribute("VIPUntouched",true)
+out:SetAttribute("MallUntouched",true)
+out:SetAttribute("FishingUntouched",true)
 out.Parent=root
 
 local C={
@@ -96,6 +107,40 @@ local function textPlate(parent,name,size,cf,textValue,color)
  text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text=textValue;text.TextColor3=color or C.white
  text.Font=Enum.Font.GothamBold;text.TextScaled=true;text.Parent=gui
  return plate
+end
+
+-- -----------------------------------------------------------------------------
+-- OWNER SCREENSHOT FIX A — LEFT ENTRANCE DECLUTTER
+-- The left mobile view had three almost-coincident vertical systems:
+-- transition portal x=-13.5, PremiumV4 reveal x=-12.2 and BeautyV7 fin x=-12.35.
+-- Keep the transition portal as the single structural anchor and remove only the
+-- redundant left reveal/fin layers. Right entrance geometry is not changed.
+-- -----------------------------------------------------------------------------
+local entranceReveal=premium:FindFirstChild("MainClubEntranceReveal",true)
+if entranceReveal then
+ for _,name in ipairs({
+  "PortalPier_-1","PortalFace_-1","ChampagneInlay_-1",
+  "RevealFin_-1_1","RevealFin_-1_2","RevealFin_-1_3"
+ }) do
+  local part=entranceReveal:FindFirstChild(name)
+  if part then part:Destroy() end
+ end
+end
+
+local facade=beauty:FindFirstChild("MobilePremiumFacadeV7",true)
+if facade then
+ for _,d in ipairs(facade:GetChildren()) do
+  if d:IsA("BasePart") and d.Position.X<0 and (d.Name=="FacadeGlassFin" or d.Name=="FacadeFinCap" or d.Name=="FacadeAccentPin") then
+   d:Destroy()
+  end
+ end
+end
+
+local collars=beauty:FindFirstChild("SlimPillarFinishingV6",true)
+if collars then
+ for _,d in ipairs(collars:GetChildren()) do
+  if d:IsA("BasePart") and d.Name=="AccentPin" and d.Position.X<0 then d:Destroy() end
+ end
 end
 
 local function cocktailTable(parent,name,x,z,accent)
@@ -172,6 +217,35 @@ end
 premiumBay(1,-27.0,C.warm,C.taupe)
 premiumBay(2,-13.0,C.pink,C.plum)
 
+-- -----------------------------------------------------------------------------
+-- OWNER SCREENSHOT FIX B — RIGHT-SIDE LOUNGE ANCHOR
+-- Fill the visually empty divider edge without blocking the open route into Main Club.
+-- Each bay gets one compact 2-seat banquette, one small side table and a restrained
+-- accent line. Furniture stays on the lounge side of x=-29.45; corridor remains open.
+-- -----------------------------------------------------------------------------
+local rightAnchor=model("RightSideLoungeAnchorV2",out)
+local function compactRightAnchor(index,z,accent,seatColor)
+ local m=model("RightAnchorBay"..index,rightAnchor)
+ local anchorZ=z+(index==1 and 3.15 or -3.15)
+
+ block("BenchPlinth",Vector3.new(2.20,.28,3.35),CFrame.new(-30.82,1.28,anchorZ),C.black,Enum.Material.Metal,0,m,false)
+ block("BenchSeat",Vector3.new(2.02,.64,3.05),CFrame.new(-30.93,1.73,anchorZ),seatColor,Enum.Material.Fabric,0,m,true)
+ block("BenchBack",Vector3.new(.42,2.05,3.10),CFrame.new(-29.78,2.52,anchorZ)*CFrame.Angles(0,0,math.rad(-4)),C.fabric2,Enum.Material.Fabric,0,m,false)
+ block("BenchCushion",Vector3.new(.34,1.05,1.00),CFrame.new(-31.15,2.16,anchorZ+.62)*CFrame.Angles(math.rad(6),0,math.rad(10)),accent,Enum.Material.Fabric,0,m,false)
+
+ cylinder("SideTableFoot",.12,1.28,CFrame.new(-33.18,1.19,anchorZ),C.black,Enum.Material.Metal,0,m,false)
+ cylinder("SideTableStem",.78,.14,CFrame.new(-33.18,1.62,anchorZ),C.brass,Enum.Material.Metal,0,m,false)
+ local top=cylinder("SideTableTop",.12,1.72,CFrame.new(-33.18,2.06,anchorZ),C.marble,Enum.Material.Marble,0,m,false);top.Reflectance=.06
+ local lamp=cylinder("SideLamp",.36,.46,CFrame.new(-33.18,2.34,anchorZ),Color3.fromRGB(58,43,47),Enum.Material.Fabric,0,m,false)
+ point(lamp,accent,.22,4.8)
+
+ local edge=block("DividerAccent",Vector3.new(.035,.055,4.50),CFrame.new(-29.53,3.02,z),accent,Enum.Material.Neon,.42,m,false)
+ edge.CastShadow=false
+ point(edge,accent,.08,3.6)
+end
+compactRightAnchor(1,-27.0,C.warm,C.taupe)
+compactRightAnchor(2,-13.0,C.pink,C.plum)
+
 local floor=extension:FindFirstChild("FrontClubFloor")
 if floor and floor:IsA("BasePart") then
  floor.Color=Color3.fromRGB(24,23,28)
@@ -182,4 +256,4 @@ end
 textPlate(out,"SocialLoungeMark",Vector3.new(.10,1.35,7.2),CFrame.new(-49.42,8.05,-14.5)*CFrame.Angles(0,math.rad(90),0),"BBYA  SOCIAL  LOUNGE",C.champagne)
 block("LoungeConnectorInlay",Vector3.new(8.8,.035,.055),CFrame.new(-39.0,1.135,-20.0),C.champagne,Enum.Material.Metal,0,out,false)
 
-print("[BBYA] Main Club Social Lounge Upgrade v1 online: waited for ClubPurity ArrivalLounge1/2, then replaced both with premium former-studio lounge bays")
+print("[BBYA] Main Club Social Lounge v2 online: left entrance overlap consolidated; right lounge edge anchored; global Lighting/DJ/audio/VIP/Mall/fishing untouched")
