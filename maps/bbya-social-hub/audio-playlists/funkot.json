@@ -138,10 +138,11 @@
       "title": "Sound Like A Melody 2008.wav",
       "driveFileId": "1HC_2X2ZgByfkF0NeVBlKvIST36nLiPRJ",
       "sourceSizeBytes": 67032176,
-      "assetId": null,
+      "assetId": "121171358231724",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
+      "sourceSha256": "5e614a72eda846cf35d3b47af171cb43de4e1a8dba0f6102cb9f1e83bf7af3bc"
     },
     {
       "index": 10,
