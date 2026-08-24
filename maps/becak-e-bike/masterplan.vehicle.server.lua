@@ -1,6 +1,7 @@
--- BECAK E-BIKE — Cargo E-Bike 01 masterplan vehicle visual v1.0
+-- BECAK E-BIKE — Cargo E-Bike 01 masterplan vehicle visual v1.1
 -- Canon visual: 3 wheels, 2x front 20in, 1x rear 26in, front cargo box,
 -- rider saddle behind cargo, upright handlebar, matte-black carbon-steel look.
+-- v1.1 performance: decorative visual parts are excluded from touch/query simulation.
 
 local Workspace = game:GetService('Workspace')
 local root = Workspace:WaitForChild('BecakEBike', 30)
@@ -22,6 +23,8 @@ local function makePart(parent,name,size,cf,color,material,shape)
     p.CFrame = cf
     p.Anchored = false
     p.CanCollide = false
+    p.CanTouch = false
+    p.CanQuery = false
     p.Massless = true
     p.TopSurface = Enum.SurfaceType.Smooth
     p.BottomSurface = Enum.SurfaceType.Smooth
@@ -84,6 +87,7 @@ local function styleVehicle(model)
     model:SetAttribute('FrontWheelInch',20)
     model:SetAttribute('RearWheelInch',26)
     model:SetAttribute('Finish','Powder Coating')
+    model:SetAttribute('VisualPhysicsLite','v1.1')
 
     hideLegacy(model)
 
@@ -164,3 +168,6 @@ vehicles.ChildAdded:Connect(function(m)
 end)
 
 Workspace:SetAttribute('ACC_BecakVehicleMasterplan','Cargo E-Bike 01 v1.0')
+Workspace:SetAttribute('ACC_BecakVehicleVisualPerformance','v1.1')
+Workspace:SetAttribute('BecakDecorativeVisualTouch','OFF')
+Workspace:SetAttribute('BecakDecorativeVisualQuery','OFF')
