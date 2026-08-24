@@ -600,6 +600,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:02:05.057292+00:00"
+    },
+    "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7": {
+      "driveId": "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7",
+      "title": "10B - 128 - Taylor swift  - love story (Hendry al remix)",
+      "filename": "10B - 128 - Taylor swift  - love story (Hendry al remix).mp3",
+      "sequence": 8,
+      "preflight": {
+        "status": "READY",
+        "duration": 367.595102,
+        "size": 5882186,
+        "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663"
+      },
+      "updatedAt": "2026-08-24T15:02:15.503277+00:00",
+      "normalizedSha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/f076f09f-dba9-4558-8325-35c336382ab9",
+        "operationId": "f076f09f-dba9-4558-8325-35c336382ab9",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:02:16.176314+00:00",
+      "operationPath": "operations/f076f09f-dba9-4558-8325-35c336382ab9",
+      "operationResult": {
+        "path": "operations/f076f09f-dba9-4558-8325-35c336382ab9",
+        "operationId": "f076f09f-dba9-4558-8325-35c336382ab9",
+        "done": true,
+        "response": {
+          "path": "assets/103746314989693",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:02:40.193362400Z",
+          "assetId": "103746314989693",
+          "displayName": "10B - 128 - Taylor swift  - love story (Hendry al ",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "103746314989693",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
