@@ -1108,7 +1108,7 @@
         "size": 6625810,
         "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830"
       },
-      "updatedAt": "2026-08-24T15:05:27.781687+00:00",
+      "updatedAt": "2026-08-24T15:05:42.373106+00:00",
       "normalizedSha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1143,7 +1143,46 @@
       },
       "assetId": "99998363156285",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "operationId": "ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
+        "done": true,
+        "response": {
+          "path": "assets/99998363156285",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:05:39.566986100Z",
+          "assetId": "99998363156285",
+          "displayName": "11A - 130 - RUN AWAY - Unknown Artist",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:05:42.187405+00:00",
+      "approvedAt": "2026-08-24T15:05:42.187415+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "99998363156285"
+        ],
+        "response": {
+          "successAssetIds": [
+            99998363156285
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
