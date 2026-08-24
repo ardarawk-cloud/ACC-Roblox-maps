@@ -1,9 +1,10 @@
--- BECAK E-BIKE — world readability/performance QC v2.2
+-- BECAK E-BIKE — world readability/performance QC v2.3
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
 -- v2.1 adds a delayed, non-destructive cargo resilience runtime audit.
 -- v2.2 adds hard target identity + passenger proof-of-travel runtime audits.
+-- v2.3 adds mobile safe-area/phone ownership + garage/economy safety runtime audits.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -207,12 +208,32 @@ task.delay(3,function()
  Workspace:SetAttribute('BecakWorldQCPassengerJumpRejectStuds',jumpReject or -1)
  if not passengerPass then warn('[BECAK E-BIKE][QC] passenger integrity audit FAIL',passengerVersion,passengerIntegrity,minRatio,minStuds,jumpReject) end
 
- Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass) and 'PASS' or 'FAIL')
+ local mobileVersion=Workspace:GetAttribute('ACC_BecakMobileSafeAreaEnhancement')
+ local mobileUX=Workspace:GetAttribute('ACC_BecakMobileSafeAreaUX')
+ local layoutOwner=Workspace:GetAttribute('BecakPhoneLayoutOwner')
+ local framePolling=Workspace:GetAttribute('BecakMobileSafeAreaFramePolling')
+ local pollHz=tonumber(Workspace:GetAttribute('BecakMobileSafeAreaPollHz'))
+ local mobilePass=mobileVersion=='v1.34' and mobileUX=='v1.32' and layoutOwner=='SAFE_AREA' and framePolling=='OFF' and pollHz==2
+ Workspace:SetAttribute('BecakWorldQCMobileSafeArea',mobilePass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCMobileSafeAreaVersion',tostring(mobileVersion or 'missing'))
+ Workspace:SetAttribute('BecakWorldQCMobileLayoutOwner',tostring(layoutOwner or 'missing'))
+ if not mobilePass then warn('[BECAK E-BIKE][QC] mobile safe-area audit FAIL',mobileVersion,mobileUX,layoutOwner,framePolling,pollHz) end
+
+ local garageSafety=Workspace:GetAttribute('ACC_BecakGarageSafetyEnhancement')
+ local debounce=Workspace:GetAttribute('BecakGaragePurchaseDebounce')
+ local hold=Workspace:GetAttribute('BecakGarageMobileDeliberateHold')
+ local serviceSafety=Workspace:GetAttribute('BecakServicePromptSafety')
+ local economyPass=garageSafety=='v1.3' and debounce=='ON' and hold=='ON' and serviceSafety=='ON'
+ Workspace:SetAttribute('BecakWorldQCEconomySafety',economyPass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCEconomySafetyVersion',tostring(garageSafety or 'missing'))
+ if not economyPass then warn('[BECAK E-BIKE][QC] economy safety audit FAIL',garageSafety,debounce,hold,serviceSafety) end
+
+ Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass and mobilePass and economyPass) and 'PASS' or 'FAIL')
 end)
 
--- Preserve the v2.0 compatibility marker and expose the additive v2.2 audit revision.
+-- Preserve the v2.0 compatibility marker and expose the additive v2.3 audit revision.
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
-Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.2')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.3')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -223,6 +244,8 @@ Workspace:SetAttribute('BecakWorldQCTelemetryHz',1/TELEMETRY_INTERVAL)
 Workspace:SetAttribute('BecakWorldQCTargetIdentity','PENDING')
 Workspace:SetAttribute('BecakWorldQCCargoResilience','PENDING')
 Workspace:SetAttribute('BecakWorldQCPassengerIntegrity','PENDING')
+Workspace:SetAttribute('BecakWorldQCMobileSafeArea','PENDING')
+Workspace:SetAttribute('BecakWorldQCEconomySafety','PENDING')
 Workspace:SetAttribute('BecakWorldQCCoreSystems','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.2 ready | target + passenger + cargo audits | batched streaming | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.3 ready | target + passenger + cargo + mobile + economy audits | batched streaming | billboards',billboardCount,'decor',decorCount)
