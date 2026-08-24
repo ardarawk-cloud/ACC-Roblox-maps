@@ -1,4 +1,17 @@
 {
   "playlistId": "funkot",
-  "entries": []
+  "entries": [
+    {
+      "index": 1,
+      "title": "Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",
+      "driveFileId": "1ywtpqc6GsnQUTW4kJyHG76OVDnxEJ_i5",
+      "assetId": null,
+      "sourceSha256": "a61ae24bfa273c9c4d5f40a441ddda5d8c2a8e8a50ee685e829cb806f70804a4",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "522c90d2-6256-4291-81e3-228e341c20d1",
+      "blacklistedAt": "2026-08-24T15:09:13+00:00"
+    }
+  ]
 }
