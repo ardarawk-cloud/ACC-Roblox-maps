@@ -1,4 +1,4 @@
--- BECAK E-BIKE — garage/economy interaction safety v1.2
+-- BECAK E-BIKE — garage/economy interaction safety v1.3
 -- Additive guard around existing economy-facing ProximityPrompts. It does not own player economy data.
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -70,8 +70,8 @@ Players.PlayerRemoving:Connect(function(player)
     end
 end)
 
--- Harden other economy-facing service prompts created by the masterplan without replacing their handlers.
--- This closes through-wall/mobile accidental activations while keeping existing repair/cargo pricing and job logic intact.
+-- Harden other economy-facing service prompts created by the runtime/masterplan without replacing their handlers.
+-- This closes through-wall/mobile accidental activations while keeping existing pricing, charging and cargo logic intact.
 local hardenedServicePrompts = 0
 local function hardenServicePrompt(target, label)
     if not target then return false end
@@ -83,10 +83,14 @@ local function hardenServicePrompt(target, label)
     servicePrompt.HoldDuration = math.max(servicePrompt.HoldDuration, SERVICE_HOLD_SECONDS)
     servicePrompt.MaxActivationDistance = math.min(servicePrompt.MaxActivationDistance, SERVICE_MAX_DISTANCE)
     servicePrompt.RequiresLineOfSight = true
-    servicePrompt:SetAttribute("BecakEconomyInteractionSafety", "v1.2")
+    servicePrompt:SetAttribute("BecakEconomyInteractionSafety", "v1.3")
     hardenedServicePrompts += 1
     return true
 end
+
+local chargingStation = interactives:FindFirstChild("ChargingStation")
+if not chargingStation then chargingStation = interactives:WaitForChild("ChargingStation", 10) end
+hardenServicePrompt(chargingStation, "ChargingStation")
 
 local repairShop = interactives:FindFirstChild("RepairShop")
 if not repairShop then repairShop = interactives:WaitForChild("RepairShop", 10) end
@@ -101,7 +105,7 @@ if not cargoDepot and cargoJobs then cargoDepot = cargoJobs:WaitForChild("CargoD
 hardenServicePrompt(cargoDepot, "CargoDepot")
 
 Workspace:SetAttribute("ACC_BecakGarageSafety", "v1.0") -- dedicated builder compatibility token
-Workspace:SetAttribute("ACC_BecakGarageSafetyEnhancement", "v1.2")
+Workspace:SetAttribute("ACC_BecakGarageSafetyEnhancement", "v1.3")
 Workspace:SetAttribute("BecakGaragePurchaseDebounce", "ON")
 Workspace:SetAttribute("BecakGaragePurchaseCooldownSeconds", COOLDOWN_SECONDS)
 Workspace:SetAttribute("BecakGarageMobileDeliberateHold", "ON")
@@ -113,3 +117,4 @@ Workspace:SetAttribute("BecakEconomyPromptHoldDurationSeconds", SERVICE_HOLD_SEC
 Workspace:SetAttribute("BecakEconomyPromptMaxActivationDistance", SERVICE_MAX_DISTANCE)
 Workspace:SetAttribute("BecakEconomyPromptRequiresLineOfSight", "ON")
 Workspace:SetAttribute("BecakEconomyPromptHardenedCount", hardenedServicePrompts)
+Workspace:SetAttribute("BecakChargingPromptSafety", "ON")
