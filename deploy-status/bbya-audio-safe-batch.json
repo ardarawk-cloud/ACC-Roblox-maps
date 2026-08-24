@@ -1300,6 +1300,54 @@
           "versionNumber": 417
         }
       }
+    },
+    "170mzbIE6yxtWF8YvQHomns6HIoW_WV0J": {
+      "driveId": "170mzbIE6yxtWF8YvQHomns6HIoW_WV0J",
+      "title": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix)",
+      "filename": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix).mp3",
+      "sequence": 16,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561278,
+        "sha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701"
+      },
+      "updatedAt": "2026-08-24T15:06:41.485235+00:00",
+      "normalizedSha256": "8983337d0a897c269a41ea1b53b4a18e8330e54b5250e72bee631257f9e53701",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "operationId": "ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:06:42.087280+00:00",
+      "operationPath": "operations/ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+      "operationResult": {
+        "path": "operations/ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "operationId": "ed8b7c5f-1b09-44d0-93b1-a954a412bddf",
+        "done": true,
+        "response": {
+          "path": "assets/91900235935901",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:06:59.865959900Z",
+          "assetId": "91900235935901",
+          "displayName": "11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_Peopl",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "91900235935901",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
