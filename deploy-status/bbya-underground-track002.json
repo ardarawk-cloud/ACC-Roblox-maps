@@ -1,0 +1,115 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 2,
+  "title": "Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",
+  "driveFileId": "1ei_WTRMYiAqdDQQfyFTO5MaicMgIFYKQ",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "77926481439798",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/04f9b137-02fb-4402-b4ae-2b812a4feac3",
+    "operationId": "04f9b137-02fb-4402-b4ae-2b812a4feac3",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/04f9b137-02fb-4402-b4ae-2b812a4feac3",
+    "operationId": "04f9b137-02fb-4402-b4ae-2b812a4feac3",
+    "done": true,
+    "response": {
+      "path": "assets/77926481439798",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T15:28:32.571053800Z",
+      "assetId": "77926481439798",
+      "displayName": "Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",
+      "description": "BBYA Underground Track 002",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        77926481439798
+      ],
+      "errors": []
+    }
+  }
+}
