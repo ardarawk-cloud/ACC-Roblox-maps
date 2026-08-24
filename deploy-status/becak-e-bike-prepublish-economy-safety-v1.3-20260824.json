@@ -1,0 +1,26 @@
+{
+  "project": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "fec0b1ed31946ba9517cff3c0704762647cc6278",
+  "upgrade": "garage/economy interaction safety v1.3",
+  "checks": {
+    "chargingStationSafety": true,
+    "lineOfSightRequired": true,
+    "serviceHoldSeconds": 0.55,
+    "serviceMaxActivationDistance": 10,
+    "pricingChanged": false,
+    "batteryLogicChanged": false,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "lastVerifiedReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "freshPublishVerified": false,
+  "status": "PREPUBLISH_SOURCE_COMMITTED_AWAITING_FRESH_RECEIPT"
+}
