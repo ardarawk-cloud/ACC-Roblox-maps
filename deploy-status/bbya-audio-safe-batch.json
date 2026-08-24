@@ -454,6 +454,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:00:41.243261+00:00"
+    },
+    "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK": {
+      "driveId": "1CLz1twlObRnPfdhDoT9gaQAhv6a4fKAK",
+      "title": "10B - 128 - Somewhere  10b (1)",
+      "filename": "10B - 128 - Somewhere  10b (1).mp3",
+      "sequence": 6,
+      "preflight": {
+        "status": "READY",
+        "duration": 398.942041,
+        "size": 6383610,
+        "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41"
+      },
+      "updatedAt": "2026-08-24T15:00:51.960650+00:00",
+      "normalizedSha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/78ff1e04-c4fd-4644-81e8-36975f224a72",
+        "operationId": "78ff1e04-c4fd-4644-81e8-36975f224a72",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:00:52.506894+00:00",
+      "operationPath": "operations/78ff1e04-c4fd-4644-81e8-36975f224a72",
+      "operationResult": {
+        "path": "operations/78ff1e04-c4fd-4644-81e8-36975f224a72",
+        "operationId": "78ff1e04-c4fd-4644-81e8-36975f224a72",
+        "done": true,
+        "response": {
+          "path": "assets/99580144546633",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:01:19.376139900Z",
+          "assetId": "99580144546633",
+          "displayName": "10B - 128 - Somewhere  10b (1)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "99580144546633",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
