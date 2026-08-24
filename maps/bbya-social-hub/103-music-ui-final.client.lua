@@ -152,7 +152,7 @@ local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
 local function effectiveTracks(v)
  if v=="VIP" then return VIP_TRACKS end
- if resetActive() then return {} end
+ if resetActive() and v~="UNDERGROUND" then return {} end
  return (state[v] and state[v].tracks) or {}
 end
 local function currentSpec()
@@ -176,7 +176,7 @@ local function refreshCard()
  local vipTrack=(v=="VIP" and tracks[vipIndex]) or nil
  if v=="VIP" and not vipTrack and #tracks>0 then vipTrack=tracks[1] end
  local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPCurrentTitle") or (vipTrack and vipTrack.title) or "")
- local empty=(resetActive() and v~="VIP") or #tracks==0 or (s.title=="" and not vipTrack)
+ local empty=(resetActive() and v~="VIP" and v~="UNDERGROUND") or #tracks==0 or (s.title=="" and not vipTrack)
  cardStroke.Color=spec.accent;coverStroke.Color=spec.accent;drawerStroke.Color=spec.accent;nowSmall.TextColor3=spec.accent;coverVenue.TextColor3=spec.accent
  coverVenue.Text=spec.short
  nowTitle.Text=(v=="VIP" and vipTitle~="") and vipTitle or (empty and "BELUM ADA LAGU" or s.title)
@@ -193,7 +193,7 @@ local function clearRows()
  end
 end
 local function requestTrack(v,index)
- if resetActive() and v~="VIP" then showToast("PLAYLIST MASIH KOSONG");return end
+ if resetActive() and v~="VIP" and v~="UNDERGROUND" then showToast("PLAYLIST MASIH KOSONG");return end
  if v=="VIP" then vipRemote:FireServer("request",index)
  elseif v=="FUNKOT" then funkotRemote:FireServer("request",index)
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("request",index)
@@ -214,7 +214,7 @@ local function rebuildPlaylist()
 end
 
 local function requestList(v)
- if resetActive() and v~="VIP" then return end
+ if resetActive() and v~="VIP" and v~="UNDERGROUND" then return end
  if v=="VIP" then vipRemote:FireServer("list")
  elseif v=="FUNKOT" then funkotRemote:FireServer("list")
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("list") end
@@ -301,7 +301,7 @@ end
 local peak,smooth,visualAcc=100,0,0
 RunService.RenderStepped:Connect(function(dt)
  visualAcc+=dt;if visualAcc<1/20 then return end;visualAcc=0
- local vv=currentVenue();local s=((not resetActive()) or vv=="VIP") and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
+ local vv=currentVenue();local s=((not resetActive()) or vv=="VIP" or vv=="UNDERGROUND") and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
  peak=math.max(100,loud,peak*.985);local norm=math.clamp(loud/math.max(peak,100),0,1);smooth+=(norm-smooth)*.38
  local n=#waveBars
  for i,b in ipairs(waveBars) do local center=1-math.abs((i-(n+1)/2)/((n+1)/2));local h=3+math.floor(smooth*17*(.62+.38*center)+.5);b.Size=UDim2.new(.045,0,0,h) end

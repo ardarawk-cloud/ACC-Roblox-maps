@@ -14,20 +14,7 @@ local stateRemote=folder:FindFirstChild("State") or Instance.new("RemoteEvent");
 local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("BindableEvent");basementMusic.Name="BasementMusic";basementMusic.Parent=folder
 
 local PLAYLIST={
--- ADXL_OWNER_UPLOAD_BEGIN
--- ADXL_OWNER_UPLOAD_END
--- DRIVE_LIBRARY_UPLOAD_BEGIN
--- DRIVE_LIBRARY_UPLOAD_END
- {title="Breakbeat : Pyro Pulse",id="103491797412309",style="breakbeat"},
- {title="Aku Suka Jedag Jedug Full Bass",id="100787734732008",style="breakbeat"},
- {title="DNA Indo Bounce",id="101399039672234",style="indo-bounce"},
- {title="Breakbeat Sayang Cintaku Istimewa",id="74711864477200",style="breakbeat"},
- {title="Breakbeat Rindu Aku Rindu Kamu",id="133512901677493",style="breakbeat"},
- {title="Despacito Breakbeat Remix",id="72539481653856",style="breakbeat"},
- {title="Breakbeat Yang Telah Merela",id="83142601388157",style="breakbeat"},
- {title="Breakbeat Bawa Dia Kembali",id="86760182936616",style="breakbeat"},
- {title="Breakbeat Remon x Asik Sekali",id="84377101694514",style="breakbeat"},
- {title="Breakbeat Dora Dora",id="105003998270064",style="breakbeat"},
+ {title="Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",id="77926481439798",style="underground"}
 }
 
 local MIX_SECONDS=4.0
@@ -52,7 +39,7 @@ local function toastBasement(msg)forBasementPlayers(function(p)stateRemote:FireC
 for _,name in ipairs({"BBYABasementDeckA","BBYABasementDeckB"}) do local old=SoundService:FindFirstChild(name);if old then old:Destroy() end end
 local group=SoundService:FindFirstChild("BBYABasementMaster");if group then group:Destroy() end
 group=Instance.new("SoundGroup");group.Name="BBYABasementMaster";group.Volume=1;group.Parent=SoundService
-group:SetAttribute("BBYAAudioMode","BASEMENT_INDO_DUAL_DECK_V1");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","INDO_BREAKBEAT_BOUNCE");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
+group:SetAttribute("BBYAAudioMode","UNDERGROUND_OWNER_DUAL_DECK_V2");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","UNDERGROUND_OWNER_LIBRARY");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
 local eq=Instance.new("EqualizerSoundEffect");eq.Name="BasementEQ";eq.LowGain=2.35;eq.MidGain=-.75;eq.HighGain=-1.1;eq.Parent=group
 local comp=Instance.new("CompressorSoundEffect");comp.Name="BasementCompressor";comp.Threshold=-11;comp.Ratio=2.5;comp.Attack=.05;comp.Release=.24;comp.GainMakeup=.7;comp.Parent=group
 local room=Instance.new("ReverbSoundEffect");room.Name="BasementRoom";room.DecayTime=1.15;room.Density=.86;room.Diffusion=.9;room.DryLevel=-1;room.WetLevel=-11;room.Parent=group
