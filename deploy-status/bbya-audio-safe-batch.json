@@ -746,6 +746,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:03:03.846916+00:00"
+    },
+    "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y": {
+      "driveId": "1gwBuQlab4mv9ZC6TTLxLP3h7s1O9yp4Y",
+      "title": "11A - 128 - 08.Shadow (Black Rework 2009)",
+      "filename": "11A - 128 - 08.Shadow (Black Rework 2009).mp3",
+      "sequence": 10,
+      "preflight": {
+        "status": "READY",
+        "duration": 363.833469,
+        "size": 5821899,
+        "sha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a"
+      },
+      "updatedAt": "2026-08-24T15:03:13.986790+00:00",
+      "normalizedSha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/5d0d688c-5258-4278-b108-2e9d6b230031",
+        "operationId": "5d0d688c-5258-4278-b108-2e9d6b230031",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:03:14.638891+00:00",
+      "operationPath": "operations/5d0d688c-5258-4278-b108-2e9d6b230031",
+      "operationResult": {
+        "path": "operations/5d0d688c-5258-4278-b108-2e9d6b230031",
+        "operationId": "5d0d688c-5258-4278-b108-2e9d6b230031",
+        "done": true,
+        "response": {
+          "path": "assets/70774170646231",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:03:24.781862400Z",
+          "assetId": "70774170646231",
+          "displayName": "11A - 128 - 08.Shadow (Black Rework 2009)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "70774170646231",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
