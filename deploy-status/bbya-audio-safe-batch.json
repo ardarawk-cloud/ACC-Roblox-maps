@@ -1679,7 +1679,7 @@
         "size": 6625799,
         "sha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453"
       },
-      "updatedAt": "2026-08-24T23:29:04.232627+00:00",
+      "updatedAt": "2026-08-24T23:29:16.609018+00:00",
       "normalizedSha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1714,7 +1714,32 @@
       },
       "assetId": "76398158193567",
       "initialModerationState": "Rejected",
-      "status": "PENDING_MODERATION"
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
+      "moderationProbe": {
+        "path": "operations/3834f3ea-079e-4ed0-ad0b-0c50d1a02595",
+        "operationId": "3834f3ea-079e-4ed0-ad0b-0c50d1a02595",
+        "done": true,
+        "response": {
+          "path": "assets/76398158193567",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:29:14.434784900Z",
+          "assetId": "76398158193567",
+          "displayName": "2.Feels So Good ( Jerome Isma Ae Mix DRM ) (www.Mu",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:29:16.609003+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
