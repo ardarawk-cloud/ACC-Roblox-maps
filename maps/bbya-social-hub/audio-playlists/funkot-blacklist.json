@@ -84,6 +84,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
       "blacklistedAt": "2026-08-24T15:21:43+00:00"
+    },
+    {
+      "index": 8,
+      "title": "Space Melody '23 _ Dj Deri Rmx • Qiu-Qiu™️.mp3",
+      "driveFileId": "10jpTCLc9AAtLqT4TqT4BfuChy5uEEvO-",
+      "assetId": null,
+      "sourceSha256": "e7091b186285542326d5119aaf108005c48b7c7b5cd3ef1fcba228bc825184d4",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "6415f41a-c96b-4f20-b32a-20678f5ee63b",
+      "blacklistedAt": "2026-08-24T15:22:41+00:00"
     }
   ]
 }
