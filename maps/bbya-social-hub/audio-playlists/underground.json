@@ -86,6 +86,17 @@
       "terminal": true,
       "terminalReason": "ROBLOX_UPLOAD_REJECTED_BEFORE_ASSET_CREATION_AUDIO_DURATION_TOO_LONG",
       "doNotRetryUnmodified": true
+    },
+    {
+      "index": 7,
+      "title": "Orang timur x Produk timur - Sahrul Ubaidillah x rajibundd #timursession",
+      "driveFileId": "1aObz2JWbb1Z68ZfYxLhhh31m-7a1ec4l",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 16695673,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
