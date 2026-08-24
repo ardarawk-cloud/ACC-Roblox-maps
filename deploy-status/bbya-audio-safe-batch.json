@@ -2481,7 +2481,7 @@
         "size": 6561167,
         "sha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479"
       },
-      "updatedAt": "2026-08-24T23:35:00.850416+00:00",
+      "updatedAt": "2026-08-24T23:35:13.491816+00:00",
       "normalizedSha256": "598ce090431aeb6a02e545f10bf5ad11e0438518a991222d3b553164d74e7479",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2516,7 +2516,46 @@
       },
       "assetId": "123077675190094",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "operationId": "a0bb385c-dc47-43b3-aa7f-994de0ab4b24",
+        "done": true,
+        "response": {
+          "path": "assets/123077675190094",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:35:10.941630800Z",
+          "assetId": "123077675190094",
+          "displayName": "4. Stadium Club Remix - Stars of Edger",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:35:13.262068+00:00",
+      "approvedAt": "2026-08-24T23:35:13.262083+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "123077675190094"
+        ],
+        "response": {
+          "successAssetIds": [
+            123077675190094
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

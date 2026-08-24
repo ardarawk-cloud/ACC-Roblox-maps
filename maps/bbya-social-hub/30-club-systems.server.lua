@@ -35,6 +35,7 @@ local PLAYLIST={
  {title="3A - 128 - 3A - 128 - M O M M E N T m.o.m.e.n.t_44100",id="109286172792690",style="progressive"},
  {title="3A - 128 - Desert Rose - Stadium Mix 2011",id="94547306143480",style="progressive"},
  {title="3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist",id="109116552044147",style="progressive"},
+ {title="4. Stadium Club Remix - Stars of Edger",id="123077675190094",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
