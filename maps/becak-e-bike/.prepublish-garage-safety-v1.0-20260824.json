@@ -1,0 +1,27 @@
+{
+  "mapId": "becak-e-bike",
+  "scope": "garage/economy interaction safety",
+  "version": "v1.0",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "08294b0f0dbce379297af4e9939e88338ac7739b",
+  "builderCommit": "4d7c4d9f0921777befd9ac9903dbb839ff3a1364",
+  "baselineLiveReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "checks": {
+    "dedicatedPathOnly": true,
+    "otherMapsTouched": false,
+    "garagePurchaseDebounce": true,
+    "cooldownSeconds": 1.25,
+    "mobileDeliberateHold": true,
+    "priceCurveChanged": false,
+    "playerDataSchemaChanged": false,
+    "vehiclePhysicsChanged": false,
+    "collisionChanged": false,
+    "builderMustHaveValidation": true
+  },
+  "publishClaim": "PENDING_FRESH_RECEIPT"
+}
