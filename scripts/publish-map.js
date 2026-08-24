@@ -1,6 +1,7 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.3
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.4
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const mapId = process.argv[2] || process.env.MAP_ID;
 const apiKey = process.env.ROBLOX_API_KEY;
@@ -38,7 +39,6 @@ if (!fs.existsSync(placePath)) {
   process.exit(1);
 }
 
-const body = fs.readFileSync(placePath);
 const contentType = selectedFile.endsWith('.rbxl') ? 'application/octet-stream' : 'application/xml';
 const url = `https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
 const retryableStatuses = new Set([409, 429, 500, 502, 503, 504]);
@@ -76,64 +76,64 @@ function writeReceipt(payload, status) {
   console.log(`Deploy receipt written: ${receiptDir}/${mapId}.json`);
 }
 
-async function publishOnce(attempt, maxAttempts) {
+function publishOnce(attempt, maxAttempts) {
   console.log(`Publish attempt ${attempt}/${maxAttempts}...`);
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'Content-Type': contentType,
-    },
-    body,
-  });
+  const marker = '__ACC_HTTP_STATUS__:';
+  const result = spawnSync('curl', [
+    '--silent', '--show-error', '--location',
+    '--connect-timeout', '30', '--max-time', '300',
+    '--request', 'POST',
+    '--header', `x-api-key: ${apiKey}`,
+    '--header', `Content-Type: ${contentType}`,
+    '--data-binary', `@${placePath}`,
+    '--write-out', `\n${marker}%{http_code}`,
+    url,
+  ], { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 });
 
-  const text = await response.text();
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    const msg = (result.stderr || '').trim() || `curl exited ${result.status}`;
+    throw new Error(msg);
+  }
+
+  const out = result.stdout || '';
+  const idx = out.lastIndexOf(`\n${marker}`);
+  if (idx < 0) throw new Error('curl response missing HTTP status');
+  const text = out.slice(0, idx).trim();
+  const status = Number(out.slice(idx + marker.length + 1).trim());
   let payload;
   try { payload = JSON.parse(text); } catch { payload = { raw: text }; }
 
-  return { response, payload };
+  return { status, ok: status >= 200 && status < 300, payload };
 }
 
 (async () => {
-  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType}...`);
+  console.log(`Publishing ${target.name} (${mapId}) from ${selectedFile} as ${contentType} via curl...`);
 
   const maxAttempts = retryDelaysMs.length + 1;
   let lastFailure = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const { response, payload } = await publishOnce(attempt, maxAttempts);
+      const { status, ok, payload } = publishOnce(attempt, maxAttempts);
 
-      if (response.ok) {
+      if (ok) {
         writeReceipt(payload, 'PUBLISHED');
         console.log('Publish success:', payload);
         return;
       }
 
-      lastFailure = { status: response.status, payload };
-      console.error('Roblox publish failed:', response.status, payload);
+      lastFailure = { status, payload };
+      console.error('Roblox publish failed:', status, payload);
 
-      if (!retryableStatuses.has(response.status) || attempt >= maxAttempts) {
-        break;
-      }
-
-      const retryAfterHeader = response.headers.get('retry-after');
-      const retryAfterSeconds = Number(retryAfterHeader);
-      const fallbackDelay = retryDelaysMs[attempt - 1];
-      const delayMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-        ? Math.max(fallbackDelay, retryAfterSeconds * 1000)
-        : fallbackDelay;
-
-      console.log(`Transient Roblox response ${response.status}; retrying in ${Math.round(delayMs / 1000)}s...`);
+      if (!retryableStatuses.has(status) || attempt >= maxAttempts) break;
+      const delayMs = retryDelaysMs[attempt - 1];
+      console.log(`Transient Roblox response ${status}; retrying in ${Math.round(delayMs / 1000)}s...`);
       await sleep(delayMs);
     } catch (err) {
       lastFailure = { status: 'NETWORK_ERROR', payload: { message: err?.message || String(err) } };
       console.error('Roblox publish request error:', err?.message || err);
-
-      if (attempt >= maxAttempts) {
-        break;
-      }
-
+      if (attempt >= maxAttempts) break;
       const delayMs = retryDelaysMs[attempt - 1];
       console.log(`Transient network error; retrying in ${Math.round(delayMs / 1000)}s...`);
       await sleep(delayMs);
