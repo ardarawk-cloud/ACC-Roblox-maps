@@ -1,6 +1,9 @@
 {
-  "status": "ASSET_ID_MISSING",
+  "status": "SOURCE_INVALID_DURATION_TOO_LONG",
   "readyToInject": false,
+  "terminal": true,
+  "terminalReason": "ROBLOX_UPLOAD_REJECTED_BEFORE_ASSET_CREATION_AUDIO_DURATION_TOO_LONG",
+  "retryPolicy": "DO_NOT_RETRY_UNMODIFIED_SOURCE",
   "playlistId": "underground",
   "trackIndex": 6,
   "title": "Sama Sama Suka (Maharetha & AL Fiandi BKB Edit)",
