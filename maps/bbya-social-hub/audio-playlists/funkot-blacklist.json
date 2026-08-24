@@ -12,6 +12,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "522c90d2-6256-4291-81e3-228e341c20d1",
       "blacklistedAt": "2026-08-24T15:09:13+00:00"
+    },
+    {
+      "index": 2,
+      "title": "Zinyo Funkytone - Dua Hati 2025.mp3",
+      "driveFileId": "1VbCLgHOYQqrLQVVUCmfSB2m4xFCNZjNs",
+      "assetId": null,
+      "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
+      "blacklistedAt": "2026-08-24T15:15:53+00:00"
     }
   ]
 }

@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 2,
+  "title": "Zinyo Funkytone - Dua Hati 2025.mp3",
+  "driveFileId": "1VbCLgHOYQqrLQVVUCmfSB2m4xFCNZjNs",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
+  "startedAt": "2026-08-24T15:15:44+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/77764715-267f-4abe-af7b-6fa46923b8a1",
+    "operationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/77764715-267f-4abe-af7b-6fa46923b8a1",
+    "operationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:15:53+00:00"
+}
