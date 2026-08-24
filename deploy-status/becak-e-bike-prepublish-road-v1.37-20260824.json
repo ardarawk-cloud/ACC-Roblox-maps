@@ -1,0 +1,35 @@
+{
+  "status": "PREPUBLISH",
+  "mapId": "becak-e-bike",
+  "name": "BECAK E-BIKE — Nusakarya Simulator",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "95e1fa9e3345ab4c7b247c111fe063832f866796",
+  "upgrade": "Road Access / Drivability v1.37 — conservative stationary flip recovery",
+  "sourcePath": "maps/becak-e-bike/road-access.server.lua",
+  "validation": {
+    "dedicatedPathOnly": true,
+    "otherMapsTouched": false,
+    "validatedRoadAnchorPreserved": true,
+    "builderCompatibilityRoadAccessV136Preserved": true,
+    "stationaryFlipDelaySeconds": 5,
+    "stationaryFlipMaxSpeed": 2.5,
+    "stationaryFlipUpDotThreshold": 0.15,
+    "normalHandlingChanged": false,
+    "collisionTopologyChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false
+  },
+  "publish": {
+    "dedicatedWorkflow": ".github/workflows/becak-ebike-publish.yml",
+    "targetLockVerified": true,
+    "publishClaimed": false,
+    "lastKnownReceipt": {
+      "ok": true,
+      "httpStatus": 200,
+      "versionNumber": 36,
+      "at": "2026-08-23T16:31:47.837Z"
+    },
+    "state": "AWAITING_FRESH_RECEIPT"
+  }
+}
