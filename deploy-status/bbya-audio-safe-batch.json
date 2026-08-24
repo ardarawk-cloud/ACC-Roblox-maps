@@ -1210,7 +1210,7 @@
         "size": 6561282,
         "sha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a"
       },
-      "updatedAt": "2026-08-24T15:05:56.033266+00:00",
+      "updatedAt": "2026-08-24T15:06:23.814079+00:00",
       "normalizedSha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1245,7 +1245,46 @@
       },
       "assetId": "134057367195123",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "operationId": "7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "done": true,
+        "response": {
+          "path": "assets/134057367195123",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:06:19.665771300Z",
+          "assetId": "134057367195123",
+          "displayName": "11B - 126 - People (Eelke Kleijn People of the Sun",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:06:23.634137+00:00",
+      "approvedAt": "2026-08-24T15:06:23.634152+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "134057367195123"
+        ],
+        "response": {
+          "successAssetIds": [
+            134057367195123
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

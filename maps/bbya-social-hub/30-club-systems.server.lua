@@ -27,6 +27,7 @@ local PLAYLIST={
  {title="11A - 130 - 01.runaway (mumu remix)",id="112322493409786",style="progressive"},
  {title="11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",id="89165355590583",style="progressive"},
  {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="progressive"},
+ {title="11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix)",id="134057367195123",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
