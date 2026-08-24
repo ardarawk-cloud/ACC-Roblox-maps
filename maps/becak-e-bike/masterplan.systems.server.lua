@@ -1,4 +1,4 @@
--- BECAK E-BIKE — masterplan systems v1.5
+-- BECAK E-BIKE — masterplan systems v1.6
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
@@ -88,7 +88,8 @@ repairPrompt.Triggered:Connect(function(player)
  b:SetAttribute('Condition',100);toast:FireClient(player,'Servis selesai • kondisi kembali 100%.')
 end)
 
--- Cargo / logistics jobs v1.5: route variety + distance payout + anti-instant-complete integrity.
+-- Cargo / logistics jobs v1.6: route integrity + graceful vehicle-loss recovery.
+local CARGO_VEHICLE_MISSING_TIMEOUT=45
 local cargoFolder=Instance.new('Folder');cargoFolder.Name='CargoJobs';cargoFolder.Parent=systems
 local cargoActive={}
 local lastCargoDestination={}
@@ -119,6 +120,20 @@ local function minimumCargoDuration(distance)
  -- Max upgraded motor is ~47 studs/s; this threshold is intentionally lenient but rejects instant teleports.
  return math.clamp(distance/75,4.5,18)
 end
+local function clearCargoState(player)
+ player:SetAttribute('CargoDestination',nil)
+ player:SetAttribute('CargoDistanceStuds',0)
+ player:SetAttribute('CargoBaseReward',0)
+ player:SetAttribute('CargoDrivenDistanceStuds',0)
+ player:SetAttribute('CargoMinDurationSeconds',0)
+ player:SetAttribute('CargoVehicleMissingSeconds',0)
+end
+local function cancelCargoForMissingVehicle(player)
+ cargoActive[player]=nil
+ cargoPickupCooldown[player]=os.clock()+2
+ clearCargoState(player)
+ toast:FireClient(player,'Cargo dibatalkan • Becak tidak tersedia terlalu lama. Ambil job baru di depot.')
+end
 cargoPrompt.Triggered:Connect(function(player)
  local now=os.clock()
  if (cargoPickupCooldown[player] or 0)>now then toast:FireClient(player,'Tunggu sebentar sebelum mengambil cargo berikutnya.') return end
@@ -127,13 +142,14 @@ cargoPrompt.Triggered:Connect(function(player)
  local d=chooseCargoDrop(player)
  local distance=(cargoPickup.Position-d.pos).Magnitude
  local reward=cargoPayout(distance)
- cargoActive[player]={name=d.name,pos=d.pos,startedAt=now,distance=distance,reward=reward,lastPos=b.PrimaryPart.Position,drivenDistance=0,lastIntegrityToast=0}
+ cargoActive[player]={name=d.name,pos=d.pos,startedAt=now,distance=distance,reward=reward,lastPos=b.PrimaryPart.Position,drivenDistance=0,lastIntegrityToast=0,vehicleMissingSince=nil}
  lastCargoDestination[player]=d.name
  player:SetAttribute('CargoDestination',d.name)
  player:SetAttribute('CargoDistanceStuds',math.floor(distance))
  player:SetAttribute('CargoBaseReward',reward)
  player:SetAttribute('CargoDrivenDistanceStuds',0)
  player:SetAttribute('CargoMinDurationSeconds',math.ceil(minimumCargoDuration(distance)))
+ player:SetAttribute('CargoVehicleMissingSeconds',0)
  toast:FireClient(player,'Cargo dimuat • '..d.name..' • estimasi Rp'..reward)
 end)
 
@@ -163,6 +179,8 @@ RunService.Heartbeat:Connect(function(dt)
   if player.Parent then
    local b=playerBecak(player)
    if b and b.PrimaryPart then
+    d.vehicleMissingSince=nil
+    player:SetAttribute('CargoVehicleMissingSeconds',0)
     local pos=b.PrimaryPart.Position
     local last=d.lastPos or pos
     local step=(pos-last).Magnitude
@@ -177,11 +195,7 @@ RunService.Heartbeat:Connect(function(dt)
      if enoughTime and enoughTravel then
       cargoActive[player]=nil
       cargoPickupCooldown[player]=os.clock()+3
-      player:SetAttribute('CargoDestination',nil)
-      player:SetAttribute('CargoDistanceStuds',0)
-      player:SetAttribute('CargoBaseReward',0)
-      player:SetAttribute('CargoDrivenDistanceStuds',0)
-      player:SetAttribute('CargoMinDurationSeconds',0)
+      clearCargoState(player)
       local xp=math.floor(math.clamp(30+(d.distance or 0)/16,35,90))
       if transact(player,d.reward or 35000,xp,'cargo') then
        player:SetAttribute('CargoJobs',(player:GetAttribute('CargoJobs') or 0)+1)
@@ -195,6 +209,12 @@ RunService.Heartbeat:Connect(function(dt)
       toast:FireClient(player,'Cargo belum tervalidasi • selesaikan rute dengan Becak E-Bike.')
      end
     end
+   else
+    local now=os.clock()
+    d.vehicleMissingSince=d.vehicleMissingSince or now
+    local missingFor=math.max(0,now-d.vehicleMissingSince)
+    player:SetAttribute('CargoVehicleMissingSeconds',math.floor(missingFor))
+    if missingFor>=CARGO_VEHICLE_MISSING_TIMEOUT then cancelCargoForMissingVehicle(player) end
    end
   end
  end
@@ -211,6 +231,7 @@ local function setupPlayer(player)
  player:SetAttribute('CargoBaseReward',0)
  player:SetAttribute('CargoDrivenDistanceStuds',0)
  player:SetAttribute('CargoMinDurationSeconds',0)
+ player:SetAttribute('CargoVehicleMissingSeconds',0)
  player:SetAttribute('CargoLastReward',player:GetAttribute('CargoLastReward') or 0)
  player:SetAttribute('CargoLastDurationSeconds',player:GetAttribute('CargoLastDurationSeconds') or 0)
  player:SetAttribute('CargoLastDistanceStuds',player:GetAttribute('CargoLastDistanceStuds') or 0)
@@ -222,7 +243,9 @@ for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
 Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil;lastCargoDestination[player]=nil;cargoPickupCooldown[player]=nil end)
 
+-- Preserve v1.5 compatibility marker while exposing the additive v1.6 resilience enhancement.
 Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.5')
+Workspace:SetAttribute('ACC_BecakMasterplanSystemsResilience','v1.6')
 Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
 Workspace:SetAttribute('BecakSystemsTickHz',5)
 Workspace:SetAttribute('BecakCargoDynamicPayout','ON')
@@ -231,4 +254,6 @@ Workspace:SetAttribute('BecakCargoNoImmediateRepeat','ON')
 Workspace:SetAttribute('BecakCargoIntegrityValidation','ON')
 Workspace:SetAttribute('BecakCargoMinimumTravelRatio',0.55)
 Workspace:SetAttribute('BecakCargoTeleportJumpRejectStuds',18)
-print('[BECAK E-BIKE] masterplan systems v1.5 ready: cargo integrity + route variety + distance payout + telemetry + 5 Hz maintenance')
+Workspace:SetAttribute('BecakCargoVehicleLossRecovery','ON')
+Workspace:SetAttribute('BecakCargoVehicleMissingTimeoutSeconds',CARGO_VEHICLE_MISSING_TIMEOUT)
+print('[BECAK E-BIKE] masterplan systems v1.6 ready: cargo integrity + vehicle-loss recovery + route variety + payout telemetry + 5 Hz maintenance')
