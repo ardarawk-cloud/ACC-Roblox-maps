@@ -1,7 +1,7 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.16
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.17
 -- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle-aware yielding,
--- traffic headway, intersection pacing, bounded counts, deterministic routes, distance culling, adaptive cadence,
--- per-tick proximity snapshots, and logic-only model LOD for off-screen actors.
+-- traffic headway, corrected intersection pacing, bounded counts, deterministic routes, distance culling,
+-- proximity-aware adaptive cadence, per-tick snapshots, and logic-only model LOD for off-screen actors.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -76,7 +76,6 @@ for i=1,8 do
  walkers[#walkers+1]={model=m,a=route[1],b=route[2],t=(i*.17)%1,dir=(i%2==0) and 1 or -1,speed=4+(i%2)}
 end
 
--- Snapshot relevant player/vehicle parts once per simulation step.
 local function buildProximitySnapshot()
  local playerTargets={}
  for _,plr in ipairs(Players:GetPlayers()) do
@@ -131,6 +130,7 @@ local function trafficAhead(selfActor,pos,travel)
  return nearest
 end
 
+-- Far from an intersection: scale ~=1. Approaching the conflict area: progressively slow to ~=0.45.
 local function intersectionScale(pos,travel)
  local scale=1
  for _,center in ipairs(intersections) do
@@ -138,9 +138,9 @@ local function intersectionScale(pos,travel)
   local ahead=rel:Dot(travel)
   local lateral=(rel-travel*ahead).Magnitude
   if ahead>0 and ahead<52 and lateral<18 then
-   scale=math.min(scale,.48+.52*math.clamp((52-ahead)/52,0,1))
+   scale=math.min(scale,.45+.55*math.clamp(ahead/52,0,1))
   elseif (pos-center).Magnitude<20 then
-   scale=math.min(scale,.58)
+   scale=math.min(scale,.5)
   end
  end
  return scale
@@ -159,24 +159,46 @@ local function setVisible(model,visible)
  for _,x in ipairs(model:GetDescendants()) do if x:IsA('BasePart') then x.Transparency=visible and (x.Name=='Glass' and .2 or 0) or 1 end end
 end
 
+-- Only use 20 Hz when a player or player vehicle is actually near ambient actors.
+local function hasNearActivity(playerSnapshot,vehicleSnapshot)
+ for _,a in ipairs(actors) do
+  local pos=a.logicalPos or (a.model.PrimaryPart and a.model.PrimaryPart.Position)
+  if pos then
+   local pd=nearestFromSnapshot(playerSnapshot,pos)
+   local vd=nearestFromSnapshot(vehicleSnapshot,pos)
+   if pd<280 or vd<280 then return true end
+  end
+ end
+ for _,w in ipairs(walkers) do
+  local pos=w.a:Lerp(w.b,w.t)
+  local pd=nearestFromSnapshot(playerSnapshot,pos)
+  local vd=nearestFromSnapshot(vehicleSnapshot,pos)
+  if pd<220 or vd<220 then return true end
+ end
+ return false
+end
+
 local accum=0
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt
  local livePlayers=Players:GetPlayers()
  local playerCount=#livePlayers
- local targetStep=playerCount>0 and .05 or .25 -- 20 Hz occupied, 4 Hz empty
+ -- Start with cheap cadence; proximity snapshot is only rebuilt when the current cadence expires.
+ local provisionalStep=playerCount>0 and .1 or .25
+ if accum<provisionalStep then return end
+
+ local playerSnapshot,vehicleSnapshot=buildProximitySnapshot()
+ -- Seed logical positions before cadence decision so distance checks remain valid while culled.
+ for _,a in ipairs(actors) do local _,_,_,pos=actorRouteState(a);a.logicalPos=pos end
+ local nearActivity=playerCount>0 and hasNearActivity(playerSnapshot,vehicleSnapshot)
+ local targetStep=playerCount==0 and .25 or (nearActivity and .05 or .1) -- 4 / 20 / 10 Hz
  if accum<targetStep then return end
  dt=math.min(accum,.25);accum=0
 
- local playerSnapshot,vehicleSnapshot=buildProximitySnapshot()
  Workspace:SetAttribute('BecakTrafficSnapshotPlayers',#playerSnapshot)
  Workspace:SetAttribute('BecakTrafficSnapshotVehicles',#vehicleSnapshot)
-
- -- Precompute logical positions once. Headway uses these positions even when models are culled.
- for _,a in ipairs(actors) do
-  local _,_,_,pos=actorRouteState(a)
-  a.logicalPos=pos
- end
+ Workspace:SetAttribute('BecakTrafficNearActivity',nearActivity and 'ON' or 'OFF')
+ Workspace:SetAttribute('BecakTrafficCurrentHz',math.floor(1/targetStep+.5))
 
  local fullTrafficModels=0
  for _,a in ipairs(actors) do
@@ -207,7 +229,7 @@ RunService.Heartbeat:Connect(function(dt)
   end
   a.logicalPos=pos
 
-  local visible=playerDist<430 or vehicleDist<430
+  local visible=playerDist<380 or vehicleDist<380
   a.model:SetAttribute('Yielding',yieldNow)
   a.model:SetAttribute('IntersectionSpeedScale',speedScale)
   a.model:SetAttribute('SimulationLOD',visible and 'FULL' or 'LOGIC_ONLY')
@@ -216,7 +238,7 @@ RunService.Heartbeat:Connect(function(dt)
    fullTrafficModels+=1
    local cf=CFrame.lookAt(pos,to)
    a.model:PivotTo(cf)
-   setBrakeLights(a.model,yieldNow or speedScale<.7)
+   setBrakeLights(a.model,yieldNow or speedScale<.72)
   end
  end
 
@@ -226,11 +248,11 @@ RunService.Heartbeat:Connect(function(dt)
   local pos=w.a:Lerp(w.b,w.t)
   local playerDist=nearestFromSnapshot(playerSnapshot,pos)
   local vehicleDist=nearestFromSnapshot(vehicleSnapshot,pos)
-  local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1 -- pause before clipping through player/becak
+  local walkScale=(playerDist<7 or vehicleDist<10) and 0 or 1
   w.t+=w.dir*w.speed*dt/math.max(len,1)*walkScale
   if w.t>1 then w.t=1;w.dir=-1 elseif w.t<0 then w.t=0;w.dir=1 end
   pos=w.a:Lerp(w.b,w.t)
-  local visible=playerDist<240 or vehicleDist<240
+  local visible=playerDist<220 or vehicleDist<220
   w.model:SetAttribute('SimulationLOD',visible and 'FULL' or 'LOGIC_ONLY')
   setVisible(w.model,visible)
   if visible then
@@ -244,7 +266,7 @@ RunService.Heartbeat:Connect(function(dt)
  Workspace:SetAttribute('BecakPedestrianFullModelCount',fullPedestrianModels)
 end)
 
-Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.16')
+Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.17')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
@@ -252,10 +274,13 @@ Workspace:SetAttribute('BecakTrafficVehicleYield','ON')
 Workspace:SetAttribute('BecakTrafficHeadway','ON')
 Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
+Workspace:SetAttribute('BecakTrafficIntersectionPacingCorrected','ON')
 Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
+Workspace:SetAttribute('BecakTrafficProximityAdaptiveTick','ON')
 Workspace:SetAttribute('BecakTrafficProximitySnapshot','ON')
 Workspace:SetAttribute('BecakTrafficModelLOD','ON')
 Workspace:SetAttribute('BecakTrafficLogicOnlyCull','ON')
-Workspace:SetAttribute('BecakTrafficOccupiedHz',20)
+Workspace:SetAttribute('BecakTrafficNearHz',20)
+Workspace:SetAttribute('BecakTrafficFarHz',10)
 Workspace:SetAttribute('BecakTrafficEmptyHz',4)
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.16 ready: snapshot + logic-only model LOD + intersection pacing + yield')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.17 ready: proximity cadence + corrected intersection pacing + model LOD')
