@@ -2221,6 +2221,54 @@
           "versionNumber": 429
         }
       }
+    },
+    "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn": {
+      "driveId": "1XjLLDojSdBAQeUBFvALq5YQM6jGrDMzn",
+      "title": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist",
+      "filename": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist.mp3",
+      "sequence": 27,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561292,
+        "sha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b"
+      },
+      "updatedAt": "2026-08-24T23:32:49.981182+00:00",
+      "normalizedSha256": "7659693bd20ddcd91c61b81ec6ba3dc237b1cf3b9863231e82a61b03691cc63b",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/fe16d143-540e-45a4-a605-8afcc6007de2",
+        "operationId": "fe16d143-540e-45a4-a605-8afcc6007de2",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:32:50.906225+00:00",
+      "operationPath": "operations/fe16d143-540e-45a4-a605-8afcc6007de2",
+      "operationResult": {
+        "path": "operations/fe16d143-540e-45a4-a605-8afcc6007de2",
+        "operationId": "fe16d143-540e-45a4-a605-8afcc6007de2",
+        "done": true,
+        "response": {
+          "path": "assets/109116552044147",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:33:31.153236800Z",
+          "assetId": "109116552044147",
+          "displayName": "3A - 130 - DESTINATION CALABRIA ORI - Unknown Arti",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "109116552044147",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
