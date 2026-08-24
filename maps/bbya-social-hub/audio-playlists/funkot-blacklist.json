@@ -2,100 +2,16 @@
   "playlistId": "funkot",
   "entries": [
     {
-      "index": 1,
-      "title": "Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",
-      "driveFileId": "1ywtpqc6GsnQUTW4kJyHG76OVDnxEJ_i5",
-      "assetId": null,
-      "sourceSha256": "a61ae24bfa273c9c4d5f40a441ddda5d8c2a8e8a50ee685e829cb806f70804a4",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "522c90d2-6256-4291-81e3-228e341c20d1",
-      "blacklistedAt": "2026-08-24T15:09:13+00:00"
-    },
-    {
-      "index": 2,
-      "title": "Zinyo Funkytone - Dua Hati 2025.mp3",
-      "driveFileId": "1VbCLgHOYQqrLQVVUCmfSB2m4xFCNZjNs",
-      "assetId": null,
-      "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
-      "blacklistedAt": "2026-08-24T15:15:53+00:00"
-    },
-    {
-      "index": 3,
-      "title": "Zinyo Funkytone - Betadine 2025.mp3",
-      "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
-      "assetId": null,
-      "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
-      "blacklistedAt": "2026-08-24T15:17:14+00:00"
-    },
-    {
-      "index": 4,
-      "title": "Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",
-      "driveFileId": "1QhH5Vg59LjW9-oV1pOveT5diG6PVtJ3e",
-      "assetId": null,
-      "sourceSha256": "1241b906152cb9a9b94b51d4303a49d848e2053a60655623a5650fe5708102a8",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "cf7c42fb-5497-4f30-83e4-5ec4f412daa5",
-      "blacklistedAt": "2026-08-24T15:18:32+00:00"
-    },
-    {
-      "index": 5,
-      "title": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
-      "driveFileId": "17gjrDpN7ZXOnBkwShKvazpXCxcoT3LbZ",
-      "assetId": null,
-      "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
-      "blacklistedAt": "2026-08-24T15:19:25+00:00"
-    },
-    {
-      "index": 6,
-      "title": "SUWUNG X KICAU MANIAKS - Jordan L3 Ft Viosena.mp3",
-      "driveFileId": "18u4O6XxkL4xbel9T7E9LuC13bUxe2vaK",
-      "assetId": null,
-      "sourceSha256": "793acac4a4c6a8689e9f1df5cbe016265d549f9a20ca7ff2a96035e94169e9f0",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
-      "blacklistedAt": "2026-08-24T15:20:48+00:00"
-    },
-    {
-      "index": 7,
-      "title": "SUKA SAMA SUKA ( FREDY NRC ) 2026.mp3",
-      "driveFileId": "1LR8vlK1wA3Pr3oI88-vIBlnIXZ-NN5o0",
-      "assetId": null,
-      "sourceSha256": "56d83cb18851b2adc646dcbe18f98c6d007de175da458a42532bb8405e39ddcd",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
-      "blacklistedAt": "2026-08-24T15:21:43+00:00"
-    },
-    {
-      "index": 8,
-      "title": "Space Melody '23 _ Dj Deri Rmx • Qiu-Qiu™️.mp3",
-      "driveFileId": "10jpTCLc9AAtLqT4TqT4BfuChy5uEEvO-",
-      "assetId": null,
-      "sourceSha256": "e7091b186285542326d5119aaf108005c48b7c7b5cd3ef1fcba228bc825184d4",
-      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
-      "platformCode": "InvalidArgument",
-      "platformMessage": "Audio duration too long",
-      "operationId": "6415f41a-c96b-4f20-b32a-20678f5ee63b",
-      "blacklistedAt": "2026-08-24T15:22:41+00:00"
+      "index": 9,
+      "title": "Sound Like A Melody 2008.wav",
+      "driveFileId": "1HC_2X2ZgByfkF0NeVBlKvIST36nLiPRJ",
+      "assetId": "121171358231724",
+      "sourceSha256": "5e614a72eda846cf35d3b47af171cb43de4e1a8dba0f6102cb9f1e83bf7af3bc",
+      "normalizedSha256": null,
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "moderationState": "Rejected",
+      "duplicateOfIndex": null,
+      "blacklistedAt": "2026-08-24T15:35:38+00:00"
     }
   ]
 }
