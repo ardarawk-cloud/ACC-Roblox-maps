@@ -71,6 +71,14 @@
       "blacklistedAt": "2026-08-24T15:04:04.519162+00:00",
       "assetId": "124737582708784",
       "moderationState": "Rejected"
+    },
+    "148552AZ2VqbQGvNqReqfrYBk_jxJis5N": {
+      "driveId": "148552AZ2VqbQGvNqReqfrYBk_jxJis5N",
+      "title": "12A - 128 - Stereo Love            12a",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T15:07:45.434677+00:00",
+      "assetId": "83764100357335",
+      "moderationState": "Rejected"
     }
   }
 }
