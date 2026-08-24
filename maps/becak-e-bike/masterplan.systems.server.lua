@@ -1,4 +1,4 @@
--- BECAK E-BIKE — masterplan systems v1.6
+-- BECAK E-BIKE — masterplan systems v1.7
 -- Weather, cargo, damage/repair, session challenge, story progression, and optimized gameplay cadence.
 -- Ambient traffic is owned exclusively by traffic.npc.server.lua to avoid duplicate simulation.
 local Players=game:GetService('Players')
@@ -52,21 +52,31 @@ end
 setWeather(weatherCycle[weatherIndex])
 task.spawn(function() while root.Parent do task.wait(180);weatherIndex=weatherIndex%#weatherCycle+1;setWeather(weatherCycle[weatherIndex]) end end)
 
--- Vehicle condition and collision damage.
+-- Vehicle condition and collision damage v1.7.
+-- Uses relative impact speed and ignores normal road contact so glancing/static-world touches do not over-penalize drivability.
 local damageCooldown={}
+local function isNormalDriveSurface(hit)
+ if not hit then return false end
+ if hit:GetAttribute('BecakDriveSurface') or hit:GetAttribute('BecakRoadSkin') or hit:GetAttribute('BecakCurbCut') then return true end
+ return string.sub(hit.Name or '',1,6)=='Jalan_'
+end
 local function hookVehicle(model)
  if not model:IsA('Model') then return end
  task.defer(function()
   local chassis=model:WaitForChild('Chassis',10);if not chassis then return end
   if model:GetAttribute('Condition')==nil then model:SetAttribute('Condition',100) end
   chassis.Touched:Connect(function(hit)
-   if not hit or hit:IsDescendantOf(model) or not hit.CanCollide then return end
+   if not hit or hit:IsDescendantOf(model) or not hit.CanCollide or isNormalDriveSurface(hit) then return end
    local now=os.clock();if damageCooldown[model] and now-damageCooldown[model]<1.1 then return end
-   local speed=chassis.AssemblyLinearVelocity.Magnitude;if speed<18 then return end
+   local otherVelocity=hit.AssemblyLinearVelocity or Vector3.zero
+   local impactSpeed=(chassis.AssemblyLinearVelocity-otherVelocity).Magnitude
+   if impactSpeed<16 then return end
    damageCooldown[model]=now
    local condition=model:GetAttribute('Condition') or 100
-   local loss=math.clamp(math.floor(speed*.22),3,18)
+   local loss=math.clamp(math.floor((impactSpeed-12)*.18),2,15)
    model:SetAttribute('Condition',math.max(0,condition-loss))
+   model:SetAttribute('LastImpactSpeed',math.floor(impactSpeed+.5))
+   model:SetAttribute('LastImpactDamage',loss)
    local ownerId=model:GetAttribute('OwnerUserId');local plr=ownerId and Players:GetPlayerByUserId(ownerId)
    if plr then toast:FireClient(plr,'Becak terbentur • kondisi -'..loss..'%') end
   end)
@@ -243,9 +253,10 @@ for _,player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 Players.PlayerAdded:Connect(setupPlayer)
 Players.PlayerRemoving:Connect(function(player) joinTrips[player]=nil;lastProgressTrips[player]=nil;cargoActive[player]=nil;lastCargoDestination[player]=nil;cargoPickupCooldown[player]=nil end)
 
--- Preserve v1.5 compatibility marker while exposing the additive v1.6 resilience enhancement.
+-- Preserve v1.5/v1.6 compatibility markers while exposing additive v1.7 damage/drivability hardening.
 Workspace:SetAttribute('ACC_BecakMasterplanSystems','v1.5')
 Workspace:SetAttribute('ACC_BecakMasterplanSystemsResilience','v1.6')
+Workspace:SetAttribute('ACC_BecakMasterplanSystemsDamage','v1.7')
 Workspace:SetAttribute('BecakLegacyTrafficDisabled','ON')
 Workspace:SetAttribute('BecakSystemsTickHz',5)
 Workspace:SetAttribute('BecakCargoDynamicPayout','ON')
@@ -256,4 +267,7 @@ Workspace:SetAttribute('BecakCargoMinimumTravelRatio',0.55)
 Workspace:SetAttribute('BecakCargoTeleportJumpRejectStuds',18)
 Workspace:SetAttribute('BecakCargoVehicleLossRecovery','ON')
 Workspace:SetAttribute('BecakCargoVehicleMissingTimeoutSeconds',CARGO_VEHICLE_MISSING_TIMEOUT)
-print('[BECAK E-BIKE] masterplan systems v1.6 ready: cargo integrity + vehicle-loss recovery + route variety + payout telemetry + 5 Hz maintenance')
+Workspace:SetAttribute('BecakCollisionDamageRelativeVelocity','ON')
+Workspace:SetAttribute('BecakCollisionDamageSurfaceFilter','ON')
+Workspace:SetAttribute('BecakCollisionDamageThresholdStuds',16)
+print('[BECAK E-BIKE] masterplan systems v1.7 ready: safer collision damage + cargo integrity + vehicle-loss recovery + 5 Hz maintenance')
