@@ -2323,6 +2323,54 @@
           "versionNumber": 430
         }
       }
+    },
+    "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe": {
+      "driveId": "1q6UPtdpJzi0dM5k1ROEpt4ulfzxIHsoe",
+      "title": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1",
+      "filename": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1.mp3",
+      "sequence": 28,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6587662,
+        "sha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4"
+      },
+      "updatedAt": "2026-08-24T23:33:48.270668+00:00",
+      "normalizedSha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/8a01eaed-a70b-4c39-937f-b12a8ec67598",
+        "operationId": "8a01eaed-a70b-4c39-937f-b12a8ec67598",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:33:49.125535+00:00",
+      "operationPath": "operations/8a01eaed-a70b-4c39-937f-b12a8ec67598",
+      "operationResult": {
+        "path": "operations/8a01eaed-a70b-4c39-937f-b12a8ec67598",
+        "operationId": "8a01eaed-a70b-4c39-937f-b12a8ec67598",
+        "done": true,
+        "response": {
+          "path": "assets/140348365853702",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:34:12.670771400Z",
+          "assetId": "140348365853702",
+          "displayName": "3A - 130 - Feels So Good (Jerome Isma-Ae R-1",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "140348365853702",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
