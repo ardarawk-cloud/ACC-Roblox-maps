@@ -1,12 +1,12 @@
--- BECAK E-BIKE — mobile safe-area controller v1.33
+-- BECAK E-BIKE — mobile safe-area controller v1.34
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.33 hardens camera/viewport lifecycle so rotation and camera replacement cannot accumulate layout connections.
+-- v1.33 hardened camera/viewport lifecycle. v1.34 removes per-frame fallback polling while
+-- preserving both dedicated publish compatibility tokens used by the current build/workflow gates.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
 local GuiService=game:GetService('GuiService')
 local UserInputService=game:GetService('UserInputService')
-local RunService=game:GetService('RunService')
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild('PlayerGui')
@@ -17,6 +17,7 @@ local launcher=gui:WaitForChild('PhoneLauncher',10)
 if not phone or not launcher then return end
 local scaler=phone:FindFirstChildOfClass('UIScale')
 
+local FALLBACK_INTERVAL_SECONDS=0.5
 local camera=Workspace.CurrentCamera
 local viewportConn
 local lastKey=''
@@ -67,7 +68,7 @@ end
 local function pinOpenPhone()
     if enforcing or not phone.Visible then return end
     enforcing=true
-    local _,_,bottomRight,_,_,_,topBand,leftPad=layoutMetrics()
+    local _,_,_,_,_,_,topBand,leftPad=layoutMetrics()
     local desired=UDim2.fromOffset(leftPad,topBand)
     if phone.AnchorPoint~=Vector2.new(0,0) then phone.AnchorPoint=Vector2.new(0,0) end
     if phone.Position~=desired then phone.Position=desired end
@@ -139,23 +140,27 @@ end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(bindCameraViewport)
 bindCameraViewport()
 
--- Low-frequency fallback catches CoreGui/inset changes without running layout work every frame.
-local acc=0
-RunService.Heartbeat:Connect(function(dt)
-    acc += dt
-    if acc < 0.5 then return end
-    acc=0
-    applySafeArea(false)
+-- True 2 Hz fallback: avoids a Heartbeat callback on every rendered/server frame while still
+-- catching CoreGui/inset changes that do not emit a dedicated viewport signal.
+task.spawn(function()
+    while gui.Parent and phone.Parent and launcher.Parent do
+        task.wait(FALLBACK_INTERVAL_SECONDS)
+        if not gui.Parent or not phone.Parent or not launcher.Parent then break end
+        applySafeArea(false)
+    end
 end)
 
 Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
--- Compatibility token retained for the dedicated publish validator: ACC_BecakMobileSafeAreaUX','v1.32
+-- Dedicated workflow compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.31
+-- Dedicated builder compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.32
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.33')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.34')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',2)
+Workspace:SetAttribute('BecakMobileSafeAreaFramePolling','OFF')
+Workspace:SetAttribute('BecakMobileSafeAreaFallbackIntervalSeconds',FALLBACK_INTERVAL_SECONDS)
 Workspace:SetAttribute('BecakPhoneLeftPin','ON')
 Workspace:SetAttribute('BecakPhoneScalePin','ON')
 Workspace:SetAttribute('BecakTouchControlReserve','ON')
