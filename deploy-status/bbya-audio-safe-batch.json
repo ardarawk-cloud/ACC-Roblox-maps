@@ -2736,7 +2736,7 @@
         "size": 6683008,
         "sha256": "7c3a86e58d06163c640d62248295d9be3ad0905846866fd9994d83a763cf610a"
       },
-      "updatedAt": "2026-08-24T23:55:04.939470+00:00",
+      "updatedAt": "2026-08-24T23:59:23.201300+00:00",
       "normalizedSha256": "7c3a86e58d06163c640d62248295d9be3ad0905846866fd9994d83a763cf610a",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2771,20 +2771,46 @@
       },
       "assetId": "87114365256034",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
       "moderationProbe": {
-        "displayName": "4B - 128 - Fly Away (Main Mix)",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "operationId": "ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "done": true,
+        "response": {
+          "path": "assets/87114365256034",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:56:37.451115800Z",
+          "assetId": "87114365256034",
+          "displayName": "4B - 128 - Fly Away (Main Mix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-24T23:58:12.024222+00:00"
+      "moderationCheckedAt": "2026-08-24T23:59:22.959219+00:00",
+      "approvedAt": "2026-08-24T23:59:22.959231+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "87114365256034"
+        ],
+        "response": {
+          "successAssetIds": [
+            87114365256034
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
