@@ -1,0 +1,98 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 7,
+  "title": "Orang timur x Produk timur - Sahrul Ubaidillah x rajibundd #timursession",
+  "driveFileId": "1aObz2JWbb1Z68ZfYxLhhh31m-7a1ec4l",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "102378153934158",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/a160e410-cd1f-4436-8ed4-0280133523b9",
+    "operationId": "a160e410-cd1f-4436-8ed4-0280133523b9",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a160e410-cd1f-4436-8ed4-0280133523b9",
+    "operationId": "a160e410-cd1f-4436-8ed4-0280133523b9",
+    "done": true,
+    "response": {
+      "path": "assets/102378153934158",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T21:32:28.065198Z",
+      "assetId": "102378153934158",
+      "displayName": "Orang timur x Produk timur - Sahrul Ubaidillah x r",
+      "description": "BBYA Underground Track 007",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
