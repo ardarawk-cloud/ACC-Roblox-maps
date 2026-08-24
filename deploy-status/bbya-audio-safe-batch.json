@@ -1006,7 +1006,7 @@
         "size": 6561264,
         "sha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc"
       },
-      "updatedAt": "2026-08-24T15:04:46.515210+00:00",
+      "updatedAt": "2026-08-24T15:05:10.153570+00:00",
       "normalizedSha256": "8b649d8a68e1f7adcaa847f442ca10062589e711edaeb133216f239b6c799cfc",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1041,7 +1041,46 @@
       },
       "assetId": "89165355590583",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/79d16404-93cc-4290-8288-c4e8b7186a46",
+        "operationId": "79d16404-93cc-4290-8288-c4e8b7186a46",
+        "done": true,
+        "response": {
+          "path": "assets/89165355590583",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:05:07.151032400Z",
+          "assetId": "89165355590583",
+          "displayName": "11A - 130 - 11A - 130 - 11A - 130 - Run_away_remix",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:05:09.982951+00:00",
+      "approvedAt": "2026-08-24T15:05:09.982962+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "89165355590583"
+        ],
+        "response": {
+          "successAssetIds": [
+            89165355590583
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
