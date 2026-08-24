@@ -189,7 +189,7 @@
         "size": 3727969,
         "sha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff"
       },
-      "updatedAt": "2026-08-24T14:59:16.466492+00:00",
+      "updatedAt": "2026-08-24T14:59:19.294269+00:00",
       "normalizedSha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -224,7 +224,7 @@
       },
       "assetId": "105877233550276",
       "initialModerationState": "Approved",
-      "status": "APPROVED_PENDING_PUBLISH",
+      "status": "LIVE",
       "moderationState": "Approved",
       "moderationProbe": {
         "path": "operations/381fb009-002b-4edf-bfa6-81b814f5bab2",
@@ -262,6 +262,21 @@
             105877233550276
           ],
           "errors": []
+        }
+      },
+      "stagedCommit": "64c7c8eb33a808d572811111ca8cbfdb34aa61ae",
+      "liveAt": "2026-08-24T14:59:19.294256+00:00",
+      "publishReceipt": {
+        "status": "PUBLISHED",
+        "mapId": "a-club",
+        "name": "BBYA Social Hub",
+        "universeId": "8116636513",
+        "placeId": "131894120482837",
+        "sourceCommit": "f1203d5f0822005f14e9fae5c3855af952895607",
+        "publishedAt": "2026-08-24T14:59:19.289Z",
+        "publishedFile": "/tmp/bbya-audio-safe-live.rbxl",
+        "response": {
+          "versionNumber": 412
         }
       }
     }
@@ -309,8 +324,8 @@
   "updatedAt": "2026-08-24T14:58:52.081054+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
-  "lastLiveSequence": 2,
-  "lastLiveDriveId": "1w9DQWAfG6fCqJIKJ5QFY24U1yEuKm-ta",
-  "lastLiveAssetId": "96983528563473",
-  "lastLiveVersion": 411
+  "lastLiveSequence": 3,
+  "lastLiveDriveId": "1sMsfR_5rQMk06cNYNgPlLoswYj3OHFdj",
+  "lastLiveAssetId": "105877233550276",
+  "lastLiveVersion": 412
 }
