@@ -24,6 +24,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
       "blacklistedAt": "2026-08-24T15:15:53+00:00"
+    },
+    {
+      "index": 3,
+      "title": "Zinyo Funkytone - Betadine 2025.mp3",
+      "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
+      "assetId": null,
+      "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+      "blacklistedAt": "2026-08-24T15:17:14+00:00"
     }
   ]
 }

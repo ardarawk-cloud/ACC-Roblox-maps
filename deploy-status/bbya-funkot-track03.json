@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 3,
+  "title": "Zinyo Funkytone - Betadine 2025.mp3",
+  "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
+  "startedAt": "2026-08-24T15:16:59+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:17:14+00:00"
+}
