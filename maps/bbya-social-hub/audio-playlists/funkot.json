@@ -18,16 +18,17 @@
       "title": "Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",
       "driveFileId": "1ywtpqc6GsnQUTW4kJyHG76OVDnxEJ_i5",
       "sourceSizeBytes": 24755830,
-      "assetId": null,
+      "assetId": "128141893547516",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "a61ae24bfa273c9c4d5f40a441ddda5d8c2a8e8a50ee685e829cb806f70804a4",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "522c90d2-6256-4291-81e3-228e341c20d1",
       "blacklistedAt": "2026-08-24T15:09:13+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "aca4d8689b32322e7dbd7c87d392574b1fc153007e3f40b1cf5ccb4a949c67a6"
     },
     {
       "index": 2,

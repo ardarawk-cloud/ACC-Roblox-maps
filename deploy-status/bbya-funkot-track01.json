@@ -1,0 +1,63 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 1,
+  "title": "Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",
+  "driveFileId": "1ywtpqc6GsnQUTW4kJyHG76OVDnxEJ_i5",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": "128141893547516",
+  "uploadReused": false,
+  "sourceSha256": "a61ae24bfa273c9c4d5f40a441ddda5d8c2a8e8a50ee685e829cb806f70804a4",
+  "normalizedSha256": "aca4d8689b32322e7dbd7c87d392574b1fc153007e3f40b1cf5ccb4a949c67a6",
+  "startedAt": "2026-08-24T15:36:36+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/be6c557b-703d-40cb-b76c-f59e258e0984",
+    "operationId": "be6c557b-703d-40cb-b76c-f59e258e0984",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/be6c557b-703d-40cb-b76c-f59e258e0984",
+    "operationId": "be6c557b-703d-40cb-b76c-f59e258e0984",
+    "done": true,
+    "response": {
+      "path": "assets/128141893547516",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T15:37:21.886537800Z",
+      "assetId": "128141893547516",
+      "displayName": "Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp",
+      "description": "BBYA Funkot Track 01",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [],
+  "updatedAt": "2026-08-24T15:37:24+00:00"
+}
