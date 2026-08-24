@@ -2723,6 +2723,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T23:54:52.828872+00:00"
+    },
+    "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76": {
+      "driveId": "1ykiFeyTdS2K8W6jbO6SOX9K8shzwPk76",
+      "title": "4B - 128 - Fly Away (Main Mix)",
+      "filename": "4B - 128 - Fly Away (Main Mix).mp3",
+      "sequence": 33,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6683008,
+        "sha256": "7c3a86e58d06163c640d62248295d9be3ad0905846866fd9994d83a763cf610a"
+      },
+      "updatedAt": "2026-08-24T23:55:04.939470+00:00",
+      "normalizedSha256": "7c3a86e58d06163c640d62248295d9be3ad0905846866fd9994d83a763cf610a",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "operationId": "ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T23:55:05.564031+00:00",
+      "operationPath": "operations/ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+      "operationResult": {
+        "path": "operations/ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "operationId": "ed8e2a8b-3e1d-4645-909a-f03b19732d7b",
+        "done": true,
+        "response": {
+          "path": "assets/87114365256034",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:56:37.451115800Z",
+          "assetId": "87114365256034",
+          "displayName": "4B - 128 - Fly Away (Main Mix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "87114365256034",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
