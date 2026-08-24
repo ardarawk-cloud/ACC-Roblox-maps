@@ -1,0 +1,28 @@
+{
+  "map": "becak-e-bike",
+  "scope": "maps/becak-e-bike only",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "9f2723f53440cdc373947abd8c3e874f8853246c",
+  "upgrade": "traffic.npc v1.17",
+  "validation": {
+    "ACC_BecakTrafficNPC_v1_17": true,
+    "correctedIntersectionPacing": true,
+    "proximityAdaptiveTick": true,
+    "nearHz": 20,
+    "farHz": 10,
+    "emptyHz": 4,
+    "playerYield": true,
+    "vehicleYield": true,
+    "trafficHeadway": true,
+    "logicOnlyCull": true,
+    "collisionGeometryChanged": false,
+    "actorCountsChanged": false
+  },
+  "liveReceiptBeforeRun": {
+    "versionNumber": 36,
+    "httpStatus": 200,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "status": "PREPUBLISH_VALIDATED_PENDING_FRESH_LIVE_RECEIPT"
+}
