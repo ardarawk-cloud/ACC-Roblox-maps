@@ -1,0 +1,32 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "ffed329c6f57a0dcc1d69aedcb4d0293f292e1e1",
+  "upgrade": "Passenger maintained-vehicle quality bonus v1.47",
+  "validation": {
+    "sourceRefetched": true,
+    "compatibilityMarkerPreserved": "ACC_BecakReputationPassenger=v1.46",
+    "enhancementMarker": "ACC_BecakReputationPassengerEnhancement=v1.47",
+    "qualityBonusEnabled": true,
+    "goodConditionThreshold": 90,
+    "primeConditionThreshold": 98,
+    "maxQualityBonusPct": 5,
+    "usesEconomyTransactionBridge": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "tripIntegrityChanged": false,
+    "saveSchemaChanged": false,
+    "sourceCommitOnlyTouchedBecakPath": true,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "deployStateBeforeRun": {
+    "receiptOk": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "receiptAt": "2026-08-23T16:31:47.837Z",
+    "fresh": false
+  },
+  "publishPolicy": "Dedicated Becak workflow must build and pass QC before publishing; do not claim live until a fresh target-matching receipt is recorded."
+}
