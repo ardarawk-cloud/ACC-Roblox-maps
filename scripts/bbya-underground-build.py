@@ -25,6 +25,8 @@ def patch_basement(tracks):
     if n!=1: raise SystemExit('Basement PLAYLIST block not found')
     s=s.replace('group:SetAttribute("GenrePolicy","INDO_BREAKBEAT_BOUNCE")','group:SetAttribute("GenrePolicy","UNDERGROUND_OWNER_LIBRARY")',1)
     s=s.replace('group:SetAttribute("BBYAAudioMode","BASEMENT_INDO_DUAL_DECK_V1")','group:SetAttribute("BBYAAudioMode","UNDERGROUND_OWNER_DUAL_DECK_V2")',1)
+    s=s.replace('local v=currentVenue();if v=="MAIN" or v=="UNDERGROUND" then state[v].tracks=resetActive() and {} or data end','local v=currentVenue();if v=="MAIN" or v=="UNDERGROUND" then state[v].tracks=(resetActive() and v~="UNDERGROUND") and {} or data end',1)
+    s=s.replace('if resetActive() then for key,st in pairs(state) do if key~="VIP" then st.tracks={};st.title="";st.index=0;st.playing=false end end end','if resetActive() then for key,st in pairs(state) do if key~="VIP" and key~="UNDERGROUND" then st.tracks={};st.title="";st.index=0;st.playing=false end end end',1)
     path.write_text(s,encoding='utf-8')
 
 def write_reset_authority():

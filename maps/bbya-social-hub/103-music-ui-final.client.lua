@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — COMPACT MUSIC UI FINAL AUTHORITY v7
+-- BBYA SOCIAL HUB — COMPACT MUSIC UI FINAL AUTHORITY v8
 -- One small Now Playing card + separate Playlist drawer.
 -- Legacy dashboard remains backend-only and is never shown to the player.
 
@@ -271,7 +271,7 @@ local function ingestState(v,data)
 end
 stateRemote.OnClientEvent:Connect(function(kind,data)
  if kind=="playlist" and type(data)=="table" then
-  local v=currentVenue();if v=="MAIN" or v=="UNDERGROUND" then state[v].tracks=resetActive() and {} or data end
+  local v=currentVenue();if v=="MAIN" or v=="UNDERGROUND" then state[v].tracks=(resetActive() and v~="UNDERGROUND") and {} or data end
   if layer.Visible then refreshCard();rebuildPlaylist() end
  elseif kind=="music" and type(data)=="table" then
   local v=tostring(data.venue or "MAIN");if v=="BASEMENT" then v="UNDERGROUND" end;ingestState(v,data)
@@ -345,7 +345,7 @@ player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()if layer.Vi
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshAdmin)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(refreshCard)
 ReplicatedStorage:GetAttributeChangedSignal("BBYAMusicCatalogReset"):Connect(function()
- if resetActive() then for key,st in pairs(state) do if key~="VIP" then st.tracks={};st.title="";st.index=0;st.playing=false end end end
+ if resetActive() then for key,st in pairs(state) do if key~="VIP" and key~="UNDERGROUND" then st.tracks={};st.title="";st.index=0;st.playing=false end end end
  if layer.Visible then refreshCard();rebuildPlaylist() end
 end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layout)end)
@@ -357,4 +357,4 @@ task.defer(function()
  task.delay(1.6,bindCommandMenu)
 end)
 
-print("[BBYA] Compact Music UI v7 online: Now Playing card / separate request drawer / 20Hz loudness wave / venue-aware")
+print("[BBYA] Compact Music UI v8 online: Now Playing card / separate request drawer / 20Hz loudness wave / venue-aware")
