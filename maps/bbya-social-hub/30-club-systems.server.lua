@@ -22,6 +22,7 @@ local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("Bind
 local PLAYLIST={
 -- MAIN_PROGRESSIVE_UPLOAD_BEGIN
  {title="1.Walking On Air",id="96983528563473",style="progressive"},
+ {title="10. CHRISYE - PERGILAH KASIH",id="105877233550276",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 

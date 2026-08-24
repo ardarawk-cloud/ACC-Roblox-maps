@@ -189,7 +189,7 @@
         "size": 3727969,
         "sha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff"
       },
-      "updatedAt": "2026-08-24T14:59:05.211394+00:00",
+      "updatedAt": "2026-08-24T14:59:16.466492+00:00",
       "normalizedSha256": "1cfd7ad5e8bd89b64edd987e7234f593899299b6901fe054823fbc919dd674ff",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -224,7 +224,46 @@
       },
       "assetId": "105877233550276",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "operationId": "381fb009-002b-4edf-bfa6-81b814f5bab2",
+        "done": true,
+        "response": {
+          "path": "assets/105877233550276",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T14:59:14.540382400Z",
+          "assetId": "105877233550276",
+          "displayName": "10. CHRISYE - PERGILAH KASIH",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T14:59:16.284698+00:00",
+      "approvedAt": "2026-08-24T14:59:16.284710+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "105877233550276"
+        ],
+        "response": {
+          "successAssetIds": [
+            105877233550276
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
