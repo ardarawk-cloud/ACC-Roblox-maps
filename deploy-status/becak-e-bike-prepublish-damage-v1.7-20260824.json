@@ -1,0 +1,42 @@
+{
+  "project": "becak-e-bike",
+  "runDate": "2026-08-24",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "c6a9b3618a9c2626487664bc3bfcf33a1cabc918",
+  "upgrade": "Masterplan Systems collision damage/drivability v1.7",
+  "scope": [
+    "maps/becak-e-bike/masterplan.systems.server.lua"
+  ],
+  "otherMapsTouchedBySourceCommit": false,
+  "safety": {
+    "relativeImpactVelocity": true,
+    "normalRoadSurfaceDamageFiltered": true,
+    "damageCooldownPreservedSeconds": 1.1,
+    "damageThresholdStudsPerSecond": 16,
+    "damageCapPercent": 15,
+    "cargoIntegrityPreserved": true,
+    "cargoVehicleLossRecoveryPreserved": true,
+    "economySchemaChanged": false,
+    "collisionTopologyChanged": false
+  },
+  "compatibility": {
+    "ACC_BecakMasterplanSystems": "v1.5",
+    "ACC_BecakMasterplanSystemsResilience": "v1.6",
+    "ACC_BecakMasterplanSystemsDamage": "v1.7"
+  },
+  "publishIsolation": {
+    "workflow": ".github/workflows/becak-ebike-publish.yml",
+    "targetLockVerified": true,
+    "dedicatedPathTriggerVerified": true
+  },
+  "lastVerifiedLiveReceipt": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "freshReceiptObserved": false,
+  "liveClaim": false,
+  "status": "SOURCE_COMMITTED_AWAITING_FRESH_PUBLISH_RECEIPT"
+}
