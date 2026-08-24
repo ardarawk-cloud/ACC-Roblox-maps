@@ -25,6 +25,17 @@
       "blacklisted": true,
       "blacklistReason": "ROBLOX_MODERATION_REJECTED",
       "blacklistedAtUnix": 1787580302
+    },
+    {
+      "index": 2,
+      "title": "Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",
+      "driveFileId": "1ei_WTRMYiAqdDQQfyFTO5MaicMgIFYKQ",
+      "sourceMimeType": "audio/x-wav",
+      "sourceSizeBytes": 40582566,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
