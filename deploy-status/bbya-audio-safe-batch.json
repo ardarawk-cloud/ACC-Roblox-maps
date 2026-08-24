@@ -1198,6 +1198,54 @@
           "versionNumber": 416
         }
       }
+    },
+    "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5": {
+      "driveId": "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5",
+      "title": "11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix)",
+      "filename": "11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix).mp3",
+      "sequence": 15,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561282,
+        "sha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a"
+      },
+      "updatedAt": "2026-08-24T15:05:56.033266+00:00",
+      "normalizedSha256": "2c35e574c88a062ca3d9a07a271374ae408ae4b4bd7545497d78cc7b90654c8a",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "operationId": "7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:05:56.711214+00:00",
+      "operationPath": "operations/7d9fb8c0-b443-4825-a904-81ca569178f3",
+      "operationResult": {
+        "path": "operations/7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "operationId": "7d9fb8c0-b443-4825-a904-81ca569178f3",
+        "done": true,
+        "response": {
+          "path": "assets/134057367195123",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:06:19.665771300Z",
+          "assetId": "134057367195123",
+          "displayName": "11B - 126 - People (Eelke Kleijn People of the Sun",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "134057367195123",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
