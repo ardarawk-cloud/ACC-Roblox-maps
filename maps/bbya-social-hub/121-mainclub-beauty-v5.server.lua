@@ -3,6 +3,7 @@
 -- Slightly brighter premium club ambience without touching global Lighting, audio, VIP, Mall, restroom or monetization.
 -- Stage and DJ booth geometry are intentionally untouched.
 -- v6 mobile sightline revision: slim premium entrance/front pillars.
+-- v7 mobile premium refinement: facade depth, local interior depth cues and realistic bar finishing.
 
 local Workspace=game:GetService("Workspace")
 
@@ -28,21 +29,30 @@ out:SetAttribute("VIPUntouched",true)
 out:SetAttribute("MallUntouched",true)
 out:SetAttribute("RestroomUntouched",true)
 out:SetAttribute("MonetizationUntouched",true)
+out:SetAttribute("FishingUntouched",true)
 out:SetAttribute("CeilingFillCount",6)
 out:SetAttribute("BarPendantCount",3)
 out:SetAttribute("SlimPillarsV6",true)
 out:SetAttribute("MobileSightlineFix",true)
+out:SetAttribute("MobilePremiumV7",true)
+out:SetAttribute("FacadeDepthV7",true)
+out:SetAttribute("InteriorDepthLocalOnlyV7",true)
+out:SetAttribute("BarRealismV7",true)
+out:SetAttribute("SocialLoungeRetained",true)
 out.Parent=root
 
 local C={
  black=Color3.fromRGB(8,8,10),
+ ink=Color3.fromRGB(14,13,17),
  graphite=Color3.fromRGB(37,36,42),
  metal=Color3.fromRGB(65,63,70),
+ brass=Color3.fromRGB(176,132,77),
  champagne=Color3.fromRGB(208,169,105),
  warm=Color3.fromRGB(255,221,190),
  pink=Color3.fromRGB(247,55,158),
  cyan=Color3.fromRGB(42,198,222),
  glass=Color3.fromRGB(182,195,204),
+ smoked=Color3.fromRGB(72,79,88),
 }
 
 local function block(name,size,cf,color,material,transparency,parent)
@@ -50,6 +60,12 @@ local function block(name,size,cf,color,material,transparency,parent)
  p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or C.graphite;p.Material=material or Enum.Material.SmoothPlastic
  p.Transparency=transparency or 0;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=material~=Enum.Material.Neon
  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=parent or out
+ return p
+end
+
+local function verticalCylinder(name,height,diameter,cf,color,material,transparency,parent)
+ local p=block(name,Vector3.new(height,diameter,diameter),cf*CFrame.Angles(0,0,math.rad(90)),color,material,transparency,parent)
+ p.Shape=Enum.PartType.Cylinder
  return p
 end
 
@@ -168,4 +184,72 @@ for _,spec in ipairs({{x=-13.5,z=-5.0,color=C.cyan},{x=13.5,z=-5.0,color=C.pink}
  point(pin,spec.color,.10,4.2)
 end
 
-print("[BBYA] Main Club Beauty v5 + slim pillars v6 online: sightline opened; premium trim retained; global Lighting/audio untouched")
+-- MOBILE PREMIUM REFINEMENT v7 -----------------------------------------------
+-- Keep the center aperture open. Premium feel comes from shallow layered material,
+-- reflection and local task light rather than larger geometry.
+local facade=Instance.new("Model")
+facade.Name="MobilePremiumFacadeV7";facade.Parent=out
+
+block("FloatingSoffit",Vector3.new(27.2,.32,1.08),CFrame.new(3,12.02,-6.60),C.ink,Enum.Material.Metal,0,facade)
+block("SoffitShadow",Vector3.new(25.4,.08,.34),CFrame.new(3,11.78,-6.88),C.black,Enum.Material.Metal,0,facade)
+local soffitReveal=block("SoffitChampagneReveal",Vector3.new(23.8,.045,.06),CFrame.new(3,11.61,-7.08),C.champagne,Enum.Material.Neon,.38,facade)
+soffitReveal.CastShadow=false
+point(soffitReveal,C.warm,.18,6.8)
+
+for _,spec in ipairs({{x=-12.35,accent=C.cyan},{x=18.35,accent=C.pink}}) do
+ local fin=block("FacadeGlassFin",Vector3.new(.07,7.25,.72),CFrame.new(spec.x,6.20,-6.55),C.smoked,Enum.Material.Glass,.48,facade)
+ fin.Reflectance=.10
+ block("FacadeFinCap",Vector3.new(.11,.10,.78),CFrame.new(spec.x,9.90,-6.55),C.champagne,Enum.Material.Metal,0,facade)
+ local pin=block("FacadeAccentPin",Vector3.new(.035,4.60,.035),CFrame.new(spec.x,6.25,-6.94),spec.accent,Enum.Material.Neon,.24,facade)
+ pin.CastShadow=false
+ point(pin,spec.accent,.08,3.8)
+end
+
+-- Local interior depth cues along the dance-floor perimeter. Low-range pools are
+-- deliberately restrained so the room reads deeper on phone screens without flattening it.
+local depth=Instance.new("Model")
+depth.Name="InteriorDepthV7";depth.Parent=out
+local depthSpecs={
+ {x=-25.45,z=7.0,accent=C.warm},{x=-25.45,z=24.0,accent=C.pink},
+ {x=31.45,z=7.0,accent=C.warm},{x=31.45,z=24.0,accent=C.cyan},
+}
+for i,spec in ipairs(depthSpecs) do
+ block("DepthPillar_"..i,Vector3.new(.16,5.4,.54),CFrame.new(spec.x,4.1,spec.z),C.ink,Enum.Material.Metal,0,depth)
+ block("DepthBrass_"..i,Vector3.new(.04,4.3,.06),CFrame.new(spec.x,4.2,spec.z-.31),C.brass,Enum.Material.Metal,0,depth)
+ local emitter=block("DepthEmitter_"..i,Vector3.new(.08,.18,.18),CFrame.new(spec.x,5.2,spec.z-.38),spec.accent,Enum.Material.Neon,.55,depth)
+ emitter.CastShadow=false
+ point(emitter,spec.accent,spec.accent==C.warm and .22 or .14,7.2)
+end
+
+-- Realistic backbar: smoked mirror, framed edge, usable footrail and restrained stemware.
+-- These details sit around the existing MainBarPremium geometry and PremiumV4 service tools.
+local barFinish=Instance.new("Model")
+barFinish.Name="MainBarRealismV7";barFinish.Parent=out
+local mirror=block("BackbarSmokedMirror",Vector3.new(.08,9.6,25.2),CFrame.new(50.62,7.25,11),C.smoked,Enum.Material.Glass,.54,barFinish)
+mirror.Reflectance=.16
+block("MirrorFrameTop",Vector3.new(.13,.10,25.4),CFrame.new(50.54,12.10,11),C.brass,Enum.Material.Metal,0,barFinish)
+block("MirrorFrameBottom",Vector3.new(.13,.10,25.4),CFrame.new(50.54,2.40,11),C.brass,Enum.Material.Metal,0,barFinish)
+for _,z in ipairs({-1.55,23.55}) do
+ block("MirrorFrameSide",Vector3.new(.13,9.8,.10),CFrame.new(50.54,7.25,z),C.brass,Enum.Material.Metal,0,barFinish)
+end
+
+block("CounterChampagneEdge",Vector3.new(.06,.10,24.7),CFrame.new(32.28,4.22,11),C.champagne,Enum.Material.Metal,0,barFinish)
+block("BarFootRail",Vector3.new(.18,.18,21.8),CFrame.new(31.35,1.15,11),C.brass,Enum.Material.Metal,0,barFinish)
+for i,z in ipairs({2.0,6.5,11.0,15.5,20.0}) do
+ block("FootRailBracket_"..i,Vector3.new(1.25,.12,.12),CFrame.new(31.92,.98,z),C.metal,Enum.Material.Metal,0,barFinish)
+end
+
+local glassRack=Instance.new("Model")
+glassRack.Name="BackbarStemware";glassRack.Parent=barFinish
+block("StemwareRail",Vector3.new(.10,.10,10.8),CFrame.new(49.10,10.95,11),C.metal,Enum.Material.Metal,0,glassRack)
+for i,z in ipairs({6.8,8.2,9.6,11.0,12.4,13.8,15.2}) do
+ block("Stem_"..i,Vector3.new(.05,.72,.05),CFrame.new(48.98,10.50,z),C.glass,Enum.Material.Glass,.42,glassRack)
+ local bowl=verticalCylinder("Bowl_"..i,.30,.52,CFrame.new(48.98,10.08,z),C.glass,Enum.Material.Glass,.58,glassRack)
+ bowl.Reflectance=.05
+end
+
+local taskGlow=block("BackbarTaskGlow",Vector3.new(.04,.05,21.8),CFrame.new(49.24,3.18,11),C.warm,Enum.Material.Neon,.68,barFinish)
+taskGlow.CastShadow=false
+point(taskGlow,C.warm,.14,4.8)
+
+print("[BBYA] Main Club Beauty v7 online: slim mobile sightline retained; facade depth, local interior depth and realistic bar finish added; global Lighting/DJ/audio/VIP/Mall/fishing untouched")
