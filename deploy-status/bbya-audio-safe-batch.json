@@ -612,7 +612,7 @@
         "size": 5882186,
         "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663"
       },
-      "updatedAt": "2026-08-24T15:02:15.503277+00:00",
+      "updatedAt": "2026-08-24T15:02:42.070684+00:00",
       "normalizedSha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -647,7 +647,32 @@
       },
       "assetId": "103746314989693",
       "initialModerationState": "Rejected",
-      "status": "PENDING_MODERATION"
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
+      "moderationProbe": {
+        "path": "operations/f076f09f-dba9-4558-8325-35c336382ab9",
+        "operationId": "f076f09f-dba9-4558-8325-35c336382ab9",
+        "done": true,
+        "response": {
+          "path": "assets/103746314989693",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:02:40.193362400Z",
+          "assetId": "103746314989693",
+          "displayName": "10B - 128 - Taylor swift  - love story (Hendry al ",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T15:02:42.070671+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

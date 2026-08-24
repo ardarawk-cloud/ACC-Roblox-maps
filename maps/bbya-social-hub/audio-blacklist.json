@@ -39,6 +39,14 @@
       "blacklistedAt": "2026-08-24T15:02:05.057308+00:00",
       "assetId": "97485071120334",
       "moderationState": "Rejected"
+    },
+    "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7": {
+      "driveId": "1GybyyzOT5AqhsQ7CNAbm5H5kv6ptksA7",
+      "title": "10B - 128 - Taylor swift  - love story (Hendry al remix)",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-24T15:02:42.070688+00:00",
+      "assetId": "103746314989693",
+      "moderationState": "Rejected"
     }
   }
 }
