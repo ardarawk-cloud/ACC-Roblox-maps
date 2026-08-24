@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL UI PATCH v11
--- Reliable touch-first Travel list. Never writes CanvasPosition after user scrolls.
--- Shared Toilet is a free common amenity destination from every venue.
+-- BBYA SOCIAL HUB — TRAVEL UI PATCH v12
+-- Robust touch-first Travel list with late UI discovery and server acknowledgement.
+-- Does not assume BBYAClubUI finishes building within one second.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -8,29 +8,42 @@ local UserInputService=game:GetService("UserInputService")
 local StarterGui=game:GetService("StarterGui")
 local player=Players.LocalPlayer
 local camera=workspace.CurrentCamera
+local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
+local remote=remotes:WaitForChild("Teleport",30)
+local result=remotes:WaitForChild("TravelResult",30)
 local gui=player:WaitForChild("PlayerGui"):WaitForChild("BBYAClubUI",30)
-local remote=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30):WaitForChild("Teleport",30)
-if not gui or not remote then return end
-local hubPanel=gui:FindFirstChild("HubPanel")
+if not gui or not remote or not result then return end
+local hubPanel=gui:WaitForChild("HubPanel",20)
 
 local function findTravel()
  for _,d in ipairs(gui:GetDescendants()) do
   if d:IsA("TextLabel") and d.Text=="MOVE THROUGH BBYA" then return d.Parent end
  end
+ return nil
 end
-local travel=findTravel();if not travel then task.wait(1);travel=findTravel() end
-if not travel then warn("[BBYA Travel v11] travel frame not found");return end
+
+local travel=nil
+local deadline=os.clock()+20
+repeat
+ travel=findTravel()
+ if travel then break end
+ task.wait(.15)
+until os.clock()>=deadline
+if not travel then warn("[BBYA Travel v12] travel frame not found after 20s");return end
+
 travel.ClipsDescendants=true
 travel.ZIndex=70
 
-for _,d in ipairs(travel:GetDescendants()) do
- if d:IsA("TextLabel") and (d.Text:find("Only destinations") or d.Text:find("Paid destinations")) then
-  d.Text="Tap destination • shared Toilet is free • paid access is one-time permanent.";d.TextSize=9;d.ZIndex=72
- end
-end
+-- Retire every old destination grid/scroller so there is exactly one button authority.
 for _,child in ipairs(travel:GetChildren()) do
  if child:IsA("Frame") and child:FindFirstChildOfClass("UIGridLayout") then child:Destroy() end
  if child:IsA("ScrollingFrame") and child.Name=="TravelDestinationScroller" then child:Destroy() end
+end
+for _,d in ipairs(travel:GetDescendants()) do
+ if d:IsA("TextLabel") and (d.Text:find("Only destinations") or d.Text:find("Paid destinations") or d.Text:find("Tap destination")) then
+  d.Text="Tap tujuan • FREE langsung pindah • ONE-TIME pakai access pass permanen."
+  d.TextSize=9;d.ZIndex=72
+ end
 end
 
 local holder=Instance.new("ScrollingFrame")
@@ -38,7 +51,7 @@ holder.Name="TravelDestinationScroller"
 holder.Position=UDim2.fromOffset(0,50)
 holder.Size=UDim2.new(1,0,1,-50)
 holder.BackgroundTransparency=1;holder.BorderSizePixel=0
-holder.ScrollBarThickness=5;holder.ScrollBarImageTransparency=.05
+holder.ScrollBarThickness=5;holder.ScrollBarImageTransparency=.08
 holder.AutomaticCanvasSize=Enum.AutomaticSize.None;holder.CanvasSize=UDim2.fromOffset(0,0)
 holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.ElasticBehavior=Enum.ElasticBehavior.Always
 holder.ScrollingEnabled=true;holder.Active=true;holder.Selectable=false;holder.ClipsDescendants=true;holder.ZIndex=80;holder.Parent=travel
@@ -49,27 +62,73 @@ grid.FillDirection=Enum.FillDirection.Horizontal;grid.FillDirectionMaxCells=1
 grid.HorizontalAlignment=Enum.HorizontalAlignment.Left;grid.VerticalAlignment=Enum.VerticalAlignment.Top;grid.Parent=holder
 local pad=Instance.new("UIPadding");pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,116);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4);pad.Parent=holder
 
-local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55),restroom=Color3.fromRGB(92,194,204)}
+local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55),restroom=Color3.fromRGB(92,194,204),green=Color3.fromRGB(73,205,132),red=Color3.fromRGB(229,91,91)}
 local destinations={
- {"ARRIVAL","Arrival","FREE",nil,C.cyan},{"PHOTO STUDIO","Photo","FREE",nil,C.cyan},{"LOOK LAB","LookLab","FREE",nil,C.cyan},{"MAIN CLUB","MainClub","FREE",nil,C.pink},
- {"TOILET / RESTROOM","Toilet","SHARED AMENITY",nil,C.restroom},
- {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},{"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},{"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},{"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
- {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},{"BBYA MALL","Mall","ONE-TIME",10,C.mall},{"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
+ {"ARRIVAL","Arrival","FREE",nil,C.cyan},
+ {"PHOTO STUDIO","Photo","MALL L2 • FREE",nil,C.cyan},
+ {"LOOK LAB","LookLab","MALL L2 • FREE",nil,C.cyan},
+ {"MAIN CLUB","MainClub","FREE",nil,C.pink},
+ {"TOILET / RESTROOM","Toilet","SHARED • FREE",nil,C.restroom},
+ {"VIP LEVEL","VIP","ONE-TIME",5,C.gold},
+ {"SKATEPARK","Skatepark","ONE-TIME",5,C.gold},
+ {"ROOFTOP","Rooftop","ONE-TIME",10,C.gold},
+ {"UNDERGROUND","Basement","ONE-TIME",20,C.gold},
+ {"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple},
+ {"BBYA MALL","Mall","ONE-TIME",10,C.mall},
+ {"PASAR MALAM","NightMarket","ONE-TIME",10,C.market},
 }
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,c)local s=Instance.new("UIStroke");s.Color=c;s.Thickness=1;s.Transparency=.50;s.Parent=o end
-local function label(parent,value,pos,size,font,ts,color)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=value;l.Position=pos;l.Size=size;l.Font=font;l.TextSize=ts;l.TextColor3=color;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.ZIndex=83;l.Parent=parent;return l end
+local function label(parent,value,pos,size,font,ts,color)
+ local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=value;l.Position=pos;l.Size=size;l.Font=font;l.TextSize=ts;l.TextColor3=color;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.ZIndex=83;l.Parent=parent;return l
+end
 
+local buttons={}
+local pendingKey=nil
 for i,d in ipairs(destinations) do
  local card=Instance.new("Frame");card.Name="Travel_"..d[2];card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.LayoutOrder=i;card.ZIndex=81;card.Parent=holder;corner(card,10);stroke(card,d[5])
  local bar=Instance.new("Frame");bar.Size=UDim2.new(0,4,1,-14);bar.Position=UDim2.fromOffset(7,7);bar.BackgroundColor3=d[5];bar.BorderSizePixel=0;bar.ZIndex=82;bar.Parent=card;corner(bar,3)
  label(card,d[1],UDim2.fromOffset(19,7),UDim2.new(.55,-16,0,22),Enum.Font.GothamBold,11,C.white)
- local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or (d[2]=="Toilet" and "FREE • ONE RESTROOM FOR ALL VENUES" or "FREE TELEPORT")
+ local meta=d[4] and string.format("%s • %d R$",d[3],d[4]) or d[3]
  label(card,meta,UDim2.fromOffset(19,30),UDim2.new(.55,-16,0,18),Enum.Font.GothamBold,8,d[4] and C.gold or C.muted)
- local go=Instance.new("TextButton");go.Text=d[4] and "UNLOCK / GO" or "GO";go.AnchorPoint=Vector2.new(1,.5);go.Position=UDim2.new(1,-9,.5,0);go.Size=UDim2.new(.40,0,0,38)
- go.BackgroundColor3=Color3.fromRGB(40,36,46);go.BorderSizePixel=0;go.Font=Enum.Font.GothamBold;go.TextSize=9;go.TextColor3=C.white;go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5])
- go.Activated:Connect(function()remote:FireServer(d[2]);if hubPanel then hubPanel.Visible=false end end)
+ local go=Instance.new("TextButton")
+ go.Name="GoButton";go.Text=d[4] and "UNLOCK / GO" or "GO";go.AnchorPoint=Vector2.new(1,.5);go.Position=UDim2.new(1,-9,.5,0);go.Size=UDim2.new(.40,0,0,38)
+ go.BackgroundColor3=Color3.fromRGB(40,36,46);go.BorderSizePixel=0;go.Font=Enum.Font.GothamBold;go.TextSize=9;go.TextColor3=C.white;go.AutoButtonColor=true
+ go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5]);buttons[d[2]]=go
+ local busy=false
+ go.Activated:Connect(function()
+  if busy then return end
+  busy=true;pendingKey=d[2]
+  go.Text="WORKING…";go.BackgroundColor3=Color3.fromRGB(53,46,59)
+  remote:FireServer(d[2])
+  task.delay(1.8,function()
+   if go.Parent and pendingKey==d[2] then
+    busy=false;pendingKey=nil;go.Text=d[4] and "UNLOCK / GO" or "GO";go.BackgroundColor3=Color3.fromRGB(40,36,46)
+   end
+  end)
+ end)
 end
+
+result.OnClientEvent:Connect(function(ok,key,msg)
+ key=tostring(key or "")
+ local b=buttons[key]
+ if b then
+  b.Text=ok and "READY" or "TRY AGAIN"
+  b.BackgroundColor3=ok and Color3.fromRGB(35,72,52) or Color3.fromRGB(72,39,45)
+ end
+ if ok then
+  pendingKey=nil
+  task.delay(.12,function()if hubPanel then hubPanel.Visible=false end end)
+ else
+  task.delay(1.1,function()
+   if b and b.Parent then
+    local data=nil
+    for _,d in ipairs(destinations) do if d[2]==key then data=d;break end end
+    b.Text=(data and data[4]) and "UNLOCK / GO" or "GO";b.BackgroundColor3=Color3.fromRGB(40,36,46)
+   end
+  end)
+ end
+end)
 
 local function updateCanvas()
  task.defer(function()if holder.Parent then holder.CanvasSize=UDim2.fromOffset(0,math.max(0,grid.AbsoluteContentSize.Y+124)) end end)
@@ -107,4 +166,4 @@ travel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBack
 if hubPanel then hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBackpack)end) end
 
 task.defer(function()applyLayout();updateCanvas();syncBackpack()end)
-print("[BBYA] Travel UI v11 online: shared Toilet FREE / touch-first list / full bottom access")
+print("[BBYA] Travel UI v12 online: 20s late-discovery + touch Activated + server result acknowledgement")
