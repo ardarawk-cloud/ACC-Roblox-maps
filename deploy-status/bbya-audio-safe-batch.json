@@ -673,6 +673,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-24T15:02:42.070671+00:00"
+    },
+    "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX": {
+      "driveId": "1QPyWX57JuclhK3_pCTVTnCU08SXBzRMX",
+      "title": "11A - 126 - Shadows (Stoopit mix)",
+      "filename": "11A - 126 - Shadows (Stoopit mix).mp3",
+      "sequence": 9,
+      "preflight": {
+        "status": "READY",
+        "duration": 368.509388,
+        "size": 6020805,
+        "sha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1"
+      },
+      "updatedAt": "2026-08-24T15:02:52.445938+00:00",
+      "normalizedSha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/932914a7-1736-48c3-97aa-d39d95223781",
+        "operationId": "932914a7-1736-48c3-97aa-d39d95223781",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T15:02:53.007526+00:00",
+      "operationPath": "operations/932914a7-1736-48c3-97aa-d39d95223781",
+      "operationResult": {
+        "path": "operations/932914a7-1736-48c3-97aa-d39d95223781",
+        "operationId": "932914a7-1736-48c3-97aa-d39d95223781",
+        "done": true,
+        "response": {
+          "path": "assets/115294275331227",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:03:00.981557400Z",
+          "assetId": "115294275331227",
+          "displayName": "11A - 126 - Shadows (Stoopit mix)",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "115294275331227",
+      "initialModerationState": "Rejected",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
