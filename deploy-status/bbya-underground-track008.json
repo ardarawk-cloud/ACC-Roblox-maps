@@ -1,0 +1,119 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 8,
+  "title": "MASIH DENGANMU [ DESTRA PRAYOGO ]#BKB2K25",
+  "driveFileId": "1i8MdkBeYmO6gEoymtim9rPgVKfNF0G1h",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "140443777425109",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/b98acf4d-4f79-4f08-934c-2fa3cbd4c6d7",
+    "operationId": "b98acf4d-4f79-4f08-934c-2fa3cbd4c6d7",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/b98acf4d-4f79-4f08-934c-2fa3cbd4c6d7",
+    "operationId": "b98acf4d-4f79-4f08-934c-2fa3cbd4c6d7",
+    "done": true,
+    "response": {
+      "path": "assets/140443777425109",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-24T22:34:22.226075Z",
+      "assetId": "140443777425109",
+      "displayName": "MASIH DENGANMU [ DESTRA PRAYOGO ]#BKB2K25",
+      "description": "BBYA Underground Track 008",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        140443777425109
+      ],
+      "errors": []
+    }
+  }
+}
