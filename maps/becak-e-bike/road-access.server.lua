@@ -1,7 +1,8 @@
--- BECAK E-BIKE — road access + drivability hardening v1.36
+-- BECAK E-BIKE — road access + drivability hardening v1.37
 -- Makes road/grass/sidewalk/curb transitions seamless for the low Cargo E-Bike 01 chassis.
 -- v1.35 added lightweight last-safe-road recovery so fallen vehicles return near their route instead of always HQ.
 -- v1.36 only records recovery anchors above validated drive surfaces and rejects decorative/off-road anchors.
+-- v1.37 adds conservative self-recovery for a fully tipped, stationary Becak after a sustained delay.
 -- Dedicated to maps/becak-e-bike only.
 
 local Workspace = game:GetService('Workspace')
@@ -13,10 +14,14 @@ local world = root:WaitForChild('Nusakarya',30)
 local vehicles = root:WaitForChild('Vehicles',30)
 if not world or not vehicles then return end
 
+local FLIP_RECOVERY_DELAY=5
+local FLIP_UP_DOT=0.15
+local FLIP_MAX_SPEED=2.5
 local seamParts = 0
 local seamRegistry = {}
 local lastSafeCFrame = setmetatable({}, {__mode='k'})
 local lastSafeSurface = setmetatable({}, {__mode='k'})
+local tippedSince = setmetatable({}, {__mode='k'})
 
 local function isRoadEdgeName(name)
     local n = string.lower(name)
@@ -153,13 +158,24 @@ local function validatedRoadAnchor(model,chassis)
     return uprightRoadCFrame(chassis,result.Position.Y),result.Instance
 end
 
+local function recoverVehicle(model,chassis,safe,surfaceName,reason)
+    chassis.AssemblyLinearVelocity=Vector3.zero
+    chassis.AssemblyAngularVelocity=Vector3.zero
+    local destination=(safe or (CFrame.new(-80,2.8,-38)*CFrame.Angles(0,math.rad(180),0))) + Vector3.new(0,1.2,0)
+    model:PivotTo(destination)
+    tippedSince[model]=nil
+    Workspace:SetAttribute('BecakLastSafeRecoveries',(tonumber(Workspace:GetAttribute('BecakLastSafeRecoveries')) or 0)+1)
+    Workspace:SetAttribute('BecakLastRecoverySurface',surfaceName or 'HQ_FALLBACK')
+    Workspace:SetAttribute('BecakLastRecoveryReason',reason)
+end
+
 local function tuneVehicle(model)
     if not model:IsA('Model') then return end
     local chassis=model:FindFirstChild('Chassis') or model.PrimaryPart
     if not chassis or not chassis:IsA('BasePart') then return end
     chassis.CustomPhysicalProperties=PhysicalProperties.new(1.10,0.16,0.04,1,1)
     chassis.CanCollide=true
-    model:SetAttribute('RoadAccessTune','v1.36')
+    model:SetAttribute('RoadAccessTune','v1.37')
     if chassis.Position.Y > -1 and chassis.Position.Y < 30 and chassis.CFrame.UpVector.Y > 0.45 then
         local safe,surface=validatedRoadAnchor(model,chassis)
         if safe then lastSafeCFrame[model]=safe lastSafeSurface[model]=surface.Name end
@@ -167,7 +183,7 @@ local function tuneVehicle(model)
 end
 for _,m in ipairs(vehicles:GetChildren()) do task.defer(tuneVehicle,m) end
 vehicles.ChildAdded:Connect(function(m) task.wait(.35) tuneVehicle(m) end)
-vehicles.ChildRemoved:Connect(function(m) lastSafeCFrame[m]=nil lastSafeSurface[m]=nil end)
+vehicles.ChildRemoved:Connect(function(m) lastSafeCFrame[m]=nil lastSafeSurface[m]=nil tippedSince[m]=nil end)
 
 local auditAcc=0
 local recoveryAcc=0
@@ -193,10 +209,14 @@ RunService.Heartbeat:Connect(function(dt)
     end
     if recoveryAcc >= 0.5 then
         recoveryAcc=0
+        local now=os.clock()
         for _,m in ipairs(vehicles:GetChildren()) do
             local ch=m:IsA('Model') and (m:FindFirstChild('Chassis') or m.PrimaryPart)
             if ch and ch:IsA('BasePart') then
-                if ch.Position.Y >= -1 and ch.Position.Y < 30 and ch.CFrame.UpVector.Y > 0.45 then
+                local upDot=ch.CFrame.UpVector.Y
+                local speed=ch.AssemblyLinearVelocity.Magnitude
+                if ch.Position.Y >= -1 and ch.Position.Y < 30 and upDot > 0.45 then
+                    tippedSince[m]=nil
                     local safe,surface=validatedRoadAnchor(m,ch)
                     if safe then
                         lastSafeCFrame[m]=safe
@@ -204,12 +224,19 @@ RunService.Heartbeat:Connect(function(dt)
                         m:SetAttribute('LastSafeDriveSurface',surface.Name)
                     end
                 elseif ch.Position.Y < -6 then
-                    ch.AssemblyLinearVelocity=Vector3.zero
-                    ch.AssemblyAngularVelocity=Vector3.zero
-                    local safe=lastSafeCFrame[m] or (CFrame.new(-80,2.8,-38)*CFrame.Angles(0,math.rad(180),0))
-                    ch.CFrame=safe + Vector3.new(0,1.2,0)
-                    Workspace:SetAttribute('BecakLastSafeRecoveries',(tonumber(Workspace:GetAttribute('BecakLastSafeRecoveries')) or 0)+1)
-                    Workspace:SetAttribute('BecakLastRecoverySurface',lastSafeSurface[m] or 'HQ_FALLBACK')
+                    recoverVehicle(m,ch,lastSafeCFrame[m],lastSafeSurface[m],'FALLEN_WORLD')
+                elseif ch.Position.Y >= -1 and ch.Position.Y < 30 and upDot < FLIP_UP_DOT and speed <= FLIP_MAX_SPEED then
+                    tippedSince[m]=tippedSince[m] or now
+                    local tippedFor=now-tippedSince[m]
+                    m:SetAttribute('TippedRecoverySeconds',math.floor(tippedFor*10)/10)
+                    if tippedFor>=FLIP_RECOVERY_DELAY then
+                        recoverVehicle(m,ch,lastSafeCFrame[m],lastSafeSurface[m],'TIPPED_STATIONARY')
+                        m:SetAttribute('TippedRecoverySeconds',0)
+                        Workspace:SetAttribute('BecakStationaryFlipRecoveries',(tonumber(Workspace:GetAttribute('BecakStationaryFlipRecoveries')) or 0)+1)
+                    end
+                else
+                    tippedSince[m]=nil
+                    m:SetAttribute('TippedRecoverySeconds',0)
                 end
             end
         end
@@ -217,7 +244,7 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakRoadAccess','v1.34') -- compatibility marker
-Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.36')
+Workspace:SetAttribute('ACC_BecakRoadAccessEnhancement','v1.37')
 Workspace:SetAttribute('ACC_BecakRoadAccessReady',true)
 Workspace:SetAttribute('ACC_BecakSidewalkCollision','OFF')
 Workspace:SetAttribute('ACC_BecakGenericCurbCollision','OFF')
@@ -228,7 +255,10 @@ Workspace:SetAttribute('ACC_BecakRoadEdgeCachedAudit','ON')
 Workspace:SetAttribute('BecakLastSafeRoadRecovery','ON')
 Workspace:SetAttribute('BecakValidatedRecoverySurface','ON')
 Workspace:SetAttribute('BecakRecoveryRaycastDepth',10)
+Workspace:SetAttribute('BecakStationaryFlipRecovery','ON')
+Workspace:SetAttribute('BecakStationaryFlipRecoveryDelaySeconds',FLIP_RECOVERY_DELAY)
+Workspace:SetAttribute('BecakStationaryFlipMaxSpeed',FLIP_MAX_SPEED)
 Workspace:SetAttribute('BecakRoadEdgeSeamParts',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeRegistrySize',seamParts)
 Workspace:SetAttribute('BecakRoadEdgeAuditHz',2)
-print('[BECAK E-BIKE] Road access v1.36 active: cached seam audit + validated drive-surface recovery')
+print('[BECAK E-BIKE] Road access v1.37 active: validated road recovery + conservative stationary flip self-recovery')
