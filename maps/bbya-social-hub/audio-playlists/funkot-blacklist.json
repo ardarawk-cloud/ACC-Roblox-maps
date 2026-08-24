@@ -72,6 +72,18 @@
       "platformMessage": "Audio duration too long",
       "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
       "blacklistedAt": "2026-08-24T15:20:48+00:00"
+    },
+    {
+      "index": 7,
+      "title": "SUKA SAMA SUKA ( FREDY NRC ) 2026.mp3",
+      "driveFileId": "1LR8vlK1wA3Pr3oI88-vIBlnIXZ-NN5o0",
+      "assetId": null,
+      "sourceSha256": "56d83cb18851b2adc646dcbe18f98c6d007de175da458a42532bb8405e39ddcd",
+      "reason": "ROBLOX_PLATFORM_AUDIO_DURATION_TOO_LONG",
+      "platformCode": "InvalidArgument",
+      "platformMessage": "Audio duration too long",
+      "operationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+      "blacklistedAt": "2026-08-24T15:21:43+00:00"
     }
   ]
 }

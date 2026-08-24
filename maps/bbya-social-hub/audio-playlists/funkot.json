@@ -110,8 +110,13 @@
       "sourceSizeBytes": 20917094,
       "assetId": null,
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+      "moderationLastKnown": null,
+      "sourceSha256": "56d83cb18851b2adc646dcbe18f98c6d007de175da458a42532bb8405e39ddcd",
+      "platformRejectCode": "InvalidArgument",
+      "platformRejectMessage": "Audio duration too long",
+      "platformOperationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+      "blacklistedAt": "2026-08-24T15:21:43+00:00"
     },
     {
       "index": 8,

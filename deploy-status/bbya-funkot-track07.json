@@ -1,0 +1,47 @@
+{
+  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 7,
+  "title": "SUKA SAMA SUKA ( FREDY NRC ) 2026.mp3",
+  "driveFileId": "1LR8vlK1wA3Pr3oI88-vIBlnIXZ-NN5o0",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": null,
+  "uploadReused": false,
+  "sourceSha256": "56d83cb18851b2adc646dcbe18f98c6d007de175da458a42532bb8405e39ddcd",
+  "startedAt": "2026-08-24T15:21:38+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+    "operationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+    "operationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
+    "done": true,
+    "error": {
+      "code": "InvalidArgument",
+      "message": "Audio duration too long",
+      "details": []
+    }
+  },
+  "updatedAt": "2026-08-24T15:21:43+00:00"
+}
