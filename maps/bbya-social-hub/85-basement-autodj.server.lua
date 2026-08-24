@@ -14,7 +14,8 @@ local stateRemote=folder:FindFirstChild("State") or Instance.new("RemoteEvent");
 local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("BindableEvent");basementMusic.Name="BasementMusic";basementMusic.Parent=folder
 
 local PLAYLIST={
- {title="Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",id="77926481439798",style="underground"}
+ {title="Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",id="77926481439798",style="underground"},
+ {title="SOLEDAD [ DESTRA PRAYOGO ]#BKB2K25",id="112400686884526",style="underground"}
 }
 
 local MIX_SECONDS=4.0
