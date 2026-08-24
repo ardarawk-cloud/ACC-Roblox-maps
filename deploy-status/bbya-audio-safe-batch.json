@@ -1752,7 +1752,7 @@
         "size": 6561250,
         "sha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5"
       },
-      "updatedAt": "2026-08-24T23:29:54.897995+00:00",
+      "updatedAt": "2026-08-24T23:29:58.226339+00:00",
       "normalizedSha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1787,7 +1787,7 @@
       },
       "assetId": "100162128635185",
       "initialModerationState": "Approved",
-      "status": "APPROVED_PENDING_PUBLISH",
+      "status": "LIVE",
       "moderationState": "Approved",
       "moderationProbe": {
         "path": "operations/a74e2a34-2396-41fa-a0fe-c15dcf738332",
@@ -1825,6 +1825,21 @@
             100162128635185
           ],
           "errors": []
+        }
+      },
+      "stagedCommit": "7e7fe4ace09a9b4f8c6ebc122c3a86cc660dca7b",
+      "liveAt": "2026-08-24T23:29:58.226326+00:00",
+      "publishReceipt": {
+        "status": "PUBLISHED",
+        "mapId": "a-club",
+        "name": "BBYA Social Hub",
+        "universeId": "8116636513",
+        "placeId": "131894120482837",
+        "sourceCommit": "2ccc42ca62145e207b286adc576a708d21282f76",
+        "publishedAt": "2026-08-24T23:29:58.221Z",
+        "publishedFile": "/tmp/bbya-audio-safe-live.rbxl",
+        "response": {
+          "versionNumber": 426
         }
       }
     }
@@ -1872,8 +1887,8 @@
   "updatedAt": "2026-08-24T23:27:29.083213+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
-  "lastLiveSequence": 19,
-  "lastLiveDriveId": "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC",
-  "lastLiveAssetId": "115774171488936",
-  "lastLiveVersion": 425
+  "lastLiveSequence": 22,
+  "lastLiveDriveId": "1FxmpWcaZOTXuiIqxAdu3iGgS_71Yeoqv",
+  "lastLiveAssetId": "100162128635185",
+  "lastLiveVersion": 426
 }
