@@ -1,7 +1,8 @@
--- BECAK E-BIKE — world readability/performance QC v2.0
+-- BECAK E-BIKE — world readability/performance QC v2.1
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
+-- v2.1 adds a delayed, non-destructive cargo resilience runtime audit.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -161,7 +162,23 @@ task.spawn(function()
  end
 end)
 
+-- Scripts start concurrently. Audit additive cargo v1.6 markers after systems initialization settles.
+task.delay(3,function()
+ if not root.Parent then return end
+ local resilience=Workspace:GetAttribute('ACC_BecakMasterplanSystemsResilience')
+ local recovery=Workspace:GetAttribute('BecakCargoVehicleLossRecovery')
+ local timeout=tonumber(Workspace:GetAttribute('BecakCargoVehicleMissingTimeoutSeconds'))
+ local integrity=Workspace:GetAttribute('BecakCargoIntegrityValidation')
+ local pass=resilience=='v1.6' and recovery=='ON' and timeout==45 and integrity=='ON'
+ Workspace:SetAttribute('BecakWorldQCCargoResilience',pass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCCargoResilienceVersion',tostring(resilience or 'missing'))
+ Workspace:SetAttribute('BecakWorldQCCargoTimeoutSeconds',timeout or -1)
+ if not pass then warn('[BECAK E-BIKE][QC] cargo resilience audit FAIL',resilience,recovery,timeout,integrity) end
+end)
+
+-- Preserve the v2.0 compatibility marker and expose the additive v2.1 audit revision.
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.1')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -169,5 +186,6 @@ Workspace:SetAttribute('BecakWorldQCIdempotent','ON')
 Workspace:SetAttribute('BecakWorldQCBatchedStreaming','ON')
 Workspace:SetAttribute('BecakWorldQCBatchSize',BATCH_SIZE)
 Workspace:SetAttribute('BecakWorldQCTelemetryHz',1/TELEMETRY_INTERVAL)
+Workspace:SetAttribute('BecakWorldQCCargoResilience','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.0 ready | batched streaming | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.1 ready | batched streaming | cargo resilience audit | billboards',billboardCount,'decor',decorCount)
