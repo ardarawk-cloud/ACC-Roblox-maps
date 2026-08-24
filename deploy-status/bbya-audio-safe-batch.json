@@ -1752,7 +1752,7 @@
         "size": 6561250,
         "sha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5"
       },
-      "updatedAt": "2026-08-24T23:29:29.676289+00:00",
+      "updatedAt": "2026-08-24T23:29:54.897995+00:00",
       "normalizedSha256": "ad8596b60c3c3395bfa740703b2413ba21bcb9d7d22b87be1291d7b9f528b9e5",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1787,7 +1787,46 @@
       },
       "assetId": "100162128635185",
       "initialModerationState": "Approved",
-      "status": "PENDING_MODERATION"
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
+      "moderationProbe": {
+        "path": "operations/a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "operationId": "a74e2a34-2396-41fa-a0fe-c15dcf738332",
+        "done": true,
+        "response": {
+          "path": "assets/100162128635185",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:29:50.360570800Z",
+          "assetId": "100162128635185",
+          "displayName": "2A - 130 - 2A - 130 -tru love  - Viemix Remix",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "moderationCheckedAt": "2026-08-24T23:29:54.650384+00:00",
+      "approvedAt": "2026-08-24T23:29:54.650399+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "100162128635185"
+        ],
+        "response": {
+          "successAssetIds": [
+            100162128635185
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

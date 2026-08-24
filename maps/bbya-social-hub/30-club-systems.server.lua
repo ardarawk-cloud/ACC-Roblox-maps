@@ -30,6 +30,7 @@ local PLAYLIST={
  {title="11B - 126 - People (Eelke Kleijn People of the Sun Extended Mix)",id="134057367195123",style="progressive"},
  {title="11B - 128 - Nadia_Ali_-_People_(Eelke_Kleijn_People_of_the_Sun_Extended_Mix)",id="91900235935901",style="progressive"},
  {title="1A - 128 - Dreaming (Original Mix)",id="115774171488936",style="progressive"},
+ {title="2A - 130 - 2A - 130 -tru love  - Viemix Remix",id="100162128635185",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
