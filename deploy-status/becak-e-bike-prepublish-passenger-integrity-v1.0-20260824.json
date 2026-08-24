@@ -1,0 +1,31 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "passenger proof-of-travel integrity v1.0",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "3b3ee12e6e8501d45ed58ce4b715c1c7da83fe2e",
+  "buildScript": "scripts/build-becak-ebike.js",
+  "publishWorkflow": ".github/workflows/becak-ebike-publish.yml",
+  "validation": {
+    "minimumTravelRatio": 0.55,
+    "minimumTravelStuds": 30,
+    "teleportJumpRejectStuds": 18,
+    "minimumDurationGuard": true,
+    "ownerDrivenDistanceOnly": true,
+    "fareTelemetryPreserved": true,
+    "reputationPassengerCompatibilityPreserved": true,
+    "cargoIntegrityPreserved": true,
+    "vehiclePhysicsChanged": false,
+    "roadCollisionChanged": false,
+    "economySchemaChanged": false,
+    "otherMapsTouched": false
+  },
+  "prePublishLiveEvidence": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z",
+    "freshReceiptRequiredBeforeLiveClaim": true
+  },
+  "status": "SOURCE_COMMITTED_DEDICATED_PUBLISH_TRIGGERED_AWAITING_FRESH_RECEIPT"
+}
