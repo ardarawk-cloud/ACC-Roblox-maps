@@ -62,7 +62,7 @@ grid.FillDirection=Enum.FillDirection.Horizontal;grid.FillDirectionMaxCells=1
 grid.HorizontalAlignment=Enum.HorizontalAlignment.Left;grid.VerticalAlignment=Enum.VerticalAlignment.Top;grid.Parent=holder
 local pad=Instance.new("UIPadding");pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,116);pad.PaddingLeft=UDim.new(0,2);pad.PaddingRight=UDim.new(0,4);pad.Parent=holder
 
-local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55),restroom=Color3.fromRGB(92,194,204),green=Color3.fromRGB(73,205,132),red=Color3.fromRGB(229,91,91)}
+local C={card=Color3.fromRGB(27,24,31),white=Color3.fromRGB(244,243,247),muted=Color3.fromRGB(160,156,166),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(32,190,215),gold=Color3.fromRGB(215,169,96),purple=Color3.fromRGB(145,78,255),mall=Color3.fromRGB(228,145,65),market=Color3.fromRGB(230,82,55),restroom=Color3.fromRGB(92,194,204)}
 local destinations={
  {"ARRIVAL","Arrival","FREE",nil,C.cyan},
  {"PHOTO STUDIO","Photo","MALL L2 • FREE",nil,C.cyan},
@@ -84,6 +84,7 @@ local function label(parent,value,pos,size,font,ts,color)
 end
 
 local buttons={}
+local buttonMeta={}
 local pendingKey=nil
 for i,d in ipairs(destinations) do
  local card=Instance.new("Frame");card.Name="Travel_"..d[2];card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.LayoutOrder=i;card.ZIndex=81;card.Parent=holder;corner(card,10);stroke(card,d[5])
@@ -94,37 +95,30 @@ for i,d in ipairs(destinations) do
  local go=Instance.new("TextButton")
  go.Name="GoButton";go.Text=d[4] and "UNLOCK / GO" or "GO";go.AnchorPoint=Vector2.new(1,.5);go.Position=UDim2.new(1,-9,.5,0);go.Size=UDim2.new(.40,0,0,38)
  go.BackgroundColor3=Color3.fromRGB(40,36,46);go.BorderSizePixel=0;go.Font=Enum.Font.GothamBold;go.TextSize=9;go.TextColor3=C.white;go.AutoButtonColor=true
- go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5]);buttons[d[2]]=go
- local busy=false
+ go.Selectable=false;go.Active=true;go.ZIndex=86;go.Parent=card;corner(go,8);stroke(go,d[5]);buttons[d[2]]=go;buttonMeta[d[2]]=d
  go.Activated:Connect(function()
-  if busy then return end
-  busy=true;pendingKey=d[2]
+  if pendingKey then return end
+  pendingKey=d[2]
   go.Text="WORKING…";go.BackgroundColor3=Color3.fromRGB(53,46,59)
   remote:FireServer(d[2])
-  task.delay(1.8,function()
-   if go.Parent and pendingKey==d[2] then
-    busy=false;pendingKey=nil;go.Text=d[4] and "UNLOCK / GO" or "GO";go.BackgroundColor3=Color3.fromRGB(40,36,46)
-   end
-  end)
  end)
 end
 
 result.OnClientEvent:Connect(function(ok,key,msg)
  key=tostring(key or "")
+ pendingKey=nil
  local b=buttons[key]
  if b then
   b.Text=ok and "READY" or "TRY AGAIN"
   b.BackgroundColor3=ok and Color3.fromRGB(35,72,52) or Color3.fromRGB(72,39,45)
  end
  if ok then
-  pendingKey=nil
   task.delay(.12,function()if hubPanel then hubPanel.Visible=false end end)
  else
   task.delay(1.1,function()
    if b and b.Parent then
-    local data=nil
-    for _,d in ipairs(destinations) do if d[2]==key then data=d;break end end
-    b.Text=(data and data[4]) and "UNLOCK / GO" or "GO";b.BackgroundColor3=Color3.fromRGB(40,36,46)
+    local d=buttonMeta[key]
+    b.Text=(d and d[4]) and "UNLOCK / GO" or "GO";b.BackgroundColor3=Color3.fromRGB(40,36,46)
    end
   end)
  end
@@ -166,4 +160,4 @@ travel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBack
 if hubPanel then hubPanel:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncBackpack)end) end
 
 task.defer(function()applyLayout();updateCanvas();syncBackpack()end)
-print("[BBYA] Travel UI v12 online: 20s late-discovery + touch Activated + server result acknowledgement")
+print("[BBYA] Travel UI v12 online: late-discovery + touch Activated + server result acknowledgement")
