@@ -1,0 +1,23 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike only",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "df8c59e4568c24bf1dea0e033e84616a82b04d95",
+  "upgrade": "Cargo reputation v1.21 uses actual CargoLastReward telemetry instead of a fixed Rp35,000 base when calculating chapter bonus",
+  "compatibilityMarker": "ACC_BecakReputationCargo=v1.20",
+  "enhancementMarker": "ACC_BecakReputationCargoEnhancement=v1.21",
+  "actualRewardTelemetry": "BecakReputationCargoUsesActualReward=ON",
+  "physicsChanged": false,
+  "collisionChanged": false,
+  "saveSchemaChanged": false,
+  "cargoIntegrityChanged": false,
+  "otherMapsTouchedBySourceCommit": false,
+  "sourceCommitStatusChecks": 0,
+  "latestVerifiedLiveReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishState": "awaiting fresh dedicated receipt before live claim"
+}
