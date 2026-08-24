@@ -15,13 +15,14 @@ TRACK_INDEX = int(os.environ['TRACK_INDEX'])
 REPORT = ROOT / 'deploy-status' / f'bbya-funkot-track{TRACK_INDEX:02d}.json'
 AUDIO_PATH = pathlib.Path(os.environ.get('AUDIO_PATH', '/tmp/bbya-funkot-none.mp3'))
 SOURCE_SHA256 = os.environ.get('SOURCE_SHA256', '').strip().lower()
+NORMALIZED_SHA256 = os.environ.get('NORMALIZED_SHA256', '').strip().lower()
 AUDIO_KEY = os.environ.get('AUDIO_KEY', '').strip()
 EXPECTED_UPLOADER = os.environ.get('EXPECTED_UPLOADER_USERNAME', 'gudangpet88').strip().lower()
 BBYA_UNIVERSE = os.environ.get('BBYA_UNIVERSE', '8116636513').strip()
 WAIT_SECONDS = int(os.environ.get('MODERATION_WAIT_SECONDS', '480'))
 REPORT.parent.mkdir(parents=True, exist_ok=True)
 
-TERMINAL_BLACKLIST = {'BLACKLISTED_MODERATION_REJECTED', 'BLACKLISTED_DUPLICATE_SOURCE'}
+TERMINAL_BLACKLIST = {'BLACKLISTED_MODERATION_REJECTED', 'BLACKLISTED_DUPLICATE_SOURCE', 'BLACKLISTED_PLATFORM_DURATION_LIMIT_AFTER_TRIM'}
 
 
 def now_iso():
@@ -59,21 +60,10 @@ def req(url, method='GET', payload=None, headers=None, timeout=30):
 
 
 def introspect():
-    code, info = req(
-        'https://apis.roblox.com/api-keys/v1/introspect',
-        'POST',
-        {'apiKey': AUDIO_KEY},
-    )
+    code, info = req('https://apis.roblox.com/api-keys/v1/introspect', 'POST', {'apiKey': AUDIO_KEY})
     scopes = info.get('scopes') or [] if isinstance(info, dict) else []
-    asset = any(
-        s.get('name') == 'asset' and {'read', 'write'}.issubset(set(s.get('operations') or []))
-        for s in scopes
-    )
-    perm = any(
-        s.get('name') == 'asset-permissions:write'
-        or (s.get('name') == 'asset-permissions' and 'write' in (s.get('operations') or []))
-        for s in scopes
-    )
+    asset = any(s.get('name') == 'asset' and {'read', 'write'}.issubset(set(s.get('operations') or [])) for s in scopes)
+    perm = any(s.get('name') == 'asset-permissions:write' or (s.get('name') == 'asset-permissions' and 'write' in (s.get('operations') or [])) for s in scopes)
     return {
         'http': code,
         'keyName': info.get('name') if isinstance(info, dict) else None,
@@ -87,12 +77,7 @@ def introspect():
 
 def resolve_uploader(user_id):
     code, data = req(f'https://users.roblox.com/v1/users/{user_id}')
-    return {
-        'http': code,
-        'userId': str(user_id),
-        'name': data.get('name') if isinstance(data, dict) else None,
-        'displayName': data.get('displayName') if isinstance(data, dict) else None,
-    }
+    return {'http': code, 'userId': str(user_id), 'name': data.get('name') if isinstance(data, dict) else None, 'displayName': data.get('displayName') if isinstance(data, dict) else None}
 
 
 def create_asset(title, creator):
@@ -102,17 +87,13 @@ def create_asset(title, creator):
         'description': f'BBYA Funkot Track {TRACK_INDEX:02d}',
         'creationContext': {'creator': {'userId': str(creator)}},
     }
-    process = subprocess.run(
-        [
-            'curl', '-sS', '--location', 'https://apis.roblox.com/assets/v1/assets',
-            '--header', f'x-api-key: {AUDIO_KEY}',
-            '--form-string', 'request=' + json.dumps(payload, separators=(',', ':')),
-            '--form', f'fileContent=@{AUDIO_PATH};type=audio/mpeg',
-            '--write-out', '\n%{http_code}',
-        ],
-        text=True,
-        capture_output=True,
-    )
+    process = subprocess.run([
+        'curl', '-sS', '--location', 'https://apis.roblox.com/assets/v1/assets',
+        '--header', f'x-api-key: {AUDIO_KEY}',
+        '--form-string', 'request=' + json.dumps(payload, separators=(',', ':')),
+        '--form', f'fileContent=@{AUDIO_PATH};type=audio/mpeg',
+        '--write-out', '\n%{http_code}',
+    ], text=True, capture_output=True)
     body, _, code = process.stdout.rpartition('\n')
     try:
         data = json.loads(body) if body.strip() else {}
@@ -150,10 +131,7 @@ def rejected(state):
 
 def fetch_asset(asset_id):
     last_code, last_data = 0, {}
-    for url in (
-        f'https://apis.roblox.com/assets/v1/assets/{asset_id}?readMask=moderationResult,state,displayName',
-        f'https://apis.roblox.com/assets/v1/assets/{asset_id}',
-    ):
+    for url in (f'https://apis.roblox.com/assets/v1/assets/{asset_id}?readMask=moderationResult,state,displayName', f'https://apis.roblox.com/assets/v1/assets/{asset_id}'):
         last_code, last_data = req(url, headers={'x-api-key': AUDIO_KEY})
         if last_code == 200:
             return last_code, last_data
@@ -175,18 +153,8 @@ def wait_mod(asset_id, state):
 
 
 def grant(asset_id):
-    payload = {
-        'subjectType': 'Universe',
-        'subjectId': str(BBYA_UNIVERSE),
-        'action': 'Use',
-        'requests': [{'assetId': int(asset_id)}],
-    }
-    code, data = req(
-        'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions',
-        'PATCH',
-        payload,
-        {'x-api-key': AUDIO_KEY, 'Content-Type': 'application/json-patch+json'},
-    )
+    payload = {'subjectType': 'Universe', 'subjectId': str(BBYA_UNIVERSE), 'action': 'Use', 'requests': [{'assetId': int(asset_id)}]}
+    code, data = req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions', 'PATCH', payload, {'x-api-key': AUDIO_KEY, 'Content-Type': 'application/json-patch+json'})
     ok = str(asset_id) in [str(x) for x in (data.get('successAssetIds') or [])] or code in (200, 201, 204)
     return {'http': code, 'ok': ok, 'response': data}
 
@@ -201,6 +169,7 @@ def append_blacklist(track, reason, moderation_state=None, duplicate_of=None):
             'driveFileId': track.get('driveFileId'),
             'assetId': track.get('assetId'),
             'sourceSha256': track.get('sourceSha256'),
+            'normalizedSha256': track.get('normalizedSha256'),
             'reason': reason,
             'moderationState': moderation_state,
             'duplicateOfIndex': duplicate_of,
@@ -238,6 +207,7 @@ def main():
         'assetId': track.get('assetId'),
         'uploadReused': bool(track.get('assetId')),
         'sourceSha256': track.get('sourceSha256') or SOURCE_SHA256 or None,
+        'normalizedSha256': track.get('normalizedSha256') or NORMALIZED_SHA256 or None,
         'startedAt': now_iso(),
     }
 
@@ -254,14 +224,7 @@ def main():
 
     key = introspect()
     report['key'] = key
-    if (
-        key['http'] != 200
-        or not key['authorizedUserId']
-        or not key['assetReadWrite']
-        or not key['assetPermissionsWrite']
-        or key['enabled'] is False
-        or key['expired'] is True
-    ):
+    if key['http'] != 200 or not key['authorizedUserId'] or not key['assetReadWrite'] or not key['assetPermissionsWrite'] or key['enabled'] is False or key['expired'] is True:
         finish(reg, track, report, 'HALTED_KEY_SCOPE_FAILED', False, 2)
 
     uploader = resolve_uploader(key['authorizedUserId'])
@@ -276,16 +239,12 @@ def main():
         if not SOURCE_SHA256:
             finish(reg, track, report, 'HALTED_SOURCE_HASH_MISSING', False, 2)
         track['sourceSha256'] = SOURCE_SHA256
+        if NORMALIZED_SHA256:
+            track['normalizedSha256'] = NORMALIZED_SHA256
         report['sourceSha256'] = SOURCE_SHA256
-        duplicate = next(
-            (
-                t for t in reg.get('tracks', [])
-                if int(t.get('index', 0)) != TRACK_INDEX
-                and t.get('sourceSha256') == SOURCE_SHA256
-                and t.get('status') != 'PREPARED_LOCAL'
-            ),
-            None,
-        )
+        report['normalizedSha256'] = NORMALIZED_SHA256 or None
+        fingerprint = NORMALIZED_SHA256 or SOURCE_SHA256
+        duplicate = next((t for t in reg.get('tracks', []) if int(t.get('index', 0)) != TRACK_INDEX and (t.get('normalizedSha256') or t.get('sourceSha256')) == fingerprint and t.get('status') != 'PREPARED_LOCAL'), None)
         if duplicate:
             track['duplicateOfIndex'] = int(duplicate.get('index', 0))
             append_blacklist(track, 'EXACT_NORMALIZED_AUDIO_DUPLICATE', duplicate_of=track['duplicateOfIndex'])
