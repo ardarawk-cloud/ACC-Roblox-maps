@@ -279,6 +279,54 @@
           "versionNumber": 412
         }
       }
+    },
+    "1zzTqAMvcpmstVXVbg4USyY9m6VrdqlqB": {
+      "driveId": "1zzTqAMvcpmstVXVbg4USyY9m6VrdqlqB",
+      "title": "10A - 130 - 10A - 130 - Always Loving You",
+      "filename": "10A - 130 - 10A - 130 - Always Loving You.mp3",
+      "sequence": 4,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561244,
+        "sha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9"
+      },
+      "updatedAt": "2026-08-24T14:59:30.915726+00:00",
+      "normalizedSha256": "560abbdb030f2590ece3989f4c8af6cefe6ad57ea20e8ff30b047f3f61f0eba9",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "operationId": "94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "done": false
+      },
+      "uploadedAt": "2026-08-24T14:59:31.476116+00:00",
+      "operationPath": "operations/94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+      "operationResult": {
+        "path": "operations/94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "operationId": "94f6873e-c2f3-4538-a377-3abeb3bc5dd3",
+        "done": true,
+        "response": {
+          "path": "assets/94337788677482",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T15:00:07.314540100Z",
+          "assetId": "94337788677482",
+          "displayName": "10A - 130 - 10A - 130 - Always Loving You",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "94337788677482",
+      "initialModerationState": "Approved",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
