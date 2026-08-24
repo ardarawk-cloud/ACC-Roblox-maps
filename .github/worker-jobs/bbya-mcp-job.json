@@ -1,5 +1,5 @@
 {
-  "jobId": "bbya-mainclub-v377-visual-audit-002",
+  "jobId": "bbya-mall-v410-3d-visual-audit-001",
   "calls": [
     {
       "name": "get_studio_state",
@@ -9,46 +9,78 @@
       "name": "search_game_tree",
       "arguments": {
         "datamodel_type": "Edit",
-        "path": "Workspace.BBYA_ZERO_BUILD",
+        "path": "Workspace.BBYA_ZERO_BUILD.BBYAMall",
         "instance_type": "Model",
-        "keywords": "MainClub FinalAuthority Photo Salon Look Editorial RearSocial Glow",
-        "max_depth": 7,
-        "head_limit": 300
+        "keywords": "MallArchitecture MallLiveUpgrade MallRobuxCommerce Tenant Elevator Escalator Atrium Glow",
+        "max_depth": 8,
+        "head_limit": 500
       }
     },
     {
       "name": "search_game_tree",
       "arguments": {
         "datamodel_type": "Edit",
-        "path": "Workspace.BBYA_ZERO_BUILD",
+        "path": "Workspace.BBYA_ZERO_BUILD.BBYAMall",
         "instance_type": "BasePart",
-        "keywords": "stool chair seat table shelf softbox mirror product DJ Riser Grounding",
-        "max_depth": 9,
-        "head_limit": 500
+        "keywords": "SideA SideB StoreGlass StoreDoor StoreSign Counter Display Interact Portal Fascia Elevator Escalator",
+        "max_depth": 10,
+        "head_limit": 800
       }
     },
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "MainClub_DJ_v377_2",
-        "camera_position": [3, 8, -14],
-        "look_at_position": [3, 5, 39]
+        "capture_id": "Mall_01_EntranceAtrium_v410",
+        "camera_position": [0, 8, 296],
+        "look_at_position": [0, 8, 365]
       }
     },
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "FormerSalonPhoto_v377_2",
-        "camera_position": [-24, 8, -13],
-        "look_at_position": [-43, 4, -15]
+        "capture_id": "Mall_02_L1_LumaStride_v410",
+        "camera_position": [0, 7, 325],
+        "look_at_position": [70, 6, 330]
       }
     },
     {
       "name": "screen_capture",
       "arguments": {
-        "capture_id": "MainClub_Wide_v377_2",
-        "camera_position": [2, 18, -40],
-        "look_at_position": [2, 5, 18]
+        "capture_id": "Mall_03_L1_MuseRear_v410",
+        "camera_position": [0, 7, 390],
+        "look_at_position": [70, 6, 405]
+      }
+    },
+    {
+      "name": "screen_capture",
+      "arguments": {
+        "capture_id": "Mall_04_L2_NorthGlow_v410",
+        "camera_position": [0, 21, 350],
+        "look_at_position": [70, 20, 365]
+      }
+    },
+    {
+      "name": "screen_capture",
+      "arguments": {
+        "capture_id": "Mall_05_GlowLabClose_v410",
+        "camera_position": [28, 20, 365],
+        "look_at_position": [70, 20, 365]
+      }
+    },
+    {
+      "name": "screen_capture",
+      "arguments": {
+        "capture_id": "Mall_06_UpperAtrium_v410",
+        "camera_position": [0, 36, 340],
+        "look_at_position": [0, 28, 405]
+      }
+    },
+    {
+      "name": "screen_capture",
+      "arguments": {
+        "capture_id": "Mall_07_Overview_v410",
+        "camera_position": [0, 68, 295],
+        "look_at_position": [0, 22, 380]
       }
     }
   ]
