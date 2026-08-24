@@ -90,6 +90,14 @@ jobs:
               grep -q "$marker" maps/becak-e-bike/place.rbxlx
           done
 
+          # Cargo integrity v1.5: payout requires plausible driven route, not instant destination arrival
+          grep -q "ACC_BecakMasterplanSystems','v1.5" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakCargoIntegrityValidation','ON" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakCargoMinimumTravelRatio',0.55" maps/becak-e-bike/place.rbxlx
+          grep -q "BecakCargoTeleportJumpRejectStuds',18" maps/becak-e-bike/place.rbxlx
+          grep -q 'CargoDrivenDistanceStuds' maps/becak-e-bike/place.rbxlx
+          grep -q 'CargoMinDurationSeconds' maps/becak-e-bike/place.rbxlx
+
           # Vehicle safety + ground contact + road access
           grep -q "ACC_BecakVehicleRecovery','v1.35" maps/becak-e-bike/place.rbxlx
           grep -q "BecakSelfRighting','ON" maps/becak-e-bike/place.rbxlx
@@ -176,7 +184,7 @@ jobs:
           grep -q "BecakAchievementsPersistent','ON" maps/becak-e-bike/place.rbxlx
           grep -q "BecakAchievementRewardGuard','PERSIST_BEFORE_PAYOUT" maps/becak-e-bike/place.rbxlx
 
-          echo 'Final Becak E-Bike runtime v1.45 + TrafficNPC v1.16 model LOD + VehicleRecovery v1.35 + GroundContact v1.36 + SteeringStability v1.41 + VehicleSignals v1.45 + RoadAccess v1.34 + MobileSafeArea UX v1.31 validation PASS'
+          echo 'Final Becak E-Bike runtime v1.45 + CargoIntegrity v1.5 + TrafficNPC compatibility + VehicleRecovery v1.35 + GroundContact v1.36 + SteeringStability v1.41 + VehicleSignals v1.45 + RoadAccess compatibility + MobileSafeArea compatibility validation PASS'
 
       - name: Reset publish evidence
         shell: bash
@@ -203,7 +211,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/becak-e-bike-direct.json maps/becak-e-bike/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record Becak E-Bike runtime v1.45 traffic v1.16 recovery v1.35 ground-contact v1.36 steering v1.41 signals v1.45 road-access v1.34 mobile UX v1.31 publish [skip ci]"
+            git commit -m "Record Becak E-Bike cargo integrity v1.5 publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
