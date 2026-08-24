@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE CLIENT v1
--- Browse live Roblox catalog inventory from selected BBYA Mall tenants and buy with real Robux.
--- Purchase prompt is Roblox-native MarketplaceService:PromptPurchase.
+-- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE CLIENT v2
+-- Live Roblox Marketplace browser for selected BBYA Mall tenants.
+-- Research reset 2026-08-24: trend rails favor Y2K / streetwear / emo / grunge / baddie / hair / makeup / sneakers.
+-- Purchase prompt is Roblox-native MarketplaceService:PromptPurchase. No custom currency.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -33,9 +34,18 @@ local STORE_TYPES={
   Enum.AvatarAssetType.EyelashAccessory,Enum.AvatarAssetType.FaceMakeup,Enum.AvatarAssetType.LipMakeup,Enum.AvatarAssetType.EyeMakeup,
  },
  STREET={
-  Enum.AvatarAssetType.Hat,Enum.AvatarAssetType.NeckAccessory,Enum.AvatarAssetType.ShoulderAccessory,
+  Enum.AvatarAssetType.Hat,Enum.AvatarAssetType.FaceAccessory,Enum.AvatarAssetType.NeckAccessory,Enum.AvatarAssetType.ShoulderAccessory,
   Enum.AvatarAssetType.FrontAccessory,Enum.AvatarAssetType.BackAccessory,Enum.AvatarAssetType.WaistAccessory,
  },
+}
+
+-- Curated from the current 2026 avatar-fashion signals. These are search rails, not hard-coded inventory,
+-- so every store refreshes against items that are actually on-sale in the Roblox Marketplace.
+local STORE_TRENDS={
+ FASHION={"Y2K","streetwear","emo","grunge","baddie"},
+ SHOES={"sneakers","platform","Y2K","boots","streetwear"},
+ BEAUTY={"makeup","hair","lashes","baddie","gyaru"},
+ STREET={"streetwear","Y2K","emo","goth","cyber"},
 }
 
 local function round(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
@@ -54,32 +64,39 @@ local dim=Instance.new("Frame")
 dim.Size=UDim2.fromScale(1,1);dim.BackgroundColor3=Color3.new(0,0,0);dim.BackgroundTransparency=.45;dim.BorderSizePixel=0;dim.Visible=false;dim.Parent=gui
 
 local panel=Instance.new("Frame")
-panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.53);panel.Size=UDim2.new(.94,0,0,520);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.Visible=false;panel.Parent=gui;round(panel,16);stroke(panel,C.gold,1.1,.35)
-local limit=Instance.new("UISizeConstraint");limit.MinSize=Vector2.new(310,410);limit.MaxSize=Vector2.new(720,540);limit.Parent=panel
+panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.fromScale(.5,.53);panel.Size=UDim2.new(.94,0,0,540);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.Visible=false;panel.Parent=gui;round(panel,16);stroke(panel,C.gold,1.1,.35)
+local limit=Instance.new("UISizeConstraint");limit.MinSize=Vector2.new(310,430);limit.MaxSize=Vector2.new(720,555);limit.Parent=panel
 
 local title=label(panel,"BBYA MALL",UDim2.fromOffset(18,14),UDim2.new(1,-70,0,25),Enum.Font.GothamBold,19,C.white)
 local subtitle=label(panel,"NATIVE ROBLOX CHECKOUT",UDim2.fromOffset(18,42),UDim2.new(1,-70,0,18),Enum.Font.GothamBold,10,C.gold)
 local close=button(panel,"×",UDim2.new(1,-48,0,12),UDim2.fromOffset(34,34),C.card2);close.TextSize=20
 
 local search=Instance.new("TextBox")
-search.PlaceholderText="Search Roblox catalog…";search.Text="";search.ClearTextOnFocus=false;search.Position=UDim2.fromOffset(16,74);search.Size=UDim2.new(1,-112,0,38);search.BackgroundColor3=C.card;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=12;search.BorderSizePixel=0;search.Parent=panel;round(search,9);stroke(search,C.line,1,.52)
-local searchBtn=button(panel,"SEARCH",UDim2.new(1,-90,0,74),UDim2.fromOffset(74,38),C.card2);stroke(searchBtn,C.cyan,1,.42)
+search.PlaceholderText="Search Roblox catalog…";search.Text="";search.ClearTextOnFocus=false;search.Position=UDim2.fromOffset(16,74);search.Size=UDim2.new(1,-194,0,38);search.BackgroundColor3=C.card;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=12;search.BorderSizePixel=0;search.Parent=panel;round(search,9);stroke(search,C.line,1,.52)
+local searchBtn=button(panel,"SEARCH",UDim2.new(1,-172,0,74),UDim2.fromOffset(74,38),C.card2);stroke(searchBtn,C.cyan,1,.42)
+local capBtn=button(panel,"≤150 R$",UDim2.new(1,-90,0,74),UDim2.fromOffset(74,38),Color3.fromRGB(49,42,31));stroke(capBtn,C.gold,1,.35)
 
-local status=label(panel,"Open a Mall shop to browse.",UDim2.fromOffset(16,119),UDim2.new(1,-32,0,24),Enum.Font.GothamMedium,10,C.cyan)
+local trendBar=Instance.new("ScrollingFrame")
+trendBar.Position=UDim2.fromOffset(16,118);trendBar.Size=UDim2.new(1,-32,0,34);trendBar.BackgroundTransparency=1;trendBar.BorderSizePixel=0;trendBar.ScrollBarThickness=0;trendBar.ScrollingDirection=Enum.ScrollingDirection.X;trendBar.CanvasSize=UDim2.new();trendBar.AutomaticCanvasSize=Enum.AutomaticSize.X;trendBar.Parent=panel
+local trendLayout=Instance.new("UIListLayout");trendLayout.FillDirection=Enum.FillDirection.Horizontal;trendLayout.Padding=UDim.new(0,6);trendLayout.Parent=trendBar
+
+local status=label(panel,"Open a Mall shop to browse.",UDim2.fromOffset(16,157),UDim2.new(1,-32,0,22),Enum.Font.GothamMedium,10,C.cyan)
 
 local holder=Instance.new("ScrollingFrame")
-holder.Position=UDim2.fromOffset(16,147);holder.Size=UDim2.new(1,-32,1,-190);holder.BackgroundTransparency=1;holder.BorderSizePixel=0;holder.ScrollBarThickness=3;holder.ScrollBarImageColor3=C.gold;holder.CanvasSize=UDim2.new();holder.AutomaticCanvasSize=Enum.AutomaticSize.Y;holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.Active=true;holder.Parent=panel
+holder.Position=UDim2.fromOffset(16,183);holder.Size=UDim2.new(1,-32,1,-226);holder.BackgroundTransparency=1;holder.BorderSizePixel=0;holder.ScrollBarThickness=3;holder.ScrollBarImageColor3=C.gold;holder.CanvasSize=UDim2.new();holder.AutomaticCanvasSize=Enum.AutomaticSize.Y;holder.ScrollingDirection=Enum.ScrollingDirection.Y;holder.Active=true;holder.Parent=panel
 local grid=Instance.new("UIGridLayout")
 grid.CellPadding=UDim2.fromOffset(8,8);grid.CellSize=UDim2.new(.32,-6,0,174);grid.Parent=holder
 
-local footer=label(panel,"Checkout & ownership are handled by Roblox. Prices shown by Roblox at purchase are authoritative.",UDim2.new(0,16,1,-35),UDim2.new(1,-32,0,24),Enum.Font.Gotham,9,C.muted);footer.TextXAlignment=Enum.TextXAlignment.Center
+local footer=label(panel,"BUY opens Roblox checkout. Inventory, price, ownership and payment stay on Roblox.",UDim2.new(0,16,1,-35),UDim2.new(1,-32,0,24),Enum.Font.Gotham,9,C.muted);footer.TextXAlignment=Enum.TextXAlignment.Center
 
 local activeStore="FASHION"
 local searching=false
 local opened=false
+local priceCap150=true
 
 local function setStatus(text,col)status.Text=tostring(text or "");status.TextColor3=col or C.cyan end
 local function clearCards()for _,ch in ipairs(holder:GetChildren()) do if ch~=grid then ch:Destroy() end end end
+local function clearTrendButtons()for _,ch in ipairs(trendBar:GetChildren()) do if ch~=trendLayout then ch:Destroy() end end end
 
 local function priceText(item)
  local p=tonumber(item.Price or item.LowestPrice)
@@ -102,7 +119,7 @@ local function addCard(item)
  local price=label(card,priceText(item),UDim2.new(0,7,1,-41),UDim2.new(.42,-6,0,29),Enum.Font.GothamBold,10,C.gold);price.TextXAlignment=Enum.TextXAlignment.Center
  local buy=button(card,"BUY",UDim2.new(.43,0,1,-42),UDim2.new(.57,-7,0,30),Color3.fromRGB(47,70,55));stroke(buy,C.green,1,.28)
  buy.MouseButton1Click:Connect(function()
-  setStatus("Opening Roblox purchase for "..name.."…",C.gold)
+  setStatus("Opening Roblox checkout for "..name.."…",C.gold)
   local ok,err=pcall(function()
    MarketplaceService:PromptPurchase(player,id,true,Enum.CurrencyType.Default)
   end)
@@ -115,29 +132,50 @@ end
 
 local function runSearch()
  if searching or not opened then return end
- searching=true;clearCards();setStatus("Loading live Roblox catalog…",C.gold)
+ searching=true;clearCards();setStatus("Loading live Roblox Marketplace…",C.gold)
  local params=CatalogSearchParams.new()
  params.AssetTypes=STORE_TYPES[activeStore] or STORE_TYPES.FASHION
  params.IncludeOffSale=false
+ params.MinPrice=1
+ if priceCap150 then params.MaxPrice=150 end
  params.Limit=18
  local q=search.Text:match("^%s*(.-)%s*$") or ""
  if q~="" then params.SearchKeyword=q end
  local ok,pages=pcall(function()return AvatarEditorService:SearchCatalogAsync(params)end)
  if not ok or not pages then
-  searching=false;setStatus("Catalog Roblox gagal dimuat. Tekan SEARCH lagi.",C.pink);return
+  searching=false;setStatus("Marketplace Roblox gagal dimuat. Tekan SEARCH lagi.",C.pink);return
  end
  local items=pages:GetCurrentPage()
  if #items==0 then
-  setStatus("Tidak ada produk dijual untuk pencarian ini.",C.muted)
+  setStatus("Tidak ada produk on-sale untuk filter ini.",C.muted)
  else
   for _,item in ipairs(items) do addCard(item) end
-  setStatus(string.format("%d produk live • BUY = Robux asli via Roblox",#items),C.green)
+  setStatus(string.format("%d produk live • %s • BUY pakai Robux asli",#items,priceCap150 and "≤150 R$" or "all prices"),C.green)
  end
  searching=false
 end
 
+local function buildTrendRail()
+ clearTrendButtons()
+ local trends=STORE_TRENDS[activeStore] or STORE_TRENDS.FASHION
+ for _,keyword in ipairs(trends) do
+  local b=button(trendBar,string.upper(keyword),UDim2.new(),UDim2.fromOffset(math.max(72,#keyword*8+28),30),C.card2)
+  b.TextSize=10;stroke(b,C.line,1,.45)
+  b.MouseButton1Click:Connect(function()
+   search.Text=keyword
+   task.defer(runSearch)
+  end)
+ end
+end
+
 searchBtn.MouseButton1Click:Connect(runSearch)
 search.FocusLost:Connect(function(enter)if enter then runSearch() end end)
+capBtn.MouseButton1Click:Connect(function()
+ priceCap150=not priceCap150
+ capBtn.Text=priceCap150 and "≤150 R$" or "ALL R$"
+ capBtn.BackgroundColor3=priceCap150 and Color3.fromRGB(49,42,31) or C.card2
+ task.defer(runSearch)
+end)
 close.MouseButton1Click:Connect(function()opened=false;panel.Visible=false;dim.Visible=false;searching=false end)
 
 remote.OnClientEvent:Connect(function(kind,data)
@@ -145,7 +183,10 @@ remote.OnClientEvent:Connect(function(kind,data)
  activeStore=tostring(data.key or "FASHION")
  title.Text=tostring(data.title or "BBYA MALL")
  subtitle.Text=tostring(data.subtitle or "NATIVE ROBLOX CHECKOUT").."  •  R$"
- search.Text=""
+ priceCap150=true;capBtn.Text="≤150 R$";capBtn.BackgroundColor3=Color3.fromRGB(49,42,31)
+ buildTrendRail()
+ local trends=STORE_TRENDS[activeStore] or STORE_TRENDS.FASHION
+ search.Text=trends[1] or ""
  opened=true;panel.Visible=true;dim.Visible=true
  task.defer(runSearch)
 end)
@@ -153,11 +194,11 @@ end)
 MarketplaceService.PromptPurchaseFinished:Connect(function(who,assetId,isPurchased)
  if who~=player then return end
  if isPurchased then
-  setStatus("PURCHASE SUCCESS • item masuk ke akun Roblox kamu.",C.green)
+  setStatus("PURCHASE SUCCESS • Roblox confirmed the asset purchase.",C.green)
  else
   setStatus("Purchase dibatalkan / tidak selesai.",C.muted)
  end
 end)
 
 player.CharacterAdded:Connect(function()opened=false;panel.Visible=false;dim.Visible=false;searching=false end)
-print("[BBYA] Mall Native Robux Commerce client v1 online")
+print("[BBYA] Mall Native Robux Commerce client v2 online: live trend rails + native Roblox checkout")
