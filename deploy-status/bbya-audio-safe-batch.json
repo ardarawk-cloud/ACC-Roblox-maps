@@ -3014,7 +3014,7 @@
         "size": 6561257,
         "sha256": "0702563b8276f4b9ed8a5349de019712d7d873269ed60c9d4a9f2873639ae1fe"
       },
-      "updatedAt": "2026-08-25T05:21:00.427923+00:00",
+      "updatedAt": "2026-08-25T08:06:09.237498+00:00",
       "normalizedSha256": "0702563b8276f4b9ed8a5349de019712d7d873269ed60c9d4a9f2873639ae1fe",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3049,20 +3049,46 @@
       },
       "assetId": "81169975667413",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
       "moderationProbe": {
-        "displayName": "5A - 128 - Walkin On Air (Matthew)   5a",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/96d23c50-8909-4663-b4cd-a434a7e32fd9",
+        "operationId": "96d23c50-8909-4663-b4cd-a434a7e32fd9",
+        "done": true,
+        "response": {
+          "path": "assets/81169975667413",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T05:21:29.496400500Z",
+          "assetId": "81169975667413",
+          "displayName": "5A - 128 - Walkin On Air (Matthew)   5a",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T05:23:06.977339+00:00"
+      "moderationCheckedAt": "2026-08-25T08:06:09.017885+00:00",
+      "approvedAt": "2026-08-25T08:06:09.017900+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "81169975667413"
+        ],
+        "response": {
+          "successAssetIds": [
+            81169975667413
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
