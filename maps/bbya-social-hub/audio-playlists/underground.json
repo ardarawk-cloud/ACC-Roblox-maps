@@ -4,12 +4,17 @@
   "genre": "Underground / Breakbeat / BKB",
   "sourceFolder": "https://drive.google.com/drive/folders/1ukwoQNlDl7VMhA0BSg_DVUe3qwojfTJk",
   "expectedUploaderUserId": "9296030038",
-  "oneTrackPerInjection": true,
+  "maxTracksPerCycle": 10,
+  "oneAtATimeWithinCycle": true,
+  "parallelUploads": false,
   "policy": {
-    "noBatchUpload": true,
+    "serialBatchUpload": true,
+    "maxTracksPerCycle": 10,
+    "parallelUploads": false,
     "noAutomaticDuplicateRetry": true,
     "blacklistOnModerationRejection": true,
-    "publishOnlyAfterApprovalAndPermission": true
+    "publishOnlyAfterApprovalAndPermission": true,
+    "publishApprovedBatchOncePerCycle": true
   },
   "tracks": [
     {
@@ -143,6 +148,105 @@
       "driveFileId": "1EE1UWathKgwDSaECbc0rwZszoXGVVC17",
       "sourceMimeType": "audio/x-wav",
       "sourceSizeBytes": 44925197,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 12,
+      "title": "JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",
+      "driveFileId": "1tTBpg4Qtwfk4m2ZSfIzUxAldF4eo3hgE",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 9579384,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 13,
+      "title": "JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",
+      "driveFileId": "1_a8yljKxqBVVFhMl5TnjgLIwj8dTVJqF",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 11852208,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 14,
+      "title": "I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",
+      "driveFileId": "1tN2v7SZSP-Og6fE7uh9yf28lAthCqzY3",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 9300525,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 15,
+      "title": "I KNOW YOU WANT ME - KIN BKB EDIT",
+      "driveFileId": "1MiE_x3LHDdN8QWpJpSBKN_TVwIPFaK0D",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 8864980,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 16,
+      "title": "FEINN CALL - revan edit",
+      "driveFileId": "1M2U9zK8USGVX6pM5hyIges8Q8RVb5teF",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 1951091,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 17,
+      "title": "EMANG DASAR -IVNSYH-",
+      "driveFileId": "1WjrERCSxiKWS8Q7RmEwQP-XUWTQGtuka",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 15810514,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 18,
+      "title": "EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",
+      "driveFileId": "1zvs5f1GOzKc4U8WjhUuKWCdRJ5F4aufY",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 11006017,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 19,
+      "title": "BANG BANG BANG - KIN EDIT",
+      "driveFileId": "1Gw2_CadLkbI-L1iDw_pIPkwbrja1p-a5",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 12796931,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 20,
+      "title": "Animals BKB 2025 (DONMIXedit)",
+      "driveFileId": "1o-ZIYHhB8Jjis6_yV7DtaE4JXjWT2e6O",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 10999748,
       "assetId": null,
       "bbyaPermission": false,
       "status": "PREPARED_LOCAL",
