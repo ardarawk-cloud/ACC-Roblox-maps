@@ -1,0 +1,13 @@
+{
+  "status": "SOURCE_DUPLICATE_SKIPPED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 39,
+  "title": "SOMEWHERE - RC BKB REMIX - (1)",
+  "driveFileId": "1AvDlNjyRSTM0ZG_VzDS51B4CK7CprMlW",
+  "assetId": null,
+  "terminal": true,
+  "terminalReason": "DUPLICATE_OF_TRACK_038",
+  "sourceSha256": "fc4750e244485acf4917e0d9be28f6f75573a30e4e221a83eba1e516bd155c5f",
+  "duplicateOfTrack": 38
+}
