@@ -1,0 +1,98 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 27,
+  "title": "1234 ( Aldy alvaro BKB edit )",
+  "driveFileId": "1RmVs_XoA2crG7FARPUCjsSlSSq57zYUP",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "73234833022543",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/db536ead-e8fb-4e4b-924b-1dfef1612411",
+    "operationId": "db536ead-e8fb-4e4b-924b-1dfef1612411",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/db536ead-e8fb-4e4b-924b-1dfef1612411",
+    "operationId": "db536ead-e8fb-4e4b-924b-1dfef1612411",
+    "done": true,
+    "response": {
+      "path": "assets/73234833022543",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:50:28.161830600Z",
+      "assetId": "73234833022543",
+      "displayName": "1234 ( Aldy alvaro BKB edit )",
+      "description": "BBYA Underground Track 027",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
