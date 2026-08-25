@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 10,
+  "title": "MACARENA 2026 - ZHAK (BKB EDIT)",
+  "driveFileId": "1Wk1dxiOPAEVLaMWpZpfcuDaVFZBSSgsQ",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "135670059308492",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/5beb1666-8008-4ba5-a37b-93dab6270b91",
+    "operationId": "5beb1666-8008-4ba5-a37b-93dab6270b91",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/5beb1666-8008-4ba5-a37b-93dab6270b91",
+    "operationId": "5beb1666-8008-4ba5-a37b-93dab6270b91",
+    "done": true,
+    "response": {
+      "path": "assets/135670059308492",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T05:24:07.306328700Z",
+      "assetId": "135670059308492",
+      "displayName": "MACARENA 2026 - ZHAK (BKB EDIT)",
+      "description": "BBYA Underground Track 010",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        135670059308492
+      ],
+      "errors": []
+    }
+  }
+}
