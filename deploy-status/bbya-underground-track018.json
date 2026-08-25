@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 18,
+  "title": "EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",
+  "driveFileId": "1zvs5f1GOzKc4U8WjhUuKWCdRJ5F4aufY",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "95368919127704",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/0a0c006b-990e-49cd-aaa8-837cbb9075e3",
+    "operationId": "0a0c006b-990e-49cd-aaa8-837cbb9075e3",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/0a0c006b-990e-49cd-aaa8-837cbb9075e3",
+    "operationId": "0a0c006b-990e-49cd-aaa8-837cbb9075e3",
+    "done": true,
+    "response": {
+      "path": "assets/95368919127704",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:06:00.809579400Z",
+      "assetId": "95368919127704",
+      "displayName": "##################################################",
+      "description": "BBYA Underground Track 018",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        95368919127704
+      ],
+      "errors": []
+    }
+  }
+}
