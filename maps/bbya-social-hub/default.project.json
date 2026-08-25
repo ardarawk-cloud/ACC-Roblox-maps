@@ -323,6 +323,9 @@
         "TravelUIPatchV7": {
           "$path": "76-travel-ui-patch.client.lua"
         },
+        "SkateboardControlsV4": {
+          "$path": "135-skateboard-controls.client.lua"
+        },
         "BasementAudioUIPatchV5": {
           "$path": "81-basement-audio-ui.client.lua"
         },
