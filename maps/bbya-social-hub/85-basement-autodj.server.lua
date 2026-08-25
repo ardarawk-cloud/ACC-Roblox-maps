@@ -28,6 +28,7 @@ local PLAYLIST={
  {title="BANG BANG BANG - KIN EDIT",id="123499438012066",style="underground"},
  {title="ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",id="140442667497371",style="underground"},
  {title="ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",id="90986894139778",style="underground"},
+ {title="Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",id="130909529715712",style="underground"},
  {title="666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",id="116771187608517",style="underground"},
  {title="17.Mugwanti (Mahesa & hmp BKB Edit)",id="113698017406179",style="underground"},
  {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"},

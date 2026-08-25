@@ -1,5 +1,5 @@
 {
-  "status": "READY_TO_INJECT",
+  "status": "LIVE_PUBLISHED",
   "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 23,
@@ -34,5 +34,19 @@
       ],
       "errors": []
     }
-  }
+  },
+  "publishReceipt": {
+    "status": "PUBLISHED",
+    "mapId": "a-club",
+    "name": "BBYA Social Hub",
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "sourceCommit": "90f2068968a9f92bad559a5e312a56726deb20e9",
+    "publishedAt": "2026-08-25T17:20:15.424Z",
+    "publishedFile": "/home/runner/work/_temp/bbya-underground-batch.rbxl",
+    "response": {
+      "versionNumber": 485
+    }
+  },
+  "restartHttp": "403"
 }
