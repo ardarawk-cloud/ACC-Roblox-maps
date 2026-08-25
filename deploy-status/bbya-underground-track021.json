@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 21,
+  "title": "ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",
+  "driveFileId": "12hNUWaCELgFk2HdmfkZY9D3U7jefwNQb",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "140442667497371",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/4658e1df-178f-4f4c-ba41-dfa577bc90cf",
+    "operationId": "4658e1df-178f-4f4c-ba41-dfa577bc90cf",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/4658e1df-178f-4f4c-ba41-dfa577bc90cf",
+    "operationId": "4658e1df-178f-4f4c-ba41-dfa577bc90cf",
+    "done": true,
+    "response": {
+      "path": "assets/140442667497371",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:31:41.998713Z",
+      "assetId": "140442667497371",
+      "displayName": "ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",
+      "description": "BBYA Underground Track 021",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        140442667497371
+      ],
+      "errors": []
+    }
+  }
+}

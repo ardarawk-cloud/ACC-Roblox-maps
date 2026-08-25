@@ -277,10 +277,11 @@
       "driveFileId": "12hNUWaCELgFk2HdmfkZY9D3U7jefwNQb",
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 9091287,
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "assetId": "140442667497371",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
+      "sourceSha256": "5bf7f95543c78e64d68367b28dd88272e7beed37a69ff826c21432c32971d96a"
     },
     {
       "index": 22,
