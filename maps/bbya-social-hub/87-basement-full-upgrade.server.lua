@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v2
--- Underground-only lighting correction after live mobile overexposure evidence.
--- Restores a dark club profile while preserving blue/yellow identity and lounge geometry.
+-- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v3
+-- Underground-only micro brightness correction after v433 live mobile feedback.
+-- Raises local fill slightly while preserving the dark club profile and avoiding bloom.
 -- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
 local Workspace=game:GetService("Workspace")
@@ -44,6 +44,7 @@ out:SetAttribute("PremiumLoungeV4",true)
 out:SetAttribute("UndergroundIdentity",true)
 out:SetAttribute("AudioSystemUntouched",true)
 out:SetAttribute("GlobalLightingUntouched",true)
+out:SetAttribute("BrightnessMicroAdjust",true)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -52,10 +53,10 @@ local C={
  fabric=Color3.fromRGB(46,49,56),
  metal=Color3.fromRGB(72,76,84),
  glass=Color3.fromRGB(71,82,93),
- white=Color3.fromRGB(202,204,201),
+ white=Color3.fromRGB(208,210,207),
  blue=Color3.fromRGB(0,144,255),
  yellow=Color3.fromRGB(255,205,38),
- wash=Color3.fromRGB(170,180,194),
+ wash=Color3.fromRGB(178,188,201),
 }
 
 local function part(name,size,cf,color,mat,collide,parent,transparency)
@@ -74,68 +75,66 @@ local function hiddenAnchor(name,pos,parent)
 end
 
 -- -----------------------------------------------------------------------------
--- 1) DARK CLUB LIGHTING AUTHORITY
--- The previous profile stacked 12 broad washes + six side fills over the already-lit
--- blue/yellow/pentagon fixtures. On mobile this clipped the checker floor and booth to white.
--- Keep only restrained local fill; never touch global Lighting.
+-- 1) DARK CLUB LIGHTING AUTHORITY — SLIGHTLY BRIGHTER THAN v433
+-- Keep the room dark and clubby, but lift faces/furniture one small step.
 -- -----------------------------------------------------------------------------
 local lighting=Instance.new("Model");lighting.Name="DarkRoomLighting";lighting.Parent=out
 
--- White pentagons remain visible as fixtures but no longer flood the entire room.
+-- Pentagon fixtures remain controlled but contribute a little more readable ambience.
 if pentagons then
  for _,obj in ipairs(pentagons:GetDescendants()) do
   if obj:IsA("SurfaceLight") then
-   obj.Brightness=.12
-   obj.Range=10
-   obj.Angle=115
+   obj.Brightness=.16
+   obj.Range=12
+   obj.Angle=120
    obj.Shadows=false
   elseif obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
-   obj.Color=Color3.fromRGB(158,160,162)
-   obj.Transparency=.10
+   obj.Color=Color3.fromRGB(165,167,169)
+   obj.Transparency=.08
   end
  end
 end
 
--- Blue/yellow ceiling and wall tubes stay as club accents, not room floodlights.
+-- Blue/yellow tubes stay as accents with a small spill increase only.
 for _,obj in ipairs(basement:GetChildren()) do
  if obj:IsA("BasePart") and (
   obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
   or obj.Name:match("^WallBlue") or obj.Name:match("^WallYellow")
  ) then
-  obj.Transparency=.04
+  obj.Transparency=.03
   for _,light in ipairs(obj:GetChildren()) do
    if light:IsA("SurfaceLight") then
-    light.Brightness=.12
-    light.Range=9
-    light.Angle=110
+    light.Brightness=.15
+    light.Range=10.5
+    light.Angle=115
     light.Shadows=false
    end
   end
  end
 end
 
--- Six restrained ceiling fills. Their job is only to prevent pitch-black faces/corners.
+-- Six low ceiling fills. Slight lift from v433, still far below the old overbright profile.
 for xi,x in ipairs({-32,32}) do
  for zi,z in ipairs({-24,0,24}) do
   local a=hiddenAnchor(string.format("CeilingFill_%d_%d",xi,zi),Vector3.new(x,-1.55,z),lighting)
   local s=Instance.new("SurfaceLight")
-  s.Name="DarkCeilingWash";s.Face=Enum.NormalId.Bottom;s.Color=C.wash;s.Brightness=.08;s.Range=14;s.Angle=120;s.Shadows=false;s.Parent=a
+  s.Name="DarkCeilingWash";s.Face=Enum.NormalId.Bottom;s.Color=C.wash;s.Brightness=.11;s.Range=16;s.Angle=125;s.Shadows=false;s.Parent=a
  end
 end
 
--- Four tiny side fills reveal the lounge silhouette without flattening the room.
+-- Four gentle side fills for lounge silhouettes and faces.
 for i,d in ipairs({
- {Vector3.new(-52,-8,-22),Color3.fromRGB(116,137,162)},
- {Vector3.new(-52,-8,22),Color3.fromRGB(150,139,113)},
- {Vector3.new(52,-8,-22),Color3.fromRGB(150,139,113)},
- {Vector3.new(52,-8,22),Color3.fromRGB(116,137,162)},
+ {Vector3.new(-52,-8,-22),Color3.fromRGB(120,141,166)},
+ {Vector3.new(-52,-8,22),Color3.fromRGB(155,144,118)},
+ {Vector3.new(52,-8,-22),Color3.fromRGB(155,144,118)},
+ {Vector3.new(52,-8,22),Color3.fromRGB(120,141,166)},
 }) do
  local a=hiddenAnchor("SoftFill"..i,d[1],lighting)
  local l=Instance.new("PointLight")
- l.Name="DarkRoomFill";l.Color=d[2];l.Brightness=.08;l.Range=13;l.Shadows=false;l.Parent=a
+ l.Name="DarkRoomFill";l.Color=d[2];l.Brightness=.10;l.Range=15;l.Shadows=false;l.Parent=a
 end
 
--- Checker remains readable black/grey, but there are no near-white reflective tiles anymore.
+-- Checker remains black/grey, lifted only a little so floor pattern reads better.
 if checker then
  for _,tile in ipairs(checker:GetChildren()) do
   if tile:IsA("BasePart") then
@@ -143,7 +142,7 @@ if checker then
    tile.Material=Enum.Material.SmoothPlastic
    local avg=(tile.Color.R+tile.Color.G+tile.Color.B)/3
    if avg>.55 then
-    tile.Color=Color3.fromRGB(126,128,126)
+    tile.Color=Color3.fromRGB(138,140,138)
    else
     tile.Color=Color3.fromRGB(10,11,14)
    end
@@ -151,12 +150,12 @@ if checker then
  end
 end
 
--- Tone down the large white architectural surfaces that were blooming under mobile exposure.
+-- Large light surfaces get a small lift, still safely below the original blooming whites.
 local toneTargets={
- DJBoothBase=Color3.fromRGB(112,115,120),
- DJBoothTop=Color3.fromRGB(138,140,143),
- BarFrontWhite=Color3.fromRGB(104,107,112),
- BarTop=Color3.fromRGB(132,134,138),
+ DJBoothBase=Color3.fromRGB(120,123,128),
+ DJBoothTop=Color3.fromRGB(148,150,153),
+ BarFrontWhite=Color3.fromRGB(112,115,120),
+ BarTop=Color3.fromRGB(142,144,148),
 }
 for name,color in pairs(toneTargets) do
  local p=basement:FindFirstChild(name,true)
@@ -168,8 +167,7 @@ end
 
 -- -----------------------------------------------------------------------------
 -- 2) PREMIUM LOUNGE REBUILD
--- Replace the large block sofas with lower, cleaner club sectionals and subtle
--- under-seat accents. Keep the central dance floor fully open.
+-- Keep v433 lounge geometry; only lift underglow a tiny amount.
 -- -----------------------------------------------------------------------------
 if oldLounge and oldLounge.Parent then oldLounge:Destroy() end
 local lounge=Instance.new("Model");lounge.Name="PremiumLoungeV4";lounge.Parent=out
@@ -177,7 +175,7 @@ local lounge=Instance.new("Model");lounge.Name="PremiumLoungeV4";lounge.Parent=o
 local function lowGlow(name,size,cf,color,parent)
  local p=part(name,size,cf,color,Enum.Material.Neon,false,parent)
  p.CastShadow=false
- local l=Instance.new("SurfaceLight");l.Name="LoungeUnderglow";l.Face=Enum.NormalId.Top;l.Color=color;l.Brightness=.10;l.Range=4;l.Angle=105;l.Shadows=false;l.Parent=p
+ local l=Instance.new("SurfaceLight");l.Name="LoungeUnderglow";l.Face=Enum.NormalId.Top;l.Color=color;l.Brightness=.12;l.Range=4.5;l.Angle=110;l.Shadows=false;l.Parent=p
  return p
 end
 
@@ -214,7 +212,7 @@ coffeeTable("WestTable",-35.5,0);coffeeTable("EastTable",35.5,0)
 
 -- -----------------------------------------------------------------------------
 -- 3) UNDERGROUND ROOM IDENTITY / FINISHING
--- Clean back-wall identity behind the DJ booth. No interaction or audio logic.
+-- No interaction or audio changes.
 -- -----------------------------------------------------------------------------
 local identity=Instance.new("Model");identity.Name="UndergroundIdentity";identity.Parent=out
 local sign=part("IdentityPanel",Vector3.new(42,7,.26),CFrame.new(0,-7.0,42.38),Color3.fromRGB(17,20,25),Enum.Material.Metal,false,identity)
@@ -228,9 +226,10 @@ for _,x in ipairs({-48,-24,0,24,48}) do
  part("SouthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,-42.55),C.metal,Enum.Material.Metal,false,identity)
 end
 
-basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V5")
+basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V6_SLIGHT_LIFT")
 basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
 basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
 basement:SetAttribute("OverbrightRegressionFixed",true)
+basement:SetAttribute("BrightnessMicroAdjust",true)
 
-print("[BBYA] Basement Full Upgrade v2 online: DARK underground lighting restored / premium sectionals / identity preserved")
+print("[BBYA] Basement Full Upgrade v3 online: slight brightness lift / dark club profile preserved / no global lighting change")
