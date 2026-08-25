@@ -1,0 +1,88 @@
+{
+  "playlistId": "rooftop-tropical",
+  "venue": "ROOFTOP",
+  "genre": "Tropical / Chill House",
+  "sourceFolderId": "1Ce1q5oMBjzMvLdWxX3vbjtwptXKeQJqO",
+  "sourceFolderUrl": "https://drive.google.com/drive/folders/1Ce1q5oMBjzMvLdWxX3vbjtwptXKeQJqO",
+  "oneTrackPerInjection": true,
+  "policy": {
+    "noBatchUpload": true,
+    "noAutomaticDuplicateRetry": true,
+    "stopOnModerationRejection": true,
+    "exactHashDedupe": true
+  },
+  "tracks": [
+    {
+      "index": 1,
+      "title": "Damon Empero ft. Veronica - Vacation | Tropical House | - Damon Empero",
+      "driveFileId": "1cxEit3cEy6S1YfQr5W4eulorASQ0_ec3",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 2,
+      "title": "Rolipso - Come Around (Lyrics) - Sensual Musique",
+      "driveFileId": "1rJD-vRTn5wr5C83mnyfS75pWoXIClSJC",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 3,
+      "title": "Dovian - Starting Over (Lyrics) - Sensual Musique",
+      "driveFileId": "1R9ysfatoATX_JLqmPUTyeVde_wQ7Kq_W",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 4,
+      "title": "The Beach, DANÊL - Tears On My Guitar (Lyrics) - Sensual Musique",
+      "driveFileId": "1B3-Fl1dKWyTygaHZkO_7qN4SFjtP5bMr",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 5,
+      "title": "DALEXO, MCN2, KOOLKID - Criminal Love (Lyrics) - Sensual Musique",
+      "driveFileId": "1k4wdb0bsO_pXM3LK6ZnFTMqCbWh7DYAr",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 6,
+      "title": "Iggy, JP Ventura - Say My Name (Lyrics) - Sensual Musique",
+      "driveFileId": "1KjAK7DtMATMsMBsRos4Dykbae02KHKRn",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 7,
+      "title": "Iggy, JP Ventura - Say My Name (Lyrics) - Sensual Musique (1)",
+      "driveFileId": "1IMcqPcdHPbVgTCeYbBhNhai9ho2NOYlb",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    },
+    {
+      "index": 8,
+      "title": "Goldaine - Weightless (Lyrics) - Sensual Musique",
+      "driveFileId": "1koaNQAjTendOTVLwqxV3I6Yv08Dn7wvK",
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PENDING_UPLOAD",
+      "moderationLastKnown": null
+    }
+  ]
+}
