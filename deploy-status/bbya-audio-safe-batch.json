@@ -3206,6 +3206,54 @@
           "versionNumber": 459
         }
       }
+    },
+    "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ": {
+      "driveId": "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ",
+      "title": "5A - 130 - 05 belum ada judul",
+      "filename": "5A - 130 - 05 belum ada judul.mp3",
+      "sequence": 38,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561211,
+        "sha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347"
+      },
+      "updatedAt": "2026-08-25T09:29:12.145386+00:00",
+      "normalizedSha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/42ed3153-5903-46de-b34a-04b6aa435226",
+        "operationId": "42ed3153-5903-46de-b34a-04b6aa435226",
+        "done": false
+      },
+      "uploadedAt": "2026-08-25T09:29:13.065938+00:00",
+      "operationPath": "operations/42ed3153-5903-46de-b34a-04b6aa435226",
+      "operationResult": {
+        "path": "operations/42ed3153-5903-46de-b34a-04b6aa435226",
+        "operationId": "42ed3153-5903-46de-b34a-04b6aa435226",
+        "done": true,
+        "response": {
+          "path": "assets/134098187733158",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T09:29:27.694468Z",
+          "assetId": "134098187733158",
+          "displayName": "5A - 130 - 05 belum ada judul",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "134098187733158",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
