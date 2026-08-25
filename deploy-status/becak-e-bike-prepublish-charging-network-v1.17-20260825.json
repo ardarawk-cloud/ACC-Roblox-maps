@@ -32,7 +32,12 @@
       "conclusion": "failure-before-steps"
     },
     "safeRetryRequested": true,
-    "attempt2StatusAtEvidence": "queued",
+    "attempt2": {
+      "conclusion": "failure-before-steps"
+    },
+    "failureClassification": "github-actions-runner-not-allocated-or-pre-step-failure",
+    "sourceBuildFailureObserved": false,
+    "robloxPublishFailureObserved": false,
     "latestVerifiedReceipt": {
       "ok": true,
       "httpStatus": 200,
