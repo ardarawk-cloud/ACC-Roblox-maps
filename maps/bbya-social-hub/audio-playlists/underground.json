@@ -165,7 +165,7 @@
       "sourceSizeBytes": 9579384,
       "assetId": "114038149273002",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "b0b783b4c1e70cbef218b9639675f413b8af504d6ce52f99d5977d610403093a"
     },
@@ -177,7 +177,7 @@
       "sourceSizeBytes": 11852208,
       "assetId": "99406970263948",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "4693bb618ad55b0165d2fec2058480caea46ab02ac1f2ec3572b3628a75ba1a0"
     },
@@ -201,7 +201,7 @@
       "sourceSizeBytes": 8864980,
       "assetId": "117479133947987",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "f3975d1e1db6f3da570a574adda5b3dc508429849afbca3efad47df739dd8e91"
     },
@@ -240,7 +240,7 @@
       "sourceSizeBytes": 11006017,
       "assetId": "95368919127704",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "c69047c8d34c203d8218e3d67a485e997fcbe58342c68338e02717e867033374"
     },
@@ -252,7 +252,7 @@
       "sourceSizeBytes": 12796931,
       "assetId": "123499438012066",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "0edc7399b928cba48951ae74576aede8c3d05ca6207a6b7bba8b489fa0ddd29a"
     },

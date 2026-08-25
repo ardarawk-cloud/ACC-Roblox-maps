@@ -19,7 +19,11 @@ local PLAYLIST={
  {title="SIAPKAH JATUH CINTA LAGI [ DESTRA PRAYOGO ]#BKB2K25",id="75709298846740",style="underground"},
  {title="MASIH DENGANMU [ DESTRA PRAYOGO ]#BKB2K25",id="140443777425109",style="underground"},
  {title="MACARENA 2026 - ZHAK (BKB EDIT)",id="135670059308492",style="underground"},
- {title="DJ Mama Muda Enak Dong",id="134073539670673",style="underground"}
+ {title="JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",id="114038149273002",style="underground"},
+ {title="JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",id="99406970263948",style="underground"},
+ {title="I KNOW YOU WANT ME - KIN BKB EDIT",id="117479133947987",style="underground"},
+ {title="EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",id="95368919127704",style="underground"},
+ {title="BANG BANG BANG - KIN EDIT",id="123499438012066",style="underground"}
 }
 
 local MIX_SECONDS=4.0
