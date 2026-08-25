@@ -64,7 +64,6 @@ local function controlledSound(s)
  if not s:IsA("Sound") then return false end
  local sg=s.SoundGroup
  if UNDERGROUND_REBUILD_ENABLED and sg and sg.Name=="BBYABasementMaster" then return false end
- if sg and sg.Name=="BBYAFunkotMaster" and ReplicatedStorage:GetAttribute("BBYAFunkotPlaylistEnabled")==true then return false end
  if knownSounds[s.Name] or s:GetAttribute("BBYARecovery")==true then return true end
  if sg and sg.Name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end
  return sg and groups[sg.Name]~=nil or false
@@ -107,11 +106,7 @@ local function applyReset()
  for _,o in ipairs(SoundService:GetDescendants()) do if o:IsA("Sound") and controlledSound(o) then scrubSound(o,true) end end
  scrubWorkspaceVIP()
  for name,g in pairs(groups) do
-  local undergroundActive=UNDERGROUND_REBUILD_ENABLED and name=="BBYABasementMaster"
-  local funkotActive=name=="BBYAFunkotMaster" and ReplicatedStorage:GetAttribute("BBYAFunkotPlaylistEnabled")==true
-  if funkotActive then
-   g.Volume=.62;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","FUNKOT_ACTIVE")
-  elseif not undergroundActive then
+  if not (UNDERGROUND_REBUILD_ENABLED and name=="BBYABasementMaster") then
    g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
   end
  end
