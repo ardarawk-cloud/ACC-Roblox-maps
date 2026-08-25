@@ -1,99 +1,18 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 10,
+  "processedCount": 1,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
   "tracks": [
     {
-      "trackIndex": 14,
-      "title": "I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",
-      "status": "READY_TO_INJECT",
-      "assetId": "129689050998627",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 17,
-      "title": "EMANG DASAR -IVNSYH-",
-      "status": "READY_TO_INJECT",
-      "assetId": "125107386771710",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 21,
-      "title": "ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",
-      "status": "READY_TO_INJECT",
-      "assetId": "140442667497371",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 22,
-      "title": "ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",
-      "status": "READY_TO_INJECT",
-      "assetId": "90986894139778",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
       "trackIndex": 23,
       "title": "Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",
-      "status": "MODERATION_PENDING",
+      "status": "READY_TO_INJECT",
       "assetId": "130909529715712",
-      "moderationState": "Reviewing",
-      "blacklisted": false,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 24,
-      "title": "666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",
-      "status": "READY_TO_INJECT",
-      "assetId": "116771187608517",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 25,
-      "title": "666 - BEAUTIFULL LIE BKB REVOLUTIONS",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "103110443796598",
-      "moderationState": "Rejected",
-      "blacklisted": true,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 26,
-      "title": "17.Mugwanti (Mahesa & hmp BKB Edit)",
-      "status": "READY_TO_INJECT",
-      "assetId": "113698017406179",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 27,
-      "title": "1234 ( Aldy alvaro BKB edit )",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "73234833022543",
-      "moderationState": "Rejected",
-      "blacklisted": true,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 28,
-      "title": "06. ARIA PIL KB (EANN BKB EDIT)",
-      "status": "READY_TO_INJECT",
-      "assetId": "109573287368195",
       "moderationState": "Approved",
       "blacklisted": false,
       "readyToInject": true
     }
   ],
-  "recordedAtUnix": 1787676809
+  "recordedAtUnix": 1787678405
 }
