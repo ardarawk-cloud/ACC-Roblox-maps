@@ -1,13 +1,13 @@
 {
-  "status": "MODERATION_PENDING",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 14,
   "title": "I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",
   "driveFileId": "1tN2v7SZSP-Og6fE7uh9yf28lAthCqzY3",
   "bbyaUniverseId": "8116636513",
   "assetId": "129689050998627",
-  "uploadReused": false,
+  "uploadReused": true,
   "expectedUploaderUserId": "9296030038",
   "key": {
     "http": 200,
@@ -18,84 +18,21 @@
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/f49916d7-2165-4f0f-9019-12f244695b5a",
-    "operationId": "f49916d7-2165-4f0f-9019-12f244695b5a",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/f49916d7-2165-4f0f-9019-12f244695b5a",
-    "operationId": "f49916d7-2165-4f0f-9019-12f244695b5a",
-    "done": true,
-    "response": {
-      "path": "assets/129689050998627",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T15:54:02.650368500Z",
-      "assetId": "129689050998627",
-      "displayName": "I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",
-      "description": "BBYA Underground Track 014",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
-  },
-  "moderationState": "Reviewing",
+  "moderationState": "Approved",
   "moderationChecks": [
     {
       "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
+      "state": "Approved"
     }
-  ]
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        129689050998627
+      ],
+      "errors": []
+    }
+  }
 }
