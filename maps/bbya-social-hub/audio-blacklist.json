@@ -135,6 +135,14 @@
       "blacklistedAt": "2026-08-24T23:54:52.828887+00:00",
       "assetId": "103625349994129",
       "moderationState": "Rejected"
+    },
+    "1VejyxYx2Ct56vvYLS9M_KROL_oqxv93y": {
+      "driveId": "1VejyxYx2Ct56vvYLS9M_KROL_oqxv93y",
+      "title": "ACC_Audio_1787515040799.mp3",
+      "reason": "ROBLOX_MODERATION_REJECTED_PERMANENT",
+      "previousAssetId": "138963662106198",
+      "sourceSha256": "2168181d1df05306cb56caa680c53ab02b0d30f99b3f1e9a24e6d479146ffbce",
+      "blacklistedAt": "2026-08-25T03:04:20.331295+00:00"
     }
   }
 }
