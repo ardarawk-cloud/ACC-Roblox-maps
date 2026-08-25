@@ -1,0 +1,43 @@
+{
+  "status": "PREPUBLISH_VALIDATED",
+  "mapId": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "c4621dd6737ef2a9d8a1c4e971a78bf39086eca2",
+  "scope": [
+    "maps/becak-e-bike/world-qc.server.lua"
+  ],
+  "upgrade": "World QC v2.7",
+  "validation": {
+    "dedicatedPathIsolation": true,
+    "targetLockVerifiedInWorkflow": true,
+    "chargingSafetyMarkerRequired": "v1.17",
+    "chargingResilienceMarkerRequired": "v1.18",
+    "chargingStationCountRequired": 5,
+    "chargingLineOfSightRequired": true,
+    "chargingMaxActivationDistanceStuds": 10,
+    "chargingHoldDurationSeconds": 0.55,
+    "chargingCooldownSeconds": 1.0,
+    "chargingDisconnectSafeUnlockRequired": true,
+    "chargingStaleLockWatchdogRequired": true,
+    "chargingStaleLockGraceSeconds": 0.75,
+    "chargingIncludedInCoreSystemsGate": true,
+    "physicsChanged": false,
+    "collisionTopologyChanged": false,
+    "economyLogicChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "workflowRun": {
+    "runId": 32882236607,
+    "attempt1": "FAILED_BEFORE_STEPS",
+    "safeRetryRequested": true
+  },
+  "lastVerifiedLiveReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z",
+    "freshForSourceCommit": false
+  },
+  "publishState": "AWAITING_FRESH_RECEIPT"
+}
