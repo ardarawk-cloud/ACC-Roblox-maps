@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "LIVE_PUBLISHED",
   "playlistId": "rooftop-tropical",
   "trackIndex": 1,
   "title": "Damon Empero ft. Veronica - Vacation | Tropical House | - Damon Empero",
@@ -8,7 +8,7 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "safeContinue": true,
-  "startedAt": "2026-08-25T09:36:50+00:00",
+  "startedAt": "2026-08-25T09:37:46+00:00",
   "key": {
     "http": 200,
     "authorizedUserId": "9296030038",
@@ -22,38 +22,60 @@
     "userId": "9296030038",
     "name": "GudangPet88"
   },
-  "sourceSha256": "d00cbf14054d18dafa85fb74b9bcbf185edb9d29bdac5b0d1e04ed4dc2b4b010",
-  "uploadFileSha256": "d00cbf14054d18dafa85fb74b9bcbf185edb9d29bdac5b0d1e04ed4dc2b4b010",
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/c7197c75-187d-4707-a4b1-f0475445fec2",
-    "operationId": "c7197c75-187d-4707-a4b1-f0475445fec2",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/c7197c75-187d-4707-a4b1-f0475445fec2",
-    "operationId": "c7197c75-187d-4707-a4b1-f0475445fec2",
-    "done": true,
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:37:47+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:38:02+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:38:17+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:38:32+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:38:47+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:39:02+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:39:17+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Approved",
+      "checkedAt": "2026-08-25T09:39:32+00:00"
+    }
+  ],
+  "bbyaPermission": {
+    "ok": true,
+    "http": 200,
     "response": {
-      "path": "assets/81739335079331",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T09:37:07.922767600Z",
-      "assetId": "81739335079331",
-      "displayName": "Damon Empero ft. Veronica - Vacation | Tropical Ho",
-      "description": "BBYA Social Hub Rooftop Track 01",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+      "successAssetIds": [
+        81739335079331
+      ],
+      "errors": []
     }
   },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T09:37:10+00:00"
+  "readyToInject": true,
+  "updatedAt": "2026-08-25T09:39:33+00:00",
+  "livePublishedAt": "2026-08-25T09:39:35.690281+00:00"
 }

@@ -270,6 +270,9 @@
       },
       "FunkotPlaylistAuthorityV1": {
         "$path": "121-funkot-playlist.server.lua"
+      },
+      "RooftopPlaylistAuthorityV1": {
+        "$path": "134-rooftop-playlist.server.lua"
       }
     },
     "StarterPlayer": {
