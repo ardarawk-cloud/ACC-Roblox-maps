@@ -7,45 +7,16 @@
   "driveFileId": "1zujqtgLZr913D-xwHrFhqYU8dLuweBpX",
   "bbyaUniverseId": "8116636513",
   "assetId": "103410156771684",
-  "uploadReused": false,
-  "expectedUploaderUserId": "10001957153",
+  "uploadReused": true,
+  "expectedUploaderUserId": "9296030038",
   "key": {
     "http": 200,
-    "keyName": "AM STUDIO AUDIO 02",
-    "authorizedUserId": "10001957153",
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
-  },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/1e6f6c53-04ca-4a2d-9bcf-860328d6c5bd",
-    "operationId": "1e6f6c53-04ca-4a2d-9bcf-860328d6c5bd",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/1e6f6c53-04ca-4a2d-9bcf-860328d6c5bd",
-    "operationId": "1e6f6c53-04ca-4a2d-9bcf-860328d6c5bd",
-    "done": true,
-    "response": {
-      "path": "assets/103410156771684",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T23:05:21.129361500Z",
-      "assetId": "103410156771684",
-      "displayName": "Om Abidin - Ani Ani ( Club Mix )",
-      "description": "BBYA Underground Track 049",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "10001957153"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
   },
   "moderationState": "Reviewing",
   "moderationChecks": [
