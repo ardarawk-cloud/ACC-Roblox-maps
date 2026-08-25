@@ -1,0 +1,9 @@
+{
+  "source_sha": "SELF",
+  "reason": "Roll-forward deploy of the PR #184 merge commit containing PR #183 Main Club former-studio premium + room-aware audio while preserving newer parallel source updates",
+  "contains_feature_pr": 183,
+  "publisher_pr": 184,
+  "expected_map": "a-club",
+  "expected_universe": "8116636513",
+  "expected_place": "131894120482837"
+}
