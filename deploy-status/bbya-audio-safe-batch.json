@@ -2899,6 +2899,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-25T03:30:10.490039+00:00"
+    },
+    "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi": {
+      "driveId": "11L9k3uZCettxoxCbXTDcVv4XT7vP_Sgi",
+      "title": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya)",
+      "filename": "5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya).mp3",
+      "sequence": 35,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561383,
+        "sha256": "7b3264036739cb305d95df04cfef652fa63094c19d613866f86f459635e3db40"
+      },
+      "updatedAt": "2026-08-25T03:30:22.284152+00:00",
+      "normalizedSha256": "7b3264036739cb305d95df04cfef652fa63094c19d613866f86f459635e3db40",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/c093db67-9565-4553-9195-3620edcd8ed2",
+        "operationId": "c093db67-9565-4553-9195-3620edcd8ed2",
+        "done": false
+      },
+      "uploadedAt": "2026-08-25T03:30:23.038166+00:00",
+      "operationPath": "operations/c093db67-9565-4553-9195-3620edcd8ed2",
+      "operationResult": {
+        "path": "operations/c093db67-9565-4553-9195-3620edcd8ed2",
+        "operationId": "c093db67-9565-4553-9195-3620edcd8ed2",
+        "done": true,
+        "response": {
+          "path": "assets/93670094706108",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T03:30:47.669625400Z",
+          "assetId": "93670094706108",
+          "displayName": "5A - 128 - 128 - C.Walking On Air (The Full Time S",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "93670094706108",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
