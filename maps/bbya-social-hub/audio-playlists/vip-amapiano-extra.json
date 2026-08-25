@@ -15,10 +15,10 @@
       "sourceDurationSeconds": 218.52,
       "sourceSizeBytes": 6418988,
       "sourceSha256": "2168181d1df05306cb56caa680c53ab02b0d30f99b3f1e9a24e6d479146ffbce",
-      "assetId": null,
+      "assetId": "138963662106198",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing"
     },
     {
       "index": 18,
