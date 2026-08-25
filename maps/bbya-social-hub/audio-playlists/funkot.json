@@ -138,9 +138,9 @@
       "driveFileId": "10jpTCLc9AAtLqT4TqT4BfuChy5uEEvO-",
       "sourceSizeBytes": 13377781,
       "assetId": "128567852049551",
-      "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
       "sourceSha256": "e7091b186285542326d5119aaf108005c48b7c7b5cd3ef1fcba228bc825184d4",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
@@ -165,10 +165,12 @@
       "title": "Sama Sama Suka 2026 - DJ Dhany Barcof Ft DJ KEYSAN XBEAT 39 RMX.mp3",
       "driveFileId": "1iOFaoDiDoDfglFK3eQwy8jsaWxa7AIzn",
       "sourceSizeBytes": 21958560,
-      "assetId": null,
+      "assetId": "107099600756535",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
+      "sourceSha256": "47b3929bd8c9024db4274c40a28038b600065e50e1dc59db35b10028b2002c87",
+      "normalizedSha256": "5dc9816622c30024a0df89a43f8da047b38ff3acabee00fd325fef491eaa6442"
     },
     {
       "index": 11,

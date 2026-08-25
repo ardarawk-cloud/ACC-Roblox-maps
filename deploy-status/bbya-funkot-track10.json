@@ -1,0 +1,63 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "safeContinue": true,
+  "playlistId": "funkot",
+  "trackIndex": 10,
+  "title": "Sama Sama Suka 2026 - DJ Dhany Barcof Ft DJ KEYSAN XBEAT 39 RMX.mp3",
+  "driveFileId": "1iOFaoDiDoDfglFK3eQwy8jsaWxa7AIzn",
+  "bbyaUniverseId": "8116636513",
+  "expectedUploaderUsername": "gudangpet88",
+  "assetId": "107099600756535",
+  "uploadReused": false,
+  "sourceSha256": "47b3929bd8c9024db4274c40a28038b600065e50e1dc59db35b10028b2002c87",
+  "normalizedSha256": "5dc9816622c30024a0df89a43f8da047b38ff3acabee00fd325fef491eaa6442",
+  "startedAt": "2026-08-25T16:08:20+00:00",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploader": {
+    "http": 200,
+    "userId": "9296030038",
+    "name": "GudangPet88",
+    "displayName": "GudangPet88"
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/7a6f8fa0-c96a-4f74-b917-643b338a915d",
+    "operationId": "7a6f8fa0-c96a-4f74-b917-643b338a915d",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/7a6f8fa0-c96a-4f74-b917-643b338a915d",
+    "operationId": "7a6f8fa0-c96a-4f74-b917-643b338a915d",
+    "done": true,
+    "response": {
+      "path": "assets/107099600756535",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:08:54.747395400Z",
+      "assetId": "107099600756535",
+      "displayName": "Sama Sama Suka 2026 - DJ Dhany Barcof Ft DJ KEYSAN",
+      "description": "BBYA Funkot Track 10",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [],
+  "updatedAt": "2026-08-25T16:08:57+00:00"
+}
