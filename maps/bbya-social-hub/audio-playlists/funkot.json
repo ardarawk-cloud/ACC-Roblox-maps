@@ -52,16 +52,17 @@
       "title": "Zinyo Funkytone - Betadine 2025.mp3",
       "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
       "sourceSizeBytes": 22887552,
-      "assetId": null,
+      "assetId": "98210407231982",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
       "blacklistedAt": "2026-08-24T15:17:14+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "3cfff139c4ee69fe300d6d467bf1e4e9565b0bfcc259809871b6290e7501ced9"
     },
     {
       "index": 4,

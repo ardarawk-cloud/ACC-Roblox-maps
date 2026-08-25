@@ -1,5 +1,5 @@
 {
-  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "status": "MODERATION_PENDING",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -8,10 +8,11 @@
   "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
-  "assetId": null,
+  "assetId": "98210407231982",
   "uploadReused": false,
   "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
-  "startedAt": "2026-08-24T15:16:59+00:00",
+  "normalizedSha256": "3cfff139c4ee69fe300d6d467bf1e4e9565b0bfcc259809871b6290e7501ced9",
+  "startedAt": "2026-08-25T04:22:38+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -29,19 +30,34 @@
   },
   "uploadHttp": 200,
   "uploadResponse": {
-    "path": "operations/e2835a8a-4700-441a-b2ce-13c3cb36d0da",
-    "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "path": "operations/ceeb0b16-df8f-4136-9f84-72c03bb03379",
+    "operationId": "ceeb0b16-df8f-4136-9f84-72c03bb03379",
     "done": false
   },
   "operationResult": {
-    "path": "operations/e2835a8a-4700-441a-b2ce-13c3cb36d0da",
-    "operationId": "e2835a8a-4700-441a-b2ce-13c3cb36d0da",
+    "path": "operations/ceeb0b16-df8f-4136-9f84-72c03bb03379",
+    "operationId": "ceeb0b16-df8f-4136-9f84-72c03bb03379",
     "done": true,
-    "error": {
-      "code": "InvalidArgument",
-      "message": "Audio duration too long",
-      "details": []
+    "response": {
+      "path": "assets/98210407231982",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T04:22:51.053569400Z",
+      "assetId": "98210407231982",
+      "displayName": "Zinyo Funkytone - Betadine 2025.mp3",
+      "description": "BBYA Funkot Track 03",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
     }
   },
-  "updatedAt": "2026-08-24T15:17:14+00:00"
+  "moderationState": "Reviewing",
+  "moderationChecks": [],
+  "updatedAt": "2026-08-25T04:22:53+00:00"
 }
