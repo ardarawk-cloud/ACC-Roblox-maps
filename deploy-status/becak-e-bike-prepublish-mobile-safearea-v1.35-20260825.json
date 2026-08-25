@@ -1,0 +1,33 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "upgrade": "Mobile Safe Area v1.35 visibility-aware fallback",
+  "sourceCommit": "2d55dc8b291db9652d73ddd2ede5b0cad9de26da",
+  "sourceFilesChanged": [
+    "maps/becak-e-bike/mobile.safearea.client.lua"
+  ],
+  "otherMapsTouchedBySourceCommit": false,
+  "compatibility": {
+    "workflowTokenV1_31Preserved": true,
+    "builderTokenV1_32Preserved": true,
+    "openFallbackHz": 2,
+    "closedFallbackSeconds": 1.5,
+    "framePolling": false,
+    "cameraViewportSignalImmediate": true
+  },
+  "invariants": {
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "publishIsolationPreserved": true
+  },
+  "previousVerifiedReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishStatus": "pending_fresh_receipt"
+}
