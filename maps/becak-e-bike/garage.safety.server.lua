@@ -1,4 +1,4 @@
--- BECAK E-BIKE — garage/economy interaction safety v1.3
+-- BECAK E-BIKE — garage/economy interaction safety v1.4
 -- Additive guard around existing economy-facing ProximityPrompts. It does not own player economy data.
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -16,6 +16,7 @@ local COOLDOWN_SECONDS = 1.25
 local HOLD_SECONDS = 0.65
 local SERVICE_HOLD_SECONDS = 0.55
 local SERVICE_MAX_DISTANCE = 10
+local SERVICE_COOLDOWN_SECONDS = 1.0
 local locked = false
 local unlockToken = 0
 local lockOwnerUserId = 0
@@ -60,6 +61,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 local hardenedServicePrompts = 0
+local servicePromptStates = {}
 local function hardenServicePrompt(target, label)
     if not target then return false end
     local servicePrompt = target:FindFirstChildOfClass("ProximityPrompt")
@@ -67,7 +69,27 @@ local function hardenServicePrompt(target, label)
     servicePrompt.HoldDuration = math.max(servicePrompt.HoldDuration, SERVICE_HOLD_SECONDS)
     servicePrompt.MaxActivationDistance = math.min(servicePrompt.MaxActivationDistance, SERVICE_MAX_DISTANCE)
     servicePrompt.RequiresLineOfSight = true
-    servicePrompt:SetAttribute("BecakEconomyInteractionSafety", "v1.3")
+    servicePrompt:SetAttribute("BecakEconomyInteractionSafety", "v1.4")
+    servicePrompt:SetAttribute("BecakEconomyServiceLabel", label)
+
+    local state = {locked=false, token=0}
+    servicePromptStates[servicePrompt] = state
+    servicePrompt.Triggered:Connect(function(player)
+        if state.locked then return end
+        state.locked = true
+        state.token += 1
+        local token = state.token
+        servicePrompt.Enabled = false
+        player:SetAttribute("BecakServiceTransactionGuard", label .. ":COOLDOWN")
+        player:SetAttribute("BecakServiceLastGuardedAt", Workspace:GetServerTimeNow())
+        task.delay(SERVICE_COOLDOWN_SECONDS, function()
+            if state.token ~= token then return end
+            state.locked = false
+            if servicePrompt.Parent then servicePrompt.Enabled = true end
+            if player.Parent then player:SetAttribute("BecakServiceTransactionGuard", "READY") end
+        end)
+    end)
+
     hardenedServicePrompts += 1
     return true
 end
@@ -82,7 +104,7 @@ local cargoDepot = cargoJobs and (cargoJobs:FindFirstChild("CargoDepot") or carg
 hardenServicePrompt(cargoDepot, "CargoDepot")
 
 Workspace:SetAttribute("ACC_BecakGarageSafety", "v1.0")
-Workspace:SetAttribute("ACC_BecakGarageSafetyEnhancement", "v1.3")
+Workspace:SetAttribute("ACC_BecakGarageSafetyEnhancement", "v1.4")
 Workspace:SetAttribute("BecakGaragePurchaseDebounce", "ON")
 Workspace:SetAttribute("BecakGaragePurchaseCooldownSeconds", COOLDOWN_SECONDS)
 Workspace:SetAttribute("BecakGarageMobileDeliberateHold", "ON")
@@ -95,4 +117,6 @@ Workspace:SetAttribute("BecakEconomyPromptHoldDurationSeconds", SERVICE_HOLD_SEC
 Workspace:SetAttribute("BecakEconomyPromptMaxActivationDistance", SERVICE_MAX_DISTANCE)
 Workspace:SetAttribute("BecakEconomyPromptRequiresLineOfSight", "ON")
 Workspace:SetAttribute("BecakEconomyPromptHardenedCount", hardenedServicePrompts)
+Workspace:SetAttribute("BecakEconomyServicePromptDebounce", "ON")
+Workspace:SetAttribute("BecakEconomyServicePromptCooldownSeconds", SERVICE_COOLDOWN_SECONDS)
 Workspace:SetAttribute("BecakChargingPromptSafety", "ON")
