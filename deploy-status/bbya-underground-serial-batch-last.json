@@ -1,18 +1,90 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 1,
+  "processedCount": 9,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
   "tracks": [
     {
-      "trackIndex": 23,
-      "title": "Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",
-      "status": "READY_TO_INJECT",
-      "assetId": "130909529715712",
-      "moderationState": "Approved",
+      "trackIndex": 30,
+      "title": "[ IRSA ] GATHEL - NDX 2025 ( BKB ) Album DJ  STAR VOL. 2",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "110053108356230",
+      "moderationState": "Rejected",
+      "blacklisted": true,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 31,
+      "title": "YOU ARE MY SUNSHINE - Cookies Minor - BKB",
+      "status": "MODERATION_PENDING",
+      "assetId": "126371089948998",
+      "moderationState": "Reviewing",
       "blacklisted": false,
-      "readyToInject": true
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 32,
+      "title": "Where Have You Been {Crypton} BKB Edit",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "126065626352277",
+      "moderationState": "Rejected",
+      "blacklisted": true,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 33,
+      "title": "VOICES IN MY HEAD _ CRYSHEILA BKB REMIX _ - CRYSHEILA - SoundLoadMate.com",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 34,
+      "title": "TOR MONITOR KETUA - QMUNK AMSTRONG#BKB PRIVAT",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 35,
+      "title": "TIMELESS - Nathalie Holscher x Derina Derin x Ajun Perwira (BKB EDIT)  Bpm -132",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 36,
+      "title": "Thank You - El kiyano (Bkb edit)",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 37,
+      "title": "TANPA CINTA V2 2025 - Alka Flow BKB",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 38,
+      "title": "SOMEWHERE - RC BKB REMIX -",
+      "status": "UPLOAD_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "blacklisted": false,
+      "readyToInject": false
     }
   ],
-  "recordedAtUnix": 1787678405
+  "recordedAtUnix": 1787679191
 }
