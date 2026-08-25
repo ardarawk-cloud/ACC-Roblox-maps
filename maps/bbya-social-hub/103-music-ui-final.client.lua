@@ -146,7 +146,8 @@ end
 local VIP_TRACKS={
  {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
  {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"},
- {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",assetId="131557279061872",key="A major",camelot="11B"}
+ {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",assetId="131557279061872",key="A major",camelot="11B"},
+ {title="ACC_Audio_1787515147552.mp3",assetId="135466870455541",key="D minor",camelot="7A"}
 }
 local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
@@ -176,7 +177,7 @@ local function refreshCard()
  local vipTrack=(v=="VIP" and tracks[vipIndex]) or nil
  if v=="VIP" and not vipTrack and #tracks>0 then vipTrack=tracks[1] end
  local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPCurrentTitle") or (vipTrack and vipTrack.title) or "")
- local empty=(resetActive() and v~="VIP" and v~="UNDERGROUND") or #tracks==0 or (s.title=="" and not vipTrack)
+ local empty=(resetActive() and v~="VIP") or #tracks==0 or (s.title=="" and not vipTrack)
  cardStroke.Color=spec.accent;coverStroke.Color=spec.accent;drawerStroke.Color=spec.accent;nowSmall.TextColor3=spec.accent;coverVenue.TextColor3=spec.accent
  coverVenue.Text=spec.short
  nowTitle.Text=(v=="VIP" and vipTitle~="") and vipTitle or (empty and "BELUM ADA LAGU" or s.title)
@@ -193,7 +194,7 @@ local function clearRows()
  end
 end
 local function requestTrack(v,index)
- if resetActive() and v~="VIP" and v~="UNDERGROUND" then showToast("PLAYLIST MASIH KOSONG");return end
+ if resetActive() and v~="VIP" then showToast("PLAYLIST MASIH KOSONG");return end
  if v=="VIP" then vipRemote:FireServer("request",index)
  elseif v=="FUNKOT" then funkotRemote:FireServer("request",index)
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("request",index)
@@ -214,7 +215,7 @@ local function rebuildPlaylist()
 end
 
 local function requestList(v)
- if resetActive() and v~="VIP" and v~="UNDERGROUND" then return end
+ if resetActive() and v~="VIP" then return end
  if v=="VIP" then vipRemote:FireServer("list")
  elseif v=="FUNKOT" then funkotRemote:FireServer("list")
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("list") end

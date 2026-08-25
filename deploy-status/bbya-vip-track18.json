@@ -1,6 +1,6 @@
 {
-  "status": "MODERATION_PENDING",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "vip-amapiano",
   "trackIndex": 18,
   "title": "ACC_Audio_1787515147552.mp3",
@@ -9,7 +9,7 @@
   "camelot": "7A",
   "bbyaUniverseId": "8116636513",
   "assetId": "135466870455541",
-  "uploadReused": false,
+  "uploadReused": true,
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -19,35 +19,49 @@
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/346f8bdb-b42d-4f5f-b479-3e0554a0dc7f",
-    "operationId": "346f8bdb-b42d-4f5f-b479-3e0554a0dc7f",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/346f8bdb-b42d-4f5f-b479-3e0554a0dc7f",
-    "operationId": "346f8bdb-b42d-4f5f-b479-3e0554a0dc7f",
-    "done": true,
-    "response": {
-      "path": "assets/135466870455541",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T03:06:31.513926900Z",
-      "assetId": "135466870455541",
-      "displayName": "ACC_Audio_1787515147552.mp3",
-      "description": "BBYA VIP Amapiano Track 18",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
     }
-  },
-  "moderationState": "Reviewing",
-  "moderationChecks": []
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        135466870455541
+      ],
+      "errors": []
+    }
+  }
 }
