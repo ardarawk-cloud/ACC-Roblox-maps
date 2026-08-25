@@ -1,0 +1,25 @@
+{
+  "mapId": "becak-e-bike",
+  "upgrade": "driver-navigation-retarget-throttle-v1.8",
+  "sourceCommit": "5edc55d09927e2942ae876ac1a562fac89405751",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourcePath": "maps/becak-e-bike/navigation.client.lua",
+  "validated": {
+    "sourceCommitSingleFile": true,
+    "retargetThrottle": true,
+    "taskDelayNearTargetRemoved": true,
+    "compatibilityMarkerV17Preserved": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "liveReceiptBeforeRun": {
+    "versionNumber": 36,
+    "httpStatus": 200,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishStatus": "AWAITING_FRESH_RECEIPT"
+}
