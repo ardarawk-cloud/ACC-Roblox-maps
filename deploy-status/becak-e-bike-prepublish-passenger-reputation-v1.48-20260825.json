@@ -1,0 +1,31 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike only",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "520fbc550cd976d0bb00e91ac7d7e4b30f59f7f1",
+  "upgrade": "Passenger Reputation v1.48 delta guard",
+  "validation": {
+    "sourceFile": "maps/becak-e-bike/reputation.passenger.server.lua",
+    "compatibilityMarkerPreserved": "ACC_BecakReputationPassenger=v1.46",
+    "enhancementMarker": "ACC_BecakReputationPassengerEnhancement=v1.48",
+    "maxRewardedCompletionsPerAttributeSignal": 1,
+    "anomalyTelemetry": true,
+    "actualFareTelemetryPreserved": true,
+    "serviceStreakPreserved": true,
+    "vehicleQualityBonusPreserved": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "tripIntegrityChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "deployBeforeRun": {
+    "receiptFile": "deploy-status/becak-e-bike-direct.json",
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "receiptAt": "2026-08-23T16:31:47.837Z",
+    "freshForThisUpgrade": false
+  },
+  "publishClaim": "NOT_LIVE_UNTIL_FRESH_RECEIPT"
+}
