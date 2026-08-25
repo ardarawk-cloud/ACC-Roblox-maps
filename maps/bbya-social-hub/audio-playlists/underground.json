@@ -709,10 +709,10 @@
       "driveFileId": "1QnKdlY5DeF0quo_kmPNPrIhkjH56fiL3",
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 6311219,
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "UPLOAD_FAILED",
-      "moderationLastKnown": null,
+      "assetId": "105840679569825",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
       "sourceSha256": "9c13a67dab2cd60cec7a8583fc80bbe0f1f97f7f4e9ff3a392e19fad3424809d"
     },
     {
