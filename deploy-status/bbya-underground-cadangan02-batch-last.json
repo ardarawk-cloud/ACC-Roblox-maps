@@ -5,105 +5,105 @@
   "batchSizeLimit": 10,
   "tracks": [
     {
-      "trackIndex": 39,
-      "title": "SOMEWHERE - RC BKB REMIX - (1)",
-      "status": "SOURCE_DUPLICATE_SKIPPED",
-      "assetId": null,
-      "moderationState": null,
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": null
-    },
-    {
-      "trackIndex": 40,
-      "title": "So Sexy (Siva Remix)",
-      "status": "MODERATION_PENDING",
-      "assetId": "114534434587342",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 41,
-      "title": "SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",
+      "trackIndex": 48,
+      "title": "pararam-bkb-ipan-agstyan",
       "status": "READY_TO_INJECT",
-      "assetId": "81832495836167",
+      "assetId": "99942691456392",
       "moderationState": "Approved",
       "readyToInject": true,
       "blacklisted": false,
       "uploaderUserId": "10001957153"
     },
     {
-      "trackIndex": 42,
-      "title": "She's Gone BKB 2025 (Donmixedit)",
+      "trackIndex": 49,
+      "title": "Om Abidin - Ani Ani ( Club Mix )",
+      "status": "MODERATION_PENDING",
+      "assetId": "103410156771684",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 50,
+      "title": "Ni De Wan Shui Qian Shan - Aldy alvaro, DJ U",
+      "status": "READY_TO_INJECT",
+      "assetId": "106769175117849",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 51,
+      "title": "Ni De Da An - Aldy alvaro, Putra Crazy BKB e",
+      "status": "READY_TO_INJECT",
+      "assetId": "90741742310621",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 52,
+      "title": "NGAPAIN REPOT (RAYEN BKB EDIT)",
+      "status": "READY_TO_INJECT",
+      "assetId": "117103573334654",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 53,
+      "title": "NGAPAIN REPOT (DEKA EDIT)",
+      "status": "READY_TO_INJECT",
+      "assetId": "105840679569825",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 54,
+      "title": "Ngapain Repot ( Aldy Alvaro BKB edit )",
+      "status": "READY_TO_INJECT",
+      "assetId": "106277277729828",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 55,
+      "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
+      "status": "MODERATION_PENDING",
+      "assetId": "135846262601841",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 56,
+      "title": "MORENA BKB (HARLY EDIT)",
+      "status": "MODERATION_PENDING",
+      "assetId": "97696234195316",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 57,
+      "title": "MILLION STARS - SULVES BKB EDIT -",
       "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "114931560914489",
+      "assetId": "115696927070813",
       "moderationState": "Rejected",
       "readyToInject": false,
       "blacklisted": true,
       "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 43,
-      "title": "SEDIA AKU SEBELUM HUJAN -QMUNK AMSTRONG #BKB",
-      "status": "MODERATION_PENDING",
-      "assetId": "117476404561871",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 44,
-      "title": "RAIHANKHAIRI & DJ WRISABA - JUST ANOTHER NIGHT- (BKB EDIT)",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "133391755801066",
-      "moderationState": "Rejected",
-      "readyToInject": false,
-      "blacklisted": true,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 45,
-      "title": "POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",
-      "status": "MODERATION_PENDING",
-      "assetId": "139454814636865",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 46,
-      "title": "Pimp - El kiyano (Bkb edit)",
-      "status": "MODERATION_PENDING",
-      "assetId": "77827614657917",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 47,
-      "title": "PICA PICA 2 - ARIEF RASIT (BKB EDIT)",
-      "status": "MODERATION_PENDING",
-      "assetId": "94631926635772",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 48,
-      "title": "pararam-bkb-ipan-agstyan",
-      "status": "KEY_SCOPE_FAILED",
-      "assetId": null,
-      "moderationState": null,
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": null
     }
   ],
-  "recordedAtUnix": 1787687545
+  "recordedAtUnix": 1787700162
 }
