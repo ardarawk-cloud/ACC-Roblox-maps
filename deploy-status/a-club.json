@@ -4,10 +4,10 @@
   "name": "BBYA Social Hub",
   "universeId": "8116636513",
   "placeId": "131894120482837",
-  "sourceCommit": "8a361a595c179347e2f2f1b1fb53449ec8ededa6",
-  "publishedAt": "2026-08-25T16:19:29.234Z",
+  "sourceCommit": "1942365a3d973bce5bbf72bd07c10b32ebf6c365",
+  "publishedAt": "2026-08-25T16:23:59.081Z",
   "publishedFile": "/tmp/bbya-audio-safe-live.rbxl",
   "response": {
-    "versionNumber": 477
+    "versionNumber": 478
   }
 }
