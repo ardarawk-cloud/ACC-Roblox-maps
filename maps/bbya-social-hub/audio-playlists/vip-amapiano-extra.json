@@ -86,10 +86,10 @@
       "sourceDurationSeconds": 190.27,
       "sourceSizeBytes": 6095372,
       "sourceSha256": "a093b188798efa7687c625cc8262074f4ede70f57af337234b346b663f681018",
-      "assetId": null,
+      "assetId": "108155201923155",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing"
     },
     {
       "index": 23,
