@@ -10,85 +10,63 @@ permissions:
 jobs:
   probe:
     if: github.head_ref == 'bbya/audio-single-probe-20260826'
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
     env:
       AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
       DRIVE_FILE_ID: '1-c-ZwnR34ErkQCwcr-KU8F7kwigccLed'
       DISPLAY_NAME: 'Untungnya Hidup Harus Tetap Berjalan Pop Punk Cover'
     steps:
-      - name: Install gdown
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip install --quiet 'gdown==6.1.0'
-
       - name: Download one track
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
-          gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O source.mp3 --quiet
-          python - <<'PY'
-          import os
-          p='source.mp3'
-          print('bytes=',os.path.getsize(p))
-          if os.path.getsize(p) < 1000:
-              raise SystemExit('SOURCE_TOO_SMALL')
-          PY
+          $ErrorActionPreference='Stop'
+          python -m pip install --quiet gdown==6.1.0
+          python -m gdown "https://drive.google.com/uc?id=$env:DRIVE_FILE_ID" -O source.mp3 --quiet
+          $size=(Get-Item source.mp3).Length
+          Write-Host "SOURCE_BYTES=$size"
+          if($size -lt 1000){throw 'SOURCE_TOO_SMALL'}
 
       - name: Resolve Roblox audio creator
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
-          test -n "$AUDIO_KEY" || { echo 'AUDIO_KEY_MISSING'; exit 2; }
-          curl -sS -X POST 'https://apis.roblox.com/api-keys/v1/introspect' \
-            -H 'Content-Type: application/json' \
-            --data "{\"apiKey\":\"${AUDIO_KEY}\"}" > introspect.json
-          python - <<'PY'
-          import json, os
-          d=json.load(open('introspect.json'))
-          uid=str(d.get('authorizedUserId') or '')
-          print('keyName=',d.get('name'))
-          print('authorizedUserId=',uid)
-          print('enabled=',d.get('enabled'),'expired=',d.get('expired'))
-          if not uid:
-              raise SystemExit('NO_AUTHORIZED_USER_ID')
-          with open(os.environ['GITHUB_ENV'],'a') as f:
-              f.write('CREATOR_USER_ID='+uid+'\n')
-          PY
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:AUDIO_KEY)){throw 'AUDIO_KEY_MISSING'}
+          $payload=@{apiKey=$env:AUDIO_KEY} | ConvertTo-Json -Compress
+          $d=Invoke-RestMethod -Method Post -Uri 'https://apis.roblox.com/api-keys/v1/introspect' -ContentType 'application/json' -Body $payload
+          $uid=[string]$d.authorizedUserId
+          Write-Host "KEY_NAME=$($d.name)"
+          Write-Host "AUTHORIZED_USER_ID=$uid"
+          Write-Host "ENABLED=$($d.enabled) EXPIRED=$($d.expired)"
+          if([string]::IsNullOrWhiteSpace($uid)){throw 'NO_AUTHORIZED_USER_ID'}
+          "CREATOR_USER_ID=$uid" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Upload one audio asset to Roblox
-        shell: bash
+      - name: Upload exactly one audio asset to Roblox
+        shell: powershell
         run: |
-          set -euo pipefail
-          python - <<'PY' > request.json
-          import json,os
-          print(json.dumps({
-            'assetType':'Audio',
-            'displayName':os.environ['DISPLAY_NAME'][:50],
-            'description':'BBYA one-track upload probe 2026-08-26',
-            'creationContext':{'creator':{'userId':os.environ['CREATOR_USER_ID']}}
-          },separators=(',',':')))
-          PY
-          HTTP=$(curl -sS --location 'https://apis.roblox.com/assets/v1/assets' \
-            --header "x-api-key: ${AUDIO_KEY}" \
-            --form-string "request=$(cat request.json)" \
-            --form 'fileContent=@source.mp3;type=audio/mpeg' \
-            --output upload-response.json \
-            --write-out '%{http_code}')
-          echo "ROBLOX_UPLOAD_HTTP=$HTTP"
-          cat upload-response.json
-          echo
-          {
-            echo '### BBYA Audio Single Probe'
-            echo
-            echo "- HTTP: $HTTP"
-            echo '- Response:'
-            echo '```json'
-            cat upload-response.json
-            echo
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$HTTP" -lt 200 ] || [ "$HTTP" -ge 300 ]; then
-            exit 1
-          fi
+          $ErrorActionPreference='Stop'
+          $req=[ordered]@{
+            assetType='Audio'
+            displayName=$env:DISPLAY_NAME.Substring(0,[Math]::Min(50,$env:DISPLAY_NAME.Length))
+            description='BBYA one-track upload probe 2026-08-26'
+            creationContext=@{creator=@{userId=[string]$env:CREATOR_USER_ID}}
+          } | ConvertTo-Json -Compress -Depth 6
+          $req | Set-Content request.json -Encoding utf8
+          $args=@(
+            '-sS','--location','https://apis.roblox.com/assets/v1/assets',
+            '--header',"x-api-key: $env:AUDIO_KEY",
+            '--form-string',"request=$req",
+            '--form','fileContent=@source.mp3;type=audio/mpeg',
+            '--output','upload-response.json',
+            '--write-out','%{http_code}'
+          )
+          $http=& curl.exe @args
+          Write-Host "ROBLOX_UPLOAD_HTTP=$http"
+          $body=Get-Content upload-response.json -Raw
+          Write-Host $body
+          Add-Content $env:GITHUB_STEP_SUMMARY "### BBYA Audio Single Probe"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- HTTP: $http"
+          Add-Content $env:GITHUB_STEP_SUMMARY '```json'
+          Add-Content $env:GITHUB_STEP_SUMMARY $body
+          Add-Content $env:GITHUB_STEP_SUMMARY '```'
+          if(([int]$http -lt 200) -or ([int]$http -ge 300)){throw "ROBLOX_UPLOAD_FAILED_HTTP_$http"}
