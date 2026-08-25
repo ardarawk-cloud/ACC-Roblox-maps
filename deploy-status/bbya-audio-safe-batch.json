@@ -3218,7 +3218,7 @@
         "size": 6561211,
         "sha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347"
       },
-      "updatedAt": "2026-08-25T09:29:12.145386+00:00",
+      "updatedAt": "2026-08-25T10:03:45.758258+00:00",
       "normalizedSha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3253,20 +3253,32 @@
       },
       "assetId": "134098187733158",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
       "moderationProbe": {
-        "displayName": "5A - 130 - 05 belum ada judul",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/42ed3153-5903-46de-b34a-04b6aa435226",
+        "operationId": "42ed3153-5903-46de-b34a-04b6aa435226",
+        "done": true,
+        "response": {
+          "path": "assets/134098187733158",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T09:29:27.694468Z",
+          "assetId": "134098187733158",
+          "displayName": "5A - 130 - 05 belum ada judul",
+          "description": "(Removed for violations of Roblox Terms of Use)\n\nBBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T09:31:03.686842+00:00"
+      "moderationCheckedAt": "2026-08-25T10:03:45.758244+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

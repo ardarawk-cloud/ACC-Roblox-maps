@@ -176,6 +176,14 @@
       "previousAssetId": "74975582029684",
       "sourceSha256": "acf749c03635e4e485d15a2f3e91e29c7660ecfe8ba6ca7b56a34cc56ab5e740",
       "blacklistedAt": "2026-08-25T03:36:18.897269+00:00"
+    },
+    "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ": {
+      "driveId": "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ",
+      "title": "5A - 130 - 05 belum ada judul",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-25T10:03:45.758262+00:00",
+      "assetId": "134098187733158",
+      "moderationState": "Rejected"
     }
   }
 }
