@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "RUNNING_SEQUENTIAL",
+  "status": "STOPPED_PENDING_MODERATION",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3253,7 +3253,20 @@
       },
       "assetId": "134098187733158",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION"
+      "status": "PENDING_MODERATION",
+      "moderationState": "Reviewing",
+      "moderationProbe": {
+        "displayName": "5A - 130 - 05 belum ada judul",
+        "creationContext": {
+          "creator": {
+            "userId": "9296030038"
+          }
+        },
+        "moderationResult": {
+          "moderationState": "Reviewing"
+        }
+      },
+      "moderationCheckedAt": "2026-08-25T09:31:03.686842+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
@@ -3302,5 +3315,7 @@
   "lastLiveSequence": 37,
   "lastLiveDriveId": "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju",
   "lastLiveAssetId": "123696371004403",
-  "lastLiveVersion": 459
+  "lastLiveVersion": 459,
+  "blockedOnDriveId": "10SPIZWOiQ7W-HrLqsL_YAOHwi09QPbRQ",
+  "blockedOnSequence": 38
 }
