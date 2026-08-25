@@ -1,4 +1,4 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.18
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.19
 -- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle/pedestrian-aware yielding,
 -- traffic headway, corrected intersection pacing, bounded counts, deterministic routes, distance culling,
 -- proximity-aware adaptive cadence, per-tick snapshots, and logic-only model LOD for off-screen actors.
@@ -144,7 +144,6 @@ local function pedestrianAhead(pos,travel)
  return nearest
 end
 
--- Far from an intersection: scale ~=1. Approaching the conflict area: progressively slow to ~=0.45.
 local function intersectionScale(pos,travel)
  local scale=1
  for _,center in ipairs(intersections) do
@@ -173,7 +172,6 @@ local function setVisible(model,visible)
  for _,x in ipairs(model:GetDescendants()) do if x:IsA('BasePart') then x.Transparency=visible and (x.Name=='Glass' and .2 or 0) or 1 end end
 end
 
--- Only use 20 Hz when a player or player vehicle is actually near ambient actors.
 local function hasNearActivity(playerSnapshot,vehicleSnapshot)
  for _,a in ipairs(actors) do
   local pos=a.logicalPos or (a.model.PrimaryPart and a.model.PrimaryPart.Position)
@@ -193,19 +191,21 @@ local function hasNearActivity(playerSnapshot,vehicleSnapshot)
 end
 
 local accum=0
+local lastNearActivity=false
 RunService.Heartbeat:Connect(function(dt)
  accum+=dt
  local livePlayers=Players:GetPlayers()
  local playerCount=#livePlayers
- -- Start with cheap cadence; proximity snapshot is only rebuilt when the current cadence expires.
- local provisionalStep=playerCount>0 and .1 or .25
+ -- Reuse the last resolved proximity state for the pre-gate. This preserves 10 Hz far / 4 Hz empty
+ -- while allowing the near state to actually execute at 20 Hz instead of being capped at 10 Hz.
+ local provisionalStep=playerCount==0 and .25 or (lastNearActivity and .05 or .1)
  if accum<provisionalStep then return end
 
  local playerSnapshot,vehicleSnapshot=buildProximitySnapshot()
- -- Seed logical positions before cadence decision so distance checks remain valid while culled.
  for _,a in ipairs(actors) do local _,_,_,pos=actorRouteState(a);a.logicalPos=pos end
  local nearActivity=playerCount>0 and hasNearActivity(playerSnapshot,vehicleSnapshot)
- local targetStep=playerCount==0 and .25 or (nearActivity and .05 or .1) -- 4 / 20 / 10 Hz
+ lastNearActivity=nearActivity
+ local targetStep=playerCount==0 and .25 or (nearActivity and .05 or .1)
  if accum<targetStep then return end
  dt=math.min(accum,.25);accum=0
 
@@ -286,7 +286,7 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.17')
-Workspace:SetAttribute('ACC_BecakTrafficNPCEnhancement','v1.18')
+Workspace:SetAttribute('ACC_BecakTrafficNPCEnhancement','v1.19')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
@@ -295,13 +295,9 @@ Workspace:SetAttribute('BecakTrafficPedestrianYield','ON')
 Workspace:SetAttribute('BecakTrafficHeadway','ON')
 Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
-Workspace:SetAttribute('BecakTrafficIntersectionPacingCorrected','ON')
-Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
-Workspace:SetAttribute('BecakTrafficProximityAdaptiveTick','ON')
-Workspace:SetAttribute('BecakTrafficProximitySnapshot','ON')
-Workspace:SetAttribute('BecakTrafficModelLOD','ON')
-Workspace:SetAttribute('BecakTrafficLogicOnlyCull','ON')
+Workspace:SetAttribute('BecakTrafficTrueNearCadence','ON')
 Workspace:SetAttribute('BecakTrafficNearHz',20)
 Workspace:SetAttribute('BecakTrafficFarHz',10)
 Workspace:SetAttribute('BecakTrafficEmptyHz',4)
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.18 ready: pedestrian-aware yielding + proximity cadence + model LOD')
+Workspace:SetAttribute('BecakTrafficLogicOnlyLOD','ON')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.19 ready: true 20 Hz near cadence + pedestrian yielding + model LOD')
