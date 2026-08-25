@@ -144,4 +144,4 @@ jobs:
           Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($payload | ConvertTo-Json -Depth 5) | Out-Null
           Write-Host "BBYA_FUNKOT_V3_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:GITHUB_SHA"
 
-# created-funkot-v3-publisher-20260826
+# trigger-funkot-v3-live-20260826
