@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — FUNKOT DISKOTIK RUNTIME AUDIO v5
--- Single runtime playback authority. Fast AutoDJ boot + temporary health cache.
+-- BBYA SOCIAL HUB — FUNKOT DISKOTIK RUNTIME AUDIO v6
+-- Single runtime playback authority. Only verified LIVE + permissioned assets are exposed.
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -7,16 +7,6 @@ local SoundService=game:GetService("SoundService")
 local PLAYLIST={
  {title="Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",id="128141893547516",style="funkot"},
  {title="Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",id="98536948000407",style="funkot"},
- {title="DJ Bahagiamu Sayang",id="110691393637838",style="funkot"},
- {title="Jamilah Itu Bukan Anunya Aisyah",id="116255319981650",style="funkot"},
- {title="Funkot Club Drive",id="124224888312006",style="funkot"},
- {title="Funkot Alt Drive",id="83125775305712",style="funkot"},
- {title="Funkot Melody Rhythm",id="95602240268105",style="funkot"},
- {title="DJ Funkot Karna Kamu Cantik",id="103451932037576",style="funkot"},
- {title="Funkot Aku Tak Berarti Bagimu",id="98095276635738",style="funkot"},
- {title="Funkot Ngamen 5",id="134100771661430",style="funkot"},
- {title="Funkot Garam Cina",id="79905157574964",style="funkot"},
- {title="DJ Funkot Ego Wong Tuo",id="78891075630689",style="funkot"},
 }
 if #PLAYLIST==0 then return end
 
@@ -33,20 +23,20 @@ group.Volume=0
 group:SetAttribute("Venue","FUNKOT")
 group:SetAttribute("PlaylistReady",true)
 group:SetAttribute("PlaylistCount",#PLAYLIST)
-group:SetAttribute("AudioEngine","FUNKOT_RUNTIME_V5")
+group:SetAttribute("AudioEngine","FUNKOT_RUNTIME_V6")
 group:SetAttribute("AutoDJHealthy",true)
 
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistEnabled",true)
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistId","funkot")
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistCount",#PLAYLIST)
 
-for _,n in ipairs({"BBYAFunkotClubFeed","BBYAFunkotDeck","BBYAFunkotPlaylistV1","BBYAFunkotPlaylistV2","BBYAFunkotPlaylistV3","BBYAFunkotRuntimeV4","BBYAFunkotRuntimeV5"}) do
+for _,n in ipairs({"BBYAFunkotClubFeed","BBYAFunkotDeck","BBYAFunkotPlaylistV1","BBYAFunkotPlaylistV2","BBYAFunkotPlaylistV3","BBYAFunkotRuntimeV4","BBYAFunkotRuntimeV5","BBYAFunkotRuntimeV6"}) do
  local o=SoundService:FindFirstChild(n)
  if o and o:IsA("Sound") then pcall(function()o:Stop()end);o:Destroy() end
 end
 
 local sound=Instance.new("Sound")
-sound.Name="BBYAFunkotRuntimeV5"
+sound.Name="BBYAFunkotRuntimeV6"
 sound.SoundGroup=group
 sound.Volume=.92
 sound.Looped=false
@@ -87,7 +77,7 @@ local function state()
   venue="FUNKOT",genre="FUNKOT",index=current,
   title=t and t.title or "Funkot AutoDJ",style="funkot",
   playing=sound.IsPlaying and not paused,library=#PLAYLIST,queue=#queue,
-  unavailable=unavailable,audioMode="FUNKOT_RUNTIME_V5"
+  unavailable=unavailable,audioMode="FUNKOT_RUNTIME_V6"
  }
 end
 
@@ -245,12 +235,10 @@ end)
 
 Players.PlayerRemoving:Connect(function(p)cooldown[p.UserId]=nil end)
 
--- Boot from a legacy track that was verified working before the recent authority rewrite.
 task.delay(1.5,function()
- if not play(3) then task.defer(nextTrack) end
+ if not play(1) then task.defer(nextTrack) end
 end)
 
--- Self-heal quickly if playback ends/stalls without an Ended signal.
 task.spawn(function()
  while task.wait(2) do
   if not paused and not busy and not selecting and not sound.IsPlaying and sound.PlaybackState~=Enum.PlaybackState.Paused then
@@ -259,4 +247,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Funkot Diskotik runtime audio v5 online; AutoDJ health cache; tracks",#PLAYLIST)
+print("[BBYA] Funkot Diskotik runtime audio v6 online; verified live tracks",#PLAYLIST)
