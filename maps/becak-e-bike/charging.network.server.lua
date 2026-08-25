@@ -1,7 +1,8 @@
--- BECAK E-BIKE — charging network v1.17
+-- BECAK E-BIKE — charging network v1.18
 -- Expands charging beyond HQ with lightweight, economy-backed public chargers.
 -- Uses the isolated Becak EconomyTransaction BindableFunction and vehicle Battery attributes.
 -- v1.17 hardens public charger prompts with LOS, 10-stud range and per-station cooldown.
+-- v1.18 adds disconnect-safe unlock and stale-lock watchdog recovery.
 
 local Players = game:GetService('Players')
 local Workspace = game:GetService('Workspace')
@@ -22,6 +23,7 @@ local EMERGENCY_GRANT = 12
 local PROMPT_HOLD_SECONDS = 0.55
 local PROMPT_MAX_DISTANCE = 10
 local PROMPT_COOLDOWN_SECONDS = 1.0
+local STALE_LOCK_GRACE_SECONDS = 0.75
 
 local function playerBecak(player)
     for _,m in ipairs(vehicles:GetChildren()) do
@@ -98,6 +100,25 @@ local function chargePlayer(player,stationName)
     toast:FireClient(player,'Charging '..stationName..' selesai • Rp'..cost..' • 100%')
 end
 
+local promptStates={}
+local staleRecoveries=0
+local disconnectRecoveries=0
+local function unlockState(state,reason)
+    if not state.locked then return end
+    state.locked=false
+    state.lockedUserId=nil
+    state.deadline=0
+    state.token+=1
+    if state.prompt and state.prompt.Parent then state.prompt.Enabled=true end
+    if reason=='STALE' then
+        staleRecoveries+=1
+        Workspace:SetAttribute('BecakPublicChargingStaleLockRecoveries',staleRecoveries)
+    elseif reason=='DISCONNECT' then
+        disconnectRecoveries+=1
+        Workspace:SetAttribute('BecakPublicChargingDisconnectRecoveries',disconnectRecoveries)
+    end
+end
+
 local hardenedPrompts=0
 for i,s in ipairs(stations) do
     local pad=Instance.new('Part')
@@ -121,24 +142,28 @@ for i,s in ipairs(stations) do
     p.HoldDuration=PROMPT_HOLD_SECONDS
     p.MaxActivationDistance=PROMPT_MAX_DISTANCE
     p.RequiresLineOfSight=true
-    p:SetAttribute('BecakEconomyInteractionSafety','v1.17')
+    p:SetAttribute('BecakEconomyInteractionSafety','v1.18')
     p:SetAttribute('BecakChargingStationName',s.name)
     p.Parent=pad
 
-    local locked=false
-    local token=0
+    local state={prompt=p,locked=false,lockedUserId=nil,token=0,deadline=0}
+    promptStates[#promptStates+1]=state
     p.Triggered:Connect(function(player)
-        if locked then return end
-        locked=true
-        token+=1
-        local myToken=token
+        if state.locked then return end
+        state.locked=true
+        state.lockedUserId=player.UserId
+        state.token+=1
+        local myToken=state.token
+        state.deadline=Workspace:GetServerTimeNow()+PROMPT_COOLDOWN_SECONDS+STALE_LOCK_GRACE_SECONDS
         p.Enabled=false
         player:SetAttribute('BecakPublicChargingGuard',s.name..':COOLDOWN')
         player:SetAttribute('BecakPublicChargingLastGuardedAt',Workspace:GetServerTimeNow())
         chargePlayer(player,s.name)
         task.delay(PROMPT_COOLDOWN_SECONDS,function()
-            if token~=myToken then return end
-            locked=false
+            if state.token~=myToken then return end
+            state.locked=false
+            state.lockedUserId=nil
+            state.deadline=0
             if p.Parent then p.Enabled=true end
             if player.Parent then player:SetAttribute('BecakPublicChargingGuard','READY') end
         end)
@@ -152,10 +177,26 @@ local function setupPlayer(player)
 end
 for _,p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
 Players.PlayerAdded:Connect(setupPlayer)
+Players.PlayerRemoving:Connect(function(player)
+    for _,state in ipairs(promptStates) do
+        if state.locked and state.lockedUserId==player.UserId then unlockState(state,'DISCONNECT') end
+    end
+end)
 
--- Preserve the v1.16 compatibility marker while exposing the additive safety enhancement separately.
+task.spawn(function()
+    while network.Parent do
+        task.wait(0.5)
+        local now=Workspace:GetServerTimeNow()
+        for _,state in ipairs(promptStates) do
+            if state.locked and state.deadline>0 and now>state.deadline then unlockState(state,'STALE') end
+        end
+    end
+end)
+
+-- Preserve the v1.16/v1.17 compatibility markers while exposing additive resilience separately.
 Workspace:SetAttribute('ACC_BecakChargingNetwork','v1.16')
 Workspace:SetAttribute('ACC_BecakChargingNetworkSafety','v1.17')
+Workspace:SetAttribute('ACC_BecakChargingNetworkResilience','v1.18')
 Workspace:SetAttribute('BecakChargingStationCount',#stations)
 Workspace:SetAttribute('BecakEmergencyCharging','ON')
 Workspace:SetAttribute('BecakChargingPricePerUnit',PRICE_PER_UNIT)
@@ -165,4 +206,9 @@ Workspace:SetAttribute('BecakPublicChargingPromptHoldSeconds',PROMPT_HOLD_SECOND
 Workspace:SetAttribute('BecakPublicChargingPromptMaxDistance',PROMPT_MAX_DISTANCE)
 Workspace:SetAttribute('BecakPublicChargingPromptRequiresLineOfSight','ON')
 Workspace:SetAttribute('BecakPublicChargingPromptCooldownSeconds',PROMPT_COOLDOWN_SECONDS)
-print('[BECAK E-BIKE] charging network v1.17 ready • '..#stations..' stations • public prompt safety ON')
+Workspace:SetAttribute('BecakPublicChargingDisconnectUnlockGuard','ON')
+Workspace:SetAttribute('BecakPublicChargingStaleLockWatchdog','ON')
+Workspace:SetAttribute('BecakPublicChargingStaleLockGraceSeconds',STALE_LOCK_GRACE_SECONDS)
+Workspace:SetAttribute('BecakPublicChargingStaleLockRecoveries',staleRecoveries)
+Workspace:SetAttribute('BecakPublicChargingDisconnectRecoveries',disconnectRecoveries)
+print('[BECAK E-BIKE] charging network v1.18 ready • '..#stations..' stations • public prompt resilience ON')
