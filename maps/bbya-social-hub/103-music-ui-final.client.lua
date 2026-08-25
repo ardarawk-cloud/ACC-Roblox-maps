@@ -62,6 +62,12 @@ end
 local function resetActive()
  return ReplicatedStorage:GetAttribute("BBYAMusicCatalogReset")==true
 end
+local function venueReset(v)
+ if v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end
+ if v=="UNDERGROUND" and ReplicatedStorage:GetAttribute("BBYAUndergroundPlaylistEnabled")==true then return false end
+ if v=="FUNKOT" and ReplicatedStorage:GetAttribute("BBYAFunkotPlaylistEnabled")==true then return false end
+ return resetActive()
+end
 local function venueAtPosition(p)
  if p.Y<-4.5 then return "UNDERGROUND" end
  if p.Y>=40 and p.Y<=60 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48 then return "ROOFTOP" end
@@ -152,7 +158,7 @@ local state={}
 for key in pairs(VENUES) do state[key]={title="",index=0,playing=false,tracks={},history={},cover=""} end
 local function effectiveTracks(v)
  if v=="VIP" then return VIP_TRACKS end
- if resetActive() and v~="UNDERGROUND" then return {} end
+ if venueReset(v) then return {} end
  return (state[v] and state[v].tracks) or {}
 end
 local function currentSpec()
@@ -176,7 +182,7 @@ local function refreshCard()
  local vipTrack=(v=="VIP" and tracks[vipIndex]) or nil
  if v=="VIP" and not vipTrack and #tracks>0 then vipTrack=tracks[1] end
  local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPCurrentTitle") or (vipTrack and vipTrack.title) or "")
- local empty=(resetActive() and v~="VIP") or #tracks==0 or (s.title=="" and not vipTrack)
+ local empty=venueReset(v) or #tracks==0 or (s.title=="" and not vipTrack)
  cardStroke.Color=spec.accent;coverStroke.Color=spec.accent;drawerStroke.Color=spec.accent;nowSmall.TextColor3=spec.accent;coverVenue.TextColor3=spec.accent
  coverVenue.Text=spec.short
  nowTitle.Text=(v=="VIP" and vipTitle~="") and vipTitle or (empty and "BELUM ADA LAGU" or s.title)
@@ -193,7 +199,7 @@ local function clearRows()
  end
 end
 local function requestTrack(v,index)
- if resetActive() and v~="VIP" then showToast("PLAYLIST MASIH KOSONG");return end
+ if venueReset(v) then showToast("PLAYLIST MASIH KOSONG");return end
  if v=="VIP" then vipRemote:FireServer("request",index)
  elseif v=="FUNKOT" then funkotRemote:FireServer("request",index)
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("request",index)
@@ -214,7 +220,7 @@ local function rebuildPlaylist()
 end
 
 local function requestList(v)
- if resetActive() and v~="VIP" then return end
+ if venueReset(v) then return end
  if v=="VIP" then vipRemote:FireServer("list")
  elseif v=="FUNKOT" then funkotRemote:FireServer("list")
  elseif v=="MAIN" or v=="UNDERGROUND" then musicRemote:FireServer("list") end
@@ -278,7 +284,7 @@ stateRemote.OnClientEvent:Connect(function(kind,data)
  elseif kind=="toast" then showToast(data) end
 end)
 funkotRemote.OnClientEvent:Connect(function(kind,data)
- if kind=="playlist" and type(data)=="table" then state.FUNKOT.tracks=resetActive() and {} or data;if layer.Visible then refreshCard();rebuildPlaylist() end
+ if kind=="playlist" and type(data)=="table" then state.FUNKOT.tracks=venueReset("FUNKOT") and {} or data;if layer.Visible then refreshCard();rebuildPlaylist() end
  elseif kind=="state" and type(data)=="table" then ingestState("FUNKOT",data) end
 end)
 
@@ -301,7 +307,7 @@ end
 local peak,smooth,visualAcc=100,0,0
 RunService.RenderStepped:Connect(function(dt)
  visualAcc+=dt;if visualAcc<1/20 then return end;visualAcc=0
- local vv=currentVenue();local s=((not resetActive()) or vv=="VIP" or vv=="UNDERGROUND") and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
+ local vv=currentVenue();local s=(not venueReset(vv)) and activeSound() or nil;local loud=(s and s.PlaybackLoudness) or 0
  peak=math.max(100,loud,peak*.985);local norm=math.clamp(loud/math.max(peak,100),0,1);smooth+=(norm-smooth)*.38
  local n=#waveBars
  for i,b in ipairs(waveBars) do local center=1-math.abs((i-(n+1)/2)/((n+1)/2));local h=3+math.floor(smooth*17*(.62+.38*center)+.5);b.Size=UDim2.new(.045,0,0,h) end
@@ -345,7 +351,7 @@ player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()if layer.Vi
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshAdmin)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(refreshCard)
 ReplicatedStorage:GetAttributeChangedSignal("BBYAMusicCatalogReset"):Connect(function()
- if resetActive() then for key,st in pairs(state) do if key~="VIP" and key~="UNDERGROUND" then st.tracks={};st.title="";st.index=0;st.playing=false end end end
+ if resetActive() then for key,st in pairs(state) do if venueReset(key) then st.tracks={};st.title="";st.index=0;st.playing=false end end end
  if layer.Visible then refreshCard();rebuildPlaylist() end
 end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layout)end)
