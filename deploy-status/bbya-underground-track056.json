@@ -1,26 +1,101 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "MODERATION_PENDING",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 56,
   "title": "MORENA BKB (HARLY EDIT)",
   "driveFileId": "1dc7PFdQwxa1ecqTPIseammnYYymiIuZW",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "97696234195316",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/9d65762e-cd3b-47fe-a31d-38f141a8f34d",
+    "operationId": "9d65762e-cd3b-47fe-a31d-38f141a8f34d",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/9d65762e-cd3b-47fe-a31d-38f141a8f34d",
+    "operationId": "9d65762e-cd3b-47fe-a31d-38f141a8f34d",
+    "done": true,
+    "response": {
+      "path": "assets/97696234195316",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:16:36.834056500Z",
+      "assetId": "97696234195316",
+      "displayName": "MORENA BKB (HARLY EDIT)",
+      "description": "BBYA Underground Track 056",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    }
+  ]
 }
