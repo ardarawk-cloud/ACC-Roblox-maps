@@ -37,6 +37,8 @@ local PLAYLIST={
  {title="3A - 130 - DESTINATION CALABRIA ORI - Unknown Artist",id="109116552044147",style="progressive"},
  {title="4. Stadium Club Remix - Stars of Edger",id="123077675190094",style="progressive"},
  {title="4B - 128 - Fly Away (Main Mix)",id="87114365256034",style="progressive"},
+ {title="Utopia - Baby Doll (Phatbee Edit)",id="136681158481930",style="progressive"},
+ {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",id="131557279061872",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 

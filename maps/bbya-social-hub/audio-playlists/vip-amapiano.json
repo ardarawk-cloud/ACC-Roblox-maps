@@ -29,8 +29,13 @@
       "camelot": "9B",
       "assetId": "136681158481930",
       "bbyaPermission": true,
-      "status": "LIVE_IN_PLAYLIST",
-      "moderationLastKnown": "Approved"
+      "status": "MOVED_TO_MAIN_CLUB",
+      "moderationLastKnown": "Approved",
+      "movedFrom": "VIP",
+      "movedTo": "MAIN_CLUB",
+      "genreClassification": "progressive",
+      "movedAt": "2026-08-25T03:39:37.321663Z",
+      "doNotReinjectToVip": true
     },
     {
       "index": 3,
@@ -68,8 +73,13 @@
       "sourceSizeBytes": 3370468,
       "assetId": "131557279061872",
       "bbyaPermission": true,
-      "status": "LIVE_IN_PLAYLIST",
-      "moderationLastKnown": "Approved"
+      "status": "MOVED_TO_MAIN_CLUB",
+      "moderationLastKnown": "Approved",
+      "movedFrom": "VIP",
+      "movedTo": "MAIN_CLUB",
+      "genreClassification": "progressive",
+      "movedAt": "2026-08-25T03:39:37.321663Z",
+      "doNotReinjectToVip": true
     },
     {
       "index": 6,
