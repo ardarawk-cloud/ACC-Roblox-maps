@@ -20,7 +20,7 @@ def active_tracks(reg):
 
 def build_server(tracks):
     rows = ',\n'.join(' {title=%s,assetId=%s}' % (q(t.get('title','')), q(t.get('assetId',''))) for t in tracks)
-    lua = '''-- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v1
+    lua = '''-- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v2
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local PLAYLIST={
@@ -34,6 +34,27 @@ local group
 local sound
 local endedConnection
 
+local function publishCatalog()
+ local folder=ReplicatedStorage:FindFirstChild("BBYARooftopPlaylistCatalog")
+ if folder and not folder:IsA("Folder") then folder:Destroy();folder=nil end
+ if not folder then folder=Instance.new("Folder");folder.Name="BBYARooftopPlaylistCatalog";folder.Parent=ReplicatedStorage end
+ folder:SetAttribute("PlaylistId","rooftop-tropical")
+ folder:SetAttribute("Count",#PLAYLIST)
+ for i,t in ipairs(PLAYLIST) do
+  local name="Track"..tostring(i)
+  local entry=folder:FindFirstChild(name)
+  if entry and not entry:IsA("StringValue") then entry:Destroy();entry=nil end
+  if not entry then entry=Instance.new("StringValue");entry.Name=name;entry.Parent=folder end
+  entry.Value=t.title
+  entry:SetAttribute("Index",i)
+  entry:SetAttribute("AssetId",t.assetId)
+ end
+ for _,entry in ipairs(folder:GetChildren()) do
+  local i=tonumber(entry:GetAttribute("Index"))
+  if not i or i<1 or i>#PLAYLIST then entry:Destroy() end
+ end
+end
+
 local function publishState()
  local t=PLAYLIST[currentIndex]
  ReplicatedStorage:SetAttribute("BBYARooftopPlaylistEnabled",true)
@@ -42,6 +63,11 @@ local function publishState()
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentIndex",currentIndex)
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentTitle",t.title)
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentAssetId",t.assetId)
+ if group then
+  group:SetAttribute("CurrentIndex",currentIndex)
+  group:SetAttribute("CurrentTitle",t.title)
+  group:SetAttribute("CurrentAssetId",t.assetId)
+ end
 end
 
 local function ensureCore()
@@ -60,6 +86,7 @@ local function ensureCore()
  sound.SoundGroup=group
  sound.Looped=false
  sound.Volume=.72
+ publishCatalog()
 end
 
 local function playIndex(index)
@@ -97,7 +124,7 @@ task.spawn(function()
   if sound and not sound.IsPlaying then pcall(function()sound:Play()end) end
  end
 end)
-print("[BBYA] Rooftop tropical playlist authority v1 online; tracks",#PLAYLIST)
+print("[BBYA] Rooftop tropical playlist authority v2 online; tracks",#PLAYLIST)
 ''' % rows
     SERVER.write_text(lua, encoding='utf-8')
 
