@@ -1,0 +1,101 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 45,
+  "title": "POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",
+  "driveFileId": "1lCL-aoHh5XdyCcvZhcTLgb8VjRPFEzE2",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "139454814636865",
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/8973254a-8b1a-441a-9a27-ae6c070ae1e5",
+    "operationId": "8973254a-8b1a-441a-9a27-ae6c070ae1e5",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/8973254a-8b1a-441a-9a27-ae6c070ae1e5",
+    "operationId": "8973254a-8b1a-441a-9a27-ae6c070ae1e5",
+    "done": true,
+    "response": {
+      "path": "assets/139454814636865",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T19:41:52.890300400Z",
+      "assetId": "139454814636865",
+      "displayName": "POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",
+      "description": "BBYA Underground Track 045",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    }
+  ]
+}
