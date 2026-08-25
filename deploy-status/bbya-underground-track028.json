@@ -1,0 +1,62 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 28,
+  "title": "06. ARIA PIL KB (EANN BKB EDIT)",
+  "driveFileId": "1uoXdOWwbGRGhGUSuLEQBhe2U79cTxIg5",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "109573287368195",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/a9f39b9e-cda9-4d7f-9adf-69891d9fc2c2",
+    "operationId": "a9f39b9e-cda9-4d7f-9adf-69891d9fc2c2",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a9f39b9e-cda9-4d7f-9adf-69891d9fc2c2",
+    "operationId": "a9f39b9e-cda9-4d7f-9adf-69891d9fc2c2",
+    "done": true,
+    "response": {
+      "path": "assets/109573287368195",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:53:27.488413100Z",
+      "assetId": "109573287368195",
+      "displayName": "06. ARIA PIL KB (EANN BKB EDIT)",
+      "description": "BBYA Underground Track 028",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Approved"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        109573287368195
+      ],
+      "errors": []
+    }
+  }
+}
