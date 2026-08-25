@@ -144,6 +144,14 @@
       "sourceSha256": "2168181d1df05306cb56caa680c53ab02b0d30f99b3f1e9a24e6d479146ffbce",
       "blacklistedAt": "2026-08-25T03:00:00.930815+00:00",
       "moderationState": "Rejected"
+    },
+    "12R5_7ucT4-KFDZHeTfK6gMIc5SLphV0W": {
+      "driveId": "12R5_7ucT4-KFDZHeTfK6gMIc5SLphV0W",
+      "title": "ACC_Audio_1787515302074.mp3",
+      "reason": "ROBLOX_MODERATION_REJECTED_PERMANENT",
+      "previousAssetId": "97231110660782",
+      "sourceSha256": "d3f2c3597103865f6c2d4e2b0cd5ba91e85e3f512edcdb2596363b6eaa181186",
+      "blacklistedAt": "2026-08-25T03:22:17.598896+00:00"
     }
   }
 }
