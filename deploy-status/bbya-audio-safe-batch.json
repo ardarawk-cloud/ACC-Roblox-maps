@@ -3279,6 +3279,54 @@
         }
       },
       "moderationCheckedAt": "2026-08-25T10:03:45.758244+00:00"
+    },
+    "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1": {
+      "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
+      "title": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
+      "filename": "5A - 130 - PULSE OF JAKARTA - Unknown Artist.mp3",
+      "sequence": 39,
+      "preflight": {
+        "status": "READY",
+        "duration": 364.747755,
+        "size": 5836543,
+        "sha256": "182549cf0b01b4136a9af6298656f0371caa6cd56d65b741204d9542e8ad2133"
+      },
+      "updatedAt": "2026-08-25T10:03:57.685538+00:00",
+      "normalizedSha256": "182549cf0b01b4136a9af6298656f0371caa6cd56d65b741204d9542e8ad2133",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/9684c0f9-264b-4af0-856e-10d72890a489",
+        "operationId": "9684c0f9-264b-4af0-856e-10d72890a489",
+        "done": false
+      },
+      "uploadedAt": "2026-08-25T10:03:58.433887+00:00",
+      "operationPath": "operations/9684c0f9-264b-4af0-856e-10d72890a489",
+      "operationResult": {
+        "path": "operations/9684c0f9-264b-4af0-856e-10d72890a489",
+        "operationId": "9684c0f9-264b-4af0-856e-10d72890a489",
+        "done": true,
+        "response": {
+          "path": "assets/74479015238422",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T10:04:09.075175400Z",
+          "assetId": "74479015238422",
+          "displayName": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "74479015238422",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
