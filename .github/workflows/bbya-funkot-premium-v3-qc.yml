@@ -1,0 +1,96 @@
+name: BBYA Funkot Diskotik Premium Visual v3 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/92-funkot-zone.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-funkot-premium-v3-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-funkot-v3-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-funkot-v3-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Static Funkot premium v3 scope QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/bbya-social-hub/92-funkot-zone.client.lua'
+          $src=Get-Content $path -Raw
+          foreach($needle in @(
+            'FUNKOT DISKOTIK PREMIUM VISUAL ENHANCEMENT v3',
+            'FunkotVisualPremiumV3',
+            'SingleEnhancementAuthority',
+            'AudioUntouched',
+            'SoundIdsUntouched',
+            'UndergroundUntouched',
+            'GlobalLightingUntouched',
+            'MonetizationUntouched',
+            'ActiveMirrorBallV3',
+            'CeilingRasterV3',
+            'WallPrestigeV3',
+            'LowPracticalsV3',
+            'MirrorRay'
+          )){if($src -notmatch [regex]::Escape($needle)){throw "Missing Funkot v3 marker: $needle"}}
+
+          $marker='-- FUNKOT DISKOTIK PREMIUM VISUAL ENHANCEMENT v3'
+          $idx=$src.IndexOf($marker)
+          if($idx -lt 0){throw 'Funkot v3 marker block not found'}
+          $v3=$src.Substring($idx)
+          foreach($forbidden in @(
+            'SoundId\s*=',
+            '\.Volume\s*=',
+            'Lighting\.[A-Za-z_]+\s*=',
+            'MarketplaceService',
+            'PromptPurchase',
+            'BBYABasementMaster',
+            'DARK_UNDERGROUND'
+          )){if($v3 -match $forbidden){throw "Forbidden Funkot v3 mutation: $forbidden"}}
+          Write-Host 'FUNKOT PREMIUM V3 STATIC SCOPE QC PASS'
+
+      - name: Project mount QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+          $null=$project | ConvertFrom-Json
+          if($project -notmatch [regex]::Escape('92-funkot-zone.client.lua')){throw 'Funkot zone client mount missing'}
+          Write-Host 'FUNKOT V3 PROJECT MOUNT PASS'
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-funkot-premium-v3-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $out)){throw 'RBXL output missing'}
+          if((Get-Item $out).Length -lt 1024){throw 'RBXL output too small'}
+          Write-Host "FUNKOT PREMIUM V3 ROJO PASS bytes=$((Get-Item $out).Length)"
