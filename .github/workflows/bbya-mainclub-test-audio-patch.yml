@@ -1,0 +1,65 @@
+name: BBYA Main Club Test Audio Patch
+
+on:
+  push:
+    branches:
+      - bbya/mainclub-test-audio-134928414278364
+    paths:
+      - '.github/workflows/bbya-mainclub-test-audio-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add exactly one approved test track
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/bbya-social-hub/30-club-systems.server.lua'
+          $asset='134928414278364'
+          $line=' {title="Untungnya Hidup Harus Tetap Berjalan (Pop Punk Cover)",id="134928414278364",style="pop-punk"},'
+          $marker='-- MAIN_PROGRESSIVE_UPLOAD_END'
+          $text=Get-Content $path -Raw
+          if($text -notmatch [regex]::Escape($asset)){
+            $count=([regex]::Matches($text,[regex]::Escape($marker))).Count
+            if($count -ne 1){throw "EXPECTED_ONE_PLAYLIST_MARKER_FOUND_$count"}
+            $text=$text.Replace($marker,"$line`r`n$marker")
+            Set-Content $path $text -Encoding utf8
+          }
+          $after=Get-Content $path -Raw
+          $assetCount=([regex]::Matches($after,[regex]::Escape($asset))).Count
+          if($assetCount -ne 1){throw "EXPECTED_ONE_TEST_ASSET_FOUND_$assetCount"}
+          if($after -notmatch 'MAIN_PROGRESSIVE_DUAL_DECK_V8'){throw 'MAIN_AUDIO_AUTHORITY_MARKER_MISSING'}
+          if($after -notmatch 'OPENING STABILITY|MAIN_PROGRESSIVE_UPLOAD_BEGIN'){Write-Host 'Playlist marker present; opening-stability authority is external as expected.'}
+
+      - name: Validate final branch diff scope
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git fetch origin main
+          $changed=@(git diff --name-only origin/main...HEAD)
+          Write-Host 'Pre-commit branch diff:'
+          $changed | ForEach-Object { Write-Host $_ }
+          $work=@(git status --short)
+          Write-Host 'Working tree:'
+          $work | ForEach-Object { Write-Host $_ }
+          if(-not (Select-String -Path 'maps/bbya-social-hub/30-club-systems.server.lua' -Pattern '134928414278364' -Quiet)){throw 'TEST_ASSET_NOT_PATCHED'}
+
+      - name: Commit source patch and remove temporary workflow
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git config user.name 'BBYA Audio Test Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/30-club-systems.server.lua
+          git rm .github/workflows/bbya-mainclub-test-audio-patch.yml
+          git commit -m 'Add approved one-track Main Club playback test [skip ci]'
+          git push origin HEAD:bbya/mainclub-test-audio-134928414278364
