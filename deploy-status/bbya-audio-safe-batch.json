@@ -3104,6 +3104,54 @@
           "versionNumber": 453
         }
       }
+    },
+    "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju": {
+      "driveId": "1zQInnIdQ16XW6Bo3l89e8zuRPCnNK6Ju",
+      "title": "5A - 130 - 01.dj riri - rusty guitar",
+      "filename": "5A - 130 - 01.dj riri - rusty guitar.mp3",
+      "sequence": 37,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6561294,
+        "sha256": "b74da4fdd6a33626d7b2cdeed356dec5f6946b8ea23737d1907236b614310822"
+      },
+      "updatedAt": "2026-08-25T08:06:23.733838+00:00",
+      "normalizedSha256": "b74da4fdd6a33626d7b2cdeed356dec5f6946b8ea23737d1907236b614310822",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/c6c61426-556e-424a-a89d-9466e37af0d2",
+        "operationId": "c6c61426-556e-424a-a89d-9466e37af0d2",
+        "done": false
+      },
+      "uploadedAt": "2026-08-25T08:06:24.380178+00:00",
+      "operationPath": "operations/c6c61426-556e-424a-a89d-9466e37af0d2",
+      "operationResult": {
+        "path": "operations/c6c61426-556e-424a-a89d-9466e37af0d2",
+        "operationId": "c6c61426-556e-424a-a89d-9466e37af0d2",
+        "done": true,
+        "response": {
+          "path": "assets/123696371004403",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T08:06:33.906981900Z",
+          "assetId": "123696371004403",
+          "displayName": "5A - 130 - 01.dj riri - rusty guitar",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "123696371004403",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
