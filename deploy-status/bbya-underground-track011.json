@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 11,
+  "title": "KICAU MANIA (AMSTERBOY EDIT) -BKB HYPER-",
+  "driveFileId": "1EE1UWathKgwDSaECbc0rwZszoXGVVC17",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "131243532862401",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/77aae55d-aebf-4e12-8973-d6f43e284d30",
+    "operationId": "77aae55d-aebf-4e12-8973-d6f43e284d30",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/77aae55d-aebf-4e12-8973-d6f43e284d30",
+    "operationId": "77aae55d-aebf-4e12-8973-d6f43e284d30",
+    "done": true,
+    "response": {
+      "path": "assets/131243532862401",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T15:45:06.097359100Z",
+      "assetId": "131243532862401",
+      "displayName": "KICAU MANIA (AMSTERBOY EDIT) -BKB HYPER-",
+      "description": "BBYA Underground Track 011",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
