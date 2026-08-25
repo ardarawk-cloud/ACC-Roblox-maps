@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — MIXED MUSIC RESET AUTHORITY v5
--- MAIN + UNDERGROUND + FUNKOT runtime libraries are explicitly active.
+-- BBYA SOCIAL HUB — MIXED MUSIC RESET AUTHORITY v6
+-- MAIN + UNDERGROUND + FUNKOT + ROOFTOP runtime libraries are explicitly active.
 -- Other legacy/empty venue channels remain protected by reset authority.
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local ServerScriptService=game:GetService("ServerScriptService")
@@ -8,16 +8,18 @@ local Workspace=game:GetService("Workspace")
 local MAIN_RUNTIME_ENABLED=true
 local UNDERGROUND_REBUILD_ENABLED=true
 local FUNKOT_RUNTIME_ENABLED=true
+local ROOFTOP_RUNTIME_ENABLED=true
 
 -- Main Club is live again. Keep the legacy global reset flag false so the
 -- compact music client does not intentionally render MAIN as an empty catalog.
 ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",false)
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","MAIN_UNDERGROUND_FUNKOT_ACTIVE_V5")
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","MAIN_UNDERGROUND_FUNKOT_ROOFTOP_ACTIVE_V6")
 ReplicatedStorage:SetAttribute("BBYAMainPlaylistEnabled",MAIN_RUNTIME_ENABLED)
 ReplicatedStorage:SetAttribute("BBYAUndergroundPlaylistEnabled",UNDERGROUND_REBUILD_ENABLED)
--- Declare Funkot active immediately so clients never see the old reset state while
--- 93-funkot-music.server.lua is starting. 93 remains the single playback authority.
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistEnabled",FUNKOT_RUNTIME_ENABLED)
+-- Declare Rooftop active immediately so reset authority never destroys its canonical sound
+-- while 134-rooftop-playlist.server.lua is starting.
+ReplicatedStorage:SetAttribute("BBYARooftopPlaylistEnabled",ROOFTOP_RUNTIME_ENABLED)
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -38,11 +40,19 @@ local function ensureGroup(name,venue,active)
  if g and not g:IsA("SoundGroup") then g:Destroy();g=nil end
  if not g then g=Instance.new("SoundGroup");g.Name=name;g.Parent=SoundService end
  if active then
-  g.Volume=1
+  g.Volume=(venue=="ROOFTOP" and .68) or (venue=="FUNKOT" and .62) or 1
   g:SetAttribute("Venue",venue)
   g:SetAttribute("BBYALocalZoneOnly",true)
   g:SetAttribute("PlaylistReady",true)
-  g:SetAttribute("MusicCatalogState",venue=="FUNKOT" and "FUNKOT_ACTIVE" or (venue=="MAIN" and "MAIN_PROGRESSIVE_ACTIVE" or "OWNER_LIBRARY_ACTIVE"))
+  if venue=="FUNKOT" then
+   g:SetAttribute("MusicCatalogState","FUNKOT_ACTIVE")
+  elseif venue=="ROOFTOP" then
+   g:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_ACTIVE")
+  elseif venue=="MAIN" then
+   g:SetAttribute("MusicCatalogState","MAIN_PROGRESSIVE_ACTIVE")
+  else
+   g:SetAttribute("MusicCatalogState","OWNER_LIBRARY_ACTIVE")
+  end
   return g
  end
  g.Volume=0
@@ -62,7 +72,7 @@ local groups={
  ["BBYAFunkotMaster"]=ensureGroup("BBYAFunkotMaster","FUNKOT",FUNKOT_RUNTIME_ENABLED),
  ["BBYAVIPMaster"]=ensureGroup("BBYAVIPMaster","VIP",false),
  ["BBYASkateparkMaster"]=ensureGroup("BBYASkateparkMaster","SKATEPARK",false),
- ["BBYARooftopMaster"]=ensureGroup("BBYARooftopMaster","ROOFTOP",false),
+ ["BBYARooftopMaster"]=ensureGroup("BBYARooftopMaster","ROOFTOP",ROOFTOP_RUNTIME_ENABLED),
 }
 
 local knownSounds={
@@ -73,12 +83,11 @@ local knownSounds={
 local function controlledSound(s)
  if not s:IsA("Sound") then return false end
  local sg=s.SoundGroup
- -- Canonical Main Club AutoDJ owns every sound in BBYAClubMaster. Never scrub it.
+ -- Canonical active runtimes own every sound in their own SoundGroup. Reset must never scrub them.
  if MAIN_RUNTIME_ENABLED and sg and sg.Name=="BBYAClubMaster" then return false end
  if UNDERGROUND_REBUILD_ENABLED and sg and sg.Name=="BBYABasementMaster" then return false end
- -- Funkot is no longer a reset channel. Never scrub sounds owned by the canonical
- -- Funkot runtime group; 93-funkot-music.server.lua controls their lifecycle.
  if FUNKOT_RUNTIME_ENABLED and sg and sg.Name=="BBYAFunkotMaster" then return false end
+ if ROOFTOP_RUNTIME_ENABLED and sg and sg.Name=="BBYARooftopMaster" then return false end
  if knownSounds[s.Name] or s:GetAttribute("BBYARecovery")==true then return true end
  if sg and sg.Name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end
  return sg and groups[sg.Name]~=nil or false
@@ -126,14 +135,15 @@ local function applyReset()
   local mainActive=MAIN_RUNTIME_ENABLED and name=="BBYAClubMaster"
   local undergroundActive=UNDERGROUND_REBUILD_ENABLED and name=="BBYABasementMaster"
   local funkotActive=FUNKOT_RUNTIME_ENABLED and name=="BBYAFunkotMaster"
+  local rooftopActive=ROOFTOP_RUNTIME_ENABLED and name=="BBYARooftopMaster"
   if mainActive then
    g.Volume=1;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","MAIN_PROGRESSIVE_ACTIVE")
   elseif funkotActive then
-   -- 93 owns the Sound volume; this only guarantees that the group/reset authority
-   -- never zeroes the venue again.
    g.Volume=.62;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","FUNKOT_ACTIVE")
   elseif undergroundActive then
    g.Volume=1;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","OWNER_LIBRARY_ACTIVE")
+  elseif rooftopActive then
+   g.Volume=.68;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_ACTIVE")
   else
    g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
   end
@@ -142,4 +152,4 @@ local function applyReset()
 end
 
 task.defer(applyReset);task.delay(4,applyReset);task.delay(8,applyReset)
-print("[BBYA] Mixed catalog authority v5: MAIN + UNDERGROUND + FUNKOT active")
+print("[BBYA] Mixed catalog authority v6: MAIN + UNDERGROUND + FUNKOT + ROOFTOP active")
