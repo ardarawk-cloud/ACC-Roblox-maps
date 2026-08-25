@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "RUNNING_SEQUENTIAL",
+  "status": "STOPPED_PENDING_MODERATION",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3429,7 +3429,20 @@
       },
       "assetId": "102620964808698",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION"
+      "status": "PENDING_MODERATION",
+      "moderationState": "Reviewing",
+      "moderationProbe": {
+        "displayName": "5A - 131 - High Revolution - Studio 51 (So-1",
+        "creationContext": {
+          "creator": {
+            "userId": "9296030038"
+          }
+        },
+        "moderationResult": {
+          "moderationState": "Reviewing"
+        }
+      },
+      "moderationCheckedAt": "2026-08-25T16:21:39.866836+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
@@ -3478,5 +3491,7 @@
   "lastLiveSequence": 39,
   "lastLiveDriveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
   "lastLiveAssetId": "74479015238422",
-  "lastLiveVersion": 477
+  "lastLiveVersion": 477,
+  "blockedOnDriveId": "1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs",
+  "blockedOnSequence": 40
 }
