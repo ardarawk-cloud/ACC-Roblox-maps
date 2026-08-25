@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "BBYA_MUSIC_REQUEST_LEDGER_SCHEMA_V1",
+  "title": "BBYA Music Request Ledger Record",
+  "type": "object",
+  "required": [
+    "eventId",
+    "occurredAt",
+    "universeId",
+    "placeId",
+    "venue",
+    "canonicalTrackId",
+    "robloxAssetId",
+    "requestMode",
+    "paidRobux",
+    "beneficiaryId"
+  ],
+  "properties": {
+    "eventId": {"type": "string"},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "monthKey": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+    "universeId": {"type": "string"},
+    "placeId": {"type": "string"},
+    "venue": {"enum": ["MAIN", "UNDERGROUND", "FUNKOT"]},
+    "canonicalTrackId": {"type": "string"},
+    "robloxAssetId": {"type": "string"},
+    "titleSnapshot": {"type": "string"},
+    "artistOrDjSnapshot": {"type": ["string", "null"]},
+    "beneficiaryId": {"type": "string"},
+    "beneficiaryDisplayNameSnapshot": {"type": ["string", "null"]},
+    "requestMode": {"enum": ["FREE_AUTODJ", "PAID_REQUEST"]},
+    "developerProductId": {"type": ["string", "null"]},
+    "purchaseReceiptId": {"type": ["string", "null"]},
+    "paidRobux": {"type": "integer", "minimum": 0},
+    "grossRequestRobux": {"type": "integer", "minimum": 0},
+    "settlementStatus": {"enum": ["NOT_APPLICABLE", "UNSETTLED", "ELIGIBLE", "SETTLED", "HELD"]},
+    "settlementCurrency": {"type": ["string", "null"]},
+    "settlementAmount": {"type": ["number", "null"], "minimum": 0},
+    "shareRuleId": {"type": ["string", "null"]},
+    "source": {"enum": ["AUTODJ", "USER_REQUEST", "ADMIN_REQUEST"]}
+  },
+  "additionalProperties": true
+}

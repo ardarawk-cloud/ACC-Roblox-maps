@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "registryId": "BBYA_MUSIC_RIGHTS_REGISTRY_V1",
+  "policyRef": "ops/music-rights/bbya-music-rights-policy.json",
+  "defaultRealWorldRightsStatus": "OWNER_CONFIRMED",
+  "defaultRightsSource": "DJ_COMMUNITY_REAL_WORLD_CLEARANCE_CONFIRMED_BY_OWNER",
+  "trackKeyStrategy": "ROBLOX_ASSET_ID_WHEN_AVAILABLE_ELSE_CANONICAL_TRACK_ID",
+  "venues": {
+    "MAIN": {
+      "displayName": "Main Club",
+      "playlistSource": "runtime/main-club-catalog",
+      "requestMonetization": {
+        "enabled": false,
+        "plannedPriceRobux": [1, 2]
+      }
+    },
+    "UNDERGROUND": {
+      "displayName": "Underground",
+      "playlistSource": "maps/bbya-social-hub/audio-playlists/underground.json",
+      "requestMonetization": {
+        "enabled": false,
+        "plannedPriceRobux": [1, 2]
+      }
+    },
+    "FUNKOT": {
+      "displayName": "Funkot Diskotik",
+      "playlistSource": "maps/bbya-social-hub/audio-playlists/funkot.json",
+      "requestMonetization": {
+        "enabled": false,
+        "plannedPriceRobux": [1, 2]
+      }
+    }
+  },
+  "trackRecordTemplate": {
+    "canonicalTrackId": null,
+    "title": null,
+    "artistOrDj": null,
+    "communityOrCollective": null,
+    "venue": null,
+    "robloxAssetId": null,
+    "realWorldRights": {
+      "status": "OWNER_CONFIRMED",
+      "source": "DJ_COMMUNITY_REAL_WORLD_CLEARANCE_CONFIRMED_BY_OWNER",
+      "confirmedAt": null,
+      "notes": null
+    },
+    "roblox": {
+      "status": "PENDING",
+      "moderationStatus": null,
+      "universePermissions": {
+        "8116636513": "PENDING"
+      }
+    },
+    "runtime": {
+      "eligible": false,
+      "live": false
+    },
+    "futureRoyalty": {
+      "eligible": true,
+      "beneficiaryId": null,
+      "beneficiaryDisplayName": null,
+      "shareRuleId": null
+    }
+  },
+  "tracks": []
+}

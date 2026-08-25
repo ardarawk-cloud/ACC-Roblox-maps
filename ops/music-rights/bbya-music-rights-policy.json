@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "policyId": "BBYA_MUSIC_RIGHTS_POLICY_V1",
+  "owner": "AM STUDIO Creative Lab",
+  "scope": "BBYA Social Hub and future AM STUDIO Creative Lab Roblox experiences",
+  "status": "ACTIVE",
+  "principles": {
+    "realWorldRightsAndRobloxPlatformStatusAreSeparate": true,
+    "robloxApprovalAloneIsNotRecordedAsProofOfRealWorldRights": true,
+    "realWorldRightsSource": "OWNER_CONFIRMED_DJ_COMMUNITY_CLEARANCE",
+    "robloxModerationRequiredForRuntime": true,
+    "robloxUniversePermissionRequiredForRuntime": true,
+    "rejectedRobloxAssetNeverGoesLive": true,
+    "moderationRejectedAssetBlacklistIsPermanent": true,
+    "noPitchSpeedKeyChangesToEvadeModeration": true,
+    "noDuplicateUploads": true
+  },
+  "runtimeEligibility": {
+    "required": [
+      "realWorldRights.status == OWNER_CONFIRMED",
+      "roblox.status == APPROVED",
+      "roblox.universePermission == GRANTED"
+    ],
+    "rule": "ALL_REQUIRED"
+  },
+  "rightsScope": {
+    "intendedBrandScope": "AM_STUDIO_CREATIVE_LAB",
+    "permissionModel": "PER_ROBLOX_UNIVERSE",
+    "note": "A track cleared for AM STUDIO still requires Roblox permission for each Universe where Roblox requires restricted-asset permission."
+  },
+  "bbya": {
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "venues": {
+      "MAIN": {
+        "displayName": "Main Club",
+        "futurePaidRequestEnabled": false,
+        "plannedRequestPriceRobux": [1, 2]
+      },
+      "UNDERGROUND": {
+        "displayName": "Underground",
+        "futurePaidRequestEnabled": false,
+        "plannedRequestPriceRobux": [1, 2]
+      },
+      "FUNKOT": {
+        "displayName": "Funkot Diskotik",
+        "futurePaidRequestEnabled": false,
+        "plannedRequestPriceRobux": [1, 2]
+      }
+    }
+  },
+  "royaltyModel": {
+    "enabledNow": false,
+    "futureMode": "PAID_REQUEST_REVENUE_SHARE",
+    "autoDjRemainsFree": true,
+    "grossMetric": "PAID_REQUEST_ROBUX",
+    "settlementBasis": "NET_REALIZED_REVENUE_AFTER_ROBLOX_AND_DEVEX_ELIGIBILITY",
+    "beneficiaryType": "DJ_OR_DJ_COMMUNITY",
+    "settlementCurrency": "IDR",
+    "settlementFrequency": "MONTHLY",
+    "payoutFormulaStatus": "TO_BE_DEFINED_BEFORE_MONETIZATION_LAUNCH"
+  }
+}
