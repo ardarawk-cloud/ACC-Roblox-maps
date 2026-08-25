@@ -1,0 +1,45 @@
+{
+  "project": "Becak E-Bike",
+  "runAt": "2026-08-25T16:11:30Z",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "bca75faebce6028d758bf462fd1d1bd16bb27110",
+  "change": "Charging Network v1.17 hardens all five public charging prompts with line-of-sight, 10-stud activation distance and 1-second per-station cooldown while preserving charging price, emergency assist and v1.16 compatibility marker.",
+  "validation": {
+    "targetLockPreserved": true,
+    "chargingNetworkCompatibilityExpected": "v1.16",
+    "chargingNetworkSafetyExpected": "v1.17",
+    "publicChargingPromptSafetyExpected": "ON",
+    "publicChargingPromptHardenedCountExpected": 5,
+    "publicChargingPromptHoldSecondsExpected": 0.55,
+    "publicChargingPromptMaxDistanceExpected": 10,
+    "publicChargingPromptRequiresLineOfSightExpected": "ON",
+    "publicChargingPromptCooldownSecondsExpected": 1,
+    "chargingPricePerUnitChanged": false,
+    "emergencyChargingChanged": false,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false,
+    "dedicatedPublishIsolation": true
+  },
+  "publish": {
+    "workflow": "Publish Becak E-Bike",
+    "workflowPath": ".github/workflows/becak-ebike-publish.yml",
+    "runId": 32870383702,
+    "attempt1": {
+      "jobId": 97875670026,
+      "conclusion": "failure-before-steps"
+    },
+    "safeRetryRequested": true,
+    "attempt2StatusAtEvidence": "queued",
+    "latestVerifiedReceipt": {
+      "ok": true,
+      "httpStatus": 200,
+      "versionNumber": 36,
+      "at": "2026-08-23T16:31:47.837Z"
+    },
+    "freshReceiptVerified": false,
+    "liveClaim": false
+  }
+}
