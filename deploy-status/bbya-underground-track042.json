@@ -1,0 +1,53 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 42,
+  "title": "She's Gone BKB 2025 (Donmixedit)",
+  "driveFileId": "1RAS8XsDHn6uTS3XkJLfF2IRjV866fymX",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "114931560914489",
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/ccdb8cc1-921b-4e44-98e4-22651d73980f",
+    "operationId": "ccdb8cc1-921b-4e44-98e4-22651d73980f",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/ccdb8cc1-921b-4e44-98e4-22651d73980f",
+    "operationId": "ccdb8cc1-921b-4e44-98e4-22651d73980f",
+    "done": true,
+    "response": {
+      "path": "assets/114931560914489",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T19:34:45.738647100Z",
+      "assetId": "114931560914489",
+      "displayName": "She's Gone BKB 2025 (Donmixedit)",
+      "description": "BBYA Underground Track 042",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
+}
