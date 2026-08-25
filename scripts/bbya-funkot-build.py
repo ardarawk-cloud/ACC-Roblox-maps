@@ -5,9 +5,11 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 MAP=ROOT/'maps'/'bbya-social-hub'
 REG=MAP/'audio-playlists'/'funkot.json'
 
+# Asset routed by owner to Underground / breakbeat. Never regenerate it into Funkot.
+ROUTED_AWAY={'134073539670673'}
+
 LEGACY=[
  ('DJ Bahagiamu Sayang','110691393637838'),
- ('DJ Mama Muda Enak Dong','134073539670673'),
  ('Jamilah Itu Bukan Anunya Aisyah','116255319981650'),
  ('Funkot Club Drive','124224888312006'),
  ('Funkot Alt Drive','83125775305712'),
@@ -24,10 +26,12 @@ def active(reg):
     seen=set()
     for t in sorted(reg.get('tracks',[]),key=lambda x:int(x.get('index',0))):
         aid=str(t.get('assetId') or '')
+        if aid in ROUTED_AWAY:
+            continue
         if aid and t.get('bbyaPermission') is True and t.get('status') in {'READY_TO_INJECT','LIVE_IN_PLAYLIST'} and aid not in seen:
             out.append((str(t.get('title') or ('Funkot '+aid)),aid));seen.add(aid)
     for title,aid in LEGACY:
-        if aid not in seen:
+        if aid not in ROUTED_AWAY and aid not in seen:
             out.append((title,aid));seen.add(aid)
     return out
 
