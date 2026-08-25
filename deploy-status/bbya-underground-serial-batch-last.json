@@ -1,57 +1,12 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 10,
+  "processedCount": 5,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
   "tracks": [
     {
-      "trackIndex": 40,
-      "title": "So Sexy (Siva Remix)",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "114534434587342",
-      "moderationState": "Rejected",
-      "blacklisted": true,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 43,
-      "title": "SEDIA AKU SEBELUM HUJAN -QMUNK AMSTRONG #BKB",
-      "status": "READY_TO_INJECT",
-      "assetId": "117476404561871",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 45,
-      "title": "POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",
-      "status": "READY_TO_INJECT",
-      "assetId": "139454814636865",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 46,
-      "title": "Pimp - El kiyano (Bkb edit)",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "77827614657917",
-      "moderationState": "Rejected",
-      "blacklisted": true,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 47,
-      "title": "PICA PICA 2 - ARIEF RASIT (BKB EDIT)",
-      "status": "READY_TO_INJECT",
-      "assetId": "94631926635772",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    },
-    {
-      "trackIndex": 49,
-      "title": "Om Abidin - Ani Ani ( Club Mix )",
+      "trackIndex": 54,
+      "title": "Ngapain Repot ( Aldy Alvaro BKB edit )",
       "status": "UPLOAD_FAILED",
       "assetId": null,
       "moderationState": null,
@@ -59,8 +14,8 @@
       "readyToInject": false
     },
     {
-      "trackIndex": 50,
-      "title": "Ni De Wan Shui Qian Shan - Aldy alvaro, DJ U",
+      "trackIndex": 55,
+      "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
       "status": "UPLOAD_FAILED",
       "assetId": null,
       "moderationState": null,
@@ -68,8 +23,8 @@
       "readyToInject": false
     },
     {
-      "trackIndex": 51,
-      "title": "Ni De Da An - Aldy alvaro, Putra Crazy BKB e",
+      "trackIndex": 56,
+      "title": "MORENA BKB (HARLY EDIT)",
       "status": "UPLOAD_FAILED",
       "assetId": null,
       "moderationState": null,
@@ -77,8 +32,8 @@
       "readyToInject": false
     },
     {
-      "trackIndex": 52,
-      "title": "NGAPAIN REPOT (RAYEN BKB EDIT)",
+      "trackIndex": 57,
+      "title": "MILLION STARS - SULVES BKB EDIT -",
       "status": "UPLOAD_FAILED",
       "assetId": null,
       "moderationState": null,
@@ -86,8 +41,8 @@
       "readyToInject": false
     },
     {
-      "trackIndex": 53,
-      "title": "NGAPAIN REPOT (DEKA EDIT)",
+      "trackIndex": 58,
+      "title": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
       "status": "UPLOAD_FAILED",
       "assetId": null,
       "moderationState": null,
@@ -95,5 +50,5 @@
       "readyToInject": false
     }
   ],
-  "recordedAtUnix": 1787691584
+  "recordedAtUnix": 1787695252
 }
