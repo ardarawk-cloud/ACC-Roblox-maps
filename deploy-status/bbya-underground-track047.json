@@ -1,0 +1,101 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 47,
+  "title": "PICA PICA 2 - ARIEF RASIT (BKB EDIT)",
+  "driveFileId": "14p8KyGMtiRLX7e2b1UH3dDyWgdUSMru7",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "94631926635772",
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/9929a482-771c-446d-a250-6f2e60f6e04c",
+    "operationId": "9929a482-771c-446d-a250-6f2e60f6e04c",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/9929a482-771c-446d-a250-6f2e60f6e04c",
+    "operationId": "9929a482-771c-446d-a250-6f2e60f6e04c",
+    "done": true,
+    "response": {
+      "path": "assets/94631926635772",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T19:49:12.214973400Z",
+      "assetId": "94631926635772",
+      "displayName": "PICA PICA 2 - ARIEF RASIT (BKB EDIT)",
+      "description": "BBYA Underground Track 047",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    },
+    {
+      "http": 403,
+      "state": "Reviewing"
+    }
+  ]
+}
