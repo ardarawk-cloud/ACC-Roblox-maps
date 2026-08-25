@@ -46,10 +46,11 @@
       "index": 4,
       "title": "The Beach, DANÊL - Tears On My Guitar (Lyrics) - Sensual Musique",
       "driveFileId": "1B3-Fl1dKWyTygaHZkO_7qN4SFjtP5bMr",
-      "assetId": null,
+      "assetId": "109110582528763",
       "bbyaPermission": false,
-      "status": "PENDING_UPLOAD",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
+      "sourceSha256": "fae0780f5f95388eed8b88f645aaa59ed2f2f12819836e1c09dc43450f498155"
     },
     {
       "index": 5,
