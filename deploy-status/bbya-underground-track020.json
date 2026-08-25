@@ -1,0 +1,53 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 20,
+  "title": "Animals BKB 2025 (DONMIXedit)",
+  "driveFileId": "1o-ZIYHhB8Jjis6_yV7DtaE4JXjWT2e6O",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "112969872597515",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/583208d0-27b8-4b45-a400-f8ddd17967f4",
+    "operationId": "583208d0-27b8-4b45-a400-f8ddd17967f4",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/583208d0-27b8-4b45-a400-f8ddd17967f4",
+    "operationId": "583208d0-27b8-4b45-a400-f8ddd17967f4",
+    "done": true,
+    "response": {
+      "path": "assets/112969872597515",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:12:02.841480600Z",
+      "assetId": "112969872597515",
+      "displayName": "Animals BKB 2025 (DONMIXedit)",
+      "description": "BBYA Underground Track 020",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
+}
