@@ -1115,7 +1115,7 @@
         "size": 6625810,
         "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830"
       },
-      "updatedAt": "2026-08-25T17:51:15.655620+00:00",
+      "updatedAt": "2026-08-25T17:51:18.900802+00:00",
       "normalizedSha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1156,7 +1156,7 @@
       },
       "assetId": "99998363156285",
       "initialModerationState": "Approved",
-      "status": "APPROVED_PENDING_PUBLISH",
+      "status": "LIVE",
       "moderationState": "Approved",
       "moderationProbe": {
         "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
@@ -1196,19 +1196,19 @@
           "errors": []
         }
       },
-      "stagedCommit": "25ae0c7323927eee33d270d3b9966ccd6051312a",
-      "liveAt": "2026-08-24T15:05:45.213282+00:00",
+      "stagedCommit": "f183813341bfaadfb077849523b3c48a3c2bf9af",
+      "liveAt": "2026-08-25T17:51:18.900790+00:00",
       "publishReceipt": {
         "status": "PUBLISHED",
         "mapId": "a-club",
         "name": "BBYA Social Hub",
         "universeId": "8116636513",
         "placeId": "131894120482837",
-        "sourceCommit": "f1203d5f0822005f14e9fae5c3855af952895607",
-        "publishedAt": "2026-08-24T15:05:45.208Z",
+        "sourceCommit": "393b5ee08d73f2ac6f1f9eac69b4f3cd1ca7cbb5",
+        "publishedAt": "2026-08-25T17:51:18.896Z",
         "publishedFile": "/tmp/bbya-audio-safe-live.rbxl",
         "response": {
-          "versionNumber": 416
+          "versionNumber": 488
         }
       },
       "movedFrom": "MAIN_CLUB",
@@ -3601,10 +3601,8 @@
   "updatedAt": "2026-08-25T17:51:01.429906+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
-  "lastLiveSequence": 40,
-  "lastLiveDriveId": "1RAhNgYxWx3w7omzcJ-s3H5h6gp4JZVhs",
-  "lastLiveAssetId": "102620964808698",
-  "lastLiveVersion": 478,
-  "blockedOnDriveId": "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ",
-  "blockedOnSequence": 41
+  "lastLiveSequence": 14,
+  "lastLiveDriveId": "1KRUavNIIgLUeVQnQdITIy-4sODxYh_N6",
+  "lastLiveAssetId": "99998363156285",
+  "lastLiveVersion": 488
 }
