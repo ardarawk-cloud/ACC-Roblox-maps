@@ -3292,7 +3292,7 @@
         "size": 5836543,
         "sha256": "182549cf0b01b4136a9af6298656f0371caa6cd56d65b741204d9542e8ad2133"
       },
-      "updatedAt": "2026-08-25T10:03:57.685538+00:00",
+      "updatedAt": "2026-08-25T16:19:25.554621+00:00",
       "normalizedSha256": "182549cf0b01b4136a9af6298656f0371caa6cd56d65b741204d9542e8ad2133",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3327,20 +3327,46 @@
       },
       "assetId": "74479015238422",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
       "moderationProbe": {
-        "displayName": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/9684c0f9-264b-4af0-856e-10d72890a489",
+        "operationId": "9684c0f9-264b-4af0-856e-10d72890a489",
+        "done": true,
+        "response": {
+          "path": "assets/74479015238422",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T10:04:09.075175400Z",
+          "assetId": "74479015238422",
+          "displayName": "5A - 130 - PULSE OF JAKARTA - Unknown Artist",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T10:05:45.972271+00:00"
+      "moderationCheckedAt": "2026-08-25T16:19:25.372320+00:00",
+      "approvedAt": "2026-08-25T16:19:25.372336+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "74479015238422"
+        ],
+        "response": {
+          "successAssetIds": [
+            74479015238422
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

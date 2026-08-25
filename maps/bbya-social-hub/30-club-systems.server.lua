@@ -42,6 +42,7 @@ local PLAYLIST={
  {title="5A - 128 - 128 - C.Walking On Air (The Full Time Superstars Vs Chris Starkiller Feat Taya)",id="93670094706108",style="progressive"},
  {title="5A - 128 - Walkin On Air (Matthew)   5a",id="81169975667413",style="progressive"},
  {title="5A - 130 - 01.dj riri - rusty guitar",id="123696371004403",style="progressive"},
+ {title="5A - 130 - PULSE OF JAKARTA - Unknown Artist",id="74479015238422",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
