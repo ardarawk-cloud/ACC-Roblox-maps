@@ -1,5 +1,0 @@
-BBYA Skateboard v5 exact source target
-source=c0f81ea3cf9e0910e9451a32bf6aaa8b7bf8ac00
-baseline=bb60e3b889d345f3b5925ea2a1f72c858d91ff65
-scope=skateboard-only
-protected-audio=Opening Stability v5
