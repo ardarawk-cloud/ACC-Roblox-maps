@@ -1,26 +1,62 @@
 {
-  "status": "UPLOAD_FAILED",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 52,
   "title": "NGAPAIN REPOT (RAYEN BKB EDIT)",
   "driveFileId": "1Mm_nVNHypVUX4X3-FWpPepRwgo41AERG",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "117103573334654",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+    "path": "operations/b46a0e2b-fa3c-4b27-99ed-431bad76d6df",
+    "operationId": "b46a0e2b-fa3c-4b27-99ed-431bad76d6df",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/b46a0e2b-fa3c-4b27-99ed-431bad76d6df",
+    "operationId": "b46a0e2b-fa3c-4b27-99ed-431bad76d6df",
+    "done": true,
+    "response": {
+      "path": "assets/117103573334654",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:09:47.830640Z",
+      "assetId": "117103573334654",
+      "displayName": "NGAPAIN REPOT (RAYEN BKB EDIT)",
+      "description": "BBYA Underground Track 052",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Approved"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        117103573334654
+      ],
+      "errors": []
+    }
   }
 }
