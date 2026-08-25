@@ -1,14 +1,19 @@
--- BBYA SOCIAL HUB — MIXED MUSIC RESET AUTHORITY v4
--- MAIN stays reset; UNDERGROUND + FUNKOT runtime libraries are explicitly active.
+-- BBYA SOCIAL HUB — MIXED MUSIC RESET AUTHORITY v5
+-- MAIN + UNDERGROUND + FUNKOT runtime libraries are explicitly active.
+-- Other legacy/empty venue channels remain protected by reset authority.
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local ServerScriptService=game:GetService("ServerScriptService")
 local SoundService=game:GetService("SoundService")
 local Workspace=game:GetService("Workspace")
+local MAIN_RUNTIME_ENABLED=true
 local UNDERGROUND_REBUILD_ENABLED=true
 local FUNKOT_RUNTIME_ENABLED=true
 
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",true)
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","RESET_WITH_UNDERGROUND_FUNKOT_V4")
+-- Main Club is live again. Keep the legacy global reset flag false so the
+-- compact music client does not intentionally render MAIN as an empty catalog.
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",false)
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","MAIN_UNDERGROUND_FUNKOT_ACTIVE_V5")
+ReplicatedStorage:SetAttribute("BBYAMainPlaylistEnabled",MAIN_RUNTIME_ENABLED)
 ReplicatedStorage:SetAttribute("BBYAUndergroundPlaylistEnabled",UNDERGROUND_REBUILD_ENABLED)
 -- Declare Funkot active immediately so clients never see the old reset state while
 -- 93-funkot-music.server.lua is starting. 93 remains the single playback authority.
@@ -37,7 +42,7 @@ local function ensureGroup(name,venue,active)
   g:SetAttribute("Venue",venue)
   g:SetAttribute("BBYALocalZoneOnly",true)
   g:SetAttribute("PlaylistReady",true)
-  g:SetAttribute("MusicCatalogState",venue=="FUNKOT" and "FUNKOT_ACTIVE" or "OWNER_LIBRARY_ACTIVE")
+  g:SetAttribute("MusicCatalogState",venue=="FUNKOT" and "FUNKOT_ACTIVE" or (venue=="MAIN" and "MAIN_PROGRESSIVE_ACTIVE" or "OWNER_LIBRARY_ACTIVE"))
   return g
  end
  g.Volume=0
@@ -52,7 +57,7 @@ local function ensureGroup(name,venue,active)
 end
 
 local groups={
- ["BBYAClubMaster"]=ensureGroup("BBYAClubMaster","MAIN",false),
+ ["BBYAClubMaster"]=ensureGroup("BBYAClubMaster","MAIN",MAIN_RUNTIME_ENABLED),
  ["BBYABasementMaster"]=ensureGroup("BBYABasementMaster","UNDERGROUND",UNDERGROUND_REBUILD_ENABLED),
  ["BBYAFunkotMaster"]=ensureGroup("BBYAFunkotMaster","FUNKOT",FUNKOT_RUNTIME_ENABLED),
  ["BBYAVIPMaster"]=ensureGroup("BBYAVIPMaster","VIP",false),
@@ -68,6 +73,8 @@ local knownSounds={
 local function controlledSound(s)
  if not s:IsA("Sound") then return false end
  local sg=s.SoundGroup
+ -- Canonical Main Club AutoDJ owns every sound in BBYAClubMaster. Never scrub it.
+ if MAIN_RUNTIME_ENABLED and sg and sg.Name=="BBYAClubMaster" then return false end
  if UNDERGROUND_REBUILD_ENABLED and sg and sg.Name=="BBYABasementMaster" then return false end
  -- Funkot is no longer a reset channel. Never scrub sounds owned by the canonical
  -- Funkot runtime group; 93-funkot-music.server.lua controls their lifecycle.
@@ -116,18 +123,23 @@ local function applyReset()
  for _,o in ipairs(SoundService:GetDescendants()) do if o:IsA("Sound") and controlledSound(o) then scrubSound(o,true) end end
  scrubWorkspaceVIP()
  for name,g in pairs(groups) do
+  local mainActive=MAIN_RUNTIME_ENABLED and name=="BBYAClubMaster"
   local undergroundActive=UNDERGROUND_REBUILD_ENABLED and name=="BBYABasementMaster"
   local funkotActive=FUNKOT_RUNTIME_ENABLED and name=="BBYAFunkotMaster"
-  if funkotActive then
+  if mainActive then
+   g.Volume=1;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","MAIN_PROGRESSIVE_ACTIVE")
+  elseif funkotActive then
    -- 93 owns the Sound volume; this only guarantees that the group/reset authority
    -- never zeroes the venue again.
    g.Volume=.62;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","FUNKOT_ACTIVE")
-  elseif not undergroundActive then
+  elseif undergroundActive then
+   g.Volume=1;g:SetAttribute("PlaylistReady",true);g:SetAttribute("MusicCatalogState","OWNER_LIBRARY_ACTIVE")
+  else
    g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
   end
  end
- Workspace:SetAttribute("BBYAMusicCatalogReset",true)
+ Workspace:SetAttribute("BBYAMusicCatalogReset",false)
 end
 
 task.defer(applyReset);task.delay(4,applyReset);task.delay(8,applyReset)
-print("[BBYA] Mixed catalog authority v4: UNDERGROUND + FUNKOT active; MAIN reset preserved")
+print("[BBYA] Mixed catalog authority v5: MAIN + UNDERGROUND + FUNKOT active")
