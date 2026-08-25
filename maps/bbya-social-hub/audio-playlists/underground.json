@@ -111,6 +111,17 @@
       "bbyaPermission": true,
       "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved"
+    },
+    {
+      "index": 9,
+      "title": "Mangu Dont Go - [Ronald 3D x Devi Shinta] -BPKB-",
+      "driveFileId": "1PZ53WYPZhhS0c16A6I6L7CUiIOJ5Duca",
+      "sourceMimeType": "audio/mpeg",
+      "sourceSizeBytes": 10632454,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
