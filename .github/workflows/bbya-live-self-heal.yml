@@ -119,7 +119,7 @@ jobs:
           Forbid $beauty 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)' 'Beauty pass touches global Lighting'
           Forbid $beauty 'SoundId|SoundGroup|MarketplaceService|TeleportService' 'Beauty pass touches protected systems'
           Require $brand 'MAIN CLUB BRAND CLEANUP v1' 'Brand cleanup missing'
-          Require $brand 'label\.Text="BBYA"' 'Single BBYA wall label missing'
+          Require $brand '\.Text="BBYA"' 'Single BBYA wall label assignment missing'
           Require $project '121-mainclub-beauty-v5\.server\.lua' 'Beauty v5 is not mounted'
           Require $project '121-mainclub-brand-cleanup\.client\.lua' 'Brand cleanup is not mounted'
 
