@@ -1,4 +1,4 @@
--- BECAK E-BIKE — world readability/performance QC v2.4
+-- BECAK E-BIKE — world readability/performance QC v2.5
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
@@ -6,6 +6,7 @@
 -- v2.2 adds hard target identity + passenger proof-of-travel runtime audits.
 -- v2.3 adds mobile safe-area/phone ownership + garage/economy safety runtime audits.
 -- v2.4 synchronizes economy safety QC with Garage Safety v1.4 service-prompt debounce hardening.
+-- v2.5 synchronizes mobile QC with Safe Area v1.35 visibility-aware fallback scheduling.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -100,9 +101,7 @@ end
 local function compactQueue()
  if queueHead<=256 then return end
  local fresh={}
- for i=queueHead,#queue do
-  fresh[#fresh+1]=queue[i]
- end
+ for i=queueHead,#queue do fresh[#fresh+1]=queue[i] end
  queue=fresh
  queueHead=1
 end
@@ -141,24 +140,13 @@ local function enqueue(d)
  runWorker()
 end
 
--- Initial load is deterministic and done once before live streaming starts.
 for _,d in ipairs(root:GetDescendants()) do tune(d) end
 publishTelemetry()
-
 root.DescendantAdded:Connect(enqueue)
-
 root.DescendantRemoving:Connect(function(d)
  queued[d]=nil
- if tunedBillboards[d] then
-  tunedBillboards[d]=nil
-  billboardCount=math.max(0,billboardCount-1)
-  markTelemetryDirty()
- end
- if tunedDecor[d] then
-  tunedDecor[d]=nil
-  decorCount=math.max(0,decorCount-1)
-  markTelemetryDirty()
- end
+ if tunedBillboards[d] then tunedBillboards[d]=nil;billboardCount=math.max(0,billboardCount-1);markTelemetryDirty() end
+ if tunedDecor[d] then tunedDecor[d]=nil;decorCount=math.max(0,decorCount-1);markTelemetryDirty() end
 end)
 
 task.spawn(function()
@@ -175,13 +163,10 @@ local function auditTargetIdentity()
  Workspace:SetAttribute('BecakWorldQCTargetIdentity',pass and 'PASS' or 'FAIL')
  Workspace:SetAttribute('BecakWorldQCUniverseId',game.GameId)
  Workspace:SetAttribute('BecakWorldQCPlaceId',game.PlaceId)
- if not pass then
-  warn('[BECAK E-BIKE][QC] target identity FAIL',game.GameId,game.PlaceId,'expected',EXPECTED_UNIVERSE_ID,EXPECTED_PLACE_ID)
- end
+ if not pass then warn('[BECAK E-BIKE][QC] target identity FAIL',game.GameId,game.PlaceId,'expected',EXPECTED_UNIVERSE_ID,EXPECTED_PLACE_ID) end
  return pass
 end
 
--- Scripts start concurrently. Audit additive systems after initialization settles.
 task.delay(3,function()
  if not root.Parent then return end
  local targetPass=auditTargetIdentity()
@@ -214,11 +199,15 @@ task.delay(3,function()
  local layoutOwner=Workspace:GetAttribute('BecakPhoneLayoutOwner')
  local framePolling=Workspace:GetAttribute('BecakMobileSafeAreaFramePolling')
  local pollHz=tonumber(Workspace:GetAttribute('BecakMobileSafeAreaPollHz'))
- local mobilePass=mobileVersion=='v1.34' and mobileUX=='v1.32' and layoutOwner=='SAFE_AREA' and framePolling=='OFF' and pollHz==2
+ local visibilityAware=Workspace:GetAttribute('BecakMobileSafeAreaVisibilityAware')
+ local openFallback=tonumber(Workspace:GetAttribute('BecakMobileSafeAreaFallbackIntervalSeconds'))
+ local closedFallback=tonumber(Workspace:GetAttribute('BecakMobileSafeAreaClosedFallbackSeconds'))
+ local mobilePass=mobileVersion=='v1.35' and mobileUX=='v1.32' and layoutOwner=='SAFE_AREA' and framePolling=='OFF' and pollHz==2 and visibilityAware=='ON' and openFallback==0.5 and closedFallback==1.5
  Workspace:SetAttribute('BecakWorldQCMobileSafeArea',mobilePass and 'PASS' or 'FAIL')
  Workspace:SetAttribute('BecakWorldQCMobileSafeAreaVersion',tostring(mobileVersion or 'missing'))
  Workspace:SetAttribute('BecakWorldQCMobileLayoutOwner',tostring(layoutOwner or 'missing'))
- if not mobilePass then warn('[BECAK E-BIKE][QC] mobile safe-area audit FAIL',mobileVersion,mobileUX,layoutOwner,framePolling,pollHz) end
+ Workspace:SetAttribute('BecakWorldQCMobileClosedFallbackSeconds',closedFallback or -1)
+ if not mobilePass then warn('[BECAK E-BIKE][QC] mobile safe-area audit FAIL',mobileVersion,mobileUX,layoutOwner,framePolling,pollHz,visibilityAware,openFallback,closedFallback) end
 
  local garageSafety=Workspace:GetAttribute('ACC_BecakGarageSafetyEnhancement')
  local debounce=Workspace:GetAttribute('BecakGaragePurchaseDebounce')
@@ -237,9 +226,8 @@ task.delay(3,function()
  Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass and mobilePass and economyPass) and 'PASS' or 'FAIL')
 end)
 
--- Preserve the v2.0 compatibility marker and expose the additive v2.4 audit revision.
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
-Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.4')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.5')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -254,4 +242,4 @@ Workspace:SetAttribute('BecakWorldQCMobileSafeArea','PENDING')
 Workspace:SetAttribute('BecakWorldQCEconomySafety','PENDING')
 Workspace:SetAttribute('BecakWorldQCCoreSystems','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.4 ready | target + passenger + cargo + mobile + economy v1.4 audits | batched streaming | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.5 ready | target + passenger + cargo + mobile v1.35 + economy v1.4 audits | batched streaming | billboards',billboardCount,'decor',decorCount)
