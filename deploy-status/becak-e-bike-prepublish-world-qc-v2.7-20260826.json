@@ -31,7 +31,10 @@
   "workflowRun": {
     "runId": 32882236607,
     "attempt1": "FAILED_BEFORE_STEPS",
-    "safeRetryRequested": true
+    "attempt2": "FAILED_BEFORE_STEPS",
+    "attempt2JobId": 97914366285,
+    "runnerAllocated": false,
+    "sourceBuildFailureObserved": false
   },
   "lastVerifiedLiveReceipt": {
     "httpStatus": 200,
@@ -39,5 +42,5 @@
     "at": "2026-08-23T16:31:47.837Z",
     "freshForSourceCommit": false
   },
-  "publishState": "AWAITING_FRESH_RECEIPT"
+  "publishState": "BLOCKED_BY_GITHUB_ACTIONS_RUNNER"
 }
