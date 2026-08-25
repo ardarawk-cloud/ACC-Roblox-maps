@@ -117,8 +117,8 @@
       "sourceSha256": "acf749c03635e4e485d15a2f3e91e29c7660ecfe8ba6ca7b56a34cc56ab5e740",
       "assetId": "74975582029684",
       "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing"
+      "status": "MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected"
     }
   ]
 }

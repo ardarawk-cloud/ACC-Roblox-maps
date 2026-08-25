@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "vip-amapiano",
   "trackIndex": 24,
@@ -9,7 +9,7 @@
   "camelot": "4A",
   "bbyaUniverseId": "8116636513",
   "assetId": "74975582029684",
-  "uploadReused": false,
+  "uploadReused": true,
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -19,35 +19,39 @@
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/39e43d0a-57e9-4d59-87fa-b3860ec0b123",
-    "operationId": "39e43d0a-57e9-4d59-87fa-b3860ec0b123",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/39e43d0a-57e9-4d59-87fa-b3860ec0b123",
-    "operationId": "39e43d0a-57e9-4d59-87fa-b3860ec0b123",
-    "done": true,
-    "response": {
-      "path": "assets/74975582029684",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T03:33:53.558245900Z",
-      "assetId": "74975582029684",
-      "displayName": "ACC_Audio_1787512741773.mp3",
-      "description": "BBYA VIP Amapiano Track 24",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
     }
-  },
-  "moderationState": "Reviewing",
-  "moderationChecks": []
+  ]
 }
