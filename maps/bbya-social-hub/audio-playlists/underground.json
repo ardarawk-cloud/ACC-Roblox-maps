@@ -638,9 +638,9 @@
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 11146483,
       "assetId": "94631926635772",
-      "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
       "sourceSha256": "8d4eb703c78c80105693e663163e7bd37866818a4cfb5123b1308bc48aa6f314"
     },
     {
