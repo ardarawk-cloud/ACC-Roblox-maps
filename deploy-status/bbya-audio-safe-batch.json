@@ -3394,7 +3394,7 @@
         "size": 6624745,
         "sha256": "5ebae564410a304be66790838bf37629d35ba0cfb51088025881385676b193de"
       },
-      "updatedAt": "2026-08-25T16:19:42.252719+00:00",
+      "updatedAt": "2026-08-25T16:23:55.895504+00:00",
       "normalizedSha256": "5ebae564410a304be66790838bf37629d35ba0cfb51088025881385676b193de",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3429,20 +3429,46 @@
       },
       "assetId": "102620964808698",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
       "moderationProbe": {
-        "displayName": "5A - 131 - High Revolution - Studio 51 (So-1",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/875e4e22-db50-402d-9244-9d0985bdb9cf",
+        "operationId": "875e4e22-db50-402d-9244-9d0985bdb9cf",
+        "done": true,
+        "response": {
+          "path": "assets/102620964808698",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T16:20:05.227409700Z",
+          "assetId": "102620964808698",
+          "displayName": "5A - 131 - High Revolution - Studio 51 (So-1",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T16:21:39.866836+00:00"
+      "moderationCheckedAt": "2026-08-25T16:23:55.630625+00:00",
+      "approvedAt": "2026-08-25T16:23:55.630640+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "102620964808698"
+        ],
+        "response": {
+          "successAssetIds": [
+            102620964808698
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
