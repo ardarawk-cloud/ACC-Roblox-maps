@@ -8,7 +8,6 @@ local PLAYLIST={
  {title="Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",id="128141893547516",style="funkot"},
  {title="Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",id="98536948000407",style="funkot"},
  {title="DJ Bahagiamu Sayang",id="110691393637838",style="funkot"},
- {title="DJ Mama Muda Enak Dong",id="134073539670673",style="funkot"},
  {title="Jamilah Itu Bukan Anunya Aisyah",id="116255319981650",style="funkot"},
  {title="Funkot Club Drive",id="124224888312006",style="funkot"},
  {title="Funkot Alt Drive",id="83125775305712",style="funkot"},
