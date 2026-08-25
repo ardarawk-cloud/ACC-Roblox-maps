@@ -1,0 +1,8 @@
+{
+  "source_sha": "526c050f5c3a001148fb72ad94349763359eb6a1",
+  "reason": "Exact-source opening stability deploy for PR #185: restore Main/Funkot/Skatepark/Rooftop runtime audio authority and former-studio local readability",
+  "contains_feature_pr": 185,
+  "expected_map": "a-club",
+  "expected_universe": "8116636513",
+  "expected_place": "131894120482837"
+}
