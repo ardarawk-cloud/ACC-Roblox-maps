@@ -1,36 +1,18 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 3,
+  "processedCount": 1,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
   "tracks": [
     {
       "trackIndex": 49,
       "title": "Om Abidin - Ani Ani ( Club Mix )",
-      "status": "MODERATION_PENDING",
-      "assetId": "103410156771684",
-      "moderationState": "Reviewing",
-      "blacklisted": false,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 55,
-      "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "135846262601841",
-      "moderationState": "Rejected",
-      "blacklisted": true,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 56,
-      "title": "MORENA BKB (HARLY EDIT)",
       "status": "READY_TO_INJECT",
-      "assetId": "97696234195316",
+      "assetId": "103410156771684",
       "moderationState": "Approved",
       "blacklisted": false,
       "readyToInject": true
     }
   ],
-  "recordedAtUnix": 1787700395
+  "recordedAtUnix": 1787702361
 }
