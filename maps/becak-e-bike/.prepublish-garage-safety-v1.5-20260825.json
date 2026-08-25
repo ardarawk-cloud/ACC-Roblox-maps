@@ -1,0 +1,27 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": 10745325613,
+  "placeId": 80994730522893,
+  "sourceCommit": "79a1ff7b25d5dfa747bad9582c57411c6d6480b4",
+  "upgrade": "garage-economy-prompt-resilience-v1.5",
+  "validation": {
+    "sourceIsolation": true,
+    "sourceChangedFiles": ["maps/becak-e-bike/garage.safety.server.lua"],
+    "otherMapsTouchedBySourceCommit": false,
+    "garageCompatibilityMarkerPreserved": "v1.4",
+    "servicePromptDisconnectUnlock": true,
+    "staleLockWatchdog": true,
+    "garageCooldownSeconds": 1.25,
+    "serviceCooldownSeconds": 1.0,
+    "staleLockGraceSeconds": 0.75,
+    "pricesChanged": false,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "saveSchemaChanged": false
+  },
+  "publish": {
+    "status": "AWAITING_FRESH_RECEIPT",
+    "freshWorkflowRunObserved": false
+  }
+}
