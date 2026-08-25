@@ -86,16 +86,17 @@
       "title": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
       "driveFileId": "17gjrDpN7ZXOnBkwShKvazpXCxcoT3LbZ",
       "sourceSizeBytes": 22161574,
-      "assetId": null,
+      "assetId": "125566819662748",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "fa14471d-a29b-40a3-8f08-0ce1e98277ff",
       "blacklistedAt": "2026-08-24T15:19:25+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "174a2d571951e225fbe84ca9cb01f25e6b6e589a16619b4148cbc8d30403c5d6"
     },
     {
       "index": 6,
