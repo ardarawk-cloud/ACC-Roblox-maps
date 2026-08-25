@@ -1,0 +1,101 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 31,
+  "title": "YOU ARE MY SUNSHINE - Cookies Minor - BKB",
+  "driveFileId": "1m1xAHuM1YTvulyjHJC34NGh0C1c4DBhK",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "126371089948998",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/1bcaf0e3-9cae-44fd-ab07-f59497141418",
+    "operationId": "1bcaf0e3-9cae-44fd-ab07-f59497141418",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/1bcaf0e3-9cae-44fd-ab07-f59497141418",
+    "operationId": "1bcaf0e3-9cae-44fd-ab07-f59497141418",
+    "done": true,
+    "response": {
+      "path": "assets/126371089948998",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T17:26:38.390189500Z",
+      "assetId": "126371089948998",
+      "displayName": "YOU ARE MY SUNSHINE - Cookies Minor - BKB",
+      "description": "BBYA Underground Track 031",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    }
+  ]
+}
