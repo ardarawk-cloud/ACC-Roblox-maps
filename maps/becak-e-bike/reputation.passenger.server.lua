@@ -1,6 +1,7 @@
--- BECAK E-BIKE — reputation passenger rewards v1.47
+-- BECAK E-BIKE — reputation passenger rewards v1.48
 -- Chapter-based passenger bonuses plus service streak and maintained-vehicle quality bonus.
 -- Uses actual completed-trip base fare telemetry and the existing EconomyTransaction bridge.
+-- v1.48 hardens completion-delta handling so one attribute signal can reward at most one trip.
 -- Additive economy logic only: does not alter vehicle physics, collisions, trip integrity, or save schema.
 
 local Players = game:GetService('Players')
@@ -149,12 +150,23 @@ local function setup(player)
     player:SetAttribute('PassengerVehicleConditionAtCompletion',0)
     player:SetAttribute('PassengerVehicleQualityBonusPct',0)
     player:SetAttribute('PassengerLastVehicleQualityBonus',0)
+    player:SetAttribute('PassengerReputationDeltaAnomalies',0)
+    player:SetAttribute('PassengerReputationLastObservedDelta',0)
 
     player:GetAttributeChangedSignal('BecakTrips'):Connect(function()
         if not player.Parent then return end
         local current = math.max(0,tonumber(player:GetAttribute('BecakTrips')) or 0)
         local previous = lastTrips[player] or current
-        if current > previous then rewardPassengerCompletion(player,current-previous) end
+        if current > previous then
+            local observedDelta = current-previous
+            player:SetAttribute('PassengerReputationLastObservedDelta',observedDelta)
+            if observedDelta > 1 then
+                player:SetAttribute('PassengerReputationDeltaAnomalies',(player:GetAttribute('PassengerReputationDeltaAnomalies') or 0)+1)
+            end
+            -- One BecakTrips attribute-change signal may produce at most one bonus payout.
+            -- The canonical trip system is responsible for one increment per validated passenger completion.
+            rewardPassengerCompletion(player,1)
+        end
         lastTrips[player] = current
     end)
 end
@@ -167,9 +179,9 @@ Players.PlayerRemoving:Connect(function(player)
     serviceStreak[player]=nil
 end)
 
--- Keep the v1.46 compatibility marker for existing build/publish checks; v1.47 is additive.
+-- Keep the v1.46 compatibility marker for existing build/publish checks; v1.48 is additive.
 Workspace:SetAttribute('ACC_BecakReputationPassenger','v1.46')
-Workspace:SetAttribute('ACC_BecakReputationPassengerEnhancement','v1.47')
+Workspace:SetAttribute('ACC_BecakReputationPassengerEnhancement','v1.48')
 Workspace:SetAttribute('BecakReputationPassengerBonusMaxPct',15)
 Workspace:SetAttribute('BecakReputationPassengerUsesActualFare','ON')
 Workspace:SetAttribute('BecakPassengerServiceStreak','ON')
@@ -180,4 +192,6 @@ Workspace:SetAttribute('BecakPassengerVehicleQualityBonus','ON')
 Workspace:SetAttribute('BecakPassengerVehicleQualityGoodCondition',QUALITY_GOOD_CONDITION)
 Workspace:SetAttribute('BecakPassengerVehicleQualityPrimeCondition',QUALITY_PRIME_CONDITION)
 Workspace:SetAttribute('BecakPassengerVehicleQualityMaxBonusPct',QUALITY_MAX_BONUS_PCT)
-print('[BECAK E-BIKE] reputation passenger v1.47 ready • chapter + streak + maintained-vehicle quality bonus up to +'..QUALITY_MAX_BONUS_PCT..'%')
+Workspace:SetAttribute('BecakPassengerReputationDeltaGuard','ON')
+Workspace:SetAttribute('BecakPassengerReputationMaxRewardPerSignal',1)
+print('[BECAK E-BIKE] reputation passenger v1.48 ready • delta guard + chapter + streak + maintained-vehicle quality bonus')
