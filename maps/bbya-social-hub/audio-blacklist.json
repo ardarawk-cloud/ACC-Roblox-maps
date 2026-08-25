@@ -160,6 +160,14 @@
       "blacklistedAt": "2026-08-25T03:30:10.490058+00:00",
       "assetId": "103473685311846",
       "moderationState": "Rejected"
+    },
+    "1x0aPZkdg26jOfS2yH9Fb2ScWeSFtwja9": {
+      "driveId": "1x0aPZkdg26jOfS2yH9Fb2ScWeSFtwja9",
+      "title": "ACC_Audio_1787515416621.mp3",
+      "reason": "ROBLOX_MODERATION_REJECTED_PERMANENT",
+      "previousAssetId": "108155201923155",
+      "sourceSha256": "a093b188798efa7687c625cc8262074f4ede70f57af337234b346b663f681018",
+      "blacklistedAt": "2026-08-25T03:32:34.809434+00:00"
     }
   }
 }
