@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "RUNNING_SEQUENTIAL",
+  "status": "STOPPED_UPLOAD_QUOTA",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3609,14 +3609,14 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-08-25T21:04:42.414401+00:00",
+      "updatedAt": "2026-08-25T21:15:53.002656+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 429,
       "uploadResponse": {
         "code": "RESOURCE_EXHAUSTED",
         "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
       },
-      "uploadedAt": "2026-08-25T21:04:42.766579+00:00",
+      "uploadedAt": "2026-08-25T21:15:53.361616+00:00",
       "status": "UPLOAD_QUOTA_BLOCKED"
     }
   },
