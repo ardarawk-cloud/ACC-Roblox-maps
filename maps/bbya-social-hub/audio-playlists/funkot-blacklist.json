@@ -24,6 +24,18 @@
       "moderationState": "Rejected",
       "duplicateOfIndex": null,
       "blacklistedAt": "2026-08-25T04:21:26+00:00"
+    },
+    {
+      "index": 3,
+      "title": "Zinyo Funkytone - Betadine 2025.mp3",
+      "driveFileId": "1nwe8Kfyyprso686L7FaMqW4p1QCh20UT",
+      "assetId": "98210407231982",
+      "sourceSha256": "da1cca15286804c7578fafc6192e85d6d5e1243efacdaa9444d68060066681fe",
+      "normalizedSha256": "3cfff139c4ee69fe300d6d467bf1e4e9565b0bfcc259809871b6290e7501ced9",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "moderationState": "Rejected",
+      "duplicateOfIndex": null,
+      "blacklistedAt": "2026-08-25T05:18:11+00:00"
     }
   ]
 }
