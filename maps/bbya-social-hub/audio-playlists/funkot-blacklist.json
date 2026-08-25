@@ -36,6 +36,18 @@
       "moderationState": "Rejected",
       "duplicateOfIndex": null,
       "blacklistedAt": "2026-08-25T05:18:11+00:00"
+    },
+    {
+      "index": 5,
+      "title": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
+      "driveFileId": "17gjrDpN7ZXOnBkwShKvazpXCxcoT3LbZ",
+      "assetId": "125566819662748",
+      "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
+      "normalizedSha256": "174a2d571951e225fbe84ca9cb01f25e6b6e589a16619b4148cbc8d30403c5d6",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "moderationState": "Rejected",
+      "duplicateOfIndex": null,
+      "blacklistedAt": "2026-08-25T07:25:10+00:00"
     }
   ]
 }

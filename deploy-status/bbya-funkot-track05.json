@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -9,10 +9,10 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "assetId": "125566819662748",
-  "uploadReused": false,
+  "uploadReused": true,
   "sourceSha256": "0087f9b5abd4db9b7b17bebdf1388ea43e0915fdaa1556787f9e52a2cee42e46",
   "normalizedSha256": "174a2d571951e225fbe84ca9cb01f25e6b6e589a16619b4148cbc8d30403c5d6",
-  "startedAt": "2026-08-25T06:24:28+00:00",
+  "startedAt": "2026-08-25T07:25:09+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -28,36 +28,13 @@
     "name": "GudangPet88",
     "displayName": "GudangPet88"
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/3e619dcd-b817-45c8-8609-99bcf1a76090",
-    "operationId": "3e619dcd-b817-45c8-8609-99bcf1a76090",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/3e619dcd-b817-45c8-8609-99bcf1a76090",
-    "operationId": "3e619dcd-b817-45c8-8609-99bcf1a76090",
-    "done": true,
-    "response": {
-      "path": "assets/125566819662748",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T06:24:44.125578800Z",
-      "assetId": "125566819662748",
-      "displayName": "TERBANG BERSAMAKU 2026 ( FREDY NRC ).mp3",
-      "description": "BBYA Funkot Track 05",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Rejected",
+      "checkedAt": "2026-08-25T07:25:10+00:00"
     }
-  },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T06:24:45+00:00"
+  ],
+  "updatedAt": "2026-08-25T07:25:10+00:00"
 }
