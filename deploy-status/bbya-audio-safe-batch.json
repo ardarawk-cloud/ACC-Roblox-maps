@@ -2838,7 +2838,7 @@
         "size": 6590175,
         "sha256": "e0ce32fe7e1b797dc30d4e5ae22f7959c3b5ff6154ff940765dd371be1e7e3be"
       },
-      "updatedAt": "2026-08-24T23:59:38.062075+00:00",
+      "updatedAt": "2026-08-25T03:30:10.490054+00:00",
       "normalizedSha256": "e0ce32fe7e1b797dc30d4e5ae22f7959c3b5ff6154ff940765dd371be1e7e3be",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2873,20 +2873,32 @@
       },
       "assetId": "103473685311846",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "BLACKLISTED",
+      "moderationState": "Rejected",
       "moderationProbe": {
-        "displayName": "5.Gotye Feat Kimbra - Somebody that I used to know",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/9e38d73b-7780-4b31-bee8-858b7ff21852",
+        "operationId": "9e38d73b-7780-4b31-bee8-858b7ff21852",
+        "done": true,
+        "response": {
+          "path": "assets/103473685311846",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-24T23:59:49.078735900Z",
+          "assetId": "103473685311846",
+          "displayName": "5.Gotye Feat Kimbra - Somebody that I used to know",
+          "description": "(Removed for violations of Roblox Terms of Use)\n\nBBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Rejected"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T00:01:26.085656+00:00"
+      "moderationCheckedAt": "2026-08-25T03:30:10.490039+00:00"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",

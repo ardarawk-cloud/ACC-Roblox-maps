@@ -152,6 +152,14 @@
       "previousAssetId": "97231110660782",
       "sourceSha256": "d3f2c3597103865f6c2d4e2b0cd5ba91e85e3f512edcdb2596363b6eaa181186",
       "blacklistedAt": "2026-08-25T03:22:17.598896+00:00"
+    },
+    "15zniFaf8ruhOJW52P440PDSJZNfsU7QI": {
+      "driveId": "15zniFaf8ruhOJW52P440PDSJZNfsU7QI",
+      "title": "5.Gotye Feat Kimbra - Somebody that I used to know (Jean Marin Bootleg 2012) UP 130",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAt": "2026-08-25T03:30:10.490058+00:00",
+      "assetId": "103473685311846",
+      "moderationState": "Rejected"
     }
   }
 }
