@@ -34,7 +34,10 @@ local PLAYLIST={
  {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"},
  {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="underground"},
  {title="TOR MONITOR KETUA - QMUNK AMSTRONG#BKB PRIVAT",id="105712830643792",style="underground"},
- {title="SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",id="81832495836167",style="underground"}
+ {title="SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",id="81832495836167",style="underground"},
+ {title="SEDIA AKU SEBELUM HUJAN -QMUNK AMSTRONG #BKB",id="117476404561871",style="underground"},
+ {title="POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",id="139454814636865",style="underground"},
+ {title="PICA PICA 2 - ARIEF RASIT (BKB EDIT)",id="94631926635772",style="underground"}
 }
 
 local MIX_SECONDS=4.0

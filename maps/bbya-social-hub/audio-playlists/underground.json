@@ -585,7 +585,7 @@
       "sourceSizeBytes": 10488664,
       "assetId": "117476404561871",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "4afbb672b90b321d795d23459fe6a774fbc10df3911067ad29a1b084707fa48b"
     },
@@ -612,7 +612,7 @@
       "sourceSizeBytes": 4865672,
       "assetId": "139454814636865",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "f46d240c2461ffbba1e1007ebfaf28bd912f56c27c47dce06bbe3be062210fb0"
     },
@@ -639,7 +639,7 @@
       "sourceSizeBytes": 11146483,
       "assetId": "94631926635772",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "8d4eb703c78c80105693e663163e7bd37866818a4cfb5123b1308bc48aa6f314"
     },
