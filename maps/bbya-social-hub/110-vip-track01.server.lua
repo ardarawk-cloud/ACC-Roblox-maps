@@ -6,7 +6,8 @@ local PLAYLIST={
  {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
  {title="Utopia - Baby Doll (Phatbee Edit)",assetId="136681158481930",key="G major",camelot="9B"},
  {title="Tiket - Hanya Kamu yg Bisa (Phatbee & Berco Edit)",assetId="131557279061872",key="A major",camelot="11B"},
- {title="ACC_Audio_1787515147552.mp3",assetId="135466870455541",key="D minor",camelot="7A"}
+ {title="ACC_Audio_1787515147552.mp3",assetId="135466870455541",key="D minor",camelot="7A"},
+ {title="ACC_Audio_1787515343208.mp3",assetId="104570664651564",key="F# minor",camelot="11A"}
 }
 
 if #PLAYLIST==0 then return end
