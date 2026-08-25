@@ -3,7 +3,8 @@ local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local PLAYLIST={
  {title="Damon Empero ft. Veronica - Vacation | Tropical House | - Damon Empero",assetId="81739335079331"},
- {title="Rolipso - Come Around (Lyrics) - Sensual Musique",assetId="102905513042645"}
+ {title="Rolipso - Come Around (Lyrics) - Sensual Musique",assetId="102905513042645"},
+ {title="Dovian - Starting Over (Lyrics) - Sensual Musique",assetId="80455951712097"}
 }
 if #PLAYLIST==0 then return end
 

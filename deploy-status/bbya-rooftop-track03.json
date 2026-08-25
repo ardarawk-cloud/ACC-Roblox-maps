@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "LIVE_PUBLISHED",
   "playlistId": "rooftop-tropical",
   "trackIndex": 3,
   "title": "Dovian - Starting Over (Lyrics) - Sensual Musique",
@@ -8,7 +8,7 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "safeContinue": true,
-  "startedAt": "2026-08-25T09:45:07+00:00",
+  "startedAt": "2026-08-25T09:46:33+00:00",
   "key": {
     "http": 200,
     "authorizedUserId": "9296030038",
@@ -22,38 +22,65 @@
     "userId": "9296030038",
     "name": "GudangPet88"
   },
-  "sourceSha256": "1b67fb38de3ab64c25bc93346f3190dcf8f73ef6e98a40da00fa466cfd222d99",
-  "uploadFileSha256": "1b67fb38de3ab64c25bc93346f3190dcf8f73ef6e98a40da00fa466cfd222d99",
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/43f7cbfc-fd5f-447c-b05f-8289747eaec1",
-    "operationId": "43f7cbfc-fd5f-447c-b05f-8289747eaec1",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/43f7cbfc-fd5f-447c-b05f-8289747eaec1",
-    "operationId": "43f7cbfc-fd5f-447c-b05f-8289747eaec1",
-    "done": true,
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:46:34+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:46:49+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:47:04+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:47:19+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:47:34+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:47:49+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:48:04+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:48:19+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Approved",
+      "checkedAt": "2026-08-25T09:48:34+00:00"
+    }
+  ],
+  "bbyaPermission": {
+    "ok": true,
+    "http": 200,
     "response": {
-      "path": "assets/80455951712097",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T09:45:52.525030200Z",
-      "assetId": "80455951712097",
-      "displayName": "Dovian - Starting Over (Lyrics) - Sensual Musique",
-      "description": "BBYA Social Hub Rooftop Track 03",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+      "successAssetIds": [
+        80455951712097
+      ],
+      "errors": []
     }
   },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T09:45:54+00:00"
+  "readyToInject": true,
+  "updatedAt": "2026-08-25T09:48:35+00:00",
+  "livePublishedAt": "2026-08-25T09:48:37.537802+00:00"
 }
