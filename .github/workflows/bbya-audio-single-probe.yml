@@ -52,21 +52,43 @@ jobs:
             description='BBYA one-track upload probe 2026-08-26'
             creationContext=@{creator=@{userId=[string]$env:CREATOR_USER_ID}}
           } | ConvertTo-Json -Compress -Depth 6
-          $args=@(
-            '-sS','--location','https://apis.roblox.com/assets/v1/assets',
-            '--header',"x-api-key: $env:AUDIO_KEY",
-            '--form-string',"request=$req",
-            '--form','fileContent=@source.mp3;type=audio/mpeg',
-            '--output','upload-response.json',
-            '--write-out','%{http_code}'
-          )
-          $http=& curl.exe @args
+
+          $boundary='----BBYA'+[Guid]::NewGuid().ToString('N')
+          $ms=New-Object System.IO.MemoryStream
+          function Write-Utf8([string]$s){
+            $b=[Text.Encoding]::UTF8.GetBytes($s)
+            $ms.Write($b,0,$b.Length)
+          }
+          Write-Utf8 ("--$boundary`r`nContent-Disposition: form-data; name=`"request`"`r`n`r`n$req`r`n")
+          Write-Utf8 ("--$boundary`r`nContent-Disposition: form-data; name=`"fileContent`"; filename=`"source.mp3`"`r`nContent-Type: audio/mpeg`r`n`r`n")
+          $audio=[IO.File]::ReadAllBytes((Resolve-Path 'source.mp3'))
+          $ms.Write($audio,0,$audio.Length)
+          Write-Utf8 ("`r`n--$boundary--`r`n")
+          $multipart=$ms.ToArray()
+          $ms.Dispose()
+
+          $http=0
+          $body=''
+          try {
+            $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri 'https://apis.roblox.com/assets/v1/assets' -Headers @{'x-api-key'=$env:AUDIO_KEY} -ContentType "multipart/form-data; boundary=$boundary" -Body $multipart
+            $http=[int]$r.StatusCode
+            $body=[string]$r.Content
+          } catch {
+            if($_.Exception.Response){
+              $http=[int]$_.Exception.Response.StatusCode
+              try {
+                $reader=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream())
+                $body=$reader.ReadToEnd()
+                $reader.Dispose()
+              } catch {}
+            }
+            if([string]::IsNullOrWhiteSpace($body)){try{$body=[string]$_.ErrorDetails.Message}catch{}}
+          }
           Write-Host "ROBLOX_UPLOAD_HTTP=$http"
-          $body=Get-Content upload-response.json -Raw
           Write-Host $body
           Add-Content $env:GITHUB_STEP_SUMMARY "### BBYA Audio Single Probe"
           Add-Content $env:GITHUB_STEP_SUMMARY "- HTTP: $http"
           Add-Content $env:GITHUB_STEP_SUMMARY '```json'
           Add-Content $env:GITHUB_STEP_SUMMARY $body
           Add-Content $env:GITHUB_STEP_SUMMARY '```'
-          if(([int]$http -lt 200) -or ([int]$http -ge 300)){throw "ROBLOX_UPLOAD_FAILED_HTTP_$http"}
+          if(($http -lt 200) -or ($http -ge 300)){throw "ROBLOX_UPLOAD_FAILED_HTTP_$http"}
