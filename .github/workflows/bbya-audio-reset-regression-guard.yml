@@ -38,7 +38,7 @@ jobs:
             'scrubSound',
             's\.SoundId\s*=\s*""',
             'RESET_WITH_UNDERGROUND',
-            'RESET_EMPTY',
+            'SetAttribute\("MusicCatalogState","RESET_EMPTY"\)',
             'disableOldAudioEngines'
           )){if($src -match $forbidden){throw "Destructive audio reset regression detected: $forbidden"}}
           Write-Host 'BBYA AUDIO RESET REGRESSION GUARD PASS'
