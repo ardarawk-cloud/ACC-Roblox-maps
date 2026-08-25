@@ -1,0 +1,102 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 30,
+  "title": "[ IRSA ] GATHEL - NDX 2025 ( BKB ) Album DJ  STAR VOL. 2",
+  "driveFileId": "1xPUrqCT-typPBDmqEsmhKpJqDK--589K",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "110053108356230",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/fa9d8be8-7ada-47bf-bdc2-07c232647d6b",
+    "operationId": "fa9d8be8-7ada-47bf-bdc2-07c232647d6b",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/fa9d8be8-7ada-47bf-bdc2-07c232647d6b",
+    "operationId": "fa9d8be8-7ada-47bf-bdc2-07c232647d6b",
+    "done": true,
+    "response": {
+      "path": "assets/110053108356230",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T17:23:31.650629900Z",
+      "assetId": "110053108356230",
+      "displayName": "[ IRSA ] GATHEL - NDX 2025 ( BKB ) Album DJ  STAR ",
+      "description": "BBYA Underground Track 030",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
