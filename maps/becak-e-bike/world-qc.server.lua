@@ -1,4 +1,4 @@
--- BECAK E-BIKE — world readability/performance QC v2.6
+-- BECAK E-BIKE — world readability/performance QC v2.7
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
@@ -8,6 +8,7 @@
 -- v2.4 synchronizes economy safety QC with Garage Safety v1.4 service-prompt debounce hardening.
 -- v2.5 synchronizes mobile QC with Safe Area v1.35 visibility-aware fallback scheduling.
 -- v2.6 audits Garage Safety v1.5 disconnect-safe unlock + stale-lock watchdog resilience.
+-- v2.7 audits public Charging Network v1.18 prompt safety + disconnect/stale-lock resilience.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -231,11 +232,31 @@ task.delay(3,function()
  Workspace:SetAttribute('BecakWorldQCHardenedServicePrompts',hardenedCount or -1)
  if not economyPass then warn('[BECAK E-BIKE][QC] economy safety audit FAIL',garageSafety,garageResilience,debounce,hold,garageDisconnect,serviceSafety,serviceDebounce,serviceDisconnect,staleWatchdog,staleGrace,serviceCooldown,hardenedCount) end
 
- Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass and mobilePass and economyPass) and 'PASS' or 'FAIL')
+ local chargingSafety=Workspace:GetAttribute('ACC_BecakChargingNetworkSafety')
+ local chargingResilience=Workspace:GetAttribute('ACC_BecakChargingNetworkResilience')
+ local chargingPromptSafety=Workspace:GetAttribute('BecakPublicChargingPromptSafety')
+ local chargingPromptCount=tonumber(Workspace:GetAttribute('BecakPublicChargingPromptHardenedCount'))
+ local chargingHold=tonumber(Workspace:GetAttribute('BecakPublicChargingPromptHoldSeconds'))
+ local chargingDistance=tonumber(Workspace:GetAttribute('BecakPublicChargingPromptMaxDistance'))
+ local chargingLOS=Workspace:GetAttribute('BecakPublicChargingPromptRequiresLineOfSight')
+ local chargingCooldown=tonumber(Workspace:GetAttribute('BecakPublicChargingPromptCooldownSeconds'))
+ local chargingDisconnect=Workspace:GetAttribute('BecakPublicChargingDisconnectUnlockGuard')
+ local chargingWatchdog=Workspace:GetAttribute('BecakPublicChargingStaleLockWatchdog')
+ local chargingGrace=tonumber(Workspace:GetAttribute('BecakPublicChargingStaleLockGraceSeconds'))
+ local chargingPass=chargingSafety=='v1.17' and chargingResilience=='v1.18' and chargingPromptSafety=='ON' and chargingPromptCount==5 and chargingHold==0.55 and chargingDistance==10 and chargingLOS=='ON' and chargingCooldown==1 and chargingDisconnect=='ON' and chargingWatchdog=='ON' and chargingGrace==0.75
+ Workspace:SetAttribute('BecakWorldQCPublicCharging',chargingPass and 'PASS' or 'FAIL')
+ Workspace:SetAttribute('BecakWorldQCPublicChargingSafetyVersion',tostring(chargingSafety or 'missing'))
+ Workspace:SetAttribute('BecakWorldQCPublicChargingResilienceVersion',tostring(chargingResilience or 'missing'))
+ Workspace:SetAttribute('BecakWorldQCPublicChargingPromptCount',chargingPromptCount or -1)
+ Workspace:SetAttribute('BecakWorldQCPublicChargingCooldownSeconds',chargingCooldown or -1)
+ Workspace:SetAttribute('BecakWorldQCPublicChargingStaleGraceSeconds',chargingGrace or -1)
+ if not chargingPass then warn('[BECAK E-BIKE][QC] public charging audit FAIL',chargingSafety,chargingResilience,chargingPromptSafety,chargingPromptCount,chargingHold,chargingDistance,chargingLOS,chargingCooldown,chargingDisconnect,chargingWatchdog,chargingGrace) end
+
+ Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass and mobilePass and economyPass and chargingPass) and 'PASS' or 'FAIL')
 end)
 
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
-Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.6')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.7')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -248,6 +269,7 @@ Workspace:SetAttribute('BecakWorldQCCargoResilience','PENDING')
 Workspace:SetAttribute('BecakWorldQCPassengerIntegrity','PENDING')
 Workspace:SetAttribute('BecakWorldQCMobileSafeArea','PENDING')
 Workspace:SetAttribute('BecakWorldQCEconomySafety','PENDING')
+Workspace:SetAttribute('BecakWorldQCPublicCharging','PENDING')
 Workspace:SetAttribute('BecakWorldQCCoreSystems','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.6 ready | target + passenger + cargo + mobile v1.35 + economy v1.5 resilience audits | batched streaming | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.7 ready | target + passenger + cargo + mobile v1.35 + economy v1.5 + charging v1.18 audits | batched streaming | billboards',billboardCount,'decor',decorCount)
