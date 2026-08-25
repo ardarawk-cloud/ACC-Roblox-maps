@@ -1,26 +1,53 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 37,
   "title": "TANPA CINTA V2 2025 - Alka Flow BKB",
   "driveFileId": "16KpxIPS9E9r-F_pkGWehuNmbWyOy8y5c",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "131483664335110",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/a665a85b-58cd-472f-92ec-b849b121b8f1",
+    "operationId": "a665a85b-58cd-472f-92ec-b849b121b8f1",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a665a85b-58cd-472f-92ec-b849b121b8f1",
+    "operationId": "a665a85b-58cd-472f-92ec-b849b121b8f1",
+    "done": true,
+    "response": {
+      "path": "assets/131483664335110",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T18:48:02.962266Z",
+      "assetId": "131483664335110",
+      "displayName": "TANPA CINTA V2 2025 - Alka Flow BKB",
+      "description": "BBYA Underground Track 037",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
 }
