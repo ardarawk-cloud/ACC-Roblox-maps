@@ -109,9 +109,9 @@ part("NorthQuarterRight",Vector3.new(31,7.2,16),CFrame.new(38,4.1,140)*CFrame.An
 rail("NorthCopingLeft",Vector3.new(31,.26,.34),CFrame.new(-38,7.72,147.8),trans)
 rail("NorthCopingRight",Vector3.new(31,.26,.34),CFrame.new(38,7.72,147.8),trans)
 
--- SOCIAL / SPECTATOR edges stay outside ride lines -----------------------------
+-- SOCIAL / SPECTATOR edges stay outside ride lines and clear of board rack.
 local social=Instance.new("Model");social.Name="SpectatorEdge";social.Parent=m
-for i,x in ipairs({26,38,50}) do
+for i,x in ipairs({14,26,36}) do
  part("BenchSeat"..i,Vector3.new(9,.45,2.4),CFrame.new(x,2.0,77.2),C.wood,Enum.Material.WoodPlanks,true,social)
  part("BenchLegA"..i,Vector3.new(.35,1.5,1.8),CFrame.new(x-3,1.25,77.2),C.metal,Enum.Material.Metal,true,social)
  part("BenchLegB"..i,Vector3.new(.35,1.5,1.8),CFrame.new(x+3,1.25,77.2),C.metal,Enum.Material.Metal,true,social)
