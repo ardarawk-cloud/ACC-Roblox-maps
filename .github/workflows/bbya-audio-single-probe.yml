@@ -1,4 +1,4 @@
-name: BBYA Audio Universe Grant
+name: BBYA Audio Universe Grant Master
 
 on:
   pull_request:
@@ -13,42 +13,43 @@ jobs:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 5
     env:
-      AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+      ASSET_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+      GRANT_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
       ASSET_ID: '134928414278364'
       BBYA_UNIVERSE: '8116636513'
     steps:
-      - name: Verify approved asset then grant BBYA universe Use
+      - name: Verify approved asset then grant using master key
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:AUDIO_KEY)){throw 'AUDIO_KEY_MISSING'}
-          $headers=@{'x-api-key'=$env:AUDIO_KEY}
+          if([string]::IsNullOrWhiteSpace($env:ASSET_KEY)){throw 'ASSET_KEY_MISSING'}
+          if([string]::IsNullOrWhiteSpace($env:GRANT_KEY)){throw 'GRANT_KEY_MISSING'}
 
-          $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers $headers
+          $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers @{'x-api-key'=$env:ASSET_KEY}
           $state=[string]$meta.state
           $moderation=[string]$meta.moderationResult.moderationState
-          Write-Host "ASSET_ID=$env:ASSET_ID STATE=$state MODERATION=$moderation"
+          Write-Host "ASSET_ID=$env:ASSET_ID STATE=$state MODERATION=$moderation CREATOR=$($meta.creationContext.creator.userId)"
           if($state -ne 'Active' -or $moderation -ne 'Approved'){throw "ASSET_NOT_READY_${state}_${moderation}"}
+
+          try {
+            $introPayload=@{apiKey=$env:GRANT_KEY} | ConvertTo-Json -Compress
+            $intro=Invoke-RestMethod -Method Post -Uri 'https://apis.roblox.com/api-keys/v1/introspect' -ContentType 'application/json' -Body $introPayload
+            Write-Host "GRANT_KEY_NAME=$($intro.name) AUTHORIZED_USER_ID=$($intro.authorizedUserId) ENABLED=$($intro.enabled) EXPIRED=$($intro.expired)"
+          } catch { Write-Host "GRANT_KEY_INTROSPECT_ERROR=$($_.Exception.Message)" }
 
           $payload=[ordered]@{
             subjectType='Universe'
             subjectId=[string]$env:BBYA_UNIVERSE
             action='Use'
-            requests=@(
-              [ordered]@{assetId=[Int64]$env:ASSET_ID}
-            )
+            requests=@([ordered]@{assetId=[Int64]$env:ASSET_ID})
           } | ConvertTo-Json -Compress -Depth 8
 
           $http=0;$body=''
           try {
-            $r=Invoke-WebRequest -UseBasicParsing -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers $headers -ContentType 'application/json-patch+json' -Body $payload
-            $http=[int]$r.StatusCode
-            $body=[string]$r.Content
+            $r=Invoke-WebRequest -UseBasicParsing -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:GRANT_KEY} -ContentType 'application/json-patch+json' -Body $payload
+            $http=[int]$r.StatusCode;$body=[string]$r.Content
           } catch {
-            if($_.Exception.Response){
-              $http=[int]$_.Exception.Response.StatusCode
-              try{$reader=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream());$body=$reader.ReadToEnd();$reader.Dispose()}catch{}
-            }
+            if($_.Exception.Response){$http=[int]$_.Exception.Response.StatusCode;try{$reader=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream());$body=$reader.ReadToEnd();$reader.Dispose()}catch{}}
             if([string]::IsNullOrWhiteSpace($body)){try{$body=[string]$_.ErrorDetails.Message}catch{}}
           }
           Write-Host "GRANT_HTTP=$http"
