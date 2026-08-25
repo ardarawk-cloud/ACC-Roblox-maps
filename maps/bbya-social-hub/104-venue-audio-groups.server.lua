@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.1
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.2
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
@@ -35,6 +35,9 @@ local function ensure(name,venue,active,state)
 end
 
 local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V2")
+-- Skatepark-specific gain. Do not raise Rooftop or any other venue group.
+skateGroup.Volume=1.0
+skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
 ensure("BBYAVIPMaster","VIP",false)
 
@@ -61,12 +64,13 @@ local sound=SoundService:FindFirstChild("BBYASkateparkMasterSound")
 if sound and not sound:IsA("Sound") then sound:Destroy();sound=nil end
 if not sound then sound=Instance.new("Sound");sound.Name="BBYASkateparkMasterSound";sound.Parent=SoundService end
 sound.SoundGroup=skateGroup
-sound.Volume=.82
+sound.Volume=1.0
 sound.Looped=false
 sound.PlaybackSpeed=1
 sound:SetAttribute("Venue","SKATEPARK")
 sound:SetAttribute("PlaylistId","skatepark-mixed")
 sound:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED")
+sound:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 
 local index=tonumber(ReplicatedStorage:GetAttribute("BBYASkateparkCurrentIndex")) or 1
 if index<1 or index>#SKATE_PLAYLIST then index=1 end
@@ -132,11 +136,13 @@ playIndex(index)
 
 task.spawn(function()
  while task.wait(1.25) do
-  skateGroup.Volume=.72
+  -- Keep only Skatepark at full level; other venue masters are untouched.
+  skateGroup.Volume=1.0
+  sound.Volume=1.0
   skateGroup:SetAttribute("PlaylistReady",true)
   skateGroup:SetAttribute("PlaylistCount",#SKATE_PLAYLIST)
   if not sound.IsPlaying and not switching then playIndex(index) end
  end
 end)
 
-print("[BBYA] Venue audio masters v4.1: Skatepark mixed 7-track active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4.2: Skatepark 7-track full-level active; Rooftop active; VIP isolated")

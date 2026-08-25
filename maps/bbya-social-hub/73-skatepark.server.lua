@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — REAR SKATEPARK v3 PROPER BASE
+-- BBYA SOCIAL HUB — REAR SKATEPARK v3.1 PROPER BASE
 -- Clean, rideable street-plaza layout. Keeps teleport center clear at (0,3,112).
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
@@ -9,10 +9,11 @@ if old then old:Destroy() end
 local m=Instance.new("Model")
 m.Name="RearSkatepark"
 m.Parent=root
-m:SetAttribute("Pass","REAR_SKATEPARK_V3_PROPER")
+m:SetAttribute("Pass","REAR_SKATEPARK_V3_1_PROPER")
 m:SetAttribute("TeleportKey","Skatepark")
-m:SetAttribute("Layout","STREET_PLAZA_FLOW_V3")
+m:SetAttribute("Layout","STREET_PLAZA_FLOW_V3_1")
 m:SetAttribute("TeleportCenterClear",true)
+m:SetAttribute("NorthTransitionRideDirection","CENTER_TO_NORTH_SLOPE_FIRST")
 m:SetAttribute("AudioAuthorityUntouched",true)
 
 local C={
@@ -102,10 +103,10 @@ rail("EastLedgeCoping",Vector3.new(22,.18,.32),CFrame.new(37,2.52,89.15),east)
 part("EastEuroBank",Vector3.new(18,4.8,15),CFrame.new(39,2.9,112)*CFrame.Angles(0,math.rad(90),0),C.concrete2,Enum.Material.Concrete,true,east,"WedgePart")
 part("EastDeck",Vector3.new(12,1,16),CFrame.new(50,3.9,112),Color3.fromRGB(58,59,62),Enum.Material.Concrete,true,east)
 
--- NORTH TRANSITION RETURN: two wide quarter-style banks with open center -------
+-- NORTH TRANSITION RETURN: slope must face the arrival/ride line from center.
 local trans=Instance.new("Model");trans.Name="NorthTransition";trans.Parent=m
-part("NorthQuarterLeft",Vector3.new(31,7.2,16),CFrame.new(-38,4.1,140)*CFrame.Angles(0,math.rad(180),0),C.concrete2,Enum.Material.Concrete,true,trans,"WedgePart")
-part("NorthQuarterRight",Vector3.new(31,7.2,16),CFrame.new(38,4.1,140)*CFrame.Angles(0,math.rad(180),0),C.concrete2,Enum.Material.Concrete,true,trans,"WedgePart")
+part("NorthQuarterLeft",Vector3.new(31,7.2,16),CFrame.new(-38,4.1,140),C.concrete2,Enum.Material.Concrete,true,trans,"WedgePart")
+part("NorthQuarterRight",Vector3.new(31,7.2,16),CFrame.new(38,4.1,140),C.concrete2,Enum.Material.Concrete,true,trans,"WedgePart")
 rail("NorthCopingLeft",Vector3.new(31,.26,.34),CFrame.new(-38,7.72,147.8),trans)
 rail("NorthCopingRight",Vector3.new(31,.26,.34),CFrame.new(38,7.72,147.8),trans)
 
@@ -119,4 +120,4 @@ end
 
 textSign("SkateparkSign",CFrame.new(0,7.2,148.82),Vector3.new(34,7,.38),"BBYA SKATEPARK","STREET PLAZA • NIGHT SESSION")
 
-print("[BBYA] Rear Skatepark v3 proper base online: clear teleport / street plaza / separated ride lines")
+print("[BBYA] Rear Skatepark v3.1 proper: north transition faces ride line; center clear")
