@@ -1,5 +1,5 @@
 {
-  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "status": "MODERATION_PENDING",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -8,10 +8,11 @@
   "driveFileId": "18u4O6XxkL4xbel9T7E9LuC13bUxe2vaK",
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
-  "assetId": null,
+  "assetId": "125981906836198",
   "uploadReused": false,
   "sourceSha256": "793acac4a4c6a8689e9f1df5cbe016265d549f9a20ca7ff2a96035e94169e9f0",
-  "startedAt": "2026-08-24T15:20:10+00:00",
+  "normalizedSha256": "0ba801e355021bf61d3334c17c24fe83610dfdd1be9d2d94df5a6cae3b82b404",
+  "startedAt": "2026-08-25T07:25:56+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -29,19 +30,34 @@
   },
   "uploadHttp": 200,
   "uploadResponse": {
-    "path": "operations/22609e6c-7363-4b31-8ac9-36302b318f04",
-    "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
+    "path": "operations/9b26f591-1e8a-46a8-b4c2-034f6bf58698",
+    "operationId": "9b26f591-1e8a-46a8-b4c2-034f6bf58698",
     "done": false
   },
   "operationResult": {
-    "path": "operations/22609e6c-7363-4b31-8ac9-36302b318f04",
-    "operationId": "22609e6c-7363-4b31-8ac9-36302b318f04",
+    "path": "operations/9b26f591-1e8a-46a8-b4c2-034f6bf58698",
+    "operationId": "9b26f591-1e8a-46a8-b4c2-034f6bf58698",
     "done": true,
-    "error": {
-      "code": "InvalidArgument",
-      "message": "Audio duration too long",
-      "details": []
+    "response": {
+      "path": "assets/125981906836198",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T07:26:08.345930400Z",
+      "assetId": "125981906836198",
+      "displayName": "SUWUNG X KICAU MANIAKS - Jordan L3 Ft Viosena.mp3",
+      "description": "BBYA Funkot Track 06",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
     }
   },
-  "updatedAt": "2026-08-24T15:20:48+00:00"
+  "moderationState": "Reviewing",
+  "moderationChecks": [],
+  "updatedAt": "2026-08-25T07:26:10+00:00"
 }
