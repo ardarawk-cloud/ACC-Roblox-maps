@@ -1,0 +1,86 @@
+name: BBYA Skatepark Live Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-skatepark-live.yml'
+      - 'maps/bbya-social-hub/104-venue-audio-groups.server.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-skatepark-live
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-skate-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-skate-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojoExe=$exe.FullName
+          }
+          & $rojoExe --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo unavailable'}
+          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Validate Skatepark audio authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=Get-Content 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' -Raw
+          if($src -notmatch 'local SKATE_PLAYLIST='){throw 'SKATE_PLAYLIST authority missing'}
+          if($src -notmatch 'BBYASkateparkMasterSound'){throw 'Skatepark master sound missing'}
+          if($src -notmatch 'BBYASkateparkPlaylistCatalog'){throw 'Skatepark catalog publisher missing'}
+          if($src -notmatch '134928414278364'){throw 'Approved pop-punk test asset missing'}
+          if($src -notmatch 'ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED'){throw 'Mixed rights profile marker missing'}
+          Write-Host 'Skatepark audio authority QC PASS'
+
+      - name: Full Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-live.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Built place unexpectedly small'}
+          "PLACE_FILE_OVERRIDE=$place" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Built $place ($((Get-Item $place).Length) bytes)"
+
+      - name: Publish BBYA live
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+        run: |
+          $ErrorActionPreference='Stop'
+          & node scripts/publish-map.js a-club
+          if($LASTEXITCODE -ne 0){throw "BBYA publish failed: $LASTEXITCODE"}
+          Write-Host 'BBYA SKATEPARK LIVE PUBLISH PASS'
