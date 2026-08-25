@@ -1,26 +1,62 @@
 {
-  "status": "UPLOAD_FAILED",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 58,
   "title": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
   "driveFileId": "1zTUr-rml-rQoQayB28IrblYy1Ry8JkMf",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "106194805739169",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+    "path": "operations/b2f27242-f81c-484b-a2b2-39e5d66e2eb5",
+    "operationId": "b2f27242-f81c-484b-a2b2-39e5d66e2eb5",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/b2f27242-f81c-484b-a2b2-39e5d66e2eb5",
+    "operationId": "b2f27242-f81c-484b-a2b2-39e5d66e2eb5",
+    "done": true,
+    "response": {
+      "path": "assets/106194805739169",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:53:20.393526200Z",
+      "assetId": "106194805739169",
+      "displayName": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
+      "description": "BBYA Underground Track 058",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Approved"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        106194805739169
+      ],
+      "errors": []
+    }
   }
 }
