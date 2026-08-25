@@ -1,0 +1,28 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike only",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "dce3f19b15818dfbd8941f3d3a4f5575dedaca0b",
+  "upgrade": "Garage/Economy Interaction Safety v1.4",
+  "changes": [
+    "Added 1.0 second debounce/cooldown to ChargingStation, RepairShop, and CargoDepot ProximityPrompts",
+    "Preserved existing 0.55 second deliberate hold, 10 stud max distance, and line-of-sight guards",
+    "Added service transaction telemetry attributes without changing economy ownership or payout logic"
+  ],
+  "invariants": {
+    "garagePricesChanged": false,
+    "chargingPricesChanged": false,
+    "repairPricesChanged": false,
+    "cargoPayoutChanged": false,
+    "physicsChanged": false,
+    "collisionTopologyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "publish": {
+    "status": "PENDING_FRESH_RECEIPT",
+    "lastVerifiedVersion": 36,
+    "lastVerifiedAt": "2026-08-23T16:31:47.837Z"
+  }
+}
