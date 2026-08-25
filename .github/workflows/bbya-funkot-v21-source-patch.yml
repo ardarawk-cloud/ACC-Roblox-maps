@@ -13,115 +13,119 @@ jobs:
   patch:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_BRANCH: codex/funkot-diskotik-v21
     steps:
       - uses: actions/checkout@v4
         with:
           ref: codex/funkot-diskotik-v21
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Apply Funkot Diskotik identity and blackout v2.1
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          @'
-          from pathlib import Path
-          root = Path('maps/bbya-social-hub')
-          p = root / '92-funkot-club.server.lua'
-          s = p.read_text(encoding='utf-8')
-          s = s.replace('BBYA  FUNKOT  CLUB', 'BBYA  FUNKOT  DISKOTIK')
-          s = s.replace('FUNKOT CLUB  •  10 R$', 'FUNKOT DISKOTIK  •  10 R$')
-          p.write_text(s, encoding='utf-8')
-          p = root / '76-travel-ui-patch.client.lua'
-          s = p.read_text(encoding='utf-8')
-          s = s.replace('{"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple}', '{"FUNKOT DISKOTIK","Funkot","ONE-TIME",10,C.purple}')
-          p.write_text(s, encoding='utf-8')
-          p = root / '33-runtime-qc.server.lua'
-          s = p.read_text(encoding='utf-8')
-          marker = '-- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1'
-          if marker not in s:
-              patch = r'''
+          $utf8=New-Object System.Text.UTF8Encoding($false)
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Funkot-Patcher"}
+          function Publish-Text([string]$path,[string]$text,[string]$message){
+            $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+            $cur=Invoke-RestMethod -Method Get -Uri ("${api}?ref=$env:TARGET_BRANCH") -Headers $headers
+            $bytes=$utf8.GetBytes($text)
+            $body=@{message=$message;content=[Convert]::ToBase64String($bytes);sha=$cur.sha;branch=$env:TARGET_BRANCH}|ConvertTo-Json -Depth 5
+            Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body $body -ContentType 'application/json'|Out-Null
+          }
 
-          -- -----------------------------------------------------------------------------
-          -- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1
-          -- Live mobile QC after v444: visible branding still said CLUB and the straight
-          -- entrance sightline exposed bright daytime sky. Keep real WITA outside while
-          -- making Funkot read as a dedicated indoor Indonesian diskotik at all hours.
-          -- -----------------------------------------------------------------------------
-          task.spawn(function()
-           local club=root:WaitForChild("FunkotClub",60)
-           if not club then return end
-           local deadline=os.clock()+45
-           repeat
-            if club:FindFirstChild("FunkotDiskotikPremiumV2") then break end
-            task.wait(.2)
-           until os.clock()>=deadline
-           local v2=club:FindFirstChild("FunkotDiskotikPremiumV2")
-           if not v2 then warn("[BBYA] Funkot Diskotik v2.1 skipped: v2 not ready");return end
-           task.wait(.5)
-           club:SetAttribute("DisplayName","FUNKOT DISKOTIK")
-           club:SetAttribute("VisualPass","FUNKOT_DISKOTIK_V21_BLACKOUT")
-           for _,name in ipairs({"FunkotSign","EntrySign"}) do
-            local sign=club:FindFirstChild(name,true)
-            if sign then
-             for _,d in ipairs(sign:GetDescendants()) do
-              if d:IsA("TextLabel") then
-               if name=="FunkotSign" then d.Text="BBYA  FUNKOT  DISKOTIK"
-               else d.Text="FUNKOT DISKOTIK  •  10 R$" end
-              end
-             end
-            end
-           end
-           local old=club:FindFirstChild("FunkotDiskotikIdentityV21")
-           if old then old:Destroy() end
-           local out=Instance.new("Model");out.Name="FunkotDiskotikIdentityV21";out.Parent=club
-           out:SetAttribute("FunkotOnly",true)
-           out:SetAttribute("GlobalLightingUntouched",true)
-           out:SetAttribute("AudioUntouched",true)
-           out:SetAttribute("RealWitaOutsidePreserved",true)
-           out:SetAttribute("DirectDaylightSightlineBlocked",true)
-           local BLACK=Color3.fromRGB(7,8,10)
-           local INK=Color3.fromRGB(14,15,19)
-           local METAL=Color3.fromRGB(45,47,53)
-           local WARM=Color3.fromRGB(255,181,104)
-           local PINK=Color3.fromRGB(238,43,146)
-           local CYAN=Color3.fromRGB(24,181,214)
-           local function part(name,size,cf,color,material,collide,parent,transparency)
-            local p=Instance.new("Part")
-            p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or INK
-            p.Material=material or Enum.Material.SmoothPlastic;p.Transparency=transparency or 0
-            p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.CanQuery=false
-            p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
-            p.Parent=parent or out;return p
-           end
-           local function point(parent,color,brightness,range)
-            local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
-           end
-           local gate=Instance.new("Model");gate.Name="BlackoutEntryV21";gate.Parent=out
-           part("BaffleInner",Vector3.new(13.0,8.4,.62),CFrame.new(-2.5,5.15,174.4),BLACK,Enum.Material.Metal,true,gate)
-           part("BaffleOuter",Vector3.new(13.0,8.4,.62),CFrame.new(2.5,5.15,168.3),BLACK,Enum.Material.Metal,true,gate)
-           part("BaffleInnerCap",Vector3.new(13.6,.25,.92),CFrame.new(-2.5,9.25,174.4),METAL,Enum.Material.Metal,false,gate)
-           part("BaffleOuterCap",Vector3.new(13.6,.25,.92),CFrame.new(2.5,9.25,168.3),METAL,Enum.Material.Metal,false,gate)
-           part("BlackoutCeiling",Vector3.new(19.0,.45,14.8),CFrame.new(0,9.55,171.3),BLACK,Enum.Material.Metal,true,gate)
-           part("BlackoutFloor",Vector3.new(18.0,.10,13.4),CFrame.new(0,1.12,171.3),Color3.fromRGB(20,20,23),Enum.Material.Slate,true,gate)
-           for i,data in ipairs({{-7.7,172.2,PINK},{7.7,170.2,CYAN},{-7.7,166.2,WARM},{7.7,176.0,WARM}}) do
-            local lens=part("GuideLens"..i,Vector3.new(.24,1.6,.24),CFrame.new(data[1],3.1,data[2]),data[3],Enum.Material.Glass,false,gate,.08)
-            point(lens,data[3],.22,6.5)
-           end
-           part("PortalHeader",Vector3.new(18.8,1.25,.70),CFrame.new(0,9.0,176.3),INK,Enum.Material.Metal,true,gate)
-           part("PortalLeft",Vector3.new(1.0,8.4,.70),CFrame.new(-8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
-           part("PortalRight",Vector3.new(1.0,8.4,.70),CFrame.new(8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
-           local plaque=part("DiskotikIdentityPlaque",Vector3.new(12.5,1.8,.30),CFrame.new(0,7.9,175.92),BLACK,Enum.Material.Metal,false,gate)
-           local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.PixelsPerStud=60;gui.Parent=plaque
-           local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="FUNKOT  DISKOTIK";text.TextColor3=Color3.fromRGB(238,236,232);text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=gui
-           local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new(PINK,CYAN);grad.Parent=text
-           print("[BBYA] Funkot Diskotik v2.1 online: venue identity locked / direct daylight sightline blocked / WITA exterior preserved")
-          end)
-          '''
-              s = s.rstrip() + patch + '\n'
-              p.write_text(s, encoding='utf-8')
-          '@ | python -
-          git config user.name 'ACC BBYA Funkot Builder'
-          git config user.email 'actions@users.noreply.github.com'
-          git add maps/bbya-social-hub/92-funkot-club.server.lua maps/bbya-social-hub/76-travel-ui-patch.client.lua maps/bbya-social-hub/33-runtime-qc.server.lua
-          if(git diff --cached --quiet){throw 'No Funkot v2.1 source changes produced'}
-          git commit -m 'feat(bbya): lock Funkot Diskotik identity and blackout entrance v2.1 [skip ci]'
-          git push origin HEAD:codex/funkot-diskotik-v21
+          $p92='maps/bbya-social-hub/92-funkot-club.server.lua'
+          $s92=[IO.File]::ReadAllText((Join-Path $env:GITHUB_WORKSPACE $p92))
+          $s92=$s92.Replace('BBYA  FUNKOT  CLUB','BBYA  FUNKOT  DISKOTIK').Replace('FUNKOT CLUB  •  10 R$','FUNKOT DISKOTIK  •  10 R$')
+          Publish-Text $p92 $s92 'feat(bbya): rename visible Funkot venue to Diskotik [skip ci]'
+
+          $p76='maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+          $s76=[IO.File]::ReadAllText((Join-Path $env:GITHUB_WORKSPACE $p76))
+          $s76=$s76.Replace('{"FUNKOT CLUB","Funkot","ONE-TIME",10,C.purple}','{"FUNKOT DISKOTIK","Funkot","ONE-TIME",10,C.purple}')
+          Publish-Text $p76 $s76 'feat(bbya): label Funkot Diskotik in travel UI [skip ci]'
+
+          $p33='maps/bbya-social-hub/33-runtime-qc.server.lua'
+          $s33=[IO.File]::ReadAllText((Join-Path $env:GITHUB_WORKSPACE $p33))
+          if(-not $s33.Contains('-- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1')){
+          $patch=@'
+
+-- -----------------------------------------------------------------------------
+-- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1
+-- Live mobile QC after v444: visible branding still said CLUB and the straight
+-- entrance sightline exposed bright daytime sky. Keep real WITA outside while
+-- making Funkot read as a dedicated indoor Indonesian diskotik at all hours.
+-- -----------------------------------------------------------------------------
+task.spawn(function()
+ local club=root:WaitForChild("FunkotClub",60)
+ if not club then return end
+ local deadline=os.clock()+45
+ repeat
+  if club:FindFirstChild("FunkotDiskotikPremiumV2") then break end
+  task.wait(.2)
+ until os.clock()>=deadline
+ local v2=club:FindFirstChild("FunkotDiskotikPremiumV2")
+ if not v2 then warn("[BBYA] Funkot Diskotik v2.1 skipped: v2 not ready");return end
+ task.wait(.5)
+ club:SetAttribute("DisplayName","FUNKOT DISKOTIK")
+ club:SetAttribute("VisualPass","FUNKOT_DISKOTIK_V21_BLACKOUT")
+ for _,name in ipairs({"FunkotSign","EntrySign"}) do
+  local sign=club:FindFirstChild(name,true)
+  if sign then
+   for _,d in ipairs(sign:GetDescendants()) do
+    if d:IsA("TextLabel") then
+     if name=="FunkotSign" then d.Text="BBYA  FUNKOT  DISKOTIK"
+     else d.Text="FUNKOT DISKOTIK  •  10 R$" end
+    end
+   end
+  end
+ end
+ local old=club:FindFirstChild("FunkotDiskotikIdentityV21")
+ if old then old:Destroy() end
+ local out=Instance.new("Model");out.Name="FunkotDiskotikIdentityV21";out.Parent=club
+ out:SetAttribute("FunkotOnly",true)
+ out:SetAttribute("GlobalLightingUntouched",true)
+ out:SetAttribute("AudioUntouched",true)
+ out:SetAttribute("RealWitaOutsidePreserved",true)
+ out:SetAttribute("DirectDaylightSightlineBlocked",true)
+ local BLACK=Color3.fromRGB(7,8,10)
+ local INK=Color3.fromRGB(14,15,19)
+ local METAL=Color3.fromRGB(45,47,53)
+ local WARM=Color3.fromRGB(255,181,104)
+ local PINK=Color3.fromRGB(238,43,146)
+ local CYAN=Color3.fromRGB(24,181,214)
+ local function part(name,size,cf,color,material,collide,parent,transparency)
+  local p=Instance.new("Part")
+  p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or INK
+  p.Material=material or Enum.Material.SmoothPlastic;p.Transparency=transparency or 0
+  p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.CanQuery=false
+  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
+  p.Parent=parent or out;return p
+ end
+ local function point(parent,color,brightness,range)
+  local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
+ end
+ local gate=Instance.new("Model");gate.Name="BlackoutEntryV21";gate.Parent=out
+ part("BaffleInner",Vector3.new(13.0,8.4,.62),CFrame.new(-2.5,5.15,174.4),BLACK,Enum.Material.Metal,true,gate)
+ part("BaffleOuter",Vector3.new(13.0,8.4,.62),CFrame.new(2.5,5.15,168.3),BLACK,Enum.Material.Metal,true,gate)
+ part("BaffleInnerCap",Vector3.new(13.6,.25,.92),CFrame.new(-2.5,9.25,174.4),METAL,Enum.Material.Metal,false,gate)
+ part("BaffleOuterCap",Vector3.new(13.6,.25,.92),CFrame.new(2.5,9.25,168.3),METAL,Enum.Material.Metal,false,gate)
+ part("BlackoutCeiling",Vector3.new(19.0,.45,14.8),CFrame.new(0,9.55,171.3),BLACK,Enum.Material.Metal,true,gate)
+ part("BlackoutFloor",Vector3.new(18.0,.10,13.4),CFrame.new(0,1.12,171.3),Color3.fromRGB(20,20,23),Enum.Material.Slate,true,gate)
+ for i,data in ipairs({{-7.7,172.2,PINK},{7.7,170.2,CYAN},{-7.7,166.2,WARM},{7.7,176.0,WARM}}) do
+  local lens=part("GuideLens"..i,Vector3.new(.24,1.6,.24),CFrame.new(data[1],3.1,data[2]),data[3],Enum.Material.Glass,false,gate,.08)
+  point(lens,data[3],.22,6.5)
+ end
+ part("PortalHeader",Vector3.new(18.8,1.25,.70),CFrame.new(0,9.0,176.3),INK,Enum.Material.Metal,true,gate)
+ part("PortalLeft",Vector3.new(1.0,8.4,.70),CFrame.new(-8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
+ part("PortalRight",Vector3.new(1.0,8.4,.70),CFrame.new(8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
+ local plaque=part("DiskotikIdentityPlaque",Vector3.new(12.5,1.8,.30),CFrame.new(0,7.9,175.92),BLACK,Enum.Material.Metal,false,gate)
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.PixelsPerStud=60;gui.Parent=plaque
+ local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="FUNKOT  DISKOTIK";text.TextColor3=Color3.fromRGB(238,236,232);text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=gui
+ local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new(PINK,CYAN);grad.Parent=text
+ print("[BBYA] Funkot Diskotik v2.1 online: venue identity locked / direct daylight sightline blocked / WITA exterior preserved")
+end)
+'@
+            $s33=$s33.TrimEnd()+$patch+"`n"
+          }
+          Publish-Text $p33 $s33 'feat(bbya): block Funkot daylight sightline v2.1 [skip ci]'
