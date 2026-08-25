@@ -21,11 +21,12 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          python -m pip install --quiet gdown==6.1.0
-          python -m gdown "https://drive.google.com/uc?id=$env:DRIVE_FILE_ID" -O source.mp3 --quiet
+          $url="https://drive.usercontent.google.com/download?id=$env:DRIVE_FILE_ID&export=download&confirm=t"
+          & curl.exe -fL --retry 2 --connect-timeout 20 -o source.mp3 $url
+          if($LASTEXITCODE -ne 0){throw "DRIVE_DOWNLOAD_FAILED_$LASTEXITCODE"}
           $size=(Get-Item source.mp3).Length
           Write-Host "SOURCE_BYTES=$size"
-          if($size -lt 1000){throw 'SOURCE_TOO_SMALL'}
+          if($size -lt 1000000){throw "SOURCE_TOO_SMALL_$size"}
 
       - name: Resolve Roblox audio creator
         shell: powershell
@@ -51,7 +52,6 @@ jobs:
             description='BBYA one-track upload probe 2026-08-26'
             creationContext=@{creator=@{userId=[string]$env:CREATOR_USER_ID}}
           } | ConvertTo-Json -Compress -Depth 6
-          $req | Set-Content request.json -Encoding utf8
           $args=@(
             '-sS','--location','https://apis.roblox.com/assets/v1/assets',
             '--header',"x-api-key: $env:AUDIO_KEY",
