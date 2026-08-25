@@ -1,0 +1,53 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "playlistId": "vip-amapiano",
+  "trackIndex": 20,
+  "title": "ACC_Audio_1787515302074.mp3",
+  "driveFileId": "12R5_7ucT4-KFDZHeTfK6gMIc5SLphV0W",
+  "musicalKey": "C minor",
+  "camelot": "5A",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "97231110660782",
+  "uploadReused": false,
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/1c7dd3a4-0535-435d-8ec5-986caac63eb4",
+    "operationId": "1c7dd3a4-0535-435d-8ec5-986caac63eb4",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/1c7dd3a4-0535-435d-8ec5-986caac63eb4",
+    "operationId": "1c7dd3a4-0535-435d-8ec5-986caac63eb4",
+    "done": true,
+    "response": {
+      "path": "assets/97231110660782",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T03:10:05.964052Z",
+      "assetId": "97231110660782",
+      "displayName": "ACC_Audio_1787515302074.mp3",
+      "description": "BBYA VIP Amapiano Track 20",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": []
+}
