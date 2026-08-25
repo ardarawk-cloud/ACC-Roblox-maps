@@ -35,16 +35,17 @@
       "title": "Zinyo Funkytone - Dua Hati 2025.mp3",
       "driveFileId": "1VbCLgHOYQqrLQVVUCmfSB2m4xFCNZjNs",
       "sourceSizeBytes": 22887552,
-      "assetId": null,
+      "assetId": "135192682811125",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "77764715-267f-4abe-af7b-6fa46923b8a1",
       "blacklistedAt": "2026-08-24T15:15:53+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "fae6c573177c19fd85bbb760bedaf746ee9d2994711a0f3d77b0485a155f00c6"
     },
     {
       "index": 3,
