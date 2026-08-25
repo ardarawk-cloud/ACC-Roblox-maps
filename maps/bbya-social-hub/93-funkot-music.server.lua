@@ -1,5 +1,5 @@
 -- BBYA SOCIAL HUB — FUNKOT DISKOTIK RUNTIME AUDIO v6
--- Single runtime playback authority. Only verified LIVE + permissioned assets are exposed.
+-- Single runtime playback authority. Only verified Approved + permissioned registry assets are exposed.
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -7,6 +7,7 @@ local SoundService=game:GetService("SoundService")
 local PLAYLIST={
  {title="Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",id="128141893547516",style="funkot"},
  {title="Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",id="98536948000407",style="funkot"},
+ {title="Space Melody '23 _ Dj Deri Rmx • Qiu-Qiu™️.mp3",id="128567852049551",style="funkot"},
 }
 if #PLAYLIST==0 then return end
 
