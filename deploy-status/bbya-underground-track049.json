@@ -1,6 +1,6 @@
 {
-  "status": "MODERATION_PENDING",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 49,
   "title": "Om Abidin - Ani Ani ( Club Mix )",
@@ -18,55 +18,24 @@
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "moderationState": "Reviewing",
+  "moderationState": "Approved",
   "moderationChecks": [
     {
       "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
+      "state": "Approved"
     }
-  ]
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [],
+      "errors": [
+        {
+          "assetId": 103410156771684,
+          "code": "CannotManageAsset"
+        }
+      ]
+    }
+  }
 }
