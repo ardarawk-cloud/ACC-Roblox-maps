@@ -10,26 +10,31 @@ permissions:
 jobs:
   probe:
     if: github.head_ref == 'bbya/audio-single-probe-20260826'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 15
     env:
       AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
       DRIVE_FILE_ID: '1-c-ZwnR34ErkQCwcr-KU8F7kwigccLed'
       DISPLAY_NAME: 'Untungnya Hidup Harus Tetap Berjalan Pop Punk Cover'
     steps:
-      - name: Install tools
+      - name: Install gdown
+        shell: bash
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
-          python3 -m pip install --quiet 'gdown==6.1.0'
+          set -euo pipefail
+          python -m pip install --quiet 'gdown==6.1.0'
 
-      - name: Download and normalize one track
+      - name: Download one track
         shell: bash
         run: |
           set -euo pipefail
           gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O source.mp3 --quiet
-          ffmpeg -y -hide_banner -loglevel error -i source.mp3 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame ready.mp3
-          ffprobe -v error -show_entries format=duration,size -of json ready.mp3
+          python - <<'PY'
+          import os
+          p='source.mp3'
+          print('bytes=',os.path.getsize(p))
+          if os.path.getsize(p) < 1000:
+              raise SystemExit('SOURCE_TOO_SMALL')
+          PY
 
       - name: Resolve Roblox audio creator
         shell: bash
@@ -39,7 +44,7 @@ jobs:
           curl -sS -X POST 'https://apis.roblox.com/api-keys/v1/introspect' \
             -H 'Content-Type: application/json' \
             --data "{\"apiKey\":\"${AUDIO_KEY}\"}" > introspect.json
-          python3 - <<'PY'
+          python - <<'PY'
           import json, os
           d=json.load(open('introspect.json'))
           uid=str(d.get('authorizedUserId') or '')
@@ -56,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY' > request.json
+          python - <<'PY' > request.json
           import json,os
           print(json.dumps({
             'assetType':'Audio',
@@ -68,7 +73,7 @@ jobs:
           HTTP=$(curl -sS --location 'https://apis.roblox.com/assets/v1/assets' \
             --header "x-api-key: ${AUDIO_KEY}" \
             --form-string "request=$(cat request.json)" \
-            --form 'fileContent=@ready.mp3;type=audio/mpeg' \
+            --form 'fileContent=@source.mp3;type=audio/mpeg' \
             --output upload-response.json \
             --write-out '%{http_code}')
           echo "ROBLOX_UPLOAD_HTTP=$HTTP"
