@@ -663,8 +663,9 @@
       "sourceSizeBytes": 13656874,
       "assetId": null,
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "UPLOAD_FAILED",
+      "moderationLastKnown": null,
+      "sourceSha256": "01b8990c57b7c8888161a2962927ef68d1c801cd4cf51e43d5f5eff050da22a8"
     },
     {
       "index": 50,
