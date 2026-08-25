@@ -1,6 +1,8 @@
--- BECAK E-BIKE — live city events + progression bonus v1.10
+-- BECAK E-BIKE — live city events + progression bonus v1.11
 -- Dedicated overlay for maps/becak-e-bike. Adds lightweight rotating city events
 -- without changing the core passenger/cargo loops or touching other ACC maps.
+-- v1.11 hardens event rewards with monotonic completion high-water marks so
+-- counter rollback/replay cannot mint duplicate event bonuses.
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
 local ReplicatedStorage=game:GetService('ReplicatedStorage')
@@ -57,18 +59,37 @@ local function rewardCargo(player)
  end
  if active.battery then recharge(player,active.battery) end
 end
+local function recordRollback(player,kind,previous,current)
+ local key='CityEventCounterRollbackAnomalies'
+ player:SetAttribute(key,(tonumber(player:GetAttribute(key)) or 0)+1)
+ player:SetAttribute('CityEventLastRollbackKind',kind)
+ player:SetAttribute('CityEventLastRollbackFrom',previous)
+ player:SetAttribute('CityEventLastRollbackTo',current)
+end
 local function watchPlayer(player)
  lastTrips[player]=tonumber(player:GetAttribute('BecakTrips')) or 0
  lastCargo[player]=tonumber(player:GetAttribute('CargoJobs')) or 0
  player:GetAttributeChangedSignal('BecakTrips'):Connect(function()
   local n=tonumber(player:GetAttribute('BecakTrips')) or 0
-  if n> (lastTrips[player] or 0) then rewardTrip(player) end
-  lastTrips[player]=n
+  local previous=lastTrips[player] or 0
+  if n>previous then
+   rewardTrip(player)
+   lastTrips[player]=n
+  elseif n<previous then
+   recordRollback(player,'PASSENGER',previous,n)
+   -- Preserve the high-water mark. Restoring/replaying an older counter value must not reward again.
+  end
  end)
  player:GetAttributeChangedSignal('CargoJobs'):Connect(function()
   local n=tonumber(player:GetAttribute('CargoJobs')) or 0
-  if n> (lastCargo[player] or 0) then rewardCargo(player) end
-  lastCargo[player]=n
+  local previous=lastCargo[player] or 0
+  if n>previous then
+   rewardCargo(player)
+   lastCargo[player]=n
+  elseif n<previous then
+   recordRollback(player,'CARGO',previous,n)
+   -- Preserve the high-water mark for the same replay-protection reason.
+  end
  end)
 end
 for _,p in ipairs(Players:GetPlayers()) do watchPlayer(p) end
@@ -91,9 +112,13 @@ local function clearEvent()
  notifyAll('Event kota selesai • Nusakarya kembali normal')
 end
 
+-- Keep the v1.10 compatibility token for existing builder/workflow gates.
 Workspace:SetAttribute('ACC_BecakCityEvents','v1.10')
+Workspace:SetAttribute('ACC_BecakCityEventsEnhancement','v1.11')
+Workspace:SetAttribute('BecakCityEventRewardHighWaterGuard','ON')
+Workspace:SetAttribute('BecakCityEventCounterRollbackReplay','BLOCKED')
 Workspace:SetAttribute('BecakCityEvent','NONE')
-print('[BECAK E-BIKE] live city events v1.10 ready')
+print('[BECAK E-BIKE] live city events v1.11 ready')
 
 task.spawn(function()
  task.wait(25)
