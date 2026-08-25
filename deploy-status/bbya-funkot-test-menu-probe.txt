@@ -1,0 +1,5 @@
+timestamp=2026-08-25T05:25:53.4500254+00:00
+TEST_FOUND=False
+ControlType.Button|Name=Start|Id=StartButton|Enabled=True|Offscreen=False|Rect=134,432,45,48
+ControlType.Button|Name=Terminal - 3 running windows|Id=Appid: Microsoft.WindowsTerminal_8wekyb3d8bbwe!App|Enabled=True|Offscreen=False|Rect=355,432,44,48
+ControlType.Button|Name=Roblox Studio - 1 running window|Id=Appid: {6D809377-6AF0-444B-8957-A3773F02200E}\Roblox\Versions\version-dcbeee682ce74ee0\RobloxStudioBeta.exe|Enabled=True|Offscreen=False|Rect=399,432,44,48
