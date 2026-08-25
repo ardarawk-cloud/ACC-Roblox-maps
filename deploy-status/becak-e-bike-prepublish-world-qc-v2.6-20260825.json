@@ -1,0 +1,42 @@
+{
+  "project": "Becak E-Bike",
+  "runAt": "2026-08-25T15:13:00Z",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "edaf5ede196eb11c356c49f55fcebfccfcd616f7",
+  "change": "World QC v2.6 synchronizes runtime economy audit with Garage Safety v1.5 disconnect-safe unlock and stale-lock watchdog resilience.",
+  "validation": {
+    "targetLockPreserved": true,
+    "worldQCEnhancementExpected": "v2.6",
+    "garageSafetyCompatibilityExpected": "v1.4",
+    "garageSafetyResilienceExpected": "v1.5",
+    "garageDisconnectUnlockExpected": "ON",
+    "serviceDisconnectUnlockExpected": "ON",
+    "staleLockWatchdogExpected": "ON",
+    "staleLockGraceSecondsExpected": 0.75,
+    "serviceCooldownSecondsExpected": 1,
+    "hardenedServicePromptCountExpected": 3,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false,
+    "dedicatedPublishIsolation": true
+  },
+  "publish": {
+    "workflow": "Publish Becak E-Bike",
+    "initialRunId": 32864330306,
+    "initialJobId": 97855735360,
+    "initialRunConclusion": "failure-before-steps",
+    "initialRunnerId": 0,
+    "safeRetryRequested": true,
+    "latestVerifiedReceipt": {
+      "ok": true,
+      "httpStatus": 200,
+      "versionNumber": 36,
+      "at": "2026-08-23T16:31:47.837Z"
+    },
+    "freshReceiptVerified": false,
+    "liveClaim": false
+  }
+}
