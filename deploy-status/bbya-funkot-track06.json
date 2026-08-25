@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -9,10 +9,10 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "assetId": "125981906836198",
-  "uploadReused": false,
+  "uploadReused": true,
   "sourceSha256": "793acac4a4c6a8689e9f1df5cbe016265d549f9a20ca7ff2a96035e94169e9f0",
   "normalizedSha256": "0ba801e355021bf61d3334c17c24fe83610dfdd1be9d2d94df5a6cae3b82b404",
-  "startedAt": "2026-08-25T07:25:56+00:00",
+  "startedAt": "2026-08-25T08:02:43+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -28,36 +28,13 @@
     "name": "GudangPet88",
     "displayName": "GudangPet88"
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/9b26f591-1e8a-46a8-b4c2-034f6bf58698",
-    "operationId": "9b26f591-1e8a-46a8-b4c2-034f6bf58698",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/9b26f591-1e8a-46a8-b4c2-034f6bf58698",
-    "operationId": "9b26f591-1e8a-46a8-b4c2-034f6bf58698",
-    "done": true,
-    "response": {
-      "path": "assets/125981906836198",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T07:26:08.345930400Z",
-      "assetId": "125981906836198",
-      "displayName": "SUWUNG X KICAU MANIAKS - Jordan L3 Ft Viosena.mp3",
-      "description": "BBYA Funkot Track 06",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Rejected",
+      "checkedAt": "2026-08-25T08:02:43+00:00"
     }
-  },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T07:26:10+00:00"
+  ],
+  "updatedAt": "2026-08-25T08:02:43+00:00"
 }
