@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 16,
+  "title": "FEINN CALL - revan edit",
+  "driveFileId": "1M2U9zK8USGVX6pM5hyIges8Q8RVb5teF",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "131281992156175",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/85def438-dff9-4c81-aa96-7429d7ba61ee",
+    "operationId": "85def438-dff9-4c81-aa96-7429d7ba61ee",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/85def438-dff9-4c81-aa96-7429d7ba61ee",
+    "operationId": "85def438-dff9-4c81-aa96-7429d7ba61ee",
+    "done": true,
+    "response": {
+      "path": "assets/131281992156175",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T15:59:45.745233Z",
+      "assetId": "131281992156175",
+      "displayName": "FEINN CALL - revan edit",
+      "description": "BBYA Underground Track 016",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
