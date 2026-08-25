@@ -733,10 +733,10 @@
       "driveFileId": "1F8-0k9cAZf1ho1PEpM2hRv724NnbMhuG",
       "sourceMimeType": "audio/x-wav",
       "sourceSizeBytes": 28707652,
-      "assetId": null,
+      "assetId": "135846262601841",
       "bbyaPermission": false,
-      "status": "UPLOAD_FAILED",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "c8d3b0688bc4f76bf9931dfca7696d0ce75501d2b144a1052ff284bd1f3846f5"
     },
     {

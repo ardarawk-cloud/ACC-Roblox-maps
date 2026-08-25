@@ -1,26 +1,101 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "MODERATION_PENDING",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 55,
   "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
   "driveFileId": "1F8-0k9cAZf1ho1PEpM2hRv724NnbMhuG",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "135846262601841",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/f6085047-bf51-40c3-8a22-4129955a6e3b",
+    "operationId": "f6085047-bf51-40c3-8a22-4129955a6e3b",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/f6085047-bf51-40c3-8a22-4129955a6e3b",
+    "operationId": "f6085047-bf51-40c3-8a22-4129955a6e3b",
+    "done": true,
+    "response": {
+      "path": "assets/135846262601841",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:13:05.781441200Z",
+      "assetId": "135846262601841",
+      "displayName": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
+      "description": "BBYA Underground Track 055",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    }
+  ]
 }
