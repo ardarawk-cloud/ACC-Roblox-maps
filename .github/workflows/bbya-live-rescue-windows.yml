@@ -1,5 +1,6 @@
 name: BBYA Live Rescue Windows
 
+# Rescue v2: canonical self-hosted publish lane; includes Skatepark audio authority QC.
 on:
   pull_request:
     branches: [main]
@@ -78,7 +79,8 @@ jobs:
             'maps/bbya-social-hub/92-player-progression.server.lua'=@('BBYA_MANAGED_ROLES_V1','RolePanelSnapshot','RolePanelAction','nadmo97');
             'maps/bbya-social-hub/32-teleport.server.lua'=@('BBYAVIPBypass','BBYARooftopBypass','BBYASecretRoomBypass');
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
-            'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5')
+            'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5');
+            'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED')
           }
           foreach($path in $checks.Keys){
             $text=Get-Content $path -Raw
@@ -112,7 +114,7 @@ jobs:
           node scripts/publish-map.js a-club
           if($LASTEXITCODE -ne 0){throw 'Roblox publish failed'}
 
-      - name: Persist verified receipt
+      - name: Verify published receipt
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -120,20 +122,4 @@ jobs:
           $receipt=Get-Content 'deploy-status/a-club.json' -Raw | ConvertFrom-Json
           if($receipt.status -ne 'PUBLISHED'){throw 'Receipt not PUBLISHED'}
           if($receipt.sourceCommit -ne $env:GITHUB_SHA){throw "Receipt source mismatch: $($receipt.sourceCommit) != $env:GITHUB_SHA"}
-          $tmp=Join-Path $env:RUNNER_TEMP 'a-club-rescue.json'
-          Copy-Item 'deploy-status/a-club.json' $tmp -Force
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-          New-Item -ItemType Directory -Path 'deploy-status' -Force | Out-Null
-          Copy-Item $tmp 'deploy-status/a-club.json' -Force
-          git config user.name 'ACC Roblox Deploy Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/a-club.json
-          git diff --cached --quiet
-          if($LASTEXITCODE -ne 0){
-            git commit -m 'Record BBYA self-hosted rescue live deploy [skip ci]'
-            git push origin HEAD:main
-            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
-          }
           Write-Host "BBYA_LIVE_RESCUE_PASS version=$($receipt.response.versionNumber) source=$($receipt.sourceCommit)"
