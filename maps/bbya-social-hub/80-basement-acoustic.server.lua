@@ -1,5 +1,6 @@
 -- BBYA SOCIAL HUB — BASEMENT ACOUSTIC TREATMENT v3
 -- Double-skin acoustic wall treatment + ceiling baffles for a sealed underground-club feel.
+-- Also installs invisible native Seat zones on the final Underground lounge so sofas auto-seat players.
 
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
@@ -53,7 +54,7 @@ local baffles=Instance.new("Model");baffles.Name="CeilingBaffles";baffles.Parent
 for row,z in ipairs({-27,-18,-3,10,23}) do
  for i=-4,4 do
   local x=i*11
-  local b=part(string.format("Baffle_%d_%d",row,i),Vector3.new(7.2,.8,1.1),CFrame.new(x,-2.0,z)*CFrame.Angles(0,math.rad((i%2==0) and 8 or -8),0),C.panel,Enum.Material.Fabric,false,baffles)
+  part(string.format("Baffle_%d_%d",row,i),Vector3.new(7.2,.8,1.1),CFrame.new(x,-2.0,z)*CFrame.Angles(0,math.rad((i%2==0) and 8 or -8),0),C.panel,Enum.Material.Fabric,false,baffles)
  end
 end
 
@@ -65,3 +66,71 @@ for _,x in ipairs({-50,50}) do
 end
 
 print("[BBYA] Basement acoustic v3 online: double-skin panels / bass traps / ceiling baffles")
+
+-- -----------------------------------------------------------------------------
+-- UNDERGROUND SOFA AUTO-SIT v1
+-- Wait for the FINAL PremiumLoungeV4 created by 87-basement-full-upgrade.server.lua.
+-- Adds invisible native Seat zones only. Lighting, audio and visible geometry are untouched.
+-- -----------------------------------------------------------------------------
+task.spawn(function()
+ local deadline=os.clock()+45
+ local finalUnderground=nil
+ local lounge=nil
+ repeat
+  local candidate=root:FindFirstChild("Underground")
+  local full=candidate and candidate:FindFirstChild("BasementFullUpgradeV1")
+  local candidateLounge=full and full:FindFirstChild("PremiumLoungeV4")
+  if candidate and candidate:GetAttribute("Pass")=="BASEMENT_PREMIUM_V2" and candidateLounge then
+   finalUnderground=candidate
+   lounge=candidateLounge
+   break
+  end
+  task.wait(.2)
+ until os.clock()>=deadline
+
+ if not finalUnderground or not lounge then
+  warn("[BBYA] Underground sofa auto-sit skipped: final lounge not ready")
+  return
+ end
+
+ local oldSeats=lounge:FindFirstChild("AutoSitZonesV1")
+ if oldSeats then oldSeats:Destroy() end
+ local seats=Instance.new("Model")
+ seats.Name="AutoSitZonesV1"
+ seats:SetAttribute("NativeSeatZones",true)
+ seats:SetAttribute("Invisible",true)
+ seats:SetAttribute("LightingUntouched",true)
+ seats.Parent=lounge
+
+ local installed=0
+ for _,cluster in ipairs(lounge:GetChildren()) do
+  if cluster:IsA("Model") and cluster.Name:find("Sectional_") then
+   local cushion=cluster:FindFirstChild("Seat")
+   if cushion and cushion:IsA("BasePart") then
+    for i,zoff in ipairs({-4.7,0,4.7}) do
+     local pos=Vector3.new(cushion.Position.X,cushion.Position.Y+(cushion.Size.Y/2)+.13,cushion.Position.Z+zoff)
+     local s=Instance.new("Seat")
+     s.Name=cluster.Name.."_AutoSeat"..i
+     -- Lounge faces the dance floor at x=0. Rotate native Seat so avatar faces inward.
+     s.Size=Vector3.new(4.6,.28,8.8)
+     s.CFrame=CFrame.lookAt(pos,Vector3.new(0,pos.Y,pos.Z))
+     s.Transparency=1
+     s.Anchored=true
+     s.CanCollide=true
+     s.CanTouch=true
+     s.CanQuery=false
+     s.CastShadow=false
+     s.TopSurface=Enum.SurfaceType.Smooth
+     s.BottomSurface=Enum.SurfaceType.Smooth
+     s:SetAttribute("BBYAAutoSit",true)
+     s.Parent=seats
+     installed+=1
+    end
+   end
+  end
+ end
+
+ finalUnderground:SetAttribute("SofaAutoSit","V1")
+ finalUnderground:SetAttribute("SofaSeatZones",installed)
+ print(string.format("[BBYA] Underground sofa auto-sit v1 online: %d invisible native seats",installed))
+end)
