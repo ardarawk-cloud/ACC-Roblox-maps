@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — FUNKOT CLUB AUDIO ZONE v1
+-- BBYA SOCIAL HUB — FUNKOT DISKOTIK AUDIO ZONE v1
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
 local RunService=game:GetService("RunService")
@@ -37,4 +37,23 @@ end)
 SoundService.ChildAdded:Connect(function()task.defer(enforce)end)
 RunService.Heartbeat:Connect(function()if inside then enforce()end end)
 
-print("[BBYA] Funkot audio zone v1 online: isolated rear club feed")
+-- Visible identity only: keep internal Funkot keys/audio group names unchanged.
+local pg=player:WaitForChild("PlayerGui")
+local function relabel(o)
+ if not (o:IsA("TextLabel") or o:IsA("TextButton")) then return end
+ if o.Text=="FUNKOT CLUB" then
+  o.Text="FUNKOT DISKOTIK"
+ elseif o.Text=="FUNKOT CLUB  •  10 R$" then
+  o.Text="FUNKOT DISKOTIK  •  10 R$"
+ end
+end
+for _,d in ipairs(pg:GetDescendants()) do relabel(d) end
+pg.DescendantAdded:Connect(function(d)task.defer(function()if d.Parent then relabel(d) end end)end)
+task.spawn(function()
+ for _=1,40 do
+  for _,d in ipairs(pg:GetDescendants()) do relabel(d) end
+  task.wait(.5)
+ end
+end)
+
+print("[BBYA] Funkot Diskotik audio zone v1 online: isolated rear diskotik feed / visible naming locked")
