@@ -1,0 +1,39 @@
+{
+  "project": "Becak E-Bike",
+  "runAt": "2026-08-25T11:11:54Z",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "5969607220f57eff930df3cff2e78e02b74a10db",
+  "change": "World QC v2.5 synchronizes mobile safe-area audit with v1.35 visibility-aware fallback scheduling.",
+  "validation": {
+    "targetLockPreserved": true,
+    "mobileSafeAreaEnhancementExpected": "v1.35",
+    "mobileUXCompatibilityExpected": "v1.32",
+    "mobileLayoutOwnerExpected": "SAFE_AREA",
+    "framePollingExpected": "OFF",
+    "openPollHzExpected": 2,
+    "openFallbackSecondsExpected": 0.5,
+    "closedFallbackSecondsExpected": 1.5,
+    "visibilityAwareExpected": "ON",
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false,
+    "dedicatedPublishIsolation": true
+  },
+  "publish": {
+    "workflow": "Publish Becak E-Bike",
+    "initialRunId": 32841186170,
+    "initialRunConclusion": "failure-before-steps",
+    "safeRetryRequested": true,
+    "latestVerifiedReceipt": {
+      "ok": true,
+      "httpStatus": 200,
+      "versionNumber": 36,
+      "at": "2026-08-23T16:31:47.837Z"
+    },
+    "freshReceiptVerified": false,
+    "liveClaim": false
+  }
+}
