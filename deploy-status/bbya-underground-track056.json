@@ -1,0 +1,26 @@
+{
+  "status": "UPLOAD_FAILED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 56,
+  "title": "MORENA BKB (HARLY EDIT)",
+  "driveFileId": "1dc7PFdQwxa1ecqTPIseammnYYymiIuZW",
+  "bbyaUniverseId": "8116636513",
+  "assetId": null,
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 429,
+  "uploadResponse": {
+    "code": "RESOURCE_EXHAUSTED",
+    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+  }
+}
