@@ -1,0 +1,89 @@
+name: BBYA Audio Single Probe
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: github.head_ref == 'bbya/audio-single-probe-20260826'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      DRIVE_FILE_ID: '1-c-ZwnR34ErkQCwcr-KU8F7kwigccLed'
+      DISPLAY_NAME: 'Untungnya Hidup Harus Tetap Berjalan Pop Punk Cover'
+    steps:
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet 'gdown==6.1.0'
+
+      - name: Download and normalize one track
+        shell: bash
+        run: |
+          set -euo pipefail
+          gdown "https://drive.google.com/uc?id=${DRIVE_FILE_ID}" -O source.mp3 --quiet
+          ffmpeg -y -hide_banner -loglevel error -i source.mp3 -vn -ac 2 -ar 44100 -b:a 128k -codec:a libmp3lame ready.mp3
+          ffprobe -v error -show_entries format=duration,size -of json ready.mp3
+
+      - name: Resolve Roblox audio creator
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$AUDIO_KEY" || { echo 'AUDIO_KEY_MISSING'; exit 2; }
+          curl -sS -X POST 'https://apis.roblox.com/api-keys/v1/introspect' \
+            -H 'Content-Type: application/json' \
+            --data "{\"apiKey\":\"${AUDIO_KEY}\"}" > introspect.json
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('introspect.json'))
+          uid=str(d.get('authorizedUserId') or '')
+          print('keyName=',d.get('name'))
+          print('authorizedUserId=',uid)
+          print('enabled=',d.get('enabled'),'expired=',d.get('expired'))
+          if not uid:
+              raise SystemExit('NO_AUTHORIZED_USER_ID')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('CREATOR_USER_ID='+uid+'\n')
+          PY
+
+      - name: Upload one audio asset to Roblox
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > request.json
+          import json,os
+          print(json.dumps({
+            'assetType':'Audio',
+            'displayName':os.environ['DISPLAY_NAME'][:50],
+            'description':'BBYA one-track upload probe 2026-08-26',
+            'creationContext':{'creator':{'userId':os.environ['CREATOR_USER_ID']}}
+          },separators=(',',':')))
+          PY
+          HTTP=$(curl -sS --location 'https://apis.roblox.com/assets/v1/assets' \
+            --header "x-api-key: ${AUDIO_KEY}" \
+            --form-string "request=$(cat request.json)" \
+            --form 'fileContent=@ready.mp3;type=audio/mpeg' \
+            --output upload-response.json \
+            --write-out '%{http_code}')
+          echo "ROBLOX_UPLOAD_HTTP=$HTTP"
+          cat upload-response.json
+          echo
+          {
+            echo '### BBYA Audio Single Probe'
+            echo
+            echo "- HTTP: $HTTP"
+            echo '- Response:'
+            echo '```json'
+            cat upload-response.json
+            echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$HTTP" -lt 200 ] || [ "$HTTP" -ge 300 ]; then
+            exit 1
+          fi
