@@ -8,7 +8,7 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "safeContinue": true,
-  "startedAt": "2026-08-25T09:53:49+00:00",
+  "startedAt": "2026-08-25T09:55:19+00:00",
   "key": {
     "http": 200,
     "authorizedUserId": "9296030038",
@@ -22,38 +22,108 @@
     "userId": "9296030038",
     "name": "GudangPet88"
   },
-  "sourceSha256": "ed5942a4b4d2536e6796a9ce84b9345dfab9a70d90d9148b47d40ec3546f3e74",
-  "uploadFileSha256": "ed5942a4b4d2536e6796a9ce84b9345dfab9a70d90d9148b47d40ec3546f3e74",
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/c6c74cc9-33ee-41bf-8f53-d0cfe0076d1c",
-    "operationId": "c6c74cc9-33ee-41bf-8f53-d0cfe0076d1c",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/c6c74cc9-33ee-41bf-8f53-d0cfe0076d1c",
-    "operationId": "c6c74cc9-33ee-41bf-8f53-d0cfe0076d1c",
-    "done": true,
-    "response": {
-      "path": "assets/84789283615350",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T09:54:41.031594700Z",
-      "assetId": "84789283615350",
-      "displayName": "DALEXO, MCN2, KOOLKID - Criminal Love (Lyrics) - S",
-      "description": "BBYA Social Hub Rooftop Track 05",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
-  },
   "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T09:54:43+00:00"
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:57:20+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:57:35+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:57:50+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:58:06+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:58:21+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:58:36+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:58:51+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:59:06+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:59:21+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:59:36+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:59:51+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:00:06+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:00:21+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:00:37+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:00:52+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:01:07+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:01:22+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:01:37+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:01:52+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T10:02:07+00:00"
+    }
+  ],
+  "updatedAt": "2026-08-25T10:02:22+00:00"
 }
