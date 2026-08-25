@@ -177,10 +177,12 @@
       "title": "S2N L3 - SAMA SAMA SUKA HARD 2026.mp3",
       "driveFileId": "1Y_RNLHnYI8z_LXng5pWLGcwDcshn8PkD",
       "sourceSizeBytes": 20423633,
-      "assetId": null,
+      "assetId": "98134257840664",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
+      "sourceSha256": "6a5fb1c182b34c9b49edb67cec52f1029427be38b51b953544386c80c8c8fae7",
+      "normalizedSha256": "6d893c04b6c5c7cedf01c0d3ec267998ef5ab648c0e70ff8e66b796d9615a151"
     },
     {
       "index": 12,
