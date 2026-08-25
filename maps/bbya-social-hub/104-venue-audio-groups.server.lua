@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.1
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
@@ -139,4 +139,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4: Skatepark mixed 7-track active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4.1: Skatepark mixed 7-track active; Rooftop active; VIP isolated")
