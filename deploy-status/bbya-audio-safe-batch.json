@@ -2912,7 +2912,7 @@
         "size": 6561383,
         "sha256": "7b3264036739cb305d95df04cfef652fa63094c19d613866f86f459635e3db40"
       },
-      "updatedAt": "2026-08-25T03:30:22.284152+00:00",
+      "updatedAt": "2026-08-25T05:20:45.515136+00:00",
       "normalizedSha256": "7b3264036739cb305d95df04cfef652fa63094c19d613866f86f459635e3db40",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2947,20 +2947,46 @@
       },
       "assetId": "93670094706108",
       "initialModerationState": "Reviewing",
-      "status": "PENDING_MODERATION",
-      "moderationState": "Reviewing",
+      "status": "APPROVED_PENDING_PUBLISH",
+      "moderationState": "Approved",
       "moderationProbe": {
-        "displayName": "5A - 128 - 128 - C.Walking On Air (The Full Time S",
-        "creationContext": {
-          "creator": {
-            "userId": "9296030038"
-          }
-        },
-        "moderationResult": {
-          "moderationState": "Reviewing"
+        "path": "operations/c093db67-9565-4553-9195-3620edcd8ed2",
+        "operationId": "c093db67-9565-4553-9195-3620edcd8ed2",
+        "done": true,
+        "response": {
+          "path": "assets/93670094706108",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T03:30:47.669625400Z",
+          "assetId": "93670094706108",
+          "displayName": "5A - 128 - 128 - C.Walking On Air (The Full Time S",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Approved"
+          },
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T03:32:21.531564+00:00"
+      "moderationCheckedAt": "2026-08-25T05:20:45.269218+00:00",
+      "approvedAt": "2026-08-25T05:20:45.269233+00:00",
+      "permission": {
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "93670094706108"
+        ],
+        "response": {
+          "successAssetIds": [
+            93670094706108
+          ],
+          "errors": []
+        }
+      }
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
