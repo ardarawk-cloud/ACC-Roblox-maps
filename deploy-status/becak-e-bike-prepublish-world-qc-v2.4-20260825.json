@@ -1,0 +1,27 @@
+{
+  "project": "Becak E-Bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "17833c21ec085725b2dd76cac6d3059a6bd474e3",
+  "sourcePath": "maps/becak-e-bike/world-qc.server.lua",
+  "upgrade": "World QC v2.4 economy safety synchronization",
+  "validation": {
+    "worldQCEnhancement": "v2.4",
+    "garageSafetyRequired": "v1.4",
+    "servicePromptDebounceRequired": "ON",
+    "servicePromptCooldownSeconds": 1,
+    "hardenedServicePromptCount": 3,
+    "compatibilityWorldQC": "v2.0",
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "publish": {
+    "workflow": "Publish Becak E-Bike",
+    "workflowRunId": 32830997298,
+    "attempt1": "failed_before_runner_steps",
+    "attempt2": "queued_after_safe_retry",
+    "liveReceiptVerified": false,
+    "lastKnownRobloxVersion": 36,
+    "lastKnownReceiptAt": "2026-08-23T16:31:47.837Z"
+  },
+  "recordedAt": "2026-08-25T09:16:30Z"
+}
