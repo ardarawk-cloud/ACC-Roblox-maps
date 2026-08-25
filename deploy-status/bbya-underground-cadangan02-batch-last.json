@@ -1,0 +1,59 @@
+{
+  "status": "BATCH_COMPLETE",
+  "uploaderMode": "CADANGAN_02_NEW_ASSETS_ONLY",
+  "processedCount": 5,
+  "batchSizeLimit": 10,
+  "tracks": [
+    {
+      "trackIndex": 34,
+      "title": "TOR MONITOR KETUA - QMUNK AMSTRONG#BKB PRIVAT",
+      "status": "READY_TO_INJECT",
+      "assetId": "105712830643792",
+      "moderationState": "Approved",
+      "readyToInject": true,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 35,
+      "title": "TIMELESS - Nathalie Holscher x Derina Derin x Ajun Perwira (BKB EDIT)  Bpm -132",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "72817870031492",
+      "moderationState": "Rejected",
+      "readyToInject": false,
+      "blacklisted": true,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 36,
+      "title": "Thank You - El kiyano (Bkb edit)",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "140668891124736",
+      "moderationState": "Rejected",
+      "readyToInject": false,
+      "blacklisted": true,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 37,
+      "title": "TANPA CINTA V2 2025 - Alka Flow BKB",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "131483664335110",
+      "moderationState": "Rejected",
+      "readyToInject": false,
+      "blacklisted": true,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 38,
+      "title": "SOMEWHERE - RC BKB REMIX -",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "118954630450346",
+      "moderationState": "Rejected",
+      "readyToInject": false,
+      "blacklisted": true,
+      "uploaderUserId": "10001957153"
+    }
+  ],
+  "recordedAtUnix": 1787683723
+}
