@@ -1,4 +1,4 @@
-name: BBYA Audio Probe — Sum 41 In Too Deep
+name: BBYA Audio Probe — Alien Ant Farm Smooth Criminal
 
 on:
   pull_request:
@@ -15,9 +15,9 @@ jobs:
     env:
       AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
       GRANT_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-      DRIVE_FILE_ID: '1ItcLTAhttS7ZbUBayZ6Tdwftjc2idvWy'
+      DRIVE_FILE_ID: '1CnumcGRLv8eSZZQfoTG8AIMbxKbmqaSh'
       BBYA_UNIVERSE: '8116636513'
-      DISPLAY_NAME: 'Sum 41 In Too Deep'
+      DISPLAY_NAME: 'Alien Ant Farm Smooth Criminal'
     steps:
       - name: Download exact Drive MP3
         shell: powershell
@@ -35,102 +35,43 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:AUDIO_KEY)){throw 'AUDIO_KEY_MISSING'}
           $introPayload=@{apiKey=$env:AUDIO_KEY}|ConvertTo-Json -Compress
           $intro=Invoke-RestMethod -Method Post -Uri 'https://apis.roblox.com/api-keys/v1/introspect' -ContentType 'application/json' -Body $introPayload
-          Write-Host "AUDIO_KEY_NAME=$($intro.name) AUTHORIZED_USER_ID=$($intro.authorizedUserId) ENABLED=$($intro.enabled) EXPIRED=$($intro.expired)"
           if(-not $intro.enabled -or $intro.expired){throw 'AUDIO_KEY_NOT_ACTIVE'}
           $creatorId=[string]$intro.authorizedUserId
-
-          $request=[ordered]@{
-            assetType='Audio'
-            displayName=$env:DISPLAY_NAME
-            description='BBYA Skatepark pop punk probe 2026-08-26'
-            creationContext=[ordered]@{creator=[ordered]@{userId=$creatorId}}
-          }|ConvertTo-Json -Compress -Depth 8
-
-          $boundary='----BBYA'+[guid]::NewGuid().ToString('N')
-          $crlf="`r`n"
-          $ms=New-Object IO.MemoryStream
-          $enc=[Text.Encoding]::UTF8
+          Write-Host "AUDIO_KEY_NAME=$($intro.name) AUTHORIZED_USER_ID=$creatorId"
+          $request=[ordered]@{assetType='Audio';displayName=$env:DISPLAY_NAME;description='BBYA Skatepark pop punk probe 2026-08-26';creationContext=[ordered]@{creator=[ordered]@{userId=$creatorId}}}|ConvertTo-Json -Compress -Depth 8
+          $boundary='----BBYA'+[guid]::NewGuid().ToString('N');$crlf="`r`n";$ms=New-Object IO.MemoryStream;$enc=[Text.Encoding]::UTF8
           function W([string]$s){$b=$enc.GetBytes($s);$ms.Write($b,0,$b.Length)}
-          W("--$boundary$crlf")
-          W("Content-Disposition: form-data; name=`"request`"$crlf")
-          W("Content-Type: application/json$crlf$crlf")
-          W($request+$crlf)
-          W("--$boundary$crlf")
-          W("Content-Disposition: form-data; name=`"fileContent`"; filename=`"source.mp3`"$crlf")
-          W("Content-Type: audio/mpeg$crlf$crlf")
-          $fb=[IO.File]::ReadAllBytes((Resolve-Path source.mp3))
-          $ms.Write($fb,0,$fb.Length)
-          W($crlf+"--$boundary--$crlf")
-          $body=$ms.ToArray();$ms.Dispose()
-
-          try {
-            $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri 'https://apis.roblox.com/assets/v1/assets' -Headers @{'x-api-key'=$env:AUDIO_KEY} -ContentType "multipart/form-data; boundary=$boundary" -Body $body
-            $http=[int]$r.StatusCode;$txt=[string]$r.Content
-          } catch {
-            $http=0;$txt=''
-            if($_.Exception.Response){$http=[int]$_.Exception.Response.StatusCode;try{$reader=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream());$txt=$reader.ReadToEnd();$reader.Dispose()}catch{}}
-            if([string]::IsNullOrWhiteSpace($txt)){try{$txt=[string]$_.ErrorDetails.Message}catch{}}
-          }
-          Write-Host "CREATE_HTTP=$http"
-          Write-Host "CREATE_RESPONSE=$txt"
-          if(($http -lt 200)-or($http -ge 300)){throw "CREATE_FAILED_HTTP_$http"}
-          $j=$txt|ConvertFrom-Json
-          $op=[string]$j.operationId
-          if([string]::IsNullOrWhiteSpace($op) -and $j.path){$op=([string]$j.path -replace '^operations/','')}
-          if([string]::IsNullOrWhiteSpace($op)){throw 'OPERATION_ID_MISSING'}
-          "OPERATION_ID=$op"|Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "OPERATION_ID=$op"
+          W("--$boundary$crlf");W("Content-Disposition: form-data; name=`"request`"$crlf");W("Content-Type: application/json$crlf$crlf");W($request+$crlf)
+          W("--$boundary$crlf");W("Content-Disposition: form-data; name=`"fileContent`"; filename=`"source.mp3`"$crlf");W("Content-Type: audio/mpeg$crlf$crlf")
+          $fb=[IO.File]::ReadAllBytes((Resolve-Path source.mp3));$ms.Write($fb,0,$fb.Length);W($crlf+"--$boundary--$crlf");$body=$ms.ToArray();$ms.Dispose()
+          try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri 'https://apis.roblox.com/assets/v1/assets' -Headers @{'x-api-key'=$env:AUDIO_KEY} -ContentType "multipart/form-data; boundary=$boundary" -Body $body;$http=[int]$r.StatusCode;$txt=[string]$r.Content}catch{$http=0;$txt='';if($_.Exception.Response){$http=[int]$_.Exception.Response.StatusCode;try{$rd=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream());$txt=$rd.ReadToEnd();$rd.Dispose()}catch{}}}
+          Write-Host "CREATE_HTTP=$http";Write-Host "CREATE_RESPONSE=$txt"
+          if($http -lt 200 -or $http -ge 300){throw "CREATE_FAILED_HTTP_$http"}
+          $j=$txt|ConvertFrom-Json;$op=[string]$j.operationId;if([string]::IsNullOrWhiteSpace($op)-and$j.path){$op=([string]$j.path-replace'^operations/','')};if([string]::IsNullOrWhiteSpace($op)){throw 'OPERATION_ID_MISSING'}
+          "OPERATION_ID=$op"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Poll operation and moderation
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          $assetId=''
-          for($i=0;$i -lt 36;$i++){
-            $op=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/operations/$env:OPERATION_ID" -Headers @{'x-api-key'=$env:AUDIO_KEY}
-            Write-Host "OP_POLL=$i DONE=$($op.done)"
-            if($op.done){
-              if($op.error){throw ('OPERATION_ERROR_'+($op.error|ConvertTo-Json -Compress -Depth 8))}
-              $assetId=[string]$op.response.assetId
-              if([string]::IsNullOrWhiteSpace($assetId) -and $op.response.path){$assetId=([string]$op.response.path -replace '^assets/','')}
-              break
-            }
-            Start-Sleep -Seconds 5
-          }
+          $ErrorActionPreference='Stop';$assetId=''
+          for($i=0;$i-lt36;$i++){$op=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/operations/$env:OPERATION_ID" -Headers @{'x-api-key'=$env:AUDIO_KEY};if($op.done){if($op.error){throw 'OPERATION_ERROR'};$assetId=[string]$op.response.assetId;if([string]::IsNullOrWhiteSpace($assetId)-and$op.response.path){$assetId=([string]$op.response.path-replace'^assets/','')};break};Start-Sleep 5}
           if([string]::IsNullOrWhiteSpace($assetId)){throw 'ASSET_ID_NOT_READY'}
-          "ASSET_ID=$assetId"|Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "ASSET_ID=$assetId"
-
+          "ASSET_ID=$assetId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;Write-Host "ASSET_ID=$assetId"
           $final='Reviewing'
-          for($i=0;$i -lt 36;$i++){
-            $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$assetId" -Headers @{'x-api-key'=$env:AUDIO_KEY}
-            $state=[string]$meta.state
-            $mod=[string]$meta.moderationResult.moderationState
-            Write-Host "MOD_POLL=$i STATE=$state MODERATION=$mod"
-            $final=$mod
-            if($mod -eq 'Approved' -or $mod -eq 'Rejected'){break}
-            Start-Sleep -Seconds 10
-          }
-          "MODERATION=$final"|Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          if($final -eq 'Rejected'){throw 'AUDIO_REJECTED'}
-          if($final -ne 'Approved'){Write-Host 'MODERATION_STILL_REVIEWING';exit 0}
+          for($i=0;$i-lt36;$i++){$meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$assetId" -Headers @{'x-api-key'=$env:AUDIO_KEY};$final=[string]$meta.moderationResult.moderationState;Write-Host "MOD_POLL=$i STATE=$($meta.state) MODERATION=$final";if($final-eq'Approved'-or$final-eq'Rejected'){break};Start-Sleep 10}
+          "MODERATION=$final"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          if($final-eq'Rejected'){throw 'AUDIO_REJECTED'}
+          if($final-ne'Approved'){Write-Host 'MODERATION_STILL_REVIEWING';exit 0}
 
       - name: Grant approved asset to BBYA Universe
         if: env.MODERATION == 'Approved'
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $payload=[ordered]@{
-            subjectType='Universe'
-            subjectId=[string]$env:BBYA_UNIVERSE
-            action='Use'
-            requests=@([ordered]@{assetId=[Int64]$env:ASSET_ID})
-          }|ConvertTo-Json -Compress -Depth 8
+          $payload=[ordered]@{subjectType='Universe';subjectId=[string]$env:BBYA_UNIVERSE;action='Use';requests=@([ordered]@{assetId=[Int64]$env:ASSET_ID})}|ConvertTo-Json -Compress -Depth 8
           $r=Invoke-WebRequest -UseBasicParsing -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:GRANT_KEY} -ContentType 'application/json-patch+json' -Body $payload
-          Write-Host "GRANT_HTTP=$($r.StatusCode)"
-          Write-Host "GRANT_RESPONSE=$($r.Content)"
-          if([int]$r.StatusCode -lt 200 -or [int]$r.StatusCode -ge 300){throw 'GRANT_FAILED'}
+          Write-Host "GRANT_HTTP=$($r.StatusCode)";Write-Host "GRANT_RESPONSE=$($r.Content)"
+          if([int]$r.StatusCode-lt200-or[int]$r.StatusCode-ge300){throw 'GRANT_FAILED'}
           Write-Host "READY_FOR_SKATEPARK ASSET_ID=$env:ASSET_ID"
