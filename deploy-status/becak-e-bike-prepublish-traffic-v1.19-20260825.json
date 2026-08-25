@@ -1,0 +1,30 @@
+{
+  "status": "PREPUBLISH_VALIDATED",
+  "mapId": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "upgrade": "Traffic NPC v1.19 true near cadence",
+  "sourceCommit": "870520ec278d8154ad3b481161c5f9db44a204b0",
+  "primaryFixCommit": "08ec13fc2d0af0c750ea746e9970dbdd3d1cb8fc",
+  "validation": {
+    "trueNearCadence20Hz": true,
+    "farCadence10HzPreserved": true,
+    "emptyCadence4HzPreserved": true,
+    "pedestrianYieldPreserved": true,
+    "trafficVehicleCountUnchanged": 6,
+    "pedestrianCountUnchanged": 8,
+    "routesUnchanged": true,
+    "physicsUnchanged": true,
+    "collisionUnchanged": true,
+    "compatibilityTelemetryRestored": true,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "deploy": {
+    "latestVerifiedReceipt": "deploy-status/becak-e-bike-direct.json",
+    "latestVerifiedVersion": 36,
+    "latestVerifiedHttpStatus": 200,
+    "latestVerifiedAt": "2026-08-23T16:31:47.837Z",
+    "freshReceiptForV1_19": false,
+    "liveClaim": "PENDING_FRESH_RECEIPT"
+  }
+}
