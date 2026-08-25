@@ -14,12 +14,14 @@ jobs:
   patch:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      BRANCH: bbya/mainclub-test-audio-134928414278364
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Add exactly one approved test track
+      - name: Patch and commit exactly one approved Main Club track via Contents API
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -32,34 +34,29 @@ jobs:
             $count=([regex]::Matches($text,[regex]::Escape($marker))).Count
             if($count -ne 1){throw "EXPECTED_ONE_PLAYLIST_MARKER_FOUND_$count"}
             $text=$text.Replace($marker,"$line`r`n$marker")
-            Set-Content $path $text -Encoding utf8
           }
-          $after=Get-Content $path -Raw
-          $assetCount=([regex]::Matches($after,[regex]::Escape($asset))).Count
+          $assetCount=([regex]::Matches($text,[regex]::Escape($asset))).Count
           if($assetCount -ne 1){throw "EXPECTED_ONE_TEST_ASSET_FOUND_$assetCount"}
-          if($after -notmatch 'MAIN_PROGRESSIVE_DUAL_DECK_V8'){throw 'MAIN_AUDIO_AUTHORITY_MARKER_MISSING'}
-          if($after -notmatch 'OPENING STABILITY|MAIN_PROGRESSIVE_UPLOAD_BEGIN'){Write-Host 'Playlist marker present; opening-stability authority is external as expected.'}
+          if($text -notmatch 'MAIN_PROGRESSIVE_DUAL_DECK_V8'){throw 'MAIN_AUDIO_AUTHORITY_MARKER_MISSING'}
 
-      - name: Validate final branch diff scope
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          git fetch origin main
-          $changed=@(git diff --name-only origin/main...HEAD)
-          Write-Host 'Pre-commit branch diff:'
-          $changed | ForEach-Object { Write-Host $_ }
-          $work=@(git status --short)
-          Write-Host 'Working tree:'
-          $work | ForEach-Object { Write-Host $_ }
-          if(-not (Select-String -Path 'maps/bbya-social-hub/30-club-systems.server.lua' -Pattern '134928414278364' -Quiet)){throw 'TEST_ASSET_NOT_PATCHED'}
-
-      - name: Commit source patch and remove temporary workflow
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          git config user.name 'BBYA Audio Test Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add maps/bbya-social-hub/30-club-systems.server.lua
-          git rm .github/workflows/bbya-mainclub-test-audio-patch.yml
-          git commit -m 'Add approved one-track Main Club playback test [skip ci]'
-          git push origin HEAD:bbya/mainclub-test-audio-134928414278364
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+          }
+          $encodedPath=[uri]::EscapeDataString($path).Replace('%2F','/')
+          $metaUri="https://api.github.com/repos/$env:REPO/contents/$encodedPath?ref=$([uri]::EscapeDataString($env:BRANCH))"
+          $meta=Invoke-RestMethod -Method Get -Uri $metaUri -Headers $headers
+          $bytes=[Text.Encoding]::UTF8.GetBytes($text)
+          $b64=[Convert]::ToBase64String($bytes)
+          $body=@{
+            message='Add approved one-track Main Club playback test [skip ci]'
+            content=$b64
+            sha=[string]$meta.sha
+            branch=$env:BRANCH
+          } | ConvertTo-Json -Compress
+          $putUri="https://api.github.com/repos/$env:REPO/contents/$encodedPath"
+          $result=Invoke-RestMethod -Method Put -Uri $putUri -Headers $headers -ContentType 'application/json' -Body $body
+          Write-Host "SOURCE_COMMIT=$($result.commit.sha)"
+          Write-Host "CONTENT_SHA=$($result.content.sha)"
+          Write-Host "ASSET_PATCHED_ONCE=$asset"
