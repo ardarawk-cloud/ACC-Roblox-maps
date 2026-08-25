@@ -1,5 +1,6 @@
 -- BBYA SOCIAL HUB — FUNKOT DISKOTIK AUDIO ZONE v1
 local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local RunService=game:GetService("RunService")
 local player=Players.LocalPlayer
@@ -54,6 +55,54 @@ task.spawn(function()
   for _,d in ipairs(pg:GetDescendants()) do relabel(d) end
   task.wait(.5)
  end
+end)
+
+-- Dedicated Funkot request acknowledgement v5.
+-- Uses FunkotMusic directly so the old global State toast cannot display the same
+-- request twice through multiple music UI listeners.
+task.spawn(function()
+ local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
+ local remote=remotes and remotes:WaitForChild("FunkotMusic",30)
+ if not remote then return end
+
+ local old=pg:FindFirstChild("BBYAFunkotAckUIV5")
+ if old then old:Destroy() end
+ local gui=Instance.new("ScreenGui")
+ gui.Name="BBYAFunkotAckUIV5"
+ gui.ResetOnSpawn=false
+ gui.IgnoreGuiInset=true
+ gui.DisplayOrder=890
+ gui.Parent=pg
+
+ local box=Instance.new("TextLabel")
+ box.Name="Ack"
+ box.AnchorPoint=Vector2.new(.5,1)
+ box.Position=UDim2.new(.5,0,1,-68)
+ box.Size=UDim2.new(.62,0,0,46)
+ box.BackgroundColor3=Color3.fromRGB(13,13,18)
+ box.BackgroundTransparency=.08
+ box.BorderSizePixel=0
+ box.TextColor3=Color3.fromRGB(255,195,235)
+ box.TextStrokeTransparency=.72
+ box.Font=Enum.Font.GothamBold
+ box.TextSize=12
+ box.TextWrapped=true
+ box.Visible=false
+ box.ZIndex=990
+ box.Parent=gui
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,10);corner.Parent=box
+ local stroke=Instance.new("UIStroke");stroke.Color=Color3.fromRGB(232,38,165);stroke.Transparency=.52;stroke.Thickness=1;stroke.Parent=box
+ local token=0
+ local function showAck(msg)
+  token+=1
+  local mine=token
+  box.Text=tostring(msg or "")
+  box.Visible=true
+  task.delay(1.8,function()if token==mine then box.Visible=false end end)
+ end
+ remote.OnClientEvent:Connect(function(kind,data)
+  if kind=="ack" then showAck(data) end
+ end)
 end)
 
 -- -----------------------------------------------------------------------------
