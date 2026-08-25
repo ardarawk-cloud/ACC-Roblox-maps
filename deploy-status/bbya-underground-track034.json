@@ -1,5 +1,5 @@
 {
-  "status": "READY_TO_INJECT",
+  "status": "LIVE_PUBLISHED",
   "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 34,
@@ -57,6 +57,19 @@
         105712830643792
       ],
       "errors": []
+    }
+  },
+  "publishReceipt": {
+    "status": "PUBLISHED",
+    "mapId": "a-club",
+    "name": "BBYA Social Hub",
+    "universeId": "8116636513",
+    "placeId": "131894120482837",
+    "sourceCommit": "ba874babc84e0e496f0d8238aee027b4bb16dba9",
+    "publishedAt": "2026-08-25T18:48:55.918Z",
+    "publishedFile": "/home/runner/work/_temp/bbya-underground-cadangan02.rbxl",
+    "response": {
+      "versionNumber": 491
     }
   }
 }
