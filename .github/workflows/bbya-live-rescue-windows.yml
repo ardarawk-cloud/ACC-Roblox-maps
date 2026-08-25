@@ -1,6 +1,6 @@
 name: BBYA Live Rescue Windows
 
-# Rescue v2: canonical self-hosted publish lane; includes Skatepark audio authority QC.
+# Rescue v3: canonical self-hosted publish lane with protected audio hard gate.
 on:
   pull_request:
     branches: [main]
@@ -45,6 +45,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: HARD GATE protected venue audio authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$needle,[string]$message){if($text -notmatch [regex]::Escape($needle)){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+          $reset=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          foreach($needle in @(
+            'OPENING STABILITY AUTHORITY v5',
+            'ACTIVE_VENUES_OPENING_STABILITY_V5',
+            'BBYAMusicCatalogReset",false',
+            'BBYAMainPlaylistEnabled",true',
+            'BBYAUndergroundPlaylistEnabled",true',
+            'BBYAFunkotPlaylistEnabled",true',
+            'BBYASkateparkPlaylistEnabled",true',
+            'BBYARooftopPlaylistEnabled",true'
+          )){Require $reset $needle "Protected audio marker missing: $needle"}
+          foreach($pattern in @(
+            'BBYAMusicCatalogReset",true',
+            'RESET_WITH_UNDERGROUND',
+            'SoundService\.DescendantAdded',
+            'scrubSound',
+            'disableOldAudioEngines',
+            'SetAttribute\("MusicCatalogState","RESET_EMPTY"\)',
+            's\.SoundId=""'
+          )){Forbid $reset $pattern "DESTRUCTIVE AUDIO RESET BLOCKED: $pattern"}
+          Write-Host "BBYA_RESCUE_AUDIO_HARD_GATE_PASS source=$env:GITHUB_SHA"
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
