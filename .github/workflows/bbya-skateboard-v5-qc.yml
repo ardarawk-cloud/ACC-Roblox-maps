@@ -1,0 +1,64 @@
+name: BBYA Skateboard v5 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/79-skatepark-upgrade.server.lua'
+      - 'maps/bbya-social-hub/135-skateboard-controls.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-skateboard-v5-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  skate-v5:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skateboard v5 static safety gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Need([string]$text,[string]$needle,[string]$msg){if($text -notmatch [regex]::Escape($needle)){throw $msg}}
+          function No([string]$text,[string]$pattern,[string]$msg){if($text -match $pattern){throw $msg}}
+          $server=Get-Content 'maps/bbya-social-hub/79-skatepark-upgrade.server.lua' -Raw
+          $client=Get-Content 'maps/bbya-social-hub/135-skateboard-controls.client.lua' -Raw
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+          $audio=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          foreach($n in @('SKATEPARK UPGRADE v5 DIRECT DRIVE','ProperRoundedDeck','DirectHorizontalDriveV5','ROUNDED_DECK_KICKTAIL_V5','BBYASkateControlV5','Instance.new("Seat")','BodyVelocity')){Need $server $n "Missing server marker: $n"}
+          No $server 'Instance\.new\("VehicleSeat"\)' 'Skateboard v5 must not depend on VehicleSeat'
+          No $server 'SoundId|SoundGroup|BBYASkateparkMasterSound' 'Skateboard server touches audio authority'
+          foreach($n in @('SKATEBOARD DIRECT CONTROL BRIDGE v5','PlayerModule','GetMoveVector','BBYASkateControlV5','BBYASkateSeatV5')){Need $client $n "Missing client marker: $n"}
+          Need $project '135-skateboard-controls.client.lua' 'Skateboard v5 client is not mounted'
+          foreach($n in @('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false')){Need $audio $n "Protected audio marker missing: $n"}
+          foreach($bad in @('BBYAMusicCatalogReset",true','RESET_WITH_UNDERGROUND','SoundService\.DescendantAdded','scrubSound','disableOldAudioEngines')){No $audio $bad "Destructive audio regression detected: $bad"}
+          Write-Host 'BBYA_SKATEBOARD_V5_STATIC_GATE_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-rojo';$zip=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-rojo.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force};New-Item -ItemType Directory -Path $dir -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $exe){throw 'rojo.exe missing'};$rojo=$exe.FullName
+          }
+          & $rojo --version;if($LASTEXITCODE -ne 0){throw 'Rojo failed'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not(Test-Path $out) -or (Get-Item $out).Length -lt 1024){throw 'Invalid RBXL'}
+          Write-Host "BBYA_SKATEBOARD_V5_BUILD_PASS bytes=$((Get-Item $out).Length)"
