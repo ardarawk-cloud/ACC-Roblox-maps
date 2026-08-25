@@ -1,0 +1,34 @@
+{
+  "project": "becak-e-bike",
+  "date": "2026-08-25",
+  "sourceCommit": "de76ab81ee88bbbf25025fb0efc5e2193f3acb7a",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "upgrade": "Traffic NPC pedestrian-aware yielding v1.18",
+  "compatibilityMarker": "ACC_BecakTrafficNPC v1.17 preserved",
+  "enhancementMarker": "ACC_BecakTrafficNPCEnhancement v1.18",
+  "safety": {
+    "playerVehiclePhysicsChanged": false,
+    "collisionTopologyChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "ambientActorsRemainNonColliding": true,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "validation": {
+    "sourceCommitSingleFile": "maps/becak-e-bike/traffic.npc.server.lua",
+    "pedestrianYield": "ON",
+    "pedestrianYieldThresholdStuds": 12,
+    "adaptiveCadencePreserved": "4/10/20 Hz",
+    "playerYieldPreserved": true,
+    "vehicleYieldPreserved": true,
+    "headwayPreserved": true,
+    "logicOnlyLODEnabled": true,
+    "dedicatedTargetLockVerified": true
+  },
+  "deploy": {
+    "status": "awaiting_fresh_receipt",
+    "lastVerifiedVersion": 36,
+    "lastVerifiedAt": "2026-08-23T16:31:47.837Z"
+  }
+}
