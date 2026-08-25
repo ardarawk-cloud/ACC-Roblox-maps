@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 32,
+  "title": "Where Have You Been {Crypton} BKB Edit",
+  "driveFileId": "1ZMbc8qmy6yporywUPFGDHX9FC69VjeT7",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "126065626352277",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/00114a0a-0de0-4917-bc2f-3eb655dd597b",
+    "operationId": "00114a0a-0de0-4917-bc2f-3eb655dd597b",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/00114a0a-0de0-4917-bc2f-3eb655dd597b",
+    "operationId": "00114a0a-0de0-4917-bc2f-3eb655dd597b",
+    "done": true,
+    "response": {
+      "path": "assets/126065626352277",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T17:30:13.676772300Z",
+      "assetId": "126065626352277",
+      "displayName": "Where Have You Been {Crypton} BKB Edit",
+      "description": "BBYA Underground Track 032",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
