@@ -1,0 +1,7 @@
+{
+  "confirmed": false,
+  "driveFolderId": "1Ce1q5oMBjzMvLdWxX3vbjtwptXKeQJqO",
+  "scope": "ALL_AUDIO_IN_FOLDER",
+  "status": "PENDING_EXPLICIT_RIGHTS_CONFIRMATION",
+  "statement": "No explicit rights/license confirmation has been recorded for this Rooftop source folder. The uploader must halt before creating any Roblox audio asset until confirmed is true."
+}
