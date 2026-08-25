@@ -1,5 +1,6 @@
--- BECAK E-BIKE — Driver Phone UI v1.7
+-- BECAK E-BIKE — Driver Phone UI v1.8
 -- Compact driver app: Beranda, Peta, Job, Garasi, Profil. Safe Area owns layout/scale.
+-- v1.8 scopes BillboardGui polish to the BecakEBike namespace to avoid full-Workspace startup/streaming scans.
 local Players=game:GetService('Players')
 local ReplicatedStorage=game:GetService('ReplicatedStorage')
 local Workspace=game:GetService('Workspace')
@@ -8,6 +9,7 @@ local player=Players.LocalPlayer
 local pg=player:WaitForChild('PlayerGui')
 local remotes=ReplicatedStorage:WaitForChild('BecakEBikeRemotes')
 local stateEvent=remotes:WaitForChild('State')
+local becakRoot=Workspace:FindFirstChild('BecakEBike') or Workspace:WaitForChild('BecakEBike',15)
 
 -- Hide old blocking HUD, but preserve its toast label so gameplay notifications still work.
 task.delay(.6,function()
@@ -228,8 +230,10 @@ refreshMeta()
 local function polishBillboard(x)
     if x:IsA('BillboardGui') then x.MaxDistance=48;x.AlwaysOnTop=false end
 end
-for _,x in ipairs(Workspace:GetDescendants()) do polishBillboard(x) end
-Workspace.DescendantAdded:Connect(polishBillboard)
+if becakRoot then
+    for _,x in ipairs(becakRoot:GetDescendants()) do polishBillboard(x) end
+    becakRoot.DescendantAdded:Connect(polishBillboard)
+end
 
 -- Safe Area is the single source of truth for phone AnchorPoint, Position, Size and UIScale.
 local function setOpen(v)
@@ -239,9 +243,11 @@ end
 launcher.MouseButton1Click:Connect(function()setOpen(true)end)
 close.MouseButton1Click:Connect(function()setOpen(false)end)
 
-Workspace:SetAttribute('ACC_BecakPhoneUI','v1.7')
+Workspace:SetAttribute('ACC_BecakPhoneUI','v1.8')
 Workspace:SetAttribute('BecakPhoneCargoObjective','ON')
 Workspace:SetAttribute('BecakPhoneObjectivePriority','PASSENGER_THEN_CARGO')
 Workspace:SetAttribute('BecakPhoneLayoutOwner','SAFE_AREA')
 Workspace:SetAttribute('BecakPhoneSelfScaling','OFF')
 Workspace:SetAttribute('BecakPhonePositionTween','OFF')
+Workspace:SetAttribute('BecakPhoneBillboardAuditScope','BECAK_ROOT')
+Workspace:SetAttribute('BecakPhoneFullWorkspaceScan','OFF')
