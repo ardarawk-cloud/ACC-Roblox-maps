@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v1
--- Uniform underground lighting + premium lounge rebuild + room identity.
--- Audio routing / Basement Indo AutoDJ are intentionally untouched.
+-- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v2
+-- Underground-only lighting correction after live mobile overexposure evidence.
+-- Restores a dark club profile while preserving blue/yellow identity and lounge geometry.
+-- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
@@ -38,10 +39,11 @@ if old then old:Destroy() end
 local out=Instance.new("Model")
 out.Name="BasementFullUpgradeV1"
 out.Parent=basement
-out:SetAttribute("UniformLighting",true)
+out:SetAttribute("DarkClubLighting",true)
 out:SetAttribute("PremiumLoungeV4",true)
 out:SetAttribute("UndergroundIdentity",true)
 out:SetAttribute("AudioSystemUntouched",true)
+out:SetAttribute("GlobalLightingUntouched",true)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -50,10 +52,10 @@ local C={
  fabric=Color3.fromRGB(46,49,56),
  metal=Color3.fromRGB(72,76,84),
  glass=Color3.fromRGB(71,82,93),
- white=Color3.fromRGB(232,234,230),
+ white=Color3.fromRGB(202,204,201),
  blue=Color3.fromRGB(0,144,255),
  yellow=Color3.fromRGB(255,205,38),
- wash=Color3.fromRGB(225,232,242),
+ wash=Color3.fromRGB(170,180,194),
 }
 
 local function part(name,size,cf,color,mat,collide,parent,transparency)
@@ -72,71 +74,95 @@ local function hiddenAnchor(name,pos,parent)
 end
 
 -- -----------------------------------------------------------------------------
--- 1) UNIFORM LIGHTING
--- Spread broad, low-contrast fill across the whole room instead of creating
--- isolated bright checker tiles. Existing blue/yellow/pentagon fixtures remain.
+-- 1) DARK CLUB LIGHTING AUTHORITY
+-- The previous profile stacked 12 broad washes + six side fills over the already-lit
+-- blue/yellow/pentagon fixtures. On mobile this clipped the checker floor and booth to white.
+-- Keep only restrained local fill; never touch global Lighting.
 -- -----------------------------------------------------------------------------
-local lighting=Instance.new("Model");lighting.Name="UniformRoomLighting";lighting.Parent=out
+local lighting=Instance.new("Model");lighting.Name="DarkRoomLighting";lighting.Parent=out
 
--- Broaden existing pentagon wash so the left/right lounge zones receive the
--- same white base illumination without increasing visible fixture count.
+-- White pentagons remain visible as fixtures but no longer flood the entire room.
 if pentagons then
  for _,obj in ipairs(pentagons:GetDescendants()) do
   if obj:IsA("SurfaceLight") then
-   obj.Brightness=.48
-   obj.Range=18
-   obj.Angle=150
+   obj.Brightness=.12
+   obj.Range=10
+   obj.Angle=115
    obj.Shadows=false
+  elseif obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
+   obj.Color=Color3.fromRGB(158,160,162)
+   obj.Transparency=.10
   end
  end
 end
 
--- Tame the old narrow neon hotspots while retaining the blue/yellow club color.
+-- Blue/yellow ceiling and wall tubes stay as club accents, not room floodlights.
 for _,obj in ipairs(basement:GetChildren()) do
- if obj:IsA("BasePart") and (obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")) then
+ if obj:IsA("BasePart") and (
+  obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
+  or obj.Name:match("^WallBlue") or obj.Name:match("^WallYellow")
+ ) then
+  obj.Transparency=.04
   for _,light in ipairs(obj:GetChildren()) do
    if light:IsA("SurfaceLight") then
-    light.Brightness=.30
-    light.Range=14
-    light.Angle=150
+    light.Brightness=.12
+    light.Range=9
+    light.Angle=110
     light.Shadows=false
    end
   end
  end
 end
 
--- 12 broad ceiling washes. All anchors are invisible; only the room receives light.
-for xi,x in ipairs({-45,-15,15,45}) do
- for zi,z in ipairs({-29,0,29}) do
+-- Six restrained ceiling fills. Their job is only to prevent pitch-black faces/corners.
+for xi,x in ipairs({-32,32}) do
+ for zi,z in ipairs({-24,0,24}) do
   local a=hiddenAnchor(string.format("CeilingFill_%d_%d",xi,zi),Vector3.new(x,-1.55,z),lighting)
   local s=Instance.new("SurfaceLight")
-  s.Name="EvenCeilingWash";s.Face=Enum.NormalId.Bottom;s.Color=C.wash;s.Brightness=.68;s.Range=28;s.Angle=155;s.Shadows=false;s.Parent=a
+  s.Name="DarkCeilingWash";s.Face=Enum.NormalId.Bottom;s.Color=C.wash;s.Brightness=.08;s.Range=14;s.Angle=120;s.Shadows=false;s.Parent=a
  end
 end
 
--- Gentle side fill reveals sofas, acoustic panels and back corners evenly.
+-- Four tiny side fills reveal the lounge silhouette without flattening the room.
 for i,d in ipairs({
- {Vector3.new(-54,-8,-27),Color3.fromRGB(205,220,239)},
- {Vector3.new(-54,-8,24),Color3.fromRGB(225,229,235)},
- {Vector3.new(54,-8,-27),Color3.fromRGB(225,229,235)},
- {Vector3.new(54,-8,24),Color3.fromRGB(205,220,239)},
- {Vector3.new(0,-7,-38),Color3.fromRGB(230,230,222)},
- {Vector3.new(0,-7,38),Color3.fromRGB(220,228,238)},
+ {Vector3.new(-52,-8,-22),Color3.fromRGB(116,137,162)},
+ {Vector3.new(-52,-8,22),Color3.fromRGB(150,139,113)},
+ {Vector3.new(52,-8,-22),Color3.fromRGB(150,139,113)},
+ {Vector3.new(52,-8,22),Color3.fromRGB(116,137,162)},
 }) do
  local a=hiddenAnchor("SoftFill"..i,d[1],lighting)
  local l=Instance.new("PointLight")
- l.Name="SoftRoomFill";l.Color=d[2];l.Brightness=.38;l.Range=25;l.Shadows=false;l.Parent=a
+ l.Name="DarkRoomFill";l.Color=d[2];l.Brightness=.08;l.Range=13;l.Shadows=false;l.Parent=a
 end
 
--- Checker floor remains black/white but the white tiles are slightly softened so
--- they do not clip to pure white under the more uniform room wash.
+-- Checker remains readable black/grey, but there are no near-white reflective tiles anymore.
 if checker then
  for _,tile in ipairs(checker:GetChildren()) do
   if tile:IsA("BasePart") then
    tile.Reflectance=0
+   tile.Material=Enum.Material.SmoothPlastic
    local avg=(tile.Color.R+tile.Color.G+tile.Color.B)/3
-   if avg>.55 then tile.Color=Color3.fromRGB(222,223,219) end
+   if avg>.55 then
+    tile.Color=Color3.fromRGB(126,128,126)
+   else
+    tile.Color=Color3.fromRGB(10,11,14)
+   end
   end
+ end
+end
+
+-- Tone down the large white architectural surfaces that were blooming under mobile exposure.
+local toneTargets={
+ DJBoothBase=Color3.fromRGB(112,115,120),
+ DJBoothTop=Color3.fromRGB(138,140,143),
+ BarFrontWhite=Color3.fromRGB(104,107,112),
+ BarTop=Color3.fromRGB(132,134,138),
+}
+for name,color in pairs(toneTargets) do
+ local p=basement:FindFirstChild(name,true)
+ if p and p:IsA("BasePart") then
+  p.Color=color
+  p.Reflectance=0
  end
 end
 
@@ -151,7 +177,7 @@ local lounge=Instance.new("Model");lounge.Name="PremiumLoungeV4";lounge.Parent=o
 local function lowGlow(name,size,cf,color,parent)
  local p=part(name,size,cf,color,Enum.Material.Neon,false,parent)
  p.CastShadow=false
- local l=Instance.new("SurfaceLight");l.Name="LoungeUnderglow";l.Face=Enum.NormalId.Top;l.Color=color;l.Brightness=.16;l.Range=5;l.Angle=120;l.Shadows=false;l.Parent=p
+ local l=Instance.new("SurfaceLight");l.Name="LoungeUnderglow";l.Face=Enum.NormalId.Top;l.Color=color;l.Brightness=.10;l.Range=4;l.Angle=105;l.Shadows=false;l.Parent=p
  return p
 end
 
@@ -202,8 +228,9 @@ for _,x in ipairs({-48,-24,0,24,48}) do
  part("SouthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,-42.55),C.metal,Enum.Material.Metal,false,identity)
 end
 
-basement:SetAttribute("LightingProfile","EVEN_UNDERGROUND_V4")
+basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V5")
 basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
 basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
+basement:SetAttribute("OverbrightRegressionFixed",true)
 
-print("[BBYA] Basement Full Upgrade v1 online: even lighting / premium sectionals / underground identity")
+print("[BBYA] Basement Full Upgrade v2 online: DARK underground lighting restored / premium sectionals / identity preserved")
