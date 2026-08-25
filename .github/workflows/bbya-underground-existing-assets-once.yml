@@ -21,9 +21,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Append verified existing Roblox assets to Underground only
-        shell: python
+      - name: Append existing Roblox assets to Underground only
+        shell: bash
         run: |
+          python - <<'PY'
           import json
           from pathlib import Path
 
@@ -59,6 +60,7 @@ jobs:
                   'status': 'LIVE_IN_PLAYLIST',
                   'moderationLastKnown': 'Approved',
                   'sourceType': 'ROBLOX_CREATOR_STORE_EXISTING_ASSET',
+                  'permissionSource': 'ROBLOX_CREATOR_STORE_PUBLIC_EXISTING_ASSET',
                   'genreTag': genre,
                   'noUploadRequired': True,
               })
@@ -69,15 +71,20 @@ jobs:
           path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           print(f'ADDED={len(added)}')
           print('ASSETS=' + ','.join(added))
+          PY
 
-      - name: Guard Main Club untouched
+      - name: Guard scope
+        shell: bash
         run: |
-          git diff --exit-code -- maps/bbya-social-hub/audio-playlists/main-club.json || {
-            echo 'ERROR: Main Club changed unexpectedly'
+          bad="$(git diff --name-only | grep -v '^maps/bbya-social-hub/audio-playlists/underground.json$' || true)"
+          if [ -n "$bad" ]; then
+            echo "ERROR: unexpected changed files:"
+            echo "$bad"
             exit 1
-          }
+          fi
 
       - name: Commit Underground injection
+        shell: bash
         run: |
           if git diff --quiet -- maps/bbya-social-hub/audio-playlists/underground.json; then
             echo 'No changes: all candidate IDs already present.'
@@ -86,6 +93,10 @@ jobs:
           git config user.name 'bbya-actions'
           git config user.email 'bbya-actions@users.noreply.github.com'
           git add maps/bbya-social-hub/audio-playlists/underground.json
-          git commit -m 'BBYA Underground: add 8 existing Roblox audio assets'
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git commit -m 'BBYA Underground: add existing Breakbeat Bounce Koplo assets'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            echo "push retry $n/5"
+            sleep $((n * 2))
+          done
+          exit 1
