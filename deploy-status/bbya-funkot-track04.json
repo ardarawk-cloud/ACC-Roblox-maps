@@ -1,6 +1,6 @@
 {
-  "status": "MODERATION_PENDING",
-  "readyToInject": false,
+  "status": "LIVE_PUBLISHED",
+  "readyToInject": true,
   "safeContinue": true,
   "playlistId": "funkot",
   "trackIndex": 4,
@@ -9,10 +9,10 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "assetId": "98536948000407",
-  "uploadReused": false,
+  "uploadReused": true,
   "sourceSha256": "1241b906152cb9a9b94b51d4303a49d848e2053a60655623a5650fe5708102a8",
   "normalizedSha256": "503545e6135c4f0e69f1d7d615268f14d829294d3bac29643cf4de09f5cfdcb3",
-  "startedAt": "2026-08-25T05:19:05+00:00",
+  "startedAt": "2026-08-25T06:22:42+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -28,36 +28,24 @@
     "name": "GudangPet88",
     "displayName": "GudangPet88"
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/2a5e410b-1388-4df4-9e3b-900fa948a851",
-    "operationId": "2a5e410b-1388-4df4-9e3b-900fa948a851",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/2a5e410b-1388-4df4-9e3b-900fa948a851",
-    "operationId": "2a5e410b-1388-4df4-9e3b-900fa948a851",
-    "done": true,
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Approved",
+      "checkedAt": "2026-08-25T06:22:43+00:00"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
     "response": {
-      "path": "assets/98536948000407",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T05:19:22.155987200Z",
-      "assetId": "98536948000407",
-      "displayName": "Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",
-      "description": "BBYA Funkot Track 04",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+      "successAssetIds": [
+        98536948000407
+      ],
+      "errors": []
     }
   },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T05:19:23+00:00"
+  "updatedAt": "2026-08-25T06:22:43+00:00",
+  "livePublishedAt": "2026-08-25T06:22:45.620008+00:00"
 }
