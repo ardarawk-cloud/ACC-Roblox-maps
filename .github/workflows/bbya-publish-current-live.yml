@@ -145,3 +145,5 @@ jobs:
           if($existingSha){$payload.sha=$existingSha}
           Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($payload | ConvertTo-Json -Depth 5) | Out-Null
           Write-Host "BBYA_CURRENT_MAIN_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:GITHUB_SHA"
+
+# trigger-current-main-live-20260826
