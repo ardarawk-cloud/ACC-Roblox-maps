@@ -136,6 +136,17 @@
       "bbyaPermission": true,
       "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved"
+    },
+    {
+      "index": 11,
+      "title": "KICAU MANIA (AMSTERBOY EDIT) -BKB HYPER-",
+      "driveFileId": "1EE1UWathKgwDSaECbc0rwZszoXGVVC17",
+      "sourceMimeType": "audio/x-wav",
+      "sourceSizeBytes": 44925197,
+      "assetId": null,
+      "bbyaPermission": false,
+      "status": "PREPARED_LOCAL",
+      "moderationLastKnown": null
     }
   ]
 }
