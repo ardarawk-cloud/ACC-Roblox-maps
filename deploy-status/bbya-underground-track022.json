@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 22,
+  "title": "ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",
+  "driveFileId": "1SqBMJLi0sSAnWXJTjWmKzuMC5veRbrOz",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "90986894139778",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/353d076b-fa76-4181-ba69-f86936853abd",
+    "operationId": "353d076b-fa76-4181-ba69-f86936853abd",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/353d076b-fa76-4181-ba69-f86936853abd",
+    "operationId": "353d076b-fa76-4181-ba69-f86936853abd",
+    "done": true,
+    "response": {
+      "path": "assets/90986894139778",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:34:47.202585100Z",
+      "assetId": "90986894139778",
+      "displayName": "ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",
+      "description": "BBYA Underground Track 022",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        90986894139778
+      ],
+      "errors": []
+    }
+  }
+}
