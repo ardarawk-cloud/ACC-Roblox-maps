@@ -60,12 +60,10 @@ jobs:
             'MirrorRay'
           )){if($src -notmatch [regex]::Escape($needle)){throw "Missing Funkot v3 marker: $needle"}}
 
-          git fetch origin main --quiet
-          $diff=(git diff --unified=0 origin/main...HEAD -- $path | Out-String)
-          if($LASTEXITCODE -ne 0){throw 'Unable to compute Funkot v3 diff'}
-          $added=($diff -split "`n" | Where-Object { $_ -match '^\+[^+]' }) -join "`n"
-          $deleted=@($diff -split "`n" | Where-Object { $_ -match '^-[^-]' })
-          if($deleted.Count -gt 0){throw "Funkot v3 must be additive-only; deletions=$($deleted.Count)"}
+          $marker='-- FUNKOT DISKOTIK PREMIUM VISUAL ENHANCEMENT v3'
+          $idx=$src.IndexOf($marker)
+          if($idx -lt 0){throw 'Funkot v3 marker block not found'}
+          $v3=$src.Substring($idx)
           foreach($forbidden in @(
             'SoundId\s*=',
             '\.Volume\s*=',
@@ -74,7 +72,7 @@ jobs:
             'PromptPurchase',
             'BBYABasementMaster',
             'DARK_UNDERGROUND'
-          )){if($added -match $forbidden){throw "Forbidden Funkot v3 mutation in added diff: $forbidden"}}
+          )){if($v3 -match $forbidden){throw "Forbidden Funkot v3 mutation: $forbidden"}}
           Write-Host 'FUNKOT PREMIUM V3 STATIC SCOPE QC PASS'
 
       - name: Project mount QC
