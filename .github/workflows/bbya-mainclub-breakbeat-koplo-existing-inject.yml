@@ -1,0 +1,68 @@
+name: BBYA Main Club Breakbeat Bounce Koplo Existing Inject
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bbya-mainclub-breakbeat-koplo-existing-inject.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch Main Club playlist safely
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('maps/bbya-social-hub/30-club-systems.server.lua')
+          s=p.read_text()
+          marker='-- MAIN_PROGRESSIVE_UPLOAD_END'
+          assert marker in s, 'playlist end marker missing'
+          tracks=[
+            ('Breakbeat - Pyro Pulse','103491797412309','breakbeat'),
+            ('.4.4 - Electro Breakbeat Grooves','1838698511','breakbeat'),
+            ('Akim','1843270078','breakbeat'),
+            ('Nerd Alert','1840062052','breakbeat'),
+            ('Ascending','1837767186','breakbeat'),
+            ('Break the Chain','1837092600','breakbeat'),
+            ('ONE BOUNCE','118951773927701','bounce'),
+            ('Koplo Persatuan Kampungku','87585997282125','koplo'),
+          ]
+          existing=set()
+          import re
+          existing.update(re.findall(r'id="(\d+)"',s))
+          rows=[]
+          for title,aid,style in tracks:
+            if aid in existing: continue
+            title=title.replace('\\','\\\\').replace('"','\\"')
+            rows.append(f' {{title="{title}",id="{aid}",style="{style}"}},')
+          if rows:
+            s=s.replace(marker,'\n'.join(rows)+'\n'+marker,1)
+            p.write_text(s)
+            print('injected',len(rows),'new IDs')
+          else:
+            print('all IDs already present')
+          PY
+      - name: Verify IDs and commit
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('maps/bbya-social-hub/30-club-systems.server.lua').read_text()
+          ids=['103491797412309','1838698511','1843270078','1840062052','1837767186','1837092600','118951773927701','87585997282125']
+          missing=[x for x in ids if f'id="{x}"' not in s]
+          assert not missing, f'missing IDs: {missing}'
+          print('verified all 8 IDs')
+          PY
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add maps/bbya-social-hub/30-club-systems.server.lua
+          git commit -m 'BBYA Main Club: add breakbeat bounce koplo existing IDs'
+          git pull --rebase origin main
+          git push origin HEAD:main
