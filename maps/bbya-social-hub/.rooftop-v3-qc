@@ -1,0 +1,7 @@
+ROOFTOP V3 QC
+scope=70-rooftop-resort.server.lua only
+real_terrain_pool=true
+native_seats=25
+global_lighting_untouched=true
+access_travel_untouched=true
+other_areas_untouched=true
