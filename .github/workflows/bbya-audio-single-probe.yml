@@ -1,4 +1,4 @@
-name: BBYA Audio Operation Poll
+name: BBYA Audio Asset Status
 
 on:
   pull_request:
@@ -8,60 +8,27 @@ permissions:
   contents: read
 
 jobs:
-  poll:
+  status:
     if: github.head_ref == 'bbya/audio-single-probe-20260826'
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 5
     env:
       AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+      ASSET_ID: '134928414278364'
       OPERATION_ID: '8e9af8d0-607f-43d1-8d77-1879665d3ab7'
     steps:
-      - name: Poll existing operation only
+      - name: Read current asset status only
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:AUDIO_KEY)){throw 'AUDIO_KEY_MISSING'}
           $headers=@{'x-api-key'=$env:AUDIO_KEY}
-          $uri="https://apis.roblox.com/assets/v1/operations/$env:OPERATION_ID"
-          $last=$null
-          for($i=1;$i -le 12;$i++){
-            $last=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
-            $json=$last | ConvertTo-Json -Depth 20 -Compress
-            Write-Host "OPERATION_POLL_$i=$json"
-            if($last.done -eq $true){break}
-            Start-Sleep -Seconds 5
-          }
-          $final=$last | ConvertTo-Json -Depth 20
-          Write-Host 'FINAL_OPERATION:'
-          Write-Host $final
-          Add-Content $env:GITHUB_STEP_SUMMARY '### Existing Roblox Audio Operation'
-          Add-Content $env:GITHUB_STEP_SUMMARY '```json'
-          Add-Content $env:GITHUB_STEP_SUMMARY $final
-          Add-Content $env:GITHUB_STEP_SUMMARY '```'
-
-          $assetId=$null
-          if($last.response){
-            if($last.response.assetId){$assetId=[string]$last.response.assetId}
-            elseif($last.response.path -match 'assets/(\d+)'){$assetId=$Matches[1]}
-          }
-          if(-not $assetId){
-            $compact=$last | ConvertTo-Json -Depth 20 -Compress
-            if($compact -match '"assetId"\s*:\s*"?(\d+)"?'){$assetId=$Matches[1]}
-          }
-          if($assetId){
-            Write-Host "ASSET_ID=$assetId"
-            try {
-              $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$assetId?readMask=moderationResult,displayName,creationContext" -Headers $headers
-              $metaJson=$meta | ConvertTo-Json -Depth 20
-              Write-Host 'ASSET_METADATA:'
-              Write-Host $metaJson
-              Add-Content $env:GITHUB_STEP_SUMMARY "- Asset ID: $assetId"
-              Add-Content $env:GITHUB_STEP_SUMMARY '```json'
-              Add-Content $env:GITHUB_STEP_SUMMARY $metaJson
-              Add-Content $env:GITHUB_STEP_SUMMARY '```'
-            } catch {
-              Write-Host "METADATA_LOOKUP_ERROR=$($_.Exception.Message)"
-            }
-          } else {
-            Write-Host 'ASSET_ID_NOT_AVAILABLE_YET'
+          $op=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/operations/$env:OPERATION_ID" -Headers $headers
+          Write-Host 'OPERATION:'
+          Write-Host ($op | ConvertTo-Json -Depth 20)
+          try {
+            $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers $headers
+            Write-Host 'ASSET_METADATA:'
+            Write-Host ($meta | ConvertTo-Json -Depth 20)
+          } catch {
+            Write-Host "ASSET_GET_HTTP_ERROR=$($_.Exception.Message)"
           }
