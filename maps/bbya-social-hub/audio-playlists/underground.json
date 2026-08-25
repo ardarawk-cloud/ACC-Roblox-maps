@@ -749,9 +749,9 @@
       "sourceMimeType": "audio/x-wav",
       "sourceSizeBytes": 39410320,
       "assetId": "97696234195316",
-      "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
       "sourceSha256": "d0d3956f62c9e468365a100eb3280744c6f60e00fbc3f36adac9310f5424e72c"
     },
     {
