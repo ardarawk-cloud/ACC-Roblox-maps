@@ -1,4 +1,4 @@
-name: BBYA Audio Asset Status
+name: BBYA Audio Universe Grant
 
 on:
   pull_request:
@@ -8,27 +8,53 @@ permissions:
   contents: read
 
 jobs:
-  status:
+  grant:
     if: github.head_ref == 'bbya/audio-single-probe-20260826'
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 5
     env:
       AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
       ASSET_ID: '134928414278364'
-      OPERATION_ID: '8e9af8d0-607f-43d1-8d77-1879665d3ab7'
+      BBYA_UNIVERSE: '8116636513'
     steps:
-      - name: Read current asset status only
+      - name: Verify approved asset then grant BBYA universe Use
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:AUDIO_KEY)){throw 'AUDIO_KEY_MISSING'}
           $headers=@{'x-api-key'=$env:AUDIO_KEY}
-          $op=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/operations/$env:OPERATION_ID" -Headers $headers
-          Write-Host 'OPERATION:'
-          Write-Host ($op | ConvertTo-Json -Depth 20)
+
+          $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers $headers
+          $state=[string]$meta.state
+          $moderation=[string]$meta.moderationResult.moderationState
+          Write-Host "ASSET_ID=$env:ASSET_ID STATE=$state MODERATION=$moderation"
+          if($state -ne 'Active' -or $moderation -ne 'Approved'){throw "ASSET_NOT_READY_${state}_${moderation}"}
+
+          $payload=[ordered]@{
+            subjectType='Universe'
+            subjectId=[string]$env:BBYA_UNIVERSE
+            action='Use'
+            requests=@(
+              [ordered]@{assetId=[Int64]$env:ASSET_ID}
+            )
+          } | ConvertTo-Json -Compress -Depth 8
+
+          $http=0;$body=''
           try {
-            $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers $headers
-            Write-Host 'ASSET_METADATA:'
-            Write-Host ($meta | ConvertTo-Json -Depth 20)
+            $r=Invoke-WebRequest -UseBasicParsing -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers $headers -ContentType 'application/json-patch+json' -Body $payload
+            $http=[int]$r.StatusCode
+            $body=[string]$r.Content
           } catch {
-            Write-Host "ASSET_GET_HTTP_ERROR=$($_.Exception.Message)"
+            if($_.Exception.Response){
+              $http=[int]$_.Exception.Response.StatusCode
+              try{$reader=New-Object IO.StreamReader($_.Exception.Response.GetResponseStream());$body=$reader.ReadToEnd();$reader.Dispose()}catch{}
+            }
+            if([string]::IsNullOrWhiteSpace($body)){try{$body=[string]$_.ErrorDetails.Message}catch{}}
           }
+          Write-Host "GRANT_HTTP=$http"
+          Write-Host "GRANT_RESPONSE=$body"
+          if(($http -lt 200) -or ($http -ge 300)){throw "GRANT_FAILED_HTTP_$http"}
+          $j=$body | ConvertFrom-Json
+          if($j.errors -and @($j.errors).Count -gt 0){throw ('GRANT_RETURNED_ERRORS_'+($j.errors|ConvertTo-Json -Compress))}
+          if(-not $j.successAssetIds -or -not (@($j.successAssetIds) -contains [Int64]$env:ASSET_ID)){throw 'ASSET_NOT_IN_SUCCESS_LIST'}
+          Write-Host "GRANT_CONFIRMED_ASSET_ID=$env:ASSET_ID UNIVERSE=$env:BBYA_UNIVERSE ACTION=Use"
