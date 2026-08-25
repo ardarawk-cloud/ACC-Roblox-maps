@@ -1,0 +1,111 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 19,
+  "title": "BANG BANG BANG - KIN EDIT",
+  "driveFileId": "1Gw2_CadLkbI-L1iDw_pIPkwbrja1p-a5",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "123499438012066",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/8f63fc0d-a30a-446b-bc04-12cff8c2c301",
+    "operationId": "8f63fc0d-a30a-446b-bc04-12cff8c2c301",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/8f63fc0d-a30a-446b-bc04-12cff8c2c301",
+    "operationId": "8f63fc0d-a30a-446b-bc04-12cff8c2c301",
+    "done": true,
+    "response": {
+      "path": "assets/123499438012066",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:08:56.218278Z",
+      "assetId": "123499438012066",
+      "displayName": "BANG BANG BANG - KIN EDIT",
+      "description": "BBYA Underground Track 019",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        123499438012066
+      ],
+      "errors": []
+    }
+  }
+}

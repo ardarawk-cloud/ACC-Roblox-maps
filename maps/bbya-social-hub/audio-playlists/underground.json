@@ -250,10 +250,11 @@
       "driveFileId": "1Gw2_CadLkbI-L1iDw_pIPkwbrja1p-a5",
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 12796931,
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "assetId": "123499438012066",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
+      "sourceSha256": "0edc7399b928cba48951ae74576aede8c3d05ca6207a6b7bba8b489fa0ddd29a"
     },
     {
       "index": 20,
