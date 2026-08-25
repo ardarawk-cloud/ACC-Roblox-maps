@@ -1,54 +1,36 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 5,
+  "processedCount": 3,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
   "tracks": [
     {
-      "trackIndex": 54,
-      "title": "Ngapain Repot ( Aldy Alvaro BKB edit )",
-      "status": "UPLOAD_FAILED",
-      "assetId": null,
-      "moderationState": null,
+      "trackIndex": 49,
+      "title": "Om Abidin - Ani Ani ( Club Mix )",
+      "status": "MODERATION_PENDING",
+      "assetId": "103410156771684",
+      "moderationState": "Reviewing",
       "blacklisted": false,
       "readyToInject": false
     },
     {
       "trackIndex": 55,
       "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
-      "status": "UPLOAD_FAILED",
-      "assetId": null,
-      "moderationState": null,
-      "blacklisted": false,
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "135846262601841",
+      "moderationState": "Rejected",
+      "blacklisted": true,
       "readyToInject": false
     },
     {
       "trackIndex": 56,
       "title": "MORENA BKB (HARLY EDIT)",
-      "status": "UPLOAD_FAILED",
-      "assetId": null,
-      "moderationState": null,
+      "status": "READY_TO_INJECT",
+      "assetId": "97696234195316",
+      "moderationState": "Approved",
       "blacklisted": false,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 57,
-      "title": "MILLION STARS - SULVES BKB EDIT -",
-      "status": "UPLOAD_FAILED",
-      "assetId": null,
-      "moderationState": null,
-      "blacklisted": false,
-      "readyToInject": false
-    },
-    {
-      "trackIndex": 58,
-      "title": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
-      "status": "UPLOAD_FAILED",
-      "assetId": null,
-      "moderationState": null,
-      "blacklisted": false,
-      "readyToInject": false
+      "readyToInject": true
     }
   ],
-  "recordedAtUnix": 1787695252
+  "recordedAtUnix": 1787700395
 }
