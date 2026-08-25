@@ -1,5 +1,5 @@
-source_commit=9521d08989a675614aa4742e08e4866d0d2b8fbe
-run_id=32852852752
+source_commit=4d743fda3cf1fa11df75b72f0a75dbb078a4ea57
+run_id=32853317161
 runner=self-hosted/windows/x64
 rojo_exit=0
 build_exit=0
@@ -11,8 +11,8 @@ Rojo 7.7.0
 Building project 'BBYAZeroPreview'
 Built project to bbya-zero-live-selfhosted.rbxl
 --- publish tail ---
-=== publish attempt 1/7 2026-08-25T13:22:06.5264158+00:00 ===
+=== publish attempt 1/7 2026-08-25T13:26:45.5685149+00:00 ===
 Publishing BBYA Social Hub (a-club) from C:\actions-runner\_work\_temp\bbya-zero-live-selfhosted.rbxl as application/octet-stream via curl/http1.1...
 Publish attempt 1/4...
 Deploy receipt written: deploy-status/a-club.json
-Publish success: { versionNumber: 471 }
+Publish success: { versionNumber: 472 }
