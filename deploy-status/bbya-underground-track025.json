@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 25,
+  "title": "666 - BEAUTIFULL LIE BKB REVOLUTIONS",
+  "driveFileId": "1eawYd0D_OiO5eo7t4-ix8Zoqz2zvaHO0",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "103110443796598",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/a766edeb-a795-4b92-be70-e950329e393f",
+    "operationId": "a766edeb-a795-4b92-be70-e950329e393f",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a766edeb-a795-4b92-be70-e950329e393f",
+    "operationId": "a766edeb-a795-4b92-be70-e950329e393f",
+    "done": true,
+    "response": {
+      "path": "assets/103110443796598",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:44:45.630630200Z",
+      "assetId": "103110443796598",
+      "displayName": "666 - BEAUTIFULL LIE BKB REVOLUTIONS",
+      "description": "BBYA Underground Track 025",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}
