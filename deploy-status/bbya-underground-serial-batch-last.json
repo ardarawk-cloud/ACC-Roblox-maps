@@ -1,0 +1,99 @@
+{
+  "status": "BATCH_COMPLETE",
+  "processedCount": 10,
+  "batchSizeLimit": 10,
+  "moderationWaitSecondsPerTrack": 180,
+  "tracks": [
+    {
+      "trackIndex": 11,
+      "title": "KICAU MANIA (AMSTERBOY EDIT) -BKB HYPER-",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "131243532862401",
+      "moderationState": "Rejected",
+      "blacklisted": true,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 12,
+      "title": "JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",
+      "status": "READY_TO_INJECT",
+      "assetId": "114038149273002",
+      "moderationState": "Approved",
+      "blacklisted": false,
+      "readyToInject": true
+    },
+    {
+      "trackIndex": 13,
+      "title": "JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",
+      "status": "READY_TO_INJECT",
+      "assetId": "99406970263948",
+      "moderationState": "Approved",
+      "blacklisted": false,
+      "readyToInject": true
+    },
+    {
+      "trackIndex": 14,
+      "title": "I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",
+      "status": "MODERATION_PENDING",
+      "assetId": "129689050998627",
+      "moderationState": "Reviewing",
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 15,
+      "title": "I KNOW YOU WANT ME - KIN BKB EDIT",
+      "status": "READY_TO_INJECT",
+      "assetId": "117479133947987",
+      "moderationState": "Approved",
+      "blacklisted": false,
+      "readyToInject": true
+    },
+    {
+      "trackIndex": 16,
+      "title": "FEINN CALL - revan edit",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "131281992156175",
+      "moderationState": "Rejected",
+      "blacklisted": true,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 17,
+      "title": "EMANG DASAR -IVNSYH-",
+      "status": "MODERATION_PENDING",
+      "assetId": "125107386771710",
+      "moderationState": "Reviewing",
+      "blacklisted": false,
+      "readyToInject": false
+    },
+    {
+      "trackIndex": 18,
+      "title": "EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",
+      "status": "READY_TO_INJECT",
+      "assetId": "95368919127704",
+      "moderationState": "Approved",
+      "blacklisted": false,
+      "readyToInject": true
+    },
+    {
+      "trackIndex": 19,
+      "title": "BANG BANG BANG - KIN EDIT",
+      "status": "READY_TO_INJECT",
+      "assetId": "123499438012066",
+      "moderationState": "Approved",
+      "blacklisted": false,
+      "readyToInject": true
+    },
+    {
+      "trackIndex": 20,
+      "title": "Animals BKB 2025 (DONMIXedit)",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "assetId": "112969872597515",
+      "moderationState": "Rejected",
+      "blacklisted": true,
+      "readyToInject": false
+    }
+  ],
+  "recordedAtUnix": 1787674327
+}
