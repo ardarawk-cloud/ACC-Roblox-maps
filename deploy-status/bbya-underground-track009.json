@@ -1,0 +1,53 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 9,
+  "title": "Mangu Dont Go - [Ronald 3D x Devi Shinta] -BPKB-",
+  "driveFileId": "1PZ53WYPZhhS0c16A6I6L7CUiIOJ5Duca",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "108747634493146",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/83d6a03c-85b6-4585-926d-95fc1215c425",
+    "operationId": "83d6a03c-85b6-4585-926d-95fc1215c425",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/83d6a03c-85b6-4585-926d-95fc1215c425",
+    "operationId": "83d6a03c-85b6-4585-926d-95fc1215c425",
+    "done": true,
+    "response": {
+      "path": "assets/108747634493146",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T05:10:08.125532400Z",
+      "assetId": "108747634493146",
+      "displayName": "Mangu Dont Go - [Ronald 3D x Devi Shinta] -BPKB-",
+      "description": "BBYA Underground Track 009",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
+}
