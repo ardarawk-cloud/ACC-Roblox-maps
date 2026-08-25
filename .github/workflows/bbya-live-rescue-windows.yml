@@ -1,6 +1,6 @@
 name: BBYA Live Rescue Windows
 
-# Rescue v2: canonical self-hosted publish lane; includes Skatepark audio authority QC.
+# Rescue v3: canonical self-hosted publish lane with permanent audio-regression hard gate.
 on:
   pull_request:
     branches: [main]
@@ -80,7 +80,8 @@ jobs:
             'maps/bbya-social-hub/32-teleport.server.lua'=@('BBYAVIPBypass','BBYARooftopBypass','BBYASecretRoomBypass');
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5');
-            'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED')
+            'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED');
+            'maps/bbya-social-hub/109-music-catalog-reset.server.lua'=@('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')
           }
           foreach($path in $checks.Keys){
             $text=Get-Content $path -Raw
@@ -88,9 +89,20 @@ jobs:
               if($text -notmatch [regex]::Escape($needle)){throw "Missing $needle in $path"}
             }
           }
+          $audio=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          foreach($forbidden in @(
+            'BBYAMusicCatalogReset",true',
+            'RESET_WITH_UNDERGROUND',
+            'SoundService\.DescendantAdded',
+            'scrubSound',
+            'disableOldAudioEngines',
+            'SetAttribute\("MusicCatalogState","RESET_EMPTY"\)'
+          )){
+            if($audio -match $forbidden){throw "DESTRUCTIVE_AUDIO_RESET_BLOCKED: $forbidden"}
+          }
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
-          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS'
+          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_AUDIO_HARD_GATE'
 
       - name: Build canonical BBYA place
         shell: powershell
