@@ -1,37 +1,46 @@
--- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v3
--- Underground-only micro brightness correction after v433 live mobile feedback.
--- Raises local fill slightly while preserving the dark club profile and avoiding bloom.
+-- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v4
+-- Underground-only dark-profile hard lock after live mobile overexposure regression.
+-- Reacquires the final premium Underground if startup order races, then re-enforces the
+-- approved DARK_UNDERGROUND_V6_SLIGHT_LIFT values after all builders settle.
 -- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
 
--- BasementPremiumUpgrade rebuilds the Underground model at server start. Do not
--- capture the older structural model: wait until the final premium room exists.
-local basement=nil
-local deadline=os.clock()+35
-repeat
+local function finalCandidate()
  local candidate=root:FindFirstChild("Underground")
  if candidate and candidate:GetAttribute("Pass")=="BASEMENT_PREMIUM_V2"
   and candidate:FindFirstChild("CheckerFloor")
   and candidate:FindFirstChild("WhitePentagonCeilingLights")
   and candidate:FindFirstChild("PremiumLounge") then
-  basement=candidate
-  break
+  return candidate
+ end
+end
+
+-- BasementPremiumUpgrade destroys/rebuilds Underground at server start. Instead of
+-- aborting when that race happens, require the final candidate to remain stable.
+local basement=nil
+local deadline=os.clock()+45
+repeat
+ local candidate=finalCandidate()
+ if candidate then
+  task.wait(1.0)
+  if candidate.Parent==root and root:FindFirstChild("Underground")==candidate and finalCandidate()==candidate then
+   basement=candidate
+   break
+  end
  end
  task.wait(.15)
 until os.clock()>=deadline
-if not basement then warn("[BBYA] Basement Full Upgrade skipped: final premium Underground was not ready") return end
+if not basement then
+ warn("[BBYA] Basement Full Upgrade v4 skipped: stable premium Underground not ready")
+ return
+end
 
 local checker=basement:FindFirstChild("CheckerFloor")
 local pentagons=basement:FindFirstChild("WhitePentagonCeilingLights")
 local oldLounge=basement:FindFirstChild("PremiumLounge")
-task.wait(.55)
-if basement.Parent~=root or root:FindFirstChild("Underground")~=basement then
- warn("[BBYA] Basement Full Upgrade aborted: Underground changed during startup")
- return
-end
 
 local old=basement:FindFirstChild("BasementFullUpgradeV1")
 if old then old:Destroy() end
@@ -45,6 +54,7 @@ out:SetAttribute("UndergroundIdentity",true)
 out:SetAttribute("AudioSystemUntouched",true)
 out:SetAttribute("GlobalLightingUntouched",true)
 out:SetAttribute("BrightnessMicroAdjust",true)
+out:SetAttribute("StartupRaceHardened",true)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -75,12 +85,10 @@ local function hiddenAnchor(name,pos,parent)
 end
 
 -- -----------------------------------------------------------------------------
--- 1) DARK CLUB LIGHTING AUTHORITY — SLIGHTLY BRIGHTER THAN v433
--- Keep the room dark and clubby, but lift faces/furniture one small step.
+-- 1) DARK CLUB LIGHTING AUTHORITY — APPROVED v436 PROFILE
 -- -----------------------------------------------------------------------------
 local lighting=Instance.new("Model");lighting.Name="DarkRoomLighting";lighting.Parent=out
 
--- Pentagon fixtures remain controlled but contribute a little more readable ambience.
 if pentagons then
  for _,obj in ipairs(pentagons:GetDescendants()) do
   if obj:IsA("SurfaceLight") then
@@ -95,7 +103,6 @@ if pentagons then
  end
 end
 
--- Blue/yellow tubes stay as accents with a small spill increase only.
 for _,obj in ipairs(basement:GetChildren()) do
  if obj:IsA("BasePart") and (
   obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
@@ -113,7 +120,6 @@ for _,obj in ipairs(basement:GetChildren()) do
  end
 end
 
--- Six low ceiling fills. Slight lift from v433, still far below the old overbright profile.
 for xi,x in ipairs({-32,32}) do
  for zi,z in ipairs({-24,0,24}) do
   local a=hiddenAnchor(string.format("CeilingFill_%d_%d",xi,zi),Vector3.new(x,-1.55,z),lighting)
@@ -122,7 +128,6 @@ for xi,x in ipairs({-32,32}) do
  end
 end
 
--- Four gentle side fills for lounge silhouettes and faces.
 for i,d in ipairs({
  {Vector3.new(-52,-8,-22),Color3.fromRGB(120,141,166)},
  {Vector3.new(-52,-8,22),Color3.fromRGB(155,144,118)},
@@ -134,40 +139,44 @@ for i,d in ipairs({
  l.Name="DarkRoomFill";l.Color=d[2];l.Brightness=.10;l.Range=15;l.Shadows=false;l.Parent=a
 end
 
--- Checker remains black/grey, lifted only a little so floor pattern reads better.
-if checker then
- for _,tile in ipairs(checker:GetChildren()) do
+local function enforceChecker(targetChecker)
+ if not targetChecker then return end
+ for _,tile in ipairs(targetChecker:GetChildren()) do
   if tile:IsA("BasePart") then
    tile.Reflectance=0
    tile.Material=Enum.Material.SmoothPlastic
-   local avg=(tile.Color.R+tile.Color.G+tile.Color.B)/3
-   if avg>.55 then
-    tile.Color=Color3.fromRGB(138,140,138)
-   else
-    tile.Color=Color3.fromRGB(10,11,14)
+   local xi,zi=tile.Name:match("^Tile_([%-]?%d+)_([%-]?%d+)$")
+   if xi and zi then
+    if (tonumber(xi)+tonumber(zi))%2==0 then
+     tile.Color=Color3.fromRGB(138,140,138)
+    else
+     tile.Color=Color3.fromRGB(10,11,14)
+    end
    end
   end
  end
 end
+enforceChecker(checker)
 
--- Large light surfaces get a small lift, still safely below the original blooming whites.
 local toneTargets={
  DJBoothBase=Color3.fromRGB(120,123,128),
  DJBoothTop=Color3.fromRGB(148,150,153),
  BarFrontWhite=Color3.fromRGB(112,115,120),
  BarTop=Color3.fromRGB(142,144,148),
 }
-for name,color in pairs(toneTargets) do
- local p=basement:FindFirstChild(name,true)
- if p and p:IsA("BasePart") then
-  p.Color=color
-  p.Reflectance=0
+local function enforceToneTargets()
+ for name,color in pairs(toneTargets) do
+  local p=basement:FindFirstChild(name,true)
+  if p and p:IsA("BasePart") then
+   p.Color=color
+   p.Reflectance=0
+  end
  end
 end
+enforceToneTargets()
 
 -- -----------------------------------------------------------------------------
 -- 2) PREMIUM LOUNGE REBUILD
--- Keep v433 lounge geometry; only lift underglow a tiny amount.
 -- -----------------------------------------------------------------------------
 if oldLounge and oldLounge.Parent then oldLounge:Destroy() end
 local lounge=Instance.new("Model");lounge.Name="PremiumLoungeV4";lounge.Parent=out
@@ -205,14 +214,15 @@ local function coffeeTable(name,x,z)
  local t=Instance.new("Model");t.Name=name;t.Parent=lounge
  part("Top",Vector3.new(7.2,.34,6.4),CFrame.new(x,-13.35,z),C.glass,Enum.Material.Glass,true,t,.18)
  for _,dx in ipairs({-2.8,2.8}) do
-  for _,dz in ipairs({-2.35,2.35}) do part("Leg",Vector3.new(.22,1.35,.22),CFrame.new(x+dx,-14.05,z+dz),C.metal,Enum.Material.Metal,true,t) end
+  for _,dz in ipairs({-2.35,2.35}) do
+   part("Leg",Vector3.new(.22,1.35,.22),CFrame.new(x+dx,-14.05,z+dz),C.metal,Enum.Material.Metal,true,t)
+  end
  end
 end
 coffeeTable("WestTable",-35.5,0);coffeeTable("EastTable",35.5,0)
 
 -- -----------------------------------------------------------------------------
 -- 3) UNDERGROUND ROOM IDENTITY / FINISHING
--- No interaction or audio changes.
 -- -----------------------------------------------------------------------------
 local identity=Instance.new("Model");identity.Name="UndergroundIdentity";identity.Parent=out
 local sign=part("IdentityPanel",Vector3.new(42,7,.26),CFrame.new(0,-7.0,42.38),Color3.fromRGB(17,20,25),Enum.Material.Metal,false,identity)
@@ -226,10 +236,56 @@ for _,x in ipairs({-48,-24,0,24,48}) do
  part("SouthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,-42.55),C.metal,Enum.Material.Metal,false,identity)
 end
 
-basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V6_SLIGHT_LIFT")
-basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
-basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
-basement:SetAttribute("OverbrightRegressionFixed",true)
-basement:SetAttribute("BrightnessMicroAdjust",true)
+local function enforceDarkLock()
+ if basement.Parent~=root or root:FindFirstChild("Underground")~=basement then return end
+ local currentPentagons=basement:FindFirstChild("WhitePentagonCeilingLights")
+ if currentPentagons then
+  for _,obj in ipairs(currentPentagons:GetDescendants()) do
+   if obj:IsA("SurfaceLight") then
+    obj.Brightness=.16;obj.Range=12;obj.Angle=120;obj.Shadows=false
+   elseif obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
+    obj.Color=Color3.fromRGB(165,167,169);obj.Transparency=.08
+   end
+  end
+ end
+ for _,obj in ipairs(basement:GetChildren()) do
+  if obj:IsA("BasePart") and (
+   obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
+   or obj.Name:match("^WallBlue") or obj.Name:match("^WallYellow")
+  ) then
+   obj.Transparency=.03
+   for _,light in ipairs(obj:GetChildren()) do
+    if light:IsA("SurfaceLight") then
+     light.Brightness=.15;light.Range=10.5;light.Angle=115;light.Shadows=false
+    end
+   end
+  end
+ end
+ enforceChecker(basement:FindFirstChild("CheckerFloor"))
+ enforceToneTargets()
+ if out.Parent==basement then
+  for _,obj in ipairs(out:GetDescendants()) do
+   if obj:IsA("SurfaceLight") and obj.Name=="DarkCeilingWash" then
+    obj.Brightness=.11;obj.Range=16;obj.Angle=125;obj.Shadows=false
+   elseif obj:IsA("PointLight") and obj.Name=="DarkRoomFill" then
+    obj.Brightness=.10;obj.Range=15;obj.Shadows=false
+   elseif obj:IsA("SurfaceLight") and obj.Name=="LoungeUnderglow" then
+    obj.Brightness=.12;obj.Range=4.5;obj.Angle=110;obj.Shadows=false
+   end
+  end
+ end
+ basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V6_SLIGHT_LIFT")
+ basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
+ basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
+ basement:SetAttribute("OverbrightRegressionFixed",true)
+ basement:SetAttribute("BrightnessMicroAdjust",true)
+ basement:SetAttribute("DarkLockVersion","V4_LATE_ENFORCED")
+ basement:SetAttribute("DarkLockLastApplied",os.time())
+end
 
-print("[BBYA] Basement Full Upgrade v3 online: slight brightness lift / dark club profile preserved / no global lighting change")
+enforceDarkLock()
+for _,delaySeconds in ipairs({2,5,10,20}) do
+ task.delay(delaySeconds,enforceDarkLock)
+end
+
+print("[BBYA] Basement Full Upgrade v4 online: dark profile hard-locked / startup race hardened / audio untouched")
