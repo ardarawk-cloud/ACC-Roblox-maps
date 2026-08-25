@@ -1,0 +1,151 @@
+name: BBYA Publish Skateboard v5 Exact
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-skateboard-v5-exact.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-skateboard-v5-exact.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-publish-skateboard-v5-exact
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  BBYA_SOURCE_SHA: 057b3f959c5a3a0c09f514537a2ec7d9549fbb8b
+
+jobs:
+  exact:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout publisher authority
+        uses: actions/checkout@v4
+
+      - name: Download exact Skateboard v5 source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Skateboard-V5-Publisher'}
+          $src=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-exact'
+          $archive=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-exact.tar.gz'
+          if(Test-Path $src){Remove-Item $src -Recurse -Force};if(Test-Path $archive){Remove-Item $archive -Force}
+          New-Item -ItemType Directory -Path $src -Force|Out-Null
+          $c=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/commits/$env:BBYA_SOURCE_SHA"
+          if([string]$c.sha -ne $env:BBYA_SOURCE_SHA){throw 'Exact source commit unavailable'}
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/tarball/$env:BBYA_SOURCE_SHA" -OutFile $archive
+          $tar=Get-Command tar.exe -ErrorAction SilentlyContinue;if(-not $tar){$tar=Get-Command tar -ErrorAction SilentlyContinue};if(-not $tar){throw 'tar unavailable'}
+          & $tar.Source -xzf $archive -C $src --strip-components=1;if($LASTEXITCODE -ne 0){throw 'Source extraction failed'}
+          "BBYA_SOURCE_DIR=$src"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SKATE_V5_EXACT_SOURCE_READY source=$env:BBYA_SOURCE_SHA"
+
+      - name: Hard gate Skateboard v5 and protected audio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Need([string]$text,[string]$needle,[string]$msg){if($text -notmatch [regex]::Escape($needle)){throw $msg}}
+          function No([string]$text,[string]$pattern,[string]$msg){if($text -match $pattern){throw $msg}}
+          $map=Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub'
+          $server=Get-Content (Join-Path $map '79-skatepark-upgrade.server.lua') -Raw
+          $client=Get-Content (Join-Path $map '135-skateboard-controls.client.lua') -Raw
+          $project=Get-Content (Join-Path $map 'default.project.json') -Raw
+          $audio=Get-Content (Join-Path $map '109-music-catalog-reset.server.lua') -Raw
+          $groups=Get-Content (Join-Path $map '104-venue-audio-groups.server.lua') -Raw
+          foreach($n in @('SKATEPARK UPGRADE v5 DIRECT DRIVE','ProperRoundedDeck','DirectHorizontalDriveV5','ROUNDED_DECK_KICKTAIL_V5','BBYASkateControlV5','Instance.new("Seat")','BodyVelocity')){Need $server $n "Skateboard v5 marker missing: $n"}
+          No $server 'Instance\.new\("VehicleSeat"\)' 'VehicleSeat regression detected'
+          No $server 'SoundId|SoundGroup|BBYASkateparkMasterSound' 'Skateboard source touches protected audio'
+          foreach($n in @('SKATEBOARD DIRECT CONTROL BRIDGE v5','PlayerModule','GetMoveVector','BBYASkateControlV5','BBYASkateSeatV5')){Need $client $n "Control bridge marker missing: $n"}
+          Need $project '135-skateboard-controls.client.lua' 'Skateboard client is not mounted'
+          foreach($n in @('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')){Need $audio $n "Protected audio marker missing: $n"}
+          foreach($bad in @('BBYAMusicCatalogReset",true','RESET_WITH_UNDERGROUND','SoundService\.DescendantAdded','scrubSound','disableOldAudioEngines','SetAttribute\("MusicCatalogState","RESET_EMPTY"\)')){No $audio $bad "DESTRUCTIVE AUDIO RESET BLOCKED: $bad"}
+          foreach($n in @('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED')){Need $groups $n "Skatepark audio catalog marker missing: $n"}
+          Write-Host "BBYA_SKATE_V5_HARD_GATE_PASS source=$env:BBYA_SOURCE_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-publish-rojo';$zip=Join-Path $env:RUNNER_TEMP 'bbya-skate-v5-publish-rojo.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force};New-Item -ItemType Directory -Path $dir -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $exe){throw 'rojo.exe missing'};$rojo=$exe.FullName
+          }
+          & $rojo --version;if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-skateboard-v5-exact.rbxl'
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {& $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}} finally {Pop-Location}
+          if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 1024){throw 'Invalid RBXL'}
+          "BBYA_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SKATE_V5_BUILD_PASS bytes=$((Get-Item $place).Length) source=$env:BBYA_SOURCE_SHA"
+
+      - name: Publish exact source
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO publish secret missing'}
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {
+            $env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE
+            $env:PUBLISH_RECEIPT_DIR='deploy-status-skateboard-v5'
+            $env:GITHUB_SHA=$env:BBYA_SOURCE_SHA
+            node scripts/publish-map.js a-club
+            if($LASTEXITCODE -ne 0){throw 'Roblox publish failed'}
+          } finally {Pop-Location}
+
+      - name: Verify exact PUBLISHED receipt
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=Join-Path $env:BBYA_SOURCE_DIR 'deploy-status-skateboard-v5/a-club.json'
+          if(-not(Test-Path $path)){throw 'Receipt missing'}
+          $r=Get-Content $path -Raw|ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if($r.sourceCommit -ne $env:BBYA_SOURCE_SHA){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if([string]$r.universeId -ne '8116636513' -or [string]$r.placeId -ne '131894120482837'){throw 'Target mismatch'}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          if([int]$r.response.versionNumber -le 503){throw "Expected version newer than v503, got $($r.response.versionNumber)"}
+          $tmp=Join-Path $env:RUNNER_TEMP 'bbya-skateboard-v5-receipt.json';Copy-Item $path $tmp -Force
+          "BBYA_RECEIPT_TMP=$tmp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_VERSION=$($r.response.versionNumber)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SKATE_V5_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+
+      - name: Persist receipt
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $text=Get-Content $env:BBYA_RECEIPT_TMP -Raw;$content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Skateboard-V5-Publisher'}
+          $repo=$env:GITHUB_REPOSITORY
+          function Upsert([string]$path){
+            $enc=(($path.Split('/')|ForEach-Object {[Uri]::EscapeDataString($_)}) -join '/');$uri="https://api.github.com/repos/$repo/contents/$enc";$sha=$null
+            try{$e=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref=main');$sha=[string]$e.sha}catch{if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
+            $body=@{message="Record BBYA Skateboard v5 exact deploy v$env:BBYA_VERSION [skip ci]";content=$content;branch='main'};if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($body|ConvertTo-Json -Depth 4)|Out-Null
+          }
+          Upsert 'deploy-status/a-club.json';Upsert 'deploy-status/a-club-skateboard-v5.json'
+          Write-Host "BBYA_SKATE_V5_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:BBYA_SOURCE_SHA"
