@@ -43,7 +43,8 @@ local PLAYLIST={
  {title="Ni De Da An - Aldy alvaro, Putra Crazy BKB e",id="90741742310621",style="underground"},
  {title="NGAPAIN REPOT (RAYEN BKB EDIT)",id="117103573334654",style="underground"},
  {title="NGAPAIN REPOT (DEKA EDIT)",id="105840679569825",style="underground"},
- {title="Ngapain Repot ( Aldy Alvaro BKB edit )",id="106277277729828",style="underground"}
+ {title="Ngapain Repot ( Aldy Alvaro BKB edit )",id="106277277729828",style="underground"},
+ {title="MORENA BKB (HARLY EDIT)",id="97696234195316",style="underground"}
 }
 
 local MIX_SECONDS=4.0
