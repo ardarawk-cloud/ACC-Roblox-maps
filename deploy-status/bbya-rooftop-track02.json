@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "LIVE_PUBLISHED",
   "playlistId": "rooftop-tropical",
   "trackIndex": 2,
   "title": "Rolipso - Come Around (Lyrics) - Sensual Musique",
@@ -8,7 +8,7 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "safeContinue": true,
-  "startedAt": "2026-08-25T09:41:15+00:00",
+  "startedAt": "2026-08-25T09:42:18+00:00",
   "key": {
     "http": 200,
     "authorizedUserId": "9296030038",
@@ -22,38 +22,55 @@
     "userId": "9296030038",
     "name": "GudangPet88"
   },
-  "sourceSha256": "b121c3c38602311fe191ac7a233e5706ded2aa11d9e0086b1de17077a8bb796d",
-  "uploadFileSha256": "b121c3c38602311fe191ac7a233e5706ded2aa11d9e0086b1de17077a8bb796d",
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/0519f608-5cb6-4b3c-9778-b2b67501ddd4",
-    "operationId": "0519f608-5cb6-4b3c-9778-b2b67501ddd4",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/0519f608-5cb6-4b3c-9778-b2b67501ddd4",
-    "operationId": "0519f608-5cb6-4b3c-9778-b2b67501ddd4",
-    "done": true,
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:42:19+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:42:34+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:42:49+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:43:04+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:43:19+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T09:43:35+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Approved",
+      "checkedAt": "2026-08-25T09:43:50+00:00"
+    }
+  ],
+  "bbyaPermission": {
+    "ok": true,
+    "http": 200,
     "response": {
-      "path": "assets/102905513042645",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T09:41:21.145898800Z",
-      "assetId": "102905513042645",
-      "displayName": "Rolipso - Come Around (Lyrics) - Sensual Musique",
-      "description": "BBYA Social Hub Rooftop Track 02",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+      "successAssetIds": [
+        102905513042645
+      ],
+      "errors": []
     }
   },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T09:41:22+00:00"
+  "readyToInject": true,
+  "updatedAt": "2026-08-25T09:43:50+00:00",
+  "livePublishedAt": "2026-08-25T09:43:52.975614+00:00"
 }
