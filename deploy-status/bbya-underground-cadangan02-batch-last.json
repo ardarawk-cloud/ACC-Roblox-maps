@@ -1,109 +1,19 @@
 {
   "status": "BATCH_COMPLETE",
   "uploaderMode": "CADANGAN_02_NEW_ASSETS_ONLY",
-  "processedCount": 10,
+  "processedCount": 1,
   "batchSizeLimit": 10,
   "tracks": [
     {
-      "trackIndex": 48,
-      "title": "pararam-bkb-ipan-agstyan",
+      "trackIndex": 58,
+      "title": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
       "status": "READY_TO_INJECT",
-      "assetId": "99942691456392",
+      "assetId": "106194805739169",
       "moderationState": "Approved",
       "readyToInject": true,
       "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 49,
-      "title": "Om Abidin - Ani Ani ( Club Mix )",
-      "status": "MODERATION_PENDING",
-      "assetId": "103410156771684",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 50,
-      "title": "Ni De Wan Shui Qian Shan - Aldy alvaro, DJ U",
-      "status": "READY_TO_INJECT",
-      "assetId": "106769175117849",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 51,
-      "title": "Ni De Da An - Aldy alvaro, Putra Crazy BKB e",
-      "status": "READY_TO_INJECT",
-      "assetId": "90741742310621",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 52,
-      "title": "NGAPAIN REPOT (RAYEN BKB EDIT)",
-      "status": "READY_TO_INJECT",
-      "assetId": "117103573334654",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 53,
-      "title": "NGAPAIN REPOT (DEKA EDIT)",
-      "status": "READY_TO_INJECT",
-      "assetId": "105840679569825",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 54,
-      "title": "Ngapain Repot ( Aldy Alvaro BKB edit )",
-      "status": "READY_TO_INJECT",
-      "assetId": "106277277729828",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 55,
-      "title": "MUGWANTI ( BKB ) - EVER SALIKARA (1)",
-      "status": "MODERATION_PENDING",
-      "assetId": "135846262601841",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 56,
-      "title": "MORENA BKB (HARLY EDIT)",
-      "status": "MODERATION_PENDING",
-      "assetId": "97696234195316",
-      "moderationState": "Reviewing",
-      "readyToInject": false,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    },
-    {
-      "trackIndex": 57,
-      "title": "MILLION STARS - SULVES BKB EDIT -",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "115696927070813",
-      "moderationState": "Rejected",
-      "readyToInject": false,
-      "blacklisted": true,
       "uploaderUserId": "10001957153"
     }
   ],
-  "recordedAtUnix": 1787700162
+  "recordedAtUnix": 1787702004
 }
