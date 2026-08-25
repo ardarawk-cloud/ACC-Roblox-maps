@@ -1,6 +1,6 @@
--- BECAK E-BIKE — mobile safe-area controller v1.34
+-- BECAK E-BIKE — mobile safe-area controller v1.35
 -- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.33 hardened camera/viewport lifecycle. v1.34 removes per-frame fallback polling while
+-- v1.35 makes the fallback scheduler visibility-aware so closed-phone clients do less work while
 -- preserving both dedicated publish compatibility tokens used by the current build/workflow gates.
 
 local Players=game:GetService('Players')
@@ -17,7 +17,8 @@ local launcher=gui:WaitForChild('PhoneLauncher',10)
 if not phone or not launcher then return end
 local scaler=phone:FindFirstChildOfClass('UIScale')
 
-local FALLBACK_INTERVAL_SECONDS=0.5
+local OPEN_FALLBACK_INTERVAL_SECONDS=0.5
+local CLOSED_FALLBACK_INTERVAL_SECONDS=1.5
 local camera=Workspace.CurrentCamera
 local viewportConn
 local lastKey=''
@@ -78,7 +79,7 @@ local function pinOpenPhone()
 end
 
 local function pinScale()
-    if enforcingScale or not scaler then return end
+    if enforcingScale or not scaler or not phone.Visible then return end
     enforcingScale=true
     local target=desiredScale()
     lastScale=target
@@ -134,17 +135,17 @@ phone:GetPropertyChangedSignal('AnchorPoint'):Connect(function()
 end)
 if scaler then
     scaler:GetPropertyChangedSignal('Scale'):Connect(function()
-        if not enforcingScale and math.abs(scaler.Scale-lastScale)>0.001 then task.defer(pinScale) end
+        if not enforcingScale and phone.Visible and math.abs(scaler.Scale-lastScale)>0.001 then task.defer(pinScale) end
     end)
 end
 Workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(bindCameraViewport)
 bindCameraViewport()
 
--- True 2 Hz fallback: avoids a Heartbeat callback on every rendered/server frame while still
--- catching CoreGui/inset changes that do not emit a dedicated viewport signal.
+-- Visibility-aware fallback: open phone keeps the established 2 Hz safety cadence, while a closed
+-- phone drops to ~0.67 Hz. Viewport/camera changes still apply immediately through signal handlers.
 task.spawn(function()
     while gui.Parent and phone.Parent and launcher.Parent do
-        task.wait(FALLBACK_INTERVAL_SECONDS)
+        task.wait(phone.Visible and OPEN_FALLBACK_INTERVAL_SECONDS or CLOSED_FALLBACK_INTERVAL_SECONDS)
         if not gui.Parent or not phone.Parent or not launcher.Parent then break end
         applySafeArea(false)
     end
@@ -155,12 +156,14 @@ Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
 -- Dedicated workflow compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.31
 -- Dedicated builder compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.32
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.34')
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.35')
 Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',2)
 Workspace:SetAttribute('BecakMobileSafeAreaFramePolling','OFF')
-Workspace:SetAttribute('BecakMobileSafeAreaFallbackIntervalSeconds',FALLBACK_INTERVAL_SECONDS)
+Workspace:SetAttribute('BecakMobileSafeAreaFallbackIntervalSeconds',OPEN_FALLBACK_INTERVAL_SECONDS)
+Workspace:SetAttribute('BecakMobileSafeAreaClosedFallbackSeconds',CLOSED_FALLBACK_INTERVAL_SECONDS)
+Workspace:SetAttribute('BecakMobileSafeAreaVisibilityAware','ON')
 Workspace:SetAttribute('BecakPhoneLeftPin','ON')
 Workspace:SetAttribute('BecakPhoneScalePin','ON')
 Workspace:SetAttribute('BecakTouchControlReserve','ON')
