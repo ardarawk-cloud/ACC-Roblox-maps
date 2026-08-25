@@ -1,6 +1,7 @@
--- BECAK E-BIKE — charging network v1.16
+-- BECAK E-BIKE — charging network v1.17
 -- Expands charging beyond HQ with lightweight, economy-backed public chargers.
 -- Uses the isolated Becak EconomyTransaction BindableFunction and vehicle Battery attributes.
+-- v1.17 hardens public charger prompts with LOS, 10-stud range and per-station cooldown.
 
 local Players = game:GetService('Players')
 local Workspace = game:GetService('Workspace')
@@ -18,6 +19,9 @@ local toast = remotes:WaitForChild('Toast')
 local PRICE_PER_UNIT = 55
 local EMERGENCY_THRESHOLD = 10
 local EMERGENCY_GRANT = 12
+local PROMPT_HOLD_SECONDS = 0.55
+local PROMPT_MAX_DISTANCE = 10
+local PROMPT_COOLDOWN_SECONDS = 1.0
 
 local function playerBecak(player)
     for _,m in ipairs(vehicles:GetChildren()) do
@@ -94,6 +98,7 @@ local function chargePlayer(player,stationName)
     toast:FireClient(player,'Charging '..stationName..' selesai • Rp'..cost..' • 100%')
 end
 
+local hardenedPrompts=0
 for i,s in ipairs(stations) do
     local pad=Instance.new('Part')
     pad.Name='PublicCharger_'..i
@@ -109,24 +114,55 @@ for i,s in ipairs(stations) do
     pad:SetAttribute('StationName',s.name)
     pad.Parent=network
     label(pad,'CHARGING • '..s.name)
+
     local p=Instance.new('ProximityPrompt')
     p.ActionText='Isi Baterai'
     p.ObjectText='E-Bike Charger • Rp'..PRICE_PER_UNIT..'/%'
-    p.HoldDuration=.55
-    p.MaxActivationDistance=12
-    p.RequiresLineOfSight=false
+    p.HoldDuration=PROMPT_HOLD_SECONDS
+    p.MaxActivationDistance=PROMPT_MAX_DISTANCE
+    p.RequiresLineOfSight=true
+    p:SetAttribute('BecakEconomyInteractionSafety','v1.17')
+    p:SetAttribute('BecakChargingStationName',s.name)
     p.Parent=pad
-    p.Triggered:Connect(function(player) chargePlayer(player,s.name) end)
+
+    local locked=false
+    local token=0
+    p.Triggered:Connect(function(player)
+        if locked then return end
+        locked=true
+        token+=1
+        local myToken=token
+        p.Enabled=false
+        player:SetAttribute('BecakPublicChargingGuard',s.name..':COOLDOWN')
+        player:SetAttribute('BecakPublicChargingLastGuardedAt',Workspace:GetServerTimeNow())
+        chargePlayer(player,s.name)
+        task.delay(PROMPT_COOLDOWN_SECONDS,function()
+            if token~=myToken then return end
+            locked=false
+            if p.Parent then p.Enabled=true end
+            if player.Parent then player:SetAttribute('BecakPublicChargingGuard','READY') end
+        end)
+    end)
+    hardenedPrompts+=1
 end
 
 local function setupPlayer(player)
     if player:GetAttribute('ChargingVisits')==nil then player:SetAttribute('ChargingVisits',0) end
+    if player:GetAttribute('BecakPublicChargingGuard')==nil then player:SetAttribute('BecakPublicChargingGuard','READY') end
 end
 for _,p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
 Players.PlayerAdded:Connect(setupPlayer)
 
+-- Preserve the v1.16 compatibility marker while exposing the additive safety enhancement separately.
 Workspace:SetAttribute('ACC_BecakChargingNetwork','v1.16')
+Workspace:SetAttribute('ACC_BecakChargingNetworkSafety','v1.17')
 Workspace:SetAttribute('BecakChargingStationCount',#stations)
 Workspace:SetAttribute('BecakEmergencyCharging','ON')
 Workspace:SetAttribute('BecakChargingPricePerUnit',PRICE_PER_UNIT)
-print('[BECAK E-BIKE] charging network v1.16 ready • '..#stations..' stations • emergency assist ON')
+Workspace:SetAttribute('BecakPublicChargingPromptSafety','ON')
+Workspace:SetAttribute('BecakPublicChargingPromptHardenedCount',hardenedPrompts)
+Workspace:SetAttribute('BecakPublicChargingPromptHoldSeconds',PROMPT_HOLD_SECONDS)
+Workspace:SetAttribute('BecakPublicChargingPromptMaxDistance',PROMPT_MAX_DISTANCE)
+Workspace:SetAttribute('BecakPublicChargingPromptRequiresLineOfSight','ON')
+Workspace:SetAttribute('BecakPublicChargingPromptCooldownSeconds',PROMPT_COOLDOWN_SECONDS)
+print('[BECAK E-BIKE] charging network v1.17 ready • '..#stations..' stations • public prompt safety ON')
