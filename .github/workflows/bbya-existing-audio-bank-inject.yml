@@ -1,0 +1,109 @@
+name: BBYA Existing Audio Bank Inject
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-existing-audio-bank-inject.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inject verified existing Roblox audio IDs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('maps/bbya-social-hub/30-club-systems.server.lua')
+          text = path.read_text(encoding='utf-8')
+          begin = '-- MAIN_PROGRESSIVE_UPLOAD_BEGIN'
+          end = '-- MAIN_PROGRESSIVE_UPLOAD_END'
+          if begin not in text or end not in text:
+              raise SystemExit('playlist markers missing')
+
+          bank = [
+              ('Jay FM - Timeless','7024121782','progressive'),
+              ('Jay FM - Insight','7024109415','progressive'),
+              ('Shingo Nakamura - Glow','7028856935','progressive'),
+              ('Odsen - For You','7024280102','progressive'),
+              ('Starlight','1842616337','progressive'),
+              ('A.M.R - Portrait Of You','7023435987','organic'),
+              ('Bass Echo Bloom #407 / Midnight Motion','115848361242254','deep'),
+              ('Spooky Town B','1847785799','deep'),
+              ('Anthony Nikita - Closer','7023459476','trance'),
+              ('Electro Dub','1839015610','techno'),
+              ('Fast Pace A','1846971107','techno'),
+              ('Sci Fi','1843460893','techno'),
+              ('Fast Rave','1839246840','techno'),
+              ('Jumpstyle','1839246711','techno'),
+              ('A Strong Pulse','9039986039','minimal'),
+              ('Echoes of Neon','131048020828654','minimal'),
+              ('Psy Trance Devotion','131469519296364','trance'),
+              ('Stonebank - What Are You Waiting For','7028977687','electronic'),
+              ('You Used To','7023720291','house'),
+              ('About U','7023445033','house'),
+              ('All I Want','7023680426','house'),
+              ('House And Surf','1836042290','house'),
+              ('Tender Tropical House','1836105293','house'),
+              ('Nitro Fun ft. Danyka Nadeau - Safe & Sound','7024233823','electro'),
+              ('A Strong Pulse','9039986039','minimal'),
+              ('Something To Behold','9039495520','minimal'),
+              ('Techno Virtual','75704784012477','techno'),
+              ('Dreamy Neon','96520677298588','minimal'),
+              ('Store','1837393392','electro'),
+              ('Set the Pace','1837773793','techno'),
+              ('Machine Learning','9044784649','electronic'),
+              ('Fun In Paradise','9042578129','electronic'),
+              ('Attention','1839987405','electronic'),
+          ]
+
+          pre, rest = text.split(begin, 1)
+          body, post = rest.split(end, 1)
+          existing = set(re.findall(r'id="(\d+)"', body))
+          seen = set(existing)
+          additions = []
+          for title, asset_id, style in bank:
+              if asset_id in seen:
+                  continue
+              seen.add(asset_id)
+              safe_title = title.replace('"', "'")
+              additions.append(f' {{title="{safe_title}",id="{asset_id}",style="{style}"}},')
+
+          if additions:
+              new_body = body.rstrip() + '\n' + '\n'.join(additions) + '\n'
+              new_text = pre + begin + new_body + end + post
+              path.write_text(new_text, encoding='utf-8')
+
+          final_block = (pre + begin + (body.rstrip() + ('\n' + '\n'.join(additions) + '\n' if additions else '\n'))).split(begin,1)[1]
+          ids = re.findall(r'id="(\d+)"', final_block)
+          if len(ids) != len(set(ids)):
+              raise SystemExit('duplicate asset IDs detected after injection')
+          print(f'existing={len(existing)} added={len(additions)} total={len(ids)}')
+          PY
+
+      - name: Commit playlist injection
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- maps/bbya-social-hub/30-club-systems.server.lua; then
+            echo 'No new IDs to inject.'
+            exit 0
+          fi
+          git config user.name 'ACC Roblox Audio Bank Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/30-club-systems.server.lua
+          git commit -m 'BBYA Main Club: inject existing Roblox audio bank [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
