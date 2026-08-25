@@ -1,8 +1,8 @@
 name: BBYA Live Self Heal
 
-# v4: self-hosted fallback for GitHub-hosted runner outages + Roblox transient publish conflicts.
+# v5: self-hosted fallback with mandatory audio-stability hard gate.
 # Uses GitHub Contents API for receipt persistence because the Studio worker may not have git in PATH.
-# Auto-publishes BBYA Lua source changes so gameplay/admin fixes do not need manual retriggers.
+# Auto-publishes BBYA Lua source changes only when protected venue audio authority is safe.
 on:
   push:
     branches: [main]
@@ -32,6 +32,50 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: HARD GATE protected venue audio authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Require([string]$text,[string]$needle,[string]$message){if($text -notmatch [regex]::Escape($needle)){throw $message}}
+          function Forbid([string]$text,[string]$pattern,[string]$message){if($text -match $pattern){throw $message}}
+
+          $reset=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          $groups=Get-Content 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' -Raw
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          $ui=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua' -Raw
+
+          foreach($needle in @(
+            'OPENING STABILITY AUTHORITY v5',
+            'ACTIVE_VENUES_OPENING_STABILITY_V5',
+            'BBYAMusicCatalogReset",false',
+            'BBYAMainPlaylistEnabled",true',
+            'BBYAUndergroundPlaylistEnabled",true',
+            'BBYAFunkotPlaylistEnabled",true',
+            'BBYASkateparkPlaylistEnabled",true',
+            'BBYARooftopPlaylistEnabled",true'
+          )){Require $reset $needle "Protected audio marker missing: $needle"}
+
+          foreach($pattern in @(
+            'BBYAMusicCatalogReset",true',
+            'RESET_WITH_UNDERGROUND',
+            'SoundService\.DescendantAdded',
+            'scrubSound',
+            'disableOldAudioEngines',
+            'SetAttribute\("MusicCatalogState","RESET_EMPTY"\)',
+            's\.SoundId=""'
+          )){Forbid $reset $pattern "DESTRUCTIVE AUDIO RESET BLOCKED: $pattern"}
+
+          foreach($needle in @('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','BBYARooftopMaster','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED')){
+            Require $groups $needle "Venue audio authority missing: $needle"
+          }
+          foreach($needle in @('SKATEPARK={name="BBYASkateparkMaster"}','ROOFTOP={name="BBYARooftopMaster"}','FUNKOT={name="BBYAFunkotMaster"}','MAIN={name="BBYAClubMaster"}')){
+            Require $router $needle "Venue router marker missing: $needle"
+          }
+          foreach($needle in @('ACTIVE CATALOG UI RECOVERY v5','BBYASkateparkPlaylistCatalog','BBYARooftopPlaylistCatalog')){
+            Require $ui $needle "Active catalog UI marker missing: $needle"
+          }
+          Write-Host "BBYA_AUDIO_HARD_GATE_PASS source=$env:GITHUB_SHA"
 
       - name: Prepare Rojo 7.7.0 on self-hosted runner
         id: rojo
