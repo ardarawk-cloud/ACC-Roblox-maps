@@ -1,7 +1,7 @@
 -- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
--- Skatepark uses Roblox Creator Store/APM assets only: no custom upload required.
+-- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -14,6 +14,7 @@ local SKATE_PLAYLIST={
  {title="We've Got This! - 60",assetId="9043707741"},
  {title="Fuel Fury",assetId="9042632936"},
  {title="Boom Boom (b 30)",assetId="1840009708"},
+ {title="Untungnya, Hidup Harus Tetap Berjalan — Pop Punk Cover",assetId="134928414278364"},
 }
 
 local function ensure(name,venue,active,state)
@@ -33,7 +34,7 @@ local function ensure(name,venue,active,state)
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_APM_CREATOR_STORE_V1")
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V2")
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
 ensure("BBYAVIPMaster","VIP",false)
 
@@ -42,10 +43,10 @@ local function publishSkateCatalog()
  if folder and not folder:IsA("Folder") then folder:Destroy();folder=nil end
  if not folder then folder=Instance.new("Folder");folder.Name="BBYASkateparkPlaylistCatalog";folder.Parent=ReplicatedStorage end
  folder:ClearAllChildren()
- folder:SetAttribute("PlaylistId","skatepark-apm")
+ folder:SetAttribute("PlaylistId","skatepark-mixed")
  folder:SetAttribute("Venue","SKATEPARK")
  folder:SetAttribute("Count",#SKATE_PLAYLIST)
- folder:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM")
+ folder:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED")
  for i,t in ipairs(SKATE_PLAYLIST) do
   local row=Instance.new("StringValue")
   row.Name=string.format("Track%02d",i)
@@ -64,8 +65,8 @@ sound.Volume=.82
 sound.Looped=false
 sound.PlaybackSpeed=1
 sound:SetAttribute("Venue","SKATEPARK")
-sound:SetAttribute("PlaylistId","skatepark-apm")
-sound:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM")
+sound:SetAttribute("PlaylistId","skatepark-mixed")
+sound:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED")
 
 local index=tonumber(ReplicatedStorage:GetAttribute("BBYASkateparkCurrentIndex")) or 1
 if index<1 or index>#SKATE_PLAYLIST then index=1 end
@@ -109,7 +110,7 @@ local function playIndex(wanted)
    local ok=pcall(function()sound:Play()end)
    if ok then
     switching=false
-    print("[BBYA] Skatepark APM playing",index,track.title,track.assetId)
+    print("[BBYA] Skatepark playing",index,track.title,track.assetId)
     return
    end
   end
@@ -119,7 +120,7 @@ local function playIndex(wanted)
   tried+=1
  end
  switching=false
- warn("[BBYA] Skatepark APM playlist: no track could start")
+ warn("[BBYA] Skatepark playlist: no track could start")
 end
 
 sound.Ended:Connect(function()
@@ -138,4 +139,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4: Skatepark APM 6-track test active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4: Skatepark mixed 7-track active; Rooftop active; VIP isolated")
