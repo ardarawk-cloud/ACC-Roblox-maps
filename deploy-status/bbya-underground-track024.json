@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 24,
+  "title": "666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",
+  "driveFileId": "1eFUBrueQdQ5dLCv7QFDUzGfFiGj9sQRg",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "116771187608517",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/6740ce12-24d5-40a1-950f-c1d4abfd9dc9",
+    "operationId": "6740ce12-24d5-40a1-950f-c1d4abfd9dc9",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/6740ce12-24d5-40a1-950f-c1d4abfd9dc9",
+    "operationId": "6740ce12-24d5-40a1-950f-c1d4abfd9dc9",
+    "done": true,
+    "response": {
+      "path": "assets/116771187608517",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:41:38.987631400Z",
+      "assetId": "116771187608517",
+      "displayName": "666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIO",
+      "description": "BBYA Underground Track 024",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        116771187608517
+      ],
+      "errors": []
+    }
+  }
+}
