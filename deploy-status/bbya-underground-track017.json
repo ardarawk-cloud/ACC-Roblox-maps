@@ -1,0 +1,101 @@
+{
+  "status": "MODERATION_PENDING",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 17,
+  "title": "EMANG DASAR -IVNSYH-",
+  "driveFileId": "1WjrERCSxiKWS8Q7RmEwQP-XUWTQGtuka",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "125107386771710",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/4b8343e8-8127-44a5-b9e3-e817e61d2e40",
+    "operationId": "4b8343e8-8127-44a5-b9e3-e817e61d2e40",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/4b8343e8-8127-44a5-b9e3-e817e61d2e40",
+    "operationId": "4b8343e8-8127-44a5-b9e3-e817e61d2e40",
+    "done": true,
+    "response": {
+      "path": "assets/125107386771710",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T16:02:22.836308800Z",
+      "assetId": "125107386771710",
+      "displayName": "EMANG DASAR -IVNSYH-",
+      "description": "BBYA Underground Track 017",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Reviewing",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    }
+  ]
+}
