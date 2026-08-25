@@ -1,26 +1,53 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 36,
   "title": "Thank You - El kiyano (Bkb edit)",
   "driveFileId": "1O79L86kYD8XU5smlK4GD5KeS4vR_c2yq",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "140668891124736",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/440fad4a-35e6-4e67-9d23-f701b615a1ee",
+    "operationId": "440fad4a-35e6-4e67-9d23-f701b615a1ee",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/440fad4a-35e6-4e67-9d23-f701b615a1ee",
+    "operationId": "440fad4a-35e6-4e67-9d23-f701b615a1ee",
+    "done": true,
+    "response": {
+      "path": "assets/140668891124736",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T18:47:51.000666500Z",
+      "assetId": "140668891124736",
+      "displayName": "Thank You - El kiyano (Bkb edit)",
+      "description": "BBYA Underground Track 036",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
 }
