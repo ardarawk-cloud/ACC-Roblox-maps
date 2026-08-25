@@ -1,59 +1,109 @@
 {
   "status": "BATCH_COMPLETE",
   "uploaderMode": "CADANGAN_02_NEW_ASSETS_ONLY",
-  "processedCount": 5,
+  "processedCount": 10,
   "batchSizeLimit": 10,
   "tracks": [
     {
-      "trackIndex": 34,
-      "title": "TOR MONITOR KETUA - QMUNK AMSTRONG#BKB PRIVAT",
+      "trackIndex": 39,
+      "title": "SOMEWHERE - RC BKB REMIX - (1)",
+      "status": "SOURCE_DUPLICATE_SKIPPED",
+      "assetId": null,
+      "moderationState": null,
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": null
+    },
+    {
+      "trackIndex": 40,
+      "title": "So Sexy (Siva Remix)",
+      "status": "MODERATION_PENDING",
+      "assetId": "114534434587342",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 41,
+      "title": "SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",
       "status": "READY_TO_INJECT",
-      "assetId": "105712830643792",
+      "assetId": "81832495836167",
       "moderationState": "Approved",
       "readyToInject": true,
       "blacklisted": false,
       "uploaderUserId": "10001957153"
     },
     {
-      "trackIndex": 35,
-      "title": "TIMELESS - Nathalie Holscher x Derina Derin x Ajun Perwira (BKB EDIT)  Bpm -132",
+      "trackIndex": 42,
+      "title": "She's Gone BKB 2025 (Donmixedit)",
       "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "72817870031492",
+      "assetId": "114931560914489",
       "moderationState": "Rejected",
       "readyToInject": false,
       "blacklisted": true,
       "uploaderUserId": "10001957153"
     },
     {
-      "trackIndex": 36,
-      "title": "Thank You - El kiyano (Bkb edit)",
+      "trackIndex": 43,
+      "title": "SEDIA AKU SEBELUM HUJAN -QMUNK AMSTRONG #BKB",
+      "status": "MODERATION_PENDING",
+      "assetId": "117476404561871",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 44,
+      "title": "RAIHANKHAIRI & DJ WRISABA - JUST ANOTHER NIGHT- (BKB EDIT)",
       "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "140668891124736",
+      "assetId": "133391755801066",
       "moderationState": "Rejected",
       "readyToInject": false,
       "blacklisted": true,
       "uploaderUserId": "10001957153"
     },
     {
-      "trackIndex": 37,
-      "title": "TANPA CINTA V2 2025 - Alka Flow BKB",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "131483664335110",
-      "moderationState": "Rejected",
+      "trackIndex": 45,
+      "title": "POK ANI ANI - DJ VINNIE PARGOY, BILLIE KOPLO",
+      "status": "MODERATION_PENDING",
+      "assetId": "139454814636865",
+      "moderationState": "Reviewing",
       "readyToInject": false,
-      "blacklisted": true,
+      "blacklisted": false,
       "uploaderUserId": "10001957153"
     },
     {
-      "trackIndex": 38,
-      "title": "SOMEWHERE - RC BKB REMIX -",
-      "status": "BLACKLISTED_MODERATION_REJECTED",
-      "assetId": "118954630450346",
-      "moderationState": "Rejected",
+      "trackIndex": 46,
+      "title": "Pimp - El kiyano (Bkb edit)",
+      "status": "MODERATION_PENDING",
+      "assetId": "77827614657917",
+      "moderationState": "Reviewing",
       "readyToInject": false,
-      "blacklisted": true,
+      "blacklisted": false,
       "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 47,
+      "title": "PICA PICA 2 - ARIEF RASIT (BKB EDIT)",
+      "status": "MODERATION_PENDING",
+      "assetId": "94631926635772",
+      "moderationState": "Reviewing",
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": "10001957153"
+    },
+    {
+      "trackIndex": 48,
+      "title": "pararam-bkb-ipan-agstyan",
+      "status": "KEY_SCOPE_FAILED",
+      "assetId": null,
+      "moderationState": null,
+      "readyToInject": false,
+      "blacklisted": false,
+      "uploaderUserId": null
     }
   ],
-  "recordedAtUnix": 1787683723
+  "recordedAtUnix": 1787687545
 }
