@@ -1,26 +1,102 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 35,
   "title": "TIMELESS - Nathalie Holscher x Derina Derin x Ajun Perwira (BKB EDIT)  Bpm -132",
   "driveFileId": "1wIejDDinHeWov-gxfMpeqUhP58Zqh0ED",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "72817870031492",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/e32bc115-8f2c-48aa-a51d-54e120c18758",
+    "operationId": "e32bc115-8f2c-48aa-a51d-54e120c18758",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/e32bc115-8f2c-48aa-a51d-54e120c18758",
+    "operationId": "e32bc115-8f2c-48aa-a51d-54e120c18758",
+    "done": true,
+    "response": {
+      "path": "assets/72817870031492",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T18:44:50.633569800Z",
+      "assetId": "72817870031492",
+      "displayName": "TIMELESS - Nathalie Holscher x Derina Derin x Ajun",
+      "description": "BBYA Underground Track 035",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
 }
