@@ -1,8 +1,10 @@
--- BBYA SOCIAL HUB — SKATEPARK UPGRADE v3 PROPER
--- Premium urban dressing + rideable skateboards. Preserves audio authority and legacy lighting hook names.
+-- BBYA SOCIAL HUB — SKATEPARK UPGRADE v4
+-- Proper tapered skateboard visuals + mobile-safe control bridge.
+-- Preserves all Skatepark lighting hooks and does not touch venue audio.
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
 local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
@@ -13,30 +15,31 @@ task.wait(.35)
 local old=park:FindFirstChild("SkateparkUpgradeV2")
 if old then old:Destroy() end
 local out=Instance.new("Model")
-out.Name="SkateparkUpgradeV2" -- kept for lighting/exposure compatibility
+out.Name="SkateparkUpgradeV2" -- compatibility for existing lighting scripts
 out.Parent=park
-out:SetAttribute("Version","V3_PROPER")
+out:SetAttribute("Version","V4_MOBILE_PROPER_BOARD")
 out:SetAttribute("FenceRoadLights",true)
 out:SetAttribute("PremiumUrbanDressing",true)
 out:SetAttribute("RideableSkateboards",true)
+out:SetAttribute("MobileControlBridge",true)
+out:SetAttribute("ProperDeckSilhouette",true)
 out:SetAttribute("AudioAuthorityUntouched",true)
 
 local C={
  dark=Color3.fromRGB(22,23,26), metal=Color3.fromRGB(70,74,80),
- concrete=Color3.fromRGB(78,79,82), white=Color3.fromRGB(240,239,232),
- warm=Color3.fromRGB(248,226,184), cyan=Color3.fromRGB(34,157,190),
- yellow=Color3.fromRGB(224,181,48), red=Color3.fromRGB(185,58,48),
- wood=Color3.fromRGB(112,78,52), black=Color3.fromRGB(15,16,18),
+ white=Color3.fromRGB(240,239,232), warm=Color3.fromRGB(248,226,184),
+ cyan=Color3.fromRGB(34,157,190), yellow=Color3.fromRGB(224,181,48),
+ black=Color3.fromRGB(15,16,18),
 }
-local function part(name,size,cf,color,mat,collide,parent,class)
- local p=(class=="WedgePart") and Instance.new("WedgePart") or Instance.new("Part")
+local function part(name,size,cf,color,mat,collide,parent)
+ local p=Instance.new("Part")
  p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or C.dark;p.Material=mat or Enum.Material.Metal
- p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
- p.Parent=parent or out;return p
+ p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false
+ p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=parent or out
+ return p
 end
 
--- LIGHTING HOOKS ---------------------------------------------------------------
--- Existing 86/88 scripts retune RoadWash/FloodFill by these names.
+-- Existing 86/88 lighting scripts depend on these exact names.
 local lights=Instance.new("Model");lights.Name="FenceRoadLights";lights.Parent=out
 local function roadLamp(name,pos,faceDir)
  part(name.."Mast",Vector3.new(.28,5.7,.28),CFrame.new(pos.X,12.7,pos.Z),C.metal,Enum.Material.Metal,false,lights)
@@ -54,10 +57,8 @@ for _,z in ipairs({92,124}) do
  roadLamp("East"..z,Vector3.new(58.4,0,z),Vector3.new(-1,0,0))
 end
 
--- PREMIUM URBAN DRESSING -------------------------------------------------------
-local dress=Instance.new("Model");dress.Name="UrbanDressingV3";dress.Parent=out
-
--- Subtle painted edge lines guide flow without covering the concrete.
+-- Premium urban dressing retained from v3.
+local dress=Instance.new("Model");dress.Name="UrbanDressingV4";dress.Parent=out
 for _,spec in ipairs({
  {"WestGuide",Vector3.new(.18,.05,52),CFrame.new(-28,1.035,112),C.yellow},
  {"EastGuide",Vector3.new(.18,.05,52),CFrame.new(27,1.035,112),C.yellow},
@@ -65,7 +66,6 @@ for _,spec in ipairs({
 }) do
  local p=part(spec[1],spec[2],spec[3],spec[4],Enum.Material.SmoothPlastic,false,dress);p.Transparency=.12
 end
-
 local function wallGraphic(name,cf,size,title,sub,accent)
  local backing=part(name,size,cf,Color3.fromRGB(27,28,31),Enum.Material.SmoothPlastic,false,dress)
  local sg=Instance.new("SurfaceGui");sg.Name="StreetGraphic";sg.Face=Enum.NormalId.Front;sg.PixelsPerStud=58;sg.LightInfluence=.25;sg.Parent=backing
@@ -76,26 +76,30 @@ end
 wallGraphic("NorthGraphicL",CFrame.new(-37,3.2,148.86),Vector3.new(27,3,.16),"RIDE AFTER DARK","BBYA STREET SESSION",C.yellow)
 wallGraphic("NorthGraphicR",CFrame.new(37,3.2,148.86),Vector3.new(27,3,.16),"KEEP ROLLING","BALI • MUSIC • SKATE",C.cyan)
 
--- Board-rack zone, positioned away from teleport and ride lines.
 local rack=Instance.new("Model");rack.Name="BoardRentalRack";rack.Parent=dress
 part("RackBack",Vector3.new(16,5,.4),CFrame.new(49,3.5,78.1),Color3.fromRGB(35,37,41),Enum.Material.Metal,false,rack)
 part("RackHeader",Vector3.new(16,1,.48),CFrame.new(49,6.3,78.05),C.black,Enum.Material.Metal,false,rack)
-local sg=Instance.new("SurfaceGui");sg.Face=Enum.NormalId.Front;sg.PixelsPerStud=55;sg.Parent=rack.RackHeader
-local tx=Instance.new("TextLabel");tx.BackgroundTransparency=1;tx.Size=UDim2.fromScale(1,1);tx.Text="BBYA BOARD RACK";tx.TextColor3=C.white;tx.Font=Enum.Font.GothamBlack;tx.TextScaled=true;tx.Parent=sg
+local rackGui=Instance.new("SurfaceGui");rackGui.Face=Enum.NormalId.Front;rackGui.PixelsPerStud=55;rackGui.Parent=rack.RackHeader
+local rackText=Instance.new("TextLabel");rackText.BackgroundTransparency=1;rackText.Size=UDim2.fromScale(1,1);rackText.Text="BBYA BOARD RACK";rackText.TextColor3=C.white;rackText.Font=Enum.Font.GothamBlack;rackText.TextScaled=true;rackText.Parent=rackGui
+for _,x in ipairs({24,36,48}) do part("Bollard"..x,Vector3.new(.45,2.3,.45),CFrame.new(x,2.1,80.3),C.metal,Enum.Material.Metal,true,dress) end
 
--- Small spectator barrier behind benches; keeps players out of the south ride-in lane.
-for _,x in ipairs({24,36,48}) do
- part("Bollard"..x,Vector3.new(.45,2.3,.45),CFrame.new(x,2.1,80.3),C.metal,Enum.Material.Metal,true,dress)
+-- Mobile input bridge. Client sends joystick/VehicleSeat state only while actually riding.
+local controlRemote=ReplicatedStorage:FindFirstChild("BBYASkateControlV4")
+if not controlRemote then
+ controlRemote=Instance.new("RemoteEvent")
+ controlRemote.Name="BBYASkateControlV4"
+ controlRemote.Parent=ReplicatedStorage
 end
 
--- RIDEABLE SKATEBOARDS ---------------------------------------------------------
 local boardsFolder=Instance.new("Model");boardsFolder.Name="RideableSkateboards";boardsFolder.Parent=out
 local activeBoards={}
-local BOARD_SPEED=34
-local REVERSE_SPEED=14
-local ACCEL=30
-local COAST=16
-local TURN_RATE=math.rad(105)
+local stateByModel={}
+local playerInputs={}
+local BOARD_SPEED=36
+local REVERSE_SPEED=15
+local ACCEL=42
+local COAST=18
+local TURN_RATE=math.rad(145)
 local PARK_MIN_X,PARK_MAX_X=-64,64
 local PARK_MIN_Z,PARK_MAX_Z=69,155
 
@@ -104,68 +108,79 @@ local function moveToward(v,target,delta)
  if v>target then return math.max(v-delta,target) end
  return target
 end
-
+local function angleDelta(from,to)
+ return math.atan2(math.sin(to-from),math.cos(to-from))
+end
+local function weld(a,b)
+ local w=Instance.new("WeldConstraint");w.Part0=a;w.Part1=b;w.Parent=a
+end
 local function visualPart(model,name,size,cf,color,material,shape)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color;p.Material=material
  p.Shape=shape or Enum.PartType.Block;p.Anchored=false;p.CanCollide=false;p.CanTouch=false;p.Massless=true
  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=model
  return p
 end
-local function weld(a,b)
- local w=Instance.new("WeldConstraint");w.Part0=a;w.Part1=b;w.Parent=a
-end
 local function boardColor(i)
  local colors={Color3.fromRGB(36,112,170),Color3.fromRGB(188,59,48),Color3.fromRGB(214,166,42),Color3.fromRGB(72,76,83)}
  return colors[((i-1)%#colors)+1]
 end
 
-local function createBoard(index,spawnCF)
- local model=Instance.new("Model");model.Name="BBYASkateboard"..index;model.Parent=boardsFolder
- model:SetAttribute("BBYARideableSkateboard",true);model:SetAttribute("BoardIndex",index);model:SetAttribute("MaxSpeed",BOARD_SPEED)
+local function addDeckVisual(model,chassis,spawnCF,color)
+ -- Invisible collision chassis; visible deck is tapered and kicked at both ends.
+ local body=visualPart(model,"DeckBody",Vector3.new(2.22,.16,3.65),spawnCF*CFrame.new(0,.03,0),color,Enum.Material.WoodPlanks);weld(chassis,body)
+ local nose=visualPart(model,"DeckNose",Vector3.new(2.02,.16,.92),spawnCF*CFrame.new(0,.13,-2.18)*CFrame.Angles(math.rad(-9),0,0),color,Enum.Material.WoodPlanks);weld(chassis,nose)
+ local noseTip=visualPart(model,"DeckNoseTip",Vector3.new(1.62,.16,.58),spawnCF*CFrame.new(0,.28,-2.79)*CFrame.Angles(math.rad(-15),0,0),color,Enum.Material.WoodPlanks);weld(chassis,noseTip)
+ local tail=visualPart(model,"DeckTail",Vector3.new(2.02,.16,.92),spawnCF*CFrame.new(0,.13,2.18)*CFrame.Angles(math.rad(9),0,0),color,Enum.Material.WoodPlanks);weld(chassis,tail)
+ local tailTip=visualPart(model,"DeckTailTip",Vector3.new(1.62,.16,.58),spawnCF*CFrame.new(0,.28,2.79)*CFrame.Angles(math.rad(15),0,0),color,Enum.Material.WoodPlanks);weld(chassis,tailTip)
 
- local deck=Instance.new("Part");deck.Name="Deck";deck.Size=Vector3.new(2.35,.28,5.6);deck.CFrame=spawnCF;deck.Color=boardColor(index);deck.Material=Enum.Material.WoodPlanks
- deck.Anchored=false;deck.CanCollide=true;deck.CanTouch=true;deck.TopSurface=Enum.SurfaceType.Smooth;deck.BottomSurface=Enum.SurfaceType.Smooth
- deck.CustomPhysicalProperties=PhysicalProperties.new(.8,.45,.1,1,1);deck.Parent=model
- model.PrimaryPart=deck
+ local grip=visualPart(model,"GripCenter",Vector3.new(2.08,.035,3.45),spawnCF*CFrame.new(0,.125,0),Color3.fromRGB(22,23,25),Enum.Material.SmoothPlastic);weld(chassis,grip)
+ local stripe=visualPart(model,"DeckStripe",Vector3.new(.11,.025,2.65),spawnCF*CFrame.new(0,.15,0),Color3.fromRGB(212,214,216),Enum.Material.SmoothPlastic);weld(chassis,stripe)
 
- -- Black grip top and metal trucks are visual only.
- local grip=visualPart(model,"Grip",Vector3.new(2.18,.06,5.22),spawnCF*CFrame.new(0,.17,0),Color3.fromRGB(24,25,27),Enum.Material.SmoothPlastic);weld(deck,grip)
  for _,z in ipairs({-1.72,1.72}) do
-  local truck=visualPart(model,"Truck",Vector3.new(2.25,.18,.42),spawnCF*CFrame.new(0,-.24,z),Color3.fromRGB(120,123,128),Enum.Material.Metal);weld(deck,truck)
+  local truck=visualPart(model,"Truck",Vector3.new(2.18,.16,.42),spawnCF*CFrame.new(0,-.27,z),Color3.fromRGB(120,123,128),Enum.Material.Metal);weld(chassis,truck)
   for _,x in ipairs({-1.12,1.12}) do
-   local wh=visualPart(model,"Wheel",Vector3.new(.42,.42,.36),spawnCF*CFrame.new(x,-.39,z)*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(224,222,205),Enum.Material.SmoothPlastic,Enum.PartType.Cylinder);weld(deck,wh)
+   local wh=visualPart(model,"Wheel",Vector3.new(.46,.46,.34),spawnCF*CFrame.new(x,-.42,z)*CFrame.Angles(0,0,math.rad(90)),Color3.fromRGB(225,222,203),Enum.Material.SmoothPlastic,Enum.PartType.Cylinder);weld(chassis,wh)
   end
  end
+end
 
- local seat=Instance.new("VehicleSeat");seat.Name="BBYASkateSeat";seat.Size=Vector3.new(1.65,.35,1.9);seat.CFrame=spawnCF*CFrame.new(0,.72,0);seat.Transparency=1
- seat.Anchored=false;seat.CanCollide=false;seat.CanTouch=false;seat.Massless=true;seat.MaxSpeed=0;seat.Torque=0;seat.TurnSpeed=0;seat.Parent=model;weld(deck,seat)
+local function createBoard(index,spawnCF)
+ local model=Instance.new("Model");model.Name="BBYASkateboard"..index;model.Parent=boardsFolder
+ model:SetAttribute("BBYARideableSkateboard",true);model:SetAttribute("BoardIndex",index);model:SetAttribute("MaxSpeed",BOARD_SPEED);model:SetAttribute("VisualProfile","TAPERED_KICKTAIL_V4")
 
- local att=Instance.new("Attachment");att.Name="StabilityAttachment";att.Parent=deck
+ local chassis=Instance.new("Part");chassis.Name="DeckChassis";chassis.Size=Vector3.new(2.15,.24,5.25);chassis.CFrame=spawnCF;chassis.Transparency=1
+ chassis.Anchored=false;chassis.CanCollide=true;chassis.CanTouch=true;chassis.TopSurface=Enum.SurfaceType.Smooth;chassis.BottomSurface=Enum.SurfaceType.Smooth
+ chassis.CustomPhysicalProperties=PhysicalProperties.new(.8,.32,.08,1,1);chassis.Parent=model;model.PrimaryPart=chassis
+ addDeckVisual(model,chassis,spawnCF,boardColor(index))
+
+ local seat=Instance.new("VehicleSeat");seat.Name="BBYASkateSeat";seat:SetAttribute("BBYASkateSeatV4",true)
+ seat.Size=Vector3.new(1.55,.28,1.6);seat.CFrame=spawnCF*CFrame.new(0,.68,0);seat.Transparency=1;seat.Anchored=false;seat.CanCollide=false;seat.CanTouch=false;seat.Massless=true
+ -- Non-zero MaxSpeed makes Roblox's mobile VehicleSeat controller actually feed throttle/steer.
+ seat.MaxSpeed=BOARD_SPEED;seat.Torque=1;seat.TurnSpeed=1;seat.Parent=model;weld(chassis,seat)
+
+ local att=Instance.new("Attachment");att.Name="StabilityAttachment";att.Parent=chassis
  local align=Instance.new("AlignOrientation");align.Name="SkateUpright";align.Mode=Enum.OrientationAlignmentMode.OneAttachment;align.Attachment0=att
- align.RigidityEnabled=false;align.Responsiveness=18;align.MaxTorque=90000;align.MaxAngularVelocity=20;align.Parent=deck
+ align.RigidityEnabled=false;align.Responsiveness=22;align.MaxTorque=110000;align.MaxAngularVelocity=24;align.Parent=chassis
  local _,yaw,_=spawnCF:ToOrientation();align.CFrame=CFrame.Angles(0,yaw,0)
 
- local prompt=Instance.new("ProximityPrompt");prompt.Name="RidePrompt";prompt.ActionText="Ride Skateboard";prompt.ObjectText="BBYA Board"
- prompt.KeyboardKeyCode=Enum.KeyCode.E;prompt.HoldDuration=0;prompt.MaxActivationDistance=8;prompt.RequiresLineOfSight=false;prompt.Parent=deck
+ local prompt=Instance.new("ProximityPrompt");prompt.Name="RidePrompt";prompt.ActionText="Ride Skateboard";prompt.ObjectText="BBYA Skateboard"
+ prompt.KeyboardKeyCode=Enum.KeyCode.E;prompt.HoldDuration=0;prompt.MaxActivationDistance=8;prompt.RequiresLineOfSight=false;prompt.Parent=chassis
  prompt.Triggered:Connect(function(player)
   if seat.Occupant then return end
   local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid")
   if hum and hum.Health>0 then seat:Sit(hum) end
  end)
 
- local state={model=model,deck=deck,seat=seat,align=align,spawnCF=spawnCF,yaw=yaw,speed=0,lastOccupied=0}
+ local state={model=model,deck=chassis,seat=seat,align=align,spawnCF=spawnCF,yaw=yaw,speed=0,lastOccupied=0}
+ stateByModel[model]=state;table.insert(activeBoards,state)
  seat:GetPropertyChangedSignal("Occupant"):Connect(function()
   if seat.Occupant then
-   state.lastOccupied=os.clock()
-   pcall(function() deck:SetNetworkOwner(nil) end)
-   prompt.Enabled=false
+   state.lastOccupied=os.clock();prompt.Enabled=false
+   pcall(function() chassis:SetNetworkOwner(nil) end)
   else
-   state.speed=0
-   prompt.Enabled=true
+   state.speed=0;prompt.Enabled=true
   end
  end)
- table.insert(activeBoards,state)
- return model
 end
 
 local spawnCFrames={
@@ -175,6 +190,20 @@ local spawnCFrames={
  CFrame.new(57,1.55,82)*CFrame.Angles(0,math.rad(180),0),
 }
 for i,cf in ipairs(spawnCFrames) do createBoard(i,cf) end
+
+controlRemote.OnServerEvent:Connect(function(player,model,moveX,moveZ,throttle,steer)
+ local state=typeof(model)=="Instance" and stateByModel[model] or nil
+ if not state then return end
+ local hum=state.seat.Occupant
+ if not hum or hum.Parent~=player.Character then return end
+ playerInputs[player]={
+  t=os.clock(),
+  move=Vector3.new(math.clamp(tonumber(moveX) or 0,-1,1),0,math.clamp(tonumber(moveZ) or 0,-1,1)),
+  throttle=math.clamp(tonumber(throttle) or 0,-1,1),
+  steer=math.clamp(tonumber(steer) or 0,-1,1),
+ }
+end)
+Players.PlayerRemoving:Connect(function(player) playerInputs[player]=nil end)
 
 local rayParams=RaycastParams.new();rayParams.FilterType=Enum.RaycastFilterType.Exclude;rayParams.IgnoreWater=true
 RunService.Heartbeat:Connect(function(dt)
@@ -193,34 +222,48 @@ RunService.Heartbeat:Connect(function(dt)
   if hum then
    local player=Players:GetPlayerFromCharacter(hum.Parent)
    if player then b.lastOccupied=os.clock() end
-   local throttle=math.clamp(b.seat.ThrottleFloat,-1,1)
-   local steer=math.clamp(b.seat.SteerFloat,-1,1)
-   if math.abs(throttle)>.05 then
-    local target=(throttle>0) and BOARD_SPEED or -REVERSE_SPEED
-    b.speed=moveToward(b.speed,target,ACCEL*dt)
+   local input=player and playerInputs[player] or nil
+   if input and os.clock()-input.t>.4 then input=nil end
+
+   -- Prefer client joystick direction (mobile-safe). Fall back to Humanoid/VehicleSeat values.
+   local move=input and input.move or Vector3.new(hum.MoveDirection.X,0,hum.MoveDirection.Z)
+   local throttle=input and input.throttle or b.seat.ThrottleFloat
+   local steer=input and input.steer or b.seat.SteerFloat
+   if math.abs(throttle)<.04 then throttle=b.seat.Throttle end
+   if math.abs(steer)<.04 then steer=b.seat.Steer end
+
+   if move.Magnitude>.08 then
+    local dir=move.Unit
+    local desiredYaw=math.atan2(-dir.X,-dir.Z)
+    local maxTurn=TURN_RATE*dt
+    b.yaw=b.yaw+math.clamp(angleDelta(b.yaw,desiredYaw),-maxTurn,maxTurn)
+    b.speed=moveToward(b.speed,BOARD_SPEED*math.min(move.Magnitude,1),ACCEL*dt)
    else
-    b.speed=moveToward(b.speed,0,COAST*dt)
+    if math.abs(throttle)>.05 then
+     local target=(throttle>0) and BOARD_SPEED or -REVERSE_SPEED
+     b.speed=moveToward(b.speed,target,ACCEL*dt)
+    else
+     b.speed=moveToward(b.speed,0,COAST*dt)
+    end
+    local turnScale=.32+math.min(math.abs(b.speed)/18,1)
+    b.yaw=b.yaw-steer*TURN_RATE*turnScale*dt
    end
-   local turnScale=.28+math.min(math.abs(b.speed)/18,1)
-   b.yaw=b.yaw-steer*TURN_RATE*turnScale*dt
    b.align.CFrame=CFrame.Angles(0,b.yaw,0)
 
    rayParams.FilterDescendantsInstances={b.model,hum.Parent}
-   local grounded=Workspace:Raycast(pos,Vector3.new(0,-2.0,0),rayParams)~=nil
+   local grounded=Workspace:Raycast(pos,Vector3.new(0,-2.2,0),rayParams)~=nil
    local forward=CFrame.Angles(0,b.yaw,0).LookVector
    local vel=b.deck.AssemblyLinearVelocity
    if grounded then
     b.deck.AssemblyLinearVelocity=Vector3.new(forward.X*b.speed,vel.Y,forward.Z*b.speed)
    else
-    -- Airborne: keep momentum; orientation stays upright for predictable landings.
-    local h=Vector3.new(vel.X,0,vel.Z)
-    if h.Magnitude<math.abs(b.speed)*.7 then
-     b.deck.AssemblyLinearVelocity=Vector3.new(forward.X*b.speed*.82,vel.Y,forward.Z*b.speed*.82)
+    local horizontal=Vector3.new(vel.X,0,vel.Z)
+    if horizontal.Magnitude<math.abs(b.speed)*.72 then
+     b.deck.AssemblyLinearVelocity=Vector3.new(forward.X*b.speed*.84,vel.Y,forward.Z*b.speed*.84)
     end
    end
   elseif b.deck.AssemblyLinearVelocity.Magnitude<1.5 and os.clock()-b.lastOccupied>22 then
-   local dist=(b.deck.Position-b.spawnCF.Position).Magnitude
-   if dist>12 then
+   if (b.deck.Position-b.spawnCF.Position).Magnitude>12 then
     b.model:PivotTo(b.spawnCF);b.deck.AssemblyLinearVelocity=Vector3.zero;b.deck.AssemblyAngularVelocity=Vector3.zero;b.speed=0
     local _,ry,_=b.spawnCF:ToOrientation();b.yaw=ry;b.align.CFrame=CFrame.Angles(0,b.yaw,0)
    end
@@ -228,6 +271,7 @@ RunService.Heartbeat:Connect(function(dt)
  end
 end)
 
-park:SetAttribute("Gameplay","RIDEABLE_SKATEBOARD_V1")
+park:SetAttribute("Gameplay","RIDEABLE_SKATEBOARD_V4_MOBILE")
 park:SetAttribute("BoardCount",#spawnCFrames)
-print("[BBYA] Skatepark v3 proper online: premium street layout + 4 rideable skateboards; audio untouched")
+park:SetAttribute("SkateboardShape","TAPERED_KICKTAIL")
+print("[BBYA] Skatepark v4 online: mobile-safe ride controls + tapered kicktail boards; audio untouched")
