@@ -1,0 +1,107 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 41,
+  "title": "SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",
+  "driveFileId": "1mrmILqWbXyuI7Ww7m3yQQ-HF5raBOnjA",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "81832495836167",
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/445741ff-b8d2-4ff0-b8b7-08fe245655af",
+    "operationId": "445741ff-b8d2-4ff0-b8b7-08fe245655af",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/445741ff-b8d2-4ff0-b8b7-08fe245655af",
+    "operationId": "445741ff-b8d2-4ff0-b8b7-08fe245655af",
+    "done": true,
+    "response": {
+      "path": "assets/81832495836167",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T19:31:52.339097400Z",
+      "assetId": "81832495836167",
+      "displayName": "SIK ASIK - Mail Alektra (BKB EDIT) - MAIL ALEKTRA",
+      "description": "BBYA Underground Track 041",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        81832495836167
+      ],
+      "errors": []
+    }
+  }
+}
