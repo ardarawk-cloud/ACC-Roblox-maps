@@ -196,8 +196,6 @@ RunService.Heartbeat:Connect(function(dt)
  accum+=dt
  local livePlayers=Players:GetPlayers()
  local playerCount=#livePlayers
- -- Reuse the last resolved proximity state for the pre-gate. This preserves 10 Hz far / 4 Hz empty
- -- while allowing the near state to actually execute at 20 Hz instead of being capped at 10 Hz.
  local provisionalStep=playerCount==0 and .25 or (lastNearActivity and .05 or .1)
  if accum<provisionalStep then return end
 
@@ -222,7 +220,6 @@ RunService.Heartbeat:Connect(function(dt)
   local vehicleDist,vehiclePart=nearestFromSnapshot(vehicleSnapshot,pos)
   local yieldNow=false
   local pedestrianYield=false
-
   if hrp and playerDist<26 then
    local relative=hrp.Position-pos
    local ahead=relative:Dot(travel)
@@ -295,6 +292,12 @@ Workspace:SetAttribute('BecakTrafficPedestrianYield','ON')
 Workspace:SetAttribute('BecakTrafficHeadway','ON')
 Workspace:SetAttribute('BecakTrafficBrakeLights','ON')
 Workspace:SetAttribute('BecakTrafficIntersectionPacing','ON')
+Workspace:SetAttribute('BecakTrafficIntersectionPacingCorrected','ON')
+Workspace:SetAttribute('BecakTrafficAdaptiveTick','ON')
+Workspace:SetAttribute('BecakTrafficProximityAdaptiveTick','ON')
+Workspace:SetAttribute('BecakTrafficProximitySnapshot','ON')
+Workspace:SetAttribute('BecakTrafficModelLOD','ON')
+Workspace:SetAttribute('BecakTrafficLogicOnlyCull','ON')
 Workspace:SetAttribute('BecakTrafficTrueNearCadence','ON')
 Workspace:SetAttribute('BecakTrafficNearHz',20)
 Workspace:SetAttribute('BecakTrafficFarHz',10)
