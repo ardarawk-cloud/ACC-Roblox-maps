@@ -1,10 +1,11 @@
--- BECAK E-BIKE — world readability/performance QC v2.3
+-- BECAK E-BIKE — world readability/performance QC v2.4
 -- Keeps mobile rendering/query cost predictable as Nusakarya grows.
 -- Decorative route/marker geometry stays visual-only; important gameplay parts remain untouched.
 -- v2.0 adds burst-safe descendant batching and rate-limited telemetry for streaming/runtime growth.
 -- v2.1 adds a delayed, non-destructive cargo resilience runtime audit.
 -- v2.2 adds hard target identity + passenger proof-of-travel runtime audits.
 -- v2.3 adds mobile safe-area/phone ownership + garage/economy safety runtime audits.
+-- v2.4 synchronizes economy safety QC with Garage Safety v1.4 service-prompt debounce hardening.
 
 local Workspace=game:GetService('Workspace')
 local root=Workspace:WaitForChild('BecakEBike',20)
@@ -223,17 +224,22 @@ task.delay(3,function()
  local debounce=Workspace:GetAttribute('BecakGaragePurchaseDebounce')
  local hold=Workspace:GetAttribute('BecakGarageMobileDeliberateHold')
  local serviceSafety=Workspace:GetAttribute('BecakServicePromptSafety')
- local economyPass=garageSafety=='v1.3' and debounce=='ON' and hold=='ON' and serviceSafety=='ON'
+ local serviceDebounce=Workspace:GetAttribute('BecakEconomyServicePromptDebounce')
+ local serviceCooldown=tonumber(Workspace:GetAttribute('BecakEconomyServicePromptCooldownSeconds'))
+ local hardenedCount=tonumber(Workspace:GetAttribute('BecakEconomyPromptHardenedCount'))
+ local economyPass=garageSafety=='v1.4' and debounce=='ON' and hold=='ON' and serviceSafety=='ON' and serviceDebounce=='ON' and serviceCooldown==1 and hardenedCount==3
  Workspace:SetAttribute('BecakWorldQCEconomySafety',economyPass and 'PASS' or 'FAIL')
  Workspace:SetAttribute('BecakWorldQCEconomySafetyVersion',tostring(garageSafety or 'missing'))
- if not economyPass then warn('[BECAK E-BIKE][QC] economy safety audit FAIL',garageSafety,debounce,hold,serviceSafety) end
+ Workspace:SetAttribute('BecakWorldQCServicePromptCooldownSeconds',serviceCooldown or -1)
+ Workspace:SetAttribute('BecakWorldQCHardenedServicePrompts',hardenedCount or -1)
+ if not economyPass then warn('[BECAK E-BIKE][QC] economy safety audit FAIL',garageSafety,debounce,hold,serviceSafety,serviceDebounce,serviceCooldown,hardenedCount) end
 
  Workspace:SetAttribute('BecakWorldQCCoreSystems',(targetPass and cargoPass and passengerPass and mobilePass and economyPass) and 'PASS' or 'FAIL')
 end)
 
--- Preserve the v2.0 compatibility marker and expose the additive v2.3 audit revision.
+-- Preserve the v2.0 compatibility marker and expose the additive v2.4 audit revision.
 Workspace:SetAttribute('ACC_BecakWorldQC','v2.0')
-Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.3')
+Workspace:SetAttribute('ACC_BecakWorldQCEnhancement','v2.4')
 Workspace:SetAttribute('BecakDecorativeCollision','OFF')
 Workspace:SetAttribute('BecakDecorativeShadows','OFF')
 Workspace:SetAttribute('BecakWorldQCLiveTelemetry','ON')
@@ -248,4 +254,4 @@ Workspace:SetAttribute('BecakWorldQCMobileSafeArea','PENDING')
 Workspace:SetAttribute('BecakWorldQCEconomySafety','PENDING')
 Workspace:SetAttribute('BecakWorldQCCoreSystems','PENDING')
 publishTelemetry()
-print('[BECAK E-BIKE] world QC v2.3 ready | target + passenger + cargo + mobile + economy audits | batched streaming | billboards',billboardCount,'decor',decorCount)
+print('[BECAK E-BIKE] world QC v2.4 ready | target + passenger + cargo + mobile + economy v1.4 audits | batched streaming | billboards',billboardCount,'decor',decorCount)
