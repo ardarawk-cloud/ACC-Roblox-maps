@@ -1,13 +1,13 @@
 {
-  "status": "MODERATION_PENDING",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 23,
   "title": "Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",
   "driveFileId": "1uzngsKfvx_jhSHpoOvlhCr5AqMdlNph8",
   "bbyaUniverseId": "8116636513",
   "assetId": "130909529715712",
-  "uploadReused": false,
+  "uploadReused": true,
   "expectedUploaderUserId": "9296030038",
   "key": {
     "http": 200,
@@ -18,84 +18,21 @@
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/e608a231-aa8c-4efa-abcb-09dd25a5b739",
-    "operationId": "e608a231-aa8c-4efa-abcb-09dd25a5b739",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/e608a231-aa8c-4efa-abcb-09dd25a5b739",
-    "operationId": "e608a231-aa8c-4efa-abcb-09dd25a5b739",
-    "done": true,
-    "response": {
-      "path": "assets/130909529715712",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T16:38:03.759483400Z",
-      "assetId": "130909529715712",
-      "displayName": "Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",
-      "description": "BBYA Underground Track 023",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
-  },
-  "moderationState": "Reviewing",
+  "moderationState": "Approved",
   "moderationChecks": [
     {
       "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
+      "state": "Approved"
     }
-  ]
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        130909529715712
+      ],
+      "errors": []
+    }
+  }
 }
