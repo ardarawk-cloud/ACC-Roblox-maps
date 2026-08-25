@@ -1,0 +1,111 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 13,
+  "title": "JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",
+  "driveFileId": "1_a8yljKxqBVVFhMl5TnjgLIwj8dTVJqF",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "99406970263948",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/3dc0e06d-efe0-4c93-9e54-f25c905ef235",
+    "operationId": "3dc0e06d-efe0-4c93-9e54-f25c905ef235",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/3dc0e06d-efe0-4c93-9e54-f25c905ef235",
+    "operationId": "3dc0e06d-efe0-4c93-9e54-f25c905ef235",
+    "done": true,
+    "response": {
+      "path": "assets/99406970263948",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T15:51:00.813163800Z",
+      "assetId": "99406970263948",
+      "displayName": "JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",
+      "description": "BBYA Underground Track 013",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        99406970263948
+      ],
+      "errors": []
+    }
+  }
+}
