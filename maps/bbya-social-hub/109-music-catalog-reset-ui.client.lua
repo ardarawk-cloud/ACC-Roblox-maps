@@ -1,242 +1,180 @@
--- BBYA SOCIAL HUB — MUSIC CATALOG RESET UI v2
--- Clean empty-catalog authority after the owner-requested music reset.
--- Removes legacy playlist ghosts instead of covering them, hides unusable transport,
--- keeps VIP as its own venue identity, makes hub panels translucent, and keeps the
--- admin editor accessible without covering NOW PLAYING.
+-- BBYA SOCIAL HUB — ACTIVE CATALOG UI RECOVERY v5
+-- Retires the obsolete empty-catalog overlay. The compact music authority remains primary.
+-- Adds late UI ingestion for dedicated Skatepark/Rooftop catalog folders so their
+-- playlists and Now Playing data are visible without faking or duplicating playback authority.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local SoundService=game:GetService("SoundService")
 local RunService=game:GetService("RunService")
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local gui=pg:WaitForChild("BBYAClubUI",30)
 if not gui then return end
-local panel=gui:WaitForChild("HubPanel",30)
-if not panel then return end
 
-local VENUES={
- MAIN={title="CLUB MUSIC",sub="MAIN CLUB • PLAYLIST RESET",short="CLUB",accent=Color3.fromRGB(232,38,165)},
- UNDERGROUND={title="UNDERGROUND MUSIC",sub="UNDERGROUND • PLAYLIST RESET",short="UNDERGROUND",accent=Color3.fromRGB(39,196,225)},
- VIP={title="VIP MUSIC",sub="PRIVATE CLUB • SEPARATE CHANNEL",short="VIP",accent=Color3.fromRGB(220,173,86)},
- FUNKOT={title="FUNKOT MUSIC",sub="FUNKOT • PLAYLIST RESET",short="FUNKOT",accent=Color3.fromRGB(143,82,255)},
- SKATEPARK={title="SKATEPARK MUSIC",sub="SKATEPARK • PLAYLIST RESET",short="SKATEPARK",accent=Color3.fromRGB(39,196,225)},
- ROOFTOP={title="ROOFTOP MUSIC",sub="ROOFTOP • PLAYLIST RESET",short="ROOFTOP",accent=Color3.fromRGB(220,173,86)},
- NONE={title="MUSIC",sub="NO VENUE AUDIO HERE",short="MUSIC",accent=Color3.fromRGB(151,155,168)},
+local C={
+ white=Color3.fromRGB(246,246,249),
+ muted=Color3.fromRGB(156,160,173),
+ card=Color3.fromRGB(28,29,37),
+ line=Color3.fromRGB(76,80,94),
+ cyan=Color3.fromRGB(39,196,225),
+ gold=Color3.fromRGB(220,173,86),
 }
 
-local function venueAtPosition(p)
- if p.Y<-4.5 then return "UNDERGROUND" end
- if p.Y>=40 and p.Y<=60 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48 then return "ROOFTOP" end
- if p.Y>=20 and p.Y<40 and math.abs(p.X)<=58 and p.Z>=-46 and p.Z<=46 then return "VIP" end
- if p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253 then return "FUNKOT" end
- if p.Y>-4 and p.Y<20 and math.abs(p.X)<=61 and p.Z>=72 and p.Z<=152 then return "SKATEPARK" end
- if p.Y>-4 and p.Y<18 and math.abs(p.X)<=61 and p.Z>=0 and p.Z<70 then return "MAIN" end
- return "NONE"
-end
+local SPECIAL={
+ SKATEPARK={
+  catalog="BBYASkateparkPlaylistCatalog",
+  titleAttr="BBYASkateparkCurrentTitle",
+  indexAttr="BBYASkateparkCurrentIndex",
+  sound="BBYASkateparkMasterSound",
+  accent=C.cyan,
+ },
+ ROOFTOP={
+  catalog="BBYARooftopPlaylistCatalog",
+  titleAttr="BBYARooftopCurrentTitle",
+  indexAttr="BBYARooftopCurrentIndex",
+  sound="BBYARooftopMasterSound",
+  accent=C.gold,
+ },
+}
 
 local function currentVenue()
- local v=tostring(player:GetAttribute("BBYAAudioVenue") or "")
- if VENUES[v] then return v end
- local ch=player.Character
- local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
- return hrp and venueAtPosition(hrp.Position) or "NONE"
+ return tostring(player:GetAttribute("BBYAAudioVenue") or "NONE")
 end
 
-local function resetActive()
- return ReplicatedStorage:GetAttribute("BBYAMusicCatalogReset")==true
+local function cleanLegacyEmptyOverlay()
+ local hub=gui:FindFirstChild("HubPanel")
+ if not hub then return end
+ for _,d in ipairs(hub:GetDescendants()) do
+  if d.Name=="MusicCatalogEmptyV1" then d:Destroy() end
+ end
+ hub:SetAttribute("BBYALegacyPlaylistHidden",false)
+ hub:SetAttribute("BBYAResetUIVersion","RETIRED_BY_ACTIVE_V5")
 end
 
-local function core()
- return panel:FindFirstChild("PlayerCard",true),panel:FindFirstChild("LibraryCard",true)
+local function compactParts()
+ local layer=gui:FindFirstChild("BBYACompactMusicLayerV7")
+ if not layer then return nil end
+ local card=layer:FindFirstChild("CompactMusicCardV7")
+ local drawer=layer:FindFirstChild("PlaylistDrawerV7")
+ if not card or not drawer then return nil end
+ return layer,card,drawer
 end
 
-local function findHeader()
- for _,f in ipairs(panel:GetChildren()) do
-  if f:IsA("Frame") then
-   for _,d in ipairs(f:GetChildren()) do
-    if d:IsA("TextButton") and (d.Text=="×" or d.Text=="X") then return f end
-   end
+local function sortedCatalog(folder)
+ local rows={}
+ if not folder then return rows end
+ for _,v in ipairs(folder:GetChildren()) do
+  if v:IsA("StringValue") then
+   table.insert(rows,{
+    title=v.Value,
+    index=tonumber(v:GetAttribute("Index")) or 999,
+    assetId=tostring(v:GetAttribute("AssetId") or ""),
+   })
   end
  end
+ table.sort(rows,function(a,b)return a.index<b.index end)
+ return rows
 end
 
-local function headerLabels(header)
- local title,sub
- if not header then return nil,nil end
- for _,d in ipairs(header:GetChildren()) do
-  if d:IsA("TextLabel") then
-   if d.TextSize>=16 then title=title or d else sub=sub or d end
-  end
- end
- return title,sub
+local function corner(o,r)
+ local c=o:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+ c.CornerRadius=UDim.new(0,r or 9);c.Parent=o
 end
 
-local function ensureEmpty(libraryCard)
- if not libraryCard then return nil end
- local empty=libraryCard:FindFirstChild("MusicCatalogEmptyV1")
- if not empty then
-  empty=Instance.new("Frame")
-  empty.Name="MusicCatalogEmptyV1"
-  empty.BorderSizePixel=0
-  empty.BackgroundColor3=Color3.fromRGB(18,19,25)
-  empty.Parent=libraryCard
-  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=empty
-  local s=Instance.new("UIStroke");s.Name="ResetStroke";s.Thickness=1;s.Transparency=.45;s.Parent=empty
-  local big=Instance.new("TextLabel");big.Name="EmptyTitle";big.BackgroundTransparency=1;big.Position=UDim2.fromOffset(18,18);big.Size=UDim2.new(1,-36,0,30);big.Font=Enum.Font.GothamBold;big.TextSize=14;big.TextColor3=Color3.fromRGB(246,246,249);big.TextXAlignment=Enum.TextXAlignment.Left;big.Parent=empty
-  local sub=Instance.new("TextLabel");sub.Name="EmptySub";sub.BackgroundTransparency=1;sub.Position=UDim2.fromOffset(18,52);sub.Size=UDim2.new(1,-36,0,42);sub.Font=Enum.Font.Gotham;sub.TextSize=10;sub.TextColor3=Color3.fromRGB(160,163,174);sub.TextXAlignment=Enum.TextXAlignment.Left;sub.TextWrapped=true;sub.Parent=empty
- end
- empty.Position=UDim2.fromOffset(12,12)
- empty.Size=UDim2.new(1,-24,1,-24)
- empty.BackgroundTransparency=.34
- empty.ZIndex=180
- for _,d in ipairs(empty:GetDescendants()) do if d:IsA("GuiObject") then d.ZIndex=math.max(d.ZIndex,181) end end
- return empty
+local function rowLabel(parent,name,text,pos,size,ts,color,align)
+ local l=Instance.new("TextLabel")
+ l.Name=name;l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size
+ l.Font=Enum.Font.GothamSemibold;l.TextSize=ts;l.TextColor3=color;l.TextWrapped=true
+ l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center
+ l.ZIndex=715;l.Parent=parent;return l
 end
 
-local function removeLegacyLibrary(libraryCard,empty)
- if not libraryCard or not empty then return end
- for _,child in ipairs(libraryCard:GetChildren()) do
-  if child~=empty and child:IsA("GuiObject") then
-   child.Visible=false
-   if child:IsA("TextButton") then child.Active=false end
-  end
- end
- -- Some older playlist rows are recreated below nested containers; force them off too.
- for _,d in ipairs(libraryCard:GetDescendants()) do
-  if not d:IsDescendantOf(empty) and d~=empty and d:IsA("GuiObject") then
-   d.Visible=false
-   if d:IsA("TextButton") then d.Active=false end
-  end
- end
- empty.Visible=true
-end
+local function rebuildSpecialDrawer(v,spec,drawer,rows)
+ local title=drawer:FindFirstChild("PlaylistTitle")
+ local count=drawer:FindFirstChild("PlaylistCount")
+ local scroller=drawer:FindFirstChild("PlaylistScrollerV7")
+ if title then title.Text=v.." PLAYLIST" end
+ if count then count.Text=tostring(#rows).." TRACKS" end
+ if not scroller then return end
 
-local function hideTransport()
- for _,d in ipairs(panel:GetDescendants()) do
-  if d:IsA("TextButton") then
-   local up=string.upper((d.Text or ""):match("^%s*(.-)%s*$") or "")
-   if up=="NEXT" or up=="PREV" or up=="PREVIOUS" or up=="PAUSE" or up=="RESUME" then
-    d.Visible=false;d.Active=false;d.AutoButtonColor=false
-   end
-  end
+ local empty=scroller:FindFirstChild("PlaylistEmpty")
+ if empty then empty.Visible=#rows==0 end
+ for _,d in ipairs(scroller:GetChildren()) do
+  if d.Name:match("^ActiveCatalogRowV5_") then d:Destroy() end
+ end
+ if #rows==0 then return end
+
+ local currentIndex=tonumber(ReplicatedStorage:GetAttribute(spec.indexAttr)) or 0
+ for i,item in ipairs(rows) do
+  local row=Instance.new("Frame")
+  row.Name="ActiveCatalogRowV5_"..i
+  row.Size=UDim2.new(1,-4,0,52)
+  row.BackgroundColor3=C.card
+  row.BackgroundTransparency=(item.index==currentIndex) and .04 or .16
+  row.BorderSizePixel=0
+  row.LayoutOrder=i+2
+  row.ZIndex=714
+  row.Parent=scroller
+  corner(row,9)
+  local stroke=Instance.new("UIStroke")
+  stroke.Color=spec.accent;stroke.Thickness=1;stroke.Transparency=(item.index==currentIndex) and .28 or .68;stroke.Parent=row
+  rowLabel(row,"TrackIndex",string.format("%02d",item.index),UDim2.fromOffset(10,6),UDim2.fromOffset(30,40),10,spec.accent,Enum.TextXAlignment.Center)
+  rowLabel(row,"TrackTitle",item.title,UDim2.fromOffset(48,5),UDim2.new(1,-60,0,42),11,C.white)
  end
 end
 
-local function syncPlayerCard(playerCard,spec)
- if not playerCard then return end
- local bigCandidate=nil
- for _,d in ipairs(playerCard:GetDescendants()) do
-  if d:IsA("TextLabel") then
-   local up=string.upper(d.Text or "")
-   if up=="NOW PLAYING" then
-    d.Text="NOW PLAYING"
-   elseif d.TextSize>=16 and (not bigCandidate or d.TextSize>bigCandidate.TextSize) then
-    bigCandidate=d
-   end
-   if up:find("PROGRESSIVE",1,true) or up:find("BREAKBEAT",1,true) or up:find("INDO",1,true) or up:find("FUNKOT",1,true) or up:find("RECOVERY",1,true) then
-    d.Text=spec.short.." • 0 TRACKS"
-    d.TextColor3=spec.accent
-   elseif up=="LIVE" or up:find("PLAYING",1,true) or up:find("PAUSED",1,true) then
-    d.Text="●  READY"
-    d.TextColor3=spec.accent
-   end
-  end
+local function syncSpecialVenue(v,spec)
+ local layer,card,drawer=compactParts()
+ if not layer then return end
+ local folder=ReplicatedStorage:FindFirstChild(spec.catalog)
+ local rows=sortedCatalog(folder)
+ local nowTitle=card:FindFirstChild("NowPlayingTitle")
+ local nowMeta=card:FindFirstChild("NowPlayingMeta")
+ local coverVenue=card:FindFirstChild("CoverShell") and card.CoverShell:FindFirstChild("FallbackVenue")
+ local currentTitle=tostring(ReplicatedStorage:GetAttribute(spec.titleAttr) or "")
+ local sound=SoundService:FindFirstChild(spec.sound)
+ local playing=sound and sound:IsA("Sound") and sound.IsPlaying
+
+ if nowTitle and currentTitle~="" then nowTitle.Text=currentTitle end
+ if nowMeta then
+  nowMeta.Text=string.format("%s • %d TRACKS%s",v,#rows,playing and " • PLAYING" or " • READY")
+  nowMeta.TextColor3=spec.accent
  end
- if bigCandidate then bigCandidate.Text="BELUM ADA LAGU" end
+ if coverVenue then coverVenue.Text=v;coverVenue.TextColor3=spec.accent end
+ if drawer.Visible then rebuildSpecialDrawer(v,spec,drawer,rows) end
+ layer:SetAttribute("BBYAActiveCatalogUIRecovery","V5")
+ layer:SetAttribute("BBYAActiveCatalogVenue",v)
+ layer:SetAttribute("BBYAActiveCatalogCount",#rows)
 end
 
-local function syncVenueChip(musicFrame,spec)
- if not musicFrame then return end
- for _,d in ipairs(musicFrame:GetDescendants()) do
-  if d:IsA("TextLabel") or d:IsA("TextButton") then
-   local up=string.upper((d.Text or ""):match("^%s*(.-)%s*$") or "")
-   if up=="CLUB" or up=="● CLUB" or up=="UNDERGROUND" or up=="● UNDERGROUND" or up=="FUNKOT" or up=="● FUNKOT" or up=="VIP" or up=="● VIP" then
-    d.Text="● "..spec.short
-   end
-  end
- end
-end
-
-local function makeHubTranslucent()
- -- Applies to all HubPanel pages, not only Music, so HOME/SUPPORT/TRAVEL/etc share one visual language.
- if panel:IsA("Frame") and panel.BackgroundTransparency<.24 then panel.BackgroundTransparency=.24 end
- for _,d in ipairs(panel:GetDescendants()) do
-  if d:IsA("Frame") then
-   if d.BackgroundTransparency<.28 then d.BackgroundTransparency=.28 end
-  elseif d:IsA("ScrollingFrame") then
-   if d.BackgroundTransparency<.32 then d.BackgroundTransparency=.32 end
-  elseif d:IsA("TextButton") then
-   if d.BackgroundTransparency<.16 then d.BackgroundTransparency=.16 end
-  end
- end
-end
-
-local function moveEditorToggle()
- local editor=pg:FindFirstChild("BBYAEditorUI")
- local b=editor and editor:FindFirstChild("EditorToggle",true)
- if not b or not b:IsA("GuiObject") then return end
- -- Keep EDIT available to the owner, but never on top of NOW PLAYING.
- b.AnchorPoint=Vector2.new(0,1)
- b.Position=UDim2.new(0,16,1,-16)
- b.Size=UDim2.fromOffset(60,38)
- b.ZIndex=900
-end
-
-local function enforce()
- if not resetActive() then return end
- local playerCard,libraryCard=core()
- if not playerCard or not libraryCard then return end
- local v=currentVenue();local spec=VENUES[v] or VENUES.NONE
- local vipActive=v=="VIP" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true
- local vipTitle=tostring(ReplicatedStorage:GetAttribute("BBYAVIPTrack01Title") or "VIP Track 01")
- local musicFrame=playerCard.Parent
- local empty=ensureEmpty(libraryCard)
- removeLegacyLibrary(libraryCard,empty)
- hideTransport()
- syncPlayerCard(playerCard,spec)
- if vipActive then
-  local biggest=nil
-  for _,d in ipairs(playerCard:GetDescendants()) do
-   if d:IsA("TextLabel") then
-    local up=string.upper(d.Text or "")
-    if up~="NOW PLAYING" and (not biggest or d.TextSize>biggest.TextSize) then biggest=d end
-    if up:find("0 TRACKS",1,true) then d.Text="VIP • 1 TRACK" end
-   end
-  end
-  if biggest then biggest.Text=vipTitle end
- end
- syncVenueChip(musicFrame,spec)
- local header=findHeader();local pageTitle,pageSub=headerLabels(header)
- if pageTitle and musicFrame and musicFrame.Visible then pageTitle.Text=spec.title end
- if pageSub and musicFrame and musicFrame.Visible then pageSub.Text=spec.sub end
- local emptyTitle=empty and empty:FindFirstChild("EmptyTitle")
- local emptySub=empty and empty:FindFirstChild("EmptySub")
- local stroke=empty and empty:FindFirstChild("ResetStroke")
- if emptyTitle then emptyTitle.Text=vipActive and "VIP PLAYLIST • 1 TRACK" or (spec.short.." PLAYLIST • 0 TRACKS") end
- if emptySub then emptySub.Text=vipActive and vipTitle or "Playlist dikosongkan. Susun ulang lagu untuk venue ini secara terpisah." end
- if stroke and stroke:IsA("UIStroke") then stroke.Color=spec.accent end
- makeHubTranslucent()
- moveEditorToggle()
- panel:SetAttribute("BBYAMusicPanelVenue",v)
- panel:SetAttribute("BBYAMusicPlaylistCount",vipActive and 1 or 0)
- panel:SetAttribute("BBYALegacyPlaylistHidden",true)
- panel:SetAttribute("BBYAResetUIVersion","V2_CLEAN")
-end
-
-panel.DescendantAdded:Connect(function()task.defer(enforce)end)
-pg.ChildAdded:Connect(function()task.defer(enforce)end)
-player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()task.defer(enforce)end)
-ReplicatedStorage:GetAttributeChangedSignal("BBYAMusicCatalogReset"):Connect(function()task.defer(enforce)end)
-player.CharacterAdded:Connect(function()task.delay(.5,enforce)end)
+cleanLegacyEmptyOverlay()
 
 local acc=0
 RunService.Heartbeat:Connect(function(dt)
  acc+=dt
- if acc<.15 then return end
+ if acc<.22 then return end
  acc=0
- enforce()
+ cleanLegacyEmptyOverlay()
+ local v=currentVenue()
+ local spec=SPECIAL[v]
+ if spec then syncSpecialVenue(v,spec) end
 end)
 
-task.delay(1,enforce)
-print("[BBYA] Music Catalog Reset UI v2: no legacy playlist ghosts / no empty transport / VIP separate / hub translucent")
+player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()
+ task.defer(function()
+  local v=currentVenue();local spec=SPECIAL[v]
+  if spec then syncSpecialVenue(v,spec) end
+ end)
+end)
+
+for _,spec in pairs(SPECIAL) do
+ local folder=ReplicatedStorage:FindFirstChild(spec.catalog)
+ if folder then
+  folder.ChildAdded:Connect(function()task.defer(function()if currentVenue()==folder:GetAttribute("Venue") or currentVenue()=="ROOFTOP" or currentVenue()=="SKATEPARK" then syncSpecialVenue(currentVenue(),SPECIAL[currentVenue()]) end end)end)
+  folder.ChildRemoved:Connect(function()task.defer(function()local v=currentVenue();if SPECIAL[v] then syncSpecialVenue(v,SPECIAL[v]) end end)end)
+ end
+end
+
+print("[BBYA] Active catalog UI recovery v5 online: reset overlay retired; Skatepark/Rooftop catalog UI live")
