@@ -1,0 +1,28 @@
+{
+  "project": "Becak E-Bike",
+  "scope": "maps/becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "1f5be68bccd4fa0134528b1e3b3bc4888d51873b",
+  "upgrade": "city event reward replay integrity v1.11",
+  "validation": {
+    "sourceDiffOnlyBecakPath": true,
+    "compatibilityTokenV1_10Preserved": true,
+    "passengerCompletionHighWaterGuard": true,
+    "cargoCompletionHighWaterGuard": true,
+    "counterRollbackReplayBlocked": true,
+    "rollbackTelemetryAdded": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "basePassengerCargoPayoutChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "deploy": {
+    "status": "PENDING_FRESH_RECEIPT",
+    "lastVerifiedReceiptHttpStatus": 200,
+    "lastVerifiedRobloxVersion": 36,
+    "lastVerifiedReceiptAt": "2026-08-23T16:31:47.837Z",
+    "note": "Do not claim v1.11 live until a fresh dedicated Becak receipt is recorded."
+  }
+}
