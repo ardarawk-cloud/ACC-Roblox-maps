@@ -1,5 +1,6 @@
--- BECAK E-BIKE — Driver navigation v1.7
+-- BECAK E-BIKE — Driver navigation v1.8
 -- Compact mobile-safe guidance for passenger, cargo, garage and active destinations.
+-- v1.8 prevents repeated delayed retarget callbacks near destinations.
 
 local Players=game:GetService('Players')
 local ReplicatedStorage=game:GetService('ReplicatedStorage')
@@ -108,6 +109,8 @@ local mode='idle'
 local activeTripName=nil
 local currentTargetPos=nil
 local currentTargetName=nil
+local nextRetargetAt=0
+local RETARGET_COOLDOWN=.85
 
 local function rootPart()
  local c=player.Character
@@ -193,6 +196,13 @@ local function chooseTarget()
  end
 end
 
+local function retargetThrottled()
+ local now=os.clock()
+ if now<nextRetargetAt then return end
+ nextRetargetAt=now+RETARGET_COOLDOWN
+ chooseTarget()
+end
+
 local function hookPhone()
  local phoneGui=pg:WaitForChild('BecakDriverPhone',20)
  if not phoneGui then return end
@@ -224,7 +234,7 @@ RunService.RenderStepped:Connect(function(dt)
  if acc<.12 then return end
  acc=0
  if not currentTargetPos then
-  if mode~='idle' then chooseTarget() end
+  if mode~='idle' then retargetThrottled() end
   return
  end
  local pos,cf=ownVehiclePosition()
@@ -243,10 +253,13 @@ RunService.RenderStepped:Connect(function(dt)
  detail.Text=string.format('%d m • %s',math.floor(dist+.5),mode=='passenger' and 'jemput' or (string.find(mode,'cargo',1,true) and 'cargo' or (mode=='trip' and 'antar penumpang' or 'navigasi')))
 
  if mode=='passenger' and dist<12 and not activeTripName then
-  task.delay(.5,chooseTarget)
+  retargetThrottled()
  elseif (mode=='trip' or mode=='cargo-active') and dist<22 then
-  task.delay(1.0,chooseTarget)
+  retargetThrottled()
  end
 end)
 
 Workspace:SetAttribute('ACC_BecakDriverNavigation','v1.7')
+Workspace:SetAttribute('ACC_BecakDriverNavigationEnhancement','v1.8')
+Workspace:SetAttribute('BecakNavigationRetargetThrottle','ON')
+Workspace:SetAttribute('BecakNavigationRetargetCooldown',RETARGET_COOLDOWN)
