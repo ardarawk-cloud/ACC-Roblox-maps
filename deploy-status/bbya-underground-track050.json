@@ -1,26 +1,62 @@
 {
-  "status": "UPLOAD_FAILED",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 50,
   "title": "Ni De Wan Shui Qian Shan - Aldy alvaro, DJ U",
   "driveFileId": "1K3VHEZsdjFK8orw137UlRCDnSI0f5Kc7",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "106769175117849",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+    "path": "operations/0415a248-9744-4165-a2a1-69c49527ae10",
+    "operationId": "0415a248-9744-4165-a2a1-69c49527ae10",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/0415a248-9744-4165-a2a1-69c49527ae10",
+    "operationId": "0415a248-9744-4165-a2a1-69c49527ae10",
+    "done": true,
+    "response": {
+      "path": "assets/106769175117849",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:08:55.915585Z",
+      "assetId": "106769175117849",
+      "displayName": "Ni De Wan Shui Qian Shan - Aldy alvaro, DJ U",
+      "description": "BBYA Underground Track 050",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Approved"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        106769175117849
+      ],
+      "errors": []
+    }
   }
 }
