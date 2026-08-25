@@ -1,0 +1,85 @@
+name: BBYA Audio Reset Regression Guard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/109-music-catalog-reset.server.lua'
+      - 'maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua'
+      - 'maps/bbya-social-hub/default.project.json'
+      - '.github/workflows/bbya-audio-reset-regression-guard.yml'
+  workflow_dispatch:
+
+jobs:
+  guard:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Block destructive music reset regression
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          foreach($needle in @(
+            'OPENING STABILITY AUTHORITY v5',
+            'ACTIVE_VENUES_OPENING_STABILITY_V5',
+            'BBYAMainPlaylistEnabled",true',
+            'BBYAUndergroundPlaylistEnabled",true',
+            'BBYAFunkotPlaylistEnabled",true',
+            'BBYASkateparkPlaylistEnabled",true',
+            'BBYARooftopPlaylistEnabled",true',
+            'BBYAMusicCatalogReset",false'
+          )){if($src -notmatch [regex]::Escape($needle)){throw "Missing opening-stability marker: $needle"}}
+          foreach($forbidden in @(
+            'BBYAMusicCatalogReset",true',
+            'SoundService\.DescendantAdded',
+            'scrubSound',
+            's\.SoundId\s*=\s*""',
+            'RESET_WITH_UNDERGROUND',
+            'RESET_EMPTY',
+            'disableOldAudioEngines'
+          )){if($src -match $forbidden){throw "Destructive audio reset regression detected: $forbidden"}}
+          Write-Host 'BBYA AUDIO RESET REGRESSION GUARD PASS'
+
+      - name: Verify active catalog UI recovery
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $ui=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua' -Raw
+          foreach($needle in @('ACTIVE CATALOG UI RECOVERY v5','BBYASkateparkPlaylistCatalog','BBYARooftopPlaylistCatalog','RETIRED_BY_ACTIVE_V5')){
+            if($ui -notmatch [regex]::Escape($needle)){throw "Missing active UI recovery marker: $needle"}
+          }
+          Write-Host 'BBYA ACTIVE CATALOG UI RECOVERY PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-audio-reset-guard-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-audio-reset-guard-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-audio-reset-regression-guard.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $out)){throw 'RBXL output missing'}
+          if((Get-Item $out).Length -lt 1024){throw 'RBXL output too small'}
+          Write-Host "BBYA AUDIO RESET GUARD ROJO PASS bytes=$((Get-Item $out).Length)"
