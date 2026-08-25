@@ -1,0 +1,103 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 12,
+  "title": "JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",
+  "driveFileId": "1tTBpg4Qtwfk4m2ZSfIzUxAldF4eo3hgE",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "114038149273002",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/e40d5f39-a6db-439b-88b4-fad00a3f03fb",
+    "operationId": "e40d5f39-a6db-439b-88b4-fad00a3f03fb",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/e40d5f39-a6db-439b-88b4-fad00a3f03fb",
+    "operationId": "e40d5f39-a6db-439b-88b4-fad00a3f03fb",
+    "done": true,
+    "response": {
+      "path": "assets/114038149273002",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T15:47:39.772993800Z",
+      "assetId": "114038149273002",
+      "displayName": "JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",
+      "description": "BBYA Underground Track 012",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        114038149273002
+      ],
+      "errors": []
+    }
+  }
+}
