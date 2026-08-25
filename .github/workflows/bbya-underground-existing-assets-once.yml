@@ -1,0 +1,91 @@
+name: BBYA Underground Existing Assets — ONE SHOT
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bbya-underground-existing-assets-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-underground-existing-assets-once
+  cancel-in-progress: false
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Append verified existing Roblox assets to Underground only
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          path = Path('maps/bbya-social-hub/audio-playlists/underground.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          tracks = data.setdefault('tracks', [])
+          existing = {str(t.get('assetId')) for t in tracks if t.get('assetId') is not None}
+          next_index = max((int(t.get('index', 0) or 0) for t in tracks), default=0) + 1
+
+          candidates = [
+              ('103491797412309', 'Breakbeat: Pyro Pulse', 'breakbeat'),
+              ('1838698511', '.4.4 / Electro Breakbeat Grooves', 'breakbeat'),
+              ('1843270078', 'Akim / BREAKBEAT', 'breakbeat'),
+              ('1840062052', 'Nerd Alert', 'breakbeat'),
+              ('1837767186', 'Ascending', 'breakbeat'),
+              ('1837092600', 'Break the Chain', 'breakbeat'),
+              ('118951773927701', 'ONE BOUNCE', 'bounce'),
+              ('87585997282125', 'Koplo Persatuan Kampungku', 'koplo'),
+          ]
+
+          added = []
+          for asset_id, title, genre in candidates:
+              if asset_id in existing:
+                  continue
+              tracks.append({
+                  'index': next_index,
+                  'title': title,
+                  'driveFileId': None,
+                  'sourceMimeType': None,
+                  'sourceSizeBytes': None,
+                  'assetId': asset_id,
+                  'bbyaPermission': True,
+                  'status': 'LIVE_IN_PLAYLIST',
+                  'moderationLastKnown': 'Approved',
+                  'sourceType': 'ROBLOX_CREATOR_STORE_EXISTING_ASSET',
+                  'genreTag': genre,
+                  'noUploadRequired': True,
+              })
+              existing.add(asset_id)
+              added.append(asset_id)
+              next_index += 1
+
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(f'ADDED={len(added)}')
+          print('ASSETS=' + ','.join(added))
+
+      - name: Guard Main Club untouched
+        run: |
+          git diff --exit-code -- maps/bbya-social-hub/audio-playlists/main-club.json || {
+            echo 'ERROR: Main Club changed unexpectedly'
+            exit 1
+          }
+
+      - name: Commit Underground injection
+        run: |
+          if git diff --quiet -- maps/bbya-social-hub/audio-playlists/underground.json; then
+            echo 'No changes: all candidate IDs already present.'
+            exit 0
+          fi
+          git config user.name 'bbya-actions'
+          git config user.email 'bbya-actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/audio-playlists/underground.json
+          git commit -m 'BBYA Underground: add 8 existing Roblox audio assets'
+          git pull --rebase origin main
+          git push origin HEAD:main
