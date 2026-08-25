@@ -1,0 +1,223 @@
+name: BBYA Publish Exact Source V2
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-exact-source-v2.yml'
+      - 'deploy-requests/bbya-exact-source-v2.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-exact-source-v2.yml'
+      - 'deploy-requests/bbya-exact-source-v2.json'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-publish-exact-source-v2
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  exact-source-v2:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout publisher authority
+        uses: actions/checkout@v4
+
+      - name: Resolve and validate exact opening-stability source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headSha=if('${{ github.event_name }}' -eq 'pull_request'){$env:PR_HEAD_SHA}else{'${{ github.sha }}'}
+          if($headSha -notmatch '^[0-9a-fA-F]{40}$'){throw "Invalid workflow head SHA: $headSha"}
+          $request=Get-Content 'deploy-requests/bbya-exact-source-v2.json' -Raw | ConvertFrom-Json
+          $sourceSha=([string]$request.source_sha).Trim()
+          if($sourceSha -notmatch '^[0-9a-fA-F]{40}$'){throw "Invalid source SHA: $sourceSha"}
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='BBYA-Exact-Source-Publisher-V2'
+          }
+          $repo=$env:GITHUB_REPOSITORY
+          $source=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/commits/$sourceSha"
+          if([string]$source.sha -ne $sourceSha){throw "Source unavailable: $sourceSha"}
+          $compare=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/compare/$sourceSha...$headSha"
+          if([string]$compare.merge_base_commit.sha -ne $sourceSha){throw "Source is not ancestor of publisher head: $sourceSha"}
+          $changed=@($compare.files | ForEach-Object {$_.filename})
+          $allowed=@(
+            '.github/workflows/bbya-publish-exact-source.yml',
+            'deploy-requests/bbya-exact-source.json',
+            '.github/workflows/bbya-publish-exact-source-v2.yml',
+            'deploy-requests/bbya-exact-source-v2.json'
+          )
+          $unexpected=@($changed | Where-Object {$_ -notmatch '^deploy-status/' -and $allowed -notcontains $_})
+          if($unexpected.Count -gt 0){throw "Refusing exact deploy because gameplay/source changed after target: $($unexpected -join ', ')"}
+          "BBYA_SOURCE_SHA=$sourceSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_V2_SOURCE_SAFE source=$sourceSha head=$headSha changed_after_source=$($changed.Count)"
+
+      - name: Download exact source tarball without nested checkout
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $sourceDir=Join-Path $env:RUNNER_TEMP 'bbya-exact-source-v2'
+          $archive=Join-Path $env:RUNNER_TEMP 'bbya-exact-source-v2.tar.gz'
+          if(Test-Path $sourceDir){Remove-Item $sourceDir -Recurse -Force}
+          if(Test-Path $archive){Remove-Item $archive -Force}
+          New-Item -ItemType Directory -Path $sourceDir -Force | Out-Null
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='BBYA-Exact-Source-Publisher-V2'
+          }
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/tarball/$env:BBYA_SOURCE_SHA" -OutFile $archive
+          if(-not (Test-Path $archive)){throw 'Exact-source tarball missing'}
+          $tar=Get-Command tar.exe -ErrorAction SilentlyContinue
+          if(-not $tar){$tar=Get-Command tar -ErrorAction SilentlyContinue}
+          if(-not $tar){throw 'Windows tar unavailable'}
+          & $tar.Source -xzf $archive -C $sourceDir --strip-components=1
+          if($LASTEXITCODE -ne 0){throw "tar extraction failed: $LASTEXITCODE"}
+          $project=Join-Path $sourceDir 'maps/bbya-social-hub/default.project.json'
+          if(-not (Test-Path $project)){throw 'Exact BBYA project missing after tar extraction'}
+          "BBYA_SOURCE_DIR=$sourceDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_V2_EXACT_ARCHIVE_PASS source=$env:BBYA_SOURCE_SHA"
+
+      - name: Verify opening-stability markers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $server=Get-Content (Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub/109-music-catalog-reset.server.lua') -Raw
+          foreach($needle in @(
+            'OPENING STABILITY AUTHORITY v5',
+            'ACTIVE_VENUES_OPENING_STABILITY_V5',
+            'MainClubOpeningStabilityV1',
+            'GlobalLightingUntouched',
+            'UndergroundUntouched',
+            'WITAUntouched'
+          )){if($server -notmatch [regex]::Escape($needle)){throw "Missing stability server marker: $needle"}}
+          if($server -match 'SoundService\.DescendantAdded'){throw 'Destructive SoundService scrubber still present'}
+          if($server -match 'sound:Destroy\(\)'){throw 'Destructive sound destroy still present'}
+          $ui=Get-Content (Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub/109-music-catalog-reset-ui.client.lua') -Raw
+          foreach($needle in @(
+            'ACTIVE CATALOG UI RECOVERY v5',
+            'BBYASkateparkPlaylistCatalog',
+            'BBYARooftopPlaylistCatalog',
+            'MusicCatalogEmptyV1'
+          )){if($ui -notmatch [regex]::Escape($needle)){throw "Missing stability UI marker: $needle"}}
+          Write-Host 'BBYA_V2_OPENING_STABILITY_MARKERS_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-v2-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-v2-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact BBYA source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-opening-stability-exact.rbxl'
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {
+            & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+            if($LASTEXITCODE -ne 0){throw 'Rojo exact-source build failed'}
+          } finally {Pop-Location}
+          if(-not (Test-Path $place)){throw 'Exact RBXL missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Exact RBXL unexpectedly small'}
+          "BBYA_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_V2_EXACT_BUILD_PASS bytes=$((Get-Item $place).Length) source=$env:BBYA_SOURCE_SHA"
+
+      - name: Publish exact source
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO publish secret unavailable'}
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {
+            $env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE
+            $env:PUBLISH_RECEIPT_DIR='deploy-status-exact'
+            $env:GITHUB_SHA=$env:BBYA_SOURCE_SHA
+            node scripts/publish-map.js a-club
+            if($LASTEXITCODE -ne 0){throw 'Roblox exact-source publish failed'}
+          } finally {Pop-Location}
+
+      - name: Verify PUBLISHED receipt
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=Join-Path $env:BBYA_SOURCE_DIR 'deploy-status-exact/a-club.json'
+          if(-not (Test-Path $path)){throw 'Exact receipt missing'}
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if($r.sourceCommit -ne $env:BBYA_SOURCE_SHA){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if([string]$r.universeId -ne '8116636513'){throw 'Universe mismatch'}
+          if([string]$r.placeId -ne '131894120482837'){throw 'Place mismatch'}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          $tmp=Join-Path $env:RUNNER_TEMP 'bbya-opening-stability-receipt.json'
+          Copy-Item $path $tmp -Force
+          "BBYA_RECEIPT_TMP=$tmp" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_VERSION=$($r.response.versionNumber)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_V2_EXACT_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+
+      - name: Upload exact receipt artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-opening-stability-receipt-${{ env.BBYA_SOURCE_SHA }}
+          path: ${{ env.BBYA_RECEIPT_TMP }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Persist exact receipt
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $text=Get-Content $env:BBYA_RECEIPT_TMP -Raw
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Exact-Source-Publisher-V2'}
+          $repo=$env:GITHUB_REPOSITORY
+          function Upsert([string]$path){
+            $encoded=(($path.Split('/') | ForEach-Object {[Uri]::EscapeDataString($_)}) -join '/')
+            $uri="https://api.github.com/repos/$repo/contents/$encoded"
+            for($i=1;$i -le 4;$i++){
+              $sha=$null
+              try {$existing=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref=main');$sha=[string]$existing.sha} catch {if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
+              $body=@{message="Record BBYA opening-stability exact deploy v$env:BBYA_VERSION [skip ci]";content=$content;branch='main'}
+              if($sha){$body.sha=$sha}
+              try {Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($body|ConvertTo-Json -Depth 5)|Out-Null;return} catch {if($i -eq 4){throw};Start-Sleep -Seconds 2}
+            }
+          }
+          Upsert 'deploy-status/a-club.json'
+          Upsert 'deploy-status/a-club-exact-source.json'
+          Write-Host "BBYA_V2_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:BBYA_SOURCE_SHA"
