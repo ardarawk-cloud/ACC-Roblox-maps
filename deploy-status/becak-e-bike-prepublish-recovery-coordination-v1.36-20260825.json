@@ -1,0 +1,30 @@
+{
+  "project": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "0b910ad270ae4e4e99d12eac7be465e5a4332383",
+  "upgrade": "Vehicle Recovery coordination v1.36",
+  "validation": {
+    "sourceIsolation": "maps/becak-e-bike/vehicle.recovery.server.lua only",
+    "otherMapsTouchedBySourceCommit": false,
+    "fullTipDelegatesToValidatedRoadRecovery": true,
+    "fullTipDelegateUpY": 0.15,
+    "partialOwnerSelfRightPreserved": true,
+    "roadAccessCompatibility": "v1.37",
+    "vehicleRecoveryCompatibilityMarker": "v1.35",
+    "vehicleRecoveryEnhancement": "v1.36",
+    "physicsConstantsChanged": false,
+    "collisionTopologyChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false
+  },
+  "baselineDeploy": {
+    "ok": true,
+    "httpStatus": 200,
+    "universeId": "10745325613",
+    "placeId": "80994730522893",
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  },
+  "publishStatus": "pending fresh dedicated receipt"
+}
