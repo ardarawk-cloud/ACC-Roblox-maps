@@ -1,0 +1,21 @@
+{
+  "status": "KEY_SCOPE_FAILED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 48,
+  "title": "pararam-bkb-ipan-agstyan",
+  "driveFileId": "1EsxlmIYAexZYlrGapH9jE3uZa459SqCt",
+  "bbyaUniverseId": "8116636513",
+  "assetId": null,
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 401,
+    "keyName": null,
+    "authorizedUserId": null,
+    "enabled": null,
+    "expired": null,
+    "assetReadWrite": false,
+    "assetPermissionsWrite": false
+  }
+}
