@@ -1,107 +1,117 @@
--- BBYA SOCIAL HUB — OPENING STABILITY AUTHORITY v5
--- Replaces the obsolete destructive catalog-reset runtime.
--- Active venue audio authorities stay authoritative; this script never scrubs Sounds,
--- never disables AutoDJ engines, and never changes global Lighting.
--- Also adds a restrained local-only readability lift to the former Photo Studio / Salon lounge.
-
+-- BBYA SOCIAL HUB — MIXED MUSIC RESET AUTHORITY v3
+-- MAIN/FUNKOT stay reset; UNDERGROUND owner library is explicitly active.
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local ServerScriptService=game:GetService("ServerScriptService")
 local SoundService=game:GetService("SoundService")
 local Workspace=game:GetService("Workspace")
+local UNDERGROUND_REBUILD_ENABLED=true
 
--- AUDIO STABILITY -------------------------------------------------------------
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",false)
-ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","ACTIVE_VENUES_OPENING_STABILITY_V5")
-ReplicatedStorage:SetAttribute("BBYAMainPlaylistEnabled",true)
-ReplicatedStorage:SetAttribute("BBYAUndergroundPlaylistEnabled",true)
-ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistEnabled",true)
-ReplicatedStorage:SetAttribute("BBYASkateparkPlaylistEnabled",true)
-ReplicatedStorage:SetAttribute("BBYARooftopPlaylistEnabled",true)
-Workspace:SetAttribute("BBYAMusicCatalogReset",false)
-Workspace:SetAttribute("BBYAOpeningAudioStability","V5_ACTIVE_AUTHORITIES")
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",true)
+ReplicatedStorage:SetAttribute("BBYAMusicCatalogVersion","RESET_WITH_UNDERGROUND_V3")
+ReplicatedStorage:SetAttribute("BBYAUndergroundPlaylistEnabled",UNDERGROUND_REBUILD_ENABLED)
 
-local ACTIVE_GROUPS={
- BBYAClubMaster="MAIN",
- BBYABasementMaster="UNDERGROUND",
- BBYAFunkotMaster="FUNKOT",
- BBYASkateparkMaster="SKATEPARK",
- BBYARooftopMaster="ROOFTOP",
+local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
+remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
+local function ensureRemote(name,className)
+ local x=remotes:FindFirstChild(name)
+ if x and x.ClassName~=className then x:Destroy();x=nil end
+ if not x then x=Instance.new(className);x.Name=name;x.Parent=remotes end
+ return x
+end
+ensureRemote("Music","RemoteEvent")
+ensureRemote("State","RemoteEvent")
+ensureRemote("FunkotMusic","RemoteEvent")
+ensureRemote("InternalMusic","BindableEvent")
+ensureRemote("BasementMusic","BindableEvent")
+
+local function ensureGroup(name,venue,active)
+ local g=SoundService:FindFirstChild(name)
+ if g and not g:IsA("SoundGroup") then g:Destroy();g=nil end
+ if not g then g=Instance.new("SoundGroup");g.Name=name;g.Parent=SoundService end
+ if active then
+  g.Volume=1
+  g:SetAttribute("Venue",venue)
+  g:SetAttribute("BBYALocalZoneOnly",true)
+  g:SetAttribute("MusicCatalogState","OWNER_LIBRARY_ACTIVE")
+  return g
+ end
+ g.Volume=0
+ g:SetAttribute("Venue",venue)
+ g:SetAttribute("BBYALocalZoneOnly",true)
+ g:SetAttribute("PlaylistReady",false)
+ g:SetAttribute("PlaylistCount",0)
+ g:SetAttribute("RecoveryActive",false)
+ g:SetAttribute("RecoveryFallbackCount",0)
+ g:SetAttribute("MusicCatalogState","RESET_EMPTY")
+ return g
+end
+
+local groups={
+ ["BBYAClubMaster"]=ensureGroup("BBYAClubMaster","MAIN",false),
+ ["BBYABasementMaster"]=ensureGroup("BBYABasementMaster","UNDERGROUND",UNDERGROUND_REBUILD_ENABLED),
+ ["BBYAFunkotMaster"]=ensureGroup("BBYAFunkotMaster","FUNKOT",false),
+ ["BBYAVIPMaster"]=ensureGroup("BBYAVIPMaster","VIP",false),
+ ["BBYASkateparkMaster"]=ensureGroup("BBYASkateparkMaster","SKATEPARK",false),
+ ["BBYARooftopMaster"]=ensureGroup("BBYARooftopMaster","ROOFTOP",false),
 }
 
-local function markActiveGroups()
- for name,venue in pairs(ACTIVE_GROUPS) do
-  local g=SoundService:FindFirstChild(name)
-  if g and g:IsA("SoundGroup") then
-   g:SetAttribute("Venue",venue)
-   g:SetAttribute("BBYALocalZoneOnly",true)
-   if g:GetAttribute("MusicCatalogState")=="RESET_EMPTY" then
-    g:SetAttribute("MusicCatalogState","ACTIVE_AUTHORITY_RECOVERED_V5")
-   end
+local knownSounds={
+ BBYAClubDeckA=true,BBYAClubDeckB=true,BBYABasementDeckA=true,BBYABasementDeckB=true,
+ BBYAFunkotDeck=true,BBYAFunkotClubFeed=true,BBYAMainPublicFallbackV4=true,
+ BBYAUndergroundBreakbeatFallbackV4=true,BBYAClubFeed=true,BBYAClubSound=true,
+}
+local function controlledSound(s)
+ if not s:IsA("Sound") then return false end
+ local sg=s.SoundGroup
+ if UNDERGROUND_REBUILD_ENABLED and sg and sg.Name=="BBYABasementMaster" then return false end
+ if knownSounds[s.Name] or s:GetAttribute("BBYARecovery")==true then return true end
+ if sg and sg.Name=="BBYAVIPMaster" and ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return false end
+ return sg and groups[sg.Name]~=nil or false
+end
+local function scrubSound(s,destroy)
+ if not controlledSound(s) then return end
+ pcall(function()s:Stop()end);pcall(function()s.SoundId=""end);pcall(function()s.TimePosition=0 end);pcall(function()s.Volume=0 end)
+ if destroy then pcall(function()s:Destroy()end) end
+end
+local function scrubWorkspaceVIP()
+ if ReplicatedStorage:GetAttribute("BBYAVIPTrack01Enabled")==true then return end
+ local vipGroup=groups.BBYAVIPMaster
+ for _,o in ipairs(Workspace:GetDescendants()) do
+  if o:IsA("Sound") and o.Name=="CornerSpatialAudio" then pcall(function()o:Stop();o.SoundId="";o.TimePosition=0;o.Volume=0;o.SoundGroup=vipGroup end) end
+ end
+end
+
+local engineNames={"BasementIndoAutoDJ","FunkotVenueMusicV2","AudioWatchdog","AudioHealthGuardV3"}
+local function disableOldAudioEngines()
+ for _,name in ipairs(engineNames) do
+  if not (UNDERGROUND_REBUILD_ENABLED and name=="BasementIndoAutoDJ") then
+   local s=ServerScriptService:FindFirstChild(name)
+   if s and s:IsA("BaseScript") and s~=script then pcall(function()s.Disabled=true end) end
   end
  end
 end
-markActiveGroups()
 
-task.spawn(function()
- while task.wait(1) do
-  if ReplicatedStorage:GetAttribute("BBYAMusicCatalogReset")~=false then
-   ReplicatedStorage:SetAttribute("BBYAMusicCatalogReset",false)
+local resetActive=true
+SoundService.DescendantAdded:Connect(function(o)
+ if not resetActive or not o:IsA("Sound") then return end
+ task.defer(function()if o.Parent and controlledSound(o) then scrubSound(o,true) end end)
+end)
+Workspace.DescendantAdded:Connect(function(o)
+ if not resetActive or not o:IsA("Sound") or o.Name~="CornerSpatialAudio" then return end
+ task.defer(function()if o.Parent then pcall(function()o:Stop();o.SoundId="";o.Volume=0;o.SoundGroup=groups.BBYAVIPMaster end) end end)
+end)
+
+local function applyReset()
+ disableOldAudioEngines()
+ for _,o in ipairs(SoundService:GetDescendants()) do if o:IsA("Sound") and controlledSound(o) then scrubSound(o,true) end end
+ scrubWorkspaceVIP()
+ for name,g in pairs(groups) do
+  if not (UNDERGROUND_REBUILD_ENABLED and name=="BBYABasementMaster") then
+   g.Volume=0;g:SetAttribute("PlaylistReady",false);g:SetAttribute("PlaylistCount",0);g:SetAttribute("RecoveryActive",false);g:SetAttribute("RecoveryFallbackCount",0);g:SetAttribute("MusicCatalogState","RESET_EMPTY")
   end
-  markActiveGroups()
  end
-end)
+ Workspace:SetAttribute("BBYAMusicCatalogReset",true)
+end
 
--- FORMER-STUDIO LOCAL READABILITY --------------------------------------------
-task.spawn(function()
- local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",120)
- if not root then return end
- local lounge=root:WaitForChild("MainClubSocialLoungeV1",120)
- if not lounge then
-  warn("[BBYA] Opening stability v5: MainClubSocialLoungeV1 unavailable; local lift skipped")
-  return
- end
-
- local old=root:FindFirstChild("MainClubOpeningStabilityV1")
- if old then old:Destroy() end
- local out=Instance.new("Model")
- out.Name="MainClubOpeningStabilityV1"
- out:SetAttribute("Pass","FORMER_STUDIO_LOCAL_READABILITY_V1")
- out:SetAttribute("LocalLightingOnly",true)
- out:SetAttribute("GlobalLightingUntouched",true)
- out:SetAttribute("UndergroundUntouched",true)
- out:SetAttribute("WITAUntouched",true)
- out.Parent=root
-
- local warm=Color3.fromRGB(255,222,195)
- local neutral=Color3.fromRGB(235,226,218)
- local specs={
-  {Vector3.new(-42.0,9.7,-31.0),warm,.72,14.5},
-  {Vector3.new(-42.0,9.7,-21.0),warm,.76,15.0},
-  {Vector3.new(-42.0,9.7,-11.0),warm,.72,14.5},
-  {Vector3.new(-33.0,9.2,-31.0),neutral,.56,13.0},
-  {Vector3.new(-33.0,9.2,-21.0),neutral,.60,13.5},
-  {Vector3.new(-33.0,9.2,-11.0),neutral,.56,13.0},
-  {Vector3.new(-28.5,7.3,-21.0),warm,.42,10.5},
- }
- for i,s in ipairs(specs) do
-  local anchor=Instance.new("Part")
-  anchor.Name="FormerStudioFill"..i
-  anchor.Size=Vector3.new(.18,.18,.18)
-  anchor.Position=s[1]
-  anchor.Anchored=true
-  anchor.CanCollide=false
-  anchor.CanTouch=false
-  anchor.CanQuery=false
-  anchor.Transparency=1
-  anchor.CastShadow=false
-  anchor.Parent=out
-  local light=Instance.new("PointLight")
-  light.Name="FormerStudioLocalReadability"
-  light.Color=s[2]
-  light.Brightness=s[3]
-  light.Range=s[4]
-  light.Shadows=false
-  light.Parent=anchor
- end
-
- print("[BBYA] Opening stability v5: destructive music reset removed; active venue authorities preserved; former-studio local readability lift online")
-end)
+task.defer(applyReset);task.delay(4,applyReset);task.delay(8,applyReset)
+print("[BBYA] Mixed catalog authority v3: UNDERGROUND active; other reset channels preserved")
