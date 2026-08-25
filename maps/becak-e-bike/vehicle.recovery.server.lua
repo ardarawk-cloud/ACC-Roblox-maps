@@ -1,6 +1,8 @@
--- BECAK E-BIKE — Vehicle Recovery Assist v1.35
+-- BECAK E-BIKE — Vehicle Recovery Assist v1.36
 -- Automatic owner-only self-righting, fast multi-probe curb assist, hill-start anti-rollback,
 -- plus conservative high-speed anti-tip damping for mobile drivability.
+-- v1.36 delegates fully inverted recovery to Road Access v1.37 when its validated-road
+-- recovery authority is active, preventing two systems from racing to pivot the same vehicle.
 -- Designed to improve stability without replacing the core VehicleSeat controller.
 
 local Players = game:GetService('Players')
@@ -17,6 +19,7 @@ local remotes = ReplicatedStorage:FindFirstChild('BecakEBikeRemotes')
 local toast = remotes and remotes:FindFirstChild('Toast')
 
 local FLIP_UP_Y = 0.38
+local FULL_TIP_DELEGATE_UP_Y = 0.15
 local FLIP_HOLD_SECONDS = 1.35
 -- v1.35: curb geometry is already wall-filtered by the multi-probe routine, so the
 -- stall hold can be shorter. This makes mobile curb recovery feel responsive instead
@@ -81,6 +84,11 @@ end
 
 local function notify(player, text)
     if toast and player then toast:FireClient(player, text) end
+end
+
+local function validatedRoadRecoveryActive()
+    return Workspace:GetAttribute('BecakValidatedRecoverySurface') == 'ON'
+        and Workspace:GetAttribute('BecakStationaryFlipRecovery') == 'ON'
 end
 
 local function recoverFlip(model, chassis, player, state)
@@ -226,6 +234,15 @@ local function stepVehicle(model, dt)
 
     local upY = chassis.CFrame.UpVector.Y
     if upY < FLIP_UP_Y then
+        -- Road Access v1.37 owns fully inverted/stationary recovery because it can restore
+        -- the vehicle to a validated last-safe road anchor. Do not race it with an in-place pivot.
+        if upY < FULL_TIP_DELEGATE_UP_Y and validatedRoadRecoveryActive() then
+            state.flipSince = nil
+            state.stallSince = nil
+            model:SetAttribute('FlipRecoveryAuthority', 'ROAD_ACCESS_VALIDATED')
+            return
+        end
+        model:SetAttribute('FlipRecoveryAuthority', 'VEHICLE_RECOVERY_PARTIAL_TIP')
         state.flipSince = state.flipSince or now
         if now - state.flipSince >= FLIP_HOLD_SECONDS then
             recoverFlip(model, chassis, player, state)
@@ -270,8 +287,11 @@ end)
 
 vehicles.ChildRemoved:Connect(function(model) states[model]=nil end)
 
-Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.35')
+Workspace:SetAttribute('ACC_BecakVehicleRecovery','v1.35') -- compatibility marker
+Workspace:SetAttribute('ACC_BecakVehicleRecoveryEnhancement','v1.36')
 Workspace:SetAttribute('BecakSelfRighting','ON')
+Workspace:SetAttribute('BecakFlipRecoveryDelegatesToRoadAccess','ON')
+Workspace:SetAttribute('BecakFullTipDelegateUpY',FULL_TIP_DELEGATE_UP_Y)
 Workspace:SetAttribute('BecakLowCurbAssist','ON')
 Workspace:SetAttribute('BecakMultiProbeCurbAssist','ON')
 Workspace:SetAttribute('BecakReverseCurbAssist','ON')
@@ -281,4 +301,4 @@ Workspace:SetAttribute('BecakHillStartAssist','ON')
 Workspace:SetAttribute('BecakHighSpeedStabilityAssist','ON')
 Workspace:SetAttribute('BecakStabilityMinSpeed',STABILITY_MIN_SPEED)
 Workspace:SetAttribute('BecakRecoveryTickHz',10)
-print('[BECAK E-BIKE] vehicle recovery v1.35 ready • curb + reverse + self-righting + hill-start + anti-tip stability')
+print('[BECAK E-BIKE] vehicle recovery v1.36 ready • validated-road delegation + curb + reverse + partial self-right + hill-start + anti-tip stability')
