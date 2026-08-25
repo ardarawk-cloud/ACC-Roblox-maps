@@ -167,8 +167,8 @@
       "sourceSizeBytes": 21958560,
       "assetId": "107099600756535",
       "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing",
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected",
       "sourceSha256": "47b3929bd8c9024db4274c40a28038b600065e50e1dc59db35b10028b2002c87",
       "normalizedSha256": "5dc9816622c30024a0df89a43f8da047b38ff3acabee00fd325fef491eaa6442"
     },
