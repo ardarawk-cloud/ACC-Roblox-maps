@@ -190,7 +190,7 @@ task.spawn(function()
   part("SpeakerTowerFrame"..side,Vector3.new(5.6,17,4.2),CFrame.new(x,10.3,237.2),C.black,Enum.Material.Metal,true,stage)
   for i=1,6 do
    local y=3.7+(i-1)*2.45
-   local box=part("LineArray"..side.."_"..i,Vector3.new(4.7,2.05,2.6),CFrame.new(x,y,234.85),C.charcoal,Enum.Material.Metal,false,stage)
+   part("LineArray"..side.."_"..i,Vector3.new(4.7,2.05,2.6),CFrame.new(x,y,234.85),C.charcoal,Enum.Material.Metal,false,stage)
    part("SpeakerFace"..side.."_"..i,Vector3.new(3.8,1.35,.10),CFrame.new(x,y,233.50),C.ink,Enum.Material.SmoothPlastic,false,stage)
   end
   for _,xo in ipairs({-1.45,1.45}) do
@@ -284,4 +284,80 @@ task.spawn(function()
  club:SetAttribute("PremiumDanceFloor",true)
  club:SetAttribute("DaylightVestibule",true)
  print("[BBYA] Funkot Diskotik Premium v2 online: dark arrival / premium dance floor / line arrays / bar / bottle service / mirror ball")
+end)
+
+-- -----------------------------------------------------------------------------
+-- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1
+-- Live mobile QC after v444: visible branding still said CLUB and the straight
+-- entrance sightline exposed bright daytime sky. Keep real WITA outside while
+-- making Funkot read as a dedicated indoor Indonesian diskotik at all hours.
+-- -----------------------------------------------------------------------------
+task.spawn(function()
+ local club=root:WaitForChild("FunkotClub",60)
+ if not club then return end
+ local deadline=os.clock()+45
+ repeat
+  if club:FindFirstChild("FunkotDiskotikPremiumV2") then break end
+  task.wait(.2)
+ until os.clock()>=deadline
+ local v2=club:FindFirstChild("FunkotDiskotikPremiumV2")
+ if not v2 then warn("[BBYA] Funkot Diskotik v2.1 skipped: v2 not ready");return end
+ task.wait(.5)
+ club:SetAttribute("DisplayName","FUNKOT DISKOTIK")
+ club:SetAttribute("VisualPass","FUNKOT_DISKOTIK_V21_BLACKOUT")
+ for _,name in ipairs({"FunkotSign","EntrySign"}) do
+  local sign=club:FindFirstChild(name,true)
+  if sign then
+   for _,d in ipairs(sign:GetDescendants()) do
+    if d:IsA("TextLabel") then
+     if name=="FunkotSign" then d.Text="BBYA  FUNKOT  DISKOTIK"
+     else d.Text="FUNKOT DISKOTIK  •  10 R$" end
+    end
+   end
+  end
+ end
+ local old=club:FindFirstChild("FunkotDiskotikIdentityV21")
+ if old then old:Destroy() end
+ local out=Instance.new("Model");out.Name="FunkotDiskotikIdentityV21";out.Parent=club
+ out:SetAttribute("FunkotOnly",true)
+ out:SetAttribute("GlobalLightingUntouched",true)
+ out:SetAttribute("AudioUntouched",true)
+ out:SetAttribute("RealWitaOutsidePreserved",true)
+ out:SetAttribute("DirectDaylightSightlineBlocked",true)
+ local BLACK=Color3.fromRGB(7,8,10)
+ local INK=Color3.fromRGB(14,15,19)
+ local METAL=Color3.fromRGB(45,47,53)
+ local WARM=Color3.fromRGB(255,181,104)
+ local PINK=Color3.fromRGB(238,43,146)
+ local CYAN=Color3.fromRGB(24,181,214)
+ local function part(name,size,cf,color,material,collide,parent,transparency)
+  local p=Instance.new("Part")
+  p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or INK
+  p.Material=material or Enum.Material.SmoothPlastic;p.Transparency=transparency or 0
+  p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.CanQuery=false
+  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
+  p.Parent=parent or out;return p
+ end
+ local function point(parent,color,brightness,range)
+  local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
+ end
+ local gate=Instance.new("Model");gate.Name="BlackoutEntryV21";gate.Parent=out
+ part("BaffleInner",Vector3.new(13.0,8.4,.62),CFrame.new(-2.5,5.15,174.4),BLACK,Enum.Material.Metal,true,gate)
+ part("BaffleOuter",Vector3.new(13.0,8.4,.62),CFrame.new(2.5,5.15,168.3),BLACK,Enum.Material.Metal,true,gate)
+ part("BaffleInnerCap",Vector3.new(13.6,.25,.92),CFrame.new(-2.5,9.25,174.4),METAL,Enum.Material.Metal,false,gate)
+ part("BaffleOuterCap",Vector3.new(13.6,.25,.92),CFrame.new(2.5,9.25,168.3),METAL,Enum.Material.Metal,false,gate)
+ part("BlackoutCeiling",Vector3.new(19.0,.45,14.8),CFrame.new(0,9.55,171.3),BLACK,Enum.Material.Metal,true,gate)
+ part("BlackoutFloor",Vector3.new(18.0,.10,13.4),CFrame.new(0,1.12,171.3),Color3.fromRGB(20,20,23),Enum.Material.Slate,true,gate)
+ for i,data in ipairs({{-7.7,172.2,PINK},{7.7,170.2,CYAN},{-7.7,166.2,WARM},{7.7,176.0,WARM}}) do
+  local lens=part("GuideLens"..i,Vector3.new(.24,1.6,.24),CFrame.new(data[1],3.1,data[2]),data[3],Enum.Material.Glass,false,gate,.08)
+  point(lens,data[3],.22,6.5)
+ end
+ part("PortalHeader",Vector3.new(18.8,1.25,.70),CFrame.new(0,9.0,176.3),INK,Enum.Material.Metal,true,gate)
+ part("PortalLeft",Vector3.new(1.0,8.4,.70),CFrame.new(-8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
+ part("PortalRight",Vector3.new(1.0,8.4,.70),CFrame.new(8.9,5.0,176.3),INK,Enum.Material.Metal,true,gate)
+ local plaque=part("DiskotikIdentityPlaque",Vector3.new(12.5,1.8,.30),CFrame.new(0,7.9,175.92),BLACK,Enum.Material.Metal,false,gate)
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.PixelsPerStud=60;gui.Parent=plaque
+ local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="FUNKOT  DISKOTIK";text.TextColor3=Color3.fromRGB(238,236,232);text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=gui
+ local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new(PINK,CYAN);grad.Parent=text
+ print("[BBYA] Funkot Diskotik v2.1 online: venue identity locked / direct daylight sightline blocked / WITA exterior preserved")
 end)
