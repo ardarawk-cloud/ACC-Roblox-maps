@@ -189,7 +189,7 @@
       "sourceSizeBytes": 9300525,
       "assetId": "129689050998627",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "f8d160bdd2bbc50c6996afa3111e98e360a7ce343645d8f3c47a9e4da8af14e3"
     },
@@ -228,7 +228,7 @@
       "sourceSizeBytes": 15810514,
       "assetId": "125107386771710",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "4498432e46b8ff81f67b42d169d5c78fd9c0838b45d1cb9c0b6285681762782a"
     },
@@ -279,7 +279,7 @@
       "sourceSizeBytes": 9091287,
       "assetId": "140442667497371",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "5bf7f95543c78e64d68367b28dd88272e7beed37a69ff826c21432c32971d96a"
     },
@@ -291,7 +291,7 @@
       "sourceSizeBytes": 9830031,
       "assetId": "90986894139778",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "65f965a9d22bcaeeccf47f7353afcce5f33065e628a73e82e7e52d1f1c459dbc"
     },
@@ -315,7 +315,7 @@
       "sourceSizeBytes": 14202428,
       "assetId": "116771187608517",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "24137217ccb126273551b9122e3024648727d053a9616180f1c9c9c68fa418b9"
     },
@@ -342,7 +342,7 @@
       "sourceSizeBytes": 25076124,
       "assetId": "113698017406179",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "29bddbf6e51409de49eb043afed0e4a9bcb3d193b7b23f08a5a4dfb523edce9e"
     },
@@ -369,7 +369,7 @@
       "sourceSizeBytes": 7458681,
       "assetId": "109573287368195",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "8b1672b6673f115d4d4b75794822cfb529517186958c47ae5369764230b53ebb"
     }

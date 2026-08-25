@@ -21,9 +21,16 @@ local PLAYLIST={
  {title="MACARENA 2026 - ZHAK (BKB EDIT)",id="135670059308492",style="underground"},
  {title="JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",id="114038149273002",style="underground"},
  {title="JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",id="99406970263948",style="underground"},
+ {title="I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",id="129689050998627",style="underground"},
  {title="I KNOW YOU WANT ME - KIN BKB EDIT",id="117479133947987",style="underground"},
+ {title="EMANG DASAR -IVNSYH-",id="125107386771710",style="underground"},
  {title="EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",id="95368919127704",style="underground"},
- {title="BANG BANG BANG - KIN EDIT",id="123499438012066",style="underground"}
+ {title="BANG BANG BANG - KIN EDIT",id="123499438012066",style="underground"},
+ {title="ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",id="140442667497371",style="underground"},
+ {title="ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",id="90986894139778",style="underground"},
+ {title="666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",id="116771187608517",style="underground"},
+ {title="17.Mugwanti (Mahesa & hmp BKB Edit)",id="113698017406179",style="underground"},
+ {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"}
 }
 
 local MIX_SECONDS=4.0
