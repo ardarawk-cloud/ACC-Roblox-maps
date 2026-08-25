@@ -25,11 +25,21 @@
   },
   "publish": {
     "workflow": "Publish Becak E-Bike",
-    "initialRunId": 32864330306,
-    "initialJobId": 97855735360,
-    "initialRunConclusion": "failure-before-steps",
-    "initialRunnerId": 0,
+    "runId": 32864330306,
+    "attempt1": {
+      "jobId": 97855735360,
+      "conclusion": "failure-before-steps",
+      "runnerId": 0
+    },
     "safeRetryRequested": true,
+    "attempt2": {
+      "jobId": 97856180425,
+      "conclusion": "failure-before-steps",
+      "runnerId": 0
+    },
+    "failureClassification": "github-actions-runner-not-allocated",
+    "sourceBuildFailureObserved": false,
+    "robloxPublishFailureObserved": false,
     "latestVerifiedReceipt": {
       "ok": true,
       "httpStatus": 200,
