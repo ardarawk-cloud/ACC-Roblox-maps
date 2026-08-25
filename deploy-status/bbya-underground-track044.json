@@ -1,0 +1,94 @@
+{
+  "status": "BLACKLISTED_MODERATION_REJECTED",
+  "readyToInject": false,
+  "playlistId": "underground",
+  "trackIndex": 44,
+  "title": "RAIHANKHAIRI & DJ WRISABA - JUST ANOTHER NIGHT- (BKB EDIT)",
+  "driveFileId": "1r08VaCYDRujNwjDkEoMyOcr4mc-xVUsH",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "133391755801066",
+  "uploadReused": false,
+  "expectedUploaderUserId": "10001957153",
+  "key": {
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/c42ed95a-2611-4742-b5fb-9389e245b1ff",
+    "operationId": "c42ed95a-2611-4742-b5fb-9389e245b1ff",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/c42ed95a-2611-4742-b5fb-9389e245b1ff",
+    "operationId": "c42ed95a-2611-4742-b5fb-9389e245b1ff",
+    "done": true,
+    "response": {
+      "path": "assets/133391755801066",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T19:38:25.778382700Z",
+      "assetId": "133391755801066",
+      "displayName": "RAIHANKHAIRI & DJ WRISABA - JUST ANOTHER NIGHT- (B",
+      "description": "BBYA Underground Track 044",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
+}

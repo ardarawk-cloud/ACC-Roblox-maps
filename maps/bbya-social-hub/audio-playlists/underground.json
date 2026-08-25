@@ -592,10 +592,14 @@
       "driveFileId": "1r08VaCYDRujNwjDkEoMyOcr4mc-xVUsH",
       "sourceMimeType": "audio/mpeg",
       "sourceSizeBytes": 10546356,
-      "assetId": null,
+      "assetId": "133391755801066",
       "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected",
+      "sourceSha256": "1626072638969b38ecf6a4d072fed367f39a0672d0775576ed308051c6ffbe78",
+      "blacklisted": true,
+      "blacklistReason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAtUnix": 1787686844
     },
     {
       "index": 45,
