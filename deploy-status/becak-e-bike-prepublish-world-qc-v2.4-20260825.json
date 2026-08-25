@@ -18,10 +18,13 @@
     "workflow": "Publish Becak E-Bike",
     "workflowRunId": 32830997298,
     "attempt1": "failed_before_runner_steps",
-    "attempt2": "queued_after_safe_retry",
+    "attempt2": "failed_before_runner_steps",
+    "attempt2RunnerId": 0,
+    "attempt2Steps": 0,
     "liveReceiptVerified": false,
     "lastKnownRobloxVersion": 36,
     "lastKnownReceiptAt": "2026-08-23T16:31:47.837Z"
   },
-  "recordedAt": "2026-08-25T09:16:30Z"
+  "recordedAt": "2026-08-25T09:16:30Z",
+  "updatedAt": "2026-08-25T09:16:40Z"
 }
