@@ -1,26 +1,107 @@
 {
-  "status": "UPLOAD_FAILED",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 54,
   "title": "Ngapain Repot ( Aldy Alvaro BKB edit )",
   "driveFileId": "1l4uO8thTs8zXpk0ZnW0vqbtFMdMUe9sM",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "106277277729828",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+    "path": "operations/6831ea04-d4f8-43e6-a606-b8a6acaed551",
+    "operationId": "6831ea04-d4f8-43e6-a606-b8a6acaed551",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/6831ea04-d4f8-43e6-a606-b8a6acaed551",
+    "operationId": "6831ea04-d4f8-43e6-a606-b8a6acaed551",
+    "done": true,
+    "response": {
+      "path": "assets/106277277729828",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:10:19.181983900Z",
+      "assetId": "106277277729828",
+      "displayName": "Ngapain Repot ( Aldy Alvaro BKB edit )",
+      "description": "BBYA Underground Track 054",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        106277277729828
+      ],
+      "errors": []
+    }
   }
 }
