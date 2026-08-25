@@ -1,0 +1,37 @@
+{
+  "project": "Becak E-Bike",
+  "target": {
+    "universeId": "10745325613",
+    "placeId": "80994730522893"
+  },
+  "upgrade": "Vehicle Signals v1.46 heading-aware auto-cancel",
+  "sourceCommit": "b8ec935d34af92841b0d5f41fe4cbd9bf37487c1",
+  "sourceFiles": [
+    "maps/becak-e-bike/vehicle.signals.server.lua"
+  ],
+  "otherMapsTouched": false,
+  "invariants": {
+    "physicsConstantsChanged": false,
+    "steeringConstantsChanged": false,
+    "collisionTopologyChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "signalUpdateHz": 8,
+    "compatibilityToken": "v1.45"
+  },
+  "validation": {
+    "headingAwareAutoCancel": true,
+    "minimumLatchSeconds": 0.75,
+    "headingCancelDegrees": 12,
+    "fallbackCancelSeconds": 1.4,
+    "driverAwareIdleShutdownPreserved": true,
+    "signalLampCollisionDisabled": true
+  },
+  "liveVerified": false,
+  "receiptBaseline": {
+    "ok": true,
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z"
+  }
+}
