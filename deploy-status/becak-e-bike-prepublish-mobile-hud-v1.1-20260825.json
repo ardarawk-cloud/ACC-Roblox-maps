@@ -1,0 +1,32 @@
+{
+  "project": "becak-e-bike",
+  "sourcePath": "maps/becak-e-bike/runtime.client.lua",
+  "sourceCommit": "9851ecc44a20d08bb2d33f0d0f400772a3fce6b4",
+  "upgrade": "Legacy HUD Mobile UX v1.1",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "validation": {
+    "sourceIsolation": "PASS",
+    "changedSourceFiles": ["maps/becak-e-bike/runtime.client.lua"],
+    "otherMapsTouchedBySourceCommit": false,
+    "hudSide": "RIGHT",
+    "driverPhoneSidePreserved": "LEFT",
+    "coreGuiInsetAware": true,
+    "touchHelpStripHidden": true,
+    "cameraViewportConnectionGuard": true,
+    "staleToastFadeGuard": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false
+  },
+  "publish": {
+    "workflow": "Publish Becak E-Bike",
+    "dedicatedPathTriggerVerified": true,
+    "targetLockVerified": true,
+    "freshReceiptRequired": true,
+    "lastVerifiedReceiptVersion": 36,
+    "lastVerifiedReceiptAt": "2026-08-23T16:31:47.837Z",
+    "status": "SOURCE_COMMITTED_AWAITING_FRESH_RECEIPT"
+  }
+}
