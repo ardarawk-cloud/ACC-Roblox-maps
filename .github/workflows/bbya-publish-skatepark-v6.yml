@@ -1,0 +1,143 @@
+name: BBYA Publish Skatepark v6 Exact
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-skatepark-v6.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-skatepark-v6-exact
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  BBYA_SOURCE_SHA: 591f5bd2f6bdb10f3956bebad53fcd3da7b75287
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout publisher
+        uses: actions/checkout@v4
+
+      - name: Fetch exact Skatepark v6 source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Skatepark-v6'}
+          $src=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6-src'
+          $arc=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6.tar.gz'
+          if(Test-Path $src){Remove-Item $src -Recurse -Force};if(Test-Path $arc){Remove-Item $arc -Force}
+          New-Item -ItemType Directory -Path $src -Force|Out-Null
+          $c=Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/commits/$env:BBYA_SOURCE_SHA"
+          if([string]$c.sha -ne $env:BBYA_SOURCE_SHA){throw 'Exact source mismatch'}
+          Invoke-WebRequest -UseBasicParsing -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/tarball/$env:BBYA_SOURCE_SHA" -OutFile $arc
+          $tar=Get-Command tar.exe -ErrorAction SilentlyContinue;if(-not $tar){$tar=Get-Command tar -ErrorAction SilentlyContinue};if(-not $tar){throw 'tar unavailable'}
+          & $tar.Source -xzf $arc -C $src --strip-components=1;if($LASTEXITCODE -ne 0){throw 'extract failed'}
+          "BBYA_SOURCE_DIR=$src"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Hard gate ramp, skateboard, volume and audio stability
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Need([string]$t,[string]$n){if($t -notmatch [regex]::Escape($n)){throw "Missing marker: $n"}}
+          function Forbid([string]$t,[string]$p){if($t -match $p){throw "Forbidden marker: $p"}}
+          $m=Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub'
+          $park=Get-Content (Join-Path $m '73-skatepark.server.lua') -Raw
+          $skate=Get-Content (Join-Path $m '79-skatepark-upgrade.server.lua') -Raw
+          $client=Get-Content (Join-Path $m '135-skateboard-controls.client.lua') -Raw
+          $project=Get-Content (Join-Path $m 'default.project.json') -Raw
+          $audio=Get-Content (Join-Path $m '109-music-catalog-reset.server.lua') -Raw
+          $groups=Get-Content (Join-Path $m '104-venue-audio-groups.server.lua') -Raw
+          foreach($n in @('REAR SKATEPARK v3.1 PROPER BASE','NorthTransitionRideDirection','CENTER_TO_NORTH_SLOPE_FIRST','CFrame.new(-38,4.1,140),','CFrame.new(38,4.1,140),')){Need $park $n}
+          if($park -match 'NorthQuarterLeft.*math\.rad\(180\)' -or $park -match 'NorthQuarterRight.*math\.rad\(180\)'){throw 'North transition is still reversed'}
+          foreach($n in @('SKATEPARK UPGRADE v5 DIRECT DRIVE','V5_DIRECT_DRIVE','ProperRoundedDeck','DirectHorizontalDriveV5','ROUNDED_DECK_KICKTAIL_V5','BBYASkateControlV5','Instance.new("Seat")','BodyVelocity')){Need $skate $n}
+          Forbid $skate 'Instance\.new\("VehicleSeat"\)';Forbid $skate 'SoundId|SoundGroup|BBYASkateparkMasterSound'
+          foreach($n in @('SKATEBOARD DIRECT CONTROL BRIDGE v5','PlayerModule','GetMoveVector','BBYASkateControlV5','BBYASkateSeatV5')){Need $client $n}
+          Need $project '135-skateboard-controls.client.lua'
+          foreach($n in @('VENUE AUDIO MASTERS v4.2','skateGroup.Volume=1.0','sound.Volume=1.0','SKATEPARK_FULL_LEVEL_V1','BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364')){Need $groups $n}
+          foreach($n in @('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')){Need $audio $n}
+          foreach($bad in @('BBYAMusicCatalogReset",true','RESET_WITH_UNDERGROUND','SoundService\.DescendantAdded','scrubSound','disableOldAudioEngines','SetAttribute\("MusicCatalogState","RESET_EMPTY"\)')){Forbid $audio $bad}
+          Write-Host "BBYA_SKATEPARK_V6_HARD_GATE_PASS source=$env:BBYA_SOURCE_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6-rojo';$z=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6-rojo.zip'
+            if(Test-Path $d){Remove-Item $d -Recurse -Force};New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive -Path $z -DestinationPath $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo.exe missing'};$rojo=$e.FullName
+          }
+          & $rojo --version;if($LASTEXITCODE -ne 0){throw 'Rojo failed'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6-exact.rbxl'
+          Push-Location $env:BBYA_SOURCE_DIR
+          try{& $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}}finally{Pop-Location}
+          if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 1024){throw 'Invalid RBXL'}
+          "BBYA_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SKATEPARK_V6_BUILD_PASS bytes=$((Get-Item $place).Length) source=$env:BBYA_SOURCE_SHA"
+
+      - name: Publish Roblox
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO secret missing'}
+          Push-Location $env:BBYA_SOURCE_DIR
+          try{
+            $env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE
+            $env:PUBLISH_RECEIPT_DIR='deploy-status-skatepark-v6'
+            $env:GITHUB_SHA=$env:BBYA_SOURCE_SHA
+            node scripts/publish-map.js a-club
+            if($LASTEXITCODE -ne 0){throw 'Roblox publish failed'}
+          }finally{Pop-Location}
+
+      - name: Verify PUBLISHED receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=Join-Path $env:BBYA_SOURCE_DIR 'deploy-status-skatepark-v6/a-club.json'
+          if(-not(Test-Path $path)){throw 'Receipt missing'}
+          $r=Get-Content $path -Raw|ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if($r.sourceCommit -ne $env:BBYA_SOURCE_SHA){throw "Source mismatch=$($r.sourceCommit)"}
+          if([string]$r.universeId -ne '8116636513' -or [string]$r.placeId -ne '131894120482837'){throw 'Target mismatch'}
+          if([int]$r.response.versionNumber -le 506){throw "Expected >506, got $($r.response.versionNumber)"}
+          $tmp=Join-Path $env:RUNNER_TEMP 'bbya-skatepark-v6-receipt.json';Copy-Item $path $tmp -Force
+          "BBYA_RECEIPT_TMP=$tmp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_VERSION=$($r.response.versionNumber)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SKATEPARK_V6_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+
+      - name: Persist receipt to main
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $text=Get-Content $env:BBYA_RECEIPT_TMP -Raw;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Skatepark-v6'}
+          function Put([string]$path){
+            $enc=(($path.Split('/')|ForEach-Object{[Uri]::EscapeDataString($_)}) -join '/');$u="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc";$sha=$null
+            try{$x=Invoke-RestMethod -Headers $h -Uri ($u+'?ref=main');$sha=[string]$x.sha}catch{if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
+            $body=@{message="Record BBYA Skatepark v6 live v$env:BBYA_VERSION [skip ci]";content=$b64;branch='main'};if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $u -Body ($body|ConvertTo-Json -Depth 4)|Out-Null
+          }
+          Put 'deploy-status/a-club.json';Put 'deploy-status/a-club-skatepark-v6.json'
+          Write-Host "BBYA_SKATEPARK_V6_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:BBYA_SOURCE_SHA"
