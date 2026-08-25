@@ -1,26 +1,94 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 57,
   "title": "MILLION STARS - SULVES BKB EDIT -",
   "driveFileId": "1liUohMETYRzAFRx9eKtusdLRatdiymDq",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "115696927070813",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/55d6ef41-ec3e-4455-a41c-12b8a3bff3e7",
+    "operationId": "55d6ef41-ec3e-4455-a41c-12b8a3bff3e7",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/55d6ef41-ec3e-4455-a41c-12b8a3bff3e7",
+    "operationId": "55d6ef41-ec3e-4455-a41c-12b8a3bff3e7",
+    "done": true,
+    "response": {
+      "path": "assets/115696927070813",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:20:22.838136300Z",
+      "assetId": "115696927070813",
+      "displayName": "MILLION STARS - SULVES BKB EDIT -",
+      "description": "BBYA Underground Track 057",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Rejected"
+    }
+  ],
+  "blacklisted": true
 }
