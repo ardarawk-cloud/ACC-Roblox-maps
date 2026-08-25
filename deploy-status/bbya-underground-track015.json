@@ -1,0 +1,103 @@
+{
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
+  "playlistId": "underground",
+  "trackIndex": 15,
+  "title": "I KNOW YOU WANT ME - KIN BKB EDIT",
+  "driveFileId": "1MiE_x3LHDdN8QWpJpSBKN_TVwIPFaK0D",
+  "bbyaUniverseId": "8116636513",
+  "assetId": "117479133947987",
+  "uploadReused": false,
+  "expectedUploaderUserId": "9296030038",
+  "key": {
+    "http": 200,
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/3264cad8-69a2-447a-b6b0-2541631c1c6c",
+    "operationId": "3264cad8-69a2-447a-b6b0-2541631c1c6c",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/3264cad8-69a2-447a-b6b0-2541631c1c6c",
+    "operationId": "3264cad8-69a2-447a-b6b0-2541631c1c6c",
+    "done": true,
+    "response": {
+      "path": "assets/117479133947987",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T15:57:19.384090900Z",
+      "assetId": "117479133947987",
+      "displayName": "I KNOW YOU WANT ME - KIN BKB EDIT",
+      "description": "BBYA Underground Track 015",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        117479133947987
+      ],
+      "errors": []
+    }
+  }
+}
