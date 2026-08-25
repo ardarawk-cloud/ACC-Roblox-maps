@@ -543,9 +543,12 @@
       "sourceSizeBytes": 60884798,
       "assetId": "114534434587342",
       "bbyaPermission": false,
-      "status": "MODERATION_PENDING",
-      "moderationLastKnown": "Reviewing",
-      "sourceSha256": "4cf6724112e691787246a99b55eb82687cb718dc886dc6370b28b042fbeb3896"
+      "status": "BLACKLISTED_MODERATION_REJECTED",
+      "moderationLastKnown": "Rejected",
+      "sourceSha256": "4cf6724112e691787246a99b55eb82687cb718dc886dc6370b28b042fbeb3896",
+      "blacklisted": true,
+      "blacklistReason": "ROBLOX_MODERATION_REJECTED",
+      "blacklistedAtUnix": 1787691545
     },
     {
       "index": 41,

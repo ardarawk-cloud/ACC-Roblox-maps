@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 40,
@@ -7,95 +7,23 @@
   "driveFileId": "1cwltAgMzldxaJtIqpfwxFou2x_VtWfIe",
   "bbyaUniverseId": "8116636513",
   "assetId": "114534434587342",
-  "uploadReused": false,
-  "expectedUploaderUserId": "10001957153",
+  "uploadReused": true,
+  "expectedUploaderUserId": "9296030038",
   "key": {
     "http": 200,
-    "keyName": "AM STUDIO AUDIO 02",
-    "authorizedUserId": "10001957153",
+    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
+    "authorizedUserId": "9296030038",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/e41172e6-d7e6-4551-9fc0-8cd93ddd1b09",
-    "operationId": "e41172e6-d7e6-4551-9fc0-8cd93ddd1b09",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/e41172e6-d7e6-4551-9fc0-8cd93ddd1b09",
-    "operationId": "e41172e6-d7e6-4551-9fc0-8cd93ddd1b09",
-    "done": true,
-    "response": {
-      "path": "assets/114534434587342",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T19:28:32.624163Z",
-      "assetId": "114534434587342",
-      "displayName": "####################",
-      "description": "BBYA Underground Track 040",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "10001957153"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
-    }
-  },
-  "moderationState": "Reviewing",
+  "moderationState": "Rejected",
   "moderationChecks": [
     {
       "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
+      "state": "Rejected"
     }
-  ]
+  ],
+  "blacklisted": true
 }
