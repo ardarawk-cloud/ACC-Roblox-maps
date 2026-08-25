@@ -1,5 +1,5 @@
 {
-  "status": "MODERATION_PENDING",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -9,10 +9,10 @@
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
   "assetId": "135192682811125",
-  "uploadReused": false,
+  "uploadReused": true,
   "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
   "normalizedSha256": "fae6c573177c19fd85bbb760bedaf746ee9d2994711a0f3d77b0485a155f00c6",
-  "startedAt": "2026-08-25T04:18:00+00:00",
+  "startedAt": "2026-08-25T04:18:40+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -28,36 +28,68 @@
     "name": "GudangPet88",
     "displayName": "GudangPet88"
   },
-  "uploadHttp": 200,
-  "uploadResponse": {
-    "path": "operations/f3b9ba8a-3d5a-4e4e-88a6-50f337da91e2",
-    "operationId": "f3b9ba8a-3d5a-4e4e-88a6-50f337da91e2",
-    "done": false
-  },
-  "operationResult": {
-    "path": "operations/f3b9ba8a-3d5a-4e4e-88a6-50f337da91e2",
-    "operationId": "f3b9ba8a-3d5a-4e4e-88a6-50f337da91e2",
-    "done": true,
-    "response": {
-      "path": "assets/135192682811125",
-      "revisionId": "1",
-      "revisionCreateTime": "2026-08-25T04:18:25.673673900Z",
-      "assetId": "135192682811125",
-      "displayName": "Zinyo Funkytone - Dua Hati 2025.mp3",
-      "description": "BBYA Funkot Track 02",
-      "assetType": "Audio",
-      "creationContext": {
-        "creator": {
-          "userId": "9296030038"
-        }
-      },
-      "moderationResult": {
-        "moderationState": "Reviewing"
-      },
-      "state": "Active"
+  "moderationState": "Rejected",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:18:40+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:18:55+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:19:10+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:19:25+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:19:40+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:19:55+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:20:10+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:20:26+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:20:41+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:20:56+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing",
+      "checkedAt": "2026-08-25T04:21:11+00:00"
+    },
+    {
+      "http": 200,
+      "state": "Rejected",
+      "checkedAt": "2026-08-25T04:21:26+00:00"
     }
-  },
-  "moderationState": "Reviewing",
-  "moderationChecks": [],
-  "updatedAt": "2026-08-25T04:18:26+00:00"
+  ],
+  "updatedAt": "2026-08-25T04:21:26+00:00"
 }

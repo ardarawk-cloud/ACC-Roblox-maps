@@ -12,6 +12,18 @@
       "moderationState": "Rejected",
       "duplicateOfIndex": null,
       "blacklistedAt": "2026-08-24T15:35:38+00:00"
+    },
+    {
+      "index": 2,
+      "title": "Zinyo Funkytone - Dua Hati 2025.mp3",
+      "driveFileId": "1VbCLgHOYQqrLQVVUCmfSB2m4xFCNZjNs",
+      "assetId": "135192682811125",
+      "sourceSha256": "e5e973a12894ee591dc8461fa294eba053651cce6e7902c8b67f9fc4c91b47d4",
+      "normalizedSha256": "fae6c573177c19fd85bbb760bedaf746ee9d2994711a0f3d77b0485a155f00c6",
+      "reason": "ROBLOX_MODERATION_REJECTED",
+      "moderationState": "Rejected",
+      "duplicateOfIndex": null,
+      "blacklistedAt": "2026-08-25T04:21:26+00:00"
     }
   ]
 }
