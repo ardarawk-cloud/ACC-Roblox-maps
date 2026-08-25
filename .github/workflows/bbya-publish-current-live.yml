@@ -1,0 +1,147 @@
+name: BBYA Publish Current Main Live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-publish-current-live.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bbya-publish-current-main-live
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish-current:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout current main authority
+        uses: actions/checkout@v4
+
+      - name: Verify Main Club upgrade markers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $visual=Get-Content 'maps/bbya-social-hub/132-mainclub-social-lounge-v1.server.lua' -Raw
+          foreach($needle in @(
+            'MAIN_CLUB_FORMER_STUDIO_PREMIUM_V4',
+            'FormerStudioPremiumV4',
+            'SmokedMirrorPanel',
+            'AcousticFin_',
+            'CeilingTrack',
+            'ServiceConsole',
+            'GlobalLightingUntouched',
+            'DJUntouched',
+            'RestroomGeometryUntouched'
+          )){if($visual -notmatch [regex]::Escape($needle)){throw "Missing live-source visual marker: $needle"}}
+          if($visual -match 'Lighting\.(Brightness|Ambient|OutdoorAmbient|ClockTime|ExposureCompensation)'){throw 'Visual pass touches global Lighting'}
+
+          $audio=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          foreach($needle in @(
+            'STRICT VENUE AUDIO ROUTER v5',
+            'FORMER_STUDIO_LOUNGE=-3.0',
+            'RESTROOM=-7.0',
+            'BBYAAudioRoom',
+            'BBYAMainTrimDb'
+          )){if($audio -notmatch [regex]::Escape($needle)){throw "Missing live-source audio marker: $needle"}}
+          if($audio -match 'SoundId\s*='){throw 'Audio router mutates SoundId'}
+          Write-Host "BBYA_CURRENT_MAIN_MARKERS_PASS source=$env:GITHUB_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-current-live-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-current-live-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zip,$dir)
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build current BBYA main
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-current-main-live.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo current-main build failed'}
+          if(-not (Test-Path $place)){throw 'Current-main RBXL missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Current-main RBXL unexpectedly small'}
+          "BBYA_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CURRENT_MAIN_BUILD_PASS bytes=$((Get-Item $place).Length) source=$env:GITHUB_SHA"
+
+      - name: Publish current BBYA main
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO publish secret unavailable'}
+          $env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE
+          $env:PUBLISH_RECEIPT_DIR='deploy-status-current-live'
+          node scripts/publish-map.js a-club
+          if($LASTEXITCODE -ne 0){throw 'Current-main Roblox publish failed'}
+
+      - name: Verify PUBLISHED receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $receiptPath='deploy-status-current-live/a-club.json'
+          if(-not (Test-Path $receiptPath)){throw 'Current-main receipt missing'}
+          $receipt=Get-Content $receiptPath -Raw | ConvertFrom-Json
+          if($receipt.status -ne 'PUBLISHED'){throw "Receipt status is $($receipt.status), expected PUBLISHED"}
+          if($receipt.sourceCommit -ne $env:GITHUB_SHA){throw "Receipt source mismatch: $($receipt.sourceCommit) != $env:GITHUB_SHA"}
+          if([string]$receipt.universeId -ne '8116636513'){throw 'Receipt universe mismatch'}
+          if([string]$receipt.placeId -ne '131894120482837'){throw 'Receipt place mismatch'}
+          if(-not $receipt.response.versionNumber){throw 'Receipt versionNumber missing'}
+          $tmp=Join-Path $env:RUNNER_TEMP 'a-club-current-main-live-receipt.json'
+          Copy-Item $receiptPath $tmp -Force
+          "BBYA_RECEIPT_TMP=$tmp" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_VERSION=$($receipt.response.versionNumber)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CURRENT_MAIN_PUBLISHED version=$($receipt.response.versionNumber) source=$($receipt.sourceCommit)"
+
+      - name: Upload immutable current-main receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-current-main-live-receipt-${{ github.sha }}
+          path: ${{ env.BBYA_RECEIPT_TMP }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Persist current-main receipt via GitHub API
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $receiptText=Get-Content $env:BBYA_RECEIPT_TMP -Raw
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($receiptText))
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='BBYA-Current-Main-Publisher'
+          }
+          $repo=$env:GITHUB_REPOSITORY
+          $path='deploy-status/a-club-current-main-live.json'
+          $uri="https://api.github.com/repos/$repo/contents/$path"
+          $existingSha=$null
+          try {$existing=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref=main');$existingSha=[string]$existing.sha} catch {if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
+          $payload=@{message="Record BBYA current-main live deploy v$env:BBYA_VERSION [skip ci]";content=$content;branch='main'}
+          if($existingSha){$payload.sha=$existingSha}
+          Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($payload | ConvertTo-Json -Depth 5) | Out-Null
+          Write-Host "BBYA_CURRENT_MAIN_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:GITHUB_SHA"
