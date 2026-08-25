@@ -1,21 +1,107 @@
 {
-  "status": "KEY_SCOPE_FAILED",
-  "readyToInject": false,
+  "status": "READY_TO_INJECT",
+  "readyToInject": true,
   "playlistId": "underground",
   "trackIndex": 48,
   "title": "pararam-bkb-ipan-agstyan",
   "driveFileId": "1EsxlmIYAexZYlrGapH9jE3uZa459SqCt",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "99942691456392",
   "uploadReused": false,
   "expectedUploaderUserId": "10001957153",
   "key": {
-    "http": 401,
-    "keyName": null,
-    "authorizedUserId": null,
-    "enabled": null,
-    "expired": null,
-    "assetReadWrite": false,
-    "assetPermissionsWrite": false
+    "http": 200,
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
+    "enabled": true,
+    "expired": false,
+    "assetReadWrite": true,
+    "assetPermissionsWrite": true
+  },
+  "uploadHttp": 200,
+  "uploadResponse": {
+    "path": "operations/a0d149a4-be38-485b-9281-3a0553122d20",
+    "operationId": "a0d149a4-be38-485b-9281-3a0553122d20",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/a0d149a4-be38-485b-9281-3a0553122d20",
+    "operationId": "a0d149a4-be38-485b-9281-3a0553122d20",
+    "done": true,
+    "response": {
+      "path": "assets/99942691456392",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T23:02:32.016419500Z",
+      "assetId": "99942691456392",
+      "displayName": "pararam-bkb-ipan-agstyan",
+      "description": "BBYA Underground Track 048",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Approved",
+  "moderationChecks": [
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Reviewing"
+    },
+    {
+      "http": 200,
+      "state": "Approved"
+    }
+  ],
+  "bbyaPermission": {
+    "http": 200,
+    "ok": true,
+    "response": {
+      "successAssetIds": [
+        99942691456392
+      ],
+      "errors": []
+    }
   }
 }
