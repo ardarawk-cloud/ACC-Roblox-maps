@@ -1,0 +1,39 @@
+{
+  "status": "PREPUBLISH_VALIDATED",
+  "mapId": "becak-e-bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "3106936d244d57f4f18e7f3cdf537efcecb992c7",
+  "scope": [
+    "maps/becak-e-bike/charging.network.server.lua"
+  ],
+  "upgrade": "Charging Network v1.18",
+  "validation": {
+    "dedicatedPathIsolation": true,
+    "targetLockVerifiedInWorkflow": true,
+    "compatibilityMarkerV116Preserved": true,
+    "safetyMarkerV117Preserved": true,
+    "resilienceMarkerV118Added": true,
+    "stationCountPreserved": 5,
+    "lineOfSightPreserved": true,
+    "maxActivationDistanceStuds": 10,
+    "holdDurationSeconds": 0.55,
+    "cooldownSeconds": 1.0,
+    "disconnectSafeUnlock": true,
+    "staleLockWatchdog": true,
+    "staleLockGraceSeconds": 0.75,
+    "economyPricingChanged": false,
+    "batteryLogicChanged": false,
+    "physicsChanged": false,
+    "collisionTopologyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "lastVerifiedLiveReceipt": {
+    "httpStatus": 200,
+    "versionNumber": 36,
+    "at": "2026-08-23T16:31:47.837Z",
+    "freshForSourceCommit": false
+  },
+  "publishState": "AWAITING_FRESH_RECEIPT"
+}
