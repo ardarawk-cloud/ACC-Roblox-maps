@@ -1,0 +1,37 @@
+{
+  "project": "Becak E-Bike",
+  "universeId": "10745325613",
+  "placeId": "80994730522893",
+  "sourceCommit": "3088e3a4207db7401f620bf71ae6669bff07adcd",
+  "sourceFile": "maps/becak-e-bike/phone.ui.client.lua",
+  "enhancement": "phone-ui-v1.8-billboard-audit-scope",
+  "validation": {
+    "sourceCommitOnlyTouchesBecakPhoneUI": true,
+    "billboardAuditScopedToBecakRoot": true,
+    "fullWorkspaceBillboardScanDisabled": true,
+    "safeAreaRemainsLayoutOwner": true,
+    "passengerThenCargoObjectivePreserved": true,
+    "physicsChanged": false,
+    "collisionChanged": false,
+    "economyChanged": false,
+    "saveSchemaChanged": false,
+    "otherMapsTouchedBySourceCommit": false
+  },
+  "publishIsolation": {
+    "workflow": ".github/workflows/becak-ebike-publish.yml",
+    "hardTargetLockVerified": true,
+    "expectedUniverseId": "10745325613",
+    "expectedPlaceId": "80994730522893"
+  },
+  "deployStateAtInspection": {
+    "receiptFresh": false,
+    "lastVerifiedHttpStatus": 200,
+    "lastVerifiedVersionNumber": 36,
+    "lastVerifiedAt": "2026-08-23T16:31:47.837Z",
+    "sourceWorkflowRunId": 32808206541,
+    "sourceWorkflowInitialAttempt": "failure-before-steps",
+    "safeRetryRequested": true,
+    "liveClaim": false
+  },
+  "recordedAt": "2026-08-25T04:16:00Z"
+}
