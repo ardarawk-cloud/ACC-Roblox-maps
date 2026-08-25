@@ -137,16 +137,17 @@
       "title": "Space Melody '23 _ Dj Deri Rmx • Qiu-Qiu™️.mp3",
       "driveFileId": "10jpTCLc9AAtLqT4TqT4BfuChy5uEEvO-",
       "sourceSizeBytes": 13377781,
-      "assetId": null,
+      "assetId": "128567852049551",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "e7091b186285542326d5119aaf108005c48b7c7b5cd3ef1fcba228bc825184d4",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "6415f41a-c96b-4f20-b32a-20678f5ee63b",
       "blacklistedAt": "2026-08-24T15:22:41+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "1fe114eff8029af0734dc43ce463a15b766c5ccaac0e72a5846d6aebac0a54c6"
     },
     {
       "index": 9,

@@ -1,5 +1,5 @@
 {
-  "status": "BLACKLISTED_PLATFORM_DURATION_LIMIT",
+  "status": "MODERATION_PENDING",
   "readyToInject": false,
   "safeContinue": true,
   "playlistId": "funkot",
@@ -8,10 +8,11 @@
   "driveFileId": "10jpTCLc9AAtLqT4TqT4BfuChy5uEEvO-",
   "bbyaUniverseId": "8116636513",
   "expectedUploaderUsername": "gudangpet88",
-  "assetId": null,
+  "assetId": "128567852049551",
   "uploadReused": false,
   "sourceSha256": "e7091b186285542326d5119aaf108005c48b7c7b5cd3ef1fcba228bc825184d4",
-  "startedAt": "2026-08-24T15:22:29+00:00",
+  "normalizedSha256": "1fe114eff8029af0734dc43ce463a15b766c5ccaac0e72a5846d6aebac0a54c6",
+  "startedAt": "2026-08-25T08:25:48+00:00",
   "key": {
     "http": 200,
     "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
@@ -29,19 +30,34 @@
   },
   "uploadHttp": 200,
   "uploadResponse": {
-    "path": "operations/6415f41a-c96b-4f20-b32a-20678f5ee63b",
-    "operationId": "6415f41a-c96b-4f20-b32a-20678f5ee63b",
+    "path": "operations/3bc11585-07b2-4432-b193-389ead483547",
+    "operationId": "3bc11585-07b2-4432-b193-389ead483547",
     "done": false
   },
   "operationResult": {
-    "path": "operations/6415f41a-c96b-4f20-b32a-20678f5ee63b",
-    "operationId": "6415f41a-c96b-4f20-b32a-20678f5ee63b",
+    "path": "operations/3bc11585-07b2-4432-b193-389ead483547",
+    "operationId": "3bc11585-07b2-4432-b193-389ead483547",
     "done": true,
-    "error": {
-      "code": "InvalidArgument",
-      "message": "Audio duration too long",
-      "details": []
+    "response": {
+      "path": "assets/128567852049551",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T08:26:15.559820100Z",
+      "assetId": "128567852049551",
+      "displayName": "##############################################",
+      "description": "BBYA Funkot Track 08",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "9296030038"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Reviewing"
+      },
+      "state": "Active"
     }
   },
-  "updatedAt": "2026-08-24T15:22:41+00:00"
+  "moderationState": "Reviewing",
+  "moderationChecks": [],
+  "updatedAt": "2026-08-25T08:26:18+00:00"
 }
