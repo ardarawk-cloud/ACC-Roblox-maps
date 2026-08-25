@@ -36,10 +36,11 @@
       "index": 3,
       "title": "Dovian - Starting Over (Lyrics) - Sensual Musique",
       "driveFileId": "1R9ysfatoATX_JLqmPUTyeVde_wQ7Kq_W",
-      "assetId": null,
+      "assetId": "80455951712097",
       "bbyaPermission": false,
-      "status": "PENDING_UPLOAD",
-      "moderationLastKnown": null
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
+      "sourceSha256": "1b67fb38de3ab64c25bc93346f3190dcf8f73ef6e98a40da00fa466cfd222d99"
     },
     {
       "index": 4,
