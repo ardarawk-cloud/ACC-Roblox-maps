@@ -1,9 +1,8 @@
--- BBYA SOCIAL HUB — MAIN CLUB AUTHORITY CLEANUP v3
--- Owner screenshot correction after live v406.
--- IMPORTANT: this pass no longer builds a second lounge.
--- It waits for MainClubFinalAuthorityV2, refines that single official former-studio footprint,
--- and removes redundant entrance portal layers so mobile view reads cleanly.
--- No global Lighting, audio, DJ, VIP, Mall, fishing, monetization, restroom or stage changes.
+-- BBYA SOCIAL HUB — MAIN CLUB FORMER-STUDIO PREMIUM v4
+-- Refines the single MainClubFinalAuthorityV2 lounge occupying the retired Photo Studio / Salon footprint.
+-- Premium club integration only: smoked mirror, acoustic/brass wall rhythm, ceiling track spots,
+-- bottle-service consoles and restrained floor detailing. No duplicate sofa/table shell is built.
+-- No global Lighting, DJ/stage, VIP, Mall, fishing, monetization, restroom geometry or other venue changes.
 
 local Workspace=game:GetService("Workspace")
 
@@ -15,56 +14,60 @@ local premium=root:WaitForChild("MainClubPremiumV4",90)
 local beauty=root:WaitForChild("MainClubBeautyV5",90)
 local front=root:WaitForChild("Floor1FrontPremium",90)
 if not finalAuthority or not premium or not beauty or not front then
- warn("[BBYA] Main Club authority cleanup v3: required passes unavailable")
+ warn("[BBYA] Main Club former-studio premium v4: required Main Club passes unavailable")
  return
 end
 
 local extension=finalAuthority:WaitForChild("PureClubFrontExtension",45)
 if not extension then
- warn("[BBYA] Main Club authority cleanup v3: PureClubFrontExtension unavailable")
+ warn("[BBYA] Main Club former-studio premium v4: PureClubFrontExtension unavailable")
  return
 end
 local bay1=extension:WaitForChild("BuiltInVIPContinuation1",30)
 local bay2=extension:WaitForChild("BuiltInVIPContinuation2",30)
 if not bay1 or not bay2 then
- warn("[BBYA] Main Club authority cleanup v3: official continuation bays unavailable")
+ warn("[BBYA] Main Club former-studio premium v4: official continuation bays unavailable")
  return
 end
 
--- Remove any prior runtime instance of this pass before applying the corrected authority model.
+-- Runtime idempotency: this pass owns only refinement/detail layered onto FinalAuthorityV2.
 local old=root:FindFirstChild("MainClubSocialLoungeV1")
 if old then old:Destroy() end
 
 local out=Instance.new("Model")
 out.Name="MainClubSocialLoungeV1"
-out:SetAttribute("Pass","MAIN_CLUB_AUTHORITY_CLEANUP_V3")
+out:SetAttribute("Pass","MAIN_CLUB_FORMER_STUDIO_PREMIUM_V4")
 out:SetAttribute("Authority","MAINCLUB_FINAL_AUTHORITY_V2")
 out:SetAttribute("SingleLoungeAuthority",true)
 out:SetAttribute("NoSecondLoungeBuild",true)
-out:SetAttribute("FormerStudioVisualCleanup",true)
+out:SetAttribute("FormerStudioPremiumUpgrade",true)
+out:SetAttribute("FormerStudioClubIntegrated",true)
+out:SetAttribute("MobilePerformanceConscious",true)
 out:SetAttribute("PortalStackRemoved",true)
-out:SetAttribute("MobileScreenshotCorrection",true)
 out:SetAttribute("GlobalLightingUntouched",true)
-out:SetAttribute("AudioUntouched",true)
 out:SetAttribute("DJUntouched",true)
+out:SetAttribute("StageUntouched",true)
 out:SetAttribute("VIPUntouched",true)
 out:SetAttribute("MallUntouched",true)
 out:SetAttribute("FishingUntouched",true)
 out:SetAttribute("MonetizationUntouched",true)
-out:SetAttribute("RestroomUntouched",true)
-out:SetAttribute("StageUntouched",true)
+out:SetAttribute("RestroomGeometryUntouched",true)
 out.Parent=root
 
 local C={
  black=Color3.fromRGB(8,8,10),
  ink=Color3.fromRGB(14,13,17),
- charcoal=Color3.fromRGB(28,25,31),
- fabric=Color3.fromRGB(55,47,57),
- fabric2=Color3.fromRGB(67,54,64),
- plum=Color3.fromRGB(79,52,72),
- brass=Color3.fromRGB(184,139,84),
+ charcoal=Color3.fromRGB(27,25,30),
+ graphite=Color3.fromRGB(43,40,47),
+ fabric=Color3.fromRGB(51,43,52),
+ fabric2=Color3.fromRGB(66,53,63),
+ wine=Color3.fromRGB(78,45,64),
+ brass=Color3.fromRGB(178,132,79),
  champagne=Color3.fromRGB(214,177,119),
- warm=Color3.fromRGB(255,216,178),
+ marble=Color3.fromRGB(111,106,114),
+ smoked=Color3.fromRGB(76,84,94),
+ bottle=Color3.fromRGB(49,70,58),
+ warm=Color3.fromRGB(255,213,176),
  pink=Color3.fromRGB(243,53,151),
  cyan=Color3.fromRGB(35,191,216),
  white=Color3.fromRGB(240,237,242),
@@ -72,53 +75,81 @@ local C={
 
 local function block(name,size,cf,color,material,transparency,parent,collide)
  local p=Instance.new("Part")
- p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or C.charcoal;p.Material=material or Enum.Material.SmoothPlastic
- p.Transparency=transparency or 0;p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.CanQuery=true
- p.CastShadow=material~=Enum.Material.Neon;p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
+ p.Name=name
+ p.Size=size
+ p.CFrame=cf
+ p.Color=color or C.charcoal
+ p.Material=material or Enum.Material.SmoothPlastic
+ p.Transparency=transparency or 0
+ p.Anchored=true
+ p.CanCollide=collide==true
+ p.CanTouch=false
+ p.CanQuery=true
+ p.CastShadow=material~=Enum.Material.Neon
+ p.TopSurface=Enum.SurfaceType.Smooth
+ p.BottomSurface=Enum.SurfaceType.Smooth
  p.Parent=parent or out
  return p
 end
 
-local function surface(parent,color,brightness,range,angle)
- local l=Instance.new("SurfaceLight")
- l.Name="FormerStudioLocalWash";l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=brightness;l.Range=range;l.Angle=angle or 105;l.Shadows=false;l.Parent=parent
+local function point(parent,color,brightness,range)
+ local l=Instance.new("PointLight")
+ l.Name="FormerStudioPractical"
+ l.Color=color
+ l.Brightness=brightness
+ l.Range=range
+ l.Shadows=false
+ l.Parent=parent
+ return l
+end
+
+local function spot(parent,color,brightness,range,angle)
+ local l=Instance.new("SpotLight")
+ l.Name="FormerStudioDownlight"
+ l.Face=Enum.NormalId.Bottom
+ l.Color=color
+ l.Brightness=brightness
+ l.Range=range
+ l.Angle=angle or 68
+ l.Shadows=false
+ l.Parent=parent
  return l
 end
 
 local function textPlate(parent,name,size,cf,textValue,color)
  local plate=block(name,size,cf,C.black,Enum.Material.Glass,.08,parent,false)
  local gui=Instance.new("SurfaceGui")
- gui.Face=Enum.NormalId.Front;gui.LightInfluence=.18;gui.PixelsPerStud=72;gui.Parent=plate
+ gui.Face=Enum.NormalId.Front
+ gui.LightInfluence=.18
+ gui.PixelsPerStud=72
+ gui.Parent=plate
  local text=Instance.new("TextLabel")
- text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text=textValue;text.TextColor3=color or C.white
- text.Font=Enum.Font.GothamBold;text.TextScaled=true;text.Parent=gui
+ text.Size=UDim2.fromScale(1,1)
+ text.BackgroundTransparency=1
+ text.Text=textValue
+ text.TextColor3=color or C.white
+ text.Font=Enum.Font.GothamBold
+ text.TextScaled=true
+ text.Parent=gui
  return plate
 end
 
--- -----------------------------------------------------------------------------
--- A) SINGLE AUTHORITY: CLUB PURITY MUST NOT OWN A SECOND FLOOR-1 LOUNGE
--- 67-photo-studio-lighting.server.lua is MainClubFinalAuthorityV2 and already replaces
--- the old ClubPurity MainClubFrontExtension. Belt-and-suspenders cleanup prevents a
--- race from leaving both geometries alive during boot.
--- -----------------------------------------------------------------------------
+-- A) SINGLE AUTHORITY ----------------------------------------------------------
+-- ClubPurity's old duplicate front extension must never coexist with the final authority.
 local purity=root:FindFirstChild("ClubPurityMallStudiosV1")
 if purity then
  local duplicate=purity:FindFirstChild("MainClubFrontExtension")
  if duplicate then duplicate:Destroy() end
 end
 
--- -----------------------------------------------------------------------------
--- B) FORMER PHOTO/SALON FOOTPRINT: REMOVE THE "STUDIO PANEL" LOOK
--- The final-authority coves/reveals were broad planes (6.9 / 7.7 studs along Z),
--- which read from a phone angle as bright softboxes / orange studio slabs.
--- Convert them into narrow architectural lines and brighten the existing official
--- banquettes with local light only. No new sofa/table geometry is created here.
--- -----------------------------------------------------------------------------
+-- B) RETUNE THE TWO OFFICIAL BAYS ---------------------------------------------
+-- Keep the original FinalAuthority furniture/layout, but make its finish read as nightclub hospitality.
 for i=1,2 do
  local cove=extension:FindFirstChild("LeftCoveLight"..i)
  if cove and cove:IsA("BasePart") then
   cove.Size=Vector3.new(.045,4.65,.12)
-  cove.Transparency=.28
+  cove.Transparency=.34
+  cove.Color=C.warm
  end
 end
 
@@ -127,20 +158,38 @@ local function refineOfficialBay(bay,index)
  if bronze and bronze:IsA("BasePart") then
   bronze.Size=Vector3.new(.05,5.15,.12)
   bronze.Color=C.brass
+  bronze.Material=Enum.Material.Metal
  end
  local panel=bay:FindFirstChild("WallPanel")
  if panel and panel:IsA("BasePart") then
   panel.Color=C.ink
   panel.Material=Enum.Material.Slate
  end
+ local plinth=bay:FindFirstChild("Plinth")
+ if plinth and plinth:IsA("BasePart") then
+  plinth.Color=C.charcoal
+  plinth.Material=Enum.Material.Slate
+ end
+ local divider=bay:FindFirstChild("Divider")
+ if divider and divider:IsA("BasePart") then
+  divider.Color=C.smoked
+  divider.Transparency=.64
+  divider.Material=Enum.Material.Glass
+ end
+ local dividerCap=bay:FindFirstChild("DividerCap")
+ if dividerCap and dividerCap:IsA("BasePart") then
+  dividerCap.Color=C.brass
+ end
  for n=1,3 do
   local seat=bay:FindFirstChild("SeatCushion"..n)
   if seat and seat:IsA("BasePart") then
-   seat.Color=(index==2 and n==2) and C.plum or C.fabric
+   seat.Color=(index==2 and n==2) and C.wine or C.fabric
+   seat.Material=Enum.Material.Fabric
   end
   local back=bay:FindFirstChild("BackCushion"..n)
   if back and back:IsA("BasePart") then
-   back.Color=(index==2 and n==2) and C.plum or C.fabric2
+   back.Color=(index==2 and n==2) and Color3.fromRGB(86,51,70) or C.fabric2
+   back.Material=Enum.Material.Fabric
   end
  end
  local table=bay:FindFirstChild("LowTable")
@@ -148,8 +197,8 @@ local function refineOfficialBay(bay,index)
  if lamp then
   for _,d in ipairs(lamp:GetChildren()) do
    if d:IsA("PointLight") then
-    d.Brightness=.40
-    d.Range=7.2
+    d.Brightness=.33
+    d.Range=6.5
     d.Shadows=false
    end
   end
@@ -158,24 +207,76 @@ end
 refineOfficialBay(bay1,1)
 refineOfficialBay(bay2,2)
 
-local loungeLight=Instance.new("Model")
-loungeLight.Name="FormerStudioHospitalityLightV3";loungeLight.Parent=out
-for i,z in ipairs({-28,-14}) do
- block("CeilingFixture"..i,Vector3.new(4.8,.08,1.05),CFrame.new(-39.0,12.70,z),C.black,Enum.Material.Metal,0,loungeLight,false)
- local diffuser=block("CeilingDiffuser"..i,Vector3.new(4.0,.035,.48),CFrame.new(-39.0,12.64,z),C.warm,Enum.Material.Neon,.63,loungeLight,false)
- diffuser.CastShadow=false
- surface(diffuser,C.warm,.38,10.5,105)
+-- C) FORMER STUDIO PREMIUM DETAIL ---------------------------------------------
+-- Details remain shallow/non-colliding so the mobile sightline and circulation stay open.
+local upgrade=Instance.new("Model")
+upgrade.Name="FormerStudioPremiumV4"
+upgrade:SetAttribute("DesignLanguage","DARK_HOSPITALITY_BRASS_SMOKED_MIRROR")
+upgrade:SetAttribute("ReusesOfficialBays",true)
+upgrade:SetAttribute("NoDuplicateSeating",true)
+upgrade.Parent=out
+
+for bayIndex,z in ipairs({-28,-14}) do
+ local feature=Instance.new("Model")
+ feature.Name="PremiumBayFeature"..bayIndex
+ feature.Parent=upgrade
+
+ -- Smoked mirror inset breaks the old flat studio-wall feeling without becoming a bright softbox.
+ local mirror=block("SmokedMirrorPanel"..bayIndex,Vector3.new(.055,3.55,5.85),CFrame.new(-47.67,6.28,z),C.smoked,Enum.Material.Glass,.25,feature,false)
+ mirror.Reflectance=.16
+ block("MirrorTopRail"..bayIndex,Vector3.new(.07,.08,6.05),CFrame.new(-47.61,8.08,z),C.brass,Enum.Material.Metal,0,feature,false)
+ block("MirrorBottomRail"..bayIndex,Vector3.new(.07,.08,6.05),CFrame.new(-47.61,4.47,z),C.brass,Enum.Material.Metal,0,feature,false)
+
+ -- Five slim acoustic/brass fins add nightclub texture while staying almost flush to the wall.
+ for fin=1,5 do
+  local zz=z-3.45+(fin-1)*1.72
+  local finColor=(fin==3) and C.brass or C.graphite
+  local finMaterial=(fin==3) and Enum.Material.Metal or Enum.Material.Fabric
+  block("AcousticFin_"..bayIndex.."_"..fin,Vector3.new(.08,4.25,.15),CFrame.new(-47.55,6.25,zz),finColor,finMaterial,0,feature,false)
+ end
+
+ -- Black ceiling track with three restrained warm spots; local fixtures only.
+ block("CeilingTrack"..bayIndex,Vector3.new(9.2,.14,.22),CFrame.new(-39.0,12.62,z),C.black,Enum.Material.Metal,0,feature,false)
+ for n,x in ipairs({-42.1,-39.0,-35.9}) do
+  local head=block("TrackHead_"..bayIndex.."_"..n,Vector3.new(.56,.24,.56),CFrame.new(x,12.47,z),C.graphite,Enum.Material.Metal,0,feature,false)
+  local lens=block("TrackLens_"..bayIndex.."_"..n,Vector3.new(.38,.045,.38),CFrame.new(x,12.32,z),C.warm,Enum.Material.Glass,.36,feature,false)
+  lens.CastShadow=false
+  spot(lens,C.warm,.34,11.5,66)
+ end
+
+ -- Compact bottle-service console hugs the open edge; decorative and non-blocking.
+ local console=Instance.new("Model")
+ console.Name="ServiceConsole"..bayIndex
+ console.Parent=feature
+ block("ConsoleBody",Vector3.new(1.18,1.25,4.8),CFrame.new(-29.25,1.72,z),C.charcoal,Enum.Material.Slate,0,console,false)
+ local top=block("ConsoleTop",Vector3.new(1.34,.14,5.05),CFrame.new(-29.25,2.42,z),C.marble,Enum.Material.Marble,0,console,false)
+ top.Reflectance=.06
+ block("ConsoleBrassLine",Vector3.new(.045,.72,4.3),CFrame.new(-28.64,1.80,z),C.brass,Enum.Material.Metal,0,console,false)
+ for n,dz in ipairs({-1.35,0,1.35}) do
+  local bottle=block("Bottle_"..n,Vector3.new(.30,.88,.30),CFrame.new(-29.22,2.93,z+dz),n==2 and C.bottle or Color3.fromRGB(71,56,49),Enum.Material.Glass,.12,console,false)
+  local cap=block("BottleCap_"..n,Vector3.new(.18,.15,.18),CFrame.new(-29.22,3.44,z+dz),C.brass,Enum.Material.Metal,0,console,false)
+  cap.CastShadow=false
+  if n==2 then point(bottle,C.warm,.08,3.2) end
+ end
 end
 
-textPlate(out,"SocialLoungeMark",Vector3.new(.08,1.18,6.4),CFrame.new(-49.38,8.10,-21.0)*CFrame.Angles(0,math.rad(90),0),"BBYA  SOCIAL  LOUNGE",C.champagne)
-block("LoungeEdgeInlay",Vector3.new(.05,.035,27.0),CFrame.new(-26.72,1.135,-21.0),C.champagne,Enum.Material.Metal,0,out,false)
+-- Thin floor datum frames the former-studio lounge as one club zone, not two leftover rooms.
+for i,z in ipairs({-35.0,-7.3}) do
+ block("LoungeCrossInlay"..i,Vector3.new(22.0,.035,.055),CFrame.new(-39.0,1.135,z),C.champagne,Enum.Material.Metal,0,upgrade,false)
+end
+block("LoungeEdgeInlay",Vector3.new(.05,.035,27.6),CFrame.new(-26.72,1.135,-21.0),C.champagne,Enum.Material.Metal,0,upgrade,false)
 
--- -----------------------------------------------------------------------------
--- C) PORTAL STACK CLEANUP
--- Keep Floor1FrontPremium.EntranceToClubTransition as the ONE structural portal.
--- Remove PremiumV4 entrance reveal + BeautyV7 facade/collars, which were layered
--- only inches apart and produced the stacked frames visible in the owner's phone shot.
--- -----------------------------------------------------------------------------
+-- Low practical markers help depth without flooding the room.
+for i,z in ipairs({-31.3,-24.7,-17.3,-10.7}) do
+ local marker=block("LowPractical"..i,Vector3.new(.06,.34,.42),CFrame.new(-48.82,1.58,z),C.warm,Enum.Material.Glass,.48,upgrade,false)
+ marker.CastShadow=false
+ point(marker,C.warm,.11,4.4)
+end
+
+textPlate(upgrade,"ClubLoungeMark",Vector3.new(.08,1.05,6.25),CFrame.new(-49.38,8.25,-21.0)*CFrame.Angles(0,math.rad(90),0),"BBYA  CLUB  LOUNGE",C.champagne)
+
+-- D) PORTAL STACK CLEANUP ------------------------------------------------------
+-- Keep Floor1FrontPremium.EntranceToClubTransition as the single structural portal.
 local entranceReveal=premium:FindFirstChild("MainClubEntranceReveal")
 if entranceReveal then entranceReveal:Destroy() end
 
@@ -200,4 +301,4 @@ end
 
 textPlate(out,"MainClubPortalMark",Vector3.new(8.8,.82,.055),CFrame.new(0,10.95,-5.48),"BBYA  MAIN CLUB",C.champagne)
 
-print("[BBYA] Main Club authority cleanup v3 online: single FinalAuthority lounge retained; former-studio light slabs narrowed; duplicate portal layers removed; frozen systems untouched")
+print("[BBYA] Main Club former-studio premium v4 online: official lounge upgraded with smoked mirror, acoustic/brass wall rhythm, track spots and bottle-service consoles; frozen systems untouched")
