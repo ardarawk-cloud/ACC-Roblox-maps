@@ -43,6 +43,7 @@ local PLAYLIST={
  {title="5A - 130 - 01.dj riri - rusty guitar",id="123696371004403",style="progressive"},
  {title="5A - 130 - PULSE OF JAKARTA - Unknown Artist",id="74479015238422",style="progressive"},
  {title="5A - 131 - High Revolution - Studio 51 (So-1",id="102620964808698",style="progressive"},
+ {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 

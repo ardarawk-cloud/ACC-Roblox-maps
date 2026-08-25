@@ -1115,7 +1115,7 @@
         "size": 6625810,
         "sha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830"
       },
-      "updatedAt": "2026-08-24T15:05:45.213290+00:00",
+      "updatedAt": "2026-08-25T17:51:15.655620+00:00",
       "normalizedSha256": "3f126b5cc1d808950b562cd8229904d7370bb345989d0c9c09c680c8ff070830",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1156,7 +1156,7 @@
       },
       "assetId": "99998363156285",
       "initialModerationState": "Approved",
-      "status": "MOVED_TO_UNDERGROUND",
+      "status": "APPROVED_PENDING_PUBLISH",
       "moderationState": "Approved",
       "moderationProbe": {
         "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
@@ -1178,17 +1178,11 @@
           "moderationResult": {
             "moderationState": "Approved"
           },
-          "state": "Active",
-          "status": "MOVED_TO_UNDERGROUND",
-          "movedFrom": "MAIN_CLUB",
-          "movedTo": "UNDERGROUND",
-          "genreClassification": "breakbeat",
-          "doNotReinjectToMain": true,
-          "movedAt": "2026-08-25T17:08:36.944409Z"
+          "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-24T15:05:42.187405+00:00",
-      "approvedAt": "2026-08-24T15:05:42.187415+00:00",
+      "moderationCheckedAt": "2026-08-25T17:51:15.239872+00:00",
+      "approvedAt": "2026-08-25T17:51:15.239884+00:00",
       "permission": {
         "ok": true,
         "http": 200,
