@@ -663,7 +663,7 @@
       "sourceSizeBytes": 13656874,
       "assetId": "103410156771684",
       "bbyaPermission": true,
-      "status": "READY_TO_INJECT",
+      "status": "LIVE_IN_PLAYLIST",
       "moderationLastKnown": "Approved",
       "sourceSha256": "01b8990c57b7c8888161a2962927ef68d1c801cd4cf51e43d5f5eff050da22a8"
     },
