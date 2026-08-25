@@ -1,26 +1,53 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 33,
   "title": "VOICES IN MY HEAD _ CRYSHEILA BKB REMIX _ - CRYSHEILA - SoundLoadMate.com",
   "driveFileId": "1aLXWtWlCpVAru0zwmsDDl2BcV_SV2LQF",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "127250376708705",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/6cd45e6a-462c-4c94-912f-abbbc1ef9596",
+    "operationId": "6cd45e6a-462c-4c94-912f-abbbc1ef9596",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/6cd45e6a-462c-4c94-912f-abbbc1ef9596",
+    "operationId": "6cd45e6a-462c-4c94-912f-abbbc1ef9596",
+    "done": true,
+    "response": {
+      "path": "assets/127250376708705",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T18:41:48.657945500Z",
+      "assetId": "127250376708705",
+      "displayName": "VOICES IN MY HEAD _ CRYSHEILA BKB REMIX _ - CRYSHE",
+      "description": "BBYA Underground Track 033",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
 }
