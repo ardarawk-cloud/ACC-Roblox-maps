@@ -1,26 +1,53 @@
 {
-  "status": "UPLOAD_FAILED",
+  "status": "BLACKLISTED_MODERATION_REJECTED",
   "readyToInject": false,
   "playlistId": "underground",
   "trackIndex": 38,
   "title": "SOMEWHERE - RC BKB REMIX -",
   "driveFileId": "13v_mfcgbzaTujpKfzmXfe8H_Kc6TbpyT",
   "bbyaUniverseId": "8116636513",
-  "assetId": null,
+  "assetId": "118954630450346",
   "uploadReused": false,
-  "expectedUploaderUserId": "9296030038",
+  "expectedUploaderUserId": "10001957153",
   "key": {
     "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
+    "keyName": "AM STUDIO AUDIO 02",
+    "authorizedUserId": "10001957153",
     "enabled": true,
     "expired": false,
     "assetReadWrite": true,
     "assetPermissionsWrite": true
   },
-  "uploadHttp": 429,
+  "uploadHttp": 200,
   "uploadResponse": {
-    "code": "RESOURCE_EXHAUSTED",
-    "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
-  }
+    "path": "operations/ed344fb7-0d5d-411b-bb33-4dbf47d2bcbc",
+    "operationId": "ed344fb7-0d5d-411b-bb33-4dbf47d2bcbc",
+    "done": false
+  },
+  "operationResult": {
+    "path": "operations/ed344fb7-0d5d-411b-bb33-4dbf47d2bcbc",
+    "operationId": "ed344fb7-0d5d-411b-bb33-4dbf47d2bcbc",
+    "done": true,
+    "response": {
+      "path": "assets/118954630450346",
+      "revisionId": "1",
+      "revisionCreateTime": "2026-08-25T18:48:37.060394Z",
+      "assetId": "118954630450346",
+      "displayName": "SOMEWHERE - RC BKB REMIX -",
+      "description": "BBYA Underground Track 038",
+      "assetType": "Audio",
+      "creationContext": {
+        "creator": {
+          "userId": "10001957153"
+        }
+      },
+      "moderationResult": {
+        "moderationState": "Rejected"
+      },
+      "state": "Active"
+    }
+  },
+  "moderationState": "Rejected",
+  "moderationChecks": [],
+  "blacklisted": true
 }
