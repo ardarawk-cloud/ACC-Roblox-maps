@@ -4,10 +4,10 @@
   "name": "BBYA Social Hub",
   "universeId": "8116636513",
   "placeId": "131894120482837",
-  "sourceCommit": "393b5ee08d73f2ac6f1f9eac69b4f3cd1ca7cbb5",
-  "publishedAt": "2026-08-25T17:51:44.835Z",
-  "publishedFile": "/tmp/bbya-audio-safe-live.rbxl",
+  "sourceCommit": "32b4c3775b48832b1a216366c6a1c685ac3af0ef",
+  "publishedAt": "2026-08-25T20:35:13.509Z",
+  "publishedFile": "C:\\actions-runner\\_work\\_temp\\bbya-skatepark-v3-v493-safe.rbxl",
   "response": {
-    "versionNumber": 489
+    "versionNumber": 497
   }
 }
