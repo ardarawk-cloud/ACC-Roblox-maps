@@ -3484,6 +3484,54 @@
           "versionNumber": 478
         }
       }
+    },
+    "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ": {
+      "driveId": "1ZA-n3rN77AHaFnuwBVR7Euk1ZQ7nIkHQ",
+      "title": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3",
+      "filename": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3.mp3",
+      "sequence": 41,
+      "preflight": {
+        "status": "READY",
+        "duration": 410.044082,
+        "size": 6658844,
+        "sha256": "e546d9360bb2b0f5d89856ba32d332b7479942a66e88912864b4581181a457d9"
+      },
+      "updatedAt": "2026-08-25T16:24:10.610819+00:00",
+      "normalizedSha256": "e546d9360bb2b0f5d89856ba32d332b7479942a66e88912864b4581181a457d9",
+      "uploadHttp": 200,
+      "uploadResponse": {
+        "path": "operations/192997e1-2d07-4a85-8aab-736f03cba6a9",
+        "operationId": "192997e1-2d07-4a85-8aab-736f03cba6a9",
+        "done": false
+      },
+      "uploadedAt": "2026-08-25T16:24:11.470015+00:00",
+      "operationPath": "operations/192997e1-2d07-4a85-8aab-736f03cba6a9",
+      "operationResult": {
+        "path": "operations/192997e1-2d07-4a85-8aab-736f03cba6a9",
+        "operationId": "192997e1-2d07-4a85-8aab-736f03cba6a9",
+        "done": true,
+        "response": {
+          "path": "assets/88925775968276",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-08-25T16:24:25.302050200Z",
+          "assetId": "88925775968276",
+          "displayName": "5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear (",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "88925775968276",
+      "initialModerationState": "Reviewing",
+      "status": "PENDING_MODERATION"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
