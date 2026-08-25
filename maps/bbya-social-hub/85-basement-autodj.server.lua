@@ -30,7 +30,8 @@ local PLAYLIST={
  {title="ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",id="90986894139778",style="underground"},
  {title="666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",id="116771187608517",style="underground"},
  {title="17.Mugwanti (Mahesa & hmp BKB Edit)",id="113698017406179",style="underground"},
- {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"}
+ {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"},
+ {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="underground"}
 }
 
 local MIX_SECONDS=4.0

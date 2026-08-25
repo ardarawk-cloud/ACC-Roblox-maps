@@ -1145,12 +1145,18 @@
           "moderationResult": {
             "moderationState": "Approved"
           },
-          "state": "Active"
+          "state": "Active",
+          "status": "MOVED_TO_UNDERGROUND",
+          "movedFrom": "MAIN_CLUB",
+          "movedTo": "UNDERGROUND",
+          "genreClassification": "breakbeat",
+          "doNotReinjectToMain": true,
+          "movedAt": "2026-08-25T17:08:36.944409Z"
         }
       },
       "assetId": "99998363156285",
       "initialModerationState": "Approved",
-      "status": "LIVE",
+      "status": "MOVED_TO_UNDERGROUND",
       "moderationState": "Approved",
       "moderationProbe": {
         "path": "operations/ce1cf67f-a5cd-437b-8b4a-1ba9f8073a56",
@@ -1172,7 +1178,13 @@
           "moderationResult": {
             "moderationState": "Approved"
           },
-          "state": "Active"
+          "state": "Active",
+          "status": "MOVED_TO_UNDERGROUND",
+          "movedFrom": "MAIN_CLUB",
+          "movedTo": "UNDERGROUND",
+          "genreClassification": "breakbeat",
+          "doNotReinjectToMain": true,
+          "movedAt": "2026-08-25T17:08:36.944409Z"
         }
       },
       "moderationCheckedAt": "2026-08-24T15:05:42.187405+00:00",
@@ -1204,7 +1216,12 @@
         "response": {
           "versionNumber": 416
         }
-      }
+      },
+      "movedFrom": "MAIN_CLUB",
+      "movedTo": "UNDERGROUND",
+      "genreClassification": "breakbeat",
+      "doNotReinjectToMain": true,
+      "movedAt": "2026-08-25T17:08:36.944409Z"
     },
     "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5": {
       "driveId": "1tBJWe-3oc6jpKfYsrHdh5Ve6MHWzIQF5",
