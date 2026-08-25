@@ -3218,7 +3218,7 @@
         "size": 6561211,
         "sha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347"
       },
-      "updatedAt": "2026-08-25T10:03:45.758258+00:00",
+      "updatedAt": "2026-08-25T16:19:22.538175+00:00",
       "normalizedSha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3278,7 +3278,8 @@
           "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-08-25T10:03:45.758244+00:00"
+      "moderationCheckedAt": "2026-08-25T10:03:45.758244+00:00",
+      "blacklistReason": "ROBLOX_MODERATION_REJECTED"
     },
     "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1": {
       "driveId": "18yoz5MTeEcXpnaOFMMsyxdiN3dqw4Hi1",
