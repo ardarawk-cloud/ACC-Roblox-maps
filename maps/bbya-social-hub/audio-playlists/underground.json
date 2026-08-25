@@ -340,10 +340,11 @@
       "driveFileId": "1UD3jsKt8fqeKztCCrgsjBFijkaKtWkbG",
       "sourceMimeType": "audio/x-wav",
       "sourceSizeBytes": 25076124,
-      "assetId": null,
-      "bbyaPermission": false,
-      "status": "PREPARED_LOCAL",
-      "moderationLastKnown": null
+      "assetId": "113698017406179",
+      "bbyaPermission": true,
+      "status": "READY_TO_INJECT",
+      "moderationLastKnown": "Approved",
+      "sourceSha256": "29bddbf6e51409de49eb043afed0e4a9bcb3d193b7b23f08a5a4dfb523edce9e"
     },
     {
       "index": 27,
