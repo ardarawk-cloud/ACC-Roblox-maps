@@ -120,16 +120,17 @@
       "title": "SUKA SAMA SUKA ( FREDY NRC ) 2026.mp3",
       "driveFileId": "1LR8vlK1wA3Pr3oI88-vIBlnIXZ-NN5o0",
       "sourceSizeBytes": 20917094,
-      "assetId": null,
+      "assetId": "95790294815690",
       "bbyaPermission": false,
-      "status": "RETRY_WITH_DURATION_TRIM",
-      "moderationLastKnown": null,
+      "status": "MODERATION_PENDING",
+      "moderationLastKnown": "Reviewing",
       "sourceSha256": "56d83cb18851b2adc646dcbe18f98c6d007de175da458a42532bb8405e39ddcd",
       "platformRejectCode": "InvalidArgument",
       "platformRejectMessage": "Audio duration too long",
       "platformOperationId": "bd9e13e9-bc0c-4bc2-b22a-573e9481c0e2",
       "blacklistedAt": "2026-08-24T15:21:43+00:00",
-      "durationTrimRequired": true
+      "durationTrimRequired": true,
+      "normalizedSha256": "9e97321815f8ca5f6db6a3a7d0c251da7b2c7e702ba9cc7885e620ea50494848"
     },
     {
       "index": 8,
