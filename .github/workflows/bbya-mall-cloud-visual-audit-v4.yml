@@ -181,6 +181,7 @@ jobs:
             [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
             [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
             [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
           }
           "@
           $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
@@ -211,18 +212,25 @@ jobs:
             $cmd='local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt('+$v.pos+','+$v.target+');c.Focus=CFrame.new('+$v.target+');print("[MALLOS_VIEW]|'+$v.name+'")'
             $value.SetValue($cmd)
             $invoke.Invoke()
-            Start-Sleep -Milliseconds 1200
+            Start-Sleep -Milliseconds 1300
             $rect=New-Object MallWin32+RECT
             if(-not [MallWin32]::GetWindowRect($hwnd,[ref]$rect)){throw 'GetWindowRect failed'}
             $w=$rect.Right-$rect.Left
             $h=$rect.Bottom-$rect.Top
             if($w -lt 640 -or $h -lt 360){throw "Unexpected Studio window size ${w}x${h}"}
-            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $bmp=New-Object System.Drawing.Bitmap($w,$h,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
             $g=[System.Drawing.Graphics]::FromImage($bmp)
-            $g.CopyFromScreen($rect.Left,$rect.Top,0,0,$bmp.Size)
+            $hdc=$g.GetHdc()
+            try {
+              $ok=[MallWin32]::PrintWindow($hwnd,$hdc,2)
+            } finally {
+              $g.ReleaseHdc($hdc)
+            }
+            $g.Dispose()
+            if(-not $ok){$bmp.Dispose();throw "PrintWindow failed: $($v.name)"}
             $path=Join-Path $env:OUTDIR ($v.name+'.png')
             $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
-            $g.Dispose();$bmp.Dispose()
+            $bmp.Dispose()
             if((Get-Item $path).Length -lt 10000){throw "Capture too small: $($v.name)"}
             Write-Host "Captured $($v.name) -> $path"
           }
@@ -247,7 +255,7 @@ jobs:
             if(-not (Test-Path $p)){throw "Missing capture $name"}
             if((Get-Item $p).Length -lt 10000){throw "Invalid capture $name"}
           }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='Roblox Studio scripted camera + native Windows window capture';views=$expected;productionSourceModified=$false;auditCompatibility=@('Enum.Material.Tile -> CeramicTiles','MallLiveUpgradeV2 boards table syntax repair')} | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='Roblox Studio scripted camera + Win32 PrintWindow';views=$expected;productionSourceModified=$false;auditCompatibility=@('Enum.Material.Tile -> CeramicTiles','MallLiveUpgradeV2 boards table syntax repair')} | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
           Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
 
       - name: Close Studio
