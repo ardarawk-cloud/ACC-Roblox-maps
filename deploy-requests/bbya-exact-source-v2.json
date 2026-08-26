@@ -1,7 +1,7 @@
 {
-  "source_sha": "2f66fbb61f6cc2af657940e97ca657932a4e61d7",
-  "reason": "Exact deploy of screenshot-driven Mall visual cleanup v7 from PR #207 after self-hosted Windows x64 Rojo 7.7.0 QC PASS; compact mobile HUD and catalog recovery included",
-  "feature_pr": 207,
+  "source_sha": "463c7d2ab706658431a1f21c4e2c8a42a4a12e5e",
+  "reason": "Exact deploy of screenshot-driven Mall premium visual refinement v8 and Roblox-native catalog reliability from PR #208 after self-hosted Windows x64 Rojo 7.7.0 QC PASS",
+  "feature_pr": 208,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
