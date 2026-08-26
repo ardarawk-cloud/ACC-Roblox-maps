@@ -1,0 +1,24 @@
+{
+  "name": "AFTER SCHOOL CITY",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "ASCConfig": {
+        "$path": "after-school-city.config.lua"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "ASC_World": {
+        "$path": "after-school-city.world.server.lua"
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "Lighting": {
+      "$className": "Lighting"
+    }
+  }
+}
