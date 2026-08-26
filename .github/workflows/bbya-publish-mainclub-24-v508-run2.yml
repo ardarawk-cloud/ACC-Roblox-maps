@@ -1,0 +1,58 @@
+name: BBYA Publish Main Club 24 Exact Run2
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/bbya-publish-mainclub-24-v508-run2.yml']
+  workflow_dispatch:
+concurrency:
+  group: bbya-mainclub-24-v508-run2
+  cancel-in-progress: false
+permissions:
+  contents: write
+env:
+  BBYA_BASE_SHA: 591f5bd2f6bdb10f3956bebad53fcd3da7b75287
+  BBYA_SOURCE_SHA: db0eb4e381f226334e113417734dcba2afa18cb7
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and prove exact source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop';$h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Main24-Run2'};$repo=$env:GITHUB_REPOSITORY
+          $cmp=Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$repo/compare/$env:BBYA_BASE_SHA...$env:BBYA_SOURCE_SHA"
+          $files=@($cmp.files|%{[string]$_.filename});if([string]$cmp.merge_base_commit.sha -ne $env:BBYA_BASE_SHA -or [int]$cmp.ahead_by -ne 1 -or $files.Count -ne 1 -or $files[0] -ne 'maps/bbya-social-hub/30-club-systems.server.lua'){throw 'Exact-source diff gate failed'}
+          $src=Join-Path $env:RUNNER_TEMP 'bbya-main24-r2-src';$arc=Join-Path $env:RUNNER_TEMP 'bbya-main24-r2.tar.gz';if(Test-Path $src){rm $src -Recurse -Force};mkdir $src|Out-Null
+          Invoke-WebRequest -UseBasicParsing -Headers $h -Uri "https://api.github.com/repos/$repo/tarball/$env:BBYA_SOURCE_SHA" -OutFile $arc;$tar=Get-Command tar.exe -ErrorAction SilentlyContinue;if(-not $tar){throw 'tar unavailable'};& $tar.Source -xzf $arc -C $src --strip-components=1;if($LASTEXITCODE -ne 0){throw 'extract failed'};"BBYA_SOURCE_DIR=$src"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Hard gate 24 locked tracks and safe v508 systems
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$m=Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub';$p=gc (Join-Path $m '30-club-systems.server.lua') -Raw;$a=gc (Join-Path $m '109-music-catalog-reset.server.lua') -Raw;$sk=gc (Join-Path $m '79-skatepark-upgrade.server.lua') -Raw;$ctl=gc (Join-Path $m '135-skateboard-controls.client.lua') -Raw;$r=gc (Join-Path $m '73-skatepark.server.lua') -Raw;$sg=gc (Join-Path $m '104-venue-audio-groups.server.lua') -Raw
+          $ids=@('96983528563473','105877233550276','94337788677482','112322493409786','89165355590583','134057367195123','91900235935901','115774171488936','100162128635185','82993942539950','109286172792690','94547306143480','109116552044147','123077675190094','87114365256034','136681158481930','131557279061872','93670094706108','81169975667413','123696371004403','74479015238422','102620964808698','99998363156285','88925775968276')
+          $pm=[regex]::Match($p,'(?s)local PLAYLIST=\{\r?\n-- MAIN_PROGRESSIVE_UPLOAD_BEGIN\r?\n(.*?)\r?\n-- MAIN_PROGRESSIVE_UPLOAD_END\r?\n\}');if(-not $pm.Success){throw 'playlist block missing'};$rows=@($pm.Groups[1].Value -split '\r?\n'|?{$_ -match '^\s*\{title=.*?,id="([0-9]+)",style="[^"]+"\},\s*$'});if($rows.Count -ne 24){throw "Expected 24 tracks got $($rows.Count)"};for($i=0;$i -lt 24;$i++){if($rows[$i] -notmatch 'id="([0-9]+)"' -or $Matches[1] -ne $ids[$i]){throw "Track lock mismatch $($i+1)"}}
+          foreach($x in @('Jay FM - Timeless','Jay FM - Insight','Shingo Nakamura - Glow','Attention')){if($p.Contains($x)){throw "25+ remains: $x"}}
+          foreach($x in @('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAUndergroundPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')){if(-not $a.Contains($x)){throw "Missing safe audio: $x"}};foreach($x in @('BBYAMusicCatalogReset",true','RESET_WITH_UNDERGROUND','SoundService\.DescendantAdded','scrubSound','disableOldAudioEngines')){if($a -match $x){throw "Destructive audio: $x"}}
+          foreach($x in @('SKATEPARK UPGRADE v5 DIRECT DRIVE','V5_DIRECT_DRIVE','ProperRoundedDeck','DirectHorizontalDriveV5')){if(-not $sk.Contains($x)){throw "Skate v5 missing: $x"}};foreach($x in @('SKATEBOARD DIRECT CONTROL BRIDGE v5','PlayerModule','GetMoveVector','BBYASkateControlV5')){if(-not $ctl.Contains($x)){throw "Skate client missing: $x"}}
+          if(-not $r.Contains('NORTH TRANSITION RETURN: slope must face the arrival/ride line from center.') -or -not $r.Contains('Rear Skatepark v3.1 proper: north transition faces ride line')){throw 'Corrected north transition missing'}
+          foreach($x in @('skateGroup.Volume=1.0','sound.Volume=1.0','SKATEPARK_FULL_LEVEL_V1','134928414278364')){if(-not $sg.Contains($x)){throw "Skate v6 audio missing: $x"}}
+          Write-Host 'BBYA_MAIN24_RUN2_HARD_GATE_PASS'
+      - name: Prepare Rojo and build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$cmd=Get-Command rojo -ErrorAction SilentlyContinue;if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'r2-rojo';$z=Join-Path $env:RUNNER_TEMP 'r2-rojo.zip';mkdir $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$rojo=(gci $d -Filter rojo.exe -Recurse|select -First 1).FullName};$place=Join-Path $env:RUNNER_TEMP 'bbya-main24-r2.rbxl';pushd $env:BBYA_SOURCE_DIR;& $rojo build 'maps/bbya-social-hub/default.project.json' -o $place;$rc=$LASTEXITCODE;popd;if($rc -ne 0 -or -not(Test-Path $place) -or (gi $place).Length -lt 1024){throw 'Rojo build failed'};"BBYA_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Publish Roblox
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop';pushd $env:BBYA_SOURCE_DIR;$env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE;$env:PUBLISH_RECEIPT_DIR='deploy-status-mainclub-24-r2';$env:GITHUB_SHA=$env:BBYA_SOURCE_SHA;node scripts/publish-map.js a-club;$rc=$LASTEXITCODE;popd;if($rc -ne 0){throw 'publish failed'}
+      - name: Verify and persist receipt
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop';$path=Join-Path $env:BBYA_SOURCE_DIR 'deploy-status-mainclub-24-r2/a-club.json';$r=gc $path -Raw|ConvertFrom-Json;if($r.status -ne 'PUBLISHED' -or $r.sourceCommit -ne $env:BBYA_SOURCE_SHA -or [string]$r.universeId -ne '8116636513' -or [string]$r.placeId -ne '131894120482837' -or [int]$r.response.versionNumber -le 508){throw 'receipt verification failed'};$text=gc $path -Raw;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text));$h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Main24-Run2'};foreach($dst in @('deploy-status/a-club.json','deploy-status/a-club-mainclub-24.json')){$enc=(($dst.Split('/')|%{[Uri]::EscapeDataString($_)}) -join '/');$u="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc";$sha=$null;try{$e=Invoke-RestMethod -Headers $h -Uri ($u+'?ref=main');$sha=[string]$e.sha}catch{};$body=@{message="Record BBYA Main Club 24 v$($r.response.versionNumber) [skip ci]";content=$b64;branch='main'};if($sha){$body.sha=$sha};Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $u -Body ($body|ConvertTo-Json -Depth 4)|Out-Null};Write-Host "BBYA_MAIN24_RUN2_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
