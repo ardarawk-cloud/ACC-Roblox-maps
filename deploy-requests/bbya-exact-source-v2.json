@@ -1,7 +1,7 @@
 {
-  "source_sha": "463c7d2ab706658431a1f21c4e2c8a42a4a12e5e",
-  "reason": "Pre-merge exact-source QC for screenshot-driven Mall premium visual refinement v8 and Roblox-native catalog reliability from PR #208; publish only after merge and exact receipt verification",
-  "feature_pr": 208,
+  "source_sha": "a40bd2d11572e28802d7fdfbff6a22ec6750cf65",
+  "reason": "Pre-merge exact-source QC for BBYA Mall Premium Atmosphere v9 from PR #212; publish only after merge and exact receipt verification",
+  "feature_pr": 212,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
