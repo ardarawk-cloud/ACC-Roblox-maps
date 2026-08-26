@@ -1,6 +1,6 @@
 {
   "source_sha": "1f7585901dd68b6cc3327c45aefa5256dac60940",
-  "reason": "Exact deploy of Mall runtime compatibility fix from PR #206 after self-hosted Windows x64 Rojo 7.7.0 QC PASS",
+  "reason": "Exact deploy of Mall runtime compatibility fix from PR #206 after self-hosted Windows x64 Rojo 7.7.0 QC PASS; explicit publish trigger",
   "feature_pr": 206,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
