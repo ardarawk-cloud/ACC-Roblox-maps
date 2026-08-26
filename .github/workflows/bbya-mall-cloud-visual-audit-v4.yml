@@ -73,7 +73,6 @@ jobs:
           print("[MALLCLOUD_BEGIN]")
           local ServerStorage=game:GetService("ServerStorage")
           local Workspace=game:GetService("Workspace")
-          local EncodingService=game:GetService("EncodingService")
           local modules=ServerStorage:WaitForChild("MallAuditAuthorities")
           local old=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
           if old then old:Destroy() end
@@ -102,51 +101,7 @@ jobs:
               print(string.format("[MALLTENANT]|%s|%.1f,%.1f,%.1f|%.1f,%.1f,%.1f|%s",id,uc.Position.X,uc.Position.Y,uc.Position.Z,us.X,us.Y,us.Z,tostring(unit:GetAttribute("PremiumRetailGallery"))))
             end
           end
-          local camera=Workspace.CurrentCamera
-          assert(camera,"Studio camera unavailable")
-          camera.CameraType=Enum.CameraType.Scriptable
-          camera.FieldOfView=68
-          local views={
-            {"01-entrance-atrium",Vector3.new(0,13,286),Vector3.new(0,12,365)},
-            {"02-l1-left",Vector3.new(-8,9,330),Vector3.new(-66,8,348)},
-            {"03-l1-right",Vector3.new(8,9,365),Vector3.new(66,8,380)},
-            {"04-l1-rear",Vector3.new(0,10,417),Vector3.new(66,8,400)},
-            {"05-l2-right",Vector3.new(2,23,348),Vector3.new(68,20,370)},
-            {"06-upper-atrium",Vector3.new(0,38,330),Vector3.new(0,22,382)},
-            {"07-overview",Vector3.new(0,72,280),Vector3.new(0,22,365)},
-          }
-          local capService=game:GetService("StudioCaptureService")
-          local can=capService:CanCaptureScreenshot()
-          print("[MALLCAP_SERVICE]|"..tostring(can))
-          assert(can,"StudioCaptureService cannot capture screenshot")
-          for _,v in ipairs(views) do
-            camera.CFrame=CFrame.lookAt(v[2],v[3])
-            camera.Focus=CFrame.new(v[3])
-            task.wait(.6)
-            local cap=capService:CaptureScreenshot({UICaptureMode=Enum.UICaptureMode.None,BufferFormat=Enum.StudioCaptureScreenshotFormat.PNG})
-            for i=1,100 do
-              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Ready then break end
-              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Error then break end
-              task.wait(.05)
-            end
-            if cap.BufferStatus~=Enum.StudioCaptureBufferStatus.Ready then
-              print("[MALLCAP_ERROR]|"..v[1].."|"..cap.BufferStatus.Name)
-              error("capture failed "..v[1])
-            end
-            local scaled=cap:ScaleAsync(Enum.ResamplerMode.Default,Vector2.new(640,360))
-            local buf=scaled:GetBuffer()
-            local b64=EncodingService:Base64Encode(buf)
-            print(string.format("[MALLCAP_META]|%s|%s|%d|%d|%d|%d",v[1],scaled.BufferFormat.Name,scaled.Resolution.X,scaled.Resolution.Y,buffer.len(buf),buffer.len(b64)))
-            local total=buffer.len(b64)
-            local step=1200
-            local seq=0
-            for offset=0,total-1,step do
-              local n=math.min(step,total-offset)
-              print(string.format("[MALLCAP_CHUNK]|%s|%06d|%s",v[1],seq,buffer.readstring(b64,offset,n)))
-              seq+=1
-            end
-            print("[MALLCAP_VIEW_DONE]|"..v[1])
-          end
+          print("[MALLCLOUD_READY]")
           print("[MALLCLOUD_DONE]")
           return true
           '@
@@ -206,65 +161,93 @@ jobs:
           if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          $cmd='task.spawn(function() local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallCloudAuditRunner"));print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end end)'
+          $cmd='local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallCloudAuditRunner"));print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end'
           $value.SetValue($cmd)
           $invoke.Invoke()
-          Start-Sleep -Seconds 45
+          Start-Sleep -Seconds 12
 
-      - name: Reconstruct native Studio captures
+      - name: Capture seven native Studio window views
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
           Add-Type -AssemblyName System.Drawing
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public static class MallWin32 {
+            [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+          }
+          "@
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $p.Refresh()
+          $hwnd=[IntPtr]$p.MainWindowHandle
+          if($hwnd -eq [IntPtr]::Zero){throw 'Studio window handle unavailable'}
+          [MallWin32]::ShowWindow($hwnd,3) | Out-Null
+          [MallWin32]::SetForegroundWindow($hwnd) | Out-Null
+          Start-Sleep -Seconds 2
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable for camera capture'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $views=@(
+            @{name='01-entrance-atrium';pos='Vector3.new(0,13,286)';target='Vector3.new(0,12,365)'},
+            @{name='02-l1-left';pos='Vector3.new(-8,9,330)';target='Vector3.new(-66,8,348)'},
+            @{name='03-l1-right';pos='Vector3.new(8,9,365)';target='Vector3.new(66,8,380)'},
+            @{name='04-l1-rear';pos='Vector3.new(0,10,417)';target='Vector3.new(66,8,400)'},
+            @{name='05-l2-right';pos='Vector3.new(2,23,348)';target='Vector3.new(68,20,370)'},
+            @{name='06-upper-atrium';pos='Vector3.new(0,38,330)';target='Vector3.new(0,22,382)'},
+            @{name='07-overview';pos='Vector3.new(0,72,280)';target='Vector3.new(0,22,365)'}
+          )
+          foreach($v in $views){
+            $cmd='local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt('+$v.pos+','+$v.target+');c.Focus=CFrame.new('+$v.target+');print("[MALLOS_VIEW]|'+$v.name+'")'
+            $value.SetValue($cmd)
+            $invoke.Invoke()
+            Start-Sleep -Milliseconds 1200
+            $rect=New-Object MallWin32+RECT
+            if(-not [MallWin32]::GetWindowRect($hwnd,[ref]$rect)){throw 'GetWindowRect failed'}
+            $w=$rect.Right-$rect.Left
+            $h=$rect.Bottom-$rect.Top
+            if($w -lt 640 -or $h -lt 360){throw "Unexpected Studio window size ${w}x${h}"}
+            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($rect.Left,$rect.Top,0,0,$bmp.Size)
+            $path=Join-Path $env:OUTDIR ($v.name+'.png')
+            $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
+            $g.Dispose();$bmp.Dispose()
+            if((Get-Item $path).Length -lt 10000){throw "Capture too small: $($v.name)"}
+            Write-Host "Captured $($v.name) -> $path"
+          }
+
+      - name: Validate Mall cloud audit artifact
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
           $log=$null
           foreach($f in (Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12)){
             if(Select-String -Path $f.FullName -Pattern '\[FLog::CreatorOutput\].*\[MALLCLOUD_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
           }
-          if(-not $log){throw 'Mall native capture output log not found'}
+          if(-not $log){throw 'Mall audit output log not found'}
           $lines=Get-Content $log.FullName
           $actual=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]' -and $_ -notmatch '\[FLog::CreatorOutput\] > '}
-          $done=$actual | Where-Object {$_ -match '\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
-          if(-not $done){
-            Write-Host '=== Mall CreatorOutput diagnostics ==='
-            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 300 | ForEach-Object {Write-Host $_}
-            throw 'Mall cloud renderer did not complete'
-          }
-          $geometry=$actual | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE|MALLCLOUD_WRAPPER)\]'}
+          if(-not ($actual | Where-Object {$_ -match '\[MALLCLOUD_DONE\]'})){throw 'Mall authorities did not complete'}
+          $geometry=$actual | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLOS_VIEW|MALLCLOUD_WRAPPER)\]'}
           $geometry | Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
-          $metas=@{}
-          foreach($line in $actual){
-            if($line -match '\[MALLCAP_META\]\|([^|]+)\|([^|]+)\|(\d+)\|(\d+)\|(\d+)\|(\d+)'){
-              $metas[$matches[1]]=@{format=$matches[2];w=[int]$matches[3];h=[int]$matches[4]}
-            }
+          $expected=@('01-entrance-atrium','02-l1-left','03-l1-right','04-l1-rear','05-l2-right','06-upper-atrium','07-overview')
+          foreach($name in $expected){
+            $p=Join-Path $env:OUTDIR ($name+'.png')
+            if(-not (Test-Path $p)){throw "Missing capture $name"}
+            if((Get-Item $p).Length -lt 10000){throw "Invalid capture $name"}
           }
-          if($metas.Count -ne 7){throw "Expected 7 native captures, got $($metas.Count)"}
-          foreach($view in $metas.Keys){
-            $parts=@()
-            foreach($line in $actual){
-              if($line -match ('\[MALLCAP_CHUNK\]\|'+[regex]::Escape($view)+'\|(\d+)\|(.+)$')){
-                $parts += [pscustomobject]@{n=[int]$matches[1];data=$matches[2]}
-              }
-            }
-            if($parts.Count -eq 0){throw "No capture chunks for $view"}
-            $b64=($parts | Sort-Object n | ForEach-Object {$_.data}) -join ''
-            $bytes=[Convert]::FromBase64String($b64)
-            $meta=$metas[$view]
-            $path=Join-Path $env:OUTDIR ($view+'.png')
-            if($meta.format -eq 'PNG'){
-              [IO.File]::WriteAllBytes($path,$bytes)
-            } elseif($meta.format -eq 'RGBA8'){
-              $bmp=New-Object System.Drawing.Bitmap($meta.w,$meta.h,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-              $rect=New-Object System.Drawing.Rectangle(0,0,$meta.w,$meta.h)
-              $data=$bmp.LockBits($rect,[System.Drawing.Imaging.ImageLockMode]::WriteOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-              $bgra=New-Object byte[] ($bytes.Length)
-              for($i=0;$i -lt $bytes.Length;$i+=4){$bgra[$i]=$bytes[$i+2];$bgra[$i+1]=$bytes[$i+1];$bgra[$i+2]=$bytes[$i];$bgra[$i+3]=$bytes[$i+3]}
-              [Runtime.InteropServices.Marshal]::Copy($bgra,0,$data.Scan0,$bgra.Length)
-              $bmp.UnlockBits($data)
-              $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
-              $bmp.Dispose()
-            } else {throw "Unknown Studio capture format $($meta.format)"}
-          }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + Rojo-built canonical audit modules';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='Roblox Studio scripted camera + native Windows window capture';views=$expected;productionSourceModified=$false;auditCompatibility=@('Enum.Material.Tile -> CeramicTiles','MallLiveUpgradeV2 boards table syntax repair')} | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
           Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
 
       - name: Close Studio
