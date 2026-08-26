@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.1.0-scaffold",
+    Version = "0.2.0-premium-pass-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -11,9 +11,9 @@ local Config = {
     World = {
         RootName = "AfterSchoolCity",
         GroundY = 0,
-        Spawn = Vector3.new(0, 4, 240),
+        Spawn = Vector3.new(0, 2.2, 271),
         DistrictTravelTargetSeconds = 45,
-        Blockout = {
+        Districts = {
             School = {Center = Vector3.new(0, 0, 210), Size = Vector3.new(220, 2, 150)},
             Downtown = {Center = Vector3.new(0, 0, 0), Size = Vector3.new(230, 2, 170)},
             SkatePark = {Center = Vector3.new(235, 0, 0), Size = Vector3.new(150, 2, 150)},
@@ -31,7 +31,9 @@ local Config = {
     },
 
     Flags = {
-        EnableBlockoutScaffold = true,
+        EnableBlockoutScaffold = false,
+        EnablePremiumFoundation = true,
+        EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
         EnablePersistence = false,
