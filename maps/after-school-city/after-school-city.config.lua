@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.3.0-city-life-pass-1",
+    Version = "0.4.0-street-density-pass-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -34,6 +34,7 @@ local Config = {
         EnableBlockoutScaffold = false,
         EnablePremiumFoundation = true,
         EnableCityLifePass = true,
+        EnableStreetDensityPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
