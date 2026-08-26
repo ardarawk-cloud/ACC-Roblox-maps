@@ -1,6 +1,6 @@
 {
-  "source_sha": "a40bd2d11572e28802d7fdfbff6a22ec6750cf65",
-  "reason": "Pre-merge exact-source QC for BBYA Mall Premium Atmosphere v9 from PR #212; publish only after merge and exact receipt verification",
+  "source_sha": "d4fc08c4cc47b990407239076f4bd69015d929cd",
+  "reason": "Exact-source deploy for BBYA Mall Premium Atmosphere v9 after PR #212 merge; source rebased to merged main so unrelated track-01 commits are already in ancestry",
   "feature_pr": 212,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
