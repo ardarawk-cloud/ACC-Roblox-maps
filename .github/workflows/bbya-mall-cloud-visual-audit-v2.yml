@@ -1,0 +1,176 @@
+name: BBYA Mall Cloud Visual Audit V2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-cloud-visual-audit-v2.yml'
+      - '.github/worker-jobs/bbya-mall-visual-trigger-v2.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Capture current BBYA Mall in Roblox Studio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){throw 'Roblox Studio not found on BBYA cloud worker'}
+          $shell=New-Object -ComObject WScript.Shell
+          [void]$shell.AppActivate($proc.Id)
+          Start-Sleep -Milliseconds 500
+          $shell.SendKeys('%{SPACE}x')
+          Start-Sleep -Milliseconds 500
+          $shell.SendKeys('+{F5}')
+          Start-Sleep -Seconds 1
+          $shell.SendKeys('{F5}')
+          Start-Sleep -Seconds 14
+
+          $ui=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+
+          function Invoke-Lua([string]$lua){
+            $value.SetValue($lua)
+            Start-Sleep -Milliseconds 220
+            $invoke.Invoke()
+            Start-Sleep -Milliseconds 950
+          }
+
+          $outDir=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v2'
+          Remove-Item $outDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $outDir|Out-Null
+
+          function Capture-View([string]$name){
+            [void]$shell.AppActivate($proc.Id)
+            Start-Sleep -Milliseconds 350
+            $bounds=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $w=$bounds.Width;$h=$bounds.Height
+            $full=New-Object System.Drawing.Bitmap($w,$h)
+            $gf=[System.Drawing.Graphics]::FromImage($full)
+            $gf.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bounds.Size)
+            $x=[int]($w*.30);$y=[int]($h*.18);$cw=[int]($w*.50);$ch=[int]($h*.64)
+            if($x+$cw -gt $w){$cw=$w-$x};if($y+$ch -gt $h){$ch=$h-$y}
+            $crop=New-Object System.Drawing.Bitmap($cw,$ch)
+            $gc=[System.Drawing.Graphics]::FromImage($crop)
+            $dst=New-Object System.Drawing.Rectangle(0,0,$cw,$ch)
+            $src=New-Object System.Drawing.Rectangle($x,$y,$cw,$ch)
+            $gc.DrawImage($full,$dst,$src,[System.Drawing.GraphicsUnit]::Pixel)
+            $targetW=900;$targetH=[int]($ch*$targetW/$cw)
+            $small=New-Object System.Drawing.Bitmap($targetW,$targetH)
+            $g2=[System.Drawing.Graphics]::FromImage($small)
+            $g2.InterpolationMode=[System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+            $g2.DrawImage($crop,0,0,$targetW,$targetH)
+            $jpg=Join-Path $outDir ($name+'.jpg')
+            $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
+            $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
+            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]82)
+            $small.Save($jpg,$codec,$ep)
+            $gf.Dispose();$gc.Dispose();$g2.Dispose();$full.Dispose();$crop.Dispose();$small.Dispose()
+          }
+
+          $diag=@'
+          print("[BBYA_MALL_AUDIT_BEGIN]")
+          local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
+          local mall=root and root:FindFirstChild("BBYAMall")
+          print("ROOT="..tostring(root~=nil).."|MALL="..tostring(mall~=nil))
+          if mall then
+            print("PASS="..tostring(mall:GetAttribute("Pass")).."|FLOORS="..tostring(mall:GetAttribute("Floors")).."|TENANTS="..tostring(mall:GetAttribute("TenantCount")).."|VISUAL="..tostring(mall:GetAttribute("MallMobileVisualAuthority")))
+            for _,name in ipairs({"MallArchitectureV3","MallLiveUpgradeV2","MallRobuxCommerceV1","MallPremiumGalleryV6"}) do
+              print(name.."="..tostring(mall:FindFirstChild(name)~=nil))
+            end
+            for _,id in ipairs({"luma","stride","byte","daily","mono","muse","north","street","page","glow","sound","fit"}) do
+              local unit=mall:FindFirstChild("Tenant_"..id)
+              if unit and unit:IsA("Model") then
+                local cf,sz=unit:GetBoundingBox()
+                print(string.format("TENANT=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f|GALLERY=%s",id,cf.Position.X,cf.Position.Y,cf.Position.Z,sz.X,sz.Y,sz.Z,tostring(unit:GetAttribute("PremiumRetailGallery"))))
+              else print("TENANT="..id.."|MISSING") end
+            end
+          end
+          print("[BBYA_MALL_AUDIT_END]")
+          '@
+          Invoke-Lua $diag
+
+          $views=@(
+            @{n='01-entrance-atrium';p='0,5,304';l='0,8,365';z='18'},
+            @{n='02-l1-left';p='0,5,326';l='-66,5,330';z='18'},
+            @{n='03-l1-right';p='0,5,365';l='66,5,365';z='18'},
+            @{n='04-l1-rear';p='0,5,390';l='68,5,405';z='18'},
+            @{n='05-l2-right';p='0,19,350';l='70,19,365';z='19'},
+            @{n='06-upper-atrium';p='0,34,340';l='0,24,390';z='22'},
+            @{n='07-overview';p='0,52,320';l='0,22,380';z='30'}
+          )
+          foreach($v in $views){
+            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=$($v.z);P.CameraMaxZoomDistance=$($v.z);local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.Anchored=true;H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
+            Invoke-Lua $lua
+            Start-Sleep -Milliseconds 750
+            Capture-View $v.n
+          }
+          Invoke-Lua "local P=game:GetService('Players'):GetPlayers()[1];local H=P and P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.Anchored=false end"
+
+          $marked=New-Object System.Collections.Generic.List[string]
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 8
+          foreach($log in $logs){
+            $capture=$false
+            foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
+              if($line -match '\[BBYA_MALL_AUDIT_BEGIN\]'){$capture=$true}
+              if($capture){$marked.Add($line)}
+              if($capture -and $line -match '\[BBYA_MALL_AUDIT_END\]'){$capture=$false}
+            }
+            if($marked.Count -gt 0){break}
+          }
+          [IO.File]::WriteAllText((Join-Path $outDir 'geometry.txt'),($marked -join "`n"))
+
+          $report=Join-Path $outDir 'visual-analysis.md'
+          $prompt=@'
+          Inspect these seven CURRENT Roblox Studio Play-mode 3D viewport captures of BBYA Mall. Judge only what is visibly rendered. Be strict about premium retail quality and spatial coherence. Identify blocking slabs/walls, hidden storefronts, intersecting signs/fascias, floating panels, oversized prompts, dead dark zones, bad scale, incoherent tenant fronts, blocked circulation, atrium/escalator/elevator issues, and anything that still reads as stacked Roblox boxes. Compare entrance/atrium, both L1 sides, rear L1, L2, upper circulation, and overview. Give a prioritized repair plan. Prefer deleting/replacing offending geometry over stacking decorations. Do not change global Lighting, DJ/audio, VIP, fishing, or unrelated systems.
+          '@
+          $imgs=Get-ChildItem $outDir -Filter '*.jpg'|Sort-Object Name|ForEach-Object {$_.FullName}
+          try{
+            $args=@('exec','--ephemeral','-s','read-only','--color','never','-o',$report)
+            foreach($img in $imgs){$args+=@('-i',$img)}
+            $args+=$prompt
+            & codex @args
+            if($LASTEXITCODE -ne 0){throw "codex visual audit exit $LASTEXITCODE"}
+          }catch{
+            [IO.File]::WriteAllText($report,"VISUAL_ANALYSIS_UNAVAILABLE`n"+$_.Exception.Message)
+          }
+
+          $status=@{capturedAt=(Get-Date -Format o);runId=$env:GITHUB_RUN_ID;sourceCommit=$env:GITHUB_SHA;views=($views|ForEach-Object {$_.n});geometryLines=$marked.Count;method='defender-safe-v2'}|ConvertTo-Json -Depth 5
+          [IO.File]::WriteAllText((Join-Path $outDir 'audit.json'),$status)
+
+          [void]$shell.AppActivate($proc.Id)
+          $shell.SendKeys('+{F5}')
+          Start-Sleep -Seconds 2
+
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Mall-Audit-V2"}
+          function Publish-File([string]$local,[string]$remote){
+            $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$remote"
+            $sha=$null
+            try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+            $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes($local))
+            $body=@{message='Record BBYA Mall cloud visual audit v2 [skip ci]';content=$b64;branch='main'}
+            if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json -Depth 4) -ContentType 'application/json'|Out-Null
+          }
+          foreach($f in (Get-ChildItem $outDir -File|Sort-Object Name)){
+            Publish-File $f.FullName ("deploy-status/bbya-mall-cloud-audit/"+$f.Name)
+          }
