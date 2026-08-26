@@ -1,2 +1,2 @@
-requestedAt=2026-08-24T23:49:00+08:00
-reason=mall-live-visual-audit-v410-user-sees-no-change
+requestedAt=2026-08-26T17:11:58+08:00
+reason=mall-fresh-cloud-visual-audit-before-premium-precision-pass
