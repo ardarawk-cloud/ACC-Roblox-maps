@@ -21,6 +21,9 @@
       },
       "ASC_CityLife": {
         "$path": "after-school-city.city-life.server.lua"
+      },
+      "ASC_StreetLife": {
+        "$path": "after-school-city.street-life.server.lua"
       }
     },
     "StarterGui": {
