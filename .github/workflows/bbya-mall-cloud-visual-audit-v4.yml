@@ -22,7 +22,7 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Prepare Rojo 7.7.0 and build canonical BBYA place
+      - name: Build canonical BBYA snapshot with temporary Mall audit modules
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -37,68 +37,41 @@ jobs:
           $ver=& $rojo --version
           Write-Host $ver
           if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
-          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
-          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Rojo build failed'}
-          "PLACEFILE=$place" | Out-File -FilePath $env:GITHUB_ENV -Append
-          $outDir=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v4'
-          Remove-Item $outDir -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-          "OUTDIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Launch canonical place in Roblox Studio
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-          $candidates=@()
-          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
-            if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          $map='maps/bbya-social-hub'
+          $runtime=Join-Path $map '__mall-audit-runtime'
+          $auth=Join-Path $runtime 'authorities'
+          Remove-Item $runtime -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $auth | Out-Null
+
+          $authorityFiles=[ordered]@{
+            'ActiveRearMallV1'='94-mall.server.lua'
+            'MallLiveUpgradeV2'='95-mall-live-upgrade.server.lua'
+            'ActiveMallPolishV1'='94-mall-polish.server.lua'
+            'MallRobuxCommerceV1'='133-mall-robux-commerce.server.lua'
+            'MallSafeSecurityOverrideV1'='97-mall-safe-security-override.server.lua'
           }
-          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
-          Write-Host "Studio=$($studio.FullName)"
-          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
-          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
-          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
-          "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Start-Sleep -Seconds 7
+          foreach($name in $authorityFiles.Keys){
+            $src=Join-Path $map $authorityFiles[$name]
+            if(-not (Test-Path $src)){throw "Missing Mall authority source: $src"}
+            $text=(Get-Content $src -Raw)+"`r`nreturn true`r`n"
+            Set-Content -Path (Join-Path $auth ($name+'.lua')) -Value $text -Encoding UTF8
+          }
 
-      - name: Build Mall from canonical authorities and capture seven native views
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
-          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
-          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-
-          $lua=@'
+          $runner=@'
           print("[MALLCLOUD_BEGIN]")
-          local SSS=game:GetService("ServerScriptService")
+          local ServerStorage=game:GetService("ServerStorage")
           local Workspace=game:GetService("Workspace")
           local EncodingService=game:GetService("EncodingService")
+          local modules=ServerStorage:WaitForChild("MallAuditAuthorities")
           local old=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
           if old then old:Destroy() end
           local root=Instance.new("Folder")
           root.Name="BBYA_ZERO_BUILD"
           root.Parent=Workspace
           local function runAuthority(name)
-            local obj=SSS:FindFirstChild(name)
-            assert(obj and obj:IsA("LuaSourceContainer"),"missing authority: "..name)
-            local mod=Instance.new("ModuleScript")
-            mod.Name="__MallAudit_"..name
-            mod.Source=obj.Source.."\nreturn true"
-            mod.Parent=SSS
+            local mod=modules:WaitForChild(name)
             local ok,res=pcall(require,mod)
-            mod:Destroy()
             print("[MALLAUTH]|"..name.."|"..tostring(ok).."|"..tostring(res))
             assert(ok,res)
           end
@@ -166,26 +139,63 @@ jobs:
           print("[MALLCLOUD_DONE]")
           return true
           '@
+          Set-Content -Path (Join-Path $runtime 'runner.lua') -Value $runner -Encoding UTF8
 
-          $init='local S=game:GetService("ServerStorage");local V=S:FindFirstChild("__MallCloudPayload") or Instance.new("StringValue");V.Name="__MallCloudPayload";V.Value="";V.Parent=S;print("[MALLPAYLOAD_INIT]")'
-          $value.SetValue($init)
-          $invoke.Invoke()
-          Start-Sleep -Milliseconds 250
-
-          $chunkSize=650
-          for($offset=0;$offset -lt $lua.Length;$offset+=$chunkSize){
-            $count=[Math]::Min($chunkSize,$lua.Length-$offset)
-            $raw=$lua.Substring($offset,$count)
-            $escaped=$raw.Replace('\','\\').Replace('"','\"').Replace("`r",'\r').Replace("`n",'\n')
-            $cmd='local V=game:GetService("ServerStorage"):FindFirstChild("__MallCloudPayload");assert(V,"payload missing");V.Value=V.Value.."'+$escaped+'"'
-            if($cmd.Length -gt 1800){throw "Command chunk too long: $($cmd.Length)"}
-            $value.SetValue($cmd)
-            $invoke.Invoke()
-            Start-Sleep -Milliseconds 80
+          $projectPath=Join-Path $map 'default.project.json'
+          $project=Get-Content $projectPath -Raw | ConvertFrom-Json
+          $serverStorage=[pscustomobject][ordered]@{
+            '$className'='ServerStorage'
+            'MallAuditAuthorities'=[pscustomobject][ordered]@{'$path'='__mall-audit-runtime/authorities'}
+            'MallCloudAuditRunner'=[pscustomobject][ordered]@{'$path'='__mall-audit-runtime/runner.lua'}
           }
+          $project.tree | Add-Member -NotePropertyName 'ServerStorage' -NotePropertyValue $serverStorage -Force
+          $auditProject=Join-Path $map '__mall-audit.project.json'
+          $project | ConvertTo-Json -Depth 100 | Set-Content $auditProject -Encoding UTF8
 
-          $runCmd='local S=game:GetService("ServerStorage");local V=S:FindFirstChild("__MallCloudPayload");assert(V,"payload missing");local M=Instance.new("ModuleScript");M.Name="__MallCloudRunner";M.Source=V.Value;M.Parent=game:GetService("ServerScriptService");task.spawn(function() local ok,res=pcall(require,M);print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end end)'
-          $value.SetValue($runCmd)
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
+          & $rojo build $auditProject -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Mall audit Rojo build failed'}
+          "PLACEFILE=$place" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $outDir=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v4'
+          Remove-Item $outDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          "OUTDIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Launch canonical place in Roblox Studio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          $candidates=@()
+          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
+            if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          }
+          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "Studio=$($studio.FullName)"
+          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
+          "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 7
+
+      - name: Run built-in Mall cloud audit module
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $cmd='task.spawn(function() local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallCloudAuditRunner"));print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end end)'
+          $value.SetValue($cmd)
           $invoke.Invoke()
           Start-Sleep -Seconds 45
 
@@ -200,16 +210,17 @@ jobs:
           }
           if(-not $log){throw 'Mall native capture output log not found'}
           $lines=Get-Content $log.FullName
-          $done=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\].*\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
+          $actual=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]' -and $_ -notmatch '\[FLog::CreatorOutput\] > '}
+          $done=$actual | Where-Object {$_ -match '\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
           if(-not $done){
             Write-Host '=== Mall CreatorOutput diagnostics ==='
-            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 260 | ForEach-Object {Write-Host $_}
+            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 300 | ForEach-Object {Write-Host $_}
             throw 'Mall cloud renderer did not complete'
           }
-          $geometry=$lines | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE)\]'}
+          $geometry=$actual | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE|MALLCLOUD_WRAPPER)\]'}
           $geometry | Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
           $metas=@{}
-          foreach($line in $lines){
+          foreach($line in $actual){
             if($line -match '\[MALLCAP_META\]\|([^|]+)\|([^|]+)\|(\d+)\|(\d+)\|(\d+)\|(\d+)'){
               $metas[$matches[1]]=@{format=$matches[2];w=[int]$matches[3];h=[int]$matches[4]}
             }
@@ -217,7 +228,7 @@ jobs:
           if($metas.Count -ne 7){throw "Expected 7 native captures, got $($metas.Count)"}
           foreach($view in $metas.Keys){
             $parts=@()
-            foreach($line in $lines){
+            foreach($line in $actual){
               if($line -match ('\[MALLCAP_CHUNK\]\|'+[regex]::Escape($view)+'\|(\d+)\|(.+)$')){
                 $parts += [pscustomobject]@{n=[int]$matches[1];data=$matches[2]}
               }
@@ -241,7 +252,7 @@ jobs:
               $bmp.Dispose()
             } else {throw "Unknown Studio capture format $($meta.format)"}
           }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + chunked canonical ModuleScript payload';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + Rojo-built canonical audit modules';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
           Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
 
       - name: Close Studio
