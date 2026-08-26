@@ -1,0 +1,243 @@
+name: BBYA Mall Cloud Visual Audit V5
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-cloud-visual-audit-v5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Prepare Rojo 7.7.0 and build canonical BBYA place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-windows-x86_64.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
+          }
+          $ver=& $rojo --version
+          Write-Host $ver
+          if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-v5-main.rbxl'
+          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Rojo build failed'}
+          "PLACEFILE=$place" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $outDir=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v5'
+          Remove-Item $outDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          "OUTDIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Launch canonical place in Roblox Studio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          $candidates=@()
+          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
+            if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          }
+          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "Studio=$($studio.FullName)"
+          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
+          "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 7
+
+      - name: Build Mall from canonical authorities and capture seven native views
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $lua=@'
+          print("[MALLCLOUDV5_BEGIN]")
+          local SSS=game:GetService("ServerScriptService")
+          local Workspace=game:GetService("Workspace")
+          local EncodingService=game:GetService("EncodingService")
+          local old=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+          if old then old:Destroy() end
+          local root=Instance.new("Folder")
+          root.Name="BBYA_ZERO_BUILD"
+          root.Parent=Workspace
+          local function runAuthority(name)
+            local obj=SSS:FindFirstChild(name)
+            assert(obj and obj:IsA("LuaSourceContainer"),"missing authority: "..name)
+            local mod=Instance.new("ModuleScript")
+            mod.Name="__MallAudit_"..name
+            mod.Source=obj.Source.."\nreturn true"
+            mod.Parent=SSS
+            local ok,res=pcall(require,mod)
+            mod:Destroy()
+            print("[MALLAUTHV5]|"..name.."|"..tostring(ok).."|"..tostring(res))
+            assert(ok,res)
+          end
+          runAuthority("ActiveRearMallV1")
+          runAuthority("MallLiveUpgradeV2")
+          runAuthority("ActiveMallPolishV1")
+          runAuthority("MallRobuxCommerceV1")
+          runAuthority("MallSafeSecurityOverrideV1")
+          local mall=root:FindFirstChild("BBYAMall")
+          assert(mall,"BBYAMall missing after authorities")
+          local c,s=mall:GetBoundingBox()
+          print(string.format("[MALLGEOMV5]|PASS=%s|VISUAL=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f",tostring(mall:GetAttribute("Pass")),tostring(mall:GetAttribute("MallMobileVisualAuthority")),c.Position.X,c.Position.Y,c.Position.Z,s.X,s.Y,s.Z))
+          for _,id in ipairs({"luma","stride","byte","daily","mono","muse","north","street","page","glow","sound","fit"}) do
+            local unit=mall:FindFirstChild("Tenant_"..id)
+            if unit and unit:IsA("Model") then
+              local uc,us=unit:GetBoundingBox()
+              print(string.format("[MALLTENANTV5]|%s|%.1f,%.1f,%.1f|%.1f,%.1f,%.1f|%s",id,uc.Position.X,uc.Position.Y,uc.Position.Z,us.X,us.Y,us.Z,tostring(unit:GetAttribute("PremiumRetailGallery"))))
+            end
+          end
+          local camera=Workspace.CurrentCamera
+          assert(camera,"Studio camera unavailable")
+          camera.CameraType=Enum.CameraType.Scriptable
+          camera.FieldOfView=68
+          local views={
+            {"01-entrance-atrium",Vector3.new(0,13,286),Vector3.new(0,12,365)},
+            {"02-l1-left",Vector3.new(-8,9,330),Vector3.new(-66,8,348)},
+            {"03-l1-right",Vector3.new(8,9,365),Vector3.new(66,8,380)},
+            {"04-l1-rear",Vector3.new(0,10,417),Vector3.new(66,8,400)},
+            {"05-l2-right",Vector3.new(2,23,348),Vector3.new(68,20,370)},
+            {"06-upper-atrium",Vector3.new(0,38,330),Vector3.new(0,22,382)},
+            {"07-overview",Vector3.new(0,72,280),Vector3.new(0,22,365)},
+          }
+          local capService=game:GetService("StudioCaptureService")
+          local can=capService:CanCaptureScreenshot()
+          print("[MALLCAPV5_SERVICE]|"..tostring(can))
+          assert(can,"StudioCaptureService cannot capture screenshot")
+          for _,v in ipairs(views) do
+            camera.CFrame=CFrame.lookAt(v[2],v[3])
+            camera.Focus=CFrame.new(v[3])
+            task.wait(.6)
+            local cap=capService:CaptureScreenshot({UICaptureMode=Enum.UICaptureMode.None,BufferFormat=Enum.StudioCaptureScreenshotFormat.PNG})
+            for i=1,100 do
+              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Ready then break end
+              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Error then break end
+              task.wait(.05)
+            end
+            if cap.BufferStatus~=Enum.StudioCaptureBufferStatus.Ready then
+              local errs=cap:GetErrors()
+              print("[MALLCAPV5_ERROR]|"..v[1].."|"..cap.BufferStatus.Name.."|"..tostring(errs and table.concat(errs,", ") or ""))
+              error("capture failed "..v[1])
+            end
+            local scaled=cap:ScaleAsync(Enum.ResamplerMode.Default,Vector2.new(640,360))
+            local buf=scaled:GetBuffer()
+            local b64=EncodingService:Base64Encode(buf)
+            print(string.format("[MALLCAPV5_META]|%s|%s|%d|%d|%d|%d",v[1],scaled.BufferFormat.Name,scaled.Resolution.X,scaled.Resolution.Y,buffer.len(buf),buffer.len(b64)))
+            local total=buffer.len(b64)
+            local step=2400
+            local seq=0
+            for offset=0,total-1,step do
+              local n=math.min(step,total-offset)
+              print(string.format("[MALLCAPV5_CHUNK]|%s|%06d|%s",v[1],seq,buffer.readstring(b64,offset,n)))
+              seq+=1
+            end
+            print("[MALLCAPV5_VIEW_DONE]|"..v[1])
+          end
+          print("[MALLCLOUDV5_DONE]")
+          '@
+          $value.SetValue($lua)
+          Start-Sleep -Milliseconds 300
+          $invoke.Invoke()
+          Start-Sleep -Seconds 30
+
+      - name: Reconstruct native Studio captures
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Drawing
+          $log=$null
+          foreach($f in (Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12)){
+            if(Select-String -Path $f.FullName -Pattern '\[FLog::CreatorOutput\].*\[MALLCLOUDV5_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
+          }
+          if(-not $log){throw 'Mall v5 native capture output log not found'}
+          $lines=Get-Content $log.FullName
+          $done=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\].*\[MALLCLOUDV5_DONE\]'} | Select-Object -Last 1
+          if(-not $done){
+            Write-Host '=== Mall V5 CreatorOutput diagnostics ==='
+            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 220 | ForEach-Object {Write-Host $_}
+            throw 'Mall v5 cloud renderer did not complete'
+          }
+          $geometry=$lines | Where-Object {$_ -match '\[(MALLAUTHV5|MALLGEOMV5|MALLTENANTV5|MALLCAPV5_SERVICE|MALLCAPV5_META|MALLCAPV5_VIEW_DONE)\]'}
+          $geometry | Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
+          $metas=@{}
+          foreach($line in $lines){
+            if($line -match '\[MALLCAPV5_META\]\|([^|]+)\|([^|]+)\|(\d+)\|(\d+)\|(\d+)\|(\d+)'){
+              $metas[$matches[1]]=@{format=$matches[2];w=[int]$matches[3];h=[int]$matches[4]}
+            }
+          }
+          if($metas.Count -ne 7){throw "Expected 7 native captures, got $($metas.Count)"}
+          foreach($view in $metas.Keys){
+            $parts=@()
+            foreach($line in $lines){
+              if($line -match ('\[MALLCAPV5_CHUNK\]\|'+[regex]::Escape($view)+'\|(\d+)\|(.+)$')){
+                $parts += [pscustomobject]@{n=[int]$matches[1];data=$matches[2]}
+              }
+            }
+            if($parts.Count -eq 0){throw "No capture chunks for $view"}
+            $b64=($parts | Sort-Object n | ForEach-Object {$_.data}) -join ''
+            $bytes=[Convert]::FromBase64String($b64)
+            $meta=$metas[$view]
+            $path=Join-Path $env:OUTDIR ($view+'.png')
+            if($meta.format -eq 'PNG'){
+              [IO.File]::WriteAllBytes($path,$bytes)
+            } elseif($meta.format -eq 'RGBA8'){
+              $bmp=New-Object System.Drawing.Bitmap($meta.w,$meta.h,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+              $rect=New-Object System.Drawing.Rectangle(0,0,$meta.w,$meta.h)
+              $data=$bmp.LockBits($rect,[System.Drawing.Imaging.ImageLockMode]::WriteOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+              $bgra=New-Object byte[] ($bytes.Length)
+              for($i=0;$i -lt $bytes.Length;$i+=4){$bgra[$i]=$bytes[$i+2];$bgra[$i+1]=$bytes[$i+1];$bgra[$i+2]=$bytes[$i];$bgra[$i+3]=$bytes[$i+3]}
+              [Runtime.InteropServices.Marshal]::Copy($bgra,0,$data.Scan0,$bgra.Length)
+              $bmp.UnlockBits($data)
+              $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
+              $bmp.Dispose()
+            } else {throw "Unknown Studio capture format $($meta.format)"}
+          }
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + canonical ModuleScript authorities';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
+
+      - name: Close Studio
+        if: always()
+        shell: powershell
+        run: |
+          if($env:STUDIOPID -and $env:STUDIOPID -match '^\d+$' -and [int]$env:STUDIOPID -gt 0){
+            $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue
+            if($p){[void]$p.CloseMainWindow();Start-Sleep -Seconds 2;$p.Refresh();if(-not $p.HasExited){$p|Stop-Process -Force -ErrorAction SilentlyContinue}}
+          }
+
+      - name: Upload Mall cloud audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-cloud-audit-v5
+          path: ${{ runner.temp }}/bbya-mall-cloud-audit-v5
+          if-no-files-found: error
+          retention-days: 7
