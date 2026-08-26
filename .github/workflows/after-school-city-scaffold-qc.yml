@@ -42,6 +42,7 @@ jobs:
           $school = Get-Content 'maps/after-school-city/after-school-city.school-life.server.lua' -Raw
           $downtown = Get-Content 'maps/after-school-city/after-school-city.downtown-life.server.lua' -Raw
           $city = Get-Content 'maps/after-school-city/after-school-city.city-life.server.lua' -Raw
+          $street = Get-Content 'maps/after-school-city/after-school-city.street-life.server.lua' -Raw
           $config = Get-Content 'maps/after-school-city/after-school-city.config.lua' -Raw
           $project = Get-Content 'maps/after-school-city/default.project.json' -Raw
           $null = $project | ConvertFrom-Json
@@ -58,18 +59,21 @@ jobs:
           foreach($token in @('V03_CityLife','SchoolDowntownCorridor','V03_ParkLife','V03_SkateLife','V03_SportsLife','V03_ResidentialLife')){
             if($city -notmatch [regex]::Escape($token)){ throw "City life marker missing: $token" }
           }
-          foreach($token in @('10745359869','121603385909425','0.3.0-city-life-pass-1','EnableBlockoutScaffold = false','EnablePremiumFoundation = true','EnableCityLifePass = true','EnableActivities = false','EnableEconomy = false')){
+          foreach($token in @('V04_StreetLife','SecondaryStreetGrid','StudentRowInfill','V04_DowntownBackAlley','ParkingAndVehicles','PARKED_VEHICLE','SchoolBusParked','ASC_StreetDensityPass')){
+            if($street -notmatch [regex]::Escape($token)){ throw "Street density marker missing: $token" }
+          }
+          foreach($token in @('10745359869','121603385909425','0.4.0-street-density-pass-1','EnableBlockoutScaffold = false','EnablePremiumFoundation = true','EnableCityLifePass = true','EnableStreetDensityPass = true','EnableActivities = false','EnableEconomy = false')){
             if($config -notmatch [regex]::Escape($token)){ throw "Config marker missing: $token" }
           }
-          foreach($token in @('ASCConfig','ASC_World','ASC_SchoolLife','ASC_DowntownLife','ASC_CityLife','after-school-city.school-life.server.lua','after-school-city.downtown-life.server.lua','after-school-city.city-life.server.lua')){
+          foreach($token in @('ASCConfig','ASC_World','ASC_SchoolLife','ASC_DowntownLife','ASC_CityLife','ASC_StreetLife','after-school-city.street-life.server.lua')){
             if($project -notmatch [regex]::Escape($token)){ throw "Rojo project marker missing: $token" }
           }
 
-          $allSource = $world + "`n" + $school + "`n" + $downtown + "`n" + $city
+          $allSource = $world + "`n" + $school + "`n" + $downtown + "`n" + $city + "`n" + $street
           if($allSource -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt'){ throw 'ASC map source must not contain monetization authority' }
           if($allSource -match 'DataStoreService'){ throw 'ASC map source must not enable persistence yet' }
           if($allSource -match 'BillboardGui'){ throw 'Production map source must not reintroduce giant debug BillboardGui labels' }
-          Write-Host 'AFTER SCHOOL CITY v0.3 static QC PASS'
+          Write-Host 'AFTER SCHOOL CITY v0.4 static QC PASS'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -97,10 +101,10 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-v03.rbxl'
+          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-v04.rbxl'
           & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
           if(-not (Test-Path $place)){throw 'Generated RBXL missing'}
           $bytes=(Get-Item $place).Length
           if($bytes -lt 1024){throw "Generated RBXL suspiciously small: $bytes bytes"}
-          Write-Host "AFTER SCHOOL CITY V0.3 ROJO BUILD PASS - $bytes bytes"
+          Write-Host "AFTER SCHOOL CITY V0.4 ROJO BUILD PASS - $bytes bytes"
