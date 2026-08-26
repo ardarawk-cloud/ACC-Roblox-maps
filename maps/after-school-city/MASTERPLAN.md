@@ -109,6 +109,8 @@ Regular events, map additions, cosmetics and new activities.
 Do not publish Scaffold V1 until:
 1. Source QC passes.
 2. Dedicated build pipeline exists.
-3. Generated place is visually captured/audited.
+3. Generated place has seven native Roblox Studio screenshots captured with StudioCaptureService and visually audited.
 4. Roblox target IDs are verified.
 5. Publish is explicitly authorized and a receipt can be recorded.
+
+Visual evidence is a hard gate: source structure alone is not sufficient to approve map layout or art direction.
