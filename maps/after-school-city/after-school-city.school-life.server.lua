@@ -36,7 +36,6 @@ local C = {
     metal = Color3.fromRGB(83, 88, 96),
     wood = Color3.fromRGB(139, 103, 72),
     green = Color3.fromRGB(72, 127, 75),
-    glass = Color3.fromRGB(92, 142, 172),
     lockerA = Color3.fromRGB(80, 119, 161),
     lockerB = Color3.fromRGB(214, 170, 75),
 }
@@ -126,53 +125,56 @@ for i = 0, 7 do
 end
 sign(lockers, "LOCKERS", Vector3.new(18, 3.5, 0.6), CFrame.new(-77, 9, 244.2), C.blue)
 
--- Student canteen pavilion: open-sided so it feels usable immediately.
+-- Student canteen pavilion sits west of the school wing instead of overlapping it.
 local canteen = Instance.new("Model")
 canteen.Name = "StudentCanteen"
 canteen.Parent = layer
-part(canteen, "Floor", Vector3.new(54, 0.8, 30), CFrame.new(-78, 1.4, 222), Color3.fromRGB(210, 205, 193), Enum.Material.Concrete)
-part(canteen, "Roof", Vector3.new(56, 1.2, 32), CFrame.new(-78, 13, 222), C.navy, Enum.Material.Metal)
-for _, x in ipairs({-103, -53}) do
-    for _, z in ipairs({209, 235}) do
+local canteenX, canteenZ = -132, 222
+part(canteen, "ConnectorWalk", Vector3.new(34, 0.7, 12), CFrame.new(-111, 1.35, 222), C.concrete, Enum.Material.Concrete)
+part(canteen, "Floor", Vector3.new(54, 0.8, 30), CFrame.new(canteenX, 1.4, canteenZ), Color3.fromRGB(210, 205, 193), Enum.Material.Concrete)
+part(canteen, "Roof", Vector3.new(56, 1.2, 32), CFrame.new(canteenX, 13, canteenZ), C.navy, Enum.Material.Metal)
+for _, x in ipairs({canteenX - 25, canteenX + 25}) do
+    for _, z in ipairs({canteenZ - 13, canteenZ + 13}) do
         part(canteen, "Post", Vector3.new(1.1, 11, 1.1), CFrame.new(x, 7, z), C.metal, Enum.Material.Metal)
     end
 end
-part(canteen, "Counter", Vector3.new(28, 4, 4), CFrame.new(-78, 3.5, 211), C.wood, Enum.Material.Wood)
-part(canteen, "CounterTop", Vector3.new(30, 0.6, 5), CFrame.new(-78, 5.7, 211), C.dark, Enum.Material.Slate)
-sign(canteen, "STUDENT CANTEEN", Vector3.new(28, 4.5, 0.7), CFrame.new(-78, 10, 205.8), C.blue)
-for _, x in ipairs({-91, -65}) do
-    tableSet(canteen, Vector3.new(x, 1.5, 227))
+part(canteen, "Counter", Vector3.new(28, 4, 4), CFrame.new(canteenX, 3.5, canteenZ - 11), C.wood, Enum.Material.Wood)
+part(canteen, "CounterTop", Vector3.new(30, 0.6, 5), CFrame.new(canteenX, 5.7, canteenZ - 11), C.dark, Enum.Material.Slate)
+sign(canteen, "STUDENT CANTEEN", Vector3.new(28, 4.5, 0.7), CFrame.new(canteenX, 10, canteenZ - 16.2), C.blue)
+for _, x in ipairs({canteenX - 13, canteenX + 13}) do
+    tableSet(canteen, Vector3.new(x, 1.5, canteenZ + 5))
 end
 
--- Club hub on the east side: visual home for future music/art/gaming clubs.
+-- Club hub sits east of the school wing, connected by a short paved walk.
 local club = Instance.new("Model")
 club.Name = "ClubHub"
 club.Parent = layer
-part(club, "Floor", Vector3.new(54, 0.8, 30), CFrame.new(78, 1.4, 222), Color3.fromRGB(206, 210, 214), Enum.Material.Concrete)
-part(club, "BackWall", Vector3.new(54, 13, 1.2), CFrame.new(78, 7.5, 208), C.white, Enum.Material.Concrete)
-part(club, "SideWallL", Vector3.new(1.2, 13, 28), CFrame.new(51.5, 7.5, 222), C.white, Enum.Material.Concrete)
-part(club, "SideWallR", Vector3.new(1.2, 13, 28), CFrame.new(104.5, 7.5, 222), C.white, Enum.Material.Concrete)
-part(club, "Roof", Vector3.new(56, 1.2, 30), CFrame.new(78, 14.3, 222), C.navy, Enum.Material.Metal)
-sign(club, "CLUB HUB", Vector3.new(28, 4.5, 0.7), CFrame.new(78, 11, 207.2), C.blue)
+local clubX, clubZ = 132, 222
+part(club, "ConnectorWalk", Vector3.new(34, 0.7, 12), CFrame.new(111, 1.35, 222), C.concrete, Enum.Material.Concrete)
+part(club, "Floor", Vector3.new(54, 0.8, 30), CFrame.new(clubX, 1.4, clubZ), Color3.fromRGB(206, 210, 214), Enum.Material.Concrete)
+part(club, "BackWall", Vector3.new(54, 13, 1.2), CFrame.new(clubX, 7.5, clubZ - 14), C.white, Enum.Material.Concrete)
+part(club, "SideWallL", Vector3.new(1.2, 13, 28), CFrame.new(clubX - 26.5, 7.5, clubZ), C.white, Enum.Material.Concrete)
+part(club, "SideWallR", Vector3.new(1.2, 13, 28), CFrame.new(clubX + 26.5, 7.5, clubZ), C.white, Enum.Material.Concrete)
+part(club, "Roof", Vector3.new(56, 1.2, 30), CFrame.new(clubX, 14.3, clubZ), C.navy, Enum.Material.Metal)
+sign(club, "CLUB HUB", Vector3.new(28, 4.5, 0.7), CFrame.new(clubX, 11, clubZ - 14.8), C.blue)
 
--- Three visual club bays; interaction comes later.
 local clubNames = {"MUSIC", "ART", "GAMING"}
 for i, name in ipairs(clubNames) do
-    local x = 59 + (i - 1) * 19
-    part(club, name .. "Bay", Vector3.new(16, 6, 6), CFrame.new(x, 4.8, 220), (i == 1 and C.gold) or (i == 2 and Color3.fromRGB(142, 107, 157)) or C.blue, Enum.Material.SmoothPlastic)
-    sign(club, name, Vector3.new(13, 2.8, 0.5), CFrame.new(x, 7.8, 216.8), C.dark)
+    local x = clubX - 19 + (i - 1) * 19
+    part(club, name .. "Bay", Vector3.new(16, 6, 6), CFrame.new(x, 4.8, clubZ - 2), (i == 1 and C.gold) or (i == 2 and Color3.fromRGB(142, 107, 157)) or C.blue, Enum.Material.SmoothPlastic)
+    sign(club, name, Vector3.new(13, 2.8, 0.5), CFrame.new(x, 7.8, clubZ - 5.2), C.dark)
 end
 
--- Bike racks near the school/bus approach.
+-- Bike racks near the west-side bus approach, clear of the school wing.
 local bikes = Instance.new("Model")
 bikes.Name = "BikeParking"
 bikes.Parent = layer
-part(bikes, "Pad", Vector3.new(38, 0.6, 14), CFrame.new(-82, 1.3, 184), C.concrete, Enum.Material.Concrete)
+part(bikes, "Pad", Vector3.new(38, 0.6, 14), CFrame.new(-125, 1.3, 181), C.concrete, Enum.Material.Concrete)
 for i = 0, 5 do
-    local x = -95 + i * 5
-    part(bikes, "Rack", Vector3.new(0.8, 3.5, 5), CFrame.new(x, 3, 184), C.metal, Enum.Material.Metal)
+    local x = -138 + i * 5
+    part(bikes, "Rack", Vector3.new(0.8, 3.5, 5), CFrame.new(x, 3, 181), C.metal, Enum.Material.Metal)
 end
-sign(bikes, "BIKE PARKING", Vector3.new(18, 3, 0.6), CFrame.new(-82, 5.5, 177.2), C.blue)
+sign(bikes, "BIKE PARKING", Vector3.new(18, 3, 0.6), CFrame.new(-125, 5.5, 174.2), C.blue)
 
 -- Small wayfinding at pedestrian height.
 sign(layer, "DOWNTOWN  ↓", Vector3.new(14, 4, 0.7), CFrame.new(28, 5.2, 171), C.navy)
