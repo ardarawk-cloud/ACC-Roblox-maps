@@ -79,6 +79,7 @@ jobs:
           if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+
           $lua=@'
           print("[MALLCLOUD_BEGIN]")
           local SSS=game:GetService("ServerScriptService")
@@ -153,7 +154,7 @@ jobs:
             local b64=EncodingService:Base64Encode(buf)
             print(string.format("[MALLCAP_META]|%s|%s|%d|%d|%d|%d",v[1],scaled.BufferFormat.Name,scaled.Resolution.X,scaled.Resolution.Y,buffer.len(buf),buffer.len(b64)))
             local total=buffer.len(b64)
-            local step=2400
+            local step=1200
             local seq=0
             for offset=0,total-1,step do
               local n=math.min(step,total-offset)
@@ -163,12 +164,30 @@ jobs:
             print("[MALLCAP_VIEW_DONE]|"..v[1])
           end
           print("[MALLCLOUD_DONE]")
+          return true
           '@
-          $luaOneLine=($lua -replace '\r?\n',' ')
-          $value.SetValue($luaOneLine)
-          Start-Sleep -Milliseconds 300
+
+          $init='local S=game:GetService("ServerStorage");local V=S:FindFirstChild("__MallCloudPayload") or Instance.new("StringValue");V.Name="__MallCloudPayload";V.Value="";V.Parent=S;print("[MALLPAYLOAD_INIT]")'
+          $value.SetValue($init)
           $invoke.Invoke()
-          Start-Sleep -Seconds 30
+          Start-Sleep -Milliseconds 250
+
+          $chunkSize=650
+          for($offset=0;$offset -lt $lua.Length;$offset+=$chunkSize){
+            $count=[Math]::Min($chunkSize,$lua.Length-$offset)
+            $raw=$lua.Substring($offset,$count)
+            $escaped=$raw.Replace('\','\\').Replace('"','\"').Replace("`r",'\r').Replace("`n",'\n')
+            $cmd='local V=game:GetService("ServerStorage"):FindFirstChild("__MallCloudPayload");assert(V,"payload missing");V.Value=V.Value.."'+$escaped+'"'
+            if($cmd.Length -gt 1800){throw "Command chunk too long: $($cmd.Length)"}
+            $value.SetValue($cmd)
+            $invoke.Invoke()
+            Start-Sleep -Milliseconds 80
+          }
+
+          $runCmd='local S=game:GetService("ServerStorage");local V=S:FindFirstChild("__MallCloudPayload");assert(V,"payload missing");local M=Instance.new("ModuleScript");M.Name="__MallCloudRunner";M.Source=V.Value;M.Parent=game:GetService("ServerScriptService");task.spawn(function() local ok,res=pcall(require,M);print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end end)'
+          $value.SetValue($runCmd)
+          $invoke.Invoke()
+          Start-Sleep -Seconds 45
 
       - name: Reconstruct native Studio captures
         shell: powershell
@@ -184,7 +203,7 @@ jobs:
           $done=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\].*\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
           if(-not $done){
             Write-Host '=== Mall CreatorOutput diagnostics ==='
-            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 220 | ForEach-Object {Write-Host $_}
+            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 260 | ForEach-Object {Write-Host $_}
             throw 'Mall cloud renderer did not complete'
           }
           $geometry=$lines | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE)\]'}
@@ -222,7 +241,7 @@ jobs:
               $bmp.Dispose()
             } else {throw "Unknown Studio capture format $($meta.format)"}
           }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + canonical ModuleScript authorities';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + chunked canonical ModuleScript payload';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
           Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
 
       - name: Close Studio
