@@ -1,0 +1,215 @@
+name: BBYA Mall Cloud Visual Audit V6
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-cloud-visual-audit-v6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Ensure interactive console desktop
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sid=[System.Diagnostics.Process]::GetCurrentProcess().SessionId
+          $before=(quser 2>&1 | Out-String)
+          Write-Host $before
+          if($before -notmatch 'console\s+'+$sid+'\s+Active'){
+            & "$env:SystemRoot\System32\tscon.exe" $sid /dest:console
+            if($LASTEXITCODE -ne 0){throw "tscon failed: $LASTEXITCODE"}
+            Start-Sleep -Seconds 3
+          }
+          $after=(quser 2>&1 | Out-String)
+          Write-Host $after
+          if($after -notmatch 'console\s+'+$sid+'\s+Active'){throw 'Interactive console desktop is not active'}
+
+      - name: Build canonical Mall audit snapshot
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $utf8=New-Object System.Text.UTF8Encoding($false)
+          $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-windows-x86_64.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
+          }
+          if((& $rojo --version) -notmatch '7\.7\.0'){throw 'Rojo 7.7.0 required'}
+
+          $map='maps/bbya-social-hub'
+          $runtime=Join-Path $map '__mall-audit-v6'
+          $auth=Join-Path $runtime 'authorities'
+          Remove-Item $runtime -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $auth | Out-Null
+          $files=[ordered]@{
+            'ActiveRearMallV1'='94-mall.server.lua'
+            'MallLiveUpgradeV2'='95-mall-live-upgrade.server.lua'
+            'ActiveMallPolishV1'='94-mall-polish.server.lua'
+            'MallRobuxCommerceV1'='133-mall-robux-commerce.server.lua'
+            'MallSafeSecurityOverrideV1'='97-mall-safe-security-override.server.lua'
+          }
+          foreach($name in $files.Keys){
+            $text=Get-Content (Join-Path $map $files[$name]) -Raw
+            if($name -eq 'ActiveRearMallV1'){$text=$text.Replace('Enum.Material.Tile','Enum.Material.CeramicTiles')}
+            if($name -eq 'MallLiveUpgradeV2'){
+              $text=$text.Replace("local boards={}`r`n {screen","local boards={`r`n {screen")
+              $text=$text.Replace("local boards={}`n {screen","local boards={`n {screen")
+            }
+            [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text+"`r`nreturn true`r`n",$utf8)
+          }
+
+          $runner=@'
+          print("[MALLV6_BEGIN]")
+          local SS=game:GetService("ServerStorage")
+          local W=game:GetService("Workspace")
+          local mods=SS:WaitForChild("MallAuditAuthorities")
+          local old=W:FindFirstChild("BBYA_ZERO_BUILD")
+          if old then old:Destroy() end
+          local root=Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=W
+          for _,name in ipairs({"ActiveRearMallV1","MallLiveUpgradeV2","ActiveMallPolishV1","MallRobuxCommerceV1","MallSafeSecurityOverrideV1"}) do
+            local ok,res=pcall(require,mods:WaitForChild(name))
+            print("[MALLV6_AUTH]|"..name.."|"..tostring(ok).."|"..tostring(res))
+            assert(ok,res)
+          end
+          local mall=root:FindFirstChild("BBYAMall")
+          assert(mall,"BBYAMall missing")
+          local cf,sz=mall:GetBoundingBox()
+          print(string.format("[MALLV6_GEOM]|PASS=%s|VISUAL=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f",tostring(mall:GetAttribute("Pass")),tostring(mall:GetAttribute("MallMobileVisualAuthority")),cf.Position.X,cf.Position.Y,cf.Position.Z,sz.X,sz.Y,sz.Z))
+          print("[MALLV6_DONE]")
+          return true
+          '@
+          [IO.File]::WriteAllText((Join-Path $runtime 'runner.lua'),$runner,$utf8)
+
+          $project=Get-Content (Join-Path $map 'default.project.json') -Raw | ConvertFrom-Json
+          $storage=[pscustomobject][ordered]@{
+            '$className'='ServerStorage'
+            'MallAuditAuthorities'=[pscustomobject][ordered]@{'$path'='__mall-audit-v6/authorities'}
+            'MallAuditRunnerV6'=[pscustomobject][ordered]@{'$path'='__mall-audit-v6/runner.lua'}
+          }
+          $project.tree | Add-Member -NotePropertyName 'ServerStorage' -NotePropertyValue $storage -Force
+          $auditProject=Join-Path $map '__mall-audit-v6.project.json'
+          [IO.File]::WriteAllText($auditProject,($project|ConvertTo-Json -Depth 100),$utf8)
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-v6.rbxl'
+          & $rojo build $auditProject -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Mall V6 Rojo build failed'}
+          "PLACEFILE=$place" | Out-File $env:GITHUB_ENV -Append
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v6'
+          Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          "OUTDIR=$out" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Launch Studio and build Mall
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          $candidates=@()
+          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
+            if(Test-Path $root){$candidates+=Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          }
+          $studio=$candidates|Sort-Object LastWriteTime -Descending|Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          $p=Start-Process $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window not ready'}
+          "STUDIOPID=$($p.Id)" | Out-File $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 7
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec);$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern);$invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $value.SetValue('local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallAuditRunnerV6"));print("[MALLV6_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end')
+          $invoke.Invoke();Start-Sleep -Seconds 12
+
+      - name: Capture seven real GPU viewport views
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public static class MallGPU {
+            [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd,out RECT r);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd,int cmd);
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+          }
+          "@
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop;$p.Refresh();$hwnd=[IntPtr]$p.MainWindowHandle
+          [MallGPU]::ShowWindow($hwnd,3)|Out-Null;[MallGPU]::SetForegroundWindow($hwnd)|Out-Null;Start-Sleep -Seconds 2
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec);$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern);$invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $views=@(
+            @{n='01-entrance-atrium';p='0,13,286';t='0,12,365'},
+            @{n='02-l1-left';p='-8,9,330';t='-66,8,348'},
+            @{n='03-l1-right';p='8,9,365';t='66,8,380'},
+            @{n='04-l1-rear';p='0,10,417';t='66,8,400'},
+            @{n='05-l2-right';p='2,23,348';t='68,20,370'},
+            @{n='06-upper-atrium';p='0,38,330';t='0,22,382'},
+            @{n='07-overview';p='0,72,280';t='0,22,365'}
+          )
+          $hashes=@()
+          foreach($v in $views){
+            $cmd="local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.t)));c.Focus=CFrame.new(Vector3.new($($v.t)));print('[MALLV6_VIEW]|$($v.n)')"
+            $value.SetValue($cmd);$invoke.Invoke();Start-Sleep -Milliseconds 1400
+            $r=New-Object MallGPU+RECT;if(-not [MallGPU]::GetWindowRect($hwnd,[ref]$r)){throw 'GetWindowRect failed'}
+            $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top;if($w -lt 640 -or $h -lt 360){throw "Bad window ${w}x${h}"}
+            $bmp=New-Object System.Drawing.Bitmap($w,$h);$g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+            $path=Join-Path $env:OUTDIR ($v.n+'.png');$bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png);$g.Dispose();$bmp.Dispose()
+            $len=(Get-Item $path).Length;if($len -lt 50000){throw "Capture suspiciously small $($v.n): $len"}
+            $hash=(Get-FileHash $path -Algorithm SHA256).Hash;$hashes+=$hash;Write-Host "$($v.n) bytes=$len sha=$hash"
+          }
+          if(($hashes|Select-Object -Unique).Count -lt 5){throw 'Captures are not sufficiently unique; viewport likely invalid'}
+
+      - name: Validate and upload audit data
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 8
+          $lines=@();foreach($f in $logs){$x=Get-Content $f.FullName -ErrorAction SilentlyContinue|Where-Object{$_ -match '\[(MALLV6_AUTH|MALLV6_GEOM|MALLV6_DONE|MALLV6_WRAPPER|MALLV6_VIEW)\]'};if($x){$lines+=$x}}
+          if(-not ($lines|Where-Object{$_ -match '\[MALLV6_DONE\]'})){throw 'Mall authority completion marker missing'}
+          $lines|Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
+          $views=@('01-entrance-atrium','02-l1-left','03-l1-right','04-l1-rear','05-l2-right','06-upper-atrium','07-overview')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='interactive console + Studio scripted camera + CopyFromScreen';views=$views;productionSourceModified=$false;auditCompatibility=@('Tile->CeramicTiles','MallLiveUpgrade boards table syntax')}|ConvertTo-Json -Depth 5|Set-Content (Join-Path $env:OUTDIR 'audit.json')
+
+      - name: Close Studio
+        if: always()
+        shell: powershell
+        run: |
+          if($env:STUDIOPID -match '^\d+$'){Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue|Stop-Process -Force -ErrorAction SilentlyContinue}
+
+      - name: Upload Mall V6 audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-cloud-audit-v6
+          path: ${{ runner.temp }}/bbya-mall-cloud-audit-v6
+          if-no-files-found: error
+          retention-days: 7
