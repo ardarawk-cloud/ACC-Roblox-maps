@@ -26,6 +26,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
           $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
           New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
           $rojo=Join-Path $toolDir 'rojo.exe'
@@ -55,7 +56,7 @@ jobs:
             $src=Join-Path $map $authorityFiles[$name]
             if(-not (Test-Path $src)){throw "Missing Mall authority source: $src"}
             $text=(Get-Content $src -Raw)+"`r`nreturn true`r`n"
-            Set-Content -Path (Join-Path $auth ($name+'.lua')) -Value $text -Encoding UTF8
+            [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text,$utf8NoBom)
           }
 
           $runner=@'
@@ -139,7 +140,7 @@ jobs:
           print("[MALLCLOUD_DONE]")
           return true
           '@
-          Set-Content -Path (Join-Path $runtime 'runner.lua') -Value $runner -Encoding UTF8
+          [IO.File]::WriteAllText((Join-Path $runtime 'runner.lua'),$runner,$utf8NoBom)
 
           $projectPath=Join-Path $map 'default.project.json'
           $project=Get-Content $projectPath -Raw | ConvertFrom-Json
@@ -150,7 +151,8 @@ jobs:
           }
           $project.tree | Add-Member -NotePropertyName 'ServerStorage' -NotePropertyValue $serverStorage -Force
           $auditProject=Join-Path $map '__mall-audit.project.json'
-          $project | ConvertTo-Json -Depth 100 | Set-Content $auditProject -Encoding UTF8
+          $json=$project | ConvertTo-Json -Depth 100
+          [IO.File]::WriteAllText($auditProject,$json,$utf8NoBom)
 
           $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
           & $rojo build $auditProject -o $place
