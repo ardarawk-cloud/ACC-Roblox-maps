@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — LOOK LAB AVATAR EDITOR CLIENT v2
--- Mobile-focused catalog recovery: valid catalog page size, inventory-access flow,
--- async search with legacy fallback, and a smaller centered editor.
+-- BBYA SOCIAL HUB — LOOK LAB AVATAR EDITOR CLIENT v3
+-- Roblox-native catalog reliability: SearchCatalogAsync first, one bounded retry,
+-- legacy method only as compatibility fallback, and no unnecessary inventory-read gate.
+-- No fabricated catalog items are ever shown.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -70,7 +71,7 @@ local activeTab="HAIR"
 local searching=false
 local visibleSession=false
 local lastSeatedAt=0
-local accessState="unknown"
+local lastCatalogError=""
 
 local function setStatus(text,col)status.Text=tostring(text or "");status.TextColor3=col or C.cyan end
 local function clearCards()for _,ch in ipairs(holder:GetChildren()) do if ch~=grid then ch:Destroy() end end end
@@ -103,45 +104,36 @@ local function addCard(item)
  card.MouseButton1Click:Connect(function()setStatus("Applying "..name.."…",C.gold);remote:FireServer("tryOn",{assetId=id,assetType=typeName})end)
 end
 
-local function ensureCatalogAccess()
- if accessState=="granted" then return true end
- if accessState=="denied" then return false end
- accessState="pending";setStatus("Connecting Roblox avatar catalog…",C.gold)
- local ok,err=pcall(function()AvatarEditorService:PromptAllowInventoryReadAccess()end)
- if not ok then
-  warn("[BBYA LookLab] Inventory access prompt failed:",err)
-  accessState="unknown"
-  return false
- end
- local result=AvatarEditorService.PromptAllowInventoryReadAccessCompleted:Wait()
- if result==Enum.AvatarPromptResult.Success then accessState="granted";return true end
- accessState="denied";setStatus("Izinkan akses avatar Roblox untuk membuka catalog.",C.muted);return false
-end
-
 local function searchCatalog(params)
+ lastCatalogError=""
  local ok,pages=pcall(function()return AvatarEditorService:SearchCatalogAsync(params)end)
  if ok and pages then return pages end
- warn("[BBYA LookLab] SearchCatalogAsync failed:",pages)
+ local firstErr=tostring(pages or "unknown")
+ task.wait(.35)
+ local retryOk,retryPages=pcall(function()return AvatarEditorService:SearchCatalogAsync(params)end)
+ if retryOk and retryPages then return retryPages end
+ local retryErr=tostring(retryPages or "unknown")
  local legacyOk,legacyPages=pcall(function()return AvatarEditorService:SearchCatalog(params)end)
  if legacyOk and legacyPages then return legacyPages end
- warn("[BBYA LookLab] SearchCatalog fallback failed:",legacyPages)
+ lastCatalogError=string.format("async=%s | retry=%s | legacy=%s",firstErr,retryErr,tostring(legacyPages or "unknown"))
+ warn("[BBYA LookLab] Roblox catalog unavailable:",lastCatalogError)
  return nil
 end
 
 local function runSearch()
  if searching or not visibleSession then return end
  searching=true;clearCards()
- if accessState~="granted" then
-  local accessOk=ensureCatalogAccess()
-  if not accessOk then searching=false;return end
- end
  setStatus("Loading Roblox Catalog…",C.gold)
  local params=CatalogSearchParams.new();params.AssetTypes=TAB_TYPES[activeTab];params.Limit=10;params.IncludeOffSale=false
  local q=searchBox.Text:match("^%s*(.-)%s*$") or "";if q~="" then params.SearchKeyword=q end
  local pages=searchCatalog(params)
- if not pages then setStatus("Catalog belum tersedia. Tekan SEARCH lagi.",C.pink);searching=false;return end
+ if not pages then setStatus("Roblox Catalog belum merespons. Tekan SEARCH untuk retry.",C.pink);searching=false;return end
  local ok,results=pcall(function()return pages:GetCurrentPage()end)
- if not ok or type(results)~="table" then setStatus("Catalog belum tersedia. Tekan SEARCH lagi.",C.pink);searching=false;return end
+ if not ok or type(results)~="table" then
+  lastCatalogError=tostring(results or "GetCurrentPage failed")
+  warn("[BBYA LookLab] Catalog page unavailable:",lastCatalogError)
+  setStatus("Catalog page belum tersedia. Tekan SEARCH untuk retry.",C.pink);searching=false;return
+ end
  if #results==0 then setStatus("Tidak ada item. Coba keyword lain.",C.muted) else
   for _,item in ipairs(results) do addCard(item) end
   setStatus(string.format("%d items • tap untuk TRY ON",#results),C.green)
@@ -186,4 +178,4 @@ RunService.Heartbeat:Connect(function(dt)
  if seat and tostring(seat.Name):match("^LookLabSeat") then lastSeatedAt=os.clock() elseif os.clock()-lastSeatedAt>1.25 then closePanel() end
 end)
 player.CharacterAdded:Connect(function()closePanel()end)
-print("[BBYA] Look Lab Avatar Editor client v2 online: access-gated catalog recovery + compact mobile UI")
+print("[BBYA] Look Lab Avatar Editor client v3 online: direct Roblox catalog search + bounded retry + no fabricated fallback")
