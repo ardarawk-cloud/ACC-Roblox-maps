@@ -1,0 +1,162 @@
+name: BBYA Mall Cloud Visual Audit V3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-cloud-visual-audit-v3.yml'
+      - '.github/worker-jobs/bbya-mall-visual-trigger-v3.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Prepare output
+        shell: powershell
+        run: |
+          $d=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-v3'
+          Remove-Item $d -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $d | Out-Null
+          "OUTDIR=$d" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Enter Studio play mode
+        shell: powershell
+        run: |
+          $p=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $p){throw 'Roblox Studio not found'}
+          $w=New-Object -ComObject WScript.Shell
+          [void]$w.AppActivate($p.Id)
+          Start-Sleep -Milliseconds 400
+          $w.SendKeys('+{F5}')
+          Start-Sleep -Milliseconds 800
+          $w.SendKeys('{F5}')
+          Start-Sleep -Seconds 14
+
+      - name: Mall geometry diagnostic
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta | Select-Object -First 1
+          $r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $c=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $b=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$c)
+          $x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$b)
+          if(-not $e -or -not $x){throw 'Command Bar unavailable'}
+          $lua='print("[MALLV3_BEGIN]");local R=workspace:FindFirstChild("BBYA_ZERO_BUILD");local M=R and R:FindFirstChild("BBYAMall");print("MALL="..tostring(M~=nil));if M then print("PASS="..tostring(M:GetAttribute("Pass")).."|FLOORS="..tostring(M:GetAttribute("Floors")).."|TENANTS="..tostring(M:GetAttribute("TenantCount")).."|VISUAL="..tostring(M:GetAttribute("MallMobileVisualAuthority")));for _,N in ipairs({"MallArchitectureV3","MallLiveUpgradeV2","MallRobuxCommerceV1","MallPremiumGalleryV6"}) do print(N.."="..tostring(M:FindFirstChild(N)~=nil)) end;for _,I in ipairs({"luma","stride","byte","daily","mono","muse","north","street","page","glow","sound","fit"}) do local U=M:FindFirstChild("Tenant_"..I);if U and U:IsA("Model") then local C,S=U:GetBoundingBox();print(string.format("TENANT=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f|GALLERY=%s",I,C.Position.X,C.Position.Y,C.Position.Z,S.X,S.Y,S.Z,tostring(U:GetAttribute("PremiumRetailGallery")))) else print("TENANT="..I.."|MISSING") end end end;print("[MALLV3_END]")'
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($lua)
+          $x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+          Start-Sleep -Seconds 2
+          $lines=@()
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 8
+          foreach($f in $logs){$m=Select-String -Path $f.FullName -Pattern 'MALLV3_' -Context 0,40 -ErrorAction SilentlyContinue | Select-Object -First 1;if($m){$lines += $m.Context.PostContext;break}}
+          $lines | Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
+
+      - name: Position entrance atrium
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'))
+          $x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=18;P.CameraMaxZoomDistance=18;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.Anchored=true;H.CFrame=CFrame.lookAt(Vector3.new(0,5,304),Vector3.new(0,8,365)) end end")
+          $x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture entrance atrium
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300
+          $b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '01-entrance-atrium.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position L1 left
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=18;P.CameraMaxZoomDistance=18;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,5,326),Vector3.new(-66,5,330)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture L1 left
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '02-l1-left.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position L1 right
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=18;P.CameraMaxZoomDistance=18;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,5,365),Vector3.new(66,5,365)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture L1 right
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '03-l1-right.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position rear L1
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=18;P.CameraMaxZoomDistance=18;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,5,390),Vector3.new(68,5,405)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture rear L1
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '04-l1-rear.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position L2 right
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=19;P.CameraMaxZoomDistance=19;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,19,350),Vector3.new(70,19,365)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture L2 right
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '05-l2-right.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position upper atrium
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=22;P.CameraMaxZoomDistance=22;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,34,340),Vector3.new(0,24,390)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture upper atrium
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '06-upper-atrium.png'));$g.Dispose();$im.Dispose()
+
+      - name: Position overview
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process RobloxStudioBeta|Select-Object -First 1;$r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$x=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue("local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=30;P.CameraMaxZoomDistance=30;local H=P.Character and P.Character:FindFirstChild('HumanoidRootPart');if H then H.CFrame=CFrame.lookAt(Vector3.new(0,52,320),Vector3.new(0,22,380)) end end");$x.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 900
+      - name: Capture overview
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$p=Get-Process RobloxStudioBeta|Select-Object -First 1;$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);Start-Sleep -Milliseconds 300;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$im=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($im);$g.CopyFromScreen(0,0,0,0,$b.Size);$im.Save((Join-Path $env:OUTDIR '07-overview.png'));$g.Dispose();$im.Dispose()
+
+      - name: Exit Studio play mode
+        if: always()
+        shell: powershell
+        run: |
+          $p=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue|Select-Object -First 1;if($p){$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);$w.SendKeys('+{F5}');Start-Sleep -Seconds 2}
+
+      - name: Upload visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-cloud-audit-v3
+          path: ${{ runner.temp }}/bbya-mall-audit-v3
+          if-no-files-found: error
+          retention-days: 7
