@@ -1,4 +1,4 @@
-# v6 trigger 2026-08-26
+# v6 camera-dialog patch 2026-08-26
 name: BBYA Mall Cloud Visual Audit V6
 
 on:
@@ -159,13 +159,38 @@ jobs:
             [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
           }
           "@
+          function Invoke-ButtonByName([string]$name,[int]$tries=25){
+            $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+            $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,$name)
+            for($i=0;$i -lt $tries;$i++){
+              $b=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond)
+              if($b){
+                try{$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 650;return $true}catch{}
+              }
+              Start-Sleep -Milliseconds 120
+            }
+            return $false
+          }
+          function Dismiss-StudioDialogs {
+            [void](Invoke-ButtonByName 'Always Continue' 20)
+            $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+            $wc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Lighting Technology Migration')
+            $win=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$wc)
+            if($win){
+              $bc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Continue')
+              $btn=$win.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$bc)
+              if($btn){try{$btn.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 700}catch{}}
+            }
+          }
           $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop;$p.Refresh();$hwnd=[IntPtr]$p.MainWindowHandle
           [MallGPU]::ShowWindow($hwnd,3)|Out-Null;[MallGPU]::SetForegroundWindow($hwnd)|Out-Null;Start-Sleep -Seconds 2
           $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
           $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
           $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
           $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec);$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable for GPU capture'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern);$invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          Dismiss-StudioDialogs
           $views=@(
             @{n='01-entrance-atrium';p='0,13,286';t='0,12,365'},
             @{n='02-l1-left';p='-8,9,330';t='-66,8,348'},
@@ -175,10 +200,12 @@ jobs:
             @{n='06-upper-atrium';p='0,38,330';t='0,22,382'},
             @{n='07-overview';p='0,72,280';t='0,22,365'}
           )
-          $hashes=@()
+          $hashes=@();$first=$true
           foreach($v in $views){
             $cmd="local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.t)));c.Focus=CFrame.new(Vector3.new($($v.t)));print('[MALLV6_VIEW]|$($v.n)')"
-            $value.SetValue($cmd);$invoke.Invoke();Start-Sleep -Milliseconds 1400
+            $value.SetValue($cmd);$invoke.Invoke()
+            if($first){Start-Sleep -Milliseconds 450;Dismiss-StudioDialogs;$first=$false}
+            Start-Sleep -Milliseconds 1500
             $r=New-Object MallGPU+RECT;if(-not [MallGPU]::GetWindowRect($hwnd,[ref]$r)){throw 'GetWindowRect failed'}
             $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top;if($w -lt 640 -or $h -lt 360){throw "Bad window ${w}x${h}"}
             $bmp=New-Object System.Drawing.Bitmap($w,$h);$g=[System.Drawing.Graphics]::FromImage($bmp)
