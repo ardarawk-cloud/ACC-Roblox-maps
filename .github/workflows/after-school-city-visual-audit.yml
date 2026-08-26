@@ -41,7 +41,7 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
           "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build visual-audit place
+      - name: Build isolated visual place
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -52,175 +52,34 @@ jobs:
           if((Get-Item $place).Length -lt 1024){throw 'Visual RBXL suspiciously small'}
           "ASC_VISUAL_PLACE=$place" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Open generated place and capture real Studio views
+      - name: Prepare visual automation dependencies
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName System.Windows.Forms
-          Add-Type -AssemblyName System.Drawing
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          Add-Type @"
-          using System;
-          using System.Runtime.InteropServices;
-          public class ASCWin {
-            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
-            public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+          python -m pip install --quiet --disable-pip-version-check pillow pywinauto
+          python -c "import PIL, pywinauto; print('Studio visual dependencies PASS')"
+
+      - name: Capture seven real Roblox Studio views
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          python scripts/after-school-city-visual-audit.py
+
+      - name: Verify capture evidence
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir='deploy-status/after-school-city-visual'
+          $audit=Get-Content "$dir/audit.json" -Raw | ConvertFrom-Json
+          if($audit.status -ne 'CAPTURED'){throw 'Visual status is not CAPTURED'}
+          if($audit.publishPerformed -ne $false){throw 'Visual audit must never publish'}
+          if([int]$audit.imageCount -ne 7){throw "Expected 7 images, got $($audit.imageCount)"}
+          foreach($n in @('01-school-spawn','02-downtown','03-skate-park','04-city-park','05-residential','06-sports-field','07-city-overview')){
+            $p="$dir/$n.jpg"
+            if(-not (Test-Path $p)){throw "Missing $p"}
+            if((Get-Item $p).Length -lt 5000){throw "Screenshot suspiciously small: $p"}
           }
-          "@
-
-          $existing=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.Path} | Select-Object -First 1
-          $studioExe=$null
-          if($existing){$studioExe=$existing.Path}
-          if(-not $studioExe){
-            $studioExe=Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
-          }
-          if(-not $studioExe){throw 'RobloxStudioBeta.exe not found'}
-
-          Start-Process -FilePath $studioExe -ArgumentList ('"'+$env:ASC_VISUAL_PLACE+'"') | Out-Null
-          $proc=$null
-          for($i=0;$i -lt 45;$i++){
-            Start-Sleep -Seconds 1
-            $candidates=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Sort-Object StartTime -Descending
-            $proc=$candidates | Where-Object {$_.MainWindowTitle -match 'after-school-city-visual|AFTER SCHOOL CITY'} | Select-Object -First 1
-            if(-not $proc){$proc=$candidates | Select-Object -First 1}
-            if($proc -and $proc.MainWindowHandle -ne 0){break}
-          }
-          if(-not $proc){throw 'Roblox Studio window did not become ready'}
-          $hwnd=[IntPtr]$proc.MainWindowHandle
-          [ASCWin]::ShowWindow($hwnd,9)|Out-Null
-          [ASCWin]::SetForegroundWindow($hwnd)|Out-Null
-          Start-Sleep -Seconds 4
-
-          # Make sure we are not inheriting an old play session, then start this generated place.
-          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
-          Start-Sleep -Seconds 1
-          [System.Windows.Forms.SendKeys]::SendWait('{F5}')
-          Start-Sleep -Seconds 12
-
-          $ui=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
-          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
-          $run=$ui.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
-          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          function Invoke-Lua([string]$lua){$value.SetValue($lua);Start-Sleep -Milliseconds 250;$invoke.Invoke();Start-Sleep -Milliseconds 1100}
-
-          $outDir=Join-Path $env:GITHUB_WORKSPACE 'deploy-status/after-school-city-visual'
-          if(Test-Path $outDir){Remove-Item $outDir -Recurse -Force}
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-
-          function Capture-View([string]$name){
-            [ASCWin]::SetForegroundWindow($hwnd)|Out-Null
-            Start-Sleep -Milliseconds 450
-            $r=New-Object ASCWin+RECT
-            [ASCWin]::GetWindowRect($hwnd,[ref]$r)|Out-Null
-            $w=[Math]::Max(640,$r.Right-$r.Left);$h=[Math]::Max(360,$r.Bottom-$r.Top)
-            $full=New-Object System.Drawing.Bitmap($w,$h)
-            $gf=[System.Drawing.Graphics]::FromImage($full)
-            $gf.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
-            $x=[int]($w*.30);$y=[int]($h*.18);$cw=[int]($w*.50);$ch=[int]($h*.64)
-            if($x+$cw -gt $w){$cw=$w-$x};if($y+$ch -gt $h){$ch=$h-$y}
-            $crop=New-Object System.Drawing.Bitmap($cw,$ch)
-            $gc=[System.Drawing.Graphics]::FromImage($crop)
-            $gc.DrawImage($full,(New-Object System.Drawing.Rectangle(0,0,$cw,$ch)),(New-Object System.Drawing.Rectangle($x,$y,$cw,$ch)),[System.Drawing.GraphicsUnit]::Pixel)
-            $targetW=1000;$targetH=[int]($ch*$targetW/$cw)
-            $small=New-Object System.Drawing.Bitmap($targetW,$targetH)
-            $g2=[System.Drawing.Graphics]::FromImage($small)
-            $g2.InterpolationMode=[System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-            $g2.DrawImage($crop,0,0,$targetW,$targetH)
-            $jpg=Join-Path $outDir ($name+'.jpg')
-            $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
-            $ep=New-Object System.Drawing.Imaging.EncoderParameters(1)
-            $ep.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]84)
-            $small.Save($jpg,$codec,$ep)
-            $gf.Dispose();$gc.Dispose();$g2.Dispose();$full.Dispose();$crop.Dispose();$small.Dispose()
-          }
-
-          $diag=@'
-          print("[ASC_VISUAL_AUDIT_BEGIN]")
-          local root=workspace:FindFirstChild("AfterSchoolCity")
-          print("ROOT="..tostring(root~=nil))
-          print("SCAFFOLD="..tostring(workspace:GetAttribute("ASC_WorldScaffold")))
-          if root then
-            local districts=root:FindFirstChild("Districts")
-            print("DISTRICTS="..tostring(districts and #districts:GetChildren() or 0))
-            if districts then
-              for _,m in ipairs(districts:GetChildren()) do
-                if m:IsA("Model") then
-                  local cf,sz=m:GetBoundingBox()
-                  print(string.format("DISTRICT=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f",m.Name,cf.Position.X,cf.Position.Y,cf.Position.Z,sz.X,sz.Y,sz.Z))
-                end
-              end
-            end
-          end
-          print("[ASC_VISUAL_AUDIT_END]")
-          '@
-          Invoke-Lua $diag
-
-          $views=@(
-            @{n='01-school-spawn';p='0,6,310';l='0,12,210';z='20'},
-            @{n='02-downtown';p='0,6,115';l='0,11,0';z='22'},
-            @{n='03-skate-park';p='335,7,82';l='235,7,0';z='20'},
-            @{n='04-city-park';p='0,7,-108';l='0,6,-210';z='20'},
-            @{n='05-residential';p='-335,8,80';l='-235,12,0';z='20'},
-            @{n='06-sports-field';p='340,9,300';l='235,7,210';z='22'},
-            @{n='07-city-overview';p='0,65,390';l='0,4,0';z='36'}
-          )
-          foreach($v in $views){
-            $lua="local P=game:GetService('Players'):GetPlayers()[1];if P then P.CameraMinZoomDistance=$($v.z);P.CameraMaxZoomDistance=$($v.z);local C=P.Character;local H=C and C:FindFirstChild('HumanoidRootPart');local U=C and C:FindFirstChildOfClass('Humanoid');if U then U.AutoRotate=false end;if H then H.Anchored=true;H.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.l)));H.AssemblyLinearVelocity=Vector3.zero;H.AssemblyAngularVelocity=Vector3.zero end end"
-            Invoke-Lua $lua
-            Start-Sleep -Milliseconds 900
-            Capture-View $v.n
-          }
-
-          $marked=New-Object System.Collections.Generic.List[string]
-          $logs=Get-ChildItem "$env:LOCALAPPDATA\Roblox\logs" -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 8
-          foreach($log in $logs){
-            $capture=$false
-            foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
-              if($line -match '\[ASC_VISUAL_AUDIT_BEGIN\]'){$capture=$true}
-              if($capture){$marked.Add($line)}
-              if($capture -and $line -match '\[ASC_VISUAL_AUDIT_END\]'){$capture=$false}
-            }
-            if($marked.Count -gt 0){break}
-          }
-          [IO.File]::WriteAllText((Join-Path $outDir 'geometry.txt'),($marked -join "`n"))
-
-          $report=Join-Path $outDir 'visual-analysis.md'
-          $prompt=@'
-          Inspect these seven CURRENT Roblox Studio Play-mode viewport captures for AFTER SCHOOL CITY. This is an early blockout for a Roblox school-life roleplay/simulation experience. Judge only what is visibly rendered. Evaluate city readability, scale, district separation, traversal logic, spawn first impression, silhouette, empty/dead space, road width, building massing, sightlines, and whether the layout can become a premium youth-oriented city rather than a flat baseplate or boxy prototype. Review School District, Downtown, Skate Park, City Park, Residential, Sports Field, and overview. Give a strict prioritized repair plan for the next world pass. Do not recommend publishing yet.
-          '@
-          $imgs=Get-ChildItem $outDir -Filter '*.jpg'|Sort-Object Name|ForEach-Object {$_.FullName}
-          try {
-            $args=@('exec','--ephemeral','-s','read-only','--color','never','-o',$report)
-            foreach($img in $imgs){$args+=@('-i',$img)}
-            $args+=$prompt
-            & codex @args
-            if($LASTEXITCODE -ne 0){throw "codex visual audit exit $LASTEXITCODE"}
-          } catch {
-            [IO.File]::WriteAllText($report,"VISUAL_ANALYSIS_UNAVAILABLE`n"+$_.Exception.Message)
-          }
-
-          $status=@{
-            status='CAPTURED'
-            sourceCommit=$env:GITHUB_SHA
-            runId=$env:GITHUB_RUN_ID
-            capturedAt=(Get-Date -Format o)
-            place='after-school-city-visual.rbxl'
-            views=($views|ForEach-Object {$_.n})
-            geometryLines=$marked.Count
-            publishPerformed=$false
-          }|ConvertTo-Json -Depth 5
-          [IO.File]::WriteAllText((Join-Path $outDir 'audit.json'),$status)
-
-          [ASCWin]::SetForegroundWindow($hwnd)|Out-Null
-          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
-          Start-Sleep -Seconds 2
+          Write-Host 'AFTER SCHOOL CITY STUDIO VISUAL CAPTURE PASS'
 
       - name: Persist visual evidence on scaffold branch
         shell: powershell
