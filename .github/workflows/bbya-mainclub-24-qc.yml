@@ -5,6 +5,8 @@ on:
     branches: [bbya/mainclub-keep-1-24-v1]
     paths:
       - '.github/workflows/bbya-mainclub-24-qc.yml'
+      - 'maps/bbya-social-hub/30-club-systems.server.lua'
+      - 'maps/bbya-social-hub/109-music-catalog-reset.server.lua'
 
 jobs:
   qc:
