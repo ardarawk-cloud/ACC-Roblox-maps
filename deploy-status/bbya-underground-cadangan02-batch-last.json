@@ -1,19 +1,8 @@
 {
   "status": "BATCH_COMPLETE",
   "uploaderMode": "CADANGAN_02_NEW_ASSETS_ONLY",
-  "processedCount": 1,
+  "processedCount": 0,
   "batchSizeLimit": 10,
-  "tracks": [
-    {
-      "trackIndex": 58,
-      "title": "MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",
-      "status": "READY_TO_INJECT",
-      "assetId": "106194805739169",
-      "moderationState": "Approved",
-      "readyToInject": true,
-      "blacklisted": false,
-      "uploaderUserId": "10001957153"
-    }
-  ],
-  "recordedAtUnix": 1787702004
+  "tracks": [],
+  "recordedAtUnix": 1787715362
 }
