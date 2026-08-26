@@ -1,0 +1,65 @@
+name: BBYA Main Club 24 Track QC
+
+on:
+  push:
+    branches: [bbya/mainclub-keep-1-24-v1]
+    paths:
+      - '.github/workflows/bbya-mainclub-24-qc.yml'
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify exact Main Club 1-24 lock and audio stability
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p=Get-Content 'maps/bbya-social-hub/30-club-systems.server.lua' -Raw
+          $a=Get-Content 'maps/bbya-social-hub/109-music-catalog-reset.server.lua' -Raw
+          $expected=@(
+            '96983528563473','105877233550276','94337788677482','112322493409786','89165355590583','134057367195123',
+            '91900235935901','115774171488936','100162128635185','82993942539950','109286172792690','94547306143480',
+            '109116552044147','123077675190094','87114365256034','136681158481930','131557279061872','93670094706108',
+            '81169975667413','123696371004403','74479015238422','102620964808698','99998363156285','88925775968276'
+          )
+          $m=[regex]::Match($p,'(?s)local PLAYLIST=\{\r?\n-- MAIN_PROGRESSIVE_UPLOAD_BEGIN\r?\n(.*?)\r?\n-- MAIN_PROGRESSIVE_UPLOAD_END\r?\n\}')
+          if(-not $m.Success){throw 'Main PLAYLIST block missing'}
+          $rows=@($m.Groups[1].Value -split '\r?\n' | Where-Object {$_ -match '^\s*\{title=.*?,id="([0-9]+)",style="[^"]+"\},\s*$'})
+          if($rows.Count -ne 24){throw "Expected exactly 24 Main Club tracks; got $($rows.Count)"}
+          for($i=0;$i -lt 24;$i++){
+            if($rows[$i] -notmatch 'id="([0-9]+)"'){throw "Cannot parse track $($i+1)"}
+            if($Matches[1] -ne $expected[$i]){throw "Track $($i+1) lock mismatch"}
+          }
+          foreach($removed in @('Jay FM - Timeless','Jay FM - Insight','Shingo Nakamura - Glow','Attention')){if($p.Contains($removed)){throw "25+ sentinel still present: $removed"}}
+          foreach($need in @('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAUndergroundPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')){if(-not $a.Contains($need)){throw "Missing audio stability marker: $need"}}
+          foreach($bad in @('BBYAMusicCatalogReset",true','RESET_WITH_UNDERGROUND','SoundService\.DescendantAdded','scrubSound','disableOldAudioEngines','SetAttribute\("MusicCatalogState","RESET_EMPTY"\)')){if($a -match $bad){throw "Destructive audio reset pattern: $bad"}}
+          Write-Host 'BBYA_MAINCLUB_24_LOCK_QC_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'bbya-main24-rojo';$z=Join-Path $env:RUNNER_TEMP 'bbya-main24-rojo.zip'
+            if(Test-Path $d){Remove-Item $d -Recurse -Force};New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive -Path $z -DestinationPath $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo.exe missing'};$rojo=$e.FullName
+          }
+          & $rojo --version;if($LASTEXITCODE -ne 0){throw 'Rojo failed'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-mainclub-24-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not(Test-Path $out) -or (Get-Item $out).Length -lt 1024){throw 'Invalid RBXL'}
+          Write-Host "BBYA_MAINCLUB_24_ROJO_PASS bytes=$((Get-Item $out).Length)"
