@@ -164,7 +164,8 @@ jobs:
           end
           print("[MALLCLOUD_DONE]")
           '@
-          $value.SetValue($lua)
+          $luaOneLine=($lua -replace '\r?\n',' ')
+          $value.SetValue($luaOneLine)
           Start-Sleep -Milliseconds 300
           $invoke.Invoke()
           Start-Sleep -Seconds 30
