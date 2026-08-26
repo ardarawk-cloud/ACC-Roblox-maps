@@ -1,0 +1,123 @@
+name: BBYA Mall Cloud Visual Audit V4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-cloud-visual-audit-v4.yml'
+      - '.github/worker-jobs/bbya-mall-visual-trigger-v4.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Build canonical BBYA place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $rojo=@(
+            'C:\Users\Administrator\.cargo\bin\rojo.exe',
+            'C:\cargo\bin\rojo.exe'
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if(-not $rojo){$cmd=Get-Command rojo.exe -ErrorAction SilentlyContinue;if($cmd){$rojo=$cmd.Source}}
+          if(-not $rojo){throw 'Rojo executable not found on worker'}
+          & $rojo --version
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
+          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Rojo build failed'}
+          "PLACEFILE=$place" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Launch audit place in Roblox Studio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 1
+          $candidates=@()
+          $roots=@(
+            (Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),
+            'C:\Program Files\Roblox\Versions',
+            'C:\Program Files (x86)\Roblox\Versions'
+          )
+          foreach($root in $roots){if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}}
+          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "Studio=$($studio.FullName)"
+          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
+          "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 8
+
+      - name: Enter Play mode
+        shell: powershell
+        run: |
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $w=New-Object -ComObject WScript.Shell
+          [void]$w.AppActivate($p.Id)
+          Start-Sleep -Milliseconds 500
+          $w.SendKeys('{F5}')
+          Start-Sleep -Seconds 14
+
+      - name: Read Mall geometry and set entrance view
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $ce=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $cr=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ce)
+          $b=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cr)
+          if(-not $e -or -not $b){throw 'Studio Command Bar unavailable'}
+          $lua='print("[MALLV4_BEGIN]");local R=workspace:FindFirstChild("BBYA_ZERO_BUILD");local M=R and R:FindFirstChild("BBYAMall");print("MALL="..tostring(M~=nil));if M then print("PASS="..tostring(M:GetAttribute("Pass")).."|FLOORS="..tostring(M:GetAttribute("Floors")).."|TENANTS="..tostring(M:GetAttribute("TenantCount")).."|VISUAL="..tostring(M:GetAttribute("MallMobileVisualAuthority")));local C,S=M:GetBoundingBox();print(string.format("MALLBOX=%.1f,%.1f,%.1f|%.1f,%.1f,%.1f",C.Position.X,C.Position.Y,C.Position.Z,S.X,S.Y,S.Z));for _,I in ipairs({"luma","stride","byte","daily","mono","muse","north","street","page","glow","sound","fit"}) do local U=M:FindFirstChild("Tenant_"..I);if U and U:IsA("Model") then local X,Z=U:GetBoundingBox();print(string.format("TENANT=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f|GALLERY=%s",I,X.Position.X,X.Position.Y,X.Position.Z,Z.X,Z.Y,Z.Z,tostring(U:GetAttribute("PremiumRetailGallery")))) end end end;local P=game:GetService("Players"):GetPlayers()[1];if P then P.CameraMinZoomDistance=18;P.CameraMaxZoomDistance=18;local H=P.Character and P.Character:FindFirstChild("HumanoidRootPart");if H then H.Anchored=true;H.CFrame=CFrame.lookAt(Vector3.new(0,5,304),Vector3.new(0,8,365)) end end;print("[MALLV4_END]")'
+          $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($lua)
+          $b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+          Start-Sleep -Seconds 2
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 8
+          foreach($f in $logs){$hit=Select-String -Path $f.FullName -Pattern 'MALLV4_' -Context 0,40 -ErrorAction SilentlyContinue | Select-Object -First 1;if($hit){$hit.Line;$hit.Context.PostContext;break}}
+
+      - name: Capture entrance smoke view
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $w=New-Object -ComObject WScript.Shell
+          [void]$w.AppActivate($p.Id)
+          Start-Sleep -Milliseconds 400
+          $screen=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $img=New-Object System.Drawing.Bitmap($screen.Width,$screen.Height)
+          $g=[System.Drawing.Graphics]::FromImage($img)
+          $g.CopyFromScreen($screen.Left,$screen.Top,0,0,$screen.Size)
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-mall-v4-entrance.png'
+          $img.Save($out,[System.Drawing.Imaging.ImageFormat]::Png)
+          $g.Dispose();$img.Dispose()
+
+      - name: Exit Studio and upload smoke capture
+        if: always()
+        shell: powershell
+        run: |
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue
+          if($p){$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);$w.SendKeys('+{F5}');Start-Sleep -Seconds 1;$p.CloseMainWindow()|Out-Null;Start-Sleep -Seconds 2;if(-not $p.HasExited){$p|Stop-Process -Force}}
+
+      - name: Upload entrance capture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-cloud-audit-v4-smoke
+          path: ${{ runner.temp }}/bbya-mall-v4-entrance.png
+          if-no-files-found: error
+          retention-days: 7
