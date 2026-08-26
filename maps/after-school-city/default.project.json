@@ -27,6 +27,9 @@
       },
       "ASC_SpatialCleanup": {
         "$path": "after-school-city.spatial-cleanup.server.lua"
+      },
+      "ASC_StructuralRealignment": {
+        "$path": "after-school-city.structural-realignment.server.lua"
       }
     },
     "StarterGui": {
