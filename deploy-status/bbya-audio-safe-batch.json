@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "STOPPED_UPLOAD_QUOTA",
+  "status": "RUNNING_SEQUENTIAL",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3660,7 +3660,7 @@
     "displayName": "GudangPet88"
   },
   "folderItemCount": 68,
-  "updatedAt": "2026-08-26T05:18:28.850423+00:00",
+  "updatedAt": "2026-08-26T05:19:49.016968+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
   "lastLiveSequence": 41,
