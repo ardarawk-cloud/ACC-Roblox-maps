@@ -60,6 +60,11 @@ jobs:
               $text=$text.Replace('Enum.Material.Tile','Enum.Material.CeramicTiles')
               Write-Host 'Audit-only compatibility: Enum.Material.Tile -> Enum.Material.CeramicTiles'
             }
+            if($name -eq 'MallLiveUpgradeV2'){
+              $text=$text.Replace("local boards={}`r`n {screen","local boards={`r`n {screen")
+              $text=$text.Replace("local boards={}`n {screen","local boards={`n {screen")
+              Write-Host 'Audit-only compatibility: repair MallLiveUpgradeV2 boards table syntax'
+            }
             $text=$text+"`r`nreturn true`r`n"
             [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text,$utf8NoBom)
           }
