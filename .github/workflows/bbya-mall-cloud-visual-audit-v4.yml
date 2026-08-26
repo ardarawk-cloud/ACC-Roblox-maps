@@ -55,7 +55,12 @@ jobs:
           foreach($name in $authorityFiles.Keys){
             $src=Join-Path $map $authorityFiles[$name]
             if(-not (Test-Path $src)){throw "Missing Mall authority source: $src"}
-            $text=(Get-Content $src -Raw)+"`r`nreturn true`r`n"
+            $text=Get-Content $src -Raw
+            if($name -eq 'ActiveRearMallV1'){
+              $text=$text.Replace('Enum.Material.Tile','Enum.Material.CeramicTiles')
+              Write-Host 'Audit-only compatibility: Enum.Material.Tile -> Enum.Material.CeramicTiles'
+            }
+            $text=$text+"`r`nreturn true`r`n"
             [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text,$utf8NoBom)
           }
 
