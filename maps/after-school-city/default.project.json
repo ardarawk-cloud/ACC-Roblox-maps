@@ -12,6 +12,15 @@
       "$className": "ServerScriptService",
       "ASC_World": {
         "$path": "after-school-city.world.server.lua"
+      },
+      "ASC_SchoolLife": {
+        "$path": "after-school-city.school-life.server.lua"
+      },
+      "ASC_DowntownLife": {
+        "$path": "after-school-city.downtown-life.server.lua"
+      },
+      "ASC_CityLife": {
+        "$path": "after-school-city.city-life.server.lua"
       }
     },
     "StarterGui": {
