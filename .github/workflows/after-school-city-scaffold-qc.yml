@@ -36,9 +36,12 @@ jobs:
           if(-not $target){ throw 'after-school-city registry target missing' }
           if([string]$target.universeId -ne '10745359869'){ throw "Wrong Universe ID: $($target.universeId)" }
           if([string]$target.placeId -ne '121603385909425'){ throw "Wrong Place ID: $($target.placeId)" }
-          if($target.enabled -ne $false){ throw 'Scaffold phase must remain registry enabled=false' }
+          if($target.enabled -ne $false){ throw 'Development target must remain registry enabled=false' }
 
           $world = Get-Content 'maps/after-school-city/after-school-city.world.server.lua' -Raw
+          $school = Get-Content 'maps/after-school-city/after-school-city.school-life.server.lua' -Raw
+          $downtown = Get-Content 'maps/after-school-city/after-school-city.downtown-life.server.lua' -Raw
+          $city = Get-Content 'maps/after-school-city/after-school-city.city-life.server.lua' -Raw
           $config = Get-Content 'maps/after-school-city/after-school-city.config.lua' -Raw
           $project = Get-Content 'maps/after-school-city/default.project.json' -Raw
           $null = $project | ConvertFrom-Json
@@ -46,15 +49,27 @@ jobs:
           foreach($token in @('AfterSchoolCity','SchoolDistrict','Downtown','SkatePark','Park','Residential','SportsField','AfterSchoolSpawn','ASC_DistrictCount')){
             if($world -notmatch [regex]::Escape($token)){ throw "World marker missing: $token" }
           }
-          foreach($token in @('10745359869','121603385909425','EnableBlockoutScaffold = true','EnableActivities = false','EnableEconomy = false')){
+          foreach($token in @('V03_SchoolLife','LockerBreezeway','StudentCanteen','ClubHub','BikeParking')){
+            if($school -notmatch [regex]::Escape($token)){ throw "School life marker missing: $token" }
+          }
+          foreach($token in @('V03_DowntownLife','ASC_Enterable','ARCADE','CAFE','STYLE','MUSIC','HOBBY')){
+            if($downtown -notmatch [regex]::Escape($token)){ throw "Downtown life marker missing: $token" }
+          }
+          foreach($token in @('V03_CityLife','SchoolDowntownCorridor','V03_ParkLife','V03_SkateLife','V03_SportsLife','V03_ResidentialLife')){
+            if($city -notmatch [regex]::Escape($token)){ throw "City life marker missing: $token" }
+          }
+          foreach($token in @('10745359869','121603385909425','0.3.0-city-life-pass-1','EnableBlockoutScaffold = false','EnablePremiumFoundation = true','EnableCityLifePass = true','EnableActivities = false','EnableEconomy = false')){
             if($config -notmatch [regex]::Escape($token)){ throw "Config marker missing: $token" }
           }
-          foreach($token in @('ASCConfig','ASC_World','after-school-city.config.lua','after-school-city.world.server.lua')){
+          foreach($token in @('ASCConfig','ASC_World','ASC_SchoolLife','ASC_DowntownLife','ASC_CityLife','after-school-city.school-life.server.lua','after-school-city.downtown-life.server.lua','after-school-city.city-life.server.lua')){
             if($project -notmatch [regex]::Escape($token)){ throw "Rojo project marker missing: $token" }
           }
-          if($world -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt'){ throw 'Scaffold must not contain monetization authority' }
-          if($world -match 'DataStoreService'){ throw 'Scaffold must not enable persistence yet' }
-          Write-Host 'AFTER SCHOOL CITY static scaffold QC PASS'
+
+          $allSource = $world + "`n" + $school + "`n" + $downtown + "`n" + $city
+          if($allSource -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt'){ throw 'ASC map source must not contain monetization authority' }
+          if($allSource -match 'DataStoreService'){ throw 'ASC map source must not enable persistence yet' }
+          if($allSource -match 'BillboardGui'){ throw 'Production map source must not reintroduce giant debug BillboardGui labels' }
+          Write-Host 'AFTER SCHOOL CITY v0.3 static QC PASS'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -78,14 +93,14 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
           "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build isolated scaffold
+      - name: Build isolated map
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-scaffold.rbxl'
+          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-v03.rbxl'
           & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
           if(-not (Test-Path $place)){throw 'Generated RBXL missing'}
           $bytes=(Get-Item $place).Length
           if($bytes -lt 1024){throw "Generated RBXL suspiciously small: $bytes bytes"}
-          Write-Host "AFTER SCHOOL CITY ROJO BUILD PASS - $bytes bytes"
+          Write-Host "AFTER SCHOOL CITY V0.3 ROJO BUILD PASS - $bytes bytes"
