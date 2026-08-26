@@ -1,0 +1,68 @@
+name: BBYA Main Club Trim 24 Patcher
+
+on:
+  push:
+    branches: [bbya/mainclub-keep-1-24-v1]
+    paths:
+      - '.github/workflows/bbya-mainclub-trim24-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Preserve Main Club 1-24 exactly and delete 25+
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $branch='bbya/mainclub-keep-1-24-v1'
+          $rel='maps/bbya-social-hub/30-club-systems.server.lua'
+          $text=Get-Content $rel -Raw
+          $expected=@(
+            '96983528563473','105877233550276','94337788677482','112322493409786',
+            '89165355590583','134057367195123','91900235935901','115774171488936',
+            '100162128635185','82993942539950','109286172792690','94547306143480',
+            '109116552044147','123077675190094','87114365256034','136681158481930',
+            '131557279061872','93670094706108','81169975667413','123696371004403',
+            '74479015238422','102620964808698','99998363156285','88925775968276'
+          )
+          $pattern='(?s)(local PLAYLIST=\{\r?\n-- MAIN_PROGRESSIVE_UPLOAD_BEGIN\r?\n)(.*?)(\r?\n-- MAIN_PROGRESSIVE_UPLOAD_END\r?\n\})'
+          $m=[regex]::Match($text,$pattern)
+          if(-not $m.Success){throw 'Main Club PLAYLIST block not found'}
+          $body=$m.Groups[2].Value
+          $lines=@($body -split '\r?\n' | Where-Object {$_ -match '^\s*\{title=.*?,id="([0-9]+)",style="[^"]+"\},\s*$'})
+          if($lines.Count -lt 25){throw "Expected 25+ Main tracks before trim, found $($lines.Count)"}
+          for($i=0;$i -lt 24;$i++){
+            if($lines[$i] -notmatch 'id="([0-9]+)"'){throw "Cannot parse track $($i+1)"}
+            if($Matches[1] -ne $expected[$i]){throw "LOCK VIOLATION track $($i+1): expected $($expected[$i]) got $($Matches[1])"}
+          }
+          if($lines[24] -notmatch 'Jay FM - Timeless'){throw 'Boundary mismatch: track 25 is not Jay FM - Timeless'}
+          $nl=if($text.Contains("`r`n")){"`r`n"}else{"`n"}
+          $kept=($lines[0..23] -join $nl)
+          $replacement=$m.Groups[1].Value+$kept+$m.Groups[3].Value
+          $newText=$text.Substring(0,$m.Index)+$replacement+$text.Substring($m.Index+$m.Length)
+          $m2=[regex]::Match($newText,$pattern)
+          $after=@($m2.Groups[2].Value -split '\r?\n' | Where-Object {$_ -match '^\s*\{title=.*?,id="([0-9]+)",style="[^"]+"\},\s*$'})
+          if($after.Count -ne 24){throw "Trim result must be exactly 24 tracks, got $($after.Count)"}
+          for($i=0;$i -lt 24;$i++){
+            if($after[$i] -notmatch 'id="([0-9]+)"' -or $Matches[1] -ne $expected[$i]){throw "Post-trim LOCK VIOLATION at track $($i+1)"}
+          }
+          if($newText -match 'Jay FM - Timeless|Jay FM - Insight|Shingo Nakamura - Glow'){throw 'Track 25+ sentinel still present after trim'}
+
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-MainClub-Trim24'}
+          $repo=$env:GITHUB_REPOSITORY
+          $encoded=(($rel.Split('/')|ForEach-Object{[Uri]::EscapeDataString($_)}) -join '/')
+          $uri="https://api.github.com/repos/$repo/contents/$encoded"
+          $existing=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref='+[Uri]::EscapeDataString($branch))
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($newText))
+          $payload=@{message='Main Club: keep tracks 1-24, remove 25+';content=$b64;sha=[string]$existing.sha;branch=$branch}|ConvertTo-Json -Depth 4
+          $result=Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body $payload
+          Write-Host "BBYA_MAINCLUB_TRIM24_PATCHED commit=$($result.commit.sha) kept=24 removed=$($lines.Count-24)"
