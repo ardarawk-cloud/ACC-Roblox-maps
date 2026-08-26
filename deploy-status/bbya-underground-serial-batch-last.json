@@ -1,18 +1,8 @@
 {
   "status": "BATCH_COMPLETE",
-  "processedCount": 1,
+  "processedCount": 0,
   "batchSizeLimit": 10,
   "moderationWaitSecondsPerTrack": 180,
-  "tracks": [
-    {
-      "trackIndex": 49,
-      "title": "Om Abidin - Ani Ani ( Club Mix )",
-      "status": "READY_TO_INJECT",
-      "assetId": "103410156771684",
-      "moderationState": "Approved",
-      "blacklisted": false,
-      "readyToInject": true
-    }
-  ],
-  "recordedAtUnix": 1787702361
+  "tracks": [],
+  "recordedAtUnix": 1787745097
 }
