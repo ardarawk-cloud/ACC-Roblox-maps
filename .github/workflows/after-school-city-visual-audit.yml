@@ -5,6 +5,8 @@ on:
     branches: [after-school-city/scaffold-v1]
     paths:
       - '.github/workflows/after-school-city-visual-audit.yml'
+      - 'scripts/after-school-city-visual-audit.py'
+      - 'maps/after-school-city/**'
   workflow_dispatch:
 
 permissions:
@@ -65,16 +67,61 @@ jobs:
           python -c "import PIL, pywinauto; print('Studio visual dependencies PASS')"
 
       - name: Capture seven real Roblox Studio views
+        id: capture
+        continue-on-error: true
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           python scripts/after-school-city-visual-audit.py
 
-      - name: Verify capture evidence
+      - name: Upload visual diagnostic artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-visual-${{ github.run_id }}
+          path: deploy-status/after-school-city-visual
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Persist visual evidence or failure diagnostic
+        if: always()
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $dir='deploy-status/after-school-city-visual'
+          if(-not (Test-Path $dir)){New-Item -ItemType Directory -Force -Path $dir | Out-Null}
+          if(-not (Test-Path "$dir/audit.json") -and -not (Test-Path "$dir/error.json")){
+            $fallback=@{
+              status='FAILED'
+              stage='workflow-fallback'
+              sourceCommit=$env:GITHUB_SHA
+              runId=$env:GITHUB_RUN_ID
+              error='Capture step produced neither audit.json nor error.json'
+              publishPerformed=$false
+            } | ConvertTo-Json -Depth 4
+            Set-Content -Path "$dir/error.json" -Value $fallback -Encoding utf8
+          }
+          git config user.name 'ACC After School City Visual Auditor'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/after-school-city-visual
+          if(-not (git diff --cached --quiet)){git commit -m 'Record After School City Studio visual audit evidence [skip ci]'}
+          git pull --rebase origin after-school-city/scaffold-v1
+          git push origin HEAD:after-school-city/scaffold-v1
+
+      - name: Enforce visual capture success
+        if: always()
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir='deploy-status/after-school-city-visual'
+          if('${{ steps.capture.outcome }}' -ne 'success'){
+            if(Test-Path "$dir/error.json"){
+              Write-Host '--- persisted visual error ---'
+              Get-Content "$dir/error.json" -Raw
+            }
+            throw 'Studio visual capture failed; diagnostic persisted.'
+          }
+          if(-not (Test-Path "$dir/audit.json")){throw 'audit.json missing'}
           $audit=Get-Content "$dir/audit.json" -Raw | ConvertFrom-Json
           if($audit.status -ne 'CAPTURED'){throw 'Visual status is not CAPTURED'}
           if($audit.publishPerformed -ne $false){throw 'Visual audit must never publish'}
@@ -85,14 +132,3 @@ jobs:
             if((Get-Item $p).Length -lt 5000){throw "Screenshot suspiciously small: $p"}
           }
           Write-Host 'AFTER SCHOOL CITY STUDIO VISUAL CAPTURE PASS'
-
-      - name: Persist visual evidence on scaffold branch
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          git config user.name 'ACC After School City Visual Auditor'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/after-school-city-visual
-          if(-not (git diff --cached --quiet)){git commit -m 'Record After School City Studio visual audit [skip ci]'}
-          git pull --rebase origin after-school-city/scaffold-v1
-          git push origin HEAD:after-school-city/scaffold-v1
