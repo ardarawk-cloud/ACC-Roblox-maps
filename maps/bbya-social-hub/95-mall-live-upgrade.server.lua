@@ -120,7 +120,7 @@ end
 
 -- 3) DIGITAL MALL NETWORK
 local digital=Instance.new("Model");digital.Name="DigitalSignageNetwork";digital.Parent=up
-local boards={}
+local boards={
  {screen(digital,"AtriumDigitalSouth",Vector3.new(18,8,.5),CFrame.new(0,10,337),"NOW AT BBYA","SHOP • EAT • PLAY • CINEMA",C.gold)},
  {screen(digital,"AtriumDigitalNorth",Vector3.new(18,8,.5),CFrame.new(0,10,393)*CFrame.Angles(0,math.rad(180),0),"LIVE DIRECTORY","4 LEVELS • 18 TENANTS",C.cyan)},
  {screen(digital,"Level2Digital",Vector3.new(15,6,.45),CFrame.new(-38,20,365)*CFrame.Angles(0,math.rad(90),0),"LEVEL 2","FASHION • AUDIO • SPORT",C.pink)},
