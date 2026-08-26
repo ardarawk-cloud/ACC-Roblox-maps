@@ -1,11 +1,10 @@
-name: After School City Studio Visual Audit
+name: After School City Native Studio Visual Audit
 
 on:
   push:
     branches: [after-school-city/scaffold-v1]
     paths:
       - '.github/workflows/after-school-city-visual-audit.yml'
-      - 'scripts/after-school-city-visual-audit.py'
       - 'maps/after-school-city/**'
   workflow_dispatch:
 
@@ -23,112 +22,282 @@ jobs:
           ref: after-school-city/scaffold-v1
           fetch-depth: 0
 
-      - name: Prepare Rojo 7.7.0
+      - name: Prepare Rojo 7.7.0 and build isolated place
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){$rojoExe=$cmd.Source}else{
-            $dir=Join-Path $env:RUNNER_TEMP 'asc-visual-rojo-7.7.0'
-            $zip=Join-Path $env:RUNNER_TEMP 'asc-visual-rojo-7.7.0.zip'
-            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $toolDir=Join-Path $env:RUNNER_TEMP 'asc-native-rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $zip=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0-windows-x86_64.zip'
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-            Expand-Archive -Path $zip -DestinationPath $dir -Force
-            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
-            if(-not $exe){throw 'rojo.exe not found'}
-            $rojoExe=$exe.FullName
+            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
           }
-          & $rojoExe --version
-          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
-          "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build isolated visual place
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-visual.rbxl'
-          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
-          if(-not (Test-Path $place)){throw 'Visual RBXL missing'}
-          if((Get-Item $place).Length -lt 1024){throw 'Visual RBXL suspiciously small'}
+          $ver=& $rojo --version
+          Write-Host $ver
+          if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
+          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-native-visual.rbxl'
+          & $rojo build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'After School City Rojo build failed'}
+          if((Get-Item $place).Length -lt 1024){throw 'After School City RBXL suspiciously small'}
           "ASC_VISUAL_PLACE=$place" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $out=Join-Path $env:GITHUB_WORKSPACE 'deploy-status\after-school-city-visual'
+          Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          "ASC_VISUAL_OUT=$out" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Setup Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Prepare visual automation dependencies
+      - name: Launch isolated place in Roblox Studio
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          python -m pip install --quiet --disable-pip-version-check pillow pywinauto
-          python -c "import PIL, pywinauto; print('Studio visual dependencies PASS')"
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          $candidates=@()
+          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
+            if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          }
+          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "Studio=$($studio.FullName)"
+          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:ASC_VISUAL_PLACE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
+          "ASC_STUDIO_PID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Start-Sleep -Seconds 7
 
-      - name: Capture seven real Roblox Studio views
-        id: capture
+      - name: Render seven native Studio views
+        id: render
         continue-on-error: true
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          python scripts/after-school-city-visual-audit.py
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $p=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $lua=@'
+          print("[ASCCLOUDV1_BEGIN]")
+          local SSS=game:GetService("ServerScriptService")
+          local Workspace=game:GetService("Workspace")
+          local EncodingService=game:GetService("EncodingService")
+          local old=Workspace:FindFirstChild("AfterSchoolCity")
+          if old then old:Destroy() end
+          local source=SSS:FindFirstChild("ASC_World")
+          assert(source and source:IsA("LuaSourceContainer"),"ASC_World authority missing")
+          local mod=Instance.new("ModuleScript")
+          mod.Name="__ASC_VisualAudit_World"
+          mod.Source=source.Source.."\nreturn true"
+          mod.Parent=SSS
+          local ok,res=pcall(require,mod)
+          mod:Destroy()
+          print("[ASCAUTHV1]|"..tostring(ok).."|"..tostring(res))
+          assert(ok,res)
+          local city=Workspace:FindFirstChild("AfterSchoolCity")
+          assert(city,"AfterSchoolCity root missing after authority")
+          local districts=city:FindFirstChild("Districts")
+          assert(districts,"Districts folder missing")
+          local districtNames={}
+          for _,d in ipairs(districts:GetChildren()) do table.insert(districtNames,d.Name) end
+          table.sort(districtNames)
+          local partCount=0
+          local minV=Vector3.new(math.huge,math.huge,math.huge)
+          local maxV=Vector3.new(-math.huge,-math.huge,-math.huge)
+          for _,obj in ipairs(city:GetDescendants()) do
+            if obj:IsA("BasePart") then
+              partCount+=1
+              local half=obj.Size*0.5
+              local p=obj.Position
+              minV=Vector3.new(math.min(minV.X,p.X-half.X),math.min(minV.Y,p.Y-half.Y),math.min(minV.Z,p.Z-half.Z))
+              maxV=Vector3.new(math.max(maxV.X,p.X+half.X),math.max(maxV.Y,p.Y+half.Y),math.max(maxV.Z,p.Z+half.Z))
+            end
+          end
+          local span=maxV-minV
+          local center=(minV+maxV)*0.5
+          print(string.format("[ASCGEOMV1]|DISTRICTS=%d|PARTS=%d|CENTER=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f|NAMES=%s",#districtNames,partCount,center.X,center.Y,center.Z,span.X,span.Y,span.Z,table.concat(districtNames,",")))
+          local camera=Workspace.CurrentCamera
+          assert(camera,"Studio camera unavailable")
+          camera.CameraType=Enum.CameraType.Scriptable
+          camera.FieldOfView=62
+          local views={
+            {"01-school-spawn",Vector3.new(0,92,365),Vector3.new(0,10,210)},
+            {"02-downtown",Vector3.new(0,82,155),Vector3.new(0,7,0)},
+            {"03-skate-park",Vector3.new(390,78,150),Vector3.new(235,5,0)},
+            {"04-city-park",Vector3.new(0,82,-65),Vector3.new(0,4,-210)},
+            {"05-residential",Vector3.new(-390,78,145),Vector3.new(-235,7,0)},
+            {"06-sports-field",Vector3.new(390,82,360),Vector3.new(235,7,210)},
+            {"07-city-overview",Vector3.new(0,515,20),Vector3.new(0,0,20)},
+          }
+          local capService=game:GetService("StudioCaptureService")
+          local can=capService:CanCaptureScreenshot()
+          print("[ASCCAPV1_SERVICE]|"..tostring(can))
+          assert(can,"StudioCaptureService cannot capture screenshot")
+          for _,v in ipairs(views) do
+            camera.CFrame=CFrame.lookAt(v[2],v[3])
+            camera.Focus=CFrame.new(v[3])
+            task.wait(.7)
+            local cap=capService:CaptureScreenshot({UICaptureMode=Enum.UICaptureMode.None,BufferFormat=Enum.StudioCaptureScreenshotFormat.PNG})
+            for i=1,120 do
+              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Ready then break end
+              if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Error then break end
+              task.wait(.05)
+            end
+            if cap.BufferStatus~=Enum.StudioCaptureBufferStatus.Ready then
+              local errs=cap:GetErrors()
+              print("[ASCCAPV1_ERROR]|"..v[1].."|"..cap.BufferStatus.Name.."|"..tostring(errs and table.concat(errs,", ") or ""))
+              error("capture failed "..v[1])
+            end
+            local scaled=cap:ScaleAsync(Enum.ResamplerMode.Default,Vector2.new(800,450))
+            local buf=scaled:GetBuffer()
+            local b64=EncodingService:Base64Encode(buf)
+            print(string.format("[ASCCAPV1_META]|%s|%s|%d|%d|%d|%d",v[1],scaled.BufferFormat.Name,scaled.Resolution.X,scaled.Resolution.Y,buffer.len(buf),buffer.len(b64)))
+            local total=buffer.len(b64)
+            local step=2400
+            local seq=0
+            for offset=0,total-1,step do
+              local n=math.min(step,total-offset)
+              print(string.format("[ASCCAPV1_CHUNK]|%s|%06d|%s",v[1],seq,buffer.readstring(b64,offset,n)))
+              seq+=1
+            end
+            print("[ASCCAPV1_VIEW_DONE]|"..v[1])
+          end
+          print("[ASCCLOUDV1_DONE]")
+          '@
+          $value.SetValue($lua)
+          Start-Sleep -Milliseconds 300
+          $invoke.Invoke()
+          Start-Sleep -Seconds 35
 
-      - name: Upload visual diagnostic artifact
+      - name: Reconstruct native Studio captures
+        id: reconstruct
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Drawing
+          $log=$null
+          foreach($f in (Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Roblox\logs') -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 15)){
+            if(Select-String -Path $f.FullName -Pattern '\[FLog::CreatorOutput\].*\[ASCCLOUDV1_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
+          }
+          if(-not $log){throw 'After School City native capture output log not found'}
+          $lines=Get-Content $log.FullName
+          $done=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\].*\[ASCCLOUDV1_DONE\]'} | Select-Object -Last 1
+          if(-not $done){
+            Write-Host '=== ASC CreatorOutput diagnostics ==='
+            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 220 | ForEach-Object {Write-Host $_}
+            throw 'After School City native renderer did not complete'
+          }
+          $geometry=$lines | Where-Object {$_ -match '\[(ASCAUTHV1|ASCGEOMV1|ASCCAPV1_SERVICE|ASCCAPV1_META|ASCCAPV1_VIEW_DONE)\]'}
+          $geometry | Set-Content (Join-Path $env:ASC_VISUAL_OUT 'geometry.txt') -Encoding utf8
+          $metas=@{}
+          foreach($line in $lines){
+            if($line -match '\[ASCCAPV1_META\]\|([^|]+)\|([^|]+)\|(\d+)\|(\d+)\|(\d+)\|(\d+)'){
+              $metas[$matches[1]]=@{format=$matches[2];w=[int]$matches[3];h=[int]$matches[4]}
+            }
+          }
+          if($metas.Count -ne 7){throw "Expected 7 native captures, got $($metas.Count)"}
+          foreach($view in $metas.Keys){
+            $parts=@()
+            foreach($line in $lines){
+              if($line -match ('\[ASCCAPV1_CHUNK\]\|'+[regex]::Escape($view)+'\|(\d+)\|(.+)$')){
+                $parts += [pscustomobject]@{n=[int]$matches[1];data=$matches[2]}
+              }
+            }
+            if($parts.Count -eq 0){throw "No capture chunks for $view"}
+            $b64=($parts | Sort-Object n | ForEach-Object {$_.data}) -join ''
+            $bytes=[Convert]::FromBase64String($b64)
+            $meta=$metas[$view]
+            $path=Join-Path $env:ASC_VISUAL_OUT ($view+'.png')
+            if($meta.format -eq 'PNG'){
+              [IO.File]::WriteAllBytes($path,$bytes)
+            } elseif($meta.format -eq 'RGBA8'){
+              $bmp=New-Object System.Drawing.Bitmap($meta.w,$meta.h,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+              $rect=New-Object System.Drawing.Rectangle(0,0,$meta.w,$meta.h)
+              $data=$bmp.LockBits($rect,[System.Drawing.Imaging.ImageLockMode]::WriteOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+              $bgra=New-Object byte[] ($bytes.Length)
+              for($i=0;$i -lt $bytes.Length;$i+=4){$bgra[$i]=$bytes[$i+2];$bgra[$i+1]=$bytes[$i+1];$bgra[$i+2]=$bytes[$i];$bgra[$i+3]=$bytes[$i+3]}
+              [Runtime.InteropServices.Marshal]::Copy($bgra,0,$data.Scan0,$bgra.Length)
+              $bmp.UnlockBits($data)
+              $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
+              $bmp.Dispose()
+            } else {
+              throw "Unsupported capture buffer format: $($meta.format)"
+            }
+            if((Get-Item $path).Length -lt 5000){throw "Screenshot suspiciously small: $path"}
+          }
+          $audit=[ordered]@{
+            status='CAPTURED'
+            sourceCommit=$env:GITHUB_SHA
+            runId=$env:GITHUB_RUN_ID
+            imageCount=$metas.Count
+            views=@('01-school-spawn','02-downtown','03-skate-park','04-city-park','05-residential','06-sports-field','07-city-overview')
+            publishPerformed=$false
+            captureMethod='StudioCaptureService-native-v1'
+          }
+          [IO.File]::WriteAllText((Join-Path $env:ASC_VISUAL_OUT 'audit.json'),($audit | ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+          Write-Host 'AFTER SCHOOL CITY NATIVE VISUAL RECONSTRUCTION PASS'
+
+      - name: Upload visual artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: after-school-city-visual-${{ github.run_id }}
+          name: after-school-city-native-visual-${{ github.run_id }}
           path: deploy-status/after-school-city-visual
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Persist visual evidence or failure diagnostic
+      - name: Persist evidence or failure diagnostic
         if: always()
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $dir='deploy-status/after-school-city-visual'
           if(-not (Test-Path $dir)){New-Item -ItemType Directory -Force -Path $dir | Out-Null}
-          if(-not (Test-Path "$dir/audit.json") -and -not (Test-Path "$dir/error.json")){
-            $fallback=@{
+          if(-not (Test-Path "$dir/audit.json")){
+            $fallback=[ordered]@{
               status='FAILED'
-              stage='workflow-fallback'
+              stage='native-visual-workflow'
               sourceCommit=$env:GITHUB_SHA
               runId=$env:GITHUB_RUN_ID
-              error='Capture step produced neither audit.json nor error.json'
+              renderOutcome='${{ steps.render.outcome }}'
+              reconstructOutcome='${{ steps.reconstruct.outcome }}'
+              error='Native Studio capture did not produce audit.json; inspect workflow logs.'
               publishPerformed=$false
-            } | ConvertTo-Json -Depth 4
-            Set-Content -Path "$dir/error.json" -Value $fallback -Encoding utf8
+            }
+            [IO.File]::WriteAllText((Join-Path $dir 'error.json'),($fallback | ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+          } else {
+            Remove-Item "$dir/error.json" -Force -ErrorAction SilentlyContinue
           }
-          git config user.name 'ACC After School City Visual Auditor'
+          git config user.name 'ACC After School City Native Visual Auditor'
           git config user.email 'actions@users.noreply.github.com'
           git add deploy-status/after-school-city-visual
-          if(-not (git diff --cached --quiet)){git commit -m 'Record After School City Studio visual audit evidence [skip ci]'}
+          if(-not (git diff --cached --quiet)){git commit -m 'Record After School City native visual evidence [skip ci]'}
           git pull --rebase origin after-school-city/scaffold-v1
           git push origin HEAD:after-school-city/scaffold-v1
 
-      - name: Enforce visual capture success
+      - name: Enforce native visual success
         if: always()
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $dir='deploy-status/after-school-city-visual'
-          if('${{ steps.capture.outcome }}' -ne 'success'){
-            if(Test-Path "$dir/error.json"){
-              Write-Host '--- persisted visual error ---'
-              Get-Content "$dir/error.json" -Raw
-            }
-            throw 'Studio visual capture failed; diagnostic persisted.'
+          if(-not (Test-Path "$dir/audit.json")){
+            if(Test-Path "$dir/error.json"){Get-Content "$dir/error.json" -Raw | Write-Host}
+            throw 'After School City native visual capture failed; diagnostic persisted.'
           }
-          if(-not (Test-Path "$dir/audit.json")){throw 'audit.json missing'}
           $audit=Get-Content "$dir/audit.json" -Raw | ConvertFrom-Json
-          if($audit.status -ne 'CAPTURED'){throw 'Visual status is not CAPTURED'}
+          if($audit.status -ne 'CAPTURED'){throw 'Visual audit status is not CAPTURED'}
           if($audit.publishPerformed -ne $false){throw 'Visual audit must never publish'}
           if([int]$audit.imageCount -ne 7){throw "Expected 7 images, got $($audit.imageCount)"}
           foreach($n in @('01-school-spawn','02-downtown','03-skate-park','04-city-park','05-residential','06-sports-field','07-city-overview')){
-            $p="$dir/$n.jpg"
+            $p="$dir/$n.png"
             if(-not (Test-Path $p)){throw "Missing $p"}
             if((Get-Item $p).Length -lt 5000){throw "Screenshot suspiciously small: $p"}
           }
-          Write-Host 'AFTER SCHOOL CITY STUDIO VISUAL CAPTURE PASS'
+          Write-Host 'AFTER SCHOOL CITY NATIVE STUDIO VISUAL CAPTURE PASS'
