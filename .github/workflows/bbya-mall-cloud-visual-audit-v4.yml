@@ -35,6 +35,7 @@ jobs:
             Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
           }
           $ver=& $rojo --version
+          Write-Host $ver
           if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
           $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
           & $rojo build 'maps/bbya-social-hub/default.project.json' -o $place
@@ -56,13 +57,14 @@ jobs:
           }
           $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "Studio=$($studio.FullName)"
           $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
           for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
           if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
           "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
           Start-Sleep -Seconds 7
 
-      - name: Build Mall authorities in Studio edit world and capture seven native views
+      - name: Build Mall from canonical authorities and capture seven native views
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -77,24 +79,27 @@ jobs:
           if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-
           $lua=@'
           print("[MALLCLOUD_BEGIN]")
           local SSS=game:GetService("ServerScriptService")
           local Workspace=game:GetService("Workspace")
           local EncodingService=game:GetService("EncodingService")
-          SSS.LoadStringEnabled=true
           local old=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
           if old then old:Destroy() end
-          local root=Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=Workspace
+          local root=Instance.new("Folder")
+          root.Name="BBYA_ZERO_BUILD"
+          root.Parent=Workspace
           local function runAuthority(name)
             local obj=SSS:FindFirstChild(name)
             assert(obj and obj:IsA("LuaSourceContainer"),"missing authority: "..name)
-            local fn,compileErr=loadstring(obj.Source,"="..name)
-            assert(fn,compileErr)
-            local ok,err=pcall(fn)
-            print("[MALLAUTH]|"..name.."|"..tostring(ok).."|"..tostring(err or "OK"))
-            assert(ok,err)
+            local mod=Instance.new("ModuleScript")
+            mod.Name="__MallAudit_"..name
+            mod.Source=obj.Source.."\nreturn true"
+            mod.Parent=SSS
+            local ok,res=pcall(require,mod)
+            mod:Destroy()
+            print("[MALLAUTH]|"..name.."|"..tostring(ok).."|"..tostring(res))
+            assert(ok,res)
           end
           runAuthority("ActiveRearMallV1")
           runAuthority("MallLiveUpgradeV2")
@@ -113,6 +118,7 @@ jobs:
             end
           end
           local camera=Workspace.CurrentCamera
+          assert(camera,"Studio camera unavailable")
           camera.CameraType=Enum.CameraType.Scriptable
           camera.FieldOfView=68
           local views={
@@ -125,25 +131,29 @@ jobs:
             {"07-overview",Vector3.new(0,72,280),Vector3.new(0,22,365)},
           }
           local capService=game:GetService("StudioCaptureService")
-          print("[MALLCAP_SERVICE]|"..tostring(capService:CanCaptureScreenshot()))
-          assert(capService:CanCaptureScreenshot(),"StudioCaptureService cannot capture screenshot")
+          local can=capService:CanCaptureScreenshot()
+          print("[MALLCAP_SERVICE]|"..tostring(can))
+          assert(can,"StudioCaptureService cannot capture screenshot")
           for _,v in ipairs(views) do
             camera.CFrame=CFrame.lookAt(v[2],v[3])
             camera.Focus=CFrame.new(v[3])
-            task.wait(.45)
+            task.wait(.6)
             local cap=capService:CaptureScreenshot({UICaptureMode=Enum.UICaptureMode.None,BufferFormat=Enum.StudioCaptureScreenshotFormat.PNG})
-            for i=1,80 do
+            for i=1,100 do
               if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Ready then break end
               if cap.BufferStatus==Enum.StudioCaptureBufferStatus.Error then break end
               task.wait(.05)
             end
-            assert(cap.BufferStatus==Enum.StudioCaptureBufferStatus.Ready,"capture failed "..v[1].." status="..cap.BufferStatus.Name)
-            local scaled=cap:ScaleAsync(Enum.ResamplerMode.Default,Vector2.new(800,450))
+            if cap.BufferStatus~=Enum.StudioCaptureBufferStatus.Ready then
+              print("[MALLCAP_ERROR]|"..v[1].."|"..cap.BufferStatus.Name)
+              error("capture failed "..v[1])
+            end
+            local scaled=cap:ScaleAsync(Enum.ResamplerMode.Default,Vector2.new(640,360))
             local buf=scaled:GetBuffer()
             local b64=EncodingService:Base64Encode(buf)
             print(string.format("[MALLCAP_META]|%s|%s|%d|%d|%d|%d",v[1],scaled.BufferFormat.Name,scaled.Resolution.X,scaled.Resolution.Y,buffer.len(buf),buffer.len(b64)))
             local total=buffer.len(b64)
-            local step=3000
+            local step=2400
             local seq=0
             for offset=0,total-1,step do
               local n=math.min(step,total-offset)
@@ -157,7 +167,7 @@ jobs:
           $value.SetValue($lua)
           Start-Sleep -Milliseconds 300
           $invoke.Invoke()
-          Start-Sleep -Seconds 20
+          Start-Sleep -Seconds 30
 
       - name: Reconstruct native Studio captures
         shell: powershell
@@ -165,15 +175,15 @@ jobs:
           $ErrorActionPreference='Stop'
           Add-Type -AssemblyName System.Drawing
           $log=$null
-          foreach($f in (Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10)){
-            if(Select-String -Path $f.FullName -Pattern '\[MALLCLOUD_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
+          foreach($f in (Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12)){
+            if(Select-String -Path $f.FullName -Pattern '\[FLog::CreatorOutput\].*\[MALLCLOUD_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
           }
-          if(-not $log){throw 'Mall native capture log not found'}
+          if(-not $log){throw 'Mall native capture output log not found'}
           $lines=Get-Content $log.FullName
-          $done=$lines | Where-Object {$_ -match '\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
+          $done=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\].*\[MALLCLOUD_DONE\]'} | Select-Object -Last 1
           if(-not $done){
-            $diag=$lines | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE)\]'}
-            $diag | ForEach-Object {Write-Host $_}
+            Write-Host '=== Mall CreatorOutput diagnostics ==='
+            $lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]|Error|exception|Exception'} | Select-Object -Last 220 | ForEach-Object {Write-Host $_}
             throw 'Mall cloud renderer did not complete'
           }
           $geometry=$lines | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLCAP_SERVICE|MALLCAP_META|MALLCAP_VIEW_DONE)\]'}
@@ -184,6 +194,7 @@ jobs:
               $metas[$matches[1]]=@{format=$matches[2];w=[int]$matches[3];h=[int]$matches[4]}
             }
           }
+          if($metas.Count -ne 7){throw "Expected 7 native captures, got $($metas.Count)"}
           foreach($view in $metas.Keys){
             $parts=@()
             foreach($line in $lines){
@@ -210,7 +221,7 @@ jobs:
               $bmp.Dispose()
             } else {throw "Unknown Studio capture format $($meta.format)"}
           }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService native buffer';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
+          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='StudioCaptureService + canonical ModuleScript authorities';views=@($metas.Keys)} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
           Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
 
       - name: Close Studio
