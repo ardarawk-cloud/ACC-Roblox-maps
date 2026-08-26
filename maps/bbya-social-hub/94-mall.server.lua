@@ -224,7 +224,7 @@ for i=1,12 do buildTenant(tenantData[i]) end
 -- Food Hall and cafe on L3.
 local food=Instance.new("Model");food.Name="FoodHall";food.Parent=mall
 local fy=LEVELS[3]
-part("FoodHallFloor",Vector3.new(72,.4,48),CFrame.new(-56,fy+.7,370),Color3.fromRGB(199,193,184),Enum.Material.Tile,true,food)
+part("FoodHallFloor",Vector3.new(72,.4,48),CFrame.new(-56,fy+.7,370),Color3.fromRGB(199,193,184),Enum.Material.CeramicTiles,true,food)
 sign(food,"FoodHallSign","BBYA FOOD HALL",Vector3.new(34,4,.5),CFrame.new(-56,fy+10.5,347),C.white,C.orange)
 for i,z in ipairs({352,364,376,388}) do
  local x=-82
@@ -301,7 +301,7 @@ local elevator=Instance.new("Model");elevator.Name="ElevatorCore";elevator.Paren
 part("ElevatorTower",Vector3.new(18,57,16),CFrame.new(78,29,CZ+55),Color3.fromRGB(48,50,54),Enum.Material.Metal,true,elevator)
 local floorCF={}
 for i,y in ipairs(LEVELS) do
- local lobby=part("ElevatorLobby"..i,Vector3.new(16,.4,12),CFrame.new(68,y+.7,CZ+54),Color3.fromRGB(184,184,180),Enum.Material.Tile,true,elevator)
+ local lobby=part("ElevatorLobby"..i,Vector3.new(16,.4,12),CFrame.new(68,y+.7,CZ+54),Color3.fromRGB(184,184,180),Enum.Material.CeramicTiles,true,elevator)
  local pad=part("ElevatorPad"..i,Vector3.new(5,.3,5),CFrame.new(68,y+1,CZ+54),C.gold,Enum.Material.Neon,false,elevator,.28)
  floorCF[i]=CFrame.new(68,y+3,CZ+50)
  sign(elevator,"ElevatorLabel"..i,"L"..i,Vector3.new(3,3,.3),CFrame.new(77.1,y+6,CZ+54)*CFrame.Angles(0,math.rad(-90),0),C.gold,C.dark)
