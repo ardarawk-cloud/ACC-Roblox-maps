@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.4.1-spatial-cleanup-1",
+    Version = "0.4.2-structural-realignment-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -36,6 +36,7 @@ local Config = {
         EnableCityLifePass = true,
         EnableStreetDensityPass = true,
         EnableSpatialCleanupPass = true,
+        EnableStructuralRealignmentPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
