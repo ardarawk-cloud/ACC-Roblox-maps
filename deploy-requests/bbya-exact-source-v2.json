@@ -1,7 +1,7 @@
 {
-  "source_sha": "526c050f5c3a001148fb72ad94349763359eb6a1",
-  "reason": "Opening stability exact deploy for PR #185 after Windows checkout-path extraction failure in publisher v1",
-  "feature_pr": 185,
+  "source_sha": "1f7585901dd68b6cc3327c45aefa5256dac60940",
+  "reason": "Exact deploy of Mall runtime compatibility fix from PR #206 after self-hosted Windows x64 Rojo 7.7.0 QC PASS",
+  "feature_pr": 206,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
