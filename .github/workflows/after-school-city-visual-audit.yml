@@ -52,6 +52,11 @@ jobs:
           if((Get-Item $place).Length -lt 1024){throw 'Visual RBXL suspiciously small'}
           "ASC_VISUAL_PLACE=$place" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Prepare visual automation dependencies
         shell: powershell
         run: |
