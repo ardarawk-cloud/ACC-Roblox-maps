@@ -35,6 +35,13 @@
       "universeId": "10745325613",
       "placeId": "80994730522893",
       "file": "maps/becak-e-bike/place.rbxlx"
+    },
+    "after-school-city": {
+      "name": "AFTER SCHOOL CITY",
+      "enabled": false,
+      "universeId": "10745359869",
+      "placeId": "121603385909425",
+      "file": "maps/after-school-city/place.rbxlx"
     }
   }
 }
