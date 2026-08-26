@@ -22,17 +22,22 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Build canonical BBYA place
+      - name: Prepare Rojo 7.7.0 and build canonical BBYA place
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $rojo=@(
-            'C:\Users\Administrator\.cargo\bin\rojo.exe',
-            'C:\cargo\bin\rojo.exe'
-          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if(-not $rojo){$cmd=Get-Command rojo.exe -ErrorAction SilentlyContinue;if($cmd){$rojo=$cmd.Source}}
-          if(-not $rojo){throw 'Rojo executable not found on worker'}
-          & $rojo --version
+          $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-windows-x86_64.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
+          }
+          if(-not (Test-Path $rojo)){throw 'Rojo 7.7.0 download/extract failed'}
+          $ver=& $rojo --version
+          Write-Host $ver
+          if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
           $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
           & $rojo build 'maps/bbya-social-hub/default.project.json' -o $place
           if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Rojo build failed'}
@@ -106,12 +111,23 @@ jobs:
           $img.Save($out,[System.Drawing.Imaging.ImageFormat]::Png)
           $g.Dispose();$img.Dispose()
 
-      - name: Exit Studio and upload smoke capture
+      - name: Exit Studio
         if: always()
         shell: powershell
         run: |
-          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue
-          if($p){$w=New-Object -ComObject WScript.Shell;[void]$w.AppActivate($p.Id);$w.SendKeys('+{F5}');Start-Sleep -Seconds 1;$p.CloseMainWindow()|Out-Null;Start-Sleep -Seconds 2;if(-not $p.HasExited){$p|Stop-Process -Force}}
+          if($env:STUDIOPID -and $env:STUDIOPID -match '^\d+$' -and [int]$env:STUDIOPID -gt 0){
+            $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue
+            if($p){
+              $w=New-Object -ComObject WScript.Shell
+              [void]$w.AppActivate($p.Id)
+              $w.SendKeys('+{F5}')
+              Start-Sleep -Seconds 1
+              [void]$p.CloseMainWindow()
+              Start-Sleep -Seconds 2
+              $p.Refresh()
+              if(-not $p.HasExited){$p | Stop-Process -Force -ErrorAction SilentlyContinue}
+            }
+          }
 
       - name: Upload entrance capture
         if: always()
