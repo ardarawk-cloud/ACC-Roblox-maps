@@ -1,277 +1,73 @@
-name: BBYA Mall Cloud Visual Audit V4
+name: BBYA Mall Branch Runtime QC Temp
 
 on:
   push:
-    branches: [main]
+    branches: ['fix/mall-visual-cleanup-v7']
     paths:
       - '.github/workflows/bbya-mall-cloud-visual-audit-v4.yml'
-      - '.github/worker-jobs/bbya-mall-visual-trigger-v4.txt'
-  workflow_dispatch:
+      - 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live.client.lua'
+      - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
 
 permissions:
   contents: read
 
 jobs:
-  audit:
+  qc:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
-      - name: Checkout latest main
+      - name: Checkout branch authority
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 1
 
-      - name: Build canonical BBYA snapshot with temporary Mall audit modules
+      - name: Prepare Rojo 7.7.0
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
-          $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
-          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
-          $rojo=Join-Path $toolDir 'rojo.exe'
-          if(-not (Test-Path $rojo)){
-            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-windows-x86_64.zip'
-            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-mall-v7-rojo'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-mall-v7-rojo.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Force -Path $dir | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
           }
           $ver=& $rojo --version
           Write-Host $ver
           if($ver -notmatch '7\.7\.0'){throw "Unexpected Rojo version: $ver"}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-          $map='maps/bbya-social-hub'
-          $runtime=Join-Path $map '__mall-audit-runtime'
-          $auth=Join-Path $runtime 'authorities'
-          Remove-Item $runtime -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path $auth | Out-Null
-
-          $authorityFiles=[ordered]@{
-            'ActiveRearMallV1'='94-mall.server.lua'
-            'MallLiveUpgradeV2'='95-mall-live-upgrade.server.lua'
-            'ActiveMallPolishV1'='94-mall-polish.server.lua'
-            'MallRobuxCommerceV1'='133-mall-robux-commerce.server.lua'
-            'MallSafeSecurityOverrideV1'='97-mall-safe-security-override.server.lua'
-          }
-          foreach($name in $authorityFiles.Keys){
-            $src=Join-Path $map $authorityFiles[$name]
-            if(-not (Test-Path $src)){throw "Missing Mall authority source: $src"}
-            $text=Get-Content $src -Raw
-            if($name -eq 'ActiveRearMallV1'){
-              $text=$text.Replace('Enum.Material.Tile','Enum.Material.CeramicTiles')
-              Write-Host 'Audit-only compatibility: Enum.Material.Tile -> Enum.Material.CeramicTiles'
-            }
-            if($name -eq 'MallLiveUpgradeV2'){
-              $text=$text.Replace("local boards={}`r`n {screen","local boards={`r`n {screen")
-              $text=$text.Replace("local boards={}`n {screen","local boards={`n {screen")
-              Write-Host 'Audit-only compatibility: repair MallLiveUpgradeV2 boards table syntax'
-            }
-            $text=$text+"`r`nreturn true`r`n"
-            [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text,$utf8NoBom)
-          }
-
-          $runner=@'
-          print("[MALLCLOUD_BEGIN]")
-          local ServerStorage=game:GetService("ServerStorage")
-          local Workspace=game:GetService("Workspace")
-          local modules=ServerStorage:WaitForChild("MallAuditAuthorities")
-          local old=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
-          if old then old:Destroy() end
-          local root=Instance.new("Folder")
-          root.Name="BBYA_ZERO_BUILD"
-          root.Parent=Workspace
-          local function runAuthority(name)
-            local mod=modules:WaitForChild(name)
-            local ok,res=pcall(require,mod)
-            print("[MALLAUTH]|"..name.."|"..tostring(ok).."|"..tostring(res))
-            assert(ok,res)
-          end
-          runAuthority("ActiveRearMallV1")
-          runAuthority("MallLiveUpgradeV2")
-          runAuthority("ActiveMallPolishV1")
-          runAuthority("MallRobuxCommerceV1")
-          runAuthority("MallSafeSecurityOverrideV1")
-          local mall=root:FindFirstChild("BBYAMall")
-          assert(mall,"BBYAMall missing after authorities")
-          local c,s=mall:GetBoundingBox()
-          print(string.format("[MALLGEOM]|PASS=%s|VISUAL=%s|POS=%.1f,%.1f,%.1f|SIZE=%.1f,%.1f,%.1f",tostring(mall:GetAttribute("Pass")),tostring(mall:GetAttribute("MallMobileVisualAuthority")),c.Position.X,c.Position.Y,c.Position.Z,s.X,s.Y,s.Z))
-          for _,id in ipairs({"luma","stride","byte","daily","mono","muse","north","street","page","glow","sound","fit"}) do
-            local unit=mall:FindFirstChild("Tenant_"..id)
-            if unit and unit:IsA("Model") then
-              local uc,us=unit:GetBoundingBox()
-              print(string.format("[MALLTENANT]|%s|%.1f,%.1f,%.1f|%.1f,%.1f,%.1f|%s",id,uc.Position.X,uc.Position.Y,uc.Position.Z,us.X,us.Y,us.Z,tostring(unit:GetAttribute("PremiumRetailGallery"))))
-            end
-          end
-          print("[MALLCLOUD_READY]")
-          print("[MALLCLOUD_DONE]")
-          return true
-          '@
-          [IO.File]::WriteAllText((Join-Path $runtime 'runner.lua'),$runner,$utf8NoBom)
-
-          $projectPath=Join-Path $map 'default.project.json'
-          $project=Get-Content $projectPath -Raw | ConvertFrom-Json
-          $serverStorage=[pscustomobject][ordered]@{
-            '$className'='ServerStorage'
-            'MallAuditAuthorities'=[pscustomobject][ordered]@{'$path'='__mall-audit-runtime/authorities'}
-            'MallCloudAuditRunner'=[pscustomobject][ordered]@{'$path'='__mall-audit-runtime/runner.lua'}
-          }
-          $project.tree | Add-Member -NotePropertyName 'ServerStorage' -NotePropertyValue $serverStorage -Force
-          $auditProject=Join-Path $map '__mall-audit.project.json'
-          $json=$project | ConvertTo-Json -Depth 100
-          [IO.File]::WriteAllText($auditProject,$json,$utf8NoBom)
-
-          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-audit-main.rbxl'
-          & $rojo build $auditProject -o $place
-          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Canonical Mall audit Rojo build failed'}
-          "PLACEFILE=$place" | Out-File -FilePath $env:GITHUB_ENV -Append
-          $outDir=Join-Path $env:RUNNER_TEMP 'bbya-mall-cloud-audit-v4'
-          Remove-Item $outDir -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-          "OUTDIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Launch canonical place in Roblox Studio
+      - name: Static Mall v7 guards
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-          $candidates=@()
-          foreach($root in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
-            if(Test-Path $root){$candidates += Get-ChildItem $root -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          $server=Get-Content 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua' -Raw
+          foreach($needle in @('SCREENSHOT_DRIVEN_V7','DigitalBillboardsRemoved','MallPassportZones','GlobalLightingUntouched')){if($server -notmatch [regex]::Escape($needle)){throw "Missing Mall v7 marker: $needle"}}
+          if($server -match 'Lighting\.(Brightness|Ambient|OutdoorAmbient|ClockTime|ExposureCompensation)'){throw 'Mall v7 touches global Lighting'}
+          if($server -match 'DigitalSignageNetwork.*Instance\.new'){throw 'Mall v7 recreates giant digital signage'}
+          $look=Get-Content 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua' -Raw
+          $shop=Get-Content 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua' -Raw
+          foreach($text in @($look,$shop)){
+            if($text -notmatch 'PromptAllowInventoryReadAccess'){throw 'Missing AvatarEditor access gate'}
+            if($text -notmatch 'params\.Limit=10'){throw 'Catalog search does not use valid compact page size'}
+            if($text -notmatch 'SearchCatalogAsync'){throw 'Missing async catalog search'}
           }
-          $studio=$candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
-          Write-Host "Studio=$($studio.FullName)"
-          $p=Start-Process -FilePath $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
-          for($i=0;$i -lt 45;$i++){Start-Sleep -Seconds 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
-          if($p.MainWindowHandle -eq 0){throw 'Studio window did not become ready'}
-          "STUDIOPID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Start-Sleep -Seconds 7
+          Write-Host 'BBYA_MALL_V7_STATIC_GUARDS_PASS'
 
-      - name: Run built-in Mall cloud audit module
+      - name: Build canonical BBYA place
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
-          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
-          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          $cmd='local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallCloudAuditRunner"));print("[MALLCLOUD_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end'
-          $value.SetValue($cmd)
-          $invoke.Invoke()
-          Start-Sleep -Seconds 12
-
-      - name: Capture seven native Studio window views
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          Add-Type -AssemblyName System.Drawing
-          Add-Type @"
-          using System;
-          using System.Runtime.InteropServices;
-          public static class MallWin32 {
-            [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
-            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
-            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-            [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
-          }
-          "@
-          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
-          $p.Refresh()
-          $hwnd=[IntPtr]$p.MainWindowHandle
-          if($hwnd -eq [IntPtr]::Zero){throw 'Studio window handle unavailable'}
-          [MallWin32]::ShowWindow($hwnd,3) | Out-Null
-          [MallWin32]::SetForegroundWindow($hwnd) | Out-Null
-          Start-Sleep -Seconds 2
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
-          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable for camera capture'}
-          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          $views=@(
-            @{name='01-entrance-atrium';pos='Vector3.new(0,13,286)';target='Vector3.new(0,12,365)'},
-            @{name='02-l1-left';pos='Vector3.new(-8,9,330)';target='Vector3.new(-66,8,348)'},
-            @{name='03-l1-right';pos='Vector3.new(8,9,365)';target='Vector3.new(66,8,380)'},
-            @{name='04-l1-rear';pos='Vector3.new(0,10,417)';target='Vector3.new(66,8,400)'},
-            @{name='05-l2-right';pos='Vector3.new(2,23,348)';target='Vector3.new(68,20,370)'},
-            @{name='06-upper-atrium';pos='Vector3.new(0,38,330)';target='Vector3.new(0,22,382)'},
-            @{name='07-overview';pos='Vector3.new(0,72,280)';target='Vector3.new(0,22,365)'}
-          )
-          foreach($v in $views){
-            $cmd='local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt('+$v.pos+','+$v.target+');c.Focus=CFrame.new('+$v.target+');print("[MALLOS_VIEW]|'+$v.name+'")'
-            $value.SetValue($cmd)
-            $invoke.Invoke()
-            Start-Sleep -Milliseconds 1300
-            $rect=New-Object MallWin32+RECT
-            if(-not [MallWin32]::GetWindowRect($hwnd,[ref]$rect)){throw 'GetWindowRect failed'}
-            $w=$rect.Right-$rect.Left
-            $h=$rect.Bottom-$rect.Top
-            if($w -lt 640 -or $h -lt 360){throw "Unexpected Studio window size ${w}x${h}"}
-            $bmp=New-Object System.Drawing.Bitmap($w,$h,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-            $g=[System.Drawing.Graphics]::FromImage($bmp)
-            $hdc=$g.GetHdc()
-            try {
-              $ok=[MallWin32]::PrintWindow($hwnd,$hdc,2)
-            } finally {
-              $g.ReleaseHdc($hdc)
-            }
-            $g.Dispose()
-            if(-not $ok){$bmp.Dispose();throw "PrintWindow failed: $($v.name)"}
-            $path=Join-Path $env:OUTDIR ($v.name+'.png')
-            $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
-            $bmp.Dispose()
-            if((Get-Item $path).Length -lt 10000){throw "Capture too small: $($v.name)"}
-            Write-Host "Captured $($v.name) -> $path"
-          }
-
-      - name: Validate Mall cloud audit artifact
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $log=$null
-          foreach($f in (Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12)){
-            if(Select-String -Path $f.FullName -Pattern '\[FLog::CreatorOutput\].*\[MALLCLOUD_BEGIN\]' -Quiet -ErrorAction SilentlyContinue){$log=$f;break}
-          }
-          if(-not $log){throw 'Mall audit output log not found'}
-          $lines=Get-Content $log.FullName
-          $actual=$lines | Where-Object {$_ -match '\[FLog::CreatorOutput\]' -and $_ -notmatch '\[FLog::CreatorOutput\] > '}
-          if(-not ($actual | Where-Object {$_ -match '\[MALLCLOUD_DONE\]'})){throw 'Mall authorities did not complete'}
-          $geometry=$actual | Where-Object {$_ -match '\[(MALLAUTH|MALLGEOM|MALLTENANT|MALLOS_VIEW|MALLCLOUD_WRAPPER)\]'}
-          $geometry | Set-Content (Join-Path $env:OUTDIR 'geometry.txt')
-          $expected=@('01-entrance-atrium','02-l1-left','03-l1-right','04-l1-rear','05-l2-right','06-upper-atrium','07-overview')
-          foreach($name in $expected){
-            $p=Join-Path $env:OUTDIR ($name+'.png')
-            if(-not (Test-Path $p)){throw "Missing capture $name"}
-            if((Get-Item $p).Length -lt 10000){throw "Invalid capture $name"}
-          }
-          @{capturedAt=(Get-Date -Format o);sourceCommit=$env:GITHUB_SHA;method='Roblox Studio scripted camera + Win32 PrintWindow';views=$expected;productionSourceModified=$false;auditCompatibility=@('Enum.Material.Tile -> CeramicTiles','MallLiveUpgradeV2 boards table syntax repair')} | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $env:OUTDIR 'audit.json')
-          Get-ChildItem $env:OUTDIR | Select-Object Name,Length | Format-Table
-
-      - name: Close Studio
-        if: always()
-        shell: powershell
-        run: |
-          if($env:STUDIOPID -and $env:STUDIOPID -match '^\d+$' -and [int]$env:STUDIOPID -gt 0){
-            $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction SilentlyContinue
-            if($p){[void]$p.CloseMainWindow();Start-Sleep -Seconds 2;$p.Refresh();if(-not $p.HasExited){$p|Stop-Process -Force -ErrorAction SilentlyContinue}}
-          }
-
-      - name: Upload Mall cloud audit
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: bbya-mall-cloud-audit-v4
-          path: ${{ runner.temp }}/bbya-mall-cloud-audit-v4
-          if-no-files-found: error
-          retention-days: 7
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-v7-qc.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $place)){throw 'Built place missing'}
+          if((Get-Item $place).Length -lt 1024){throw 'Built place unexpectedly small'}
+          Write-Host "BBYA_MALL_V7_CANONICAL_BUILD_PASS bytes=$((Get-Item $place).Length) sha=$env:GITHUB_SHA"
