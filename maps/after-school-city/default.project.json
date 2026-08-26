@@ -24,6 +24,9 @@
       },
       "ASC_StreetLife": {
         "$path": "after-school-city.street-life.server.lua"
+      },
+      "ASC_SpatialCleanup": {
+        "$path": "after-school-city.spatial-cleanup.server.lua"
       }
     },
     "StarterGui": {
