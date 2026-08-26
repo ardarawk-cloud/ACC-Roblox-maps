@@ -14,6 +14,12 @@
         "$path": "after-school-city.world.server.lua"
       }
     },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "ASC_DedicationIntro": {
+        "$path": "after-school-city.intro.client.lua"
+      }
+    },
     "Workspace": {
       "$className": "Workspace"
     },
