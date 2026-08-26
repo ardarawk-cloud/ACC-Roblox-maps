@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE CLIENT v3
--- Robust Roblox catalog browser: valid result limit, inventory-access flow,
--- async search with fallback, and a smaller mobile storefront.
+-- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE CLIENT v4
+-- Roblox-native Marketplace reliability: direct SearchCatalogAsync, one bounded retry,
+-- legacy compatibility fallback, compact mobile storefront, and Roblox checkout only.
+-- No fabricated Marketplace products are ever shown.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -65,29 +66,24 @@ local footer=label(panel,"BUY opens Roblox checkout.",UDim2.new(0,14,1,-32),UDim
 local activeStore="FASHION"
 local searching=false
 local opened=false
-local accessState="unknown"
+local lastCatalogError=""
 local function setStatus(text,col)status.Text=tostring(text or "");status.TextColor3=col or C.cyan end
 local function clearCards()for _,ch in ipairs(holder:GetChildren()) do if ch~=grid then ch:Destroy() end end end
 local function clearTrends()for _,ch in ipairs(trendBar:GetChildren()) do if ch~=trendLayout then ch:Destroy() end end end
 
-local function ensureCatalogAccess()
- if accessState=="granted" then return true end
- if accessState=="denied" then return false end
- accessState="pending";setStatus("Connecting Roblox Marketplace…",C.gold)
- local ok,err=pcall(function()AvatarEditorService:PromptAllowInventoryReadAccess()end)
- if not ok then warn("[BBYA Mall Commerce] Inventory access prompt failed:",err);accessState="unknown";return false end
- local result=AvatarEditorService.PromptAllowInventoryReadAccessCompleted:Wait()
- if result==Enum.AvatarPromptResult.Success then accessState="granted";return true end
- accessState="denied";setStatus("Izinkan akses avatar Roblox untuk membuka Marketplace.",C.muted);return false
-end
-
 local function searchCatalog(params)
+ lastCatalogError=""
  local ok,pages=pcall(function()return AvatarEditorService:SearchCatalogAsync(params)end)
  if ok and pages then return pages end
- warn("[BBYA Mall Commerce] SearchCatalogAsync failed:",pages)
+ local firstErr=tostring(pages or "unknown")
+ task.wait(.35)
+ local retryOk,retryPages=pcall(function()return AvatarEditorService:SearchCatalogAsync(params)end)
+ if retryOk and retryPages then return retryPages end
+ local retryErr=tostring(retryPages or "unknown")
  local legacyOk,legacyPages=pcall(function()return AvatarEditorService:SearchCatalog(params)end)
  if legacyOk and legacyPages then return legacyPages end
- warn("[BBYA Mall Commerce] SearchCatalog fallback failed:",legacyPages)
+ lastCatalogError=string.format("async=%s | retry=%s | legacy=%s",firstErr,retryErr,tostring(legacyPages or "unknown"))
+ warn("[BBYA Mall Commerce] Roblox catalog unavailable:",lastCatalogError)
  return nil
 end
 
@@ -113,14 +109,17 @@ end
 local function runSearch()
  if searching or not opened then return end
  searching=true;clearCards()
- if accessState~="granted" then local allowed=ensureCatalogAccess();if not allowed then searching=false;return end end
  setStatus("Loading live Roblox Marketplace…",C.gold)
  local params=CatalogSearchParams.new();params.AssetTypes=STORE_TYPES[activeStore] or STORE_TYPES.FASHION;params.IncludeOffSale=false;params.Limit=10
  local q=search.Text:match("^%s*(.-)%s*$") or "";if q~="" then params.SearchKeyword=q end
  local pages=searchCatalog(params)
- if not pages then setStatus("Marketplace belum tersedia. Tekan SEARCH lagi.",C.pink);searching=false;return end
+ if not pages then setStatus("Roblox Marketplace belum merespons. Tekan SEARCH untuk retry.",C.pink);searching=false;return end
  local ok,items=pcall(function()return pages:GetCurrentPage()end)
- if not ok or type(items)~="table" then setStatus("Marketplace belum tersedia. Tekan SEARCH lagi.",C.pink);searching=false;return end
+ if not ok or type(items)~="table" then
+  lastCatalogError=tostring(items or "GetCurrentPage failed")
+  warn("[BBYA Mall Commerce] Catalog page unavailable:",lastCatalogError)
+  setStatus("Marketplace page belum tersedia. Tekan SEARCH untuk retry.",C.pink);searching=false;return
+ end
  if #items==0 then setStatus("Tidak ada produk untuk filter ini.",C.muted) else for _,item in ipairs(items) do addCard(item) end;setStatus(string.format("%d produk live • Roblox checkout",#items),C.green) end
  searching=false
 end
@@ -154,4 +153,4 @@ end
 task.defer(responsive)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
-print("[BBYA] Mall Native Robux Commerce client v3 online: catalog recovery + compact mobile checkout")
+print("[BBYA] Mall Native Robux Commerce client v4 online: direct Roblox catalog search + bounded retry + native checkout")
