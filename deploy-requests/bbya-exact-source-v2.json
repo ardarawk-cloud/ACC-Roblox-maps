@@ -1,7 +1,7 @@
 {
-  "source_sha": "d3bf2ac864e0fa46ae0994e67841aa6db90c2a5a",
-  "reason": "Exact-source deploy for BBYA Mall stair glass clearance v10 after PR #214 merge; opens railing only at the five switchback landing intersections",
-  "feature_pr": 214,
+  "source_sha": "1efe7a9eebd00da3af01b4859db22afe3849a317",
+  "reason": "Exact-source deploy for BBYA Mall screenshot QC v11 after PR #217 merge; wider stair openings, gold-cap clearance, central lift, useful wayfinding, and corrected passport destination sensors",
+  "feature_pr": 217,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
