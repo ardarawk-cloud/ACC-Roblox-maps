@@ -30,6 +30,9 @@
       },
       "ASC_StructuralRealignment": {
         "$path": "after-school-city.structural-realignment.server.lua"
+      },
+      "ASC_LayoutCorrection": {
+        "$path": "after-school-city.layout-correction.server.lua"
       }
     },
     "StarterGui": {
