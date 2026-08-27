@@ -1,10 +1,11 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.5.0-visual-fidelity-1",
+    Version = "0.5.2-runtime-hard-cleanup-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
+    RuntimeHardCleanupVersion = "0.5.2-runtime-hard-cleanup-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -47,6 +48,7 @@ local Config = {
         EnableOrientationCorrectionPass = true,
         EnableVisualFidelityPass = true,
         EnableRuntimeReconcilePass = true,
+        EnableRuntimeHardCleanupPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,

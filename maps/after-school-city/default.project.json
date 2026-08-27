@@ -51,6 +51,9 @@
       },
       "ASC_RuntimeReconcile": {
         "$path": "after-school-city.runtime-reconcile.server.lua"
+      },
+      "ASC_RuntimeHardCleanup": {
+        "$path": "after-school-city.runtime-hard-cleanup.server.lua"
       }
     },
     "StarterGui": {
