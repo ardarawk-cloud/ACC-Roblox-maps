@@ -1,7 +1,7 @@
 {
-  "source_sha": "e24f80a4c88ed74a2091ecd4ff8df8dbbd7d4184",
-  "reason": "Exact-source deploy for BBYA Mall cinema/lift v12 after PR #219 merge; real L4 screening rooms and rear-wall lift placement",
-  "feature_pr": 219,
+  "source_sha": "50684e228de667b3ecf572220364fa11869e3572",
+  "reason": "Exact-source deploy for BBYA Mall L4 safety/cinema circulation v13 after PR #223 merge; keep Cinema in place, remove lobby overhang, open black facade blockers, and rebuild L4 atrium glass perimeter",
+  "feature_pr": 223,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
