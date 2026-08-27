@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v6-phase1-clean-rebuild-20260828
+# trigger: mountain-v6-phase1-selfhosted-20260828
 
 on:
   push:
@@ -11,90 +11,139 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: mountain-v6-phase1-publish
+  cancel-in-progress: false
+
 jobs:
+  selfhosted_probe:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - name: Prove Windows self-hosted runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Write-Host "MOUNTAIN_SELF_HOSTED_OK"
+          Write-Host "computer=$env:COMPUTERNAME sha=$env:GITHUB_SHA"
+          node --version
+
   publish:
-    runs-on: ubuntu-22.04
+    needs: selfhosted_probe
+    runs-on: self-hosted
+    timeout-minutes: 20
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Load exact v6 mountain source
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
+          $ErrorActionPreference='Stop'
           git fetch origin agent/mountain-master-v3
+          if($LASTEXITCODE -ne 0){throw 'Fetch mountain source failed'}
           git checkout origin/agent/mountain-master-v3 -- maps/mountain-social maps/registry.json scripts/inject-mountain.js scripts/publish-mountain-closed-test.js
+          if($LASTEXITCODE -ne 0){throw 'Checkout mountain source failed'}
 
       - name: Build CLEAN v6 Phase1 RBXLX
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
+          $ErrorActionPreference='Stop'
           node scripts/inject-mountain.js mountain-social
-          test -s maps/mountain-social/place.rbxlx
-          grep -q '<roblox' maps/mountain-social/place.rbxlx
-          grep -q 'ACC_Mountain_V6_Phase1' maps/mountain-social/place.rbxlx
-          grep -q 'v6.0-phase1-terrain-first' maps/mountain-social/place.rbxlx
-          grep -q 'TERRAIN_FIRST_SINGLE_SOURCE' maps/mountain-social/place.rbxlx
-          grep -q 'RoadTerrainNative' maps/mountain-social/place.rbxlx
-          grep -q 'RoadGapCount' maps/mountain-social/place.rbxlx
-          grep -q 'FloatingPoleCount' maps/mountain-social/place.rbxlx
-          grep -q 'FloatingTreeCount' maps/mountain-social/place.rbxlx
-          grep -q 'HouseTerrainConflictCount' maps/mountain-social/place.rbxlx
-          grep -q 'VehicleRoadEndsBeforeTrail' maps/mountain-social/place.rbxlx
-          grep -q 'TrailBranchesFromRoad' maps/mountain-social/place.rbxlx
-          grep -q 'SPAWN_TO_CP1_ONLY' maps/mountain-social/place.rbxlx
-          ! grep -q 'ApproachRoad_' maps/mountain-social/place.rbxlx
-          ! grep -q 'LowlandMasterV52' maps/mountain-social/place.rbxlx
-          ! grep -q 'LowlandRouteV54' maps/mountain-social/place.rbxlx
-          ! grep -q 'ExpeditionV43' maps/mountain-social/place.rbxlx
-          ! grep -q 'UpperScenicV45' maps/mountain-social/place.rbxlx
-          echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
+          if($LASTEXITCODE -ne 0){throw 'Mountain v6 injection failed'}
+          $place='maps/mountain-social/place.rbxlx'
+          if(-not (Test-Path $place)){throw 'v6 place missing'}
+          if((Get-Item $place).Length -lt 4096){throw 'v6 place unexpectedly small'}
+          $text=Get-Content $place -Raw
+          foreach($required in @(
+            'ACC_Mountain_V6_Phase1',
+            'v6.0-phase1-terrain-first',
+            'TERRAIN_FIRST_SINGLE_SOURCE',
+            'RoadTerrainNative',
+            'RoadGapCount',
+            'FloatingPoleCount',
+            'FloatingTreeCount',
+            'HouseTerrainConflictCount',
+            'VehicleRoadEndsBeforeTrail',
+            'TrailBranchesFromRoad',
+            'SPAWN_TO_CP1_ONLY'
+          )){
+            if($text -notmatch [regex]::Escape($required)){throw "Missing v6 marker: $required"}
+          }
+          foreach($forbidden in @('ApproachRoad_','LowlandMasterV52','LowlandRouteV54','ExpeditionV43','UpperScenicV45')){
+            if($text -match [regex]::Escape($forbidden)){throw "LEGACY_GEOMETRY_BLOCKED: $forbidden"}
+          }
+          Write-Host "MOUNTAIN_V6_BUILD_PASS bytes=$((Get-Item $place).Length)"
 
       - name: Publish mountain with AM STUDIO
         id: publish
-        continue-on-error: true
         env:
           ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
-        shell: bash
+        shell: powershell
         run: |
-          set +e
-          node scripts/publish-mountain-closed-test.js > /tmp/mountain-publish.log 2>&1
-          code=$?
-          set -e
-          {
-            if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
-            echo 'secret=AM_STUDIO'
-            echo 'build=v6.0-phase1-terrain-first'
-            echo 'universeId=4187755690'
-            echo 'placeId=11832985967'
-            echo "exitCode=$code"
-            tail -n 12 /tmp/mountain-publish.log | sed 's/^/log=/'
-          } > /tmp/mountain-am-studio.txt
-          cat /tmp/mountain-publish.log || true
-          exit "$code"
+          $ErrorActionPreference='Continue'
+          $log=Join-Path $env:RUNNER_TEMP 'mountain-v6-publish.log'
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          node scripts/publish-mountain-closed-test.js *> $log
+          $code=$LASTEXITCODE
+          $status=if($code -eq 0){'PUBLISHED'}else{'FAILED'}
+          $lines=@(
+            "status=$status",
+            'secret=AM_STUDIO',
+            'build=v6.0-phase1-terrain-first',
+            'universeId=4187755690',
+            'placeId=11832985967',
+            "exitCode=$code"
+          )
+          if(Test-Path $log){$lines += (Get-Content $log | Select-Object -Last 12 | ForEach-Object {"log=$_"})}
+          $lines | Set-Content -Path $receipt -Encoding utf8
+          if(Test-Path $log){Get-Content $log}
+          if($code -ne 0){exit $code}
 
       - name: Persist publish receipt
         if: always()
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v6.0-phase1-terrain-first\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          $ErrorActionPreference='Stop'
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          if(-not (Test-Path $receipt)){
+            @(
+              'status=NO_RESULT',
+              'secret=AM_STUDIO',
+              'build=v6.0-phase1-terrain-first',
+              'universeId=4187755690',
+              'placeId=11832985967'
+            ) | Set-Content -Path $receipt -Encoding utf8
+          }
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
-          mkdir -p deploy-status
-          cp /tmp/mountain-am-studio.txt deploy-status/mountain-am-studio.txt
+          New-Item -ItemType Directory -Path deploy-status -Force | Out-Null
+          Copy-Item $receipt 'deploy-status/mountain-am-studio.txt' -Force
           git config user.name 'ACC Roblox Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add -- deploy-status/mountain-am-studio.txt
-          if ! git diff --cached --quiet; then
+          git diff --cached --quiet
+          if($LASTEXITCODE -ne 0){
             git commit -m 'Record AM STUDIO mountain publish receipt [skip ci]'
             git push origin HEAD:main
-          fi
+            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
+          }
 
       - name: Enforce publish success
         if: always()
-        shell: bash
-        run: grep -q '^status=PUBLISHED$' /tmp/mountain-am-studio.txt
+        shell: powershell
+        run: |
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          if(-not (Test-Path $receipt)){throw 'Mountain receipt missing'}
+          $text=Get-Content $receipt -Raw
+          if($text -notmatch '(?m)^status=PUBLISHED\s*$'){throw 'Mountain v6 publish not PUBLISHED'}
+          if($text -notmatch '(?m)^build=v6\.0-phase1-terrain-first\s*$'){throw 'Mountain v6 receipt build mismatch'}
+          Write-Host 'MOUNTAIN_V6_PUBLISH_PASS'
