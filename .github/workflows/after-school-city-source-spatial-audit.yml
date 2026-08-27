@@ -5,13 +5,13 @@ on:
     branches: [after-school-city/scaffold-v1]
     paths:
       - 'maps/after-school-city/**'
-      - '.github/scripts/after-school-city-spatial-audit.py'
+      - '.github/scripts/after-school-city-spatial-audit.ps1'
       - '.github/workflows/after-school-city-source-spatial-audit.yml'
   pull_request:
     branches: [main]
     paths:
       - 'maps/after-school-city/**'
-      - '.github/scripts/after-school-city-spatial-audit.py'
+      - '.github/scripts/after-school-city-spatial-audit.ps1'
       - '.github/workflows/after-school-city-source-spatial-audit.yml'
   workflow_dispatch:
 
@@ -20,14 +20,19 @@ permissions:
 
 jobs:
   source-spatial-audit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 8
     steps:
       - name: Checkout exact source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Run source AABB and clearance audit
-        run: python3 .github/scripts/after-school-city-spatial-audit.py
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & '.github/scripts/after-school-city-spatial-audit.ps1'
 
       - name: Upload spatial audit report
         if: always()
