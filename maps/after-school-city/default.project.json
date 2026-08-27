@@ -33,6 +33,9 @@
       },
       "ASC_LayoutCorrection": {
         "$path": "after-school-city.layout-correction.server.lua"
+      },
+      "ASC_CirculationSanitize": {
+        "$path": "after-school-city.circulation-sanitize.server.lua"
       }
     },
     "StarterGui": {
