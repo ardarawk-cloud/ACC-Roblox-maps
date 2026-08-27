@@ -179,6 +179,76 @@ buildSwitchback("L1_L2_SouthWest",1,338,1,-18)
 buildSwitchback("L2_L3_NorthEast",15,392,-1,18)
 buildSwitchback("L3_L4_SouthWest",29,338,1,-18)
 
+-- Screenshot-driven circulation hotfix v10: the base Mall creates one continuous glass
+-- AtriumRailZ panel on every upper-floor edge. The switchback landings intersect those
+-- panels, so players reach the landing and physically hit glass. Preserve the railing,
+-- but split only the five landing edges into left/right segments with an 8.2-stud opening.
+local function splitAtriumRailZ(level,edgeZ,gapCenterX,gapWidth)
+ local floorModel=mall:FindFirstChild("Level"..level)
+ if not floorModel then return false end
+
+ local rail=nil
+ for _,d in ipairs(floorModel:GetChildren()) do
+  if d:IsA("BasePart") and d.Name:match("^AtriumRailZ"..level) and math.abs(d.Position.Z-edgeZ)<1 then
+   rail=d
+   break
+  end
+ end
+ if not rail then return false end
+
+ local railSize=rail.Size
+ local railY=rail.Position.Y
+ local railZ=rail.Position.Z
+ local leftEdge=rail.Position.X-railSize.X/2
+ local rightEdge=rail.Position.X+railSize.X/2
+ local gapHalf=gapWidth/2
+ local gapLeft=math.max(leftEdge,gapCenterX-gapHalf)
+ local gapRight=math.min(rightEdge,gapCenterX+gapHalf)
+ local railColor=rail.Color
+ local railMaterial=rail.Material
+ local railTransparency=rail.Transparency
+ rail:Destroy()
+
+ local leftWidth=gapLeft-leftEdge
+ if leftWidth>.25 then
+  local leftSegment=part(
+   "AtriumRailZ"..level.."_ClearanceL_"..math.floor(edgeZ),
+   Vector3.new(leftWidth,railSize.Y,railSize.Z),
+   CFrame.new(leftEdge+leftWidth/2,railY,railZ),
+   railColor,railMaterial,true,floorModel,railTransparency
+  )
+  leftSegment.CastShadow=false
+ end
+
+ local rightWidth=rightEdge-gapRight
+ if rightWidth>.25 then
+  local rightSegment=part(
+   "AtriumRailZ"..level.."_ClearanceR_"..math.floor(edgeZ),
+   Vector3.new(rightWidth,railSize.Y,railSize.Z),
+   CFrame.new(gapRight+rightWidth/2,railY,railZ),
+   railColor,railMaterial,true,floorModel,railTransparency
+  )
+  rightSegment.CastShadow=false
+ end
+ return true
+end
+
+local stairGlassOpenings={
+ {level=2,z=338,x=-14.45}, -- L1 -> L2 arrival
+ {level=2,z=392,x=14.45},  -- L2 -> L3 departure
+ {level=3,z=392,x=21.55},  -- L2 -> L3 arrival
+ {level=3,z=338,x=-21.55}, -- L3 -> L4 departure
+ {level=4,z=338,x=-14.45}, -- L3 -> L4 arrival
+}
+local openingCount=0
+for _,spec in ipairs(stairGlassOpenings) do
+ if splitAtriumRailZ(spec.level,spec.z,spec.x,8.2) then openingCount+=1 end
+end
+escal:SetAttribute("GlassLandingClearance","V10")
+escal:SetAttribute("GlassOpenings",openingCount)
+mall:SetAttribute("MallStairGlassClearance","V10")
+mall:SetAttribute("MallStairGlassOpenings",openingCount)
+
 -- Reduce only Mall-owned legacy lights. Global Lighting and other venues stay untouched.
 for _,d in ipairs(mall:GetDescendants()) do
  if d:IsA("PointLight") and d.Parent and d.Parent.Name:match("^Light") then
@@ -348,4 +418,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Mall Live v4 / Visual Cleanup v8 online: compact switchback circulation, retail panels softened, local lighting balanced, passport preserved")
+print(string.format("[BBYA] Mall Live v4 / Visual Cleanup v8 online: compact switchback circulation, %d stair-glass openings, retail panels softened, local lighting balanced, passport preserved",openingCount))
