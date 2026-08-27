@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.4.5-door-road-clearance-1",
+    Version = "0.4.6-source-spatial-audit-fix-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -40,6 +40,7 @@ local Config = {
         EnableLayoutCorrectionPass = true,
         EnableCirculationSanitizePass = true,
         EnableClearanceSanitizePass = true,
+        EnableSourceSpatialFixPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
