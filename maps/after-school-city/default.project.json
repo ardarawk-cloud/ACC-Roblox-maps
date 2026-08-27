@@ -45,6 +45,9 @@
       },
       "ASC_OrientationCorrection": {
         "$path": "after-school-city.orientation-correction.server.lua"
+      },
+      "ASC_VisualFidelity": {
+        "$path": "after-school-city.visual-fidelity.server.lua"
       }
     },
     "StarterGui": {
