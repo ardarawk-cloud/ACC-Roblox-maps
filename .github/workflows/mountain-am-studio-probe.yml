@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v5.4-grounded-natural-route-20260828
+# trigger: mountain-v6-phase1-clean-rebuild-20260828
 
 on:
   push:
@@ -20,32 +20,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Load complete mountain source
+      - name: Load exact v6 mountain source
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin agent/mountain-master-v3
           git checkout origin/agent/mountain-master-v3 -- maps/mountain-social maps/registry.json scripts/inject-mountain.js scripts/publish-mountain-closed-test.js
 
-      - name: Build Spawn-to-CP1 v5.4 RBXLX
+      - name: Build CLEAN v6 Phase1 RBXLX
         shell: bash
         run: |
           set -euo pipefail
           node scripts/inject-mountain.js mountain-social
           test -s maps/mountain-social/place.rbxlx
           grep -q '<roblox' maps/mountain-social/place.rbxlx
-          grep -q 'ACC_Mountain_World' maps/mountain-social/place.rbxlx
-          grep -q 'v5.4-grounded-natural-route' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandMasterAuthoritative' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandRouteReady' maps/mountain-social/place.rbxlx
-          grep -q 'RoadGroundedSubgrade' maps/mountain-social/place.rbxlx
+          grep -q 'ACC_Mountain_V6_Phase1' maps/mountain-social/place.rbxlx
+          grep -q 'v6.0-phase1-terrain-first' maps/mountain-social/place.rbxlx
+          grep -q 'TERRAIN_FIRST_SINGLE_SOURCE' maps/mountain-social/place.rbxlx
+          grep -q 'RoadTerrainNative' maps/mountain-social/place.rbxlx
+          grep -q 'RoadGapCount' maps/mountain-social/place.rbxlx
+          grep -q 'FloatingPoleCount' maps/mountain-social/place.rbxlx
+          grep -q 'FloatingTreeCount' maps/mountain-social/place.rbxlx
+          grep -q 'HouseTerrainConflictCount' maps/mountain-social/place.rbxlx
           grep -q 'VehicleRoadEndsBeforeTrail' maps/mountain-social/place.rbxlx
-          grep -q 'NaturalFootpathReady' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandGroundedRoadParts' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandFootpathParts' maps/mountain-social/place.rbxlx
-          grep -q 'LowlandPolishReady' maps/mountain-social/place.rbxlx
+          grep -q 'TrailBranchesFromRoad' maps/mountain-social/place.rbxlx
           grep -q 'SPAWN_TO_CP1_ONLY' maps/mountain-social/place.rbxlx
-          grep -q 'v2.8-local-lod' maps/mountain-social/place.rbxlx
+          ! grep -q 'ApproachRoad_' maps/mountain-social/place.rbxlx
+          ! grep -q 'LowlandMasterV52' maps/mountain-social/place.rbxlx
+          ! grep -q 'LowlandRouteV54' maps/mountain-social/place.rbxlx
+          ! grep -q 'ExpeditionV43' maps/mountain-social/place.rbxlx
+          ! grep -q 'UpperScenicV45' maps/mountain-social/place.rbxlx
           echo "RBXLX bytes: $(wc -c < maps/mountain-social/place.rbxlx)"
 
       - name: Publish mountain with AM STUDIO
@@ -62,7 +66,7 @@ jobs:
           {
             if [ "$code" -eq 0 ]; then echo 'status=PUBLISHED'; else echo 'status=FAILED'; fi
             echo 'secret=AM_STUDIO'
-            echo 'build=v5.4-grounded-natural-route'
+            echo 'build=v6.0-phase1-terrain-first'
             echo 'universeId=4187755690'
             echo 'placeId=11832985967'
             echo "exitCode=$code"
@@ -76,7 +80,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v5.4-grounded-natural-route\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
+          test -s /tmp/mountain-am-studio.txt || printf 'status=NO_RESULT\nsecret=AM_STUDIO\nbuild=v6.0-phase1-terrain-first\nuniverseId=4187755690\nplaceId=11832985967\n' > /tmp/mountain-am-studio.txt
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
