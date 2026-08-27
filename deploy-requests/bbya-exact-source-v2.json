@@ -1,7 +1,7 @@
 {
-  "source_sha": "50684e228de667b3ecf572220364fa11869e3572",
-  "reason": "Exact-source deploy for BBYA Mall L4 safety/cinema circulation v13 after PR #223 merge; keep Cinema in place, remove lobby overhang, open black facade blockers, and rebuild L4 atrium glass perimeter",
-  "feature_pr": 223,
+  "source_sha": "ac4c33838442ae7da977330194158d1ad9ae661e",
+  "reason": "Exact-source deploy for BBYA audio first-join fail-closed v6 after PR #226 merge; neutral startup/spawn/Mall states force venue SoundGroups closed so legacy client mixers cannot leak venue music before routing stabilizes",
+  "feature_pr": 226,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
