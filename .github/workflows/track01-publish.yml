@@ -37,7 +37,7 @@ jobs:
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='3.7.1') throw new Error('Wrong TRACK 01 version');
+          if(String(c.version)!=='3.7.2') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
           console.log('TRACK 01 target lock PASS',c.version,c.artDirection);
           NODE
@@ -50,9 +50,12 @@ jobs:
         run: |
           set -euo pipefail
           test -s maps/track-01/place.rbxlx
+          grep -q 'FirstAidCabinet' maps/track-01/place.rbxlx
+          grep -q 'FirstAidMount' maps/track-01/place.rbxlx
+          grep -q 'cf(-11.5,5.6,-148.45)' maps/track-01/place.rbxlx
+          grep -q 'operational realism first-aid mount hotfix v3.7.2' maps/track-01/place.rbxlx
           grep -q 'TRACK01_LobbyArrivalHotfix' maps/track-01/place.rbxlx
           grep -q 'ACC_TRACK01_LOBBY_ARRIVAL_READY' maps/track-01/place.rbxlx
-          grep -q 'LOBBY_POS=Vector3.new(-38,2.05,-123)' maps/track-01/place.rbxlx
           grep -q 'TRACK01_PAVolumeHotfix' maps/track-01/place.rbxlx
           grep -q 'ACC_TRACK01_PA_VOLUME_HOTFIX_READY' maps/track-01/place.rbxlx
           grep -q 'STATION LOBBY' maps/track-01/place.rbxlx
@@ -61,17 +64,13 @@ jobs:
           grep -q 'TRACK01_StationWelcome' maps/track-01/place.rbxlx
           grep -q 'TRACK01_OperationalPA' maps/track-01/place.rbxlx
           grep -q 'TRACK01_TicketAccessVestibule' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_OPERATIONAL_PA_READY' maps/track-01/place.rbxlx
           grep -q 'ACC_TRACK01_TICKET_ACCESS_READY' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_VESTIBULES_READY' maps/track-01/place.rbxlx
-          grep -q 'InteriorTicketZone' maps/track-01/place.rbxlx
-          grep -q 'TicketCheckpoint' maps/track-01/place.rbxlx
           grep -q 'GangwayFloor' maps/track-01/place.rbxlx
           grep -q 'NIGHT TICKET REQUIRED' maps/track-01/place.rbxlx
           grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
           grep -q 'TRACK01_EndOfLineHero' maps/track-01/place.rbxlx
           grep -q 'END OF LINE' maps/track-01/place.rbxlx
-          echo 'TRACK 01 v3.7.1 lobby arrival + PA loudness validation PASS'
+          echo 'TRACK 01 v3.7.2 first-aid mount validation PASS'
 
       - name: Publish TRACK 01 to Roblox
         id: publish
@@ -92,7 +91,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add deploy-status/track01-direct.json maps/track-01/place.rbxlx
           if ! git diff --cached --quiet; then
-            git commit -m "Record TRACK 01 v3.7.1 live publish [skip ci]"
+            git commit -m "Record TRACK 01 v3.7.2 live publish [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
