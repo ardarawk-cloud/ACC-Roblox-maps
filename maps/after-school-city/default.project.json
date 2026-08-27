@@ -42,6 +42,9 @@
       },
       "ASC_SourceSpatialFix": {
         "$path": "after-school-city.source-spatial-fix.server.lua"
+      },
+      "ASC_OrientationCorrection": {
+        "$path": "after-school-city.orientation-correction.server.lua"
       }
     },
     "StarterGui": {
