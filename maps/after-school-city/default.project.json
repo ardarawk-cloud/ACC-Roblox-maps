@@ -39,6 +39,9 @@
       },
       "ASC_ClearanceSanitize": {
         "$path": "after-school-city.clearance-sanitize.server.lua"
+      },
+      "ASC_SourceSpatialFix": {
+        "$path": "after-school-city.source-spatial-fix.server.lua"
       }
     },
     "StarterGui": {
