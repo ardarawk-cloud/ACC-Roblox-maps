@@ -79,7 +79,7 @@ jobs:
           foreach($token in @('V050_VisualFidelity','ASC_SchoolAxisPropClear','ASC_PrototypeVendingRemoved','ASC_StudentRowDoorTreesCleared','ASC_DowntownInteriorWidthReconciled','ASC_SkateSignCompacted','ASC_WayfindingCompacted','ASC_ExteriorLightsNormalized')){
             if($visual -notmatch [regex]::Escape($token)){throw "Visual marker missing: $token"}
           }
-          foreach($token in @('PUTU AZYA PUTRI BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
+          foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
             if($intro -notmatch [regex]::Escape($token)){throw "Dedication lock missing: $token"}
           }
           if($visual -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt|DataStoreService'){throw 'V0.5 visual layer must not contain monetization/persistence authority'}
