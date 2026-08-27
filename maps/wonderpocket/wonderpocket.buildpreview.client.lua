@@ -12,6 +12,7 @@ local bus = playerGui:FindFirstChild("WP_BuildCommand") or Instance.new("Bindabl
 bus.Name = "WP_BuildCommand"
 bus.Parent = playerGui
 player:SetAttribute("WP_BuildPreviewReady", false)
+player:SetAttribute("WP_BuildFallbackActive", false)
 
 local remotes = ReplicatedStorage:WaitForChild("WONDERPOCKET_Remotes")
 local Placement = remotes:WaitForChild("Placement")
@@ -23,10 +24,93 @@ local sizes = {
     BunnyChair=Vector3.new(2.5,3,2.5), ToyChest=Vector3.new(3,2,2), MiniAquarium=Vector3.new(4,3,2),
 }
 
+local function ownPlot()
+    local plotIndex=tonumber(player:GetAttribute("WP_PlotIndex")) or 0
+    local plots=workspace:FindFirstChild("WONDERPOCKET_PlayerPlots")
+    local plot=plots and plotIndex>0 and plots:FindFirstChild("Plot"..plotIndex)
+    if plot and plot:IsA("BasePart") then return plot end
+    return nil
+end
+
+local function ownFloor()
+    local homes=workspace:FindFirstChild("WONDERPOCKET_PlotHomes")
+    local home=homes and homes:FindFirstChild(tostring(player.UserId))
+    local floor=home and home:FindFirstChild("Floor")
+    if floor and floor:IsA("BasePart") then return floor end
+    return nil
+end
+
 local function clearGhost()
     if ghost then ghost:Destroy() end
     ghost=nil;activeItem=nil;rotation=0
     player:SetAttribute("WP_BuildActive",false)
+    player:SetAttribute("WP_BuildFallbackActive",false)
+end
+
+local function footprintBounds()
+    local plot=ownPlot()
+    local cx=tonumber(player:GetAttribute("WP_PlotCenterX"))
+    local cz=tonumber(player:GetAttribute("WP_PlotCenterZ"))
+    local hx=tonumber(player:GetAttribute("WP_PlotHalfX"))
+    local hz=tonumber(player:GetAttribute("WP_PlotHalfZ"))
+    if plot then
+        cx=cx or plot.Position.X
+        cz=cz or plot.Position.Z
+        hx=hx or plot.Size.X*.5
+        hz=hz or plot.Size.Z*.5
+    end
+    return cx,cz,hx,hz
+end
+
+local function footprintValid(position,size,degrees)
+    local cx,cz,hx,hz=footprintBounds()
+    if not (cx and cz and hx and hz) then return false end
+    local quarter=math.floor((degrees/90)+.5)
+    local sx,sz=size.X,size.Z
+    if math.abs(quarter)%2==1 then sx,sz=sz,sx end
+    return math.abs(position.X-cx)+sx/2<=hx and math.abs(position.Z-cz)+sz/2<=hz
+end
+
+local function supportTopAt(x,z)
+    local floor=ownFloor()
+    if floor
+        and math.abs(x-floor.Position.X)<=floor.Size.X*.5
+        and math.abs(z-floor.Position.Z)<=floor.Size.Z*.5 then
+        return floor.Position.Y+(floor.Size.Y*.5)
+    end
+    local plot=ownPlot()
+    if plot then return plot.Position.Y+(plot.Size.Y*.5) end
+    return nil
+end
+
+local function fallbackPlacement(size,degrees)
+    local cx,cz,hx,hz=footprintBounds()
+    if not (cx and cz and hx and hz) then return nil end
+    local quarter=math.floor((degrees/90)+.5)
+    local sx,sz=size.X,size.Z
+    if math.abs(quarter)%2==1 then sx,sz=sz,sx end
+    if sx>hx*2 or sz>hz*2 then return nil end
+
+    -- A deterministic safe point means mobile PLACE can never silently stall just
+    -- because the camera ray is aimed at the plaza/horizon instead of the own plot.
+    local x=math.floor(cx+.5)
+    local z=math.floor(cz+.5)
+    local supportTop=supportTopAt(x,z)
+    if not supportTop then return nil end
+    return Vector3.new(x,supportTop+(size.Y*.5),z)
+end
+
+local function applyFallback()
+    if not ghost or not activeItem then return false end
+    local size=sizes[activeItem]
+    if not size then return false end
+    local position=fallbackPlacement(size,rotation)
+    if not position or not footprintValid(position,size,rotation) then return false end
+    ghost.CFrame=CFrame.new(position)*CFrame.Angles(0,math.rad(rotation),0)
+    ghost.Color=Color3.fromRGB(110,225,255)
+    ghost:SetAttribute("WP_Valid",true)
+    player:SetAttribute("WP_BuildFallbackActive",true)
+    return true
 end
 
 local function begin(itemId)
@@ -41,20 +125,17 @@ local function begin(itemId)
     ghost.Color=Color3.fromRGB(110,225,255)
     ghost.Parent=workspace
     ghost:SetAttribute("WP_Valid",false)
+    player:SetAttribute("WP_LastBuildError","")
     player:SetAttribute("WP_BuildActive",true)
+    applyFallback()
 end
 
 local function buildSurfaces()
     local surfaces={}
-    local plotIndex=tonumber(player:GetAttribute("WP_PlotIndex")) or 0
-    local plots=workspace:FindFirstChild("WONDERPOCKET_PlayerPlots")
-    local plot=plots and plotIndex>0 and plots:FindFirstChild("Plot"..plotIndex)
-    if plot and plot:IsA("BasePart") then table.insert(surfaces,plot) end
-
-    local homes=workspace:FindFirstChild("WONDERPOCKET_PlotHomes")
-    local home=homes and homes:FindFirstChild(tostring(player.UserId))
-    local floor=home and home:FindFirstChild("Floor")
-    if floor and floor:IsA("BasePart") then table.insert(surfaces,floor) end
+    local plot=ownPlot()
+    if plot then table.insert(surfaces,plot) end
+    local floor=ownFloor()
+    if floor then table.insert(surfaces,floor) end
     return surfaces
 end
 
@@ -74,30 +155,25 @@ local function raycastToBuildSurface(screenPos)
     return Vector3.new(result.Position.X,supportTop,result.Position.Z)
 end
 
-local function footprintValid(position,size,degrees)
-    local cx=tonumber(player:GetAttribute("WP_PlotCenterX"));local cz=tonumber(player:GetAttribute("WP_PlotCenterZ"))
-    local hx=tonumber(player:GetAttribute("WP_PlotHalfX"));local hz=tonumber(player:GetAttribute("WP_PlotHalfZ"))
-    if not (cx and cz and hx and hz) then return false end
-    local quarter=math.floor((degrees/90)+.5)
-    local sx,sz=size.X,size.Z
-    if math.abs(quarter)%2==1 then sx,sz=sz,sx end
-    return math.abs(position.X-cx)+sx/2<=hx and math.abs(position.Z-cz)+sz/2<=hz
-end
-
 RunService.RenderStepped:Connect(function()
     if not ghost or not activeItem then return end
     local camera=workspace.CurrentCamera;if not camera then return end
     local support
     if UserInputService.TouchEnabled then
         local vp=camera.ViewportSize
-        support=raycastToBuildSurface(Vector2.new(vp.X*.5,vp.Y*.55))
+        -- Aim lower on mobile so the build ray hits the ground instead of the
+        -- horizon/character in third-person landscape play.
+        support=raycastToBuildSurface(Vector2.new(vp.X*.5,vp.Y*.72))
     else
         support=raycastToBuildSurface(UserInputService:GetMouseLocation())
     end
 
     if not support then
-        ghost:SetAttribute("WP_Valid",false)
-        ghost.Color=Color3.fromRGB(255,105,115)
+        if not applyFallback() then
+            ghost:SetAttribute("WP_Valid",false)
+            ghost.Color=Color3.fromRGB(255,105,115)
+            player:SetAttribute("WP_BuildFallbackActive",false)
+        end
         return
     end
 
@@ -111,12 +187,28 @@ RunService.RenderStepped:Connect(function()
     ghost.CFrame=CFrame.new(snapped)*CFrame.Angles(0,math.rad(rotation),0)
     ghost.Color=valid and Color3.fromRGB(110,225,255) or Color3.fromRGB(255,105,115)
     ghost:SetAttribute("WP_Valid",valid)
+    player:SetAttribute("WP_BuildFallbackActive",false)
 end)
 
 local function place()
-    if ghost and activeItem and ghost:GetAttribute("WP_Valid") then Placement:FireServer("PLACE",activeItem,ghost.CFrame) end
+    if not ghost or not activeItem then
+        player:SetAttribute("WP_LastBuildError","NO_BUILD_PREVIEW")
+        return
+    end
+    if ghost:GetAttribute("WP_Valid")~=true and not applyFallback() then
+        player:SetAttribute("WP_LastBuildError","NO_VALID_SURFACE")
+        return
+    end
+    player:SetAttribute("WP_LastBuildError","")
+    Placement:FireServer("PLACE",activeItem,ghost.CFrame)
 end
-local function rotate() if ghost then rotation=(rotation+90)%360 end end
+
+local function rotate()
+    if ghost then
+        rotation=(rotation+90)%360
+        if player:GetAttribute("WP_BuildFallbackActive")==true then applyFallback() end
+    end
+end
 
 UserInputService.InputBegan:Connect(function(input,processed)
     if processed or not ghost then return end
@@ -140,4 +232,4 @@ Placement.OnClientEvent:Connect(function(action,ok,reason)
 end)
 
 player:SetAttribute("WP_BuildPreviewReady", true)
-print("[WONDERPOCKET] Own-surface mobile build preview ready")
+print("[WONDERPOCKET] Mobile build preview + own-plot fallback ready")
