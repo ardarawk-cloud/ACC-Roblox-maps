@@ -211,6 +211,9 @@
       "MallLiveUpgradeV2": {
         "$path": "95-mall-live-upgrade.server.lua"
       },
+      "MallCinemaLiftV12": {
+        "$path": "136-mall-cinema-lift-v12.server.lua"
+      },
       "MallRobuxCommerceV1": {
         "$path": "133-mall-robux-commerce.server.lua"
       },
