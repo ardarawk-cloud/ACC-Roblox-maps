@@ -59,6 +59,8 @@ jobs:
           grep -q 'NIGHT TICKET REQUIRED' maps/track-01/place.rbxlx
           grep -q 'Car01TicketCheckpoint' maps/track-01/place.rbxlx
           grep -q 'Car04TicketCheckpoint' maps/track-01/place.rbxlx
+          grep -q 'Car01InteriorTicketZone' maps/track-01/place.rbxlx
+          grep -q 'Car04InteriorTicketZone' maps/track-01/place.rbxlx
           grep -q 'GangwayFloor' maps/track-01/place.rbxlx
           grep -q 'BellowsLeft' maps/track-01/place.rbxlx
           grep -q 'CAR 01  ↔  CAR 02' maps/track-01/place.rbxlx
