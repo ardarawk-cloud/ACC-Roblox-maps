@@ -144,8 +144,11 @@ for _,spec in ipairs({{-8,-101},{-8,-132},{-67,-92}}) do
     cylinder(facilities,"Extinguisher",Vector3.new(2.4,0.70,0.70),cf(x,2.4,z,0,0,90),Color3.fromRGB(138,38,34),Enum.Material.Metal,0,false)
     part(facilities,"ExtinguisherBracket",Vector3.new(0.22,2.6,1.6),cf(x-0.4,2.5,z),C.black,Enum.Material.Metal,0,false)
 end
-local firstAid=part(facilities,"FirstAidCabinet",Vector3.new(0.45,3.2,3.2),cf(-5.5,7.0,-115,0,90,0),Color3.fromRGB(221,218,203),Enum.Material.Metal,0,false)
-surfaceText(firstAid,Enum.NormalId.Front,"+",Color3.fromRGB(66,115,74),Color3.fromRGB(221,218,203),Enum.Font.GothamBlack)
+-- Wall-mounted first-aid cabinet. Keep it on the solid rear wall, between the facility
+-- doors and the right corner, so it reads as a real fixture instead of floating in the hall.
+local firstAid=part(facilities,"FirstAidCabinet",Vector3.new(3.0,2.8,0.42),cf(-11.5,5.6,-148.45),Color3.fromRGB(221,218,203),Enum.Material.Metal,0,false)
+part(facilities,"FirstAidMount",Vector3.new(3.35,3.15,0.16),cf(-11.5,5.6,-148.72),C.charcoal,Enum.Material.Metal,0,false)
+surfaceText(firstAid,Enum.NormalId.Back,"+",Color3.fromRGB(66,115,74),Color3.fromRGB(221,218,203),Enum.Font.GothamBlack)
 
 -- Physical wayfinding sequence from hall to platform/yard.
 local hallWay=part(wayfinding,"HallWayfinder",Vector3.new(18.0,5.5,0.36),cf(-7.0,10.6,-91,0,90,0),C.black,Enum.Material.Metal,0,false)
@@ -161,7 +164,7 @@ for _,z in ipairs({-111,-101,-91,-81,-71}) do
     end
 end
 
-root:SetAttribute("OperationsVersion","2.7.0")
+root:SetAttribute("OperationsVersion","2.7.2")
 Workspace:SetAttribute("ACC_TRACK01_OPERATIONS_READY",true)
-Workspace:SetAttribute("ACC_TRACK01_VERSION","2.7.0")
-print("[TRACK 01] operational realism ready v2.7.0")
+Workspace:SetAttribute("ACC_TRACK01_VERSION","3.7.2")
+print("[TRACK 01] operational realism first-aid mount hotfix v3.7.2")
