@@ -1,7 +1,7 @@
 {
-  "source_sha": "1efe7a9eebd00da3af01b4859db22afe3849a317",
-  "reason": "Exact-source deploy for BBYA Mall screenshot QC v11 after PR #217 merge; wider stair openings, gold-cap clearance, central lift, useful wayfinding, and corrected passport destination sensors",
-  "feature_pr": 217,
+  "source_sha": "e24f80a4c88ed74a2091ecd4ff8df8dbbd7d4184",
+  "reason": "Exact-source deploy for BBYA Mall cinema/lift v12 after PR #219 merge; real L4 screening rooms and rear-wall lift placement",
+  "feature_pr": 219,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
