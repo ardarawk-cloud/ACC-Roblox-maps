@@ -50,11 +50,6 @@ foreach($token in @(
     'VendingGlow',
     'StreetTreeTrunk',
     'StreetTreeCrown',
-    'Shop_ARCADE',
-    'Shop_CAFE',
-    'Shop_STYLE',
-    'Shop_MUSIC',
-    'Shop_HOBBY',
     'SkateSign',
     'SkateEntrySign',
     'DOWNTOWN  ↓',
@@ -62,6 +57,14 @@ foreach($token in @(
     'StreetLampHead'
 )){
     Token $runtime $token ("final reconcile target $token")
+}
+
+# Shops are built dynamically as "Shop_" .. shopName; validate the real source contract,
+# not impossible literal Shop_ARCADE/Shop_CAFE strings.
+Token $runtime 'for _, shopName in ipairs({"ARCADE", "CAFE", "STYLE", "MUSIC", "HOBBY"}) do' 'five-shop reconciliation loop'
+Token $runtime 'downtown:FindFirstChild("Shop_" .. shopName)' 'dynamic Shop_ lookup contract'
+foreach($shopName in @('ARCADE','CAFE','STYLE','MUSIC','HOBBY')){
+    Token $runtime ('"'+$shopName+'"') ("shop identity $shopName")
 }
 
 Token $runtime 'for _, descendant in ipairs(root:GetDescendants()) do' 'recursive world reconciliation'
