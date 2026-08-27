@@ -1,0 +1,39 @@
+name: After School City Cloud Source Spatial Audit
+
+on:
+  push:
+    branches: [after-school-city/scaffold-v1]
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/scripts/after-school-city-spatial-audit.py'
+      - '.github/workflows/after-school-city-source-spatial-audit.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/scripts/after-school-city-spatial-audit.py'
+      - '.github/workflows/after-school-city-source-spatial-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-spatial-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+
+      - name: Run source AABB and clearance audit
+        run: python3 .github/scripts/after-school-city-spatial-audit.py
+
+      - name: Upload spatial audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-spatial-audit-${{ github.sha }}
+          path: spatial-audit-after-school-city.json
+          if-no-files-found: error
+          retention-days: 14
