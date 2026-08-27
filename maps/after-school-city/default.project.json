@@ -48,6 +48,9 @@
       },
       "ASC_VisualFidelity": {
         "$path": "after-school-city.visual-fidelity.server.lua"
+      },
+      "ASC_RuntimeReconcile": {
+        "$path": "after-school-city.runtime-reconcile.server.lua"
       }
     },
     "StarterGui": {

@@ -4,6 +4,7 @@ local Config = {
     Version = "0.5.0-visual-fidelity-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
+    RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -45,6 +46,7 @@ local Config = {
         EnableSourceSpatialFixPass = true,
         EnableOrientationCorrectionPass = true,
         EnableVisualFidelityPass = true,
+        EnableRuntimeReconcilePass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
