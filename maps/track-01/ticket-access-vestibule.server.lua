@@ -113,23 +113,23 @@ for i,data in ipairs(connectors) do
 end
 
 -- Every carriage has a Platform 01 side door around X 13.85 and Z center+0.5.
--- Invisible per-player checkpoints prevent ticketless entry without using a global
--- collidable door that one player could open for everybody else.
-local doorCenters={-57.5,-4.5,48.5,101.5}
+-- Per-player checkpoints enforce the ticket without a global door that one player could
+-- open for everyone. A second full-interior zone prevents bypass through windows/edges.
+local carCenters={-58,-5,48,101}
 local access=Instance.new("Folder")
 access.Name="TicketEntryCheckpoints"
 access.Parent=folder
 local deniedAt={}
 
-local function bouncePlayer(plr,carIndex,z)
+local function bouncePlayer(plr,carIndex,doorZ)
     local now=os.clock()
     if deniedAt[plr] and now-deniedAt[plr]<1.5 then return end
     deniedAt[plr]=now
     local character=plr.Character
     local hrp=character and character:FindFirstChild("HumanoidRootPart")
     if hrp then
-        local safe=Vector3.new(8.6,5.6,z)
-        local look=Vector3.new(14.0,5.6,z)
+        local safe=Vector3.new(8.6,5.6,doorZ)
+        local look=Vector3.new(14.0,5.6,doorZ)
         hrp.CFrame=CFrame.lookAt(safe,look)
         hrp.AssemblyLinearVelocity=Vector3.zero
         hrp.AssemblyAngularVelocity=Vector3.zero
@@ -139,11 +139,25 @@ local function bouncePlayer(plr,carIndex,z)
     plr:SetAttribute("TRACK01_ACCESS_DENIED_TOKEN",token)
 end
 
-for i,z in ipairs(doorCenters) do
+local function handleTicketTouch(hit,carIndex,doorZ)
+    local character=hit and hit:FindFirstAncestorOfClass("Model")
+    if not character then return end
+    local plr=Players:GetPlayerFromCharacter(character)
+    if not plr then return end
+    if plr:GetAttribute("TRACK01_TICKET")==true then
+        plr:SetAttribute("TRACK01_ACCESS_GRANTED",true)
+        return
+    end
+    bouncePlayer(plr,carIndex,doorZ)
+end
+
+for i,centerZ in ipairs(carCenters) do
+    local doorZ=centerZ+0.5
+
     local zone=Instance.new("Part")
     zone.Name=string.format("Car%02dTicketCheckpoint",i)
     zone.Size=Vector3.new(4.4,8.8,7.2)
-    zone.CFrame=cf(14.25,8.35,z)
+    zone.CFrame=cf(14.25,8.35,doorZ)
     zone.Transparency=1
     zone.Anchored=true
     zone.CanCollide=false
@@ -151,21 +165,24 @@ for i,z in ipairs(doorCenters) do
     zone.CanQuery=false
     zone.CastShadow=false
     zone.Parent=access
+    zone.Touched:Connect(function(hit) handleTicketTouch(hit,i,doorZ) end)
 
-    local plate=part(access,string.format("Car%02dTicketPlate",i),Vector3.new(0.18,1.15,5.6),cf(13.43,13.55,z),C.black,Enum.Material.Metal,0,false)
+    -- Backup enforcement volume covers the walkable interior of the carriage.
+    local interiorZone=Instance.new("Part")
+    interiorZone.Name=string.format("Car%02dInteriorTicketZone",i)
+    interiorZone.Size=Vector3.new(14.0,7.8,46.5)
+    interiorZone.CFrame=cf(22,8.5,centerZ)
+    interiorZone.Transparency=1
+    interiorZone.Anchored=true
+    interiorZone.CanCollide=false
+    interiorZone.CanTouch=true
+    interiorZone.CanQuery=false
+    interiorZone.CastShadow=false
+    interiorZone.Parent=access
+    interiorZone.Touched:Connect(function(hit) handleTicketTouch(hit,i,doorZ) end)
+
+    local plate=part(access,string.format("Car%02dTicketPlate",i),Vector3.new(0.18,1.15,5.6),cf(13.43,13.55,doorZ),C.black,Enum.Material.Metal,0,false)
     surfaceText(plate,Enum.NormalId.Left,"NIGHT TICKET REQUIRED\nCAR "..string.format("%02d",i),C.amber)
-
-    zone.Touched:Connect(function(hit)
-        local character=hit and hit:FindFirstAncestorOfClass("Model")
-        if not character then return end
-        local plr=Players:GetPlayerFromCharacter(character)
-        if not plr then return end
-        if plr:GetAttribute("TRACK01_TICKET")==true then
-            plr:SetAttribute("TRACK01_ACCESS_GRANTED",true)
-            return
-        end
-        bouncePlayer(plr,i,z)
-    end)
 end
 
 Players.PlayerRemoving:Connect(function(plr)
@@ -174,6 +191,7 @@ end)
 
 root:SetAttribute("TicketAccessVersion","3.7.0")
 root:SetAttribute("VestibuleCount",#connectors)
+root:SetAttribute("TicketProtectedCarCount",#carCenters)
 Workspace:SetAttribute("ACC_TRACK01_TICKET_ACCESS_READY",true)
 Workspace:SetAttribute("ACC_TRACK01_VESTIBULES_READY",true)
 Workspace:SetAttribute("ACC_TRACK01_VERSION","3.7.0")
