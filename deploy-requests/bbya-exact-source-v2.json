@@ -1,7 +1,7 @@
 {
-  "source_sha": "d4fc08c4cc47b990407239076f4bd69015d929cd",
-  "reason": "Exact-source deploy for BBYA Mall Premium Atmosphere v9 after PR #212 merge; source rebased to merged main so unrelated track-01 commits are already in ancestry",
-  "feature_pr": 212,
+  "source_sha": "d3bf2ac864e0fa46ae0994e67841aa6db90c2a5a",
+  "reason": "Exact-source deploy for BBYA Mall stair glass clearance v10 after PR #214 merge; opens railing only at the five switchback landing intersections",
+  "feature_pr": 214,
   "expected_map": "a-club",
   "expected_universe": "8116636513",
   "expected_place": "131894120482837"
