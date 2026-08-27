@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v5
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v6
 -- Each music channel is audible only inside its own physical venue.
--- Main Club now includes the former studio lounge + shared restroom with room-aware attenuation.
+-- v6 adds fail-closed startup/neutral-zone volume enforcement so first join cannot leak venue music.
+-- Main Club includes the former studio lounge + shared restroom with room-aware attenuation.
 -- VIP is a separate channel. Compact Music v7 can mute locally through BBYAMusicMuted.
 
 local Players=game:GetService("Players")
@@ -30,14 +31,14 @@ local gates={}
 local muteButton
 
 local function ensureGate(key,g)
- local gate=g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
+ local gate=g:FindFirstChild("BBYAVenueGateV6") or g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
  if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
  if not gate then
   gate=Instance.new("EqualizerSoundEffect")
-  gate.Name="BBYAVenueGateV5"
+  gate.Name="BBYAVenueGateV6"
   gate.Parent=g
  else
-  gate.Name="BBYAVenueGateV5"
+  gate.Name="BBYAVenueGateV6"
  end
  gate.Enabled=true
  gates[key]=gate
@@ -121,6 +122,16 @@ local function setGate(gate,open,gainDb)
  if gate.HighGain~=gain then gate.HighGain=gain end
 end
 
+local function forceNeutralVolumes()
+ local currentVenue=currentPlayerAudioContext()
+ if currentVenue~="NONE" then return end
+ resolveGroups()
+ for _,g in pairs(cache) do
+  if g and g.Parent and g.Volume~=0 then g.Volume=0 end
+ end
+ player:SetAttribute("BBYAAudioFailClosed",true)
+end
+
 local function enforce()
  resolveGroups()
  local currentVenue,currentRoom,mainTrim=currentPlayerAudioContext()
@@ -131,6 +142,9 @@ local function enforce()
    local trim=(key=="MAIN" and open) and mainTrim or 0
    local gate=gates[key] or ensureGate(key,g)
    setGate(gate,open,trim)
+   -- Hard fail-closed for startup, spawn, Mall, and every other neutral area.
+   -- This also defeats legacy RenderStepped mixers that still classify large +Z areas as MAIN.
+   if currentVenue=="NONE" and g.Volume~=0 then g.Volume=0 end
    g:SetAttribute("BBYALocalAudible",open)
    g:SetAttribute("BBYAAudioRouterVenue",currentVenue)
    g:SetAttribute("BBYAActiveTrimDb",open and trim or -80)
@@ -139,25 +153,32 @@ local function enforce()
  player:SetAttribute("BBYAAudioVenue",currentVenue)
  player:SetAttribute("BBYAAudioRoom",currentRoom or "NONE")
  player:SetAttribute("BBYAMainTrimDb",currentVenue=="MAIN" and mainTrim or -80)
+ player:SetAttribute("BBYAAudioFailClosed",currentVenue=="NONE")
 end
 
 local function bindMute()
  local b=resolveMuteButton()
- if b and not b:GetAttribute("BBYAAudioMuteGuardV5") then
-  b:SetAttribute("BBYAAudioMuteGuardV5",true)
+ if b and not b:GetAttribute("BBYAAudioMuteGuardV6") then
+  b:SetAttribute("BBYAAudioMuteGuardV6",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()task.defer(enforce)end)
  end
 end
 
 SoundService.ChildAdded:Connect(function(child)
- if child:IsA("SoundGroup") then task.defer(enforce) end
+ if child:IsA("SoundGroup") then task.defer(function()forceNeutralVolumes();enforce()end) end
 end)
-pg.ChildAdded:Connect(function()task.defer(function()bindMute();enforce()end)end)
-player.CharacterAdded:Connect(function()task.delay(.35,enforce)end)
+pg.ChildAdded:Connect(function()task.defer(function()bindMute();forceNeutralVolumes();enforce()end)end)
+player.CharacterAdded:Connect(function()
+ task.defer(function()forceNeutralVolumes();enforce()end)
+ task.delay(.35,enforce)
+end)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function()task.defer(enforce)end)
 
+-- Heartbeat runs after RenderStepped. Keep the neutral-zone volume guard every frame so
+-- older client mixers cannot reopen MAIN between slower router passes during first join.
 local acc=0
 RunService.Heartbeat:Connect(function(dt)
+ forceNeutralVolumes()
  acc+=dt
  if acc<.10 then return end
  acc=0
@@ -165,5 +186,5 @@ RunService.Heartbeat:Connect(function(dt)
  enforce()
 end)
 
-task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v5: Main core 0 dB, former studio lounge -3 dB, restroom -7 dB; six-venue isolation preserved")
+task.defer(function()bindMute();forceNeutralVolumes();enforce()end)
+print("[BBYA] Strict venue audio router v6: fail-closed startup/spawn/Mall; six-venue isolation preserved")
