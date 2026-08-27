@@ -103,10 +103,6 @@ local function addSurfaceText(partObj,text,color)
  return label
 end
 
--- -----------------------------------------------------------------------------
--- 1) ATRIUM CLEANUP
--- Keep one clean focal point. No old digital slabs, kiosks or stage.
--- -----------------------------------------------------------------------------
 for _,legacyName in ipairs({"DigitalSignageNetwork","AtriumKiosks","AtriumLiveStageV2"}) do
  local legacy=mall:FindFirstChild(legacyName,true)
  if legacy then legacy:Destroy() end
@@ -129,13 +125,6 @@ for _,x in ipairs({-18,18}) do
  light.Parent=fixture
 end
 
--- -----------------------------------------------------------------------------
--- 2) FLOOR PLATES + PREMIUM COMPACT CIRCULATION
--- Base Mall used six long stair runs stacked through the atrium. On phone this becomes a
--- dense industrial silhouette. Replace them with three compact switchback stairs, one per
--- floor connection, alternating atrium corners. Each staircase is bidirectional and keeps
--- the floor-to-floor route physically walkable while clearing the central sightline.
--- -----------------------------------------------------------------------------
 for level=1,4 do
  local floorModel=mall:FindFirstChild("Level"..level)
  if floorModel then
@@ -199,13 +188,12 @@ buildSwitchback("L1_L2_SouthWest",1,338,1,-18)
 buildSwitchback("L2_L3_NorthEast",15,392,-1,18)
 buildSwitchback("L3_L4_SouthWest",29,338,1,-18)
 
--- Screenshot QC v11: rebuild each affected glass edge with a wider 12.5-stud opening.
 local stairGlassOpenings={
- {level=2,z=338,x=-14.45}, -- L1 -> L2 arrival
- {level=2,z=392,x=14.45},  -- L2 -> L3 departure
- {level=3,z=392,x=21.55},  -- L2 -> L3 arrival
- {level=3,z=338,x=-21.55}, -- L3 -> L4 departure
- {level=4,z=338,x=-14.45}, -- L3 -> L4 arrival
+ {level=2,z=338,x=-14.45},
+ {level=2,z=392,x=14.45},
+ {level=3,z=392,x=21.55},
+ {level=3,z=338,x=-21.55},
+ {level=4,z=338,x=-14.45},
 }
 
 local function rebuildAtriumRailZ(level,edgeZ,gapCenterX,gapWidth)
@@ -213,12 +201,9 @@ local function rebuildAtriumRailZ(level,edgeZ,gapCenterX,gapWidth)
  if not floorModel then return false end
  local rails={}
  for _,d in ipairs(floorModel:GetChildren()) do
-  if d:IsA("BasePart") and d.Name:match("^AtriumRailZ"..level) and math.abs(d.Position.Z-edgeZ)<1 then
-   table.insert(rails,d)
-  end
+  if d:IsA("BasePart") and d.Name:match("^AtriumRailZ"..level) and math.abs(d.Position.Z-edgeZ)<1 then table.insert(rails,d) end
  end
  if #rails==0 then return false end
-
  local style=rails[1]
  local leftEdge=math.huge
  local rightEdge=-math.huge
@@ -226,15 +211,10 @@ local function rebuildAtriumRailZ(level,edgeZ,gapCenterX,gapWidth)
   leftEdge=math.min(leftEdge,rail.Position.X-rail.Size.X/2)
   rightEdge=math.max(rightEdge,rail.Position.X+rail.Size.X/2)
  end
- local railY=style.Position.Y
- local railZ=style.Position.Z
- local railHeight=style.Size.Y
- local railDepth=style.Size.Z
- local railColor=style.Color
- local railMaterial=style.Material
- local railTransparency=style.Transparency
+ local railY,railZ=style.Position.Y,style.Position.Z
+ local railHeight,railDepth=style.Size.Y,style.Size.Z
+ local railColor,railMaterial,railTransparency=style.Color,style.Material,style.Transparency
  for _,rail in ipairs(rails) do rail:Destroy() end
-
  local gapHalf=gapWidth/2
  local gapLeft=math.max(leftEdge,gapCenterX-gapHalf)
  local gapRight=math.min(rightEdge,gapCenterX+gapHalf)
@@ -260,7 +240,6 @@ escal:SetAttribute("GlassOpenings",openingCount)
 mall:SetAttribute("MallStairGlassClearance","V11_WIDE")
 mall:SetAttribute("MallStairGlassOpenings",openingCount)
 
--- V9 added decorative brass caps after the glass rail. Split those caps at the same openings.
 task.spawn(function()
  local v9=mall:WaitForChild("MallPremiumAtmosphereV9",180)
  if not v9 then return end
@@ -270,9 +249,7 @@ task.spawn(function()
  for _,spec in ipairs(stairGlassOpenings) do
   local targets={}
   for _,d in ipairs(caps:GetChildren()) do
-   if d:IsA("BasePart") and d.Name=="RailCapZ_L"..spec.level and math.abs(d.Position.Z-spec.z)<1 then
-    table.insert(targets,d)
-   end
+   if d:IsA("BasePart") and d.Name=="RailCapZ_L"..spec.level and math.abs(d.Position.Z-spec.z)<1 then table.insert(targets,d) end
   end
   for _,cap in ipairs(targets) do
    local leftEdge=cap.Position.X-cap.Size.X/2
@@ -295,25 +272,19 @@ task.spawn(function()
  mall:SetAttribute("MallGoldRailClearance","V11")
 end)
 
--- Central lift v11: replace the hidden rear-corner lift with a visible north-atrium lift hub.
 task.spawn(function()
  local baseLift=mall:WaitForChild("ElevatorCore",90)
  if not baseLift then return end
  baseLift:Destroy()
-
  local elevator=Instance.new("Model")
  elevator.Name="ElevatorCore"
  elevator:SetAttribute("Pass","CENTRAL_LIFT_V11")
  elevator:SetAttribute("FormerRearCornerRemoved",true)
  elevator:SetAttribute("VisibleFromAtrium",true)
  elevator.Parent=mall
-
  local levels={1,15,29,43}
  part("LiftRearGlass",Vector3.new(17,57,.55),CFrame.new(0,29,414),Color3.fromRGB(112,137,148),Enum.Material.Glass,true,elevator,.42)
- for _,x in ipairs({-8.4,8.4}) do
-  part("LiftPier"..x,Vector3.new(1.15,57,11),CFrame.new(x,29,409),C.graphite,Enum.Material.Metal,true,elevator,0)
- end
-
+ for _,x in ipairs({-8.4,8.4}) do part("LiftPier"..x,Vector3.new(1.15,57,11),CFrame.new(x,29,409),C.graphite,Enum.Material.Metal,true,elevator,0) end
  local function liftPrompt(parent,action,targetFloor,targetY)
   local q=Instance.new("ProximityPrompt")
   q.ActionText=action
@@ -324,13 +295,9 @@ task.spawn(function()
   q.Parent=parent
   q.Triggered:Connect(function(player)
    local char=player.Character
-   if char then
-    char:PivotTo(CFrame.new(0,targetY+3,399))
-    toast(player,"Lift • Level "..targetFloor)
-   end
+   if char then char:PivotTo(CFrame.new(0,targetY+3,399));toast(player,"Lift • Level "..targetFloor) end
   end)
  end
-
  for i,y in ipairs(levels) do
   part("LiftLobby"..i,Vector3.new(23,.42,14),CFrame.new(0,y+.72,398.5),C.warmStone,Enum.Material.Slate,true,elevator,0)
   part("LiftDoorL"..i,Vector3.new(6.2,8.5,.35),CFrame.new(-3.15,y+5.1,403.65),C.dark,Enum.Material.Metal,true,elevator,0)
@@ -351,7 +318,6 @@ task.spawn(function()
  mall:SetAttribute("MallCentralLift","V11")
 end)
 
--- Reduce only Mall-owned legacy lights. Global Lighting and other venues stay untouched.
 for _,d in ipairs(mall:GetDescendants()) do
  if d:IsA("PointLight") and d.Parent and d.Parent.Name:match("^Light") then
   d.Brightness=math.min(d.Brightness,.58)
@@ -364,57 +330,29 @@ for _,d in ipairs(mall:GetDescendants()) do
  end
 end
 
--- Premium Gallery v6 is created by the later Mall authority. Refine its screenshot-proven
--- problem surfaces after it exists instead of stacking a second storefront system.
 task.spawn(function()
  local authority=mall:WaitForChild("MallPremiumGalleryV6",120)
  if not authority then return end
-
  for _,unit in ipairs(mall:GetChildren()) do
   if unit:IsA("Model") and unit.Name:match("^Tenant_") then
    local gallery=unit:FindFirstChild("PremiumRetailGalleryV6")
    if gallery then
     for _,d in ipairs(gallery:GetDescendants()) do
      if d:IsA("BasePart") then
-      if d.Name=="FeaturePanel" then
-       d.Color=Color3.fromRGB(78,74,69)
-       d.Material=Enum.Material.Slate
-       d.Reflectance=0
-      elseif d.Name=="ExteriorBack" then
-       d.Color=Color3.fromRGB(68,65,61)
-       d.Material=Enum.Material.Slate
-      elseif d.Name=="ShortSideReturn" then
-       d.Color=Color3.fromRGB(58,57,55)
-       d.Material=Enum.Material.Slate
-      elseif d.Name=="RearCeiling" then
-       d.Color=Color3.fromRGB(48,47,46)
-       d.Material=Enum.Material.Metal
-      elseif d.Name=="TenantIdentity" then
-       d.Color=Color3.fromRGB(45,43,42)
-      end
-     elseif d:IsA("PointLight") and d.Name=="MallLocalLight" then
-      d.Brightness=math.min(d.Brightness,.30)
-      d.Range=math.min(d.Range,10)
-      d.Shadows=false
-     end
+      if d.Name=="FeaturePanel" then d.Color=Color3.fromRGB(78,74,69);d.Material=Enum.Material.Slate;d.Reflectance=0
+      elseif d.Name=="ExteriorBack" then d.Color=Color3.fromRGB(68,65,61);d.Material=Enum.Material.Slate
+      elseif d.Name=="ShortSideReturn" then d.Color=Color3.fromRGB(58,57,55);d.Material=Enum.Material.Slate
+      elseif d.Name=="RearCeiling" then d.Color=Color3.fromRGB(48,47,46);d.Material=Enum.Material.Metal
+      elseif d.Name=="TenantIdentity" then d.Color=Color3.fromRGB(45,43,42) end
+     elseif d:IsA("PointLight") and d.Name=="MallLocalLight" then d.Brightness=math.min(d.Brightness,.30);d.Range=math.min(d.Range,10);d.Shadows=false end
     end
    end
   end
  end
-
  for _,d in ipairs(authority:GetDescendants()) do
-  if d:IsA("BasePart") and d.Name:match("^CeilingPanel_") then
-   d.Transparency=math.max(d.Transparency,.80)
-   d.CastShadow=false
-  elseif d:IsA("SurfaceLight") and d.Parent and d.Parent.Name:match("^CeilingPanel_") then
-   d.Brightness=math.min(d.Brightness,.70)
-   d.Range=math.min(d.Range,13)
-   d.Angle=110
-   d.Shadows=false
-  end
+  if d:IsA("BasePart") and d.Name:match("^CeilingPanel_") then d.Transparency=math.max(d.Transparency,.80);d.CastShadow=false
+  elseif d:IsA("SurfaceLight") and d.Parent and d.Parent.Name:match("^CeilingPanel_") then d.Brightness=math.min(d.Brightness,.70);d.Range=math.min(d.Range,13);d.Angle=110;d.Shadows=false end
  end
-
- -- Repurpose the old LEVEL slabs into real wayfinding instead of decorative black panels.
  local levelCopy={
   [1]="L1 • RETAIL\nLIFT → NORTH",
   [2]="L2 • RETAIL\nLIFT → NORTH",
@@ -423,21 +361,13 @@ task.spawn(function()
  }
  for _,d in ipairs(mall:GetChildren()) do
   if d:IsA("BasePart") and (d.Name:match("^LevelSignW") or d.Name:match("^LevelSignE")) then
-   d.Color=Color3.fromRGB(62,60,57)
-   d.Material=Enum.Material.Metal
-   d.Reflectance=.01
-   d.Size=Vector3.new(12,3,.35)
+   d.Color=Color3.fromRGB(62,60,57);d.Material=Enum.Material.Metal;d.Reflectance=.01;d.Size=Vector3.new(12,3,.35)
    local level=tonumber(d.Name:match("(%d+)$"))
    local gui=d:FindFirstChildOfClass("SurfaceGui")
    local label=gui and gui:FindFirstChildOfClass("TextLabel")
-   if label and levelCopy[level] then
-    label.Text=levelCopy[level]
-    label.TextColor3=(level==4) and C.gold or C.white
-    label.Font=Enum.Font.GothamBold
-   end
+   if label and levelCopy[level] then label.Text=levelCopy[level];label.TextColor3=(level==4) and C.gold or C.white;label.Font=Enum.Font.GothamBold end
   end
  end
-
  authority:SetAttribute("PostVisualRefinement","V11")
  authority:SetAttribute("BlackPlaceholderSurfacesSoftened",true)
  authority:SetAttribute("CorridorHotspotsReduced",true)
@@ -445,14 +375,9 @@ task.spawn(function()
  mall:SetAttribute("MallPremiumVisualRefinement","V11")
 end)
 
--- -----------------------------------------------------------------------------
--- 3) MALL PASSPORT / PRESENCE
--- v11 aligns FOOD/CINEMA checkpoints with the actual destination footprints.
--- -----------------------------------------------------------------------------
 local passport=Instance.new("Folder")
 passport.Name="MallPassportZones"
 passport.Parent=up
-
 local zoneDefs={
  {key="ARRIVAL",label="Mall Arrival",pos=Vector3.new(0,3,300),size=Vector3.new(36,8,22)},
  {key="ATRIUM",label="Central Atrium",pos=Vector3.new(0,5,365),size=Vector3.new(50,10,44)},
@@ -462,7 +387,6 @@ local zoneDefs={
 }
 local visited={}
 local touchCooldown={}
-
 local function syncPassport(player,lastLabel)
  local set=visited[player.UserId] or {}
  local count=0
@@ -472,7 +396,6 @@ local function syncPassport(player,lastLabel)
  player:SetAttribute("BBYAMallPassportComplete",complete)
  v2:FireClient(player,"passport",{count=count,total=#zoneDefs,last=lastLabel,complete=complete})
 end
-
 for _,z in ipairs(zoneDefs) do
  local sensor=part("Passport_"..z.key,z.size,CFrame.new(z.pos),C.white,Enum.Material.SmoothPlastic,false,passport,1)
  sensor.CanTouch=true
@@ -493,12 +416,11 @@ for _,z in ipairs(zoneDefs) do
   if player:GetAttribute("BBYAMallPassportComplete")==true then
    toast(player,"Mall Passport COMPLETE • BBYA Mall Explorer")
    v2:FireClient(player,"promo",{title="MALL PASSPORT COMPLETE",body="All 5 Mall zones discovered."})
-  elseif count==4 then
+  elseif (player:GetAttribute("BBYAMallPassport") or 0)==4 then
    v2:FireClient(player,"promo",{title="FINAL CHECKPOINT",body="Go to L4 • BBYA CINEMA via Central Lift."})
   end
  end)
 end
-
 local function initPlayer(player)
  visited[player.UserId]=visited[player.UserId] or {}
  player:SetAttribute("BBYAMallPassport",0)
@@ -509,7 +431,6 @@ end
 Players.PlayerAdded:Connect(initPlayer)
 for _,player in ipairs(Players:GetPlayers()) do initPlayer(player) end
 Players.PlayerRemoving:Connect(function(player)visited[player.UserId]=nil end)
-
 local presence=part("MallPresenceVolume",Vector3.new(196,66,166),CFrame.new(0,31,365),C.white,Enum.Material.SmoothPlastic,false,up,1)
 presence.CanTouch=true
 local inside={}
@@ -521,7 +442,6 @@ presence.Touched:Connect(function(hit)
  syncPassport(player,nil)
  v2:FireClient(player,"presence",{inside=true})
 end)
-
 task.spawn(function()
  while up.Parent do
   for _,player in ipairs(Players:GetPlayers()) do
@@ -529,11 +449,7 @@ task.spawn(function()
    if hrp then
     local p=hrp.Position
     local inMall=math.abs(p.X)<=100 and p.Z>=282 and p.Z<=448 and p.Y>=-2 and p.Y<=66
-    if inMall~=inside[player] then
-     inside[player]=inMall
-     player:SetAttribute("BBYAInsideMall",inMall)
-     v2:FireClient(player,"presence",{inside=inMall})
-    end
+    if inMall~=inside[player] then inside[player]=inMall;player:SetAttribute("BBYAInsideMall",inMall);v2:FireClient(player,"presence",{inside=inMall}) end
    end
   end
   task.wait(.8)
