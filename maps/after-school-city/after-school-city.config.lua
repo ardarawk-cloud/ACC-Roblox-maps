@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.4.6-source-spatial-audit-fix-1",
+    Version = "0.4.7-orientation-correction-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -11,7 +11,7 @@ local Config = {
     World = {
         RootName = "AfterSchoolCity",
         GroundY = 0,
-        Spawn = Vector3.new(0, 2.2, 271),
+        Spawn = Vector3.new(0, 2.2, 157),
         DistrictTravelTargetSeconds = 45,
         Districts = {
             School = {Center = Vector3.new(0, 0, 210), Size = Vector3.new(220, 2, 150)},
@@ -41,6 +41,7 @@ local Config = {
         EnableCirculationSanitizePass = true,
         EnableClearanceSanitizePass = true,
         EnableSourceSpatialFixPass = true,
+        EnableOrientationCorrectionPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
