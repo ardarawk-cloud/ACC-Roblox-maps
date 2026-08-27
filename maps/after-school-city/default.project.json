@@ -36,6 +36,9 @@
       },
       "ASC_CirculationSanitize": {
         "$path": "after-school-city.circulation-sanitize.server.lua"
+      },
+      "ASC_ClearanceSanitize": {
+        "$path": "after-school-city.clearance-sanitize.server.lua"
       }
     },
     "StarterGui": {
