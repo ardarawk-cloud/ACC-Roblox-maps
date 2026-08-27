@@ -23,7 +23,8 @@ on:
 
 jobs:
   build-qc:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
@@ -36,16 +37,26 @@ jobs:
           node-version: '20'
 
       - name: Verify WONDERPOCKET branch
+        shell: powershell
         run: |
-          test "$GITHUB_REF_NAME" = "agent/wonderpocket-target" || { echo "Wrong branch: $GITHUB_REF_NAME"; exit 1; }
+          $ErrorActionPreference='Stop'
+          if($env:GITHUB_REF_NAME -ne 'agent/wonderpocket-target'){throw "Wrong branch: $env:GITHUB_REF_NAME"}
 
       - name: Build WONDERPOCKET place
+        shell: powershell
         env:
           WONDERPOCKET_BUILD_MODE: closed-test
-        run: node scripts/build-wonderpocket.js
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/build-wonderpocket.js
+          if($LASTEXITCODE -ne 0){throw 'WONDERPOCKET build failed'}
 
       - name: Run WONDERPOCKET QC
-        run: node scripts/qc-wonderpocket.js
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/qc-wonderpocket.js
+          if($LASTEXITCODE -ne 0){throw 'WONDERPOCKET QC failed'}
 
       - name: Upload closed-test place artifact
         uses: actions/upload-artifact@v4
@@ -57,77 +68,95 @@ jobs:
       - name: Detect one-time push publish request
         id: push_request
         if: github.event_name == 'push'
-        shell: bash
+        shell: powershell
         run: |
-          MARKER='maps/wonderpocket/CLOSED_TEST_PUBLISH_REQUEST'
-          EXPECTED='WONDERPOCKET:8805231520:124843214013484'
-          BEFORE='${{ github.event.before }}'
-          CHANGED='false'
-          if [ -n "$BEFORE" ] && ! printf '%s' "$BEFORE" | grep -Eq '^0+$'; then
-            if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -Fxq "$MARKER"; then CHANGED='true'; fi
-          else
-            if git show --pretty='' --name-only "$GITHUB_SHA" | grep -Fxq "$MARKER"; then CHANGED='true'; fi
-          fi
-          if [ "$CHANGED" = 'true' ] && [ -f "$MARKER" ] && [ "$(tr -d '\r\n' < "$MARKER")" = "$EXPECTED" ]; then
-            echo 'publish=true' >> "$GITHUB_OUTPUT"
-            echo 'One-time locked WONDERPOCKET publish request accepted.'
-          else
-            echo 'publish=false' >> "$GITHUB_OUTPUT"
-            echo 'No valid one-time push publish request in this commit.'
-          fi
+          $ErrorActionPreference='Stop'
+          $marker='maps/wonderpocket/CLOSED_TEST_PUBLISH_REQUEST'
+          $expected='WONDERPOCKET:8805231520:124843214013484'
+          $before='${{ github.event.before }}'
+          $changed=$false
+          if($before -and $before -notmatch '^0+$'){
+            $names = git diff --name-only $before $env:GITHUB_SHA
+            if($names -contains $marker){$changed=$true}
+          } else {
+            $names = git show --pretty='' --name-only $env:GITHUB_SHA
+            if($names -contains $marker){$changed=$true}
+          }
+          $token=''
+          if(Test-Path $marker){$token=(Get-Content $marker -Raw).Trim()}
+          if($changed -and $token -eq $expected){
+            'publish=true' | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            Write-Host 'One-time locked WONDERPOCKET publish request accepted.'
+          } else {
+            'publish=false' | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            Write-Host 'No valid one-time push publish request in this commit.'
+          }
 
       - name: Verify explicit dispatch target confirmation
         if: github.event_name == 'workflow_dispatch' && inputs.publish_closed_test == true
+        shell: powershell
         env:
           CONFIRM_TARGET: ${{ inputs.confirm_target }}
         run: |
-          test "$CONFIRM_TARGET" = "WONDERPOCKET:8805231520:124843214013484" || { echo "Closed-test target confirmation mismatch."; exit 1; }
-          echo "Locked WONDERPOCKET target confirmed. This does not change Roblox public visibility/access."
+          $ErrorActionPreference='Stop'
+          if($env:CONFIRM_TARGET -ne 'WONDERPOCKET:8805231520:124843214013484'){throw 'Closed-test target confirmation mismatch.'}
+          Write-Host 'Locked WONDERPOCKET target confirmed. This does not change Roblox public visibility/access.'
 
       - name: Publish WONDERPOCKET closed-test from dispatch
         if: github.event_name == 'workflow_dispatch' && inputs.publish_closed_test == true
+        shell: powershell
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           WONDERPOCKET_CONFIRM_TARGET: ${{ inputs.confirm_target }}
-        run: node scripts/publish-wonderpocket-closed-test.js
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/publish-wonderpocket-closed-test.js
+          if($LASTEXITCODE -ne 0){throw 'WONDERPOCKET closed-test publish failed'}
 
       - name: Publish WONDERPOCKET closed-test from one-time push request
         id: push_publish
         if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true'
+        shell: powershell
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           WONDERPOCKET_CONFIRM_TARGET: WONDERPOCKET:8805231520:124843214013484
-        shell: bash
         run: |
-          set +e
-          node scripts/publish-wonderpocket-closed-test.js > /tmp/wonderpocket-publish.log 2>&1
-          CODE=$?
-          cat /tmp/wonderpocket-publish.log
-          echo "exit_code=$CODE" >> "$GITHUB_OUTPUT"
+          $log=Join-Path $env:RUNNER_TEMP 'wonderpocket-publish.log'
+          node scripts/publish-wonderpocket-closed-test.js *> $log
+          $code=$LASTEXITCODE
+          Get-Content $log
+          "exit_code=$code" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           exit 0
 
       - name: Record WONDERPOCKET publish diagnostic
         if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true'
-        shell: bash
+        shell: powershell
         run: |
-          mkdir -p .diagnostics
-          {
-            echo "commit=$GITHUB_SHA"
-            echo "workflow=$GITHUB_WORKFLOW"
-            echo "run_id=$GITHUB_RUN_ID"
-            echo "exit_code=${{ steps.push_publish.outputs.exit_code }}"
-            echo "utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            echo "--- publisher output ---"
-            cat /tmp/wonderpocket-publish.log
-          } > .diagnostics/wonderpocket-last-publish.log
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .diagnostics/wonderpocket-last-publish.log
-          git commit -m "Record WONDERPOCKET publish diagnostic [skip ci]" || true
+          $ErrorActionPreference='Stop'
+          $log=Join-Path $env:RUNNER_TEMP 'wonderpocket-publish.log'
+          New-Item -ItemType Directory -Force -Path '.diagnostics' | Out-Null
+          $lines=@(
+            "commit=$env:GITHUB_SHA",
+            "workflow=$env:GITHUB_WORKFLOW",
+            "run_id=$env:GITHUB_RUN_ID",
+            "exit_code=${{ steps.push_publish.outputs.exit_code }}",
+            "utc=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))",
+            '--- publisher output ---'
+          )
+          $lines | Set-Content '.diagnostics/wonderpocket-last-publish.log' -Encoding utf8
+          if(Test-Path $log){Get-Content $log | Add-Content '.diagnostics/wonderpocket-last-publish.log' -Encoding utf8}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '.diagnostics/wonderpocket-last-publish.log'
+          git commit -m 'Record WONDERPOCKET publish diagnostic [skip ci]'
+          if($LASTEXITCODE -ne 0){Write-Host 'No diagnostic delta to commit.'}
+          git pull --rebase origin agent/wonderpocket-target
+          if($LASTEXITCODE -ne 0){throw 'Failed to rebase diagnostic commit'}
           git push origin HEAD:agent/wonderpocket-target
+          if($LASTEXITCODE -ne 0){throw 'Failed to push diagnostic commit'}
 
       - name: Fail workflow if WONDERPOCKET publish failed
         if: github.event_name == 'push' && steps.push_request.outputs.publish == 'true' && steps.push_publish.outputs.exit_code != '0'
+        shell: powershell
         run: |
-          echo "WONDERPOCKET closed-test publish failed; diagnostic committed to .diagnostics/wonderpocket-last-publish.log"
-          exit 1
+          throw 'WONDERPOCKET closed-test publish failed; diagnostic committed to .diagnostics/wonderpocket-last-publish.log'
