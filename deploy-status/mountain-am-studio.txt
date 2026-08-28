@@ -1,7 +1,8 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v5.0-immersive-biome
+build=v6.0-phase1-terrain-first
+sourceCommit=4ef075e96387b4c3c31fd102d2238fb9df164e7d
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 13 }
+log=Mountain AM STUDIO publish success { versionNumber: 14 }
