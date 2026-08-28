@@ -1,7 +1,7 @@
 name: BBYA Live Rescue Windows
 
 # Rescue v4: canonical self-hosted publish lane with permanent audio-regression hard gate.
-# Deploy trigger: Skatepark/Rooftop router v7 exact-source publish.
+# One-shot PR publish trigger: ROLES-below-MENU mobile alignment.
 on:
   pull_request:
     branches: [main]
@@ -32,7 +32,6 @@ jobs:
           Write-Host "computer=$env:COMPUTERNAME event=$env:GITHUB_EVENT_NAME sha=$env:GITHUB_SHA"
 
   publish:
-    if: github.event_name != 'pull_request'
     needs: selfhosted_probe
     runs-on: self-hosted
     timeout-minutes: 20
@@ -75,6 +74,7 @@ jobs:
           $ErrorActionPreference='Stop'
           $checks=@{
             'maps/bbya-social-hub/56-dock-stability.client.lua'=@('COMMAND MENU AUTHORITY v7','V7_SINGLE_COMPACT_AUTHORITY','LEFT_OF_MENU_V2_PRECISE');
+            'maps/bbya-social-hub/49-ui-clarity-patch.client.lua'=@('UI CLARITY PATCH v2','RolePanelOpen','BELOW_COMMAND_MENU_V1','UDim2.new(1,-12,0,50)','UDim2.fromOffset(74,34)');
             'maps/bbya-social-hub/111-compact-secondary-panels.client.lua'=@('COMMAND_MENU_V7');
             'maps/bbya-social-hub/91-owner-ui.client.lua'=@('ROLE PANEL v8');
             'maps/bbya-social-hub/92-player-progression.server.lua'=@('BBYA_MANAGED_ROLES_V1','RolePanelSnapshot','RolePanelAction','nadmo97');
@@ -104,7 +104,7 @@ jobs:
           }
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
-          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_AUDIO_HARD_GATE_V4'
+          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_ROLE_MENU_V1_AUDIO_HARD_GATE_V4'
 
       - name: Build canonical BBYA place
         shell: powershell
