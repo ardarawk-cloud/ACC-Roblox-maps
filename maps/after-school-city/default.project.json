@@ -57,6 +57,9 @@
       },
       "ASC_RoadCenterlineClearance": {
         "$path": "after-school-city.road-centerline-clearance.server.lua"
+      },
+      "ASC_PremiumExterior": {
+        "$path": "after-school-city.premium-exterior.server.lua"
       }
     },
     "StarterGui": {
