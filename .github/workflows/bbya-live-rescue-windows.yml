@@ -1,7 +1,7 @@
 name: BBYA Live Rescue Windows
 
 # Rescue v4: canonical self-hosted publish lane with permanent audio-regression hard gate.
-# Deploy trigger: Skatepark/Rooftop router v7 exact-source publish.
+# ONE-SHOT OPS BRANCH: publish this exact source on pull_request; do not merge this condition.
 on:
   pull_request:
     branches: [main]
@@ -32,7 +32,7 @@ jobs:
           Write-Host "computer=$env:COMPUTERNAME event=$env:GITHUB_EVENT_NAME sha=$env:GITHUB_SHA"
 
   publish:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     needs: selfhosted_probe
     runs-on: self-hosted
     timeout-minutes: 20
