@@ -6,6 +6,7 @@ on:
       - feat/bbya-music-ui-v1
     paths:
       - 'maps/bbya-social-hub/**'
+      - 'maps/registry.json'
       - '.github/workflows/bbya-music-ui-preview-build.yml'
   workflow_dispatch:
 
@@ -15,7 +16,7 @@ permissions:
 jobs:
   build-preview:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout preview branch
         uses: actions/checkout@v4
@@ -56,6 +57,20 @@ jobs:
           "$hash  BBYA-MUSIC-UI-PREVIEW.rbxl" | Set-Content (Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW.sha256') -Encoding ascii
           Write-Host "BBYA_PREVIEW_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
 
+      - name: Publish preview to isolated BBYA Music test place
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status-test
+          PLACE_FILE_OVERRIDE: ${{ github.workspace }}\BBYA-MUSIC-UI-PREVIEW.rbxl
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/publish-map.js bbya-music-test
+          if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
+          $receipt=Join-Path $env:GITHUB_WORKSPACE 'deploy-status-test\bbya-music-test.json'
+          if(-not (Test-Path $receipt)){throw 'Publish receipt missing'}
+          Get-Content $receipt
+
       - name: Upload preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -63,4 +78,5 @@ jobs:
           path: |
             BBYA-MUSIC-UI-PREVIEW.rbxl
             BBYA-MUSIC-UI-PREVIEW.sha256
+            deploy-status-test/bbya-music-test.json
           retention-days: 7
