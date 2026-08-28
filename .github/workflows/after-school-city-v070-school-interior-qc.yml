@@ -6,12 +6,14 @@ on:
     paths:
       - 'maps/after-school-city/**'
       - '.github/scripts/after-school-city-school-interior-audit.ps1'
+      - '.github/scripts/after-school-city-v070-prior-gates.ps1'
       - '.github/workflows/after-school-city-v070-school-interior-qc.yml'
   pull_request:
     branches: [main]
     paths:
       - 'maps/after-school-city/**'
       - '.github/scripts/after-school-city-school-interior-audit.ps1'
+      - '.github/scripts/after-school-city-v070-prior-gates.ps1'
       - '.github/workflows/after-school-city-v070-school-interior-qc.yml'
 
 permissions:
@@ -37,12 +39,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          & '.github/scripts/after-school-city-spatial-audit.ps1'
-          & '.github/scripts/after-school-city-orientation-audit.ps1'
-          & '.github/scripts/after-school-city-visual-fidelity-audit.ps1'
-          & '.github/scripts/after-school-city-runtime-reconcile-audit.ps1'
-          & '.github/scripts/after-school-city-runtime-hard-cleanup-audit.ps1'
-          & '.github/scripts/after-school-city-road-centerline-clearance-audit.ps1'
+          & '.github/scripts/after-school-city-v070-prior-gates.ps1'
 
       - name: School interior audit V1
         shell: powershell
