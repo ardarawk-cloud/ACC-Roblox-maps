@@ -1,6 +1,7 @@
 name: BBYA Live Rescue Windows
 
 # Rescue v4: canonical self-hosted publish lane with permanent audio-regression hard gate.
+# Deploy trigger: Skatepark/Rooftop router v7 exact-source publish.
 on:
   pull_request:
     branches: [main]
