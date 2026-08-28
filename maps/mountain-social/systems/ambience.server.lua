@@ -28,8 +28,9 @@ local function phase(hour)
   Lighting.Brightness=1.85;Lighting.Ambient=Color3.fromRGB(128,99,91);Lighting.OutdoorAmbient=Color3.fromRGB(152,118,103);Lighting.ColorShift_Top=Color3.fromRGB(255,163,112);Lighting.ColorShift_Bottom=Color3.fromRGB(105,111,132)
   cc.Brightness=.015;cc.Contrast=.11;cc.Saturation=.05;cc.TintColor=Color3.fromRGB(255,215,185);bloom.Intensity=.3;rays.Intensity=.16;return "SUNSET"
  else
-  Lighting.Brightness=.72;Lighting.Ambient=Color3.fromRGB(39,48,66);Lighting.OutdoorAmbient=Color3.fromRGB(52,63,82);Lighting.ColorShift_Top=Color3.fromRGB(71,85,125);Lighting.ColorShift_Bottom=Color3.fromRGB(32,41,56)
-  cc.Brightness=-.035;cc.Contrast=.15;cc.Saturation=-.11;cc.TintColor=Color3.fromRGB(199,215,245);bloom.Intensity=.16;rays.Intensity=0;return "NIGHT"
+  -- Mobile-readable night: still clearly night, but terrain/road silhouettes remain legible.
+  Lighting.Brightness=1.08;Lighting.Ambient=Color3.fromRGB(54,61,77);Lighting.OutdoorAmbient=Color3.fromRGB(70,79,96);Lighting.ColorShift_Top=Color3.fromRGB(79,92,128);Lighting.ColorShift_Bottom=Color3.fromRGB(42,51,67)
+  cc.Brightness=-.01;cc.Contrast=.10;cc.Saturation=-.06;cc.TintColor=Color3.fromRGB(207,220,244);bloom.Intensity=.15;rays.Intensity=0;return "NIGHT"
  end
 end
 local function weather(mode)
@@ -56,4 +57,5 @@ task.spawn(function()
 end)
 workspace:SetAttribute("ACC_TimeCycle","v4.1-four-phase")
 workspace:SetAttribute("ACC_RealisticAmbience",true)
+workspace:SetAttribute("ACC_NightReadability","mobile-tuned-v6.1")
 print("[ACC] cinematic morning/day/sunset/night cycle v4.1 ready")
