@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — MALL CINEMA + REAR LIFT v12 / L4 SAFETY v13
+-- BBYA SOCIAL HUB — MALL CINEMA + REAR LIFT v12 / L4 ACCESS v14
 -- Screenshot-driven Mall-only refinement.
--- Keeps the v12 cinema and rear lift in place, then fixes L4 circulation and fall hazards.
+-- Keeps the v12 cinema and rear lift in place, preserves v13 fall protection, and opens the intended Cinema access.
 -- No audio / Fishing / global Lighting / VIP / Night Market / economy changes.
 
 local Workspace=game:GetService("Workspace")
@@ -157,7 +157,7 @@ mall:SetAttribute("MallLiftRearWallFlush",true)
 
 -- -----------------------------------------------------------------------------
 -- 2) REAL L4 CINEMA
--- Keep v12 in its current location. v13 only opens circulation and removes the overhang.
+-- Keep v12 in its current location. v14 opens direct atrium access to the existing lobby.
 -- -----------------------------------------------------------------------------
 local cinema=mall:WaitForChild("BBYACinema",60)
 if cinema then
@@ -179,8 +179,6 @@ if cinema then
  cxModel.Parent=cinema
 
  local y=43
- -- v13: south edge is exactly Z=392, matching the real north atrium boundary.
- -- The v12 50-stud lobby reached to Z=385, placing walkable floor outside the safety glass.
  part("CinemaLobbyV12",Vector3.new(172,.42,43),CFrame.new(0,y+.72,413.5),C.carpet,Enum.Material.Carpet,true,cxModel,0)
  part("CenterAisle",Vector3.new(15,.08,38),CFrame.new(0,y+1.0,414),C.gold,Enum.Material.Neon,false,cxModel,.55)
 
@@ -211,8 +209,6 @@ if cinema then
   part("RearWall",Vector3.new(width,12,1),CFrame.new(cx,y+6.8,rearWallZ),C.dark,Enum.Material.Slate,true,room,0)
   part("Ceiling",Vector3.new(width,.45,depth),CFrame.new(cx,y+12.5,centerZ),Color3.fromRGB(33,34,38),Enum.Material.Metal,true,room,0)
 
-  -- v13: remove the two broad black facade walls that cut across the L4 circulation path.
-  -- Side walls plus the entry header still define each screening room without a floor-level blocker.
   local entryHead=part("EntryHeader",Vector3.new(15,2.4,.32),CFrame.new(cx,y+10.5,frontZ-.55),C.graphite,Enum.Material.Metal,false,room,0)
   textOn(entryHead,"SCREEN "..label,C.gold)
 
@@ -248,14 +244,14 @@ if cinema then
  buildScreenRoom("B",48)
  cinema:SetAttribute("Experience","REAL_SCREENING_ROOMS_V12")
  cinema:SetAttribute("PortalOnlyTheatresRemoved",true)
- cinema:SetAttribute("L4Circulation","V13_OPEN_FACADE")
- mall:SetAttribute("MallCinemaExperience","V12_V13_SAFETY")
+ cinema:SetAttribute("L4Circulation","V14_ATRIUM_ACCESS")
+ mall:SetAttribute("MallCinemaExperience","V12_V14_ACCESS")
 end
 
 -- -----------------------------------------------------------------------------
--- 3) L4 ATRIUM SAFETY PERIMETER
--- Rebuild the actual atrium edge from the base mall dimensions instead of inheriting
--- mixed v11 fragments. Only the L3->L4 stair landing receives a controlled opening.
+-- 3) L4 ATRIUM SAFETY + CINEMA ACCESS
+-- Keep fall protection on all edges, with two intentional openings only:
+-- south = L3->L4 stair landing; north = direct walk-in Cinema lobby access.
 -- -----------------------------------------------------------------------------
 local floor4=mall:FindFirstChild("Level4")
 if floor4 then
@@ -272,10 +268,16 @@ if floor4 then
  local edgeX=30
  local atriumDepth=54
  local atriumWidth=60
- local gapCenter=-14.45
- local gapWidth=9.8
- local gapLeft=gapCenter-gapWidth/2
- local gapRight=gapCenter+gapWidth/2
+
+ local stairGapCenter=-14.45
+ local stairGapWidth=9.8
+ local stairGapLeft=stairGapCenter-stairGapWidth/2
+ local stairGapRight=stairGapCenter+stairGapWidth/2
+
+ local cinemaGapCenter=0
+ local cinemaGapWidth=22
+ local cinemaGapLeft=cinemaGapCenter-cinemaGapWidth/2
+ local cinemaGapRight=cinemaGapCenter+cinemaGapWidth/2
 
  local function glassRail(name,size,cf)
   local r=part(name,size,cf,C.glass,Enum.Material.Glass,true,floor4,.48)
@@ -283,31 +285,67 @@ if floor4 then
   return r
  end
 
- -- Continuous west/east/north protection.
- glassRail("AtriumRailX4_V13_W",Vector3.new(.35,4.2,atriumDepth),CFrame.new(-edgeX,railY,centerZ))
- glassRail("AtriumRailX4_V13_E",Vector3.new(.35,4.2,atriumDepth),CFrame.new(edgeX,railY,centerZ))
- glassRail("AtriumRailZ4_V13_N",Vector3.new(atriumWidth,4.2,.35),CFrame.new(0,railY,northZ))
+ glassRail("AtriumRailX4_V14_W",Vector3.new(.35,4.2,atriumDepth),CFrame.new(-edgeX,railY,centerZ))
+ glassRail("AtriumRailX4_V14_E",Vector3.new(.35,4.2,atriumDepth),CFrame.new(edgeX,railY,centerZ))
 
- -- South rail split only around the real upper landing.
  local leftEdge=-atriumWidth/2
  local rightEdge=atriumWidth/2
- local leftWidth=gapLeft-leftEdge
- local rightWidth=rightEdge-gapRight
- if leftWidth>0 then
-  glassRail("AtriumRailZ4_V13_SL",Vector3.new(leftWidth,4.2,.35),CFrame.new(leftEdge+leftWidth/2,railY,southZ))
+
+ -- North: split around the intended Cinema walk-in corridor.
+ local northLeftWidth=cinemaGapLeft-leftEdge
+ local northRightWidth=rightEdge-cinemaGapRight
+ if northLeftWidth>0 then
+  glassRail("AtriumRailZ4_V14_NL",Vector3.new(northLeftWidth,4.2,.35),CFrame.new(leftEdge+northLeftWidth/2,railY,northZ))
  end
- if rightWidth>0 then
-  glassRail("AtriumRailZ4_V13_SR",Vector3.new(rightWidth,4.2,.35),CFrame.new(gapRight+rightWidth/2,railY,southZ))
+ if northRightWidth>0 then
+  glassRail("AtriumRailZ4_V14_NR",Vector3.new(northRightWidth,4.2,.35),CFrame.new(cinemaGapRight+northRightWidth/2,railY,northZ))
  end
 
- floor4:SetAttribute("AtriumSafety","V13_REBUILT")
- floor4:SetAttribute("SouthStairGapWidth",gapWidth)
- floor4:SetAttribute("SouthStairGapCenterX",gapCenter)
- mall:SetAttribute("MallL4AtriumSafety","V13")
+ -- South: preserve only the real upper stair landing opening.
+ local southLeftWidth=stairGapLeft-leftEdge
+ local southRightWidth=rightEdge-stairGapRight
+ if southLeftWidth>0 then
+  glassRail("AtriumRailZ4_V14_SL",Vector3.new(southLeftWidth,4.2,.35),CFrame.new(leftEdge+southLeftWidth/2,railY,southZ))
+ end
+ if southRightWidth>0 then
+  glassRail("AtriumRailZ4_V14_SR",Vector3.new(southRightWidth,4.2,.35),CFrame.new(stairGapRight+southRightWidth/2,railY,southZ))
+ end
+
+ -- Match the decorative brass cap to the new Cinema access so the opening also reads visually.
+ local v9=mall:FindFirstChild("MallPremiumAtmosphereV9")
+ local caps=v9 and v9:FindFirstChild("AtriumRailCapsV9",true)
+ if caps then
+  local targets={}
+  for _,d in ipairs(caps:GetChildren()) do
+   if d:IsA("BasePart") and d.Name:match("^RailCapZ_L4") and math.abs(d.Position.Z-northZ)<1 then
+    table.insert(targets,d)
+   end
+  end
+  for _,cap in ipairs(targets) do
+   local capLeft=cap.Position.X-cap.Size.X/2
+   local capRight=cap.Position.X+cap.Size.X/2
+   local capY,capZ=cap.Position.Y,cap.Position.Z
+   local h,depth=cap.Size.Y,cap.Size.Z
+   local color,mat,tr=cap.Color,cap.Material,cap.Transparency
+   cap:Destroy()
+   local lw=cinemaGapLeft-capLeft
+   if lw>.2 then part("RailCapZ_L4_V14_NL",Vector3.new(lw,h,depth),CFrame.new(capLeft+lw/2,capY,capZ),color,mat,false,caps,tr) end
+   local rw=capRight-cinemaGapRight
+   if rw>.2 then part("RailCapZ_L4_V14_NR",Vector3.new(rw,h,depth),CFrame.new(cinemaGapRight+rw/2,capY,capZ),color,mat,false,caps,tr) end
+  end
+ end
+
+ floor4:SetAttribute("AtriumSafety","V14_CINEMA_ACCESS")
+ floor4:SetAttribute("SouthStairGapWidth",stairGapWidth)
+ floor4:SetAttribute("SouthStairGapCenterX",stairGapCenter)
+ floor4:SetAttribute("NorthCinemaGapWidth",cinemaGapWidth)
+ floor4:SetAttribute("NorthCinemaGapCenterX",cinemaGapCenter)
+ mall:SetAttribute("MallL4AtriumSafety","V14_CINEMA_ACCESS")
 end
 
 pass:SetAttribute("CinemaBuilt",cinema~=nil)
 pass:SetAttribute("LiftRearWall",true)
-pass:SetAttribute("L4Safety","V13")
-mall:SetAttribute("MallScreenshotQC","V13")
-print("[BBYA] Mall v13 online: cinema kept in place; L4 overhang removed; black facade blockers opened; atrium glass perimeter rebuilt")
+pass:SetAttribute("L4Safety","V14")
+pass:SetAttribute("CinemaAtriumAccess",true)
+mall:SetAttribute("MallScreenshotQC","V14")
+print("[BBYA] Mall v14 online: Cinema kept in place; north atrium glass opened to walk-in lobby; stair opening preserved")
