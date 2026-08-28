@@ -66,6 +66,9 @@
       },
       "ASC_SchoolInteriorPolish": {
         "$path": "after-school-city.school-interior-polish.server.lua"
+      },
+      "ASC_SchoolVisualDepth": {
+        "$path": "after-school-city.school-visual-depth.server.lua"
       }
     },
     "StarterGui": {
