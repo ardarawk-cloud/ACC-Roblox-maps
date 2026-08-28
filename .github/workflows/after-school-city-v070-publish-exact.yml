@@ -1,0 +1,287 @@
+name: After School City V0.7 Publish Exact Source
+
+on:
+  push:
+    branches: [after-school-city/scaffold-v1]
+    paths:
+      - '.github/workflows/after-school-city-v070-publish-exact.yml'
+      - 'deploy-requests/after-school-city-v070-exact.json'
+  workflow_dispatch:
+
+concurrency:
+  group: after-school-city-v070-publish-exact
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish-exact:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout publisher authority
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Resolve exact source and QC authority
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $request=Get-Content 'deploy-requests/after-school-city-v070-exact.json' -Raw | ConvertFrom-Json
+          if(-not $request.publish_authorized){throw 'Publish request is not authorized'}
+          $sourceSha=([string]$request.source_sha).Trim().ToLowerInvariant()
+          $headSha=([string]$env:GITHUB_SHA).Trim().ToLowerInvariant()
+          if($sourceSha -notmatch '^[0-9a-f]{40}$'){throw "Invalid exact source SHA: $sourceSha"}
+          if($headSha -notmatch '^[0-9a-f]{40}$'){throw "Invalid publisher head SHA: $headSha"}
+          if([string]$request.map_id -ne 'after-school-city'){throw 'Wrong map_id in deploy request'}
+          if([string]$request.universe_id -ne '10745359869'){throw 'Wrong Universe ID in deploy request'}
+          if([string]$request.place_id -ne '121603385909425'){throw 'Wrong Place ID in deploy request'}
+          if([string]$request.rojo_version -ne '7.7.0'){throw 'Wrong Rojo version in deploy request'}
+          if([int64]$request.rbxl_bytes -ne 76573){throw 'Unexpected QC RBXL byte count'}
+          if(([string]$request.rbxl_sha256).ToLowerInvariant() -ne '3e97e34b0a0cfec873c86e690442cb51b163d9a88d4d2be79dce64f414e568cd'){throw 'Unexpected QC RBXL SHA256'}
+
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='ASC-V070-Exact-Publisher'
+          }
+          $repo=$env:GITHUB_REPOSITORY
+          $source=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/commits/$sourceSha"
+          if(([string]$source.sha).ToLowerInvariant() -ne $sourceSha){throw "Exact source unavailable: $sourceSha"}
+
+          $compare=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/compare/$sourceSha...$headSha"
+          if(([string]$compare.merge_base_commit.sha).ToLowerInvariant() -ne $sourceSha){throw "Exact QC source is not ancestor of publisher head: $sourceSha"}
+          $changed=@($compare.files | ForEach-Object {$_.filename})
+          $allowed=@(
+            'deploy-requests/after-school-city-v070-exact.json',
+            '.github/workflows/after-school-city-v070-publish-exact.yml'
+          )
+          $unexpected=@($changed | Where-Object {$allowed -notcontains $_})
+          if($unexpected.Count -gt 0){throw "Refusing deploy: source changed after QC target: $($unexpected -join ', ')"}
+
+          $qcRun=[int64]$request.qc_run
+          $qc=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/actions/runs/$qcRun"
+          if(([string]$qc.head_sha).ToLowerInvariant() -ne $sourceSha){throw "QC run source mismatch: $($qc.head_sha)"}
+          if([string]$qc.name -ne 'After School City V0.7 School Interior QC'){throw "Wrong QC workflow: $($qc.name)"}
+          if([string]$qc.status -ne 'completed' -or [string]$qc.conclusion -ne 'success'){throw "QC run is not PASS: status=$($qc.status) conclusion=$($qc.conclusion)"}
+          $jobs=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$repo/actions/runs/$qcRun/jobs?per_page=100"
+          $job=@($jobs.jobs | Where-Object {[int64]$_.id -eq [int64]$request.qc_job}) | Select-Object -First 1
+          if(-not $job -or [string]$job.conclusion -ne 'success'){throw 'Canonical V0.7 QC job is not success'}
+
+          "ASC_SOURCE_SHA=$sourceSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_QC_RUN=$qcRun" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_EXPECTED_BYTES=$([int64]$request.rbxl_bytes)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_EXPECTED_HASH=$(([string]$request.rbxl_sha256).ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_PUBLISHER_SHA=$headSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ASC_EXACT_AUTHORITY_PASS source=$sourceSha qc=$qcRun publisher=$headSha changed_after_source=$($changed.Count)"
+
+      - name: Download exact source archive
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $sourceDir=Join-Path $env:RUNNER_TEMP 'asc-v070-exact-source'
+          $archive=Join-Path $env:RUNNER_TEMP 'asc-v070-exact-source.tar.gz'
+          if(Test-Path $sourceDir){Remove-Item $sourceDir -Recurse -Force}
+          if(Test-Path $archive){Remove-Item $archive -Force}
+          New-Item -ItemType Directory -Path $sourceDir -Force | Out-Null
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='ASC-V070-Exact-Publisher'
+          }
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/tarball/$env:ASC_SOURCE_SHA" -OutFile $archive
+          if(-not (Test-Path $archive)){throw 'Exact-source archive missing'}
+          $tar=Get-Command tar.exe -ErrorAction SilentlyContinue
+          if(-not $tar){$tar=Get-Command tar -ErrorAction SilentlyContinue}
+          if(-not $tar){throw 'Windows tar unavailable'}
+          & $tar.Source -xzf $archive -C $sourceDir --strip-components=1
+          if($LASTEXITCODE -ne 0){throw "Exact-source extraction failed: $LASTEXITCODE"}
+          if(-not (Test-Path (Join-Path $sourceDir 'maps/after-school-city/default.project.json'))){throw 'Exact AFTER SCHOOL CITY project missing'}
+          "ASC_SOURCE_DIR=$sourceDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ASC_EXACT_ARCHIVE_PASS source=$env:ASC_SOURCE_SHA"
+
+      - name: Re-run exact source gates
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Push-Location $env:ASC_SOURCE_DIR
+          try {
+            & '.github/scripts/after-school-city-v070-prior-gates.ps1'
+            & '.github/scripts/after-school-city-school-interior-audit.ps1'
+            $registry=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
+            $target=$registry.maps.'after-school-city'
+            if(-not $target){throw 'after-school-city registry target missing'}
+            if([string]$target.universeId -ne '10745359869'){throw 'Exact source Universe mismatch'}
+            if([string]$target.placeId -ne '121603385909425'){throw 'Exact source Place mismatch'}
+            if($target.enabled -ne $false){throw 'Exact source development registry must remain enabled=false'}
+            $config=Get-Content 'maps/after-school-city/after-school-city.config.lua' -Raw
+            foreach($token in @('Version = "0.7.0-school-interior-1"','SchoolInteriorVersion = "0.7.0-school-interior-1"','EnableActivities = false','EnableEconomy = false','EnablePersistence = false','EnablePersonalRoom = false','EnableClubs = false')){
+              if($config -notmatch [regex]::Escape($token)){throw "Exact config lock missing: $token"}
+            }
+            $intro=Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+            foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
+              if($intro -notmatch [regex]::Escape($token)){throw "Dedication lock missing: $token"}
+            }
+          } finally {Pop-Location}
+          Write-Host 'ASC_EXACT_SOURCE_GATES_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'asc-v070-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'asc-v070-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          $version=& $rojo --version
+          if(($version -join ' ') -notmatch '7\.7\.0'){throw "Expected Rojo 7.7.0, got $version"}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ASC_ROJO_PASS $($version -join ' ')"
+
+      - name: Build and match canonical QC artifact
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-v070-exact.rbxl'
+          Push-Location $env:ASC_SOURCE_DIR
+          try {
+            & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+            if($LASTEXITCODE -ne 0){throw "Rojo exact-source build failed: $LASTEXITCODE"}
+          } finally {Pop-Location}
+          if(-not (Test-Path $place)){throw 'Exact RBXL missing'}
+          $bytes=(Get-Item $place).Length
+          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:ASC_EXPECTED_BYTES){throw "Exact build bytes mismatch: built=$bytes qc=$env:ASC_EXPECTED_BYTES"}
+          if($hash -ne $env:ASC_EXPECTED_HASH){throw "Exact build hash mismatch: built=$hash qc=$env:ASC_EXPECTED_HASH"}
+          "ASC_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_RBXL_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_RBXL_HASH=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ASC_EXACT_BUILD_MATCH_PASS source=$env:ASC_SOURCE_SHA bytes=$bytes sha256=$hash"
+
+      - name: Publish exact V0.7 source to Roblox
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO publish secret unavailable'}
+          Push-Location $env:ASC_SOURCE_DIR
+          try {
+            $registryPath='maps/registry.json'
+            $registry=Get-Content $registryPath -Raw | ConvertFrom-Json
+            $target=$registry.maps.'after-school-city'
+            if([string]$target.universeId -ne '10745359869' -or [string]$target.placeId -ne '121603385909425'){throw 'Registry target changed before publish'}
+            if($target.enabled -ne $false){throw 'Source registry unexpectedly enabled before disposable publish authorization'}
+            $target.enabled=$true
+            $json=$registry | ConvertTo-Json -Depth 20
+            [IO.File]::WriteAllText((Join-Path (Get-Location) $registryPath),$json,(New-Object Text.UTF8Encoding($false)))
+            $env:PLACE_FILE_OVERRIDE=$env:ASC_PLACE_FILE
+            $env:PUBLISH_RECEIPT_DIR='deploy-status-exact-v070'
+            $env:GITHUB_SHA=$env:ASC_SOURCE_SHA
+            node scripts/publish-map.js after-school-city
+            if($LASTEXITCODE -ne 0){throw 'Roblox exact-source publish failed'}
+          } finally {Pop-Location}
+
+      - name: Verify Roblox publish response and create LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sourceReceipt=Join-Path $env:ASC_SOURCE_DIR 'deploy-status-exact-v070/after-school-city.json'
+          if(-not (Test-Path $sourceReceipt)){throw 'Roblox publish receipt missing'}
+          $r=Get-Content $sourceReceipt -Raw | ConvertFrom-Json
+          if([string]$r.status -ne 'PUBLISHED'){throw "Roblox receipt status=$($r.status)"}
+          if(([string]$r.sourceCommit).ToLowerInvariant() -ne $env:ASC_SOURCE_SHA){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if([string]$r.universeId -ne '10745359869'){throw 'Receipt Universe mismatch'}
+          if([string]$r.placeId -ne '121603385909425'){throw 'Receipt Place mismatch'}
+          if(-not $r.response.versionNumber){throw 'Roblox versionNumber missing'}
+          $version=[string]$r.response.versionNumber
+          $receipt=[ordered]@{
+            status='LIVE_PUBLISHED'
+            mapId='after-school-city'
+            feature='V0.7 School Interior V1'
+            sourceCommit=$env:ASC_SOURCE_SHA
+            publisherCommit=$env:ASC_PUBLISHER_SHA
+            qcRun=[int64]$env:ASC_QC_RUN
+            universeId='10745359869'
+            placeId='121603385909425'
+            rojoVersion='7.7.0'
+            rbxlBytes=[int64]$env:ASC_RBXL_BYTES
+            rbxlSha256=$env:ASC_RBXL_HASH
+            robloxVersionNumber=$version
+            publishedAt=[DateTime]::UtcNow.ToString('o')
+            response=$r.response
+          }
+          $tmp=Join-Path $env:RUNNER_TEMP 'after-school-city-v070-live-receipt.json'
+          $receipt | ConvertTo-Json -Depth 20 | Set-Content $tmp -Encoding UTF8
+          "ASC_RECEIPT_TMP=$tmp" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_ROBLOX_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ASC_V070_LIVE_PUBLISHED version=$version source=$env:ASC_SOURCE_SHA bytes=$env:ASC_RBXL_BYTES sha256=$env:ASC_RBXL_HASH"
+
+      - name: Upload LIVE receipt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v070-live-receipt-${{ env.ASC_SOURCE_SHA }}
+          path: ${{ env.ASC_RECEIPT_TMP }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Persist LIVE receipt to main
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $text=Get-Content $env:ASC_RECEIPT_TMP -Raw
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+            'User-Agent'='ASC-V070-Exact-Publisher'
+          }
+          $repo=$env:GITHUB_REPOSITORY
+          function Upsert([string]$path){
+            $encoded=(($path.Split('/') | ForEach-Object {[Uri]::EscapeDataString($_)}) -join '/')
+            $uri="https://api.github.com/repos/$repo/contents/$encoded"
+            for($i=1;$i -le 4;$i++){
+              $existingSha=$null
+              try {
+                $existing=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref=main')
+                $existingSha=[string]$existing.sha
+              } catch {
+                if($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -ne 404){throw}
+              }
+              $body=@{
+                message="Record AFTER SCHOOL CITY V0.7 exact deploy v$env:ASC_ROBLOX_VERSION [skip ci]"
+                content=$content
+                branch='main'
+              }
+              if($existingSha){$body.sha=$existingSha}
+              try {
+                Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($body|ConvertTo-Json -Depth 6) | Out-Null
+                return
+              } catch {
+                if($i -eq 4){throw}
+                Start-Sleep -Seconds 2
+              }
+            }
+          }
+          Upsert 'deploy-status/after-school-city.json'
+          Upsert 'deploy-status/after-school-city-publish-school-interior-v0-7.json'
+          Write-Host "ASC_V070_RECEIPT_PERSISTED version=$env:ASC_ROBLOX_VERSION source=$env:ASC_SOURCE_SHA"
