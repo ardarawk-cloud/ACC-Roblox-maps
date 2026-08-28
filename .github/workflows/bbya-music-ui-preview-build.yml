@@ -1,0 +1,42 @@
+name: BBYA Music UI Preview Build
+
+on:
+  push:
+    branches:
+      - feat/bbya-music-ui-v1
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-music-ui-preview-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo 7.7.0
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA Music UI preview RBXL
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o BBYA-MUSIC-UI-PREVIEW.rbxl
+          test -s BBYA-MUSIC-UI-PREVIEW.rbxl
+          sha256sum BBYA-MUSIC-UI-PREVIEW.rbxl | tee BBYA-MUSIC-UI-PREVIEW.sha256
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBYA-MUSIC-UI-PREVIEW
+          path: |
+            BBYA-MUSIC-UI-PREVIEW.rbxl
+            BBYA-MUSIC-UI-PREVIEW.sha256
+          retention-days: 7
