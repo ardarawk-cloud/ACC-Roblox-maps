@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.7.0-school-interior-1",
+    Version = "0.7.1-school-interior-polish-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
@@ -9,6 +9,7 @@ local Config = {
     RoadCenterlineClearanceVersion = "0.5.3-road-centerline-clearance-1",
     PremiumExteriorVersion = "0.6.0-premium-exterior-1",
     SchoolInteriorVersion = "0.7.0-school-interior-1",
+    SchoolInteriorPolishVersion = "0.7.1-school-interior-polish-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -55,6 +56,7 @@ local Config = {
         EnableRoadCenterlineClearancePass = true,
         EnablePremiumExteriorPass = true,
         EnableSchoolInteriorPass = true,
+        EnableSchoolInteriorPolishPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
