@@ -63,6 +63,9 @@
       },
       "ASC_SchoolInterior": {
         "$path": "after-school-city.school-interior.server.lua"
+      },
+      "ASC_SchoolInteriorPolish": {
+        "$path": "after-school-city.school-interior-polish.server.lua"
       }
     },
     "StarterGui": {
