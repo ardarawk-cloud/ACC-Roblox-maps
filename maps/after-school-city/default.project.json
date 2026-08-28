@@ -69,6 +69,9 @@
       },
       "ASC_SchoolVisualDepth": {
         "$path": "after-school-city.school-visual-depth.server.lua"
+      },
+      "ASC_SignageOrientationHotfix": {
+        "$path": "after-school-city.signage-orientation-hotfix.server.lua"
       }
     },
     "StarterGui": {
