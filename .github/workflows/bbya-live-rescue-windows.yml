@@ -1,6 +1,6 @@
 name: BBYA Live Rescue Windows
 
-# Rescue v3: canonical self-hosted publish lane with permanent audio-regression hard gate.
+# Rescue v4: canonical self-hosted publish lane with permanent audio-regression hard gate.
 on:
   pull_request:
     branches: [main]
@@ -81,6 +81,7 @@ jobs:
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5');
             'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED');
+            'maps/bbya-social-hub/104-venue-audio-router.client.lua'=@('STRICT VENUE AUDIO ROUTER v7','SKATEPARK=1.0','ROOFTOP=.86','BBYAVolumeRestoreAuthority','ROUTER_V7');
             'maps/bbya-social-hub/109-music-catalog-reset.server.lua'=@('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')
           }
           foreach($path in $checks.Keys){
@@ -102,7 +103,7 @@ jobs:
           }
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
-          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_AUDIO_HARD_GATE'
+          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_AUDIO_HARD_GATE_V4'
 
       - name: Build canonical BBYA place
         shell: powershell
