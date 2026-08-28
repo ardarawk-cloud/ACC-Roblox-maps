@@ -54,6 +54,9 @@
       },
       "ASC_RuntimeHardCleanup": {
         "$path": "after-school-city.runtime-hard-cleanup.server.lua"
+      },
+      "ASC_RoadCenterlineClearance": {
+        "$path": "after-school-city.road-centerline-clearance.server.lua"
       }
     },
     "StarterGui": {

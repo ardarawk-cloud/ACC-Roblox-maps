@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 # AFTER SCHOOL CITY — CLOUD SOURCE RUNTIME HARD CLEANUP AUDIT V1
-# Verifies V0.5.2 is hierarchy-independent and area-envelope driven.
+# Regression check for the V0.5.2 component inside the current map version.
 
 $map = Join-Path (Resolve-Path '.').Path 'maps/after-school-city'
 $runtimePath = Join-Path $map 'after-school-city.runtime-hard-cleanup.server.lua'
@@ -87,8 +87,7 @@ foreach($token in @(
     Token $runtime $token ("final hard cleanup marker $token")
 }
 
-Token $config 'Version = "0.5.2-runtime-hard-cleanup-1"' 'config current version'
-Token $config 'RuntimeHardCleanupVersion = "0.5.2-runtime-hard-cleanup-1"' 'config hard cleanup version'
+Token $config 'RuntimeHardCleanupVersion = "0.5.2-runtime-hard-cleanup-1"' 'config hard cleanup component version'
 Token $config 'EnableRuntimeHardCleanupPass = true' 'config hard cleanup flag'
 Token $project 'ASC_RuntimeHardCleanup' 'Rojo hard cleanup node'
 Token $project 'after-school-city.runtime-hard-cleanup.server.lua' 'Rojo hard cleanup path'
@@ -105,6 +104,7 @@ $report = [ordered]@{
     audit = 'CLOUD_SOURCE_RUNTIME_HARD_CLEANUP_AUDIT_V1'
     sourceVersion = '0.5.2-runtime-hard-cleanup-1'
     status = 'PASS'
+    mode = 'COMPONENT_REGRESSION_CHECK'
     schoolAxis = [ordered]@{xHalfWidth=12;zMin=149;zMax=169}
     studentRowEnvelopeCount = 3
     shopInteriorWidth = 22
@@ -115,4 +115,4 @@ $report = [ordered]@{
 }
 $report | ConvertTo-Json -Depth 5 | Set-Content 'runtime-hard-cleanup-audit-after-school-city.json' -Encoding UTF8
 Write-Host 'AFTER SCHOOL CITY — CLOUD SOURCE RUNTIME HARD CLEANUP AUDIT V1'
-Write-Host 'PASS: hierarchy-independent prototype purge + area-envelope circulation cleanup + final sign/light reconciliation'
+Write-Host 'PASS: V0.5.2 hard-cleanup component remains intact inside current map version'

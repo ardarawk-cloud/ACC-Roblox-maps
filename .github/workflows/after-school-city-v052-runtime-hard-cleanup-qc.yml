@@ -4,13 +4,13 @@ on:
   push:
     branches: [after-school-city/scaffold-v1]
     paths:
-      - 'maps/after-school-city/**'
+      - 'maps/after-school-city/after-school-city.runtime-hard-cleanup.server.lua'
       - '.github/scripts/after-school-city-runtime-hard-cleanup-audit.ps1'
       - '.github/workflows/after-school-city-v052-runtime-hard-cleanup-qc.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'maps/after-school-city/**'
+      - 'maps/after-school-city/after-school-city.runtime-hard-cleanup.server.lua'
       - '.github/scripts/after-school-city-runtime-hard-cleanup-audit.ps1'
       - '.github/workflows/after-school-city-v052-runtime-hard-cleanup-qc.yml'
 
@@ -27,37 +27,13 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - name: Cloud source spatial audit V4
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          & '.github/scripts/after-school-city-spatial-audit.ps1'
-
-      - name: Cloud source orientation audit V1
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          & '.github/scripts/after-school-city-orientation-audit.ps1'
-
-      - name: Cloud source visual fidelity audit V1
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          & '.github/scripts/after-school-city-visual-fidelity-audit.ps1'
-
-      - name: Cloud source runtime reconcile audit V1
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          & '.github/scripts/after-school-city-runtime-reconcile-audit.ps1'
-
-      - name: Cloud source runtime hard cleanup audit V1
+      - name: V0.5.2 component audit
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           & '.github/scripts/after-school-city-runtime-hard-cleanup-audit.ps1'
 
-      - name: V0.5.2 static authority locks
+      - name: V0.5.2 component authority locks
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -74,8 +50,8 @@ jobs:
           $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
           $null = $project | ConvertFrom-Json
 
-          foreach($token in @('Version = "0.5.2-runtime-hard-cleanup-1"','RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1"','RuntimeHardCleanupVersion = "0.5.2-runtime-hard-cleanup-1"','EnableRuntimeReconcilePass = true','EnableRuntimeHardCleanupPass = true','EnableActivities = false','EnableEconomy = false','EnablePersistence = false')){
-            if($config -notmatch [regex]::Escape($token)){throw "Config marker missing: $token"}
+          foreach($token in @('RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1"','RuntimeHardCleanupVersion = "0.5.2-runtime-hard-cleanup-1"','EnableRuntimeReconcilePass = true','EnableRuntimeHardCleanupPass = true','EnableActivities = false','EnableEconomy = false','EnablePersistence = false')){
+            if($config -notmatch [regex]::Escape($token)){throw "Config component marker missing: $token"}
           }
           foreach($token in @('ASC_RuntimeReconcile','ASC_RuntimeHardCleanup','after-school-city.runtime-reconcile.server.lua','after-school-city.runtime-hard-cleanup.server.lua')){
             if($project -notmatch [regex]::Escape($token)){throw "Project marker missing: $token"}
@@ -86,9 +62,9 @@ jobs:
           foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
             if($intro -notmatch [regex]::Escape($token)){throw "Dedication lock missing: $token"}
           }
-          if($runtime -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt|DataStoreService'){throw 'V0.5.2 must not contain monetization/persistence authority'}
-          if($runtime -match 'BillboardGui'){throw 'V0.5.2 must not introduce BillboardGui'}
-          Write-Host 'AFTER SCHOOL CITY v0.5.2 static authority locks PASS'
+          if($runtime -match 'MarketplaceService|PromptProductPurchase|ProcessReceipt|DataStoreService'){throw 'V0.5.2 component must not contain monetization/persistence authority'}
+          if($runtime -match 'BillboardGui'){throw 'V0.5.2 component must not introduce BillboardGui'}
+          Write-Host 'AFTER SCHOOL CITY v0.5.2 component authority locks PASS'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -98,8 +74,8 @@ jobs:
           if($cmd){
             $rojoExe=$cmd.Source
           } else {
-            $dir=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0-v052'
-            $zip=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0-v052.zip'
+            $dir=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0-v052-component'
+            $zip=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0-v052-component.zip'
             if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
@@ -114,15 +90,15 @@ jobs:
           if(($version -join ' ') -notmatch '7\.7\.0'){throw "Expected Rojo 7.7.0, got $version"}
           "ROJO_EXE=$rojoExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build exact V0.5.2 map
+      - name: Build current map with V0.5.2 component
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-v052.rbxl'
+          $place=Join-Path $env:RUNNER_TEMP 'after-school-city-current-v052-component.rbxl'
           & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw "Rojo build failed: $LASTEXITCODE"}
           if(-not (Test-Path $place)){throw 'Generated RBXL missing'}
           $bytes=(Get-Item $place).Length
           if($bytes -lt 1024){throw "Generated RBXL suspiciously small: $bytes bytes"}
           $sha=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLowerInvariant()
-          Write-Host "AFTER SCHOOL CITY V0.5.2 ROJO BUILD PASS - $bytes bytes - sha256=$sha"
+          Write-Host "AFTER SCHOOL CITY V0.5.2 COMPONENT REGRESSION PASS - current build $bytes bytes - sha256=$sha"
