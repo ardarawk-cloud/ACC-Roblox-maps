@@ -1,120 +1,165 @@
--- BBYA SOCIAL HUB — MUSIC UI INTEGRITY v1
--- Final correctness guard for Music UI v6:
--- 1) only the active venue playlist is visible,
--- 2) PREVIOUS means the actually previous played track (not index-1 in a shuffled playlist),
--- 3) future Skatepark/Rooftop zones never accidentally control/request Main Club music.
+-- BBYA MUSIC SUITE v1 — MOBILE LAYOUT GUARD v3
+-- Visual-only hotfix for the premium Music Suite on short mobile-landscape viewports.
+-- Keeps the existing music server/remotes untouched.
 
 local Players=game:GetService("Players")
-local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
-local gui=pg:WaitForChild("BBYAClubUI",30)
+
+local gui=pg:WaitForChild("BBYAMusicSuiteV1",30)
 if not gui then return end
-local panel=gui:WaitForChild("HubPanel",30)
-if not panel then return end
-local library=panel:FindFirstChild("LibraryCard",true)
-local playerCard=panel:FindFirstChild("PlayerCard",true)
-if not library or not playerCard then return end
 
-local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
-local musicRemote=remotes:WaitForChild("Music",30)
-local stateRemote=remotes:WaitForChild("State",30)
-local funkotRemote=remotes:WaitForChild("FunkotMusic",30)
-
-local function isAdmin()
- return player:GetAttribute("BBYAAdmin")==true or (game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
+local function find(name)
+ return gui:FindFirstChild(name,true)
 end
-local function venue()
- local v=tostring(player:GetAttribute("BBYAAudioVenue") or "NONE")
- if v=="BASEMENT" then return "UNDERGROUND" end
- return v
-end
-local function supported(v)return v=="MAIN" or v=="UNDERGROUND" or v=="FUNKOT" end
 
-local history={MAIN={},UNDERGROUND={},FUNKOT={}}
-local current={MAIN=0,UNDERGROUND=0,FUNKOT=0}
-local function note(v,index)
- index=tonumber(index) or 0
- if not history[v] or index<=0 then return end
- local old=current[v]
- if old>0 and old~=index then
-  local h=history[v]
-  if h[#h]~=old then table.insert(h,old) end
-  while #h>12 do table.remove(h,1) end
+local brand=find("Brand")
+local side=brand and brand.Parent
+local venueText=find("Venue")
+local venueCard=venueText and venueText.Parent
+local navLib=find("NavLIBRARY")
+local navNow=find("NavNOW")
+local navQueue=find("NavQUEUE")
+local nav=navLib and navLib.Parent
+local navLayout=nav and nav:FindFirstChildWhichIsA("UIListLayout")
+local statusValue=find("SV")
+local status=statusValue and statusValue.Parent
+
+local nowPage=find("NOW")
+local nowTitle=find("Track")
+local nowInfo=nowTitle and nowTitle.Parent
+local nowCard=nowInfo and nowInfo.Parent
+local nowMeta=nowInfo and nowInfo:FindFirstChild("Meta")
+local nowState=nowInfo and nowInfo:FindFirstChild("State")
+local mute=find("Mute")
+local prev=find("Prev")
+local nextB=find("Next")
+local controls=mute and mute.Parent
+local elapsed=find("Elapsed")
+local duration=find("Duration")
+local art=nowCard and nowCard:FindFirstChildWhichIsA("Frame")
+
+local function getUpList()
+ if not nowPage then return nil end
+ for _,d in ipairs(nowPage:GetDescendants()) do
+  if d:IsA("ScrollingFrame") then return d end
  end
- current[v]=index
+ return nil
 end
-stateRemote.OnClientEvent:Connect(function(kind,data)
- if kind=="music" and type(data)=="table" then
-  local v=tostring(data.venue or "MAIN");if v=="BASEMENT" then v="UNDERGROUND" else v="MAIN" end
-  note(v,data.index)
+local upList=getUpList()
+local up=upList and upList.Parent
+
+local wave
+if nowInfo then
+ for _,d in ipairs(nowInfo:GetChildren()) do
+  if d:IsA("Frame") then wave=d break end
  end
-end)
-funkotRemote.OnClientEvent:Connect(function(kind,data)if kind=="state" and type(data)=="table" then note("FUNKOT",data.index) end end)
+end
 
-local oldPrev=playerCard:FindFirstChild("AdminPreviousV6")
-local nextButton=playerCard:FindFirstChild("AdminNextV6")
-local prev=Instance.new("TextButton")
-prev.Name="AdminPreviousHistoryV6";prev.Text="PREV";prev.BackgroundColor3=Color3.fromRGB(32,33,42);prev.BorderSizePixel=0
-prev.TextColor3=Color3.fromRGB(246,246,249);prev.Font=Enum.Font.GothamBold;prev.TextSize=9;prev.ZIndex=110;prev.Parent=playerCard
-local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=prev
-local s=Instance.new("UIStroke");s.Color=Color3.fromRGB(39,196,225);s.Transparency=.55;s.Parent=prev
-if oldPrev then oldPrev.Visible=false end
+local function setButtonCompact(b,order)
+ if not b then return end
+ b.Size=UDim2.new(1,0,0,34)
+ b.TextSize=8
+ b.LayoutOrder=order
+end
 
-local empty=library:FindFirstChild("NoLocalChannelV6") or Instance.new("TextLabel")
-empty.Name="NoLocalChannelV6";empty.AnchorPoint=Vector2.new(.5,.5);empty.Position=UDim2.fromScale(.5,.56);empty.Size=UDim2.new(1,-32,0,70)
-empty.BackgroundTransparency=1;empty.TextColor3=Color3.fromRGB(151,155,168);empty.Font=Enum.Font.GothamMedium;empty.TextSize=11;empty.TextWrapped=true;empty.TextXAlignment=Enum.TextXAlignment.Center;empty.ZIndex=120;empty.Parent=library
+local applying=false
+local function apply()
+ if applying then return end
+ applying=true
+ local cam=workspace.CurrentCamera
+ local vp=cam and cam.ViewportSize or Vector2.new(1280,720)
+ local compact=vp.X<900 or vp.Y<520
 
-local function syncPlaylist()
- local v=venue()
- for _,d in ipairs(library:GetDescendants()) do
-  if d:IsA("ScrollingFrame") then
-   local funk=d.Name=="FunkotPlaylistV4"
-   local show=(v=="FUNKOT" and funk) or ((v=="MAIN" or v=="UNDERGROUND") and not funk)
-   d.Visible=show;d.Active=show;d.ScrollingEnabled=show
-   if show then d.Position=UDim2.fromOffset(12,38);d.Size=UDim2.new(1,-24,1,-46) end
-  elseif d:IsA("TextButton") and string.upper(d.Text or "")=="REQUEST" then
-   d.Visible=supported(v);d.Active=supported(v)
+ if compact then
+  if side then side.Size=UDim2.new(0,150,1,0) end
+  if brand then brand.Position=UDim2.fromOffset(14,10);brand.Size=UDim2.new(1,-28,0,24);brand.TextSize=17 end
+  local sub=side and side:FindFirstChild("Sub")
+  if sub then sub.Position=UDim2.fromOffset(14,32);sub.Size=UDim2.new(1,-28,0,13);sub.TextSize=6 end
+
+  if venueCard then
+   venueCard.Position=UDim2.fromOffset(11,52)
+   venueCard.Size=UDim2.new(1,-22,0,44)
   end
+  if venueText then venueText.Position=UDim2.fromOffset(10,4);venueText.Size=UDim2.new(1,-20,0,18);venueText.TextSize=8 end
+  local hint=venueCard and venueCard:FindFirstChild("Hint")
+  if hint then hint.Position=UDim2.fromOffset(10,22);hint.Size=UDim2.new(1,-20,0,14);hint.TextSize=5 end
+
+  if nav then
+   nav.Position=UDim2.fromOffset(11,106)
+   nav.Size=UDim2.new(1,-22,0,110)
+  end
+  if navLayout then navLayout.Padding=UDim.new(0,4) end
+  setButtonCompact(navLib,1)
+  setButtonCompact(navNow,2)
+  setButtonCompact(navQueue,3)
+
+  -- Status is redundant on a short phone viewport and was covering QUEUE.
+  if status then status.Visible=false end
+
+  if art then art.Visible=false end
+  if nowInfo then
+   nowInfo.Position=UDim2.fromOffset(18,12)
+   nowInfo.Size=UDim2.new(1,-36,0,104)
+  end
+  if nowState then nowState.Position=UDim2.fromOffset(0,0);nowState.Size=UDim2.new(1,0,0,16);nowState.TextSize=7 end
+  if nowTitle then
+   nowTitle.Position=UDim2.fromOffset(0,18)
+   nowTitle.Size=UDim2.new(1,0,0,45)
+   nowTitle.TextSize=12
+  end
+  if nowMeta then
+   nowMeta.Position=UDim2.fromOffset(0,66)
+   nowMeta.Size=UDim2.new(1,0,0,15)
+   nowMeta.TextSize=6
+  end
+  if wave then wave.Visible=false end
+
+  if elapsed then elapsed.Position=UDim2.new(0,18,1,-70);elapsed.Size=UDim2.new(.25,0,0,14);elapsed.TextSize=6 end
+  if duration then duration.Position=UDim2.new(.75,-18,1,-70);duration.Size=UDim2.new(.25,0,0,14);duration.TextSize=6 end
+  if controls then controls.Position=UDim2.new(0,18,1,-50);controls.Size=UDim2.new(1,-36,0,34) end
+  if mute then mute.LayoutOrder=1;mute.TextSize=8 end
+  if prev then prev.LayoutOrder=2;prev.TextSize=8 end
+  if nextB then nextB.LayoutOrder=3;nextB.TextSize=8 end
+
+  if up then
+   local title=up:FindFirstChild("Title")
+   if title then title.TextSize=9;title.Position=UDim2.fromOffset(12,7);title.Size=UDim2.new(1,-24,0,20) end
+  end
+  if upList then upList.Position=UDim2.fromOffset(10,31);upList.Size=UDim2.new(1,-20,1,-40) end
+ else
+  if status then status.Visible=true end
+  if wave then wave.Visible=true end
+  if mute then mute.LayoutOrder=1 end
+  if prev then prev.LayoutOrder=2 end
+  if nextB then nextB.LayoutOrder=3 end
  end
- if v=="SKATEPARK" then empty.Text="SKATEPARK AUDIO • INDEPENDENT CHANNEL READY\nPlaylist will be separate from every other venue."
- elseif v=="ROOFTOP" then empty.Text="ROOFTOP AUDIO • INDEPENDENT CHANNEL READY\nPlaylist will be separate from every other venue."
- elseif v=="NONE" then empty.Text="NO LOCAL MUSIC ZONE\nVenue music is intentionally isolated."
- else empty.Text="" end
- empty.Visible=not supported(v)
+
+ applying=false
 end
 
-local function syncTransport()
- local v=venue();local allow=isAdmin() and supported(v)
- if oldPrev then oldPrev.Visible=false end
- prev.Visible=allow and #(history[v] or {})>0
- if nextButton then nextButton.Visible=allow end
- if oldPrev then prev.Position=oldPrev.Position;prev.Size=oldPrev.Size
- else prev.Position=UDim2.new(1,-112,1,-34);prev.Size=UDim2.fromOffset(48,26) end
- if nextButton and prev.Size.X.Offset==0 then prev.Size=nextButton.Size end
+local cam=workspace.CurrentCamera
+local function bindCamera()
+ cam=workspace.CurrentCamera
+ if cam then
+  cam:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+   task.defer(apply)
+   task.delay(.05,apply)
+  end)
+ end
 end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()bindCamera();task.defer(apply);task.delay(.05,apply)end)
+bindCamera()
 
-prev.Activated:Connect(function()
- if not isAdmin() then return end
- local v=venue();local h=history[v];if not h or #h==0 then return end
- local index=table.remove(h)
- if v=="FUNKOT" then funkotRemote:FireServer("play",index) else musicRemote:FireServer("play",index) end
- task.defer(syncTransport)
+gui:GetPropertyChangedSignal("Enabled"):Connect(function()
+ if gui.Enabled then
+  task.defer(apply)
+  task.delay(.05,apply)
+  task.delay(.2,apply)
+ end
 end)
 
-player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()task.defer(syncPlaylist);task.defer(syncTransport)end)
-player:GetAttributeChangedSignal("BBYAAdmin"):Connect(function()task.defer(syncTransport)end)
-library.DescendantAdded:Connect(function()task.defer(syncPlaylist)end)
-if oldPrev then
- oldPrev:GetPropertyChangedSignal("Position"):Connect(function()task.defer(syncTransport)end)
- oldPrev:GetPropertyChangedSignal("Size"):Connect(function()task.defer(syncTransport)end)
- oldPrev:GetPropertyChangedSignal("Visible"):Connect(function()if oldPrev.Visible then oldPrev.Visible=false end end)
-end
-if nextButton then nextButton:GetPropertyChangedSignal("Visible"):Connect(function()task.defer(syncTransport)end) end
-
-task.spawn(function()
- while task.wait(.35) do syncPlaylist();syncTransport() end
-end)
-
-task.defer(function()syncPlaylist();syncTransport()end)
-print("[BBYA] Music UI integrity: active playlist only / true history PREV / future venue isolation")
+task.defer(apply)
+task.delay(.15,apply)
+task.delay(.6,apply)
+print("[BBYA] Music Suite mobile layout guard v3 active — sidebar overlap removed")
