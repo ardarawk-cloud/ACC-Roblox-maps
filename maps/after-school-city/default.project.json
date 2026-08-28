@@ -60,6 +60,9 @@
       },
       "ASC_PremiumExterior": {
         "$path": "after-school-city.premium-exterior.server.lua"
+      },
+      "ASC_SchoolInterior": {
+        "$path": "after-school-city.school-interior.server.lua"
       }
     },
     "StarterGui": {
