@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v6-phase1-selfhosted-20260828
+# trigger: mountain-v6-phase1-selfhosted-rest-20260828
 
 on:
   push:
@@ -33,24 +33,33 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - name: Checkout main
+      - name: Checkout exact v6 mountain source without git
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: agent/mountain-master-v3
+          persist-credentials: false
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Load exact v6 mountain source
+      - name: Resolve exact source commit through GitHub REST
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          git fetch origin agent/mountain-master-v3
-          if($LASTEXITCODE -ne 0){throw 'Fetch mountain source failed'}
-          git checkout origin/agent/mountain-master-v3 -- maps/mountain-social maps/registry.json scripts/inject-mountain.js scripts/publish-mountain-closed-test.js
-          if($LASTEXITCODE -ne 0){throw 'Checkout mountain source failed'}
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+          }
+          $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/branches/agent/mountain-master-v3"
+          $branch=Invoke-RestMethod -Headers $headers -Uri $uri -Method Get
+          if(-not $branch.commit.sha){throw 'Mountain source commit resolution failed'}
+          "MOUNTAIN_SOURCE_COMMIT=$($branch.commit.sha)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "MOUNTAIN_SOURCE_COMMIT=$($branch.commit.sha)"
 
       - name: Build CLEAN v6 Phase1 RBXLX
         shell: powershell
@@ -98,6 +107,7 @@ jobs:
             "status=$status",
             'secret=AM_STUDIO',
             'build=v6.0-phase1-terrain-first',
+            "sourceCommit=$env:MOUNTAIN_SOURCE_COMMIT",
             'universeId=4187755690',
             'placeId=11832985967',
             "exitCode=$code"
@@ -107,9 +117,11 @@ jobs:
           if(Test-Path $log){Get-Content $log}
           if($code -ne 0){exit $code}
 
-      - name: Persist publish receipt
+      - name: Persist publish receipt to main through GitHub REST
         if: always()
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
           $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
@@ -118,24 +130,36 @@ jobs:
               'status=NO_RESULT',
               'secret=AM_STUDIO',
               'build=v6.0-phase1-terrain-first',
+              "sourceCommit=$env:MOUNTAIN_SOURCE_COMMIT",
               'universeId=4187755690',
               'placeId=11832985967'
             ) | Set-Content -Path $receipt -Encoding utf8
           }
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-          New-Item -ItemType Directory -Path deploy-status -Force | Out-Null
-          Copy-Item $receipt 'deploy-status/mountain-am-studio.txt' -Force
-          git config user.name 'ACC Roblox Deploy Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -- deploy-status/mountain-am-studio.txt
-          git diff --cached --quiet
-          if($LASTEXITCODE -ne 0){
-            git commit -m 'Record AM STUDIO mountain publish receipt [skip ci]'
-            git push origin HEAD:main
-            if($LASTEXITCODE -ne 0){throw 'Receipt push failed'}
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
           }
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/mountain-am-studio.txt"
+          $sha=$null
+          try {
+            $existing=Invoke-RestMethod -Headers $headers -Uri "$api`?ref=main" -Method Get
+            $sha=$existing.sha
+          } catch {
+            $statusCode=$_.Exception.Response.StatusCode.value__
+            if($statusCode -ne 404){throw}
+          }
+          $raw=Get-Content $receipt -Raw
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($raw))
+          $payload=@{
+            message='Record AM STUDIO mountain publish receipt [skip ci]'
+            content=$b64
+            branch='main'
+          }
+          if($sha){$payload.sha=$sha}
+          $body=$payload | ConvertTo-Json -Depth 5
+          $result=Invoke-RestMethod -Headers $headers -Uri $api -Method Put -ContentType 'application/json' -Body $body
+          Write-Host "MOUNTAIN_RECEIPT_COMMIT=$($result.commit.sha)"
 
       - name: Enforce publish success
         if: always()
