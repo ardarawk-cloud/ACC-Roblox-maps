@@ -72,6 +72,9 @@
       },
       "ASC_SignageOrientationHotfix": {
         "$path": "after-school-city.signage-orientation-hotfix.server.lua"
+      },
+      "ASC_SchoolArchitecturalCleanup": {
+        "$path": "after-school-city.school-architectural-cleanup.server.lua"
       }
     },
     "StarterGui": {
