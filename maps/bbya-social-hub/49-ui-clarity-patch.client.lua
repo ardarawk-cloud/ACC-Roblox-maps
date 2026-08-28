@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — UI CLARITY PATCH v1
--- Moves the animated music visualizer into the upper-right header space and
--- replaces generic TRAVEL "GO" buttons with the destination names themselves.
+-- BBYA SOCIAL HUB — UI CLARITY PATCH v2
+-- Moves the animated music visualizer into the upper-right header space,
+-- replaces generic TRAVEL "GO" buttons with destination names,
+-- and docks the authorized ROLES button directly below the Command Menu.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
@@ -149,6 +150,60 @@ local function patchTravel()
     end
 end
 
+-- Owner/admin ROLES control: use the Command Menu ScreenGui as the placement authority.
+-- Reparenting preserves the existing Activated connection to the RolePanel shade while
+-- eliminating GuiInset/safe-area drift between two separate ScreenGuis on mobile.
+local roleDockGuard=false
+local roleBound=nil
+local function dockRoleBelowMenu()
+    if roleDockGuard then return end
+    local menuGui=pg:FindFirstChild("BBYACommandMenuUI")
+    local roleGui=pg:FindFirstChild("BBYARolePanelUI")
+    local menuButton=menuGui and menuGui:FindFirstChild("MenuButton")
+    local roleButton=(menuGui and menuGui:FindFirstChild("RolePanelOpen")) or (roleGui and roleGui:FindFirstChild("RolePanelOpen"))
+    if not menuGui or not menuButton or not roleButton or not roleButton:IsA("TextButton") then return end
+
+    roleDockGuard=true
+    if roleButton.Parent~=menuGui then roleButton.Parent=menuGui end
+    roleButton.AnchorPoint=Vector2.new(1,0)
+    roleButton.Position=UDim2.new(1,-12,0,50)
+    roleButton.Size=UDim2.fromOffset(74,34)
+    roleButton.ZIndex=210
+    roleButton:SetAttribute("BBYARoleDockAuthority","BELOW_COMMAND_MENU_V1")
+    roleDockGuard=false
+
+    if roleBound~=roleButton then
+        roleBound=roleButton
+        for _,prop in ipairs({"Position","Size","AnchorPoint"}) do
+            roleButton:GetPropertyChangedSignal(prop):Connect(function()
+                if not roleDockGuard then task.defer(dockRoleBelowMenu) end
+            end)
+        end
+    end
+end
+
+pg.ChildAdded:Connect(function(child)
+    if child.Name=="BBYACommandMenuUI" or child.Name=="BBYARolePanelUI" then
+        task.defer(dockRoleBelowMenu)
+        task.delay(.10,dockRoleBelowMenu)
+        task.delay(.35,dockRoleBelowMenu)
+    end
+end)
+
+if camera then
+    camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        task.defer(dockRoleBelowMenu)
+        task.delay(.03,dockRoleBelowMenu)
+    end)
+end
+
 task.wait(.35)
 patchTravel()
-print("[BBYA] UI clarity patch online: header Live Wave + destination-first Travel cards")
+task.defer(dockRoleBelowMenu)
+task.spawn(function()
+    for _=1,40 do
+        dockRoleBelowMenu()
+        task.wait(.25)
+    end
+end)
+print("[BBYA] UI clarity patch v2 online: header Live Wave + destination-first Travel + ROLES below MENU")
