@@ -5,9 +5,9 @@
   "enabled": true,
   "universeId": "10745349805",
   "placeId": "79748872921213",
-  "version": "3.8.0",
-  "artDirection": "Premium faded dark-red retired railway nightclub with old-station lobby arrival facing ticketing, louder mobile-readable station PA, personalized TTS welcome, recurring station-airport style announcements, Night Ticket access control for all carriage doors, enclosed railway vestibule connectors between cars, usable social seating, standing tables, cosmetic night drinks, dance interaction zones, a Yard railway photo mode spot, corrected wall-mounted first-aid fixture, authentic signals, restrained steam and mist, wet-surface reflections, clear circulation, and the iconic END OF LINE railway-control-room hero booth",
-  "publishAttempt": 24,
+  "version": "3.9.0",
+  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub with lobby-first arrival and Night Ticket flow, mobile-readable station PA and personalized TTS welcome, enclosed railway vestibules, usable social seating, standing tables, cosmetic drinks, dance interaction zones, Yard photo mode, final aisle collision guard, fall/out-of-bounds recovery to the station lobby, flow-state tracking, authentic signals, restrained steam/mist, corrected operational fixtures, and the iconic END OF LINE railway-control-room hero booth",
+  "publishAttempt": 25,
   "file": "maps/track-01/place.rbxlx",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
