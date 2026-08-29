@@ -1,0 +1,286 @@
+name: BBYA Pro DJ RealMesh v2 - Isolated Test Publish
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-pro-dj-realmesh-v2-publish.yml'
+      - 'maps/bbya-social-hub/122-pro-dj-realmesh-test.server.lua'
+      - 'assets/bbya-pro-dj-realmesh-v2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbya-pro-dj-realmesh-v2-test
+  cancel-in-progress: true
+
+env:
+  TEST_UNIVERSE_ID: '10762005984'
+  TEST_PLACE_ID: '124607344716828'
+  LIVE_UNIVERSE_ID: '8116636513'
+  LIVE_PLACE_ID: '131894120482837'
+  CDJ_XZ: 'assets/bbya-pro-dj-realmesh-v2/BBYA_TEST_CDJ_OPT128.glb.xz'
+  DJM_XZ: 'assets/bbya-pro-dj-realmesh-v2/BBYA_TEST_DJM_A9_OPT128.glb.xz'
+  CDJ_GLB_SHA256: 'a963e611c75e0c808be2a5e9e1cc942e867b5ad7dc1d938eed544e6060346892'
+  DJM_GLB_SHA256: 'aa74336ea95929b44d717d759f788afeb7c4165e0d4c5138ddeef65f5a7920a5'
+
+jobs:
+  publish-test:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 30
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 || secrets.AM_STUDIO }}
+
+    steps:
+      - name: Checkout isolated V2 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Hard target and source guard
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ github.ref }}' -ne 'refs/heads/feat/bbya-pro-dj-realmesh-v2-test' -and '${{ github.event_name }}' -ne 'workflow_dispatch'){
+            throw "Unexpected ref: ${{ github.ref }}"
+          }
+          if($env:TEST_UNIVERSE_ID -eq $env:LIVE_UNIVERSE_ID -or $env:TEST_PLACE_ID -eq $env:LIVE_PLACE_ID){
+            throw 'Test target collides with BBYA LIVE'
+          }
+          if($env:TEST_UNIVERSE_ID -ne '10762005984' -or $env:TEST_PLACE_ID -ne '124607344716828'){
+            throw 'Unexpected Music UI test target'
+          }
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'Roblox Open Cloud key unavailable' }
+          $src=Get-Content 'maps/bbya-social-hub/122-pro-dj-realmesh-test.server.lua' -Raw
+          foreach($needle in @(
+            'TEST_PLACE_ID = 124607344716828',
+            'BBYA_PRO_DJ_REALMESH_V2_TEST',
+            'VisualOnly", true',
+            'AudioWrites", false',
+            'GlobalLightingWrites", false'
+          )){
+            if($src -notmatch [regex]::Escape($needle)){ throw "Missing V2 guard: $needle" }
+          }
+          foreach($danger in @('SoundGroup.Volume','Lighting.Brightness','Lighting.ExposureCompensation','forceNeutralVolumes')){
+            if($src -match [regex]::Escape($danger)){ throw "Forbidden write found: $danger" }
+          }
+          Write-Host "BBYA_REALMESH_V2_TARGET_GUARD_PASS universe=$env:TEST_UNIVERSE_ID place=$env:TEST_PLACE_ID"
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Reconstruct exact GLB assets and verify hashes
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-realmesh-v2'
+          if(Test-Path $dir){ Remove-Item $dir -Recurse -Force }
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $cdj=Join-Path $dir 'BBYA_TEST_CDJ_OPT128.glb'
+          $djm=Join-Path $dir 'BBYA_TEST_DJM_A9_OPT128.glb'
+          @'
+          import lzma, pathlib
+          pairs = [
+              (pathlib.Path(r"${{ github.workspace }}") / r"$env:CDJ_XZ", pathlib.Path(r"$cdj")),
+              (pathlib.Path(r"${{ github.workspace }}") / r"$env:DJM_XZ", pathlib.Path(r"$djm")),
+          ]
+          for src, dst in pairs:
+              dst.write_bytes(lzma.decompress(src.read_bytes()))
+              print(src, '->', dst, dst.stat().st_size)
+          '@ | python -
+          if($LASTEXITCODE -ne 0){ throw 'GLB decompression failed' }
+          $cdjHash=(Get-FileHash $cdj -Algorithm SHA256).Hash.ToLowerInvariant()
+          $djmHash=(Get-FileHash $djm -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($cdjHash -ne $env:CDJ_GLB_SHA256){ throw "CDJ GLB hash mismatch: $cdjHash" }
+          if($djmHash -ne $env:DJM_GLB_SHA256){ throw "DJM GLB hash mismatch: $djmHash" }
+          if((Get-Item $cdj).Length -ne 234680){ throw "Unexpected CDJ bytes: $((Get-Item $cdj).Length)" }
+          if((Get-Item $djm).Length -ne 257888){ throw "Unexpected DJM bytes: $((Get-Item $djm).Length)" }
+          "BBYA_CDJ_GLB=$cdj" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_DJM_GLB=$djm" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_REALMESH_BINARY_PASS cdj=$((Get-Item $cdj).Length) djm=$((Get-Item $djm).Length)"
+
+      - name: Resolve Roblox creator from Music UI test universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:TEST_UNIVERSE_ID"
+          if(-not $meta.data -or $meta.data.Count -lt 1){ throw 'Unable to resolve test universe creator' }
+          $creator=$meta.data[0].creator
+          $type=[string]$creator.type
+          $id=[string]$creator.id
+          if(-not $id -or $id -notmatch '^\d+$'){ throw "Invalid creator id: $id" }
+          if($type -ieq 'Group'){
+            "BBYA_CREATOR_FIELD=groupId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          } elseif($type -ieq 'User'){
+            "BBYA_CREATOR_FIELD=userId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            throw "Unsupported creator type: $type"
+          }
+          "BBYA_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_REALMESH_CREATOR_PASS type=$type id=$id"
+
+      - name: Upload CDJ pair and DJM Model assets to Roblox Open Cloud
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function Upload-BBYAModel([string]$File,[string]$Name,[string]$Description){
+            $creator=@{}
+            $creator[$env:BBYA_CREATOR_FIELD]=$env:BBYA_CREATOR_ID
+            $request=@{
+              assetType='Model'
+              displayName=$Name
+              description=$Description
+              creationContext=@{ creator=$creator }
+            } | ConvertTo-Json -Depth 8 -Compress
+            $requestFile=Join-Path $env:RUNNER_TEMP ("bbya-dj-v2-request-"+[guid]::NewGuid().ToString('N')+'.json')
+            [System.IO.File]::WriteAllText($requestFile,$request,(New-Object System.Text.UTF8Encoding($false)))
+            try {
+              $args=@(
+                '--silent','--show-error','--location','--request','POST',
+                '--header',"x-api-key: $env:ROBLOX_API_KEY",
+                '--form',"request=<$requestFile;type=application/json",
+                '--form',"fileContent=@$File;type=model/gltf-binary",
+                'https://apis.roblox.com/assets/v1/assets'
+              )
+              $raw=& curl.exe @args
+            } finally {
+              Remove-Item $requestFile -Force -ErrorAction SilentlyContinue
+            }
+            if($LASTEXITCODE -ne 0){ throw "Asset upload curl failed for $Name" }
+            try { $created=$raw | ConvertFrom-Json } catch { throw "Invalid Roblox asset response for $Name : $raw" }
+            if(-not $created.path){ throw "Roblox asset upload rejected for $Name : $raw" }
+            $operationId=([string]$created.path) -replace '^operations/',''
+            Write-Host "UPLOAD_ACCEPTED name=$Name operation=$operationId"
+            for($i=0;$i -lt 90;$i++){
+              Start-Sleep -Seconds 4
+              $opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_API_KEY" "https://apis.roblox.com/assets/v1/operations/$operationId"
+              if($LASTEXITCODE -ne 0){ continue }
+              try { $op=$opRaw | ConvertFrom-Json } catch { continue }
+              if($op.done){
+                if($op.error){ throw "Roblox asset operation failed for $Name : $($op.error | ConvertTo-Json -Compress -Depth 8)" }
+                $assetId=[string]$op.response.assetId
+                if($assetId -notmatch '^\d+$'){ throw "Asset operation completed without assetId for $Name : $opRaw" }
+                $moderation=[string]$op.response.moderationResult.moderationState
+                Write-Host "UPLOAD_DONE name=$Name asset=$assetId moderation=$moderation"
+                return $assetId
+              }
+            }
+            throw "Timed out waiting for Roblox asset operation for $Name"
+          }
+          $cdj=Upload-BBYAModel $env:BBYA_CDJ_GLB 'BBYA Pro DJ Deck Pair - Test' 'Test-only professional DJ deck pair. Source model MaxTht via Sketchfab, CC Attribution; optimized for BBYA Music UI visual test.'
+          $djm=Upload-BBYAModel $env:BBYA_DJM_GLB 'BBYA Pro DJ Mixer - Test' 'Test-only professional 4-channel DJ mixer. Source model MaxTht via Sketchfab, CC Attribution; optimized for BBYA Music UI visual test.'
+          "BBYA_CDJ_ASSET_ID=$cdj" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_DJM_ASSET_ID=$djm" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_REALMESH_ASSET_UPLOAD_PASS cdj=$cdj djm=$djm"
+
+      - name: Inject uploaded Model IDs into test-only loader
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/bbya-social-hub/122-pro-dj-realmesh-test.server.lua'
+          $text=Get-Content $path -Raw
+          $text=[regex]::Replace($text,'local CDJ_PAIR_ASSET_ID = \d+ -- BBYA_PRO_DJ_V2_CDJ_ASSET_ID',"local CDJ_PAIR_ASSET_ID = $env:BBYA_CDJ_ASSET_ID -- BBYA_PRO_DJ_V2_CDJ_ASSET_ID")
+          $text=[regex]::Replace($text,'local DJM_A9_ASSET_ID = \d+ -- BBYA_PRO_DJ_V2_DJM_ASSET_ID',"local DJM_A9_ASSET_ID = $env:BBYA_DJM_ASSET_ID -- BBYA_PRO_DJ_V2_DJM_ASSET_ID")
+          Set-Content -Path $path -Value $text -Encoding utf8
+          $check=Get-Content $path -Raw
+          if($check -notmatch "CDJ_PAIR_ASSET_ID = $env:BBYA_CDJ_ASSET_ID"){ throw 'CDJ asset injection failed' }
+          if($check -notmatch "DJM_A9_ASSET_ID = $env:BBYA_DJM_ASSET_ID"){ throw 'DJM asset injection failed' }
+          Write-Host 'BBYA_REALMESH_ASSET_INJECTION_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojo=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-v2-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-v2-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            if(Test-Path $zip){Remove-Item $zip -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          $ver=& $rojo --version
+          if($LASTEXITCODE -ne 0 -or ($ver -join ' ') -notmatch '7\.7\.0'){ throw "Expected Rojo 7.7.0, got $ver" }
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO_PASS $ver"
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build V2 test RBXL
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-realmesh-v2-test.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){ throw 'Rojo V2 build failed' }
+          if(-not (Test-Path $place)){ throw 'V2 RBXL missing' }
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){ throw "V2 RBXL unexpectedly small: $bytes" }
+          "BBYA_TEST_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_REALMESH_BUILD_PASS bytes=$bytes source=${{ github.sha }}"
+
+      - name: Inject temporary Music UI test registry
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/registry.json'
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          $target=[pscustomobject]@{
+            name='BBYA Music UI Test - Pro DJ RealMesh v2'
+            enabled=$true
+            universeId=$env:TEST_UNIVERSE_ID
+            placeId=$env:TEST_PLACE_ID
+            file='maps/bbya-social-hub/place.rbxlx'
+          }
+          $r.maps | Add-Member -NotePropertyName 'bbya-music-ui-test' -NotePropertyValue $target -Force
+          $r | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
+          $t=(Get-Content $path -Raw | ConvertFrom-Json).maps.'bbya-music-ui-test'
+          if([string]$t.universeId -ne $env:TEST_UNIVERSE_ID -or [string]$t.placeId -ne $env:TEST_PLACE_ID){ throw 'Temporary test registry mismatch' }
+          Write-Host 'BBYA_REALMESH_TEST_REGISTRY_PASS'
+
+      - name: Publish only to Music UI test place
+        shell: powershell
+        env:
+          PUBLISH_RECEIPT_DIR: deploy-status-pro-dj-realmesh-v2
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PLACE_FILE_OVERRIDE=$env:BBYA_TEST_PLACE_FILE
+          node scripts/publish-map.js bbya-music-ui-test
+          if($LASTEXITCODE -ne 0){ throw 'Music UI V2 test publish failed' }
+
+      - name: Verify isolated PUBLISHED receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='deploy-status-pro-dj-realmesh-v2/bbya-music-ui-test.json'
+          if(-not (Test-Path $path)){ throw 'V2 test receipt missing' }
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){ throw "Receipt status=$($r.status)" }
+          if([string]$r.universeId -ne $env:TEST_UNIVERSE_ID){ throw "Receipt universe mismatch: $($r.universeId)" }
+          if([string]$r.placeId -ne $env:TEST_PLACE_ID){ throw "Receipt place mismatch: $($r.placeId)" }
+          if([string]$r.universeId -eq $env:LIVE_UNIVERSE_ID -or [string]$r.placeId -eq $env:LIVE_PLACE_ID){ throw 'Receipt references BBYA LIVE' }
+          if(-not $r.response.versionNumber){ throw 'Roblox versionNumber missing from V2 receipt' }
+          Write-Host "BBYA_PRO_DJ_REALMESH_V2_PUBLISHED version=$($r.response.versionNumber) source=${{ github.sha }} cdj=$env:BBYA_CDJ_ASSET_ID djm=$env:BBYA_DJM_ASSET_ID"
+
+      - name: Upload V2 test receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-pro-dj-realmesh-v2-receipt-${{ github.sha }}
+          path: deploy-status-pro-dj-realmesh-v2/bbya-music-ui-test.json
+          if-no-files-found: error
+          retention-days: 14
