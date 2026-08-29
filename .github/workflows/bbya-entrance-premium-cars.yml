@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   qc:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -32,14 +32,16 @@ jobs:
         with:
           node-version: '20'
       - name: Static QC
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
+          $ErrorActionPreference='Stop'
           node --check scripts/bbya-glb-variant.js
-          grep -F 'BBYA_CAR_LEFT_ASSET_ID' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
-          grep -F 'BBYA_CAR_RIGHT_ASSET_ID' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
-          grep -F 'PremiumCarPairV1' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
-          echo 'BBYA_PREMIUM_CAR_STATIC_QC_PASS'
+          if($LASTEXITCODE -ne 0){ throw 'GLB variant script syntax failed' }
+          $text=Get-Content 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua' -Raw
+          foreach($needle in @('BBYA_CAR_LEFT_ASSET_ID','BBYA_CAR_RIGHT_ASSET_ID','PremiumCarPairV1','PREMIUM_ENTRANCE_CARS_V1')){
+            if($text -notmatch [regex]::Escape($needle)){ throw "Missing premium car marker: $needle" }
+          }
+          Write-Host 'BBYA_PREMIUM_CAR_STATIC_QC_PASS'
 
   ingest:
     if: github.event_name != 'pull_request'
