@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.7.5-locker-clearance-hotfix-1",
+    Version = "0.7.6-exterior-locker-cleanup-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
@@ -14,6 +14,7 @@ local Config = {
     SignageOrientationHotfixVersion = "0.7.3-signage-orientation-hotfix-1",
     SchoolArchitecturalCleanupVersion = "0.7.4-school-architectural-cleanup-1",
     LockerClearanceHotfixVersion = "0.7.5-locker-clearance-hotfix-1",
+    ExteriorLockerCleanupVersion = "0.7.6-exterior-locker-cleanup-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -65,6 +66,7 @@ local Config = {
         EnableSignageOrientationHotfixPass = true,
         EnableSchoolArchitecturalCleanupPass = true,
         EnableLockerClearanceHotfixPass = true,
+        EnableExteriorLockerCleanupPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
