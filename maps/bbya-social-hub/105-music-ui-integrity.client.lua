@@ -1,6 +1,6 @@
 -- BBYA MUSIC SUITE v1 — PREMIUM PHASE 3 / MOBILE GUARD v4
 -- Visual upgrade only: hero Now Playing, live visualizer, session Favorites,
--- richer queue cards, glass/neon depth, and a compact mini-player.
+-- richer queue cards, glass/neon depth, with area-first player behavior.
 -- Existing server music authority/remotes remain unchanged.
 
 local Players=game:GetService("Players")
@@ -172,7 +172,7 @@ local function refreshFavoritePage()
   local f=Instance.new("Frame")
   f.Name="Fav_"..entry.key;f.Size=UDim2.new(1,-2,0,44);f.BackgroundColor3=C.card;f.BackgroundTransparency=.04;f.BorderSizePixel=0;f.Parent=favList
   corner(f,8);stroke(f,C.pink,.78)
-  local strip=Instance.new("Frame");strip.Size=UDim2.fromOffset(3,28);strip.Position=UDim2.fromOffset(7,8);strip.BackgroundColor3=C.pink;strip.BorderSizePixel=0;strip.Parent=f;corner(strip,3)
+  local strip=Instance.new("Frame");strip.Size=UDim2.fromOffset(3,28);strip.Position=UDim2.fromOffset(7,8);strip.Size=UDim2.fromOffset(3,28);strip.BackgroundColor3=C.pink;strip.BorderSizePixel=0;strip.Parent=f;corner(strip,3)
   label(f,"No",string.format("%02d",entry.data.index or 0),UDim2.fromOffset(15,0),UDim2.fromOffset(34,44),Enum.Font.GothamBold,7,C.pink,Enum.TextXAlignment.Center)
   label(f,"T",entry.data.title or "Track",UDim2.fromOffset(52,3),UDim2.new(1,-188,0,22),Enum.Font.GothamBold,9,C.white)
   label(f,"M",entry.data.meta or "BBYA MUSIC",UDim2.fromOffset(52,23),UDim2.new(1,-188,0,15),Enum.Font.GothamBold,6,C.muted)
@@ -279,9 +279,9 @@ local function polishQueue(scroller,accent)
  end
 end
 
--- Independent mini-player --------------------------------------------------
+-- Mini-player intentionally disabled: BBYA music is controlled per area. ---
 local oldMini=pg:FindFirstChild("BBYAMusicMiniPlayerV3");if oldMini then oldMini:Destroy() end
-local miniGui=Instance.new("ScreenGui");miniGui.Name="BBYAMusicMiniPlayerV3";miniGui.ResetOnSpawn=false;miniGui.DisplayOrder=925;miniGui.IgnoreGuiInset=true;miniGui.Parent=pg
+local miniGui=Instance.new("ScreenGui");miniGui.Name="BBYAMusicMiniPlayerV3";miniGui.ResetOnSpawn=false;miniGui.DisplayOrder=925;miniGui.IgnoreGuiInset=true;miniGui.Enabled=false;miniGui.Parent=pg
 local mini=Instance.new("Frame");mini.Name="MiniPlayer";mini.AnchorPoint=Vector2.new(.5,1);mini.Position=UDim2.new(.5,0,1,-12);mini.Size=UDim2.fromOffset(380,54);mini.BackgroundColor3=Color3.fromRGB(11,12,18);mini.BackgroundTransparency=.07;mini.BorderSizePixel=0;mini.Visible=false;mini.Parent=miniGui;corner(mini,13);stroke(mini,C.purple,.35,1.3)
 local miniArt=Instance.new("Frame");miniArt.Position=UDim2.fromOffset(6,6);miniArt.Size=UDim2.fromOffset(42,42);miniArt.BackgroundColor3=Color3.fromRGB(46,24,76);miniArt.BorderSizePixel=0;miniArt.Parent=mini;corner(miniArt,9)
 label(miniArt,"Logo","B",UDim2.new(),UDim2.fromScale(1,1),Enum.Font.GothamBlack,18,C.white,Enum.TextXAlignment.Center)
@@ -294,7 +294,7 @@ local function updateMini()
  local t=nowTitle and tostring(nowTitle.Text or "") or ""
  miniTitle.Text=(t~="" and t~="BELUM ADA LAGU") and t or "BBYA MUSIC"
  miniMeta.Text=(nowState and nowState.Text=="LIVE • PLAYING") and "LIVE • PLAYING" or "BBYA MUSIC"
- mini.Visible=not gui.Enabled
+ mini.Visible=false
 end
 if nowTitle then nowTitle:GetPropertyChangedSignal("Text"):Connect(updateMini) end
 if nowState then nowState:GetPropertyChangedSignal("Text"):Connect(updateMini) end
@@ -386,4 +386,4 @@ task.defer(function()
 end)
 task.delay(.3,function()apply();decorateLibraryRows()end)
 task.delay(.9,function()apply();decorateLibraryRows()end)
-print("[BBYA] Music Suite premium phase 3 active — hero / visualizer / favorites / queue polish / mini-player")
+print("[BBYA] Music Suite premium phase 3 active — hero / visualizer / favorites / queue polish / area-first")
