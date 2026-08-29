@@ -19,18 +19,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Search Roblox Creator Store for DJ hardware
         shell: powershell
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 || secrets.AM_STUDIO }}
         run: |
           $ErrorActionPreference='Stop'
           $queries=@('CDJ','DJM','Pioneer DJ','DJ mixer','DJ deck')
           foreach($q in $queries){
             $enc=[uri]::EscapeDataString($q)
             $url="https://apis.roblox.com/toolbox-service/v2/assets:search?searchCategoryType=Model&query=$enc&maxPageSize=30"
-            $headers=@{}
-            if(-not [string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ $headers['x-api-key']=$env:ROBLOX_API_KEY }
             try {
-              $r=Invoke-RestMethod -Method Get -Uri $url -Headers $headers
+              $r=Invoke-RestMethod -Method Get -Uri $url
             } catch {
               Write-Host "SEARCH_FAIL query=$q error=$($_.Exception.Message)"
               continue
@@ -40,7 +36,7 @@ jobs:
             if($r.data){$items=@($r.data)} elseif($r.assets){$items=@($r.assets)} elseif($r.results){$items=@($r.results)}
             $n=0
             foreach($a in $items){
-              if($n -ge 20){break}
+              if($n -ge 30){break}
               $id=$a.id; if(-not $id){$id=$a.assetId}
               $name=$a.name; if(-not $name -and $a.asset){$name=$a.asset.name}
               $creator=''; if($a.creator){$creator=$a.creator.name}
@@ -50,6 +46,6 @@ jobs:
             }
             if($n -eq 0){
               $json=$r | ConvertTo-Json -Depth 6 -Compress
-              Write-Host "SEARCH_RAW query=$q $($json.Substring(0,[Math]::Min(3000,$json.Length)))"
+              Write-Host "SEARCH_RAW query=$q $($json.Substring(0,[Math]::Min(5000,$json.Length)))"
             }
           }
