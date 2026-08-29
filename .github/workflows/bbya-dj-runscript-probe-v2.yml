@@ -1,0 +1,68 @@
+name: BBYA DJ RunScript Native Probe v2
+
+on:
+  push:
+    branches: ['feat/bbya-pro-dj-realmesh-v2-test']
+    paths: ['.github/workflows/bbya-dj-runscript-probe-v2.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Run native asset probe in Music UI test place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place='124607344716828'; $universe='10762005984'
+          if($place -eq '131894120482837' -or $universe -eq '8116636513'){throw 'LIVE target refused'}
+          $roots=@('C:\Program Files (x86)\Roblox\Versions','C:\Program Files\Roblox\Versions',(Join-Path $env:LOCALAPPDATA 'Roblox\Versions'))
+          $studio=$roots | Where-Object {Test-Path $_} | ForEach-Object {Get-ChildItem $_ -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue} | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'Studio exe not found'}
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-dj-runscript-v2'; New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $script=Join-Path $dir 'probe.luau'; $out=Join-Path $dir 'out.txt'
+          @'
+          assert(game.PlaceId == 124607344716828, "WRONG_PLACE:"..tostring(game.PlaceId))
+          assert(game.GameId == 10762005984, "WRONG_UNIVERSE:"..tostring(game.GameId))
+          print("BBYA_DJ_TARGET_PASS place="..game.PlaceId.." universe="..game.GameId)
+          local AssetService=game:GetService("AssetService")
+          local okA,a=pcall(function() return AssetService.AllowInsertFreeAssets end)
+          print("BBYA_DJ_ALLOW_FREE ok="..tostring(okA).." value="..tostring(a))
+          local function probe(id,label)
+            local ok,res=pcall(function() return game:GetObjects("rbxassetid://"..id) end)
+            print("BBYA_DJ_GETOBJECTS label="..label.." id="..id.." ok="..tostring(ok).." type="..typeof(res))
+            if not ok then print("BBYA_DJ_ERR "..tostring(res)); return false end
+            local roots=res; local parts,mesh,scripts,sounds=0,0,0,0
+            for _,r in ipairs(roots) do
+              local all={r}; for _,d in ipairs(r:GetDescendants()) do table.insert(all,d) end
+              for _,d in ipairs(all) do
+                if d:IsA("BasePart") then parts+=1 end
+                if d:IsA("MeshPart") then mesh+=1 end
+                if d:IsA("LuaSourceContainer") then scripts+=1 end
+                if d:IsA("Sound") or d.ClassName=="AudioPlayer" then sounds+=1 end
+              end
+              r:Destroy()
+            end
+            print("BBYA_DJ_ASSET_PASS label="..label.." roots="..#roots.." parts="..parts.." mesh="..mesh.." scripts="..scripts.." sounds="..sounds)
+            return #roots>0
+          end
+          assert(probe(16279963856,"CDJ3000_PAIR"),"DECK_FAIL")
+          assert(probe(1404819158,"MIXER"),"MIXER_FAIL")
+          print("BBYA_DJ_NATIVE_PROBE_COMPLETE")
+          '@ | Set-Content $script -Encoding utf8
+          Write-Host "STUDIO=$($studio.FullName)"
+          $args=@('--task','RunScript','--placeId',$place,'--universeId',$universe,'--runScriptFile',$script,'--outputFile',$out,'--quitAfterExecution')
+          $p=Start-Process $studio.FullName -ArgumentList $args -Wait -PassThru
+          Write-Host "EXIT=$($p.ExitCode)"
+          if(Test-Path $out){$text=Get-Content $out -Raw; Write-Host $text}else{$text=''}
+          if($text -notmatch 'BBYA_DJ_NATIVE_PROBE_COMPLETE'){
+            $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+            $logText=($logs|ForEach-Object{Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue}) -join "`n"
+            ($logText -split "`n" | Where-Object {$_ -match 'BBYA_DJ_'}) | Select-Object -Last 50 | ForEach-Object {Write-Host $_}
+            if($logText -notmatch 'BBYA_DJ_NATIVE_PROBE_COMPLETE'){throw 'Native asset probe did not complete'}
+          }
+          Write-Host 'BBYA_DJ_RUNSCRIPT_V2_PASS'
