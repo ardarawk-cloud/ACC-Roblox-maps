@@ -1,0 +1,48 @@
+name: BBYA DJ Find Studio Executable
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-dj-find-studio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 8
+    steps:
+      - name: Locate Roblox Studio installation
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Continue'
+          Write-Host "RUNNER_USER=$env:USERNAME USERPROFILE=$env:USERPROFILE LOCALAPPDATA=$env:LOCALAPPDATA"
+          $paths=@(
+            'C:\Users\Administrator\AppData\Local\Roblox\Versions',
+            'C:\Users\runneradmin\AppData\Local\Roblox\Versions',
+            'C:\Users\actions-runner\AppData\Local\Roblox\Versions',
+            'C:\Program Files\Roblox\Versions',
+            'C:\Program Files (x86)\Roblox\Versions',
+            (Join-Path $env:LOCALAPPDATA 'Roblox\Versions')
+          ) | Select-Object -Unique
+          $found=@()
+          foreach($base in $paths){
+            if(Test-Path $base){
+              Write-Host "SEARCH_BASE_FOUND $base"
+              $found += Get-ChildItem $base -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue
+            } else { Write-Host "SEARCH_BASE_MISSING $base" }
+          }
+          if($found.Count -eq 0){
+            Write-Host 'FALLBACK_SEARCH_USERS'
+            $found += Get-ChildItem 'C:\Users' -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue
+          }
+          $found=$found | Sort-Object LastWriteTime -Descending -Unique
+          foreach($f in $found){ Write-Host "STUDIO_CANDIDATE path=$($f.FullName) modified=$($f.LastWriteTimeUtc.ToString('o')) bytes=$($f.Length)" }
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 5
+          foreach($p in $proc){ try{Write-Host "STUDIO_PROCESS pid=$($p.Id) path=$($p.Path)"}catch{} }
+          if($found.Count -eq 0){ throw 'NO_STUDIO_EXECUTABLE_FOUND' }
+          Write-Host "BBYA_DJ_STUDIO_PATH_PASS $($found[0].FullName)"
