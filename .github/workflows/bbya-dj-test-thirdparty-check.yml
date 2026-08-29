@@ -1,0 +1,63 @@
+name: BBYA DJ Test Third-Party Asset Check
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-dj-test-thirdparty-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 7
+    steps:
+      - name: Inspect Studio place and free-asset setting
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class FocusNativeDJCheck {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+          }
+          '@
+          $marker='BBYA_DJ_THIRDPARTY_CHECK_20260830'
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){ throw 'Roblox Studio is not running on BBYA-STUDIO-WORKER' }
+          [FocusNativeDJCheck]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+          Start-Sleep -Milliseconds 500
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){ throw "Studio Command Bar unavailable edit=$([bool]$edit) run=$([bool]$run)" }
+          $cmd='local a=game:GetService("AssetService"); print("['+$marker+'] PlaceId="..tostring(game.PlaceId).." GameId="..tostring(game.GameId).." AllowInsertFreeAssets="..tostring(a.AllowInsertFreeAssets))'
+          $vp=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $vp.SetValue($cmd)
+          Start-Sleep -Milliseconds 300
+          $ip=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $ip.Invoke()
+          Start-Sleep -Seconds 3
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12
+          $found=@()
+          foreach($log in $logs){
+            $m=Select-String -Path $log.FullName -Pattern $marker -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -Last 4
+            foreach($x in $m){ $found += $x.Line }
+          }
+          if($found.Count -eq 0){ throw 'Studio command executed but marker was not found in logs' }
+          $latest=$found[-1]
+          Write-Host "DJ_SETTING_RESULT $latest"
+          if($latest -notmatch 'PlaceId=(\d+)'){ throw 'Could not parse Studio PlaceId' }
+          $place=$Matches[1]
+          if($latest -notmatch 'AllowInsertFreeAssets=(true|false)'){ throw 'Could not parse AllowInsertFreeAssets' }
+          $allow=$Matches[1]
+          Write-Host "BBYA_DJ_SETTING_CHECK_PASS place=$place allow=$allow"
