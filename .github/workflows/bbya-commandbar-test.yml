@@ -1,4 +1,5 @@
 name: BBYA Pro DJ Rig v1 — ISOLATED TEST PUBLISH
+# Trigger 2: workflow is now registered on default branch; publish test target only.
 
 on:
   push:
