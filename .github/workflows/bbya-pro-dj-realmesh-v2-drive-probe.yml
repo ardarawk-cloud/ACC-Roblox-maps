@@ -1,0 +1,53 @@
+name: BBYA Pro DJ RealMesh v2 - Drive Probe
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-pro-dj-realmesh-v2-drive-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbya-pro-dj-realmesh-v2-drive-probe
+  cancel-in-progress: true
+
+jobs:
+  drive-probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hard target guard
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ github.ref }}' -ne 'refs/heads/feat/bbya-pro-dj-realmesh-v2-test' -and '${{ github.event_name }}' -ne 'workflow_dispatch') { throw 'Unexpected ref' }
+          Write-Host 'BBYA_REALMESH_V2_BRANCH_GUARD_PASS'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install gdown
+        shell: powershell
+        run: python -m pip install --disable-pip-version-check gdown
+      - name: Download exact owner GLBs and verify hashes
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-realmesh-v2'
+          if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $cdj=Join-Path $dir 'BBYA_TEST_CDJ_256.glb'
+          $djm=Join-Path $dir 'BBYA_TEST_DJM_A9_256.glb'
+          python -m gdown --id '1HuLC2YQB-JW0JKcqXPOmVikj5EyMqFlZ' -O $cdj
+          if($LASTEXITCODE -ne 0){throw 'CDJ Drive download failed'}
+          python -m gdown --id '1sUO99s369OXOcRzTY6tpp4TL7eDCxjk5' -O $djm
+          if($LASTEXITCODE -ne 0){throw 'DJM Drive download failed'}
+          $cdjHash=(Get-FileHash $cdj -Algorithm SHA256).Hash.ToLowerInvariant()
+          $djmHash=(Get-FileHash $djm -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($cdjHash -ne 'ed581617b2d717927cbb61a8d80cae55fe319336dea6745ea276a431e16c374f'){throw "CDJ hash mismatch: $cdjHash"}
+          if($djmHash -ne '36f866f27bae0195a882232c02ae0af1a4742910b043b3c7a584b5e832f5d5ca'){throw "DJM hash mismatch: $djmHash"}
+          Write-Host "BBYA_REALMESH_DRIVE_PROBE_PASS cdj=$((Get-Item $cdj).Length) djm=$((Get-Item $djm).Length)"
