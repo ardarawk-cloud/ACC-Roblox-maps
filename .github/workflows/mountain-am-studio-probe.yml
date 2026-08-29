@@ -1,5 +1,5 @@
 name: Mountain AM STUDIO Publish
-# trigger: mountain-v6.1-phase1-composition-20260828
+# trigger: mountain-v6.2-phase1-spawn-safety-20260829
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: mountain-v61-phase1-publish
+  group: mountain-v62-phase1-publish
   cancel-in-progress: false
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - name: Checkout exact v6.1 mountain source without git
+      - name: Checkout exact v6.2 mountain source without git
         uses: actions/checkout@v4
         with:
           ref: agent/mountain-master-v3
@@ -61,35 +61,38 @@ jobs:
           "MOUNTAIN_SOURCE_COMMIT=$($branch.commit.sha)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "MOUNTAIN_SOURCE_COMMIT=$($branch.commit.sha)"
 
-      - name: Build CLEAN v6.1 Phase1 RBXLX
+      - name: Build CLEAN v6.2 Phase1 RBXLX
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           node scripts/inject-mountain.js mountain-social
-          if($LASTEXITCODE -ne 0){throw 'Mountain v6.1 injection failed'}
+          if($LASTEXITCODE -ne 0){throw 'Mountain v6.2 injection failed'}
           $place='maps/mountain-social/place.rbxlx'
-          if(-not (Test-Path $place)){throw 'v6.1 place missing'}
-          if((Get-Item $place).Length -lt 4096){throw 'v6.1 place unexpectedly small'}
+          if(-not (Test-Path $place)){throw 'v6.2 place missing'}
+          if((Get-Item $place).Length -lt 4096){throw 'v6.2 place unexpectedly small'}
           $text=Get-Content $place -Raw
           foreach($required in @(
-            'ACC_Mountain_V61_Phase1',
-            'v6.1-phase1-composition',
+            'ACC_Mountain_V62_Phase1',
+            'v6.2-phase1-spawn-safety',
+            'ACC_BootstrapSpawn',
+            'ACC_BootstrapPad',
+            'ACC_SpawnGate',
+            'ACC_SpawnRescueActive',
+            'v6.2-static-bootstrap',
             'TERRAIN_FIRST_SINGLE_SOURCE',
             'CompositionPassVersion',
             'DENSE_VILLAGE_ROAD',
-            'CloseRiceDetailCount',
-            'CompositionTreeCount',
             'VehicleRoadEndsBeforeTrail',
             'TrailBranchesFromRoad',
             'SPAWN_TO_CP1_ONLY',
             'mobile-tuned-v6.1'
           )){
-            if($text -notmatch [regex]::Escape($required)){throw "Missing v6.1 marker: $required"}
+            if($text -notmatch [regex]::Escape($required)){throw "Missing v6.2 marker: $required"}
           }
           foreach($forbidden in @('ApproachRoad_','LowlandMasterV52','LowlandRouteV54','ExpeditionV43','UpperScenicV45')){
             if($text -match [regex]::Escape($forbidden)){throw "LEGACY_GEOMETRY_BLOCKED: $forbidden"}
           }
-          Write-Host "MOUNTAIN_V61_BUILD_PASS bytes=$((Get-Item $place).Length)"
+          Write-Host "MOUNTAIN_V62_BUILD_PASS bytes=$((Get-Item $place).Length)"
 
       - name: Publish mountain with AM STUDIO
         id: publish
@@ -98,7 +101,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Continue'
-          $log=Join-Path $env:RUNNER_TEMP 'mountain-v61-publish.log'
+          $log=Join-Path $env:RUNNER_TEMP 'mountain-v62-publish.log'
           $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
           node scripts/publish-mountain-closed-test.js *> $log
           $code=$LASTEXITCODE
@@ -106,7 +109,7 @@ jobs:
           $lines=@(
             "status=$status",
             'secret=AM_STUDIO',
-            'build=v6.1-phase1-composition',
+            'build=v6.2-phase1-spawn-safety',
             "sourceCommit=$env:MOUNTAIN_SOURCE_COMMIT",
             'universeId=4187755690',
             'placeId=11832985967',
@@ -129,7 +132,7 @@ jobs:
             @(
               'status=NO_RESULT',
               'secret=AM_STUDIO',
-              'build=v6.1-phase1-composition',
+              'build=v6.2-phase1-spawn-safety',
               "sourceCommit=$env:MOUNTAIN_SOURCE_COMMIT",
               'universeId=4187755690',
               'placeId=11832985967'
@@ -168,6 +171,6 @@ jobs:
           $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
           if(-not (Test-Path $receipt)){throw 'Mountain receipt missing'}
           $text=Get-Content $receipt -Raw
-          if($text -notmatch '(?m)^status=PUBLISHED\s*$'){throw 'Mountain v6.1 publish not PUBLISHED'}
-          if($text -notmatch '(?m)^build=v6\.1-phase1-composition\s*$'){throw 'Mountain v6.1 receipt build mismatch'}
-          Write-Host 'MOUNTAIN_V61_PUBLISH_PASS'
+          if($text -notmatch '(?m)^status=PUBLISHED\s*$'){throw 'Mountain v6.2 publish not PUBLISHED'}
+          if($text -notmatch '(?m)^build=v6\.2-phase1-spawn-safety\s*$'){throw 'Mountain v6.2 receipt build mismatch'}
+          Write-Host 'MOUNTAIN_V62_PUBLISH_PASS'
