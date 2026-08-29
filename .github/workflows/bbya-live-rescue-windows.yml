@@ -1,7 +1,7 @@
 name: BBYA Live Rescue Windows
 
 # Rescue v5: canonical self-hosted publish lane with permanent audio + lighting stability hard gates.
-# Deploy trigger: deterministic audio router v8 / global lighting authority v4 exact-source publish.
+# Deploy trigger: approved premium entrance car pair exact-source publish.
 on:
   pull_request:
     branches: [main]
