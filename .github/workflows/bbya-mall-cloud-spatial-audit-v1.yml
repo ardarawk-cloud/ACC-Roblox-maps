@@ -194,16 +194,34 @@ jobs:
           $studio=$candidates|Sort-Object LastWriteTime -Descending|Select-Object -First 1
           if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
           $p=Start-Process $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
-          for($i=0;$i -lt 45;$i++){Start-Sleep 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
-          if($p.MainWindowHandle -eq 0){throw 'Studio window not ready'}
           "STUDIOPID=$($p.Id)" | Out-File $env:GITHUB_ENV -Append
-          Start-Sleep -Seconds 7
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+
           $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
           $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $edit=$null;$run=$null;$root=$null;$hwnd=[IntPtr]::Zero
+          for($i=0;$i -lt 90;$i++){
+            Start-Sleep -Milliseconds 750
+            $live=Get-Process -Id $p.Id -ErrorAction SilentlyContinue
+            if(-not $live){throw 'Roblox Studio exited before Command Bar was ready'}
+            $live.Refresh()
+            $candidate=[IntPtr]$live.MainWindowHandle
+            if($candidate -eq [IntPtr]::Zero){continue}
+            try{
+              $candidateRoot=[System.Windows.Automation.AutomationElement]::FromHandle($candidate)
+              if($candidateRoot){
+                $candidateEdit=$candidateRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
+                $candidateRun=$candidateRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+                if($candidateEdit -and $candidateRun){
+                  $root=$candidateRoot;$edit=$candidateEdit;$run=$candidateRun;$hwnd=$candidate
+                  break
+                }
+              }
+            }catch{
+              Write-Host "Studio handle transition retry $i : $($_.Exception.GetType().Name)"
+            }
+          }
+          if(-not $edit -or -not $run -or $hwnd -eq [IntPtr]::Zero){throw 'Studio Command Bar unavailable after handle-transition retries'}
+          Write-Host "Studio command bar acquired hwnd=$hwnd"
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
           $value.SetValue('local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallSpatialAuditRunnerV1"));print("[MALL_SPATIAL_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end')
@@ -248,17 +266,29 @@ jobs:
               if($btn){try{$btn.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 700}catch{}}
             }
           }
-          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
-          $p.Refresh();$hwnd=[IntPtr]$p.MainWindowHandle
+
+          $pid=[int]$env:STUDIOPID
+          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$null;$run=$null;$hwnd=[IntPtr]::Zero
+          for($i=0;$i -lt 60;$i++){
+            $p=Get-Process -Id $pid -ErrorAction SilentlyContinue
+            if(-not $p){throw 'Studio process missing before GPU capture'}
+            $p.Refresh();$candidate=[IntPtr]$p.MainWindowHandle
+            if($candidate -ne [IntPtr]::Zero){
+              try{
+                $candidateRoot=[System.Windows.Automation.AutomationElement]::FromHandle($candidate)
+                $candidateEdit=$candidateRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
+                $candidateRun=$candidateRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+                if($candidateEdit -and $candidateRun){$edit=$candidateEdit;$run=$candidateRun;$hwnd=$candidate;break}
+              }catch{}
+            }
+            Start-Sleep -Milliseconds 500
+          }
+          if(-not $edit -or -not $run -or $hwnd -eq [IntPtr]::Zero){throw 'Studio Command Bar unavailable for GPU capture'}
           [MallSpatialGPU]::ShowWindow($hwnd,3)|Out-Null
           [MallSpatialGPU]::SetForegroundWindow($hwnd)|Out-Null
           Start-Sleep -Seconds 2
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
-          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
-          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable for GPU capture'}
           $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
           Dismiss-StudioDialogs
