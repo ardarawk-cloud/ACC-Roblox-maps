@@ -1,5 +1,6 @@
 name: BBYA Pro DJ Rig v1 — ISOLATED TEST PUBLISH
 # Git is not installed on this self-hosted runner; checkout exact verified prototype SHA via REST archive.
+# Temporary registry is written as UTF-8 without BOM for Node JSON parsing.
 
 on:
   push:
@@ -107,7 +108,9 @@ jobs:
             file='maps/bbya-social-hub/place.rbxlx'
           }
           $r.maps | Add-Member -NotePropertyName 'bbya-music-ui-test' -NotePropertyValue $target -Force
-          $r | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
+          $json=$r | ConvertTo-Json -Depth 10
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText((Resolve-Path $path),$json,$utf8NoBom)
           $t=(Get-Content $path -Raw | ConvertFrom-Json).maps.'bbya-music-ui-test'
           if([string]$t.universeId -ne '10762005984' -or [string]$t.placeId -ne '124607344716828'){throw 'Temporary target verification failed'}
           Write-Host 'TEMP_TARGET_PASS'
