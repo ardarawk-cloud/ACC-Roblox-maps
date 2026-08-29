@@ -1,0 +1,203 @@
+name: BBYA Entrance Premium Cars
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-entrance-premium-cars.yml'
+      - 'scripts/bbya-glb-variant.js'
+      - 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-entrance-premium-cars.yml'
+      - 'scripts/bbya-glb-variant.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bbya-entrance-premium-cars
+  cancel-in-progress: false
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Static QC
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/bbya-glb-variant.js
+          grep -F 'BBYA_CAR_LEFT_ASSET_ID' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
+          grep -F 'BBYA_CAR_RIGHT_ASSET_ID' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
+          grep -F 'PremiumCarPairV1' maps/bbya-social-hub/77-entrance-car-cleanup.server.lua
+          echo 'BBYA_PREMIUM_CAR_STATIC_QC_PASS'
+
+  ingest:
+    if: github.event_name != 'pull_request'
+    needs: qc
+    runs-on: self-hosted
+    timeout-minutes: 20
+    env:
+      ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+      SOURCE_COMMIT: 34499c501908818a2b08e589a7aecf963343cee7
+      SOURCE_REPO: JaronKBragg7337/spectral-gt-rs
+      UNIVERSE_ID: '8116636513'
+    steps:
+      - name: Checkout exact BBYA source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download pinned CC0 car and build two BBYA variants
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not $env:ROBLOX_API_KEY){ throw 'AM_STUDIO / ROBLOX_API_KEY is missing' }
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-premium-cars'
+          if(Test-Path $dir){ Remove-Item $dir -Recurse -Force }
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $source=Join-Path $dir 'spectral-source.glb'
+          $wine=Join-Path $dir 'bbya-spectral-wine.glb'
+          $pearl=Join-Path $dir 'bbya-spectral-pearl.glb'
+          $url="https://raw.githubusercontent.com/$env:SOURCE_REPO/$env:SOURCE_COMMIT/spectral_gt_rs_game_ready.glb"
+          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $source
+          if((Get-Item $source).Length -lt 1000000){ throw 'Downloaded GLB is unexpectedly small' }
+          node scripts/bbya-glb-variant.js $source $wine wine
+          node scripts/bbya-glb-variant.js $source $pearl pearl
+          if($LASTEXITCODE -ne 0){ throw 'GLB variant generation failed' }
+          "BBYA_WINE_GLB=$wine" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_PEARL_GLB=$pearl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_SOURCE_SHA256=$((Get-FileHash $source -Algorithm SHA256).Hash)"
+          Write-Host "BBYA_VARIANTS_READY wine=$((Get-Item $wine).Length) pearl=$((Get-Item $pearl).Length)"
+
+      - name: Resolve BBYA Roblox creator
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:UNIVERSE_ID"
+          if(-not $meta.data -or $meta.data.Count -lt 1){ throw 'Unable to resolve BBYA universe creator' }
+          $creator=$meta.data[0].creator
+          $type=[string]$creator.type
+          $id=[string]$creator.id
+          if(-not $id -or $id -notmatch '^\d+$'){ throw "Invalid creator id: $id" }
+          if($type -ieq 'Group'){
+            "BBYA_CREATOR_FIELD=groupId" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } elseif($type -ieq 'User'){
+            "BBYA_CREATOR_FIELD=userId" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            throw "Unsupported creator type: $type"
+          }
+          "BBYA_CREATOR_ID=$id" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CREATOR_RESOLVED type=$type id=$id"
+
+      - name: Upload both Model assets to Roblox Open Cloud
+        id: upload
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+
+          function Upload-BBYAModel([string]$File,[string]$Name,[string]$Description){
+            $creator=@{}
+            $creator[$env:BBYA_CREATOR_FIELD]=$env:BBYA_CREATOR_ID
+            $request=@{
+              assetType='Model'
+              displayName=$Name
+              description=$Description
+              creationContext=@{ creator=$creator }
+            } | ConvertTo-Json -Depth 8 -Compress
+
+            $args=@(
+              '--silent','--show-error','--location','--request','POST',
+              '--header',"x-api-key: $env:ROBLOX_API_KEY",
+              '--form-string',"request=$request",
+              '--form',"fileContent=@$File;type=model/gltf-binary",
+              'https://apis.roblox.com/assets/v1/assets'
+            )
+            $raw=& curl.exe @args
+            if($LASTEXITCODE -ne 0){ throw "Asset upload curl failed for $Name" }
+            try { $created=$raw | ConvertFrom-Json } catch { throw "Invalid Roblox asset response for $Name : $raw" }
+            if(-not $created.path){ throw "Roblox asset upload rejected for $Name : $raw" }
+            $operationId=([string]$created.path) -replace '^operations/',''
+            Write-Host "UPLOAD_ACCEPTED name=$Name operation=$operationId"
+
+            for($i=0;$i -lt 90;$i++){
+              Start-Sleep -Seconds 4
+              $opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_API_KEY" "https://apis.roblox.com/assets/v1/operations/$operationId"
+              if($LASTEXITCODE -ne 0){ continue }
+              try { $op=$opRaw | ConvertFrom-Json } catch { continue }
+              if($op.done){
+                if($op.error){ throw "Roblox asset operation failed for $Name : $($op.error | ConvertTo-Json -Compress -Depth 8)" }
+                $assetId=[string]$op.response.assetId
+                if($assetId -notmatch '^\d+$'){ throw "Asset operation completed without assetId for $Name : $opRaw" }
+                $moderation=[string]$op.response.moderationResult.moderationState
+                Write-Host "UPLOAD_DONE name=$Name asset=$assetId moderation=$moderation"
+                return $assetId
+              }
+            }
+            throw "Timed out waiting for Roblox asset operation for $Name"
+          }
+
+          $left=Upload-BBYAModel $env:BBYA_WINE_GLB 'BBYA Spectral GT — Wine' 'BBYA Social Hub entrance display car. CC0 source: Spectral GT RS. Deep wine metallic variant.'
+          $right=Upload-BBYAModel $env:BBYA_PEARL_GLB 'BBYA Spectral GT — Pearl' 'BBYA Social Hub entrance display car. CC0 source: Spectral GT RS. Pearl silver variant.'
+          "BBYA_LEFT_ASSET_ID=$left" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_RIGHT_ASSET_ID=$right" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "left_asset_id=$left" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "right_asset_id=$right" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Lock uploaded asset IDs into canonical source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          git config user.name 'BBYA Premium Car Ingest'
+          git config user.email 'actions@users.noreply.github.com'
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+          $path='maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+          $text=Get-Content $path -Raw
+          if($text -notmatch 'BBYA_CAR_LEFT_ASSET_ID' -or $text -notmatch 'BBYA_CAR_RIGHT_ASSET_ID'){
+            throw 'Premium car asset markers missing from canonical source'
+          }
+          $text=[regex]::Replace($text,'local LEFT_ASSET_ID = \d+ -- BBYA_CAR_LEFT_ASSET_ID',"local LEFT_ASSET_ID = $env:BBYA_LEFT_ASSET_ID -- BBYA_CAR_LEFT_ASSET_ID")
+          $text=[regex]::Replace($text,'local RIGHT_ASSET_ID = \d+ -- BBYA_CAR_RIGHT_ASSET_ID',"local RIGHT_ASSET_ID = $env:BBYA_RIGHT_ASSET_ID -- BBYA_CAR_RIGHT_ASSET_ID")
+          Set-Content -Path $path -Value $text -Encoding utf8
+
+          git add $path
+          git diff --cached --check
+          git commit -m 'BBYA: lock premium entrance car asset IDs [skip ci]'
+          git push origin main
+          $source=(git rev-parse HEAD).Trim()
+          "BBYA_CANONICAL_SOURCE=$source" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CAR_ASSET_LOCK_PASS source=$source left=$env:BBYA_LEFT_ASSET_ID right=$env:BBYA_RIGHT_ASSET_ID"
+
+      - name: Dispatch canonical BBYA live rescue publish
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+          }
+          $body=@{ref='main'} | ConvertTo-Json -Compress
+          Invoke-RestMethod -Method Post -Uri 'https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps/actions/workflows/bbya-live-rescue-windows.yml/dispatches' -Headers $headers -Body $body -ContentType 'application/json'
+          Write-Host "BBYA_LIVE_RESCUE_DISPATCHED source=$env:BBYA_CANONICAL_SOURCE"
