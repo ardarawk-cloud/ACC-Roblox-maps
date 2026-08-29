@@ -87,6 +87,9 @@
       },
       "ASC_StudentRowShopInteriors": {
         "$path": "after-school-city.student-row-shop-interiors.server.lua"
+      },
+      "ASC_StudentRowInteriorSignFinalize": {
+        "$path": "after-school-city.student-row-interior-sign-finalize.server.lua"
       }
     },
     "StarterGui": {
