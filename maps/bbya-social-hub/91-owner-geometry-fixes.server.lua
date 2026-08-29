@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — OWNER GEOMETRY FIXES v2
--- Targeted geometry fixes only: remove obstructing old lift core and close entrance lower corner holes.
--- VIP floor-neon ownership now belongs EXCLUSIVELY to 72-vip-floor-neon-fix.server.lua.
+-- BBYA SOCIAL HUB — OWNER GEOMETRY + FLOOR SURFACE FIXES v3
+-- Targeted geometry fixes plus local daytime floor-reflection suppression.
+-- Main Club / Underground / Funkot only; global Lighting, audio and venue lights are untouched.
+-- VIP floor-neon ownership belongs EXCLUSIVELY to 72-vip-floor-neon-fix.server.lua.
 -- IMPORTANT: never delete South/West/North/East approved PreciseInnerFloorNeon segments here.
 
 local Workspace=game:GetService("Workspace")
@@ -51,4 +52,56 @@ task.spawn(function()
  active:SetAttribute("OwnerGeometryPreservesAllVIPNeonSides",true)
 end)
 
-print("[BBYA] Owner geometry fixes v2 online: geometry only / approved VIP neon untouched")
+-- 7) DAYTIME FLOOR REFLECTION GUARD
+-- Roblox environment/specular response can make smooth indoor floors mirror the daytime sky/sun.
+-- Keep the fix local to the three music venues; do not reduce EnvironmentSpecularScale globally.
+local function matte(part,material)
+ if part and part:IsA("BasePart") then
+  part.Reflectance=0
+  if material then part.Material=material end
+ end
+end
+
+local function applyDaytimeFloorGuard()
+ -- MAIN CLUB: the realism pass replaces the original Slate dance floor with SmoothPlastic
+ -- and explicitly adds Reflectance=.10. Restore a dark architectural Slate finish instead.
+ local realism=root:FindFirstChild("MainClubRealism")
+ if realism then
+  local dance=realism:FindFirstChild("DanceFloor",true)
+  matte(dance,Enum.Material.Slate)
+ end
+ local floor1=root:FindFirstChild("Floor1Core")
+ if floor1 then
+  for _,name in ipairs({"FrontSpine","FrontLeftWing","FrontRightWing","ClubCore","RearStageMass","RearLeftStep","RearRightStep","PhotoFloor","SalonFloor","BarFloor","TransitionCourt"}) do
+   matte(floor1:FindFirstChild(name,true),nil)
+  end
+ end
+
+ -- UNDERGROUND: preserve the black/white checker identity but use regular Plastic rather than
+ -- SmoothPlastic so daytime environment highlights stay subdued. The late dark-lock pass may
+ -- rebuild/re-enforce the checker during startup, so this guard is repeated after it settles.
+ local underground=root:FindFirstChild("Underground")
+ local checker=underground and underground:FindFirstChild("CheckerFloor")
+ if checker then
+  for _,tile in ipairs(checker:GetChildren()) do
+   if tile:IsA("BasePart") then matte(tile,Enum.Material.Plastic) end
+  end
+ end
+
+ -- FUNKOT: concrete remains concrete; explicitly zero reflectance on the large exposed floor slabs.
+ local funkot=root:FindFirstChild("FunkotClub")
+ if funkot then
+  matte(funkot:FindFirstChild("DanceFloorSlab"),Enum.Material.Concrete)
+  matte(funkot:FindFirstChild("ConnectorFloor"),Enum.Material.Concrete)
+ end
+
+ root:SetAttribute("DaytimeFloorReflectionGuard","V1_LOCAL_THREE_VENUES")
+ root:SetAttribute("DaytimeFloorReflectionGuardLastApplied",os.time())
+end
+
+-- Builders settle at different times; 22s intentionally lands after Underground's 20s checker lock.
+for _,delaySeconds in ipairs({1,6,22,40}) do
+ task.delay(delaySeconds,applyDaytimeFloorGuard)
+end
+
+print("[BBYA] Owner geometry v3 online: geometry preserved / Club-Underground-Funkot daytime floor reflection guard enabled")
