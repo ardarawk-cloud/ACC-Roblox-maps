@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, windows, x64]
     timeout-minutes: 10
     env:
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -22,61 +22,50 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Query Roblox asset metadata
-        shell: bash
+        shell: powershell
         run: |
-          set -euo pipefail
-          test -n "${ROBLOX_API_KEY:-}" || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'; exit 1; }
-          python3 - <<'PY'
-          import json, os, urllib.request, urllib.error
-          ids = [
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'}
+          $ids=@(
             '86006580589828','125820152354579','133947654553749','95691778643767','130313438027284',
             '75712054983357','88943191512256','91809948844354','108578144206183','89763491889927',
             '96924419000406','132460784559824','122720606049274','70777592375726','98308711398889',
             '95839337053281','135587255285184','104136707299013','131597067752690','73502975968958',
             '101289385838814','102043858565172','79235704240751','103710801320668','102227106442067'
-          ]
-          key = os.environ['ROBLOX_API_KEY']
-          out=[]
-          for asset_id in ids:
-              url=f'https://apis.roblox.com/assets/v1/assets/{asset_id}'
-              req=urllib.request.Request(url, headers={'x-api-key': key, 'Accept':'application/json'})
-              row={'assetId':asset_id}
-              try:
-                  with urllib.request.urlopen(req, timeout=15) as r:
-                      body=r.read().decode('utf-8','replace')
-                      row['http']=r.status
-                      try:
-                          data=json.loads(body)
-                      except Exception:
-                          data={'raw':body[:500]}
-                      row['assetType']=data.get('assetType')
-                      row['displayName']=data.get('displayName')
-                      row['description']=data.get('description')
-                      row['moderationResult']=data.get('moderationResult')
-                      row['creationContext']=data.get('creationContext')
-                      row['rawKeys']=sorted(data.keys()) if isinstance(data,dict) else []
-              except urllib.error.HTTPError as e:
-                  row['http']=e.code
-                  body=e.read().decode('utf-8','replace')
-                  row['error']=body[:1000]
-              except Exception as e:
-                  row['http']=0
-                  row['error']=type(e).__name__+': '+str(e)
-              out.append(row)
-              print(asset_id, row.get('http'), row.get('assetType'), row.get('displayName'))
-          with open('bbya-music-id-metadata-audit.json','w',encoding='utf-8') as f:
-              json.dump({'count':len(out),'results':out},f,ensure_ascii=False,indent=2)
-          ok=sum(1 for r in out if r.get('http')==200)
-          with open('bbya-music-id-metadata-audit.md','w',encoding='utf-8') as f:
-              f.write('# BBYA Music ID Metadata Audit\n\n')
-              f.write(f'HTTP 200: **{ok}/{len(out)}**\n\n')
-              f.write('| # | Asset ID | HTTP | Type | Name |\n|---:|---|---:|---|---|\n')
-              for i,r in enumerate(out,1):
-                  name=str(r.get('displayName') or '').replace('|','\\|').replace('\n',' ')
-                  typ=str(r.get('assetType') or '')
-                  f.write(f"| {i} | `{r['assetId']}` | {r.get('http','')} | {typ} | {name} |\n")
-          print(f'METADATA_AUDIT_COMPLETE http200={ok}/{len(out)}')
-          PY
+          )
+          $headers=@{'x-api-key'=$env:ROBLOX_API_KEY;'Accept'='application/json'}
+          $results=@()
+          foreach($id in $ids){
+            $row=[ordered]@{assetId=$id;http=0;assetType='';displayName='';description='';moderationResult=$null;creationContext=$null;error=''}
+            try{
+              $data=Invoke-RestMethod -Method Get -Uri ("https://apis.roblox.com/assets/v1/assets/{0}" -f $id) -Headers $headers -TimeoutSec 15
+              $row.http=200
+              $row.assetType=[string]$data.assetType
+              $row.displayName=[string]$data.displayName
+              $row.description=[string]$data.description
+              $row.moderationResult=$data.moderationResult
+              $row.creationContext=$data.creationContext
+            } catch {
+              $status=0
+              try{$status=[int]$_.Exception.Response.StatusCode}catch{}
+              $row.http=$status
+              $row.error=[string]$_.Exception.Message
+              if($_.ErrorDetails -and $_.ErrorDetails.Message){$row.error=[string]$_.ErrorDetails.Message}
+            }
+            $results += [pscustomobject]$row
+            Write-Host ("ASSET {0} HTTP={1} TYPE={2} NAME={3}" -f $id,$row.http,$row.assetType,$row.displayName)
+          }
+          $payload=[ordered]@{count=$results.Count;results=$results}
+          $payload | ConvertTo-Json -Depth 12 | Set-Content 'bbya-music-id-metadata-audit.json' -Encoding utf8
+          $ok=@($results | Where-Object {$_.http -eq 200}).Count
+          $lines=@('# BBYA Music ID Metadata Audit','',("HTTP 200: **{0}/{1}**" -f $ok,$results.Count),'','| # | Asset ID | HTTP | Type | Name |','|---:|---|---:|---|---|')
+          for($i=0;$i -lt $results.Count;$i++){
+            $r=$results[$i]
+            $safeName=([string]$r.displayName).Replace('|','\|').Replace("`r",' ').Replace("`n",' ')
+            $lines += ("| {0} | `{1}` | {2} | {3} | {4} |" -f ($i+1),$r.assetId,$r.http,$r.assetType,$safeName)
+          }
+          $lines | Set-Content 'bbya-music-id-metadata-audit.md' -Encoding utf8
+          Write-Host ("METADATA_AUDIT_COMPLETE http200={0}/{1}" -f $ok,$results.Count)
 
       - name: Upload metadata audit
         uses: actions/upload-artifact@v4
