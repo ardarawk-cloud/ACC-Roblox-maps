@@ -122,14 +122,23 @@ jobs:
               creationContext=@{ creator=$creator }
             } | ConvertTo-Json -Depth 8 -Compress
 
-            $args=@(
-              '--silent','--show-error','--location','--request','POST',
-              '--header',"x-api-key: $env:ROBLOX_API_KEY",
-              '--form-string',"request=$request",
-              '--form',"fileContent=@$File;type=model/gltf-binary",
-              'https://apis.roblox.com/assets/v1/assets'
-            )
-            $raw=& curl.exe @args
+            # On Windows, passing JSON directly through curl -F can lose the
+            # embedded quotes. Store it as UTF-8 and let curl read the field
+            # contents verbatim with the '<file' multipart syntax.
+            $requestFile=Join-Path $env:RUNNER_TEMP ("bbya-asset-request-"+[guid]::NewGuid().ToString('N')+'.json')
+            [System.IO.File]::WriteAllText($requestFile,$request,(New-Object System.Text.UTF8Encoding($false)))
+            try {
+              $args=@(
+                '--silent','--show-error','--location','--request','POST',
+                '--header',"x-api-key: $env:ROBLOX_API_KEY",
+                '--form',"request=<$requestFile;type=application/json",
+                '--form',"fileContent=@$File;type=model/gltf-binary",
+                'https://apis.roblox.com/assets/v1/assets'
+              )
+              $raw=& curl.exe @args
+            } finally {
+              Remove-Item $requestFile -Force -ErrorAction SilentlyContinue
+            }
             if($LASTEXITCODE -ne 0){ throw "Asset upload curl failed for $Name" }
             try { $created=$raw | ConvertFrom-Json } catch { throw "Invalid Roblox asset response for $Name : $raw" }
             if(-not $created.path){ throw "Roblox asset upload rejected for $Name : $raw" }
@@ -153,8 +162,8 @@ jobs:
             throw "Timed out waiting for Roblox asset operation for $Name"
           }
 
-          $left=Upload-BBYAModel $env:BBYA_WINE_GLB 'BBYA Spectral GT — Wine' 'BBYA Social Hub entrance display car. CC0 source: Spectral GT RS. Deep wine metallic variant.'
-          $right=Upload-BBYAModel $env:BBYA_PEARL_GLB 'BBYA Spectral GT — Pearl' 'BBYA Social Hub entrance display car. CC0 source: Spectral GT RS. Pearl silver variant.'
+          $left=Upload-BBYAModel $env:BBYA_WINE_GLB 'BBYA Spectral GT - Wine' 'BBYA Social Hub entrance display car. CC0 source Spectral GT RS. Deep wine metallic variant.'
+          $right=Upload-BBYAModel $env:BBYA_PEARL_GLB 'BBYA Spectral GT - Pearl' 'BBYA Social Hub entrance display car. CC0 source Spectral GT RS. Pearl silver variant.'
           "BBYA_LEFT_ASSET_ID=$left" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "BBYA_RIGHT_ASSET_ID=$right" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "left_asset_id=$left" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
