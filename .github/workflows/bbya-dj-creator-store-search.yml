@@ -1,0 +1,55 @@
+name: BBYA DJ Creator Store Search
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-dj-creator-store-search.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  search:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Search Roblox Creator Store for DJ hardware
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 || secrets.AM_STUDIO }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $queries=@('CDJ','DJM','Pioneer DJ','DJ mixer','DJ deck')
+          foreach($q in $queries){
+            $enc=[uri]::EscapeDataString($q)
+            $url="https://apis.roblox.com/toolbox-service/v2/assets:search?searchCategoryType=Model&query=$enc&maxPageSize=30"
+            $headers=@{}
+            if(-not [string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ $headers['x-api-key']=$env:ROBLOX_API_KEY }
+            try {
+              $r=Invoke-RestMethod -Method Get -Uri $url -Headers $headers
+            } catch {
+              Write-Host "SEARCH_FAIL query=$q error=$($_.Exception.Message)"
+              continue
+            }
+            Write-Host "=== QUERY: $q ==="
+            $items=@()
+            if($r.data){$items=@($r.data)} elseif($r.assets){$items=@($r.assets)} elseif($r.results){$items=@($r.results)}
+            $n=0
+            foreach($a in $items){
+              if($n -ge 20){break}
+              $id=$a.id; if(-not $id){$id=$a.assetId}
+              $name=$a.name; if(-not $name -and $a.asset){$name=$a.asset.name}
+              $creator=''; if($a.creator){$creator=$a.creator.name}
+              $free=''; if($null -ne $a.isFree){$free=$a.isFree}
+              Write-Host ("DJ_SEARCH_RESULT query='{0}' id={1} name='{2}' creator='{3}' free='{4}'" -f $q,$id,$name,$creator,$free)
+              $n++
+            }
+            if($n -eq 0){
+              $json=$r | ConvertTo-Json -Depth 6 -Compress
+              Write-Host "SEARCH_RAW query=$q $($json.Substring(0,[Math]::Min(3000,$json.Length)))"
+            }
+          }
