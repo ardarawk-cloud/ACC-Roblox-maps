@@ -90,6 +90,9 @@
       },
       "ASC_StudentRowInteriorSignFinalize": {
         "$path": "after-school-city.student-row-interior-sign-finalize.server.lua"
+      },
+      "ASC_RoadConcreteStripCleanup": {
+        "$path": "after-school-city.road-concrete-strip-cleanup.server.lua"
       }
     },
     "StarterGui": {
