@@ -84,6 +84,9 @@
       },
       "ASC_SchoolRoadVisualDefectCleanup": {
         "$path": "after-school-city.school-road-visual-defect-cleanup.server.lua"
+      },
+      "ASC_StudentRowShopInteriors": {
+        "$path": "after-school-city.student-row-shop-interiors.server.lua"
       }
     },
     "StarterGui": {
