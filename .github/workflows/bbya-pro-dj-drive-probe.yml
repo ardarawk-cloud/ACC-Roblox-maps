@@ -1,0 +1,91 @@
+name: BBYA Pro DJ Real Mesh — Drive Transfer Probe
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-rig-v1-test'
+    paths:
+      - '.github/workflows/bbya-pro-dj-drive-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    env:
+      CDJ_DRIVE_ID: '1p0NfQ_inr9Rv5DJxcSSx29Gz3-6-JXrQ'
+      MIXER_DRIVE_ID: '1nF9takT_4NtjyZo5jHRkmrKgd3kWR6hp'
+    steps:
+      - name: Probe Drive transfer paths
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-dj-drive-probe'
+          if(Test-Path $out){Remove-Item $out -Recurse -Force}
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+
+          function Test-Glb([string]$p,[int]$min){
+            if(-not (Test-Path $p)){return $false}
+            if((Get-Item $p).Length -lt $min){return $false}
+            $b=[System.IO.File]::ReadAllBytes($p)
+            if($b.Length -lt 4){return $false}
+            return ([Text.Encoding]::ASCII.GetString($b,0,4) -eq 'glTF')
+          }
+
+          function Try-Direct([string]$id,[string]$dest,[int]$min){
+            $urls=@(
+              "https://drive.usercontent.google.com/download?id=$id&export=download&confirm=t",
+              "https://drive.google.com/uc?export=download&id=$id&confirm=t"
+            )
+            foreach($u in $urls){
+              try{
+                Invoke-WebRequest -UseBasicParsing -MaximumRedirection 10 -Uri $u -OutFile $dest -TimeoutSec 45
+                if(Test-Glb $dest $min){Write-Host "DIRECT_DRIVE_PASS id=$id bytes=$((Get-Item $dest).Length)";return $true}
+                if(Test-Path $dest){Write-Host "DIRECT_NOT_GLB id=$id bytes=$((Get-Item $dest).Length)";Remove-Item $dest -Force}
+              }catch{Write-Host "DIRECT_FAIL id=$id error=$($_.Exception.Message)"}
+            }
+            return $false
+          }
+
+          function Find-Local([string]$name,[string]$dest,[int]$min){
+            $roots=@(
+              'G:\My Drive','G:\Shared drives','G:\Shared with me',
+              'H:\My Drive','H:\Shared drives','H:\Shared with me',
+              'C:\Users\Administrator\My Drive',
+              'C:\Users\Administrator\Google Drive',
+              'C:\Users\Administrator\GoogleDrive'
+            )
+            foreach($r in $roots){
+              if(Test-Path $r){
+                Write-Host "LOCAL_DRIVE_ROOT=$r"
+                try{
+                  $f=Get-ChildItem $r -File -Filter $name -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                  if($f){Copy-Item $f.FullName $dest -Force;if(Test-Glb $dest $min){Write-Host "LOCAL_DRIVE_PASS path=$($f.FullName)";return $true}}
+                }catch{Write-Host "LOCAL_SCAN_FAIL root=$r error=$($_.Exception.Message)"}
+              }
+            }
+            return $false
+          }
+
+          $cdj=Join-Path $out 'CDJ.glb'
+          $mix=Join-Path $out 'DJM_A9.glb'
+          $ok1=(Try-Direct $env:CDJ_DRIVE_ID $cdj 100000)
+          if(-not $ok1){$ok1=(Find-Local 'BBYA_TEST_CDJ_256.glb' $cdj 100000)}
+          $ok2=(Try-Direct $env:MIXER_DRIVE_ID $mix 250000)
+          if(-not $ok2){$ok2=(Find-Local 'BBYA_TEST_DJM_A9_256.glb' $mix 250000)}
+
+          Write-Host "CDJ_READY=$ok1 MIXER_READY=$ok2"
+          if(-not ($ok1 -and $ok2)){
+            # Report browser profile presence for the next autonomous fallback; no cookie contents are printed.
+            foreach($p in @(
+              'C:\Users\Administrator\AppData\Local\Google\Chrome\User Data',
+              'C:\Users\Administrator\AppData\Local\Microsoft\Edge\User Data'
+            )){
+              Write-Host "BROWSER_PROFILE path=$p exists=$(Test-Path $p)"
+            }
+            throw 'Drive transfer probe did not obtain both GLB assets'
+          }
+          Write-Host "DRIVE_TRANSFER_PROBE_PASS cdj=$((Get-Item $cdj).Length) mixer=$((Get-Item $mix).Length)"
