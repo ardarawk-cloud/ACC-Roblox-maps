@@ -1,0 +1,30 @@
+name: BBYA Entrance Quarantine Dispatch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-entrance-quarantine-dispatch.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch canonical BBYA Live Rescue Windows
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps/actions/workflows/bbya-live-rescue-windows.yml/dispatches \
+            -d '{"ref":"main"}'
+          echo 'BBYA_ENTRANCE_QUARANTINE_CANONICAL_DISPATCHED'
