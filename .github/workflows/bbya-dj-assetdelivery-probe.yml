@@ -1,0 +1,29 @@
+name: BBYA DJ AssetDelivery Probe
+
+on:
+  push:
+    branches: ['feat/bbya-pro-dj-realmesh-v2-test']
+    paths: ['.github/workflows/bbya-dj-assetdelivery-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download public native Roblox DJ models
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bbya-dj
+          for id in 16279963856 1404819158; do
+            echo "=== ASSET $id ==="
+            curl -fL --retry 2 -D "/tmp/bbya-dj/$id.headers" "https://assetdelivery.roblox.com/v1/asset/?id=$id" -o "/tmp/bbya-dj/$id.asset"
+            wc -c "/tmp/bbya-dj/$id.asset"
+            file "/tmp/bbya-dj/$id.asset" || true
+            sha256sum "/tmp/bbya-dj/$id.asset"
+            head -c 64 "/tmp/bbya-dj/$id.asset" | xxd || true
+          done
+          echo BBYA_DJ_ASSETDELIVERY_PASS
