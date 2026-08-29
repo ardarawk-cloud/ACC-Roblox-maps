@@ -1,142 +1,74 @@
-name: BBYA Pro DJ Rig v1 — ISOLATED TEST PUBLISH
-# Retry with the repository master Open Cloud credential already used by BBYA publishing workflows.
+name: BBYA Studio Command Bar Bridge Test
 
 on:
   push:
     branches: [main]
     paths:
       - '.github/workflows/bbya-commandbar-test.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: read
-
-concurrency:
-  group: bbya-pro-dj-rig-isolated-test-publish
-  cancel-in-progress: false
-
-env:
-  PROTOTYPE_SHA: 'ad79393e387cbb763a08126ff297c5fc6d098351'
-  TEST_UNIVERSE_ID: '10762005984'
-  TEST_PLACE_ID: '124607344716828'
+  contents: write
 
 jobs:
-  publish_test:
-    runs-on: self-hosted
-    timeout-minutes: 20
+  test:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout exact isolated prototype
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.PROTOTYPE_SHA }}
-
-      - name: Hard safety guard
+      - name: Execute harmless Studio command
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          if($env:PROTOTYPE_SHA -ne 'ad79393e387cbb763a08126ff297c5fc6d098351'){throw 'Prototype SHA mismatch'}
-          if($env:TEST_UNIVERSE_ID -ne '10762005984'){throw 'Unexpected test universe'}
-          if($env:TEST_PLACE_ID -ne '124607344716828'){throw 'Unexpected test place'}
-          if($env:TEST_UNIVERSE_ID -eq '8116636513' -or $env:TEST_PLACE_ID -eq '131894120482837'){throw 'LIVE TARGET BLOCKED'}
-          Write-Host "TARGET_GUARD_PASS source=$env:PROTOTYPE_SHA universe=$env:TEST_UNIVERSE_ID place=$env:TEST_PLACE_ID"
-
-      - name: Verify visual-only prototype source
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $s=Get-Content 'maps/bbya-social-hub/41-mesh-assets.server.lua' -Raw
-          foreach($needle in @('BBYA_PRO_DJ_RIG_V1_NATIVE_PROTOTYPE','VisualOnly", true','AudioWrites", false','GlobalLightingWrites", false','2_MEDIA_PLAYERS_PLUS_4CH_MIXER')){
-            if($s -notmatch [regex]::Escape($needle)){throw "Missing safety marker: $needle"}
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class FocusNative {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+'@
+          $lines=New-Object System.Collections.Generic.List[string]
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){$lines.Add('STUDIO_NOT_FOUND')} else {
+            [FocusNative]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+            Start-Sleep -Milliseconds 400
+            $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+            $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+            $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond)
+            $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+            $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+            $lines.Add("EDIT_FOUND=$([bool]$edit)")
+            $lines.Add("RUN_FOUND=$([bool]$run)")
+            if($edit){
+              try{
+                $vp=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $lines.Add('VALUE_PATTERN=true')
+                $vp.SetValue('print("[BBYA_UI_BRIDGE_TEST_20260820]")')
+                Start-Sleep -Milliseconds 300
+              }catch{$lines.Add("SET_VALUE_ERROR=$($_.Exception.Message)")}
+            }
+            if($run){
+              try{
+                $ip=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                $ip.Invoke()
+                $lines.Add('RUN_INVOKED=true')
+              }catch{$lines.Add("RUN_ERROR=$($_.Exception.Message)")}
+            }
+            Start-Sleep -Seconds 2
+            $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 8
+            foreach($log in $logs){
+              $m=Select-String -Path $log.FullName -Pattern 'BBYA_UI_BRIDGE_TEST_20260820' -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -Last 3
+              foreach($x in $m){$lines.Add("LOG_MATCH=$($log.Name):$($x.LineNumber):$($x.Line)")}
+            }
           }
-          if($s -match 'forceNeutralVolumes'){throw 'Audio mutation helper forbidden'}
-          if($s -match 'SoundGroup\.Volume\s*='){throw 'SoundGroup volume mutation forbidden'}
-          if($s -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)\s*='){throw 'Global Lighting mutation forbidden'}
-          Write-Host 'VISUAL_ONLY_FIREWALL_PASS'
-
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Prepare Rojo 7.7.0
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){$rojo=$cmd.Source}else{
-            $dir=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rojo-7.7.0'
-            $zip=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rojo-7.7.0.zip'
-            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-            if(Test-Path $zip){Remove-Item $zip -Force}
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-            Expand-Archive -Path $zip -DestinationPath $dir -Force
-            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
-            if(-not $exe){throw 'rojo.exe not found'}
-            $rojo=$exe.FullName
-          }
-          $ver=& $rojo --version
-          if($LASTEXITCODE -ne 0){throw 'Rojo check failed'}
-          if(($ver -join ' ') -notmatch '7\.7\.0'){throw "Expected Rojo 7.7.0, got $ver"}
-          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "ROJO_PASS $ver"
-
-      - name: Build prototype place
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rig-v1-test.rbxl'
-          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
-          if(-not (Test-Path $place)){throw 'RBXL missing'}
-          $bytes=(Get-Item $place).Length
-          if($bytes -lt 1024){throw "RBXL too small: $bytes"}
-          "TEST_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BUILD_PASS bytes=$bytes source=$env:PROTOTYPE_SHA"
-
-      - name: Create temporary test registry target in runner only
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $path='maps/registry.json'
-          $r=Get-Content $path -Raw | ConvertFrom-Json
-          $target=[pscustomobject]@{
-            name='BBYA Music UI Test - Pro DJ Rig v1'
-            enabled=$true
-            universeId=$env:TEST_UNIVERSE_ID
-            placeId=$env:TEST_PLACE_ID
-            file='maps/bbya-social-hub/place.rbxlx'
-          }
-          $r.maps | Add-Member -NotePropertyName 'bbya-music-ui-test' -NotePropertyValue $target -Force
-          $json=$r | ConvertTo-Json -Depth 10
-          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
-          [System.IO.File]::WriteAllText((Resolve-Path $path),$json,$utf8NoBom)
-          $t=(Get-Content $path -Raw | ConvertFrom-Json).maps.'bbya-music-ui-test'
-          if([string]$t.universeId -ne '10762005984' -or [string]$t.placeId -ne '124607344716828'){throw 'Temporary target verification failed'}
-          Write-Host 'TEMP_TARGET_PASS'
-
-      - name: Publish ONLY to Music UI test place
-        shell: powershell
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-          PUBLISH_RECEIPT_DIR: deploy-status-pro-dj-test
-        run: |
-          $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 secret unavailable'}
-          $env:PLACE_FILE_OVERRIDE=$env:TEST_PLACE_FILE
-          $env:GITHUB_SHA=$env:PROTOTYPE_SHA
-          node scripts/publish-map.js bbya-music-ui-test
-          if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
-
-      - name: Verify exact test receipt
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $p='deploy-status-pro-dj-test/bbya-music-ui-test.json'
-          if(-not (Test-Path $p)){throw 'Test receipt missing'}
-          $r=Get-Content $p -Raw | ConvertFrom-Json
-          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
-          if([string]$r.universeId -ne '10762005984'){throw "Wrong universe: $($r.universeId)"}
-          if([string]$r.placeId -ne '124607344716828'){throw "Wrong place: $($r.placeId)"}
-          if($r.sourceCommit -ne $env:PROTOTYPE_SHA){throw "Wrong source: $($r.sourceCommit)"}
-          if(-not $r.response.versionNumber){throw 'Roblox versionNumber missing'}
-          Write-Host "PRO_DJ_TEST_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+          $text=($lines-join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-commandbar-test.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA command bar test [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
