@@ -5,9 +5,13 @@ local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
 local Terrain=Workspace.Terrain
 
-task.wait(.35)
-local root=Workspace:WaitForChild("ACC_MountainSocial",8)
+local root=Workspace:WaitForChild("ACC_MountainSocial",45)
 if not root then error("v6.1 composition: ACC_MountainSocial missing") end
+local deadline=os.clock()+45
+while not (root:GetAttribute("Phase1Ready")==true and root:GetAttribute("TerrainFrozen")==true) do
+ if os.clock()>deadline then error("v6.1 composition: terrain readiness timeout") end
+ task.wait(.2)
+end
 
 local function folder(name)
  local f=root:FindFirstChild(name)
@@ -73,13 +77,11 @@ local function house(z,side,w,d,rot,variant)
   local light=Instance.new("PointLight");light.Brightness=.55;light.Range=8;light.Color=Color3.fromRGB(255,212,157);light.Parent=win
  end
  mk("Porch",Vector3.new(w*.62,.45,3.2),cf*CFrame.new(0,.68,-d*.5-1.45),Enum.Material.WoodPlanks,trim,m,0,true)
- -- Water jar + planter create lived-in scale without clutter.
  local jar=mk("WaterJar",Vector3.new(1.2,1.45,1.2),cf*CFrame.new(w*.34,.78,-d*.5-1.35),Enum.Material.Slate,Color3.fromRGB(114,83,57),m,0,false);jar.Shape=Enum.PartType.Ball
  mk("Planter",Vector3.new(3.4,.5,1.0),cf*CFrame.new(-w*.30,.35,-d*.5-1.35),Enum.Material.WoodPlanks,trim,m,0,false)
  houseCount+=1
 end
 
--- Dense readable village: every house is 31-37 studs from road, not 60-90 studs away.
 local houseSpecs={
  {1018,-1,23,18,10,1},{965,1,22,18,-12,2},{905,-1,23,18,8,3},{845,1,22,18,-10,4},
  {785,-1,22,17,9,5},{720,1,21,17,-10,6},{655,-1,21,17,8,7},{590,1,20,16,-8,8},
@@ -87,7 +89,6 @@ local houseSpecs={
 }
 for i,s in ipairs(houseSpecs) do house(s[1],s[2],s[3],s[4],s[5],s[6]);if i%3==0 then task.wait() end end
 
--- Village roadside fences / retaining edges. Short grounded segments avoid floating on slopes.
 local fenceCount=0
 for z=1035,470,-42 do
  local side=((math.floor((1035-z)/42)%2)==0) and -1 or 1
@@ -100,13 +101,10 @@ for z=1035,470,-42 do
  fenceCount+=2
 end
 
--- Close rice framing: vegetation sits 65-95 studs from road, behind houses, never in the road corridor.
 local riceCount=0
 for rowZ=995,565,-72 do
  for _,side in ipairs({-1,1}) do
   local cx=roadX(rowZ);local baseX=cx+side*(72+((math.floor(rowZ/20))%3)*8)
-  local gy=groundY(baseX,rowZ)
-  -- low earthen contour bars split the field visually without making giant slabs.
   for band=-2,2 do
    local bz=rowZ+band*6
    beam("RiceBund",Vector3.new(baseX-18,groundY(baseX-18,bz)+.18,bz),Vector3.new(baseX+18,groundY(baseX+18,bz)+.18,bz),.32,Enum.Material.Ground,Color3.fromRGB(93,82,59),RiceFields,false)
@@ -120,7 +118,6 @@ for rowZ=995,565,-72 do
  task.wait()
 end
 
--- Roadside grasses, stones, drainage markers and faded pavement cues near spawn.
 local roadsideDetail=0
 for z=1040,360,-24 do
  local cx=roadX(z)
@@ -137,13 +134,11 @@ for z=1040,360,-24 do
  end
 end
 
--- Village entrance sign visible shortly after spawn.
 local vz=990;local vx=roadX(vz)-24;local vy=groundY(vx,vz)
 for _,sx in ipairs({-1,1}) do mk("VillageSignPost",Vector3.new(.7,5.2,.7),CFrame.new(vx+sx*5.8,vy+2.6,vz),Enum.Material.Wood,Color3.fromRGB(74,55,39),Roadside,0,true) end
 local vs=mk("VillageSign",Vector3.new(13,3,.45),CFrame.new(vx,vy+5.4,vz),Enum.Material.WoodPlanks,Color3.fromRGB(80,58,40),Roadside,0,false)
 textSign(vs,"DESA KAKI GUNUNG")
 
--- Small roadside warung before the road deteriorates.
 local wz=620;local wx=roadX(wz)+30;local wy=groundY(wx,wz);local war=Instance.new("Model");war.Name="WarungKakiGunung";war.Parent=Roadside
 local wcf=CFrame.new(wx,wy,wz)*CFrame.Angles(0,math.rad(-8),0)
 mk("WarungFloor",Vector3.new(16,.5,10),wcf*CFrame.new(0,.35,0),Enum.Material.WoodPlanks,Color3.fromRGB(111,80,53),war,0,true)
@@ -152,17 +147,15 @@ mk("WarungRoof",Vector3.new(18,.55,12),wcf*CFrame.new(0,7.5,0)*CFrame.Angles(mat
 local ws=mk("WarungSign",Vector3.new(12,2.2,.35),wcf*CFrame.new(0,6.4,-5.2),Enum.Material.WoodPlanks,Color3.fromRGB(75,54,38),war,0,false);textSign(ws,"WARUNG KAKI GUNUNG")
 local wl=Instance.new("PointLight");wl.Brightness=1.0;wl.Range=16;wl.Color=Color3.fromRGB(255,207,143);wl.Parent=ws
 
--- Transition markers: road quality visibly worsens toward the vehicle end.
 local roadCue=0
 for z=560,190,-34 do
  local x=roadX(z);local y=groundY(x,z)
  for _,off in ipairs({-4.5,3.7}) do
-  local r=mk("BrokenRoadPatch",Vector3.new(2.2,.06,4.8),CFrame.new(x+off,y+.025,z)*CFrame.Angles(0,math.rad(z*1.7+off*9),0),Enum.Material.Ground,Color3.fromRGB(93,80,62),Roadside,0,false)
+  mk("BrokenRoadPatch",Vector3.new(2.2,.06,4.8),CFrame.new(x+off,y+.025,z)*CFrame.Angles(0,math.rad(z*1.7+off*9),0),Enum.Material.Ground,Color3.fromRGB(93,80,62),Roadside,0,false)
   roadCue+=1
  end
 end
 
--- Trail mouth at the public-road end: strong readable handoff from vehicle access to hiking.
 local tm=Vector3.new(28,groundY(28,190),190)
 for _,sx in ipairs({-1,1}) do mk("TrailMouthPost",Vector3.new(.85,6.8,.85),CFrame.new(tm+Vector3.new(sx*5.5,3.4,0)),Enum.Material.Wood,Color3.fromRGB(71,52,37),ForestEdge,0,true) end
 local tms=mk("TrailMouthSign",Vector3.new(13,2.6,.4),CFrame.new(tm+Vector3.new(0,6.8,0))*CFrame.Angles(0,math.rad(-14),0),Enum.Material.WoodPlanks,Color3.fromRGB(73,54,38),ForestEdge,0,false)
@@ -172,7 +165,6 @@ for _,sx in ipairs({-1,1}) do
  mk("VehicleStopBollard",Vector3.new(.7,3.1,.7),CFrame.new(bx,by+1.55,bz),Enum.Material.Wood,Color3.fromRGB(89,64,43),ForestEdge,0,true)
 end
 
--- Natural tree builder with irregular multi-cluster crown, never a single ball.
 local treeCount=0
 local function tree(x,z,s,variant)
  local y=groundY(x,z);local m=Instance.new("Model");m.Name="DenseGroundedTree";m.Parent=ForestEdge
@@ -191,7 +183,6 @@ local function tree(x,z,s,variant)
  treeCount+=1
 end
 
--- Forest density ramps up after the warung, stays clear of road/trail center.
 local forestPositions={
  {-8,390,1},{96,375,2},{4,345,3},{112,330,1},{8,305,2},{102,295,3},{0,270,4},{96,260,2},
  {-2,235,1},{87,230,3},{-5,205,2},{80,205,4},{-15,175,3},{72,170,1},
@@ -200,7 +191,6 @@ local forestPositions={
 }
 for i,t in ipairs(forestPositions) do tree(t[1],t[2],.72+(t[3]%3)*.05,t[3]);if i%5==0 then task.wait() end end
 
--- Trail undergrowth and rocks increase toward CP1; no full-width blockers.
 local trailPts={{28,190},{10,155},{-10,118},{-26,77},{-35,34},{-51,-4},{-67,-39},{-82,-72}}
 local trailDetail=0
 for i=2,#trailPts do
@@ -216,7 +206,6 @@ for i=2,#trailPts do
  end
 end
 
--- POS1 rebuilt compactly after the narrowing forest section.
 local cp1=Vector3.new(-82,groundY(-82,-72),-72)
 local hut=Instance.new("Model");hut.Name="POS1_Hut_v61";hut.Parent=POS1
 local hcf=CFrame.new(cp1.X-15,cp1.Y,cp1.Z+7)*CFrame.Angles(0,math.rad(12),0)
@@ -228,7 +217,6 @@ for _,sx in ipairs({-1,1}) do mk("GatePost",Vector3.new(1,7,1),CFrame.new(cp1.X+
 local cp=mk("CP01_POS1",Vector3.new(10,1,10),CFrame.new(cp1.X,cp1.Y+.6,cp1.Z),Enum.Material.SmoothPlastic,Color3.new(1,1,1),Checkpoints,1,false)
 cp:SetAttribute("CheckpointIndex",1);cp:SetAttribute("CheckpointName","POS 1 - KAKI GUNUNG");cp:SetAttribute("SaveReady",true)
 
--- Warm practical lights only; ambience still owns day/night.
 local function lamp(x,z)
  local y=groundY(x,z);local pole=mk("VillageLampPole",Vector3.new(.35,6.5,.35),CFrame.new(x,y+3.25,z),Enum.Material.Metal,Color3.fromRGB(65,62,56),Roadside,0,true)
  local head=mk("VillageLamp",Vector3.new(.9,.45,.9),CFrame.new(x,y+6.6,z),Enum.Material.Metal,Color3.fromRGB(76,71,62),Roadside,0,false)
