@@ -4,6 +4,7 @@
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
+local RunService=game:GetService("RunService")
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
@@ -230,3 +231,117 @@ end)
 
 task.defer(syncAll)
 print("[BBYA] Actual now-playing + Rooftop compact playlist bridge v2 online")
+
+-- BBYA MUSIC SUITE — CLUB LEVEL METER v5
+-- Replaces the decorative multi-color spectrum with a restrained DJ-style level meter.
+-- This is intentionally a LEVEL display, not a fake FFT/spectrum analyzer.
+
+local suite
+local meter
+local segments={}
+local smoothLevel=0
+local activeSound=nil
+local lastSoundScan=0
+
+local function suiteFind(name)
+ return suite and suite:FindFirstChild(name,true) or nil
+end
+
+local function findAudibleSound()
+ if activeSound and activeSound.Parent and activeSound.IsPlaying then return activeSound end
+ if os.clock()-lastSoundScan<0.5 then return activeSound end
+ lastSoundScan=os.clock()
+ local v=venue()
+ local group=groupFor(v)
+ for _,root in ipairs({SoundService,workspace}) do
+  for _,x in ipairs(root:GetDescendants()) do
+   if x:IsA("Sound") and x.IsPlaying then
+    if group and x.SoundGroup==group then activeSound=x;return x end
+    if x.Name:find("BBYA") then activeSound=x;return x end
+   end
+  end
+ end
+ activeSound=nil
+ return nil
+end
+
+local function destroyAIViz()
+ if not suite then return end
+ local hero=suite:FindFirstChild("HeroVisualizerV3",true)
+ if hero then hero:Destroy() end
+ local track=suiteFind("Track")
+ local info=track and track.Parent
+ if info then
+  for _,d in ipairs(info:GetChildren()) do
+   if d:IsA("Frame") and #d:GetChildren()>=12 then d.Visible=false end
+  end
+ end
+end
+
+local function buildMeter()
+ suite=pg:FindFirstChild("BBYAMusicSuiteV1")
+ if not suite then return false end
+ destroyAIViz()
+ local track=suiteFind("Track")
+ local info=track and track.Parent
+ local card=info and info.Parent
+ if not card then return false end
+ local old=card:FindFirstChild("ClubLevelMeterV5")
+ if old then old:Destroy() end
+ meter=Instance.new("Frame")
+ meter.Name="ClubLevelMeterV5"
+ meter.Position=UDim2.new(0,18,1,-106)
+ meter.Size=UDim2.new(1,-36,0,18)
+ meter.BackgroundTransparency=1
+ meter.Parent=card
+ local title=Instance.new("TextLabel")
+ title.Name="Label";title.BackgroundTransparency=1;title.Text="LEVEL";title.Position=UDim2.fromOffset(0,0);title.Size=UDim2.fromOffset(34,18)
+ title.Font=Enum.Font.GothamBold;title.TextSize=6;title.TextColor3=Color3.fromRGB(118,122,135);title.TextXAlignment=Enum.TextXAlignment.Left;title.Parent=meter
+ segments={}
+ local count=18
+ for i=1,count do
+  local seg=Instance.new("Frame")
+  seg.Name="S"..i
+  seg.Position=UDim2.new(0,38+(i-1)*14,0,5)
+  seg.Size=UDim2.fromOffset(10,8)
+  seg.BorderSizePixel=0
+  if i<=12 then seg.BackgroundColor3=Color3.fromRGB(74,190,126)
+  elseif i<=16 then seg.BackgroundColor3=Color3.fromRGB(224,177,72)
+  else seg.BackgroundColor3=Color3.fromRGB(220,78,82) end
+  seg.BackgroundTransparency=.84
+  seg.Parent=meter
+  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,2);c.Parent=seg
+  segments[i]=seg
+ end
+ return true
+end
+
+local function ensureMeter()
+ suite=pg:FindFirstChild("BBYAMusicSuiteV1")
+ if not suite then return end
+ destroyAIViz()
+ if not meter or not meter.Parent then buildMeter() end
+end
+
+pg.ChildAdded:Connect(function(child)
+ if child.Name=="BBYAMusicSuiteV1" then
+  task.delay(.1,ensureMeter);task.delay(.5,ensureMeter);task.delay(1.0,ensureMeter)
+ end
+end)
+
+task.defer(ensureMeter)
+task.delay(.3,ensureMeter)
+task.delay(.9,ensureMeter)
+
+RunService.RenderStepped:Connect(function(dt)
+ if not suite or not suite.Parent then ensureMeter();return end
+ if not meter or not meter.Parent then ensureMeter();return end
+ local s=findAudibleSound()
+ local raw=s and math.clamp((s.PlaybackLoudness-8)/520,0,1) or 0
+ local k=raw>smoothLevel and math.min(1,dt*12) or math.min(1,dt*4.5)
+ smoothLevel=smoothLevel+(raw-smoothLevel)*k
+ local active=math.floor(smoothLevel*#segments+0.5)
+ for i,seg in ipairs(segments) do seg.BackgroundTransparency=(i<=active) and .06 or .84 end
+end)
+
+print("[BBYA] Club level meter v5 active — restrained DJ meter / no decorative AI spectrum")
