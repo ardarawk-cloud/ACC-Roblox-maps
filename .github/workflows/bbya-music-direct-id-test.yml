@@ -11,92 +11,41 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: bbya-music-direct-id-test
-  cancel-in-progress: true
-
 jobs:
-  inject:
+  diagnose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 5
     env:
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
     steps:
-      - name: Inject approved screenshot IDs to isolated test universe
+      - name: Probe isolated test-universe Messaging API
         shell: bash
         run: |
-          set -euo pipefail
-          test -n "${ROBLOX_API_KEY:-}" || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'; exit 1; }
+          set -u
           python3 - <<'PY'
-          import json, os, time, urllib.request, urllib.error
-
-          universe='10762005984'
-          topic='BBYA_MUSIC_UNDERGROUND_V1'
-          url=f'https://apis.roblox.com/cloud/v2/universes/{universe}:publishMessage'
-          key=os.environ['ROBLOX_API_KEY']
-          rev=2026083001
-          tracks=[
-            ('86006580589828','DJ LUKA NEGARA VERSI JEPANG V2'),
-            ('125820152354579',"DJ Paradise X Velocity Baby Don't Go feat IMA Audio"),
-            ('133947654553749','DJ TJAP Morgan V4'),
-            ('95691778643767','DJ Ayang Ayang'),
-            ('130313438027284','Funk Do Bounce'),
-            ('75712054983357','Hadroh Ya Thoybha | Ar Production'),
-            ('88943191512256','DJ Banteng Lestari'),
-            ('91809948844354','DJ Gangsta MP'),
-            ('108578144206183','DJ Kandas HKS'),
-            ('89763491889927','DJ Battle HKS'),
-            ('96924419000406','DJ Trap Love Of War'),
-            ('132460784559824','DJ Cinta Yang Sempurna'),
-            ('122720606049274','DJ Bocah Bocah Cilik Sholawat'),
-            ('70777592375726','DJ Mahabarata'),
-            ('98308711398889','DJ Bila Nanti'),
-            ('95839337053281','DJ Punk Rock Jalanan'),
-            ('135587255285184','DJ TJAP Morgan Trompet - By Klepon Remix'),
-            ('104136707299013','DJ Gedhang Klutuk by DJ Tanti'),
-            ('131597067752690','Garam Cina'),
-            ('73502975968958','DJ Sin Pijama by Alvin Revolution'),
-            ('101289385838814','DJ Trompet Brazil'),
-            ('102043858565172','DJ Viral Tik Tok Pal Pal Di Kepas'),
-            ('79235704240751','DJ Twenty One Pilots Nova - Tambal Elang'),
-            ('103710801320668','DJ Prank Karnaval Viral Booyah'),
-          ]
-
-          def publish(delta):
-              payload=json.dumps({'topic':topic,'message':json.dumps(delta,separators=(',',':'))}).encode()
-              req=urllib.request.Request(url,data=payload,method='POST',headers={
-                  'x-api-key':key,
-                  'Content-Type':'application/json',
-                  'Accept':'application/json',
-              })
+          import json, os, urllib.request, urllib.error
+          result={'secret_present': bool(os.environ.get('ROBLOX_API_KEY'))}
+          if result['secret_present']:
+              url='https://apis.roblox.com/cloud/v2/universes/10762005984:publishMessage'
+              payload=json.dumps({'topic':'BBYA_MUSIC_UNDERGROUND_V1','message':json.dumps({'v':1,'z':'underground','op':'upsert','rev':2026083002,'trackId':'direct-probe-01','assetId':'86006580589828','title':'DJ LUKA NEGARA VERSI JEPANG V2','artist':'Direct Test','order':1,'enabled':True},separators=(',',':'))}).encode()
+              req=urllib.request.Request(url,data=payload,method='POST',headers={'x-api-key':os.environ['ROBLOX_API_KEY'],'Content-Type':'application/json','Accept':'application/json'})
               try:
                   with urllib.request.urlopen(req,timeout=20) as r:
-                      body=r.read().decode('utf-8','replace')
-                      if r.status < 200 or r.status >= 300:
-                          raise RuntimeError(f'HTTP {r.status}: {body[:500]}')
-                      return r.status
+                      result['http']=r.status
+                      result['body']=r.read().decode('utf-8','replace')[:2000]
               except urllib.error.HTTPError as e:
-                  body=e.read().decode('utf-8','replace')
-                  raise RuntimeError(f'HTTP {e.code}: {body[:1000]}')
-
-          # Three delivery windows so the user can simply open the test place;
-          # no Android OAuth is required for this song-listening test.
-          for round_no in range(1,4):
-              print(f'ROUND {round_no}/3 -> BBYA Music UI Test universe {universe}')
-              if round_no == 1:
-                  publish({'v':1,'z':'underground','op':'clear','rev':rev})
-                  time.sleep(0.4)
-              for i,(asset_id,title) in enumerate(tracks,1):
-                  delta={
-                      'v':1,'z':'underground','op':'upsert','rev':rev,
-                      'trackId':f'direct-shot-20260830-{i:02d}',
-                      'assetId':asset_id,'title':title,
-                      'artist':'Screenshot Roblox ID Test','order':i,'enabled':True,
-                  }
-                  publish(delta)
-                  time.sleep(0.12)
-              print(f'ROUND {round_no} complete: {len(tracks)} approved IDs published')
-              if round_no < 3:
-                  time.sleep(90)
-          print('DIRECT_ID_TEST_COMPLETE universe=10762005984 tracks=24 rejected_skipped=1')
+                  result['http']=e.code
+                  result['body']=e.read().decode('utf-8','replace')[:2000]
+              except Exception as e:
+                  result['http']=0
+                  result['body']=type(e).__name__+': '+str(e)
+          open('bbya-direct-messaging-diagnostic.json','w').write(json.dumps(result,indent=2))
+          print(json.dumps(result))
           PY
+
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBYA-DIRECT-MESSAGING-DIAGNOSTIC
+          path: bbya-direct-messaging-diagnostic.json
+          retention-days: 2
