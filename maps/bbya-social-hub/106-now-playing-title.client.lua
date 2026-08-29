@@ -232,6 +232,9 @@ local function destroyOldViz()
   local old=suite:FindFirstChild(name,true)
   if old and old~=meter then old:Destroy() end
  end
+ -- The separate green LIVE pill duplicates the smaller PLAYING status and crowds the title.
+ local livePill=suite:FindFirstChild("LivePillV3",true)
+ if livePill then livePill:Destroy() end
  local track=suiteFind("Track")
  local info=track and track.Parent
  if info then
@@ -330,4 +333,4 @@ RunService.RenderStepped:Connect(function(dt)
  if clipText then clipText.TextColor3=clipping and Color3.fromRGB(230,83,88) or Color3.fromRGB(115,91,94) end
 end)
 
-print("[BBYA] Master level meter v6 active — hardware segments / peak hold / clip / restrained motion")
+print("[BBYA] Master level meter v6 active — LIVE pill cleanup / hardware segments / peak hold / clip")
