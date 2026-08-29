@@ -1,10 +1,8 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v7
--- Each music channel is audible only inside its own physical venue.
--- v7 preserves v6 fail-closed neutral/startup behavior while restoring the
--- canonical Skatepark and Rooftop master volumes when their local gates open.
--- Funkot remains owned by its dedicated zone client and is intentionally untouched.
--- Main Club includes the former studio lounge + shared restroom with room-aware attenuation.
--- VIP is a separate channel. Compact Music v7 can mute locally through BBYAMusicMuted.
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v8
+-- Deterministic local venue isolation using EQ gates only.
+-- IMPORTANT: this router never mutates SoundGroup.Volume. Each venue audio authority
+-- owns its own master gain; the router only decides what this client may hear.
+-- This removes the v6/v7 neutral-spawn failure where master groups could remain at 0.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -22,13 +20,6 @@ local GROUPS={
  ROOFTOP={name="BBYARooftopMaster"},
 }
 
--- v6 could leave these two groups at zero after spawn/neutral because only the EQ
--- gate was reopened on venue entry. Restore only the two affected authorities.
-local RESTORE_VOLUMES={
- SKATEPARK=1.0,
- ROOFTOP=.86,
-}
-
 local MAIN_TRIM={
  CORE=0,
  FORMER_STUDIO_LOUNGE=-3.0,
@@ -40,17 +31,16 @@ local gates={}
 local muteButton
 
 local function ensureGate(key,g)
- local gate=g:FindFirstChild("BBYAVenueGateV7") or g:FindFirstChild("BBYAVenueGateV6") or g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
+ local gate=g:FindFirstChild("BBYAVenueGateV8") or g:FindFirstChild("BBYAVenueGateV7") or g:FindFirstChild("BBYAVenueGateV6") or g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
  if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
  if not gate then
   gate=Instance.new("EqualizerSoundEffect")
-  gate.Name="BBYAVenueGateV7"
   gate.Parent=g
- else
-  gate.Name="BBYAVenueGateV7"
  end
+ gate.Name="BBYAVenueGateV8"
  gate.Enabled=true
  gates[key]=gate
+ g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V8_EQ_ONLY")
  return gate
 end
 
@@ -60,6 +50,9 @@ local function resolveGroups()
   if g and g:IsA("SoundGroup") then
    cache[key]=g
    ensureGate(key,g)
+  else
+   cache[key]=nil
+   gates[key]=nil
   end
  end
 end
@@ -123,16 +116,6 @@ local function setGate(gate,open,gainDb)
  if gate.HighGain~=gain then gate.HighGain=gain end
 end
 
-local function forceNeutralVolumes()
- local currentVenue=currentPlayerAudioContext()
- if currentVenue~="NONE" then return end
- resolveGroups()
- for _,g in pairs(cache) do
-  if g and g.Parent and g.Volume~=0 then g.Volume=0 end
- end
- player:SetAttribute("BBYAAudioFailClosed",true)
-end
-
 local function enforce()
  resolveGroups()
  local currentVenue,currentRoom,mainTrim=currentPlayerAudioContext()
@@ -144,51 +127,45 @@ local function enforce()
    local gate=gates[key] or ensureGate(key,g)
    setGate(gate,open,trim)
 
-   -- Keep v6's hard fail-closed neutral behavior, but repair the missing return path:
-   -- Skatepark/Rooftop regain their canonical local master volume when their own
-   -- gate is open. Funkot is deliberately excluded because 92-funkot-zone owns it.
-   if currentVenue=="NONE" then
-    if g.Volume~=0 then g.Volume=0 end
-   elseif open then
-    local restore=RESTORE_VOLUMES[key]
-    if restore and g.Volume~=restore then g.Volume=restore end
-   end
-
+   -- EQ_ONLY_V8: never write g.Volume here. Venue master gain belongs exclusively
+   -- to that venue's server/audio authority, preventing neutral/spawn from leaving
+   -- Underground/Main/VIP/Skatepark/Rooftop stuck at zero.
    g:SetAttribute("BBYALocalAudible",open)
    g:SetAttribute("BBYAAudioRouterVenue",currentVenue)
    g:SetAttribute("BBYAActiveTrimDb",open and trim or -80)
-   if RESTORE_VOLUMES[key] then
-    g:SetAttribute("BBYAVolumeRestoreAuthority","ROUTER_V7")
-   end
+   g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V8_EQ_ONLY")
   end
  end
  player:SetAttribute("BBYAAudioVenue",currentVenue)
  player:SetAttribute("BBYAAudioRoom",currentRoom or "NONE")
  player:SetAttribute("BBYAMainTrimDb",currentVenue=="MAIN" and mainTrim or -80)
  player:SetAttribute("BBYAAudioFailClosed",currentVenue=="NONE")
+ player:SetAttribute("BBYAAudioRouterAuthority","ROUTER_V8_EQ_ONLY")
 end
 
 local function bindMute()
  local b=resolveMuteButton()
- if b and not b:GetAttribute("BBYAAudioMuteGuardV7") then
-  b:SetAttribute("BBYAAudioMuteGuardV7",true)
+ if b and not b:GetAttribute("BBYAAudioMuteGuardV8") then
+  b:SetAttribute("BBYAAudioMuteGuardV8",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()task.defer(enforce)end)
  end
 end
 
 SoundService.ChildAdded:Connect(function(child)
- if child:IsA("SoundGroup") then task.defer(function()forceNeutralVolumes();enforce()end) end
+ if child:IsA("SoundGroup") then task.defer(enforce) end
 end)
-pg.ChildAdded:Connect(function()task.defer(function()bindMute();forceNeutralVolumes();enforce()end)end)
+SoundService.ChildRemoved:Connect(function(child)
+ if child:IsA("SoundGroup") then task.defer(enforce) end
+end)
+pg.ChildAdded:Connect(function()task.defer(function()bindMute();enforce()end)end)
 player.CharacterAdded:Connect(function()
- task.defer(function()forceNeutralVolumes();enforce()end)
+ task.defer(enforce)
  task.delay(.35,enforce)
 end)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function()task.defer(enforce)end)
 
 local acc=0
 RunService.Heartbeat:Connect(function(dt)
- forceNeutralVolumes()
  acc+=dt
  if acc<.10 then return end
  acc=0
@@ -196,5 +173,5 @@ RunService.Heartbeat:Connect(function(dt)
  enforce()
 end)
 
-task.defer(function()bindMute();forceNeutralVolumes();enforce()end)
-print("[BBYA] Strict venue audio router v7: neutral fail-closed preserved; Skatepark/Rooftop local master-volume restore active")
+task.defer(function()bindMute();enforce()end)
+print("[BBYA] Strict venue audio router v8: EQ-only isolation active; venue master volumes are never mutated")

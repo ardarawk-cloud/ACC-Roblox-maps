@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — VENUE LIGHTING v3
+-- BBYA SOCIAL HUB — GLOBAL LIGHTING AUTHORITY v4
+-- Single deterministic global Lighting profile for the experience.
+-- Venue-specific scripts may create local fixtures, but must not rewrite global Lighting.
 -- Material-first nightclub lighting: warm architectural base + restrained moving heads.
--- Server owns architecture and pan/tilt only; client audio-reactive renderer owns live beam intensity.
 
 local W=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
@@ -13,7 +14,8 @@ if old then old:Destroy() end
 local m=Instance.new("Model")
 m.Name="ClubAmbience"
 m.Parent=root
-m:SetAttribute("BBYALightingAuthority","SERVER_MOTION_CLIENT_AUDIO_INTENSITY_V3")
+m:SetAttribute("BBYALightingAuthority","GLOBAL_LIGHTING_AUTHORITY_V4")
+Lighting:SetAttribute("BBYAGlobalLightingAuthority","28_LIGHTING_AMBIENCE_V4")
 
 local C={pink=Color3.fromRGB(255,39,154),cyan=Color3.fromRGB(0,200,230),warm=Color3.fromRGB(255,191,132),neutral=Color3.fromRGB(224,214,207)}
 local function emitter(name,pos)
@@ -47,14 +49,29 @@ point("BarWarmFront",Vector3.new(40,7,3),C.warm,.78,16,true)
 point("BarWarmRear",Vector3.new(40,7,20),C.warm,.72,16,true)
 point("StageWash",Vector3.new(3,12,39),Color3.fromRGB(190,173,196),.48,18,false)
 
-Lighting.ClockTime=21.2;Lighting.Brightness=1.55;Lighting.Ambient=Color3.fromRGB(29,26,33);Lighting.OutdoorAmbient=Color3.fromRGB(19,17,24)
-Lighting.EnvironmentDiffuseScale=.34;Lighting.EnvironmentSpecularScale=.88;Lighting.ShadowSoftness=.32;Lighting.ExposureCompensation=-.20
-local at=Lighting:FindFirstChild("BBYAAtmosphere") or Instance.new("Atmosphere")
-at.Name="BBYAAtmosphere";at.Density=.19;at.Offset=.03;at.Color=Color3.fromRGB(151,139,166);at.Decay=Color3.fromRGB(50,39,59);at.Glare=.04;at.Haze=.55;at.Parent=Lighting
-local bloom=Lighting:FindFirstChild("BBYABloom") or Instance.new("BloomEffect")
-bloom.Name="BBYABloom";bloom.Intensity=.28;bloom.Size=22;bloom.Threshold=1.65;bloom.Parent=Lighting
-local cc=Lighting:FindFirstChild("BBYAColor") or Instance.new("ColorCorrectionEffect")
-cc.Name="BBYAColor";cc.Brightness=-.015;cc.Contrast=.08;cc.Saturation=-.035;cc.TintColor=Color3.fromRGB(244,236,248);cc.Parent=Lighting
+local function applyGlobalProfile()
+ Lighting.ClockTime=21.2
+ Lighting.Brightness=1.55
+ Lighting.Ambient=Color3.fromRGB(29,26,33)
+ Lighting.OutdoorAmbient=Color3.fromRGB(19,17,24)
+ Lighting.EnvironmentDiffuseScale=.34
+ Lighting.EnvironmentSpecularScale=.88
+ Lighting.ShadowSoftness=.32
+ Lighting.ExposureCompensation=-.20
+ local at=Lighting:FindFirstChild("BBYAAtmosphere") or Instance.new("Atmosphere")
+ at.Name="BBYAAtmosphere";at.Density=.19;at.Offset=.03;at.Color=Color3.fromRGB(151,139,166);at.Decay=Color3.fromRGB(50,39,59);at.Glare=.04;at.Haze=.55;at.Parent=Lighting
+ local bloom=Lighting:FindFirstChild("BBYABloom") or Instance.new("BloomEffect")
+ bloom.Name="BBYABloom";bloom.Intensity=.28;bloom.Size=22;bloom.Threshold=1.65;bloom.Parent=Lighting
+ local cc=Lighting:FindFirstChild("BBYAColor") or Instance.new("ColorCorrectionEffect")
+ cc.Name="BBYAColor";cc.Brightness=-.015;cc.Contrast=.08;cc.Saturation=-.035;cc.TintColor=Color3.fromRGB(244,236,248);cc.Parent=Lighting
+ Lighting:SetAttribute("BBYAGlobalLightingAuthority","28_LIGHTING_AMBIENCE_V4")
+end
+
+applyGlobalProfile()
+-- Re-assert once after startup so a legacy server script that starts later cannot
+-- leave a different join-time exposure. There is no continuous fight: this is a
+-- deterministic startup settle, and venue-local fixtures remain independent.
+task.delay(2.5,applyGlobalProfile)
 
 -- Low-frequency pan/tilt only. Brightness is intentionally untouched after construction so each client can follow actual audio amplitude.
 task.spawn(function()
@@ -70,4 +87,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] venue lighting v3 online: warm base + restrained motion / client audio intensity")
+print("[BBYA] global lighting authority v4 online: deterministic profile + venue-local fixtures")

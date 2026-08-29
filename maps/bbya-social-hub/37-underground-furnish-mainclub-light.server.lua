@@ -1,8 +1,9 @@
 local W=game:GetService("Workspace")
-local Lighting=game:GetService("Lighting")
 local root=W:FindFirstChild("BBYA_ZERO_BUILD") or Instance.new("Folder",W);root.Name="BBYA_ZERO_BUILD"
 local old=root:FindFirstChild("UndergroundFurnishAndLight");if old then old:Destroy() end
 local m=Instance.new("Model",root);m.Name="UndergroundFurnishAndLight"
+m:SetAttribute("BBYAGlobalLightingWrites",false)
+m:SetAttribute("BBYALightingPolicy","DEFER_TO_28_GLOBAL_AUTHORITY")
 local C={dark=Color3.fromRGB(11,14,20),metal=Color3.fromRGB(45,51,62),blue=Color3.fromRGB(0,142,255),yellow=Color3.fromRGB(255,202,36),white=Color3.fromRGB(235,238,242),black=Color3.fromRGB(18,18,22),brown=Color3.fromRGB(66,44,28)}
 local function p(n,s,cf,c,mat,t,parent)local x=Instance.new("Part");x.Name=n;x.Anchored=true;x.CanCollide=true;x.Size=s;x.CFrame=cf;x.Color=c;x.Material=mat or Enum.Material.SmoothPlastic;x.Transparency=t or 0;x.Parent=parent or m;return x end
 local function neon(n,s,cf,c,parent)local x=p(n,s,cf,c,Enum.Material.Neon,0,parent);x.CanCollide=false;return x end
@@ -43,11 +44,12 @@ p("LegR",Vector3.new(1.3,4.2,1.4),CFrame.new(-38,-13.1,35.5),Color3.fromRGB(34,3
 -- reinforce Underground dance floor with premium tile accents
 for _,x in ipairs({-20,-10,0,10,20}) do neon("UGDanceX"..x,Vector3.new(.12,.07,28),CFrame.new(x,-14.62,1),x%20==0 and C.blue or C.yellow,m) end
 for _,z in ipairs({-10,1,12}) do neon("UGDanceZ"..z,Vector3.new(48,.07,.12),CFrame.new(0,-14.61,z),z==1 and C.yellow or C.blue,m) end
--- MAIN CLUB brighter lighting: ambient + focused ceiling fixtures
-Lighting.Brightness=2.35
-Lighting.Ambient=Color3.fromRGB(72,66,82)
-Lighting.OutdoorAmbient=Color3.fromRGB(35,33,43)
-Lighting.ExposureCompensation=.25
+
+-- STABILITY LOCK: this script previously wrote global Lighting properties while
+-- 28-lighting-ambience.server.lua wrote different values. Server script start order
+-- is not deterministic, so joins could receive different exposure/ambient profiles.
+-- Global Lighting is now owned only by the dedicated lighting authority; this file
+-- creates venue-local fixtures only.
 local main=Instance.new("Model",m);main.Name="MainClubBrightening"
 for _,x in ipairs({-24,-12,0,12,24}) do
  for _,z in ipairs({-2,10,22}) do
@@ -59,4 +61,4 @@ for _,x in ipairs({-26,26}) do
  local wash=neon("MainSideWash"..x,Vector3.new(.25,7,.25),CFrame.new(x,8,15),x<0 and Color3.fromRGB(255,60,170) or Color3.fromRGB(0,180,255),main)
  point(wash,wash.Color,1.8,20)
 end
-print("[BBYA] Underground bar + bartender + premium sofas + dance floor, Main Club brightened")
+print("[BBYA] Underground furnish pass online; global Lighting deferred to dedicated authority")
