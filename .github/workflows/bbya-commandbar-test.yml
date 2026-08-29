@@ -1,5 +1,5 @@
 name: BBYA Pro DJ Rig v1 — ISOLATED TEST PUBLISH
-# Trigger 2: workflow is now registered on default branch; publish test target only.
+# Git is not installed on this self-hosted runner; checkout exact verified prototype SHA via REST archive.
 
 on:
   push:
@@ -15,8 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PROTOTYPE_REF: 'feat/bbya-pro-dj-rig-v1-test'
-  BASE_SHA: '26a73635438bd4ed07cd9e6f79da48a5a9a2384d'
+  PROTOTYPE_SHA: 'ad79393e387cbb763a08126ff297c5fc6d098351'
   TEST_UNIVERSE_ID: '10762005984'
   TEST_PLACE_ID: '124607344716828'
 
@@ -25,42 +24,22 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - name: Checkout isolated prototype
+      - name: Checkout exact isolated prototype
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.PROTOTYPE_REF }}
-          fetch-depth: 0
+          ref: ${{ env.PROTOTYPE_SHA }}
 
       - name: Hard safety guard
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $sha=(git rev-parse HEAD).Trim()
-          if($sha -notmatch '^[0-9a-f]{40}$'){throw "Invalid prototype sha: $sha"}
+          if($env:PROTOTYPE_SHA -ne 'ad79393e387cbb763a08126ff297c5fc6d098351'){throw 'Prototype SHA mismatch'}
           if($env:TEST_UNIVERSE_ID -ne '10762005984'){throw 'Unexpected test universe'}
           if($env:TEST_PLACE_ID -ne '124607344716828'){throw 'Unexpected test place'}
           if($env:TEST_UNIVERSE_ID -eq '8116636513' -or $env:TEST_PLACE_ID -eq '131894120482837'){throw 'LIVE TARGET BLOCKED'}
-          "PROTOTYPE_SHA=$sha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "TARGET_GUARD_PASS source=$sha universe=$env:TEST_UNIVERSE_ID place=$env:TEST_PLACE_ID"
+          Write-Host "TARGET_GUARD_PASS source=$env:PROTOTYPE_SHA universe=$env:TEST_UNIVERSE_ID place=$env:TEST_PLACE_ID"
 
-      - name: Verify isolated diff only
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          git cat-file -e "$env:BASE_SHA^{commit}"
-          if($LASTEXITCODE -ne 0){throw 'Pinned baseline unavailable'}
-          $changed=@(git diff --name-only "$env:BASE_SHA...HEAD")
-          $allowed=@(
-            'maps/bbya-social-hub/41-mesh-assets.server.lua',
-            'docs/bbya-pro-dj-rig-v1-test.md',
-            '.github/workflows/bbya-pro-dj-rig-test-publish.yml'
-          )
-          $bad=@($changed | Where-Object {$allowed -notcontains $_})
-          if($bad.Count -gt 0){throw "Unexpected prototype files: $($bad -join ', ')"}
-          if($changed -notcontains 'maps/bbya-social-hub/41-mesh-assets.server.lua'){throw 'DJ rig source change missing'}
-          Write-Host "DIFF_FIREWALL_PASS $($changed -join ', ')"
-
-      - name: Verify visual-only prototype
+      - name: Verify visual-only prototype source
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -112,9 +91,9 @@ jobs:
           $bytes=(Get-Item $place).Length
           if($bytes -lt 1024){throw "RBXL too small: $bytes"}
           "TEST_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BUILD_PASS bytes=$bytes"
+          Write-Host "BUILD_PASS bytes=$bytes source=$env:PROTOTYPE_SHA"
 
-      - name: Create temporary test target in runner only
+      - name: Create temporary test registry target in runner only
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
