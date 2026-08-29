@@ -1,4 +1,5 @@
 name: BBYA Pro DJ Rig v1 Test Launcher
+# Trigger 2026-08-29: publish prototype only to the dedicated Music UI test place.
 
 on:
   push:
