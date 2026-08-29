@@ -6,8 +6,8 @@
 local AssetService = game:GetService("AssetService")
 local Workspace = game:GetService("Workspace")
 
-local LEFT_ASSET_ID = 0 -- BBYA_CAR_LEFT_ASSET_ID
-local RIGHT_ASSET_ID = 0 -- BBYA_CAR_RIGHT_ASSET_ID
+local LEFT_ASSET_ID = 75165818784223 -- BBYA_CAR_LEFT_ASSET_ID
+local RIGHT_ASSET_ID = 119133013192596 -- BBYA_CAR_RIGHT_ASSET_ID
 local TARGET_LENGTH = 16.4
 local ROAD_SURFACE_Y = 0.52
 
