@@ -78,6 +78,9 @@
       },
       "ASC_LockerClearanceHotfix": {
         "$path": "after-school-city.locker-clearance-hotfix.server.lua"
+      },
+      "ASC_ExteriorLockerCleanup": {
+        "$path": "after-school-city.exterior-locker-cleanup.server.lua"
       }
     },
     "StarterGui": {
