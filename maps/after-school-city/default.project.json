@@ -81,6 +81,9 @@
       },
       "ASC_ExteriorLockerCleanup": {
         "$path": "after-school-city.exterior-locker-cleanup.server.lua"
+      },
+      "ASC_SchoolRoadVisualDefectCleanup": {
+        "$path": "after-school-city.school-road-visual-defect-cleanup.server.lua"
       }
     },
     "StarterGui": {
