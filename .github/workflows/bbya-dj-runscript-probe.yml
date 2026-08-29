@@ -1,0 +1,112 @@
+name: BBYA DJ RunScript Native Asset Probe
+
+on:
+  push:
+    branches:
+      - 'feat/bbya-pro-dj-realmesh-v2-test'
+    paths:
+      - '.github/workflows/bbya-dj-runscript-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - name: Probe native Creator Store assets inside Music UI test place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place='124607344716828'
+          $universe='10762005984'
+          if($place -eq '131894120482837' -or $universe -eq '8116636513'){ throw 'Refusing BBYA LIVE target' }
+
+          $studio=Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Roblox\Versions') -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){ throw 'RobloxStudioBeta.exe not found on BBYA-STUDIO-WORKER' }
+
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-dj-native-probe'
+          if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $script=Join-Path $dir 'probe.luau'
+          $out=Join-Path $dir 'probe-output.txt'
+
+          @'
+          local TEST_PLACE = 124607344716828
+          local TEST_UNIVERSE = 10762005984
+          assert(game.PlaceId == TEST_PLACE, "WRONG_PLACE:" .. tostring(game.PlaceId))
+          assert(game.GameId == TEST_UNIVERSE, "WRONG_UNIVERSE:" .. tostring(game.GameId))
+          local AssetService = game:GetService("AssetService")
+          print("BBYA_DJ_RUNSCRIPT_TARGET_PASS place=" .. game.PlaceId .. " universe=" .. game.GameId)
+          local okAllow, allow = pcall(function() return AssetService.AllowInsertFreeAssets end)
+          print("BBYA_DJ_ALLOW_INSERT_FREE_ASSETS ok=" .. tostring(okAllow) .. " value=" .. tostring(allow))
+
+          local function inspect(id, label)
+              local ok, result = pcall(function()
+                  return AssetService:LoadAssetAsync(id)
+              end)
+              if not ok then
+                  print("BBYA_DJ_LOAD_FAIL label=" .. label .. " id=" .. id .. " method=LoadAssetAsync err=" .. tostring(result))
+                  local ok2, result2 = pcall(function()
+                      return game:GetObjects("rbxassetid://" .. tostring(id))
+                  end)
+                  if not ok2 then
+                      print("BBYA_DJ_GETOBJECTS_FAIL label=" .. label .. " id=" .. id .. " err=" .. tostring(result2))
+                      return false
+                  end
+                  result = result2
+                  ok = true
+                  print("BBYA_DJ_GETOBJECTS_PASS label=" .. label .. " id=" .. id .. " count=" .. tostring(#result2))
+              end
+              local roots = {}
+              if typeof(result) == "Instance" then
+                  table.insert(roots, result)
+              elseif type(result) == "table" then
+                  for _,v in ipairs(result) do if typeof(v) == "Instance" then table.insert(roots, v) end end
+              end
+              local parts, mesh, scripts, sounds, remotes = 0,0,0,0,0
+              for _,root in ipairs(roots) do
+                  local all = {root}
+                  for _,d in ipairs(root:GetDescendants()) do table.insert(all,d) end
+                  for _,d in ipairs(all) do
+                      if d:IsA("BasePart") then parts += 1 end
+                      if d:IsA("MeshPart") then mesh += 1 end
+                      if d:IsA("LuaSourceContainer") then scripts += 1 end
+                      if d:IsA("Sound") or d.ClassName == "AudioPlayer" then sounds += 1 end
+                      if d:IsA("RemoteEvent") or d:IsA("RemoteFunction") then remotes += 1 end
+                  end
+                  root:Destroy()
+              end
+              print("BBYA_DJ_ASSET_PROBE_PASS label=" .. label .. " id=" .. id .. " roots=" .. #roots .. " parts=" .. parts .. " mesh=" .. mesh .. " scripts=" .. scripts .. " sounds=" .. sounds .. " remotes=" .. remotes)
+              return #roots > 0
+          end
+
+          local deck = inspect(16279963856, "CDJ3000_PAIR")
+          local mixer = inspect(1404819158, "DJ_MIXER_LARGE_DETAILED")
+          assert(deck, "DECK_ASSET_NOT_LOADABLE")
+          assert(mixer, "MIXER_ASSET_NOT_LOADABLE")
+          print("BBYA_DJ_NATIVE_ASSET_PROBE_COMPLETE")
+          '@ | Set-Content -Path $script -Encoding utf8
+
+          Write-Host "STUDIO_EXE=$($studio.FullName)"
+          $args=@('--task','RunScript','--placeId',$place,'--universeId',$universe,'--runScriptFile',$script,'--outputFile',$out,'--quitAfterExecution')
+          $p=Start-Process -FilePath $studio.FullName -ArgumentList $args -PassThru -Wait
+          Write-Host "STUDIO_EXIT=$($p.ExitCode)"
+          if(Test-Path $out){
+            Get-Content $out | ForEach-Object { Write-Host "STUDIO_SCRIPT_OUTPUT $_" }
+            $text=Get-Content $out -Raw
+          } else {
+            $text=''
+          }
+          $logs=Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Roblox\logs') -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+          foreach($log in $logs){
+            Select-String -Path $log.FullName -Pattern 'BBYA_DJ_' -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -Last 30 | ForEach-Object { Write-Host "ROBLOX_LOG $($_.Line)" }
+          }
+          if($text -notmatch 'BBYA_DJ_NATIVE_ASSET_PROBE_COMPLETE'){
+            $logText=($logs | ForEach-Object { Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue }) -join "`n"
+            if($logText -notmatch 'BBYA_DJ_NATIVE_ASSET_PROBE_COMPLETE'){ throw 'Native DJ asset probe did not complete' }
+          }
+          Write-Host 'BBYA_DJ_RUNSCRIPT_PROBE_PASS'
