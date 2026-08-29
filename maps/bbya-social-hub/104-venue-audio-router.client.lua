@@ -1,8 +1,8 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v8
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9
 -- Deterministic local venue isolation using EQ gates only.
--- IMPORTANT: this router never mutates SoundGroup.Volume. Each venue audio authority
--- owns its own master gain; the router only decides what this client may hear.
--- This removes the v6/v7 neutral-spawn failure where master groups could remain at 0.
+-- V9 adds a second fail-closed EQ directly on every Funkot Sound so spawn/track
+-- replication races cannot leak Funkot audio outside the Funkot Diskotik zone.
+-- IMPORTANT: this router never mutates SoundGroup.Volume or Sound.Volume.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -20,40 +20,34 @@ local GROUPS={
  ROOFTOP={name="BBYARooftopMaster"},
 }
 
-local MAIN_TRIM={
- CORE=0,
- FORMER_STUDIO_LOUNGE=-3.0,
- RESTROOM=-7.0,
-}
-
+local MAIN_TRIM={CORE=0,FORMER_STUDIO_LOUNGE=-3.0,RESTROOM=-7.0}
 local cache={}
 local gates={}
+local directFunkotGates=setmetatable({}, {__mode="k"})
 local muteButton
 
+local function setGate(gate,open,gainDb)
+ local gain=open and (gainDb or 0) or -80
+ if gate.LowGain~=gain then gate.LowGain=gain end
+ if gate.MidGain~=gain then gate.MidGain=gain end
+ if gate.HighGain~=gain then gate.HighGain=gain end
+end
+
 local function ensureGate(key,g)
- local gate=g:FindFirstChild("BBYAVenueGateV8") or g:FindFirstChild("BBYAVenueGateV7") or g:FindFirstChild("BBYAVenueGateV6") or g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
+ local gate=g:FindFirstChild("BBYAVenueGateV9") or g:FindFirstChild("BBYAVenueGateV8") or g:FindFirstChild("BBYAVenueGateV7") or g:FindFirstChild("BBYAVenueGateV6") or g:FindFirstChild("BBYAVenueGateV5") or g:FindFirstChild("BBYAVenueGateV4") or g:FindFirstChild("BBYAVenueGateV3") or g:FindFirstChild("BBYAVenueGateV2")
  if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
- if not gate then
-  gate=Instance.new("EqualizerSoundEffect")
-  gate.Parent=g
- end
- gate.Name="BBYAVenueGateV8"
+ if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Parent=g end
+ gate.Name="BBYAVenueGateV9"
  gate.Enabled=true
  gates[key]=gate
- g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V8_EQ_ONLY")
+ g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_EQ_ONLY")
  return gate
 end
 
 local function resolveGroups()
  for key,spec in pairs(GROUPS) do
   local g=SoundService:FindFirstChild(spec.name)
-  if g and g:IsA("SoundGroup") then
-   cache[key]=g
-   ensureGate(key,g)
-  else
-   cache[key]=nil
-   gates[key]=nil
-  end
+  if g and g:IsA("SoundGroup") then cache[key]=g;ensureGate(key,g) else cache[key]=nil;gates[key]=nil end
  end
 end
 
@@ -64,10 +58,7 @@ local function resolveMuteButton()
  for _,d in ipairs(gui:GetDescendants()) do
   if d:IsA("TextButton") then
    local up=string.upper(d.Text or "")
-   if up=="MUTE LOCAL" or up=="UNMUTE LOCAL" then
-    muteButton=d
-    return d
-   end
+   if up=="MUTE LOCAL" or up=="UNMUTE LOCAL" then muteButton=d;return d end
   end
  end
 end
@@ -109,11 +100,38 @@ local function currentPlayerAudioContext()
  return venue,room,trim
 end
 
-local function setGate(gate,open,gainDb)
- local gain=open and (gainDb or 0) or -80
- if gate.LowGain~=gain then gate.LowGain=gain end
- if gate.MidGain~=gain then gate.MidGain=gain end
- if gate.HighGain~=gain then gate.HighGain=gain end
+local function isFunkotSound(s)
+ if not (s and s:IsA("Sound")) then return false end
+ local sg=s.SoundGroup
+ if sg and sg.Name=="BBYAFunkotMaster" then return true end
+ return string.sub(s.Name,1,10)=="BBYAFunkot"
+end
+
+local function ensureDirectFunkotGate(sound)
+ local gate=directFunkotGates[sound]
+ if gate and gate.Parent==sound then return gate end
+ gate=sound:FindFirstChild("BBYAFunkotHardGateV9")
+ if gate and not gate:IsA("EqualizerSoundEffect") then gate:Destroy();gate=nil end
+ if not gate then gate=Instance.new("EqualizerSoundEffect");gate.Name="BBYAFunkotHardGateV9";gate.Parent=sound end
+ gate.Enabled=true
+ directFunkotGates[sound]=gate
+ sound:SetAttribute("BBYAFunkotLeakGuard","HARD_GATE_V9")
+ return gate
+end
+
+local function enforceDirectFunkot(open)
+ local count=0
+ for _,d in ipairs(SoundService:GetDescendants()) do
+  if d:IsA("Sound") and isFunkotSound(d) then
+   local gate=ensureDirectFunkotGate(d)
+   setGate(gate,open,0)
+   d:SetAttribute("BBYALocalAudible",open)
+   d:SetAttribute("BBYAFunkotHardGateOpen",open)
+   count+=1
+  end
+ end
+ player:SetAttribute("BBYAFunkotDirectGateCount",count)
+ player:SetAttribute("BBYAFunkotHardLeakGuard",true)
 end
 
 local function enforce()
@@ -126,27 +144,28 @@ local function enforce()
    local trim=(key=="MAIN" and open) and mainTrim or 0
    local gate=gates[key] or ensureGate(key,g)
    setGate(gate,open,trim)
-
-   -- EQ_ONLY_V8: never write g.Volume here. Venue master gain belongs exclusively
-   -- to that venue's server/audio authority, preventing neutral/spawn from leaving
-   -- Underground/Main/VIP/Skatepark/Rooftop stuck at zero.
    g:SetAttribute("BBYALocalAudible",open)
    g:SetAttribute("BBYAAudioRouterVenue",currentVenue)
    g:SetAttribute("BBYAActiveTrimDb",open and trim or -80)
-   g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V8_EQ_ONLY")
+   g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_EQ_ONLY")
   end
  end
+
+ -- Second-layer hard isolation for the reported Funkot-at-spawn leak.
+ -- Fail closed anywhere except the explicit Funkot coordinate box.
+ enforceDirectFunkot(not muted and currentVenue=="FUNKOT")
+
  player:SetAttribute("BBYAAudioVenue",currentVenue)
  player:SetAttribute("BBYAAudioRoom",currentRoom or "NONE")
  player:SetAttribute("BBYAMainTrimDb",currentVenue=="MAIN" and mainTrim or -80)
  player:SetAttribute("BBYAAudioFailClosed",currentVenue=="NONE")
- player:SetAttribute("BBYAAudioRouterAuthority","ROUTER_V8_EQ_ONLY")
+ player:SetAttribute("BBYAAudioRouterAuthority","ROUTER_V9_EQ_ONLY")
 end
 
 local function bindMute()
  local b=resolveMuteButton()
- if b and not b:GetAttribute("BBYAAudioMuteGuardV8") then
-  b:SetAttribute("BBYAAudioMuteGuardV8",true)
+ if b and not b:GetAttribute("BBYAAudioMuteGuardV9") then
+  b:SetAttribute("BBYAAudioMuteGuardV9",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()task.defer(enforce)end)
  end
 end
@@ -154,12 +173,21 @@ end
 SoundService.ChildAdded:Connect(function(child)
  if child:IsA("SoundGroup") then task.defer(enforce) end
 end)
+SoundService.DescendantAdded:Connect(function(child)
+ if child:IsA("Sound") and isFunkotSound(child) then
+  -- New/replicated Funkot sounds are muted immediately, then opened only after
+  -- the current position is re-evaluated as inside the Funkot zone.
+  setGate(ensureDirectFunkotGate(child),false,0)
+ end
+ task.defer(enforce)
+end)
 SoundService.ChildRemoved:Connect(function(child)
  if child:IsA("SoundGroup") then task.defer(enforce) end
 end)
 pg.ChildAdded:Connect(function()task.defer(function()bindMute();enforce()end)end)
 player.CharacterAdded:Connect(function()
  task.defer(enforce)
+ task.delay(.10,enforce)
  task.delay(.35,enforce)
 end)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function()task.defer(enforce)end)
@@ -167,11 +195,11 @@ player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function()task.defer(
 local acc=0
 RunService.Heartbeat:Connect(function(dt)
  acc+=dt
- if acc<.10 then return end
+ if acc<.05 then return end
  acc=0
  bindMute()
  enforce()
 end)
 
 task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v8: EQ-only isolation active; venue master volumes are never mutated")
+print("[BBYA] Strict venue audio router v9: EQ-only isolation + FUNKOT_HARD_LEAK_GUARD_V9 active")
