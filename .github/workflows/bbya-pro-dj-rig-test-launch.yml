@@ -1,0 +1,168 @@
+name: BBYA Pro DJ Rig v1 Test Launcher
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-pro-dj-rig-test-launch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbya-pro-dj-rig-music-ui-test-launch
+  cancel-in-progress: false
+
+env:
+  PROTOTYPE_REF: 'feat/bbya-pro-dj-rig-v1-test'
+  BBYA_BASE_SHA: '26a73635438bd4ed07cd9e6f79da48a5a9a2384d'
+  TEST_UNIVERSE_ID: '10762005984'
+  TEST_PLACE_ID: '124607344716828'
+  LIVE_UNIVERSE_ID: '8116636513'
+  LIVE_PLACE_ID: '131894120482837'
+
+jobs:
+  publish-isolated-test:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout prototype branch from trusted launcher
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PROTOTYPE_REF }}
+          fetch-depth: 0
+
+      - name: Resolve prototype SHA and hard target guard
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sha=(git rev-parse HEAD).Trim()
+          if($sha -notmatch '^[0-9a-f]{40}$'){throw "Invalid prototype SHA: $sha"}
+          if($env:TEST_UNIVERSE_ID -eq $env:LIVE_UNIVERSE_ID -or $env:TEST_PLACE_ID -eq $env:LIVE_PLACE_ID){throw 'TEST target collides with BBYA LIVE'}
+          if($env:TEST_UNIVERSE_ID -ne '10762005984' -or $env:TEST_PLACE_ID -ne '124607344716828'){throw 'Unexpected Music UI test target'}
+          "PROTOTYPE_SHA=$sha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "TARGET_GUARD_PASS prototype=$sha universe=$env:TEST_UNIVERSE_ID place=$env:TEST_PLACE_ID"
+
+      - name: Verify isolated prototype diff
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git cat-file -e "$env:BBYA_BASE_SHA^{commit}"
+          if($LASTEXITCODE -ne 0){throw 'Pinned v534 base unavailable'}
+          $changed=@(git diff --name-only "$env:BBYA_BASE_SHA...HEAD")
+          $allowed=@(
+            'maps/bbya-social-hub/41-mesh-assets.server.lua',
+            'docs/bbya-pro-dj-rig-v1-test.md',
+            '.github/workflows/bbya-pro-dj-rig-test-publish.yml'
+          )
+          $unexpected=@($changed | Where-Object {$allowed -notcontains $_})
+          if($unexpected.Count -gt 0){throw "Unexpected prototype changes: $($unexpected -join ', ')"}
+          if($changed -notcontains 'maps/bbya-social-hub/41-mesh-assets.server.lua'){throw 'DJ rig prototype source is not changed'}
+          Write-Host "DIFF_FIREWALL_PASS changed=$($changed -join ',')"
+
+      - name: Verify visual-only firewall
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p='maps/bbya-social-hub/41-mesh-assets.server.lua'
+          $s=Get-Content $p -Raw
+          foreach($needle in @('BBYA_PRO_DJ_RIG_V1_NATIVE_PROTOTYPE','VisualOnly", true','AudioWrites", false','GlobalLightingWrites", false','2_MEDIA_PLAYERS_PLUS_4CH_MIXER')){
+            if($s -notmatch [regex]::Escape($needle)){throw "Missing prototype marker: $needle"}
+          }
+          foreach($danger in @('forceNeutralVolumes','SoundService:GetService','SoundGroup.Volume =','Lighting.Brightness =','Lighting.ExposureCompensation =')){
+            if($s -match [regex]::Escape($danger)){throw "Forbidden prototype write: $danger"}
+          }
+          Write-Host 'VISUAL_ONLY_FIREWALL_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            if(Test-Path $zip){Remove-Item $zip -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          $ver=& $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          if(($ver -join ' ') -notmatch '7\.7\.0'){throw "Expected Rojo 7.7.0; got $ver"}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO_PASS $ver"
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build prototype RBXL
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-pro-dj-rig-v1-test.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo prototype build failed'}
+          if(-not (Test-Path $place)){throw 'Prototype RBXL missing'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw "Prototype RBXL unexpectedly small: $bytes"}
+          "BBYA_TEST_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD_PASS bytes=$bytes source=$env:PROTOTYPE_SHA"
+
+      - name: Inject temporary test registry target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/registry.json'
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          $target=[pscustomobject]@{name='BBYA Music UI Test - Pro DJ Rig v1';enabled=$true;universeId=$env:TEST_UNIVERSE_ID;placeId=$env:TEST_PLACE_ID;file='maps/bbya-social-hub/place.rbxlx'}
+          $r.maps | Add-Member -NotePropertyName 'bbya-music-ui-test' -NotePropertyValue $target -Force
+          $r | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
+          $t=(Get-Content $path -Raw | ConvertFrom-Json).maps.'bbya-music-ui-test'
+          if([string]$t.universeId -ne $env:TEST_UNIVERSE_ID -or [string]$t.placeId -ne $env:TEST_PLACE_ID){throw 'Temporary target mismatch'}
+          Write-Host 'TEMP_TEST_REGISTRY_PASS'
+
+      - name: Publish only to Music UI test place
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status-pro-dj-test
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO publish secret unavailable'}
+          $env:PLACE_FILE_OVERRIDE=$env:BBYA_TEST_PLACE_FILE
+          $env:GITHUB_SHA=$env:PROTOTYPE_SHA
+          node scripts/publish-map.js bbya-music-ui-test
+          if($LASTEXITCODE -ne 0){throw 'Music UI test publish failed'}
+
+      - name: Verify PUBLISHED receipt and target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='deploy-status-pro-dj-test/bbya-music-ui-test.json'
+          if(-not (Test-Path $path)){throw 'Test receipt missing'}
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if([string]$r.universeId -ne $env:TEST_UNIVERSE_ID){throw "Universe mismatch $($r.universeId)"}
+          if([string]$r.placeId -ne $env:TEST_PLACE_ID){throw "Place mismatch $($r.placeId)"}
+          if([string]$r.universeId -eq $env:LIVE_UNIVERSE_ID -or [string]$r.placeId -eq $env:LIVE_PLACE_ID){throw 'Receipt references BBYA LIVE'}
+          if($r.sourceCommit -ne $env:PROTOTYPE_SHA){throw "Source mismatch $($r.sourceCommit)"}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          "BBYA_TEST_VERSION=$($r.response.versionNumber)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "TEST_PUBLISHED_PASS version=$($r.response.versionNumber) source=$($r.sourceCommit) universe=$($r.universeId) place=$($r.placeId)"
+
+      - name: Upload isolated receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-pro-dj-rig-v1-test-receipt-${{ env.PROTOTYPE_SHA }}
+          path: deploy-status-pro-dj-test/bbya-music-ui-test.json
+          if-no-files-found: error
+          retention-days: 14
