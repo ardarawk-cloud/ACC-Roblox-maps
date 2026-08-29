@@ -1,0 +1,322 @@
+name: BBYA Mall Cloud Spatial Audit V1
+
+on:
+  push:
+    branches:
+      - 'bbya-mall/**'
+    paths:
+      - 'maps/bbya-social-hub/94-mall.server.lua'
+      - 'maps/bbya-social-hub/94-mall-polish.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/137-mall-spatial-boundary-authority-v1.server.lua'
+      - '.github/workflows/bbya-mall-cloud-spatial-audit-v1.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/94-mall.server.lua'
+      - 'maps/bbya-social-hub/94-mall-polish.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/137-mall-spatial-boundary-authority-v1.server.lua'
+      - '.github/workflows/bbya-mall-cloud-spatial-audit-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  spatial_visual_audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact audited source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Ensure interactive console desktop
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sid=[System.Diagnostics.Process]::GetCurrentProcess().SessionId
+          $before=(quser 2>&1 | Out-String)
+          Write-Host $before
+          if($before -notmatch 'console\s+'+$sid+'\s+Active'){
+            & "$env:SystemRoot\System32\tscon.exe" $sid /dest:console
+            if($LASTEXITCODE -ne 0){throw "tscon failed: $LASTEXITCODE"}
+            Start-Sleep -Seconds 3
+          }
+          $after=(quser 2>&1 | Out-String)
+          Write-Host $after
+          if($after -notmatch 'console\s+'+$sid+'\s+Active'){throw 'Interactive console desktop is not active'}
+
+      - name: Build exact Mall spatial audit snapshot
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $utf8=New-Object System.Text.UTF8Encoding($false)
+          $toolDir=Join-Path $env:RUNNER_TEMP 'bbya-rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $zip=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0-windows-x86_64.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -LiteralPath $zip -DestinationPath $toolDir -Force
+          }
+          if((& $rojo --version) -notmatch '7\.7\.0'){throw 'Rojo 7.7.0 required'}
+
+          $map='maps/bbya-social-hub'
+          $runtime=Join-Path $map '__mall-spatial-audit-v1'
+          $auth=Join-Path $runtime 'authorities'
+          Remove-Item $runtime -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $auth | Out-Null
+          $files=[ordered]@{
+            'ActiveRearMallV1'='94-mall.server.lua'
+            'MallLiveUpgradeV2'='95-mall-live-upgrade.server.lua'
+            'ActiveMallPolishV1'='94-mall-polish.server.lua'
+            'MallRobuxCommerceV1'='133-mall-robux-commerce.server.lua'
+            'MallSafeSecurityOverrideV1'='97-mall-safe-security-override.server.lua'
+            'MallSpatialBoundaryAuthorityV1'='137-mall-spatial-boundary-authority-v1.server.lua'
+          }
+          foreach($name in $files.Keys){
+            $src=Join-Path $map $files[$name]
+            if(-not (Test-Path $src)){throw "Missing audit source: $src"}
+            $text=Get-Content $src -Raw
+            if($name -eq 'ActiveRearMallV1'){$text=$text.Replace('Enum.Material.Tile','Enum.Material.CeramicTiles')}
+            if($name -eq 'MallLiveUpgradeV2'){
+              $text=$text.Replace("local boards={}`r`n {screen","local boards={`r`n {screen")
+              $text=$text.Replace("local boards={}`n {screen","local boards={`n {screen")
+            }
+            [IO.File]::WriteAllText((Join-Path $auth ($name+'.lua')),$text+"`r`nreturn true`r`n",$utf8)
+          }
+
+          $runner=@'
+          print("[MALL_SPATIAL_AUDIT_BEGIN]")
+          local SS=game:GetService("ServerStorage")
+          local W=game:GetService("Workspace")
+          local mods=SS:WaitForChild("MallSpatialAuditAuthorities")
+          local old=W:FindFirstChild("BBYA_ZERO_BUILD")
+          if old then old:Destroy() end
+          local root=Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=W
+          local order={"ActiveRearMallV1","MallLiveUpgradeV2","ActiveMallPolishV1","MallRobuxCommerceV1","MallSafeSecurityOverrideV1","MallSpatialBoundaryAuthorityV1"}
+          for _,name in ipairs(order) do
+            local ok,res=pcall(require,mods:WaitForChild(name))
+            print("[MALL_SPATIAL_AUTH]|"..name.."|"..tostring(ok).."|"..tostring(res))
+            assert(ok,res)
+          end
+
+          local mall=root:FindFirstChild("BBYAMall")
+          assert(mall,"BBYAMall missing")
+          local authority=mall:FindFirstChild("MallSpatialBoundaryAuthorityV1")
+          assert(authority,"MallSpatialBoundaryAuthorityV1 missing")
+          assert(authority:GetAttribute("TenantCountChecked")==12,"Spatial authority did not inspect all 12 tenants")
+          assert(authority:GetAttribute("OversizeViolations")==0,"Spatial authority found oversized tenant geometry")
+          assert(authority:GetAttribute("SpatialQCReady")==true,"Spatial authority not ready")
+
+          local margin=.08
+          local eps=.012
+          local tenantNames={
+            "Tenant_luma","Tenant_stride","Tenant_byte","Tenant_daily","Tenant_mono","Tenant_muse",
+            "Tenant_north","Tenant_street","Tenant_page","Tenant_glow","Tenant_sound","Tenant_fit",
+          }
+          local checked=0
+          local violations=0
+          local function extents(rel,size)
+            local h=size*.5
+            local r,u,l=rel.RightVector,rel.UpVector,rel.LookVector
+            local ex=math.abs(r.X)*h.X+math.abs(u.X)*h.Y+math.abs(l.X)*h.Z
+            local ez=math.abs(r.Z)*h.X+math.abs(u.Z)*h.Y+math.abs(l.Z)*h.Z
+            return ex,ez
+          end
+          for _,tenantName in ipairs(tenantNames) do
+            local tenant=assert(mall:FindFirstChild(tenantName),"Missing tenant "..tenantName)
+            local floor=assert(tenant:FindFirstChild("Floor"),"Missing Floor "..tenantName)
+            local gallery=assert(tenant:FindFirstChild("PremiumRetailGalleryV6"),"Missing gallery "..tenantName)
+            local hx=floor.Size.X*.5-margin
+            local hz=floor.Size.Z*.5-margin
+            for _,d in ipairs(gallery:GetDescendants()) do
+              if d:IsA("BasePart") then
+                checked+=1
+                local rel=floor.CFrame:ToObjectSpace(d.CFrame)
+                local ex,ez=extents(rel,d.Size)
+                local p=rel.Position
+                local bad=(math.abs(p.X)+ex>hx+eps) or (math.abs(p.Z)+ez>hz+eps)
+                if bad then
+                  violations+=1
+                  warn(string.format("[MALL_SPATIAL_QC_FAIL]|%s|%s|p=%.3f,%.3f|e=%.3f,%.3f|lim=%.3f,%.3f",tenantName,d.Name,p.X,p.Z,ex,ez,hx,hz))
+                end
+              end
+            end
+          end
+          assert(checked>0,"No tenant gallery parts checked")
+          assert(violations==0,"Tenant spatial offside violations remain: "..violations)
+          local cf,sz=mall:GetBoundingBox()
+          print(string.format("[MALL_SPATIAL_QC_PASS]|checked=%d|corrected=%s|pos=%.1f,%.1f,%.1f|size=%.1f,%.1f,%.1f",checked,tostring(authority:GetAttribute("OffsideCorrections")),cf.Position.X,cf.Position.Y,cf.Position.Z,sz.X,sz.Y,sz.Z))
+          print("[MALL_SPATIAL_AUDIT_DONE]")
+          return true
+          '@
+          [IO.File]::WriteAllText((Join-Path $runtime 'runner.lua'),$runner,$utf8)
+
+          $project=Get-Content (Join-Path $map 'default.project.json') -Raw | ConvertFrom-Json
+          $storage=[pscustomobject][ordered]@{
+            '$className'='ServerStorage'
+            'MallSpatialAuditAuthorities'=[pscustomobject][ordered]@{'$path'='__mall-spatial-audit-v1/authorities'}
+            'MallSpatialAuditRunnerV1'=[pscustomobject][ordered]@{'$path'='__mall-spatial-audit-v1/runner.lua'}
+          }
+          $project.tree | Add-Member -NotePropertyName 'ServerStorage' -NotePropertyValue $storage -Force
+          $auditProject=Join-Path $map '__mall-spatial-audit-v1.project.json'
+          [IO.File]::WriteAllText($auditProject,($project|ConvertTo-Json -Depth 100),$utf8)
+          $place=Join-Path $env:RUNNER_TEMP 'bbya-mall-spatial-audit-v1.rbxl'
+          & $rojo build $auditProject -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Mall spatial audit Rojo build failed'}
+          "PLACEFILE=$place" | Out-File $env:GITHUB_ENV -Append
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-mall-spatial-audit-v1'
+          Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          "OUTDIR=$out" | Out-File $env:GITHUB_ENV -Append
+          "SOURCE_SHA=${{ github.sha }}" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Launch Studio and execute exact Mall audit
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          $candidates=@()
+          foreach($base in @((Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),'C:\Program Files\Roblox\Versions','C:\Program Files (x86)\Roblox\Versions')){
+            if(Test-Path $base){$candidates+=Get-ChildItem $base -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue}
+          }
+          $studio=$candidates|Sort-Object LastWriteTime -Descending|Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found'}
+          $p=Start-Process $studio.FullName -ArgumentList @($env:PLACEFILE) -PassThru
+          for($i=0;$i -lt 45;$i++){Start-Sleep 1;$p.Refresh();if($p.MainWindowHandle -ne 0){break}}
+          if($p.MainWindowHandle -eq 0){throw 'Studio window not ready'}
+          "STUDIOPID=$($p.Id)" | Out-File $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 7
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $value.SetValue('local ok,res=pcall(require,game:GetService("ServerStorage"):WaitForChild("MallSpatialAuditRunnerV1"));print("[MALL_SPATIAL_WRAPPER]|"..tostring(ok).."|"..tostring(res));if not ok then warn(res) end')
+          $invoke.Invoke()
+          Start-Sleep -Seconds 14
+
+      - name: Capture seven real GPU Mall views
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public static class MallSpatialGPU {
+            [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd,out RECT r);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd,int cmd);
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+          }
+          "@
+          function Invoke-ButtonByName([string]$name,[int]$tries=25){
+            $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+            $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,$name)
+            for($i=0;$i -lt $tries;$i++){
+              $b=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond)
+              if($b){try{$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 650;return $true}catch{}}
+              Start-Sleep -Milliseconds 120
+            }
+            return $false
+          }
+          function Dismiss-StudioDialogs {
+            [void](Invoke-ButtonByName 'Always Continue' 20)
+            $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+            $wc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Lighting Technology Migration')
+            $win=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$wc)
+            if($win){
+              $bc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Continue')
+              $btn=$win.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$bc)
+              if($btn){try{$btn.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 700}catch{}}
+            }
+          }
+          $p=Get-Process -Id ([int]$env:STUDIOPID) -ErrorAction Stop
+          $p.Refresh();$hwnd=[IntPtr]$p.MainWindowHandle
+          [MallSpatialGPU]::ShowWindow($hwnd,3)|Out-Null
+          [MallSpatialGPU]::SetForegroundWindow($hwnd)|Out-Null
+          Start-Sleep -Seconds 2
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $ec=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $rc=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$ec)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$rc)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar unavailable for GPU capture'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          Dismiss-StudioDialogs
+          $views=@(
+            @{n='01-entrance-atrium';p='0,13,286';t='0,12,365'},
+            @{n='02-l1-left';p='-8,9,330';t='-66,8,348'},
+            @{n='03-l1-right';p='8,9,365';t='66,8,380'},
+            @{n='04-l1-rear';p='0,10,417';t='66,8,400'},
+            @{n='05-l2-right';p='2,23,348';t='68,20,370'},
+            @{n='06-upper-atrium';p='0,38,330';t='0,22,382'},
+            @{n='07-overview';p='0,72,280';t='0,22,365'}
+          )
+          $hashes=@();$first=$true
+          foreach($v in $views){
+            $cmd="local c=workspace.CurrentCamera;c.CameraType=Enum.CameraType.Scriptable;c.FieldOfView=68;c.CFrame=CFrame.lookAt(Vector3.new($($v.p)),Vector3.new($($v.t)));c.Focus=CFrame.new(Vector3.new($($v.t)));print('[MALL_SPATIAL_VIEW]|$($v.n)')"
+            $value.SetValue($cmd);$invoke.Invoke()
+            if($first){Start-Sleep -Milliseconds 450;Dismiss-StudioDialogs;$first=$false}
+            Start-Sleep -Milliseconds 1500
+            $r=New-Object MallSpatialGPU+RECT
+            if(-not [MallSpatialGPU]::GetWindowRect($hwnd,[ref]$r)){throw 'GetWindowRect failed'}
+            $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
+            if($w -lt 640 -or $h -lt 360){throw "Bad window ${w}x${h}"}
+            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($r.Left,$r.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+            $path=Join-Path $env:OUTDIR ($v.n+'.png')
+            $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
+            $g.Dispose();$bmp.Dispose()
+            $len=(Get-Item $path).Length
+            if($len -lt 50000){throw "Capture suspiciously small $($v.n): $len"}
+            $hash=(Get-FileHash $path -Algorithm SHA256).Hash
+            $hashes+=$hash
+            Write-Host "$($v.n) bytes=$len sha=$hash"
+          }
+          if(($hashes|Select-Object -Unique).Count -lt 5){throw 'Captures are not sufficiently unique; viewport likely invalid'}
+
+      - name: Validate Studio markers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 10
+          $lines=@()
+          foreach($f in $logs){
+            $x=Get-Content $f.FullName -ErrorAction SilentlyContinue|Where-Object{$_ -match '\[(MALL_BOUNDS|MALL_SPATIAL_)'}
+            if($x){$lines+=$x}
+          }
+          $report=Join-Path $env:OUTDIR 'geometry.txt'
+          @("source=$env:SOURCE_SHA")+$lines|Set-Content $report
+          if(-not ($lines|Where-Object{$_ -match '\[MALL_SPATIAL_QC_PASS\]'})){throw 'Mall spatial QC PASS marker missing'}
+          if(-not ($lines|Where-Object{$_ -match '\[MALL_SPATIAL_AUDIT_DONE\]'})){throw 'Mall spatial audit completion marker missing'}
+          if($lines|Where-Object{$_ -match '\[MALL_SPATIAL_QC_FAIL\]'} ){throw 'Mall spatial QC failure marker found'}
+          if($lines|Where-Object{$_ -match '\[MALL_BOUNDS_OVERSIZE\]'} ){throw 'Mall oversized geometry marker found'}
+          Write-Host 'BBYA_MALL_CLOUD_SPATIAL_AUDIT_V1_PASS'
+
+      - name: Upload Mall spatial visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-spatial-audit-${{ github.run_id }}
+          path: ${{ env.OUTDIR }}
+          if-no-files-found: error
+          retention-days: 14
