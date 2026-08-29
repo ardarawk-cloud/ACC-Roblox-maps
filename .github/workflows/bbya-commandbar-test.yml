@@ -1,6 +1,5 @@
 name: BBYA Pro DJ Rig v1 — ISOLATED TEST PUBLISH
-# Git is not installed on this self-hosted runner; checkout exact verified prototype SHA via REST archive.
-# Temporary registry is written as UTF-8 without BOM for Node JSON parsing.
+# Retry with the repository master Open Cloud credential already used by BBYA publishing workflows.
 
 on:
   push:
@@ -118,11 +117,11 @@ jobs:
       - name: Publish ONLY to Music UI test place
         shell: powershell
         env:
-          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status-pro-dj-test
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO secret unavailable'}
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 secret unavailable'}
           $env:PLACE_FILE_OVERRIDE=$env:TEST_PLACE_FILE
           $env:GITHUB_SHA=$env:PROTOTYPE_SHA
           node scripts/publish-map.js bbya-music-ui-test
