@@ -79,7 +79,6 @@ jobs:
 
           Write-Host "CDJ_READY=$ok1 MIXER_READY=$ok2"
           if(-not ($ok1 -and $ok2)){
-            # Report browser profile presence for the next autonomous fallback; no cookie contents are printed.
             foreach($p in @(
               'C:\Users\Administrator\AppData\Local\Google\Chrome\User Data',
               'C:\Users\Administrator\AppData\Local\Microsoft\Edge\User Data'
@@ -89,3 +88,5 @@ jobs:
             throw 'Drive transfer probe did not obtain both GLB assets'
           }
           Write-Host "DRIVE_TRANSFER_PROBE_PASS cdj=$((Get-Item $cdj).Length) mixer=$((Get-Item $mix).Length)"
+
+# trigger: 2026-08-29T17:14+08:00
