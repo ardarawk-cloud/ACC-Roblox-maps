@@ -1,18 +1,20 @@
 name: BBYA Live Rescue Windows
 
-# Rescue v5: canonical self-hosted publish lane with permanent audio + lighting stability hard gates.
-# Deploy trigger: BBYA stability authority + entrance-car exact-source publish.
+# Rescue v6: canonical self-hosted publish lane with permanent audio + lighting stability hard gates.
+# Deploy trigger: BBYA stability authority + entrance-car + venue-audio-router exact-source publish.
 on:
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/bbya-live-rescue-windows.yml'
       - 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
   push:
     branches: [main]
     paths:
       - '.github/workflows/bbya-live-rescue-windows.yml'
       - 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
   workflow_dispatch:
 
 concurrency:
@@ -84,7 +86,7 @@ jobs:
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5');
             'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED');
-            'maps/bbya-social-hub/104-venue-audio-router.client.lua'=@('STRICT VENUE AUDIO ROUTER v8','EQ_ONLY_V8','ROUTER_V8_EQ_ONLY','BBYAAudioIsolationAuthority');
+            'maps/bbya-social-hub/104-venue-audio-router.client.lua'=@('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','FUNKOT_HARD_LEAK_GUARD_V9','BBYAFunkotHardGateV9','BBYAAudioIsolationAuthority');
             'maps/bbya-social-hub/28-lighting-ambience.server.lua'=@('GLOBAL LIGHTING AUTHORITY v4','GLOBAL_LIGHTING_AUTHORITY_V4','28_LIGHTING_AMBIENCE_V4');
             'maps/bbya-social-hub/37-underground-furnish-mainclub-light.server.lua'=@('BBYAGlobalLightingWrites",false','DEFER_TO_28_GLOBAL_AUTHORITY');
             'maps/bbya-social-hub/109-music-catalog-reset.server.lua'=@('OPENING STABILITY AUTHORITY v5','ACTIVE_VENUES_OPENING_STABILITY_V5','BBYAMusicCatalogReset",false','BBYAMainPlaylistEnabled",true','BBYAFunkotPlaylistEnabled",true','BBYASkateparkPlaylistEnabled",true','BBYARooftopPlaylistEnabled",true')
@@ -107,13 +109,14 @@ jobs:
             if($audio -match $forbidden){throw "DESTRUCTIVE_AUDIO_RESET_BLOCKED: $forbidden"}
           }
           $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
-          if($router -match 'forceNeutralVolumes'){throw 'AUDIO_V8_REGRESSION: forceNeutralVolumes returned'}
-          if($router -match 'g\.Volume\s*='){throw 'AUDIO_V8_REGRESSION: router mutates SoundGroup.Volume'}
+          if($router -match 'forceNeutralVolumes'){throw 'AUDIO_V9_REGRESSION: forceNeutralVolumes returned'}
+          if($router -match 'g\.Volume\s*='){throw 'AUDIO_V9_REGRESSION: router mutates SoundGroup.Volume'}
+          if($router -match 'sound\.Volume\s*='){throw 'AUDIO_V9_REGRESSION: router mutates Sound.Volume'}
           $ug=Get-Content 'maps/bbya-social-hub/37-underground-furnish-mainclub-light.server.lua' -Raw
           if($ug -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime|EnvironmentDiffuseScale|EnvironmentSpecularScale|ShadowSoftness)\s*='){throw 'LIGHTING_AUTHORITY_REGRESSION: underground pass touches global Lighting'}
           $beauty=Get-Content 'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua' -Raw
           if($beauty -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime)'){throw 'Beauty v5 touches global Lighting'}
-          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_STABILITY_AUDIO_V8_LIGHTING_V4'
+          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_STABILITY_AUDIO_V9_LIGHTING_V4'
 
       - name: Build canonical BBYA place
         shell: powershell
