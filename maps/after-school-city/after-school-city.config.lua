@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.7.7-school-road-visual-defect-cleanup-1",
+    Version = "0.8.0-student-row-shop-interiors-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
@@ -16,6 +16,7 @@ local Config = {
     LockerClearanceHotfixVersion = "0.7.5-locker-clearance-hotfix-1",
     ExteriorLockerCleanupVersion = "0.7.6-exterior-locker-cleanup-1",
     SchoolRoadVisualDefectCleanupVersion = "0.7.7-school-road-visual-defect-cleanup-1",
+    StudentRowShopInteriorsVersion = "0.8.0-student-row-shop-interiors-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -69,6 +70,7 @@ local Config = {
         EnableLockerClearanceHotfixPass = true,
         EnableExteriorLockerCleanupPass = true,
         EnableSchoolRoadVisualDefectCleanupPass = true,
+        EnableStudentRowShopInteriorsPass = true,
         EnableDebugBillboards = false,
         EnableActivities = false,
         EnableEconomy = false,
