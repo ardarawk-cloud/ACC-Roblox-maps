@@ -42,9 +42,9 @@ jobs:
           New-Item -ItemType Directory -Path $dir -Force | Out-Null
           $cdj=Join-Path $dir 'BBYA_TEST_CDJ_256.glb'
           $djm=Join-Path $dir 'BBYA_TEST_DJM_A9_256.glb'
-          python -m gdown --id '1HuLC2YQB-JW0JKcqXPOmVikj5EyMqFlZ' -O $cdj
+          python -m gdown '1HuLC2YQB-JW0JKcqXPOmVikj5EyMqFlZ' -O $cdj
           if($LASTEXITCODE -ne 0){throw 'CDJ Drive download failed'}
-          python -m gdown --id '1sUO99s369OXOcRzTY6tpp4TL7eDCxjk5' -O $djm
+          python -m gdown '1sUO99s369OXOcRzTY6tpp4TL7eDCxjk5' -O $djm
           if($LASTEXITCODE -ne 0){throw 'DJM Drive download failed'}
           $cdjHash=(Get-FileHash $cdj -Algorithm SHA256).Hash.ToLowerInvariant()
           $djmHash=(Get-FileHash $djm -Algorithm SHA256).Hash.ToLowerInvariant()
