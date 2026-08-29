@@ -1,8 +1,8 @@
 status=PUBLISHED
 secret=AM_STUDIO
-build=v6.3-phase1-hard-antivoid
-sourceCommit=fd93d0ecd850b3c72bc89adaadd494090ea2d59c
+build=v6.4-phase1-multiscript-runtime
+sourceCommit=08dc1c083289a6505808607546fbfb788ea21d36
 universeId=4187755690
 placeId=11832985967
 exitCode=0
-log=Mountain AM STUDIO publish success { versionNumber: 17 }
+log=Mountain AM STUDIO publish success { versionNumber: 18 }
