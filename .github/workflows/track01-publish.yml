@@ -1,116 +1,176 @@
-name: Publish TRACK 01
+name: Publish TRACK 01 Direct Master V2 v4
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'maps/track-01/**'
-      - 'scripts/build-track01.js'
-      - 'scripts/publish-track01-direct.js'
-      - '.github/workflows/track01-publish.yml'
   workflow_dispatch:
 
 concurrency:
   group: track01-live-publish
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+env:
+  TRACK01_SOURCE_SHA: 3656c04585a13b23816142ef0b2e8958e89f3fb6
+  TRACK01_VERSION: 4.0.0
+  TRACK01_UNIVERSE_ID: '10745349805'
+  TRACK01_PLACE_ID: '79748872921213'
+  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_0
 
 jobs:
-  build-and-publish:
+  build-publish-verify:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout
+      - name: Checkout receipt branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 1
+
+      - name: Checkout exact TRACK 01 v4 source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRACK01_SOURCE_SHA }}
+          path: source
+          fetch-depth: 1
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Validate TRACK 01 target lock
-        shell: bash
-        run: |
-          node - <<'NODE'
-          const c=require('./maps/track-01/track01.config.json');
-          if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
-          if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='3.9.1') throw new Error('Wrong TRACK 01 version');
-          if(!c.enabled) throw new Error('TRACK 01 target disabled');
-          console.log('TRACK 01 target lock PASS',c.version,c.artDirection);
-          NODE
-
-      - name: Build TRACK 01 masterplan place
-        run: node scripts/build-track01.js
-
-      - name: Validate generated place
+      - name: Validate exact source and target lock
         shell: bash
         run: |
           set -euo pipefail
-          test -s maps/track-01/place.rbxlx
-          grep -q 'TRACK01_NightVisibilityHotfix' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' maps/track-01/place.rbxlx
-          grep -q 'Lighting.Brightness=1.80' maps/track-01/place.rbxlx
-          grep -q 'Lighting.ExposureCompensation=0.12' maps/track-01/place.rbxlx
-          grep -q 'YardReadabilityFill' maps/track-01/place.rbxlx
-          grep -q 'YardFillCenter' maps/track-01/place.rbxlx
-          grep -q 'YardFillPhoto' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_FinalQC' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_FinalQCClient' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_FINAL_QC_READY' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_FEATURE_COMPLETE' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_FLOW_STAGE' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_RECOVERY_TOKEN' maps/track-01/place.rbxlx
-          grep -q 'RETURNED TO STATION LOBBY' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_SocialInteractions' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_SOCIAL_READY' maps/track-01/place.rbxlx
-          grep -q 'NightDrinkTray' maps/track-01/place.rbxlx
-          grep -q 'Car03DanceZone' maps/track-01/place.rbxlx
-          grep -q 'YardPhotoSpot' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_LobbyArrivalHotfix' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_PAVolumeHotfix' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_TicketAccessVestibule' maps/track-01/place.rbxlx
-          grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_EndOfLineHero' maps/track-01/place.rbxlx
-          grep -q 'END OF LINE' maps/track-01/place.rbxlx
-          echo 'TRACK 01 v3.9.1 night visibility validation PASS'
+          actual="$(git -C source rev-parse HEAD)"
+          test "$actual" = "$TRACK01_SOURCE_SHA"
+          node - <<'NODE'
+          const c=require('./source/maps/track-01/track01.config.json');
+          if(String(c.universeId)!==process.env.TRACK01_UNIVERSE_ID) throw new Error('Wrong Universe ID');
+          if(String(c.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Wrong Place ID');
+          if(String(c.version)!==process.env.TRACK01_VERSION) throw new Error('Wrong TRACK 01 version');
+          if(!c.enabled) throw new Error('TRACK 01 target disabled');
+          console.log('TRACK 01 direct source lock PASS', process.env.TRACK01_SOURCE_SHA, c.version);
+          NODE
 
-      - name: Publish TRACK 01 to Roblox
+      - name: Build canonical TRACK 01 v4 place
+        working-directory: source
+        run: node scripts/build-track01.js
+
+      - name: Validate retained runtime and admin panel
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          test -s "$place"
+          test "$(wc -c < "$place")" -gt 200000
+          grep -q 'TRACK01_NightVisibilityHotfix' "$place"
+          grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' "$place"
+          grep -q 'TRACK01_FinalQC' "$place"
+          grep -q 'ACC_TRACK01_FEATURE_COMPLETE' "$place"
+          grep -q 'TRACK01_TicketAccessVestibule' "$place"
+          grep -q 'TRACK01_SocialInteractions' "$place"
+          grep -q 'TRACK01_EndOfLineHero' "$place"
+          grep -q 'END OF LINE' "$place"
+          grep -q 'TRACK01_AdminPanelServer' "$place"
+          grep -q 'TRACK01_AdminPanelClient' "$place"
+          grep -q 'TRACK01_AdminPAClient' "$place"
+          grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' "$place"
+          grep -q 'ACC_TRACK01_PANEL_VERSION' "$place"
+          grep -q 'TRACK01_ADMIN_USER_IDS' "$place"
+          grep -q 'TRACK01_LIGHT_PULSE_ENABLED' "$place"
+          grep -q 'TRACK01_AdminTTS' "$place"
+          grep -q 'NO KICK BUTTON' "$place"
+          grep -q 'AudioTextToSpeech' "$place"
+          echo 'TRACK 01 v4 canonical validation PASS'
+
+      - name: Record place metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          echo "bytes=$(wc -c < "$place" | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$place" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish exact TRACK 01 v4 source to Roblox
         id: publish
         continue-on-error: true
+        working-directory: source
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: node scripts/publish-track01-direct.js
 
-      - name: Persist TRACK 01 publish result
+      - name: Build source-locked publish receipt
+        if: always()
+        env:
+          PLACE_BYTES: ${{ steps.meta.outputs.bytes }}
+          PLACE_SHA256: ${{ steps.meta.outputs.sha256 }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          node - <<'NODE'
+          const fs=require('fs');
+          const path='source/deploy-status/track01-direct.json';
+          let raw={ok:false,httpStatus:'NO_RESULT',payload:null,at:new Date().toISOString()};
+          if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
+          const robloxVersion=Number(raw?.payload?.versionNumber);
+          const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>23;
+          const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
+          const receipt={
+            status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
+            ok: success,
+            httpStatus: raw.httpStatus,
+            universeId: process.env.TRACK01_UNIVERSE_ID,
+            placeId: process.env.TRACK01_PLACE_ID,
+            trackVersion: process.env.TRACK01_VERSION,
+            sourceCommit: process.env.TRACK01_SOURCE_SHA,
+            mode: process.env.TRACK01_MODE,
+            robloxVersion: Number.isInteger(robloxVersion)?robloxVersion:null,
+            placeBytes: Number(process.env.PLACE_BYTES)||null,
+            sha256: process.env.PLACE_SHA256||null,
+            publishRun: Number(process.env.RUN_ID)||null,
+            publishedAt: raw.at||new Date().toISOString(),
+            previewUrl: raw.previewUrl||'https://www.roblox.com/games/79748872921213',
+            payload: raw.payload??null
+          };
+          fs.writeFileSync('deploy-status/track01-direct-attempt.json',JSON.stringify(receipt,null,2)+'\n');
+          if(success) fs.writeFileSync('deploy-status/track01-direct.json',JSON.stringify(receipt,null,2)+'\n');
+          console.log(receipt);
+          NODE
+
+      - name: Persist direct publish receipt
         if: always()
         shell: bash
         run: |
-          if [ ! -s deploy-status/track01-direct.json ]; then
-            mkdir -p deploy-status
-            printf '{"ok":false,"httpStatus":"NO_RESULT","universeId":"10745349805","placeId":"79748872921213","at":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy-status/track01-direct.json
-          fi
-          git config user.name "ACC Roblox Deploy Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add deploy-status/track01-direct.json maps/track-01/place.rbxlx
+          set -euo pipefail
+          rm -rf source
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/track01-direct-attempt.json
+          if [ -f deploy-status/track01-direct.json ]; then git add deploy-status/track01-direct.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m "Record TRACK 01 v3.9.1 live publish [skip ci]"
+            git commit -m 'Record TRACK 01 v4 direct publish receipt [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Enforce publish success
+      - name: Enforce verified LIVE receipt
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           node - <<'NODE'
           const fs=require('fs');
-          const r=JSON.parse(fs.readFileSync('deploy-status/track01-direct.json','utf8'));
-          if(!r.ok || String(r.universeId)!=='10745349805' || String(r.placeId)!=='79748872921213') {
-            console.error('TRACK 01 publish did not succeed:',r);
-            process.exit(1);
-          }
-          console.log('TRACK 01 LIVE PUBLISH VERIFIED:',r.payload);
+          const r=JSON.parse(fs.readFileSync('deploy-status/track01-direct-attempt.json','utf8'));
+          if(r.status!=='LIVE_PUBLISHED' || !r.ok) throw new Error('TRACK 01 direct publish did not verify LIVE');
+          if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
+          if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
+          if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=23) throw new Error('Roblox version did not increment beyond v23');
+          if(!Number.isInteger(r.placeBytes) || r.placeBytes<=200000) throw new Error('Place bytes receipt invalid');
+          if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
+          console.log('TRACK 01 LIVE VERIFIED', r);
           NODE
