@@ -121,7 +121,7 @@ jobs:
           }
 
           $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
-          foreach($token in @('PUTU AZYA PUTRI', 'BINTANG HARDAJAYA', 'WITH LOVE, DAD', 'ENTER THE CITY.')){
+          foreach($token in @('PUTU AZYA PUTRI', 'BINTANG HARDAJAYA', 'WITH LOVE, DAD', 'ENTER THE CITY')){
             if($intro -notmatch [regex]::Escape($token)){ throw "Dedication text lock missing: $token" }
           }
 
