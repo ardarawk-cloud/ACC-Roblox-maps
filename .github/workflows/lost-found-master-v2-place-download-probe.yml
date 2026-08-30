@@ -1,0 +1,71 @@
+name: LOST FOUND MASTER V2 Place Download Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lost-found-master-v2-place-download-probe.yml'
+      - '.lost-found-master-v2-place-download-probe-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      PLACE_ID: '93699016600671'
+      BASE_VERSION: '59'
+    steps:
+      - name: Validate MASTER V2 and probe exact live place download
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'; exit 10; }
+
+          introspect="$RUNNER_TEMP/introspect.json"
+          code=$(curl -sS -o "$introspect" -w '%{http_code}' -X POST \
+            'https://apis.roblox.com/api-keys/v1/introspect' \
+            -H 'Content-Type: application/json' \
+            --data "{\"apiKey\":\"$ROBLOX_API_KEY\"}")
+          [[ "$code" == 200 ]] || { echo "INTROSPECT_HTTP_$code"; exit 11; }
+          owner=$(jq -r '.authorizedUserId // empty' "$introspect")
+          [[ -n "$owner" ]] || { echo 'KEY_OWNER_MISSING'; exit 12; }
+          echo "MASTER_V2_KEY_PASS owner=$owner"
+          echo 'MASTER_V2_SCOPES:'
+          jq -r '.scopes[]? | "  \(.name):\((.operations // [])|join(","))"' "$introspect"
+
+          meta="$RUNNER_TEMP/asset-delivery.json"
+          code=$(curl -sS --location -o "$meta" -w '%{http_code}' \
+            -H "x-api-key: $ROBLOX_API_KEY" \
+            "https://apis.roblox.com/asset-delivery-api/v1/assetId/${PLACE_ID}/version/${BASE_VERSION}")
+          echo "OPEN_CLOUD_ASSET_DELIVERY_HTTP=$code"
+          [[ "$code" == 200 ]] || { head -c 2000 "$meta" || true; echo; exit 20; }
+
+          ctype=$(file -b --mime-type "$meta" || true)
+          bytes=$(stat -c%s "$meta")
+          echo "DELIVERY_RESPONSE type=$ctype bytes=$bytes"
+
+          out="$RUNNER_TEMP/lost-found-v59.rbxl"
+          if jq -e . "$meta" >/dev/null 2>&1; then
+            location=$(jq -r '.location // .locations[0].location // .locations[0].url // empty' "$meta")
+            [[ -n "$location" ]] || { echo 'DELIVERY_LOCATION_MISSING'; jq -c 'keys' "$meta"; exit 21; }
+            host=$(python3 - "$location" <<'PY'
+          import sys, urllib.parse
+          print(urllib.parse.urlparse(sys.argv[1]).netloc)
+          PY
+            )
+            echo "DELIVERY_SIGNED_LOCATION_HOST=$host"
+            curl -fsSL "$location" -o "$out"
+          else
+            cp "$meta" "$out"
+          fi
+
+          place_bytes=$(stat -c%s "$out")
+          (( place_bytes > 10000 )) || { echo "PLACE_TOO_SMALL $place_bytes"; exit 22; }
+          sha=$(sha256sum "$out" | awk '{print $1}')
+          prefix=$(xxd -p -l 16 "$out" | tr -d '\n')
+          echo "LIVE_V59_DOWNLOAD_PASS bytes=$place_bytes sha256=$sha prefix=$prefix"
