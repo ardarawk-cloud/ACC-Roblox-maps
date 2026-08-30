@@ -1,92 +1,20 @@
--- BBYA SOCIAL HUB — BASEMENT UI PROFILE v6 + AUDIO ROUTE HARD LOCK
--- Underground identity plus final client-side isolation for MAIN / UNDERGROUND / FUNKOT.
--- Heartbeat runs after legacy RenderStepped mixer so the wrong venue feed cannot leak.
+-- BBYA SOCIAL HUB — LEGACY AUDIO ROUTE COMPATIBILITY v8 + MUSIC SUITE SAFETY
+-- Legacy panel styling is retired. Existing MAIN / UNDERGROUND / FUNKOT SoundGroup routing
+-- is preserved in purpose, while this script only adds overlap/cleanup guards for BBYAMusicSuiteV1.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
 local RunService=game:GetService("RunService")
+
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
-local underground=false
-
-local MAIN_PANEL=Color3.fromRGB(9,9,12)
-local UNDER_PANEL=Color3.fromRGB(6,11,17)
-local MAIN_CARD=Color3.fromRGB(25,23,30)
-local UNDER_CARD=Color3.fromRGB(17,24,31)
-local MAIN_LINE=Color3.fromRGB(247,55,158)
-local UNDER_LINE=Color3.fromRGB(0,144,255)
-
-local function patchPanel(on)
- local gui=pg:FindFirstChild("BBYAClubUI")
- if not gui then return end
- local dock=gui:FindFirstChild("TopDock")
- if dock then
-  for _,obj in ipairs(dock:GetChildren()) do
-   if obj:IsA("TextButton") then
-    local up=string.upper(obj.Text or "")
-    if up:find("MUSIC",1,true) or up=="UNDERGROUND" then
-     obj.Text=on and "UNDERGROUND" or "MUSIC"
-     obj.BackgroundColor3=on and Color3.fromRGB(20,55,84) or Color3.fromRGB(15,14,19)
-    end
-   end
-  end
- end
- local panel=gui:FindFirstChild("HubPanel")
- if not panel then return end
- panel.BackgroundColor3=on and UNDER_PANEL or MAIN_PANEL
- local playerCard=panel:FindFirstChild("PlayerCard",true)
- local libraryCard=panel:FindFirstChild("LibraryCard",true)
- if playerCard and playerCard:IsA("Frame") then playerCard.BackgroundColor3=on and UNDER_CARD or MAIN_CARD end
- if libraryCard and libraryCard:IsA("Frame") then libraryCard.BackgroundColor3=on and Color3.fromRGB(15,21,28) or MAIN_CARD end
- for _,obj in ipairs(panel:GetDescendants()) do
-  if obj:IsA("UIStroke") and obj.Parent==panel then
-   obj.Color=on and UNDER_LINE or MAIN_LINE
-  elseif obj:IsA("TextLabel") then
-   local up=string.upper(obj.Text or "")
-   if up=="MUSIC SYSTEM" or up=="UNDERGROUND MUSIC" or up=="UNDERGROUND / INDO ROOM" then
-    obj.Text=on and "UNDERGROUND / INDO ROOM" or "MUSIC SYSTEM"
-   elseif up:find("INDEPENDENT INDO CHANNEL",1,true) or up:find("MAIN WESTERN CHANNEL",1,true) or up:find("DUAL DECK AUTOMIX",1,true) then
-    obj.Text=on and "Independent Indo venue • Dual Deck AutoMix • breakbeat / indo-bounce" or "Main progressive channel • independent from Underground"
-   elseif up:find("BASEMENT • INDO",1,true) or up:find("MAIN • WESTERN",1,true) then
-    obj.Text=on and "UNDERGROUND • INDO AUTODJ • DECK A/B" or "MAIN • WESTERN / INTERNATIONAL"
-   elseif up=="LIBRARY / REQUEST" or up=="BASEMENT LIBRARY / REQUEST" then
-    obj.Text=on and "UNDERGROUND LIBRARY / REQUEST" or "LIBRARY / REQUEST"
-   elseif up=="BASEMENT INDO LIBRARY / REQUEST" or up=="REQUEST MASUK QUEUE BASEMENT • TIDAK MEMOTONG TRACK AKTIF" then
-    obj.Text=on and "Request masuk queue Underground • tidak memotong track aktif" or "MAIN PROGRESSIVE LIBRARY / REQUEST"
-   end
-  end
- end
-end
 
 local function rootPosition()
  local ch=player.Character
  local root=ch and ch:FindFirstChild("HumanoidRootPart")
  return root and root.Position or nil
 end
-local function currentUnderground()
- local p=rootPosition()
- return p and p.Y<-4.5 or false
-end
 
-player.CharacterAdded:Connect(function()
- task.wait(1)
- underground=currentUnderground()
- patchPanel(underground)
-end)
-pg.ChildAdded:Connect(function()task.delay(.3,function()patchPanel(underground)end)end)
-
-task.spawn(function()
- while task.wait(.35) do
-  local now=currentUnderground()
-  if now~=underground then underground=now end
-  patchPanel(underground)
- end
-end)
-
--- FINAL AUDIO AUTHORITY -------------------------------------------------------
--- Main Progressive is never audible below the Underground threshold.
--- Underground Indo is never audible on the main floors.
--- Funkot has its own sealed rear-club feed.
 local muteButton=nil
 local function isLocallyMuted()
  if not muteButton or not muteButton.Parent then
@@ -136,10 +64,68 @@ RunService.Heartbeat:Connect(function()
  if fg and fg:IsA("SoundGroup") then fg.Volume=funkot end
  if venue~=lastVenue then
   lastVenue=venue
-  if mg then mg:SetAttribute("ClientRouteV6",venue) end
-  if ug then ug:SetAttribute("ClientRouteV6",venue) end
-  if fg then fg:SetAttribute("ClientRouteV6",venue) end
+  if mg then mg:SetAttribute("ClientRouteV8",venue) end
+  if ug then ug:SetAttribute("ClientRouteV8",venue) end
+  if fg then fg:SetAttribute("ClientRouteV8",venue) end
  end
 end)
 
-print("[BBYA] Basement UI v6 + hard audio route online: MAIN / UNDERGROUND / FUNKOT isolated")
+-- MUSIC SUITE SAFETY ----------------------------------------------------------
+-- This section does not touch audio. It only prevents old/new music panels from overlapping.
+local boundButtons=setmetatable({},{__mode="k"})
+local boundClose=setmetatable({},{__mode="k"})
+local boundHub=setmetatable({},{__mode="k"})
+
+local function suiteSafety()
+ local suite=pg:FindFirstChild("BBYAMusicSuiteV1")
+ local clubUI=pg:FindFirstChild("BBYAClubUI")
+ if not suite or not clubUI then return end
+ local hub=clubUI:FindFirstChild("HubPanel")
+
+ local compact=clubUI:FindFirstChild("BBYACompactMusicLayerV7")
+ if compact then compact:Destroy() end
+ local livePill=suite:FindFirstChild("LivePillV3",true)
+ if livePill then livePill:Destroy() end
+
+ local close=suite:FindFirstChild("Close",true)
+ if close and close:IsA("GuiButton") and not boundClose[close] then
+  boundClose[close]=true
+  close.Activated:Connect(function()
+   task.defer(function()
+    suite.Enabled=false
+    if hub then hub.Visible=true end
+   end)
+  end)
+ end
+
+ if hub and not boundHub[hub] then
+  boundHub[hub]=true
+  hub:GetPropertyChangedSignal("Visible"):Connect(function()
+   if hub.Visible and suite.Enabled then suite.Enabled=false end
+  end)
+ end
+
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ local drawer=menu and menu:FindFirstChild("FeatureDrawer")
+ if drawer then
+  for _,slot in ipairs(drawer:GetDescendants()) do
+   if slot:IsA("GuiObject") and slot.Name:match("^Slot_") and slot.Name~="Slot_MUSIC" then
+    for _,b in ipairs(slot:GetChildren()) do
+     if b:IsA("TextButton") and not boundButtons[b] then
+      boundButtons[b]=true
+      b.Activated:Connect(function()
+       task.defer(function()if suite.Enabled then suite.Enabled=false end end)
+      end)
+     end
+    end
+   end
+  end
+ end
+end
+
+pg.ChildAdded:Connect(function()task.defer(suiteSafety)end)
+for i=0,12 do task.delay(i*.35,suiteSafety) end
+player:SetAttribute("BBYALegacyMusicUIRetired",true)
+player:SetAttribute("BBYAMusicSuiteMainSafety","V1")
+
+print("[BBYA] Legacy audio route compatibility v8 + Music Suite safety online: old styling retired / route preserved")
