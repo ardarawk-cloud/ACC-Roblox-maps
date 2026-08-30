@@ -1,1 +1,0 @@
--- reserved; authorization is implemented in admin-panel.server.lua
