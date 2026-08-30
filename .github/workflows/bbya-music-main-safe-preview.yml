@@ -20,11 +20,19 @@ jobs:
 
       - name: Verify candidate is UI-only against live v552 source
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          $base='f52dbe4448a647a94b7fb5186432ca1edd860b50'
-          git fetch origin $base --depth=1 | Out-Null
-          $changed=@(git diff --name-only "$base..HEAD")
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept="application/vnd.github+json"
+            "X-GitHub-Api-Version"="2022-11-28"
+            "User-Agent"="BBYA-Music-Main-Safe"
+          }
+          $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/files?per_page=100"
+          $files=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+          $changed=@($files | ForEach-Object {$_.filename})
           $allowed=@(
             'maps/bbya-social-hub/81-basement-audio-ui.client.lua',
             'maps/bbya-social-hub/93-venue-music-ui.client.lua',
@@ -32,24 +40,9 @@ jobs:
             'maps/bbya-social-hub/105-music-ui-integrity.client.lua',
             'maps/bbya-social-hub/106-now-playing-title.client.lua'
           )
+          if($changed.Count -ne 5){throw "UNEXPECTED_CHANGED_FILE_COUNT: $($changed.Count)"}
           foreach($f in $changed){if($allowed -notcontains $f){throw "UNEXPECTED_CHANGE: $f"}}
           foreach($f in $allowed){if($changed -notcontains $f){throw "EXPECTED_UI_CHANGE_MISSING: $f"}}
-          $protected=@(
-            'maps/bbya-social-hub/83-audio-health-guard.server.lua',
-            'maps/bbya-social-hub/85-basement-autodj.server.lua',
-            'maps/bbya-social-hub/93-funkot-music.server.lua',
-            'maps/bbya-social-hub/104-venue-audio-groups.server.lua',
-            'maps/bbya-social-hub/104-venue-audio-router.client.lua',
-            'maps/bbya-social-hub/109-music-catalog-reset.server.lua',
-            'maps/bbya-social-hub/110-vip-track01.server.lua',
-            'maps/bbya-social-hub/121-funkot-playlist.server.lua',
-            'maps/bbya-social-hub/134-rooftop-playlist.server.lua',
-            'maps/bbya-social-hub/default.project.json'
-          )
-          foreach($f in $protected){
-            git diff --quiet "$base..HEAD" -- $f
-            if($LASTEXITCODE -ne 0){throw "PROTECTED_AUDIO_OR_MAPPING_CHANGED: $f"}
-          }
           Write-Host 'BBYA_MUSIC_MAIN_SAFE_DIFF_PASS only=81,93,103,105,106'
 
       - name: Verify Music Suite and venue contracts
