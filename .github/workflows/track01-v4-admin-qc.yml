@@ -1,0 +1,90 @@
+name: QC TRACK 01 v4 Admin Panel
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/track-01/**'
+      - 'scripts/build-track01.js'
+      - '.github/workflows/track01-v4-admin-qc.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: track01-v4-admin-qc-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-qc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate target and v4 source lock
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const c=require('./maps/track-01/track01.config.json');
+          if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
+          if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
+          if(String(c.version)!=='4.0.0') throw new Error('Wrong TRACK 01 version');
+          if(!c.enabled) throw new Error('TRACK 01 target disabled');
+          console.log('TRACK 01 v4 target lock PASS');
+          NODE
+
+      - name: Build canonical TRACK 01 place
+        run: node scripts/build-track01.js
+
+      - name: Validate retained feature-complete runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s maps/track-01/place.rbxlx
+          test "$(wc -c < maps/track-01/place.rbxlx)" -gt 200000
+          grep -q 'TRACK01_NightVisibilityHotfix' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' maps/track-01/place.rbxlx
+          grep -q 'Lighting.Brightness=1.80' maps/track-01/place.rbxlx
+          grep -q 'Lighting.ExposureCompensation=0.12' maps/track-01/place.rbxlx
+          grep -q 'YardReadabilityFill' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_FinalQC' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_FinalQCClient' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_FEATURE_COMPLETE' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_TicketAccessVestibule' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_SocialInteractions' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_EndOfLineHero' maps/track-01/place.rbxlx
+          grep -q 'END OF LINE' maps/track-01/place.rbxlx
+          echo 'TRACK 01 retained-runtime QC PASS'
+
+      - name: Validate admin panel v4 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'TRACK01_AdminPanelServer' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_AdminPanelClient' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_AdminPAClient' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' maps/track-01/place.rbxlx
+          grep -q 'ACC_TRACK01_PANEL_VERSION' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_ADMIN_USER_IDS' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_LIGHT_PULSE_ENABLED' maps/track-01/place.rbxlx
+          grep -q 'TRACK01_AdminTTS' maps/track-01/place.rbxlx
+          grep -q 'NO KICK BUTTON' maps/track-01/place.rbxlx
+          grep -q 'LAST TRAIN' maps/track-01/place.rbxlx
+          grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
+          echo 'TRACK 01 v4 admin panel QC PASS'
+
+      - name: Confirm build-only workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq 'ROBLOX_API_KEY|ROCKET_RACOON_PUBLISH|publish-track01' .github/workflows/track01-v4-admin-qc.yml; then
+            echo 'QC workflow must remain build-only and contain no publisher references.' >&2
+            exit 1
+          fi
+          echo 'Build-only isolation PASS'
