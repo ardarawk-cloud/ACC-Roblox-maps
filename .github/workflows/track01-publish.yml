@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TRACK01_SOURCE_SHA: 3656c04585a13b23816142ef0b2e8958e89f3fb6
+  TRACK01_SOURCE_SHA: 1dc05a2db7b0cf39dd31cb6ca468cf186b660d89
   TRACK01_VERSION: 4.0.0
   TRACK01_UNIVERSE_ID: '10745349805'
   TRACK01_PLACE_ID: '79748872921213'
-  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_0
+  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_0_OWNER_AUTH
 
 jobs:
   build-publish-verify:
@@ -85,7 +85,8 @@ jobs:
           grep -q 'TRACK01_AdminTTS' "$place"
           grep -q 'NO KICK BUTTON' "$place"
           grep -q 'AudioTextToSpeech' "$place"
-          echo 'TRACK 01 v4 canonical validation PASS'
+          grep -qi 'ridhoomaukamu' "$place"
+          echo 'TRACK 01 v4 owner-auth canonical validation PASS'
 
       - name: Record place metadata
         id: meta
@@ -121,7 +122,7 @@ jobs:
           if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
           const robloxVersion=Number(raw?.payload?.versionNumber);
           const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
-          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>23;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>24;
           const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
           const receipt={
             status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
@@ -156,7 +157,7 @@ jobs:
           git add deploy-status/track01-direct-attempt.json
           if [ -f deploy-status/track01-direct.json ]; then git add deploy-status/track01-direct.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Record TRACK 01 v4 direct publish receipt [skip ci]'
+            git commit -m 'Record TRACK 01 v4 owner-auth publish receipt [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -173,7 +174,7 @@ jobs:
           if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
           if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
           if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
-          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=23) throw new Error('Roblox version did not increment beyond v23');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=24) throw new Error('Roblox version did not increment beyond v24');
           if(!Number.isInteger(r.placeBytes) || r.placeBytes<=200000) throw new Error('Place bytes receipt invalid');
           if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
           console.log('TRACK 01 LIVE VERIFIED', r);
