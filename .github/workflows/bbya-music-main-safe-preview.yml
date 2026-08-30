@@ -53,7 +53,7 @@ jobs:
           $checks=@{
             'maps/bbya-social-hub/81-basement-audio-ui.client.lua'=@('LEGACY AUDIO ROUTE COMPATIBILITY v8 + MUSIC SUITE SAFETY','BBYALegacyMusicUIRetired','BBYAMusicSuiteMainSafety','ClientRouteV8');
             'maps/bbya-social-hub/93-venue-music-ui.client.lua'=@('MUSIC SUITE VENUE BRIDGE v6 MAIN-SAFE','BBYAMusicSuiteV1','FunkotMusic','VIPMusic','BBYASkateparkPlaylistCatalog','BBYARooftopPlaylistCatalog','HOST ONLY');
-            'maps/bbya-social-hub/103-music-ui-final.client.lua'=@('BBYA MUSIC SUITE v1','PREMIUM UI PHASE 2','BBYAMusicSuiteV1','Search songs...','NavLIBRARY','NavNOW','NavQUEUE');
+            'maps/bbya-social-hub/103-music-ui-final.client.lua'=@('BBYA MUSIC SUITE v1','PREMIUM UI PHASE 2','BBYAMusicSuiteV1','Search songs...','navButton("LIBRARY"','navButton("NOW"','navButton("QUEUE"');
             'maps/bbya-social-hub/105-music-ui-integrity.client.lua'=@('PREMIUM PHASE 3 / MOBILE GUARD v4','FAVORITES','HeroVisualizerV3');
             'maps/bbya-social-hub/106-now-playing-title.client.lua'=@('ACTUAL NOW PLAYING TITLE + ROOFTOP UI BRIDGE v2','MASTER LEVEL METER v6')
           }
