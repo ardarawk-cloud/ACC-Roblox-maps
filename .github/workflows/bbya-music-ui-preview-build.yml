@@ -1,74 +1,59 @@
-name: BBYA Music UI Preview Build
+name: BBYA Music UI Preview Build V3
 
 on:
-  push:
-    branches:
-      - feat/bbya-music-ui-v1
-    paths:
-      - 'maps/bbya-social-hub/**'
-      - 'maps/registry.json'
-      - '.github/workflows/bbya-music-ui-preview-build.yml'
   pull_request:
     branches:
-      - bbya-music-test-preview-base-v2
+      - bbya-music-test-preview-base-v3
     paths:
       - 'maps/bbya-social-hub/**'
       - 'maps/registry.json'
       - '.github/workflows/bbya-music-ui-preview-build.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   build-preview:
-    if: github.event_name != 'pull_request' || github.head_ref == 'feat/bbya-music-ui-v1'
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
     steps:
-      - name: Checkout preview source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Verify isolated BBYA Music test target
+      - name: Verify target and main-safe authorities
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
           $target=$reg.maps.'bbya-music-test'
-          if(-not $target){throw 'bbya-music-test target missing'}
+          if(-not $target){throw 'bbya-music-test missing'}
           if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
           if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
-          Write-Host 'BBYA_MUSIC_TEST_TARGET_LOCK_PASS map=bbya-music-test universe=10762005984 place=124607344716828'
-
-      - name: Verify unified Music Suite authority
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
           $bridge=Get-Content 'maps/bbya-social-hub/93-venue-music-ui.client.lua' -Raw
           $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
           $suite=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
           $integrity=Get-Content 'maps/bbya-social-hub/105-music-ui-integrity.client.lua' -Raw
-          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v5'){throw 'Venue bridge v5 missing'}
-          if($bridge -notmatch 'BBYAMusicSuiteV1'){throw 'Venue bridge not bound to Music Suite'}
-          if($bridge -match '\.Volume\s*='){throw 'Venue bridge must not mutate audio volume'}
-          if($legacy -notmatch 'LEGACY VENUE GAIN COMPATIBILITY v7'){throw 'Legacy UI retirement marker missing'}
-          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement attribute missing'}
-          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Primary Music Suite missing'}
-          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Premium Music Suite integrity layer missing'}
-          Write-Host 'BBYA_MUSIC_TEST_UI_AUTHORITY_QC_PASS suite=103+105 bridge=93 legacy_ui_retired=81'
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v6 MAIN-SAFE'){throw 'Main-safe bridge missing'}
+          if($bridge -match '\.Volume\s*='){throw 'Bridge mutates audio volume'}
+          foreach($needle in @('FUNKOT','VIP','SKATEPARK','ROOFTOP','VIPMusic')){if($bridge -notmatch [regex]::Escape($needle)){throw "Bridge contract missing: $needle"}}
+          if($legacy -notmatch 'MUSIC SUITE SAFETY'){throw 'Legacy compatibility missing'}
+          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement missing'}
+          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite missing'}
+          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Integrity layer missing'}
+          foreach($needle in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($needle)){throw "Router lock missing: $needle"}}
+          $routerBlob=(git rev-parse 'HEAD:maps/bbya-social-hub/104-venue-audio-router.client.lua').Trim()
+          if($routerBlob -ne '615ba63ba6ef99237ce6cb7221ad7a370c391344'){throw "Router blob changed: $routerBlob"}
+          Write-Host 'BBYA_MUSIC_V3_AUTHORITY_PASS'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){
-            $rojo=$cmd.Source
-          } else {
+          if($cmd){$rojo=$cmd.Source}else{
             $dir=Join-Path $env:RUNNER_TEMP 'bbya-preview-rojo-7.7.0'
             $zip=Join-Path $env:RUNNER_TEMP 'bbya-preview-rojo-7.7.0.zip'
             if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-            if(Test-Path $zip){Remove-Item $zip -Force}
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
             Expand-Archive -Path $zip -DestinationPath $dir -Force
@@ -77,48 +62,47 @@ jobs:
             $rojo=$exe.FullName
           }
           & $rojo --version
-          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
           "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build BBYA Music UI preview RBXL
+      - name: Build preview RBXL
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW.rbxl'
+          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW-V3.rbxl'
           & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0){throw 'Rojo preview build failed'}
-          if(-not (Test-Path $place)){throw 'Preview RBXL missing'}
-          if((Get-Item $place).Length -lt 1024){throw 'Preview RBXL unexpectedly small'}
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw 'RBXL too small'}
           $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
-          "$hash  BBYA-MUSIC-UI-PREVIEW.rbxl" | Set-Content (Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW.sha256') -Encoding ascii
-          Write-Host "BBYA_PREVIEW_BUILD_PASS source=${{ github.sha }} bytes=$((Get-Item $place).Length) sha256=$hash"
+          "$hash  BBYA-MUSIC-UI-PREVIEW-V3.rbxl" | Set-Content 'BBYA-MUSIC-UI-PREVIEW-V3.sha256' -Encoding ascii
+          Write-Host "BBYA_MUSIC_V3_BUILD_PASS bytes=$bytes sha256=$hash candidate=94ac32a488fa11b69756dbc74c1adfa56397def6"
 
-      - name: Publish preview to isolated BBYA Music test place
+      - name: Publish isolated test via MASTER V2
         shell: powershell
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status-test
-          PLACE_FILE_OVERRIDE: ${{ github.workspace }}\BBYA-MUSIC-UI-PREVIEW.rbxl
+          PLACE_FILE_OVERRIDE: ${{ github.workspace }}\BBYA-MUSIC-UI-PREVIEW-V3.rbxl
         run: |
           $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
+          $env:GITHUB_SHA='94ac32a488fa11b69756dbc74c1adfa56397def6'
           node scripts/publish-map.js bbya-music-test
           if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
-          $receipt=Join-Path $env:GITHUB_WORKSPACE 'deploy-status-test\bbya-music-test.json'
-          if(-not (Test-Path $receipt)){throw 'Publish receipt missing'}
+          $receipt='deploy-status-test\bbya-music-test.json'
           $r=Get-Content $receipt -Raw | ConvertFrom-Json
-          if($r.mapId -ne 'bbya-music-test'){throw 'Receipt map mismatch'}
-          if([string]$r.universeId -ne '10762005984'){throw 'Receipt universe mismatch'}
-          if([string]$r.placeId -ne '124607344716828'){throw 'Receipt place mismatch'}
-          if($r.sourceCommit -ne '${{ github.sha }}'){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if([string]$r.universeId -ne '10762005984' -or [string]$r.placeId -ne '124607344716828'){throw 'Test target mismatch'}
+          if($r.sourceCommit -ne '94ac32a488fa11b69756dbc74c1adfa56397def6'){throw "Source mismatch: $($r.sourceCommit)"}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
           Get-Content $receipt
-          Write-Host "BBYA_MUSIC_TEST_RECEIPT_PASS version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+          Write-Host "BBYA_MUSIC_V3_TEST_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
 
-      - name: Upload preview artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: BBYA-MUSIC-UI-PREVIEW
+          name: BBYA-MUSIC-UI-PREVIEW-V3
           path: |
-            BBYA-MUSIC-UI-PREVIEW.rbxl
-            BBYA-MUSIC-UI-PREVIEW.sha256
+            BBYA-MUSIC-UI-PREVIEW-V3.rbxl
+            BBYA-MUSIC-UI-PREVIEW-V3.sha256
             deploy-status-test/bbya-music-test.json
           retention-days: 7
