@@ -1,0 +1,103 @@
+name: BBYA Music Close Full Hide Preview Test
+
+on:
+  pull_request:
+    branches: [test/bbya-music-close-preview-base]
+    paths:
+      - 'maps/bbya-social-hub/81-basement-audio-ui.client.lua'
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Checkout candidate merge context
+        uses: actions/checkout@v4
+
+      - name: Verify close contract and test target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:CANDIDATE_SHA -notmatch '^[0-9a-fA-F]{40}$'){throw 'Invalid candidate SHA'}
+          $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
+          $target=$reg.maps.'bbya-music-test'
+          if(-not $target){throw 'bbya-music-test missing'}
+          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
+          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
+          $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
+          if($legacy -notmatch 'suite\.Enabled=false\s*\r?\n\s*-- Full-close contract:[^\r\n]*\r?\n\s*if hub then hub\.Visible=false end'){throw 'Full-close contract missing'}
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          foreach($n in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($n)){throw "Audio hard lock missing: $n"}}
+          Write-Host "BBYA_CLOSE_PREVIEW_AUTHORITY_PASS candidate=$env:CANDIDATE_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-close-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-close-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build candidate RBXL
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-CLOSE-PREVIEW.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw 'RBXL too small'}
+          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
+          "$hash  BBYA-MUSIC-CLOSE-PREVIEW.rbxl" | Set-Content 'BBYA-MUSIC-CLOSE-PREVIEW.sha256' -Encoding ascii
+          "PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BUILD_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CLOSE_PREVIEW_BUILD_PASS bytes=$bytes sha256=$hash candidate=$env:CANDIDATE_SHA"
+
+      - name: Publish isolated Music UI Test via MASTER V2
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status-test
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
+          $env:PLACE_FILE_OVERRIDE=$env:PLACE_FILE
+          $env:GITHUB_SHA=$env:CANDIDATE_SHA
+          node scripts/publish-map.js bbya-music-test
+          if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
+          $receipt='deploy-status-test\bbya-music-test.json'
+          if(-not (Test-Path $receipt)){throw 'Test receipt missing'}
+          $r=Get-Content $receipt -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if([string]$r.universeId -ne '10762005984'){throw 'Test universe mismatch'}
+          if([string]$r.placeId -ne '124607344716828'){throw 'Test place mismatch'}
+          if($r.sourceCommit -ne $env:CANDIDATE_SHA){throw "Source mismatch: $($r.sourceCommit)"}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          Write-Host "BBYA_CLOSE_PREVIEW_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit) build_sha256=$env:BUILD_SHA256"
+
+      - name: Upload test proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-music-close-preview-${{ env.CANDIDATE_SHA }}
+          path: |
+            BBYA-MUSIC-CLOSE-PREVIEW.rbxl
+            BBYA-MUSIC-CLOSE-PREVIEW.sha256
+            deploy-status-test/bbya-music-test.json
+          retention-days: 7
