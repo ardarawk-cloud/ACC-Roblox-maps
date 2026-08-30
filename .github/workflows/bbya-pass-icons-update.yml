@@ -1,0 +1,103 @@
+name: BBYA Pass Icons Update
+
+on:
+  push:
+    branches: ['feat/bbya-pass-icons-v1']
+    paths:
+      - '.github/workflows/bbya-pass-icons-update.yml'
+      - '.github/scripts/bbya-build-pass-icons.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    env:
+      ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+      UNIVERSE_ID: '8116636513'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build deterministic BBYA pass icons
+        shell: powershell
+        run: |
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-pass-icons'
+          & .\.github\scripts\bbya-build-pass-icons.ps1 -OutputDir $out
+          if((Get-ChildItem $out -Filter *.png).Count -ne 10){ throw 'Expected 10 PNG icons' }
+          Get-ChildItem $out -Filter *.png | ForEach-Object { Write-Host "ICON_READY name=$($_.Name) bytes=$($_.Length)" }
+
+      - name: Update Game Pass icons only
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-pass-icons'
+          $universe=$env:UNIVERSE_ID
+          $passes=@(
+            @{Id='1953653107'; Name='BBYA Pasar Malam Access'; File='pasar-malam.png'},
+            @{Id='1951773702'; Name='BBYA Mall Access'; File='mall.png'},
+            @{Id='1955508827'; Name='BBYA Funkot Club Access'; File='funkot.png'},
+            @{Id='1952834896'; Name='BBYA Basement Access'; File='basement.png'},
+            @{Id='1954884352'; Name='BBYA Rooftop Access'; File='rooftop.png'},
+            @{Id='1951935192'; Name='BBYA Skatepark Access'; File='skatepark.png'},
+            @{Id='1955610273'; Name='BBYA VIP Access'; File='vip.png'},
+            @{Id='1490269572'; Name='SULTAN CORE'; File='sultan.png'},
+            @{Id='1477823766'; Name='B pass'; File='b-pass.png'},
+            @{Id='1458614776'; Name='A Pass'; File='a-pass.png'}
+          )
+          foreach($p in $passes){
+            $file=Join-Path $out $p.File
+            if(-not (Test-Path $file)){ throw "Missing icon file $file" }
+            $url="https://apis.roblox.com/game-passes/v1/universes/$universe/game-passes/$($p.Id)"
+            $resp=Join-Path $env:RUNNER_TEMP ("pass-$($p.Id).json")
+            $code=& curl.exe -sS -o $resp -w '%{http_code}' -X PATCH -H "x-api-key: $env:ROBLOX_API_KEY" -F "file=@$file;type=image/png" $url
+            $body=if(Test-Path $resp){Get-Content $resp -Raw}else{''}
+            Write-Host "BBYA_PASS_ICON_PATCH id=$($p.Id) name=$($p.Name) http=$code response=$body"
+            if($code -notmatch '^2'){ throw "Game Pass icon PATCH failed id=$($p.Id) http=$code body=$body" }
+          }
+          Write-Host 'BBYA_PASS_ICON_PATCH_PASS count=10'
+
+      - name: Verify new icon asset IDs and untouched pass configuration
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{'x-api-key'=$env:ROBLOX_API_KEY}
+          $uri="https://apis.roblox.com/game-passes/v1/universes/$env:UNIVERSE_ID/game-passes/creator?pageSize=100"
+          $old='133448903949274'
+          $expected=@{
+            '1953653107'=@{Name='BBYA Pasar Malam Access';Price=10};
+            '1951773702'=@{Name='BBYA Mall Access';Price=10};
+            '1955508827'=@{Name='BBYA Funkot Club Access';Price=10};
+            '1952834896'=@{Name='BBYA Basement Access';Price=20};
+            '1954884352'=@{Name='BBYA Rooftop Access';Price=10};
+            '1951935192'=@{Name='BBYA Skatepark Access';Price=5};
+            '1955610273'=@{Name='BBYA VIP Access';Price=5};
+            '1490269572'=@{Name='SULTAN CORE';Price=10000};
+            '1477823766'=@{Name='B pass';Price=10};
+            '1458614776'=@{Name='A Pass';Price=5}
+          }
+          $last=$null
+          for($attempt=1;$attempt -le 8;$attempt++){
+            $last=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+            $remaining=@($last.gamePasses | Where-Object { $expected.ContainsKey([string]$_.gamePassId) -and [string]$_.iconAssetId -eq $old })
+            Write-Host "VERIFY_ATTEMPT=$attempt old_icon_remaining=$($remaining.Count)"
+            if($remaining.Count -eq 0){break}
+            Start-Sleep -Seconds 4
+          }
+          $verified=0
+          foreach($p in $last.gamePasses){
+            $id=[string]$p.gamePassId
+            if(-not $expected.ContainsKey($id)){continue}
+            $e=$expected[$id]
+            $price=[int]$p.priceInformation.defaultPriceInRobux
+            if($p.name -ne $e.Name){throw "Name changed unexpectedly id=$id actual=$($p.name)"}
+            if($price -ne [int]$e.Price){throw "Price changed unexpectedly id=$id actual=$price"}
+            if([string]$p.iconAssetId -eq $old){throw "Icon did not change id=$id"}
+            Write-Host "BBYA_PASS_ICON_VERIFIED id=$id name=$($p.name) price=$price iconAssetId=$($p.iconAssetId)"
+            $verified++
+          }
+          if($verified -ne 10){throw "Expected 10 verified passes, got $verified"}
+          Write-Host 'BBYA_PASS_ICONS_UPDATE_PASS verified=10 names_prices_unchanged=true map_publish=false'
