@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "rojoVersion": "7.7.0",
+  "maps": {
+    "a-club": {
+      "name": "BBYA Social Hub",
+      "enabled": true,
+      "universeId": "8116636513",
+      "placeId": "131894120482837",
+      "buildMode": "rojo",
+      "projectPath": "maps/bbya-social-hub/default.project.json",
+      "outputExtension": "rbxl",
+      "secretProfile": "master"
+    },
+    "after-school-city": {
+      "name": "AFTER SCHOOL CITY",
+      "enabled": true,
+      "universeId": "10745359869",
+      "placeId": "121603385909425",
+      "buildMode": "rojo",
+      "projectPath": "maps/after-school-city/default.project.json",
+      "outputExtension": "rbxl",
+      "secretProfile": "master"
+    },
+    "bbyavatar": {
+      "name": "BBYAVATAR — Avatar Catalog & Outfit Creator",
+      "enabled": true,
+      "universeId": "10744157359",
+      "placeId": "85866320744490",
+      "buildMode": "bbyavatar-node",
+      "outputPath": "maps/bbyavatar/place.rbxlx",
+      "outputExtension": "rbxlx",
+      "secretProfile": "bbyavatar"
+    },
+    "becak-e-bike": {
+      "name": "BECAK E-BIKE — Nusakarya Simulator",
+      "enabled": true,
+      "universeId": "10745325613",
+      "placeId": "80994730522893",
+      "buildMode": "becak-node",
+      "outputPath": "maps/becak-e-bike/place.rbxlx",
+      "outputExtension": "rbxlx",
+      "secretProfile": "master"
+    }
+  }
+}
