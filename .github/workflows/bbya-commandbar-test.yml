@@ -1,107 +1,74 @@
-name: BBYA Music Test Emergency Preview
+name: BBYA Studio Command Bar Bridge Test
 
 on:
   push:
-    branches:
-      - feat/bbya-music-ui-v1
+    branches: [main]
     paths:
       - '.github/workflows/bbya-commandbar-test.yml'
-      - 'maps/bbya-social-hub/**'
-      - 'maps/registry.json'
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  publish-music-test:
-    if: github.ref == 'refs/heads/feat/bbya-music-ui-v1'
+  test:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 15
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout exact isolated source
-        uses: actions/checkout@v4
-
-      - name: Hard-lock test target and UI authority
+      - name: Execute harmless Studio command
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
-          $target=$reg.maps.'bbya-music-test'
-          if(-not $target){throw 'bbya-music-test missing'}
-          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
-          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
-          $bridge=Get-Content 'maps/bbya-social-hub/93-venue-music-ui.client.lua' -Raw
-          $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
-          $suite=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
-          $integrity=Get-Content 'maps/bbya-social-hub/105-music-ui-integrity.client.lua' -Raw
-          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v5'){throw 'Venue bridge marker missing'}
-          if($bridge -match '\.Volume\s*='){throw 'Venue bridge may not mutate audio volume'}
-          if($legacy -notmatch 'LEGACY VENUE GAIN COMPATIBILITY v7'){throw 'Legacy UI retirement marker missing'}
-          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement attr missing'}
-          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite missing'}
-          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Premium integrity layer missing'}
-          Write-Host 'BBYA_MUSIC_TEST_AUTHORITY_PASS target=bbya-music-test main_target_forbidden=true'
-
-      - name: Prepare Rojo 7.7.0
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){$rojo=$cmd.Source}else{
-            $dir=Join-Path $env:RUNNER_TEMP 'bbya-music-preview-rojo-7.7.0'
-            $zip=Join-Path $env:RUNNER_TEMP 'bbya-music-preview-rojo-7.7.0.zip'
-            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-            if(Test-Path $zip){Remove-Item $zip -Force}
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-            Expand-Archive -Path $zip -DestinationPath $dir -Force
-            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
-            if(-not $exe){throw 'rojo.exe not found'}
-            $rojo=$exe.FullName
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class FocusNative {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+'@
+          $lines=New-Object System.Collections.Generic.List[string]
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $proc){$lines.Add('STUDIO_NOT_FOUND')} else {
+            [FocusNative]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+            Start-Sleep -Milliseconds 400
+            $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+            $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+            $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond)
+            $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+            $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+            $lines.Add("EDIT_FOUND=$([bool]$edit)")
+            $lines.Add("RUN_FOUND=$([bool]$run)")
+            if($edit){
+              try{
+                $vp=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $lines.Add('VALUE_PATTERN=true')
+                $vp.SetValue('print("[BBYA_UI_BRIDGE_TEST_20260820]")')
+                Start-Sleep -Milliseconds 300
+              }catch{$lines.Add("SET_VALUE_ERROR=$($_.Exception.Message)")}
+            }
+            if($run){
+              try{
+                $ip=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                $ip.Invoke()
+                $lines.Add('RUN_INVOKED=true')
+              }catch{$lines.Add("RUN_ERROR=$($_.Exception.Message)")}
+            }
+            Start-Sleep -Seconds 2
+            $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 8
+            foreach($log in $logs){
+              $m=Select-String -Path $log.FullName -Pattern 'BBYA_UI_BRIDGE_TEST_20260820' -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -Last 3
+              foreach($x in $m){$lines.Add("LOG_MATCH=$($log.Name):$($x.LineNumber):$($x.Line)")}
+            }
           }
-          & $rojo --version
-          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
-          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build test RBXL
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW.rbxl'
-          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
-          $bytes=(Get-Item $place).Length
-          if($bytes -lt 1024){throw 'RBXL too small'}
-          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
-          "$hash  BBYA-MUSIC-UI-PREVIEW.rbxl" | Set-Content 'BBYA-MUSIC-UI-PREVIEW.sha256' -Encoding ascii
-          Write-Host "BBYA_MUSIC_TEST_BUILD_PASS source=${{ github.sha }} bytes=$bytes sha256=$hash"
-
-      - name: Publish hard-locked BBYA Music UI Test
-        shell: powershell
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-          PUBLISH_RECEIPT_DIR: deploy-status-test
-          PLACE_FILE_OVERRIDE: ${{ github.workspace }}\BBYA-MUSIC-UI-PREVIEW.rbxl
-        run: |
-          $ErrorActionPreference='Stop'
-          node scripts/publish-map.js bbya-music-test
-          if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
-          $receipt='deploy-status-test\bbya-music-test.json'
-          if(-not (Test-Path $receipt)){throw 'Receipt missing'}
-          $r=Get-Content $receipt -Raw | ConvertFrom-Json
-          if($r.mapId -ne 'bbya-music-test'){throw 'Receipt map mismatch'}
-          if([string]$r.universeId -ne '10762005984'){throw 'Receipt universe mismatch'}
-          if([string]$r.placeId -ne '124607344716828'){throw 'Receipt place mismatch'}
-          if($r.sourceCommit -ne '${{ github.sha }}'){throw "Receipt source mismatch: $($r.sourceCommit)"}
-          Get-Content $receipt
-          Write-Host "BBYA_MUSIC_TEST_RECEIPT_PASS source=$($r.sourceCommit) version=$($r.response.versionNumber)"
-
-      - name: Upload preview artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: BBYA-MUSIC-UI-PREVIEW
-          path: |
-            BBYA-MUSIC-UI-PREVIEW.rbxl
-            BBYA-MUSIC-UI-PREVIEW.sha256
-            deploy-status-test/bbya-music-test.json
-          retention-days: 7
+          $text=($lines-join "`n")+"`n"
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/bbya-commandbar-test.txt"
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept="application/vnd.github+json";"X-GitHub-Api-Version"="2022-11-28";"User-Agent"="BBYA-Studio-Worker"}
+          $sha=$null
+          try{$sha=(Invoke-RestMethod -Method Get -Uri $api -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+          $body=@{message='Record BBYA command bar test [skip ci]';content=$content;branch='main'}
+          if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'
