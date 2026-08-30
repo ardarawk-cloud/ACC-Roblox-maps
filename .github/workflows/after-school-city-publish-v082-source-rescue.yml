@@ -26,7 +26,7 @@ jobs:
       PLACE_ID: '121603385909425'
       EXPECTED_BYTES: '111920'
       EXPECTED_SHA256: '6f12286e4e9b77bb237124d67349bc4543da683bbcb5c4184afa14a0a3746852'
-      ROBLOX_API_KEY: ${{ secrets.ROCKET_RACOON_PUBLISH }}
+      ROBLOX_API_KEY: ${{ secrets.ROCKET_RACOON_PUBLISH || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
     steps:
       - name: Checkout publisher repository
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
           [[ "$(jq -r '.runId' "$RUNNER_TEMP/qc.json")" == "$QC_RUN_ID" ]] || { echo 'QC run mismatch'; exit 12; }
           [[ "$(jq -r '.placeBytes' "$RUNNER_TEMP/qc.json")" == "$EXPECTED_BYTES" ]] || { echo 'QC bytes mismatch'; exit 13; }
           [[ "$(jq -r '.placeSha256' "$RUNNER_TEMP/qc.json")" == "$EXPECTED_SHA256" ]] || { echo 'QC hash mismatch'; exit 14; }
-          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROCKET_RACOON_PUBLISH missing'; exit 15; }
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'No usable Roblox publish secret'; exit 15; }
           echo "QC AUTHORITY PASS run=$QC_RUN_ID source=$SOURCE_SHA"
 
       - name: Checkout exact V0.8.2 source
