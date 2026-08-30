@@ -1,6 +1,10 @@
 name: Publish TRACK 01 Direct Master V2 v4
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/track01-publish.yml'
   workflow_dispatch:
 
 concurrency:
