@@ -35,7 +35,8 @@ if lights then
         accumulator+=dt
         if accumulator<0.08 then return end
         accumulator=0
-        local factor=0.84+(math.sin(phase*2.2)+1)*0.10
+        local pulseEnabled=Workspace:GetAttribute("TRACK01_LIGHT_PULSE_ENABLED")~=false
+        local factor=pulseEnabled and (0.84+(math.sin(phase*2.2)+1)*0.10) or 1
         local write=1
         for read=1,#pulseLights do
             local entry=pulseLights[read]
