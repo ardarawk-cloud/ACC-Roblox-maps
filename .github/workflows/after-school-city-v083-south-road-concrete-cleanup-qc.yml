@@ -81,16 +81,11 @@ jobs:
             if($script -match [regex]::Escape($forbidden)){ throw "Forbidden V0.8.3 authority found: $forbidden" }
           }
 
-          foreach($roadMutation in @(
-            'road.Size =',
-            'road.CFrame =',
-            'road.Position =',
-            'road.Parent =',
-            'road:Destroy()',
-            'road.Transparency =',
-            'road.Material ='
-          )){
-            if($script -match [regex]::Escape($roadMutation)){ throw "Road mutation forbidden: $roadMutation" }
+          if($script -match '(?m)^\s*road\.(?:Size|CFrame|Position|Parent|Transparency|Material|Color|CanCollide)\s*=(?!=)'){
+            throw 'NorthSouthRoad property assignment forbidden in V0.8.3'
+          }
+          if($script -match 'road\s*:\s*Destroy\s*\('){
+            throw 'NorthSouthRoad destroy forbidden in V0.8.3'
           }
 
           foreach($token in @(
