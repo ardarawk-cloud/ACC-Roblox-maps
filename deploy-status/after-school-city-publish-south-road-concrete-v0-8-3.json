@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "SOUTH_ROAD_CONCRETE_CLEANUP_V0_8_3",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "dda124b235dc3e165e9062926cb9b300d6c65c02",
+  "baseLiveCommit": "398f80859527a09d65eae59474342895fef31949",
+  "qcRunId": "33307373943",
+  "qcArtifactId": 9730905632,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 30,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 114519,
+  "placeSha256": "b03a50b57e312989726ad1ddbee3209b3a80fd64ddd36e69f0f1a0d5bfbc46f2",
+  "runId": "33314752975",
+  "publishedAt": "2026-08-30T13:39:14Z",
+  "note": "V0.8.3 exact QC-locked artifact; south Park concrete/path cleanup only (WalkingPath, LakeBorderN, LakeBorderS) around NorthSouthRoad; asphalt road geometry, central intersection, orientation/centerline locks, gameplay systems, and dedication unchanged."
+}
