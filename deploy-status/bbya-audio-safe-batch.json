@@ -13,7 +13,7 @@
         "size": 3691128,
         "sha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba"
       },
-      "updatedAt": "2026-08-30T13:19:41.617752+00:00",
+      "updatedAt": "2026-08-30T13:43:59.848543+00:00",
       "normalizedSha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -393,7 +393,7 @@
         "size": 5882186,
         "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663"
       },
-      "updatedAt": "2026-08-30T13:19:43.047465+00:00",
+      "updatedAt": "2026-08-30T13:44:01.203719+00:00",
       "normalizedSha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -467,7 +467,7 @@
         "size": 6383610,
         "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41"
       },
-      "updatedAt": "2026-08-30T13:19:44.470826+00:00",
+      "updatedAt": "2026-08-30T13:44:02.649955+00:00",
       "normalizedSha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -541,7 +541,7 @@
         "size": 6383610,
         "sha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41"
       },
-      "updatedAt": "2026-08-30T13:19:46.094948+00:00",
+      "updatedAt": "2026-08-30T13:44:04.071197+00:00",
       "normalizedSha256": "f325920845a096bd52dbc9571849496cb77bf1ff3e1c2f740b7f45e1f2386c41",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -615,7 +615,7 @@
         "size": 5882186,
         "sha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663"
       },
-      "updatedAt": "2026-08-30T13:19:48.107523+00:00",
+      "updatedAt": "2026-08-30T13:44:05.448193+00:00",
       "normalizedSha256": "16ba1dd73d912317016b51f3096ab8ecf0e296aaf39704cbffa7c711fcc06663",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -689,7 +689,7 @@
         "size": 6020805,
         "sha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1"
       },
-      "updatedAt": "2026-08-30T13:19:49.550767+00:00",
+      "updatedAt": "2026-08-30T13:44:06.832911+00:00",
       "normalizedSha256": "6a8904ca1d4fa8c8c58c27dedd02e3c9103985dbd62ec46f13fc41c7c7a112c1",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -763,7 +763,7 @@
         "size": 5821899,
         "sha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a"
       },
-      "updatedAt": "2026-08-30T13:19:50.968280+00:00",
+      "updatedAt": "2026-08-30T13:44:08.310124+00:00",
       "normalizedSha256": "dbb314d6a25711acb0e123b3f2e8630ff5bea7a8ead8a0b3b82b0c56f63cc32a",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -837,7 +837,7 @@
         "size": 6694275,
         "sha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364"
       },
-      "updatedAt": "2026-08-30T13:19:52.355714+00:00",
+      "updatedAt": "2026-08-30T13:44:09.645417+00:00",
       "normalizedSha256": "57638a301bf07aede57a076cd3e86b5beefed497f163b0f9a7efaf56240f1364",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1432,7 +1432,7 @@
         "size": 6549553,
         "sha256": "fde7dc6d779bae8e688d9b74eed8f58c4a2be851a9df316d5fd966c2988228cb"
       },
-      "updatedAt": "2026-08-30T13:19:53.762855+00:00",
+      "updatedAt": "2026-08-30T13:44:10.998330+00:00",
       "normalizedSha256": "fde7dc6d779bae8e688d9b74eed8f58c4a2be851a9df316d5fd966c2988228cb",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1502,7 +1502,7 @@
       "sequence": 18,
       "status": "BLACKLISTED",
       "blacklistReason": "PREVIOUS_ROBLOX_REJECTION_SEXUAL_CONTENT_2026_08_21",
-      "updatedAt": "2026-08-30T13:19:55.281938+00:00"
+      "updatedAt": "2026-08-30T13:44:12.494671+00:00"
     },
     "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC": {
       "driveId": "123mTTNYw8PaGG7XwriNi9ER36WB6IzIC",
@@ -1617,7 +1617,7 @@
         "size": 6561277,
         "sha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686"
       },
-      "updatedAt": "2026-08-30T13:19:56.806255+00:00",
+      "updatedAt": "2026-08-30T13:44:13.833146+00:00",
       "normalizedSha256": "ee42417b673346dee934f1baab5408af004326ef9695ba4d5f19d4431ef3b686",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1691,7 +1691,7 @@
         "size": 6625799,
         "sha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453"
       },
-      "updatedAt": "2026-08-30T13:19:58.426422+00:00",
+      "updatedAt": "2026-08-30T13:44:15.247193+00:00",
       "normalizedSha256": "67b5cd9d82dafe59c2ddd2b4bda93003a95c8ab4831c87f4f0c4a662b0c07453",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -1867,7 +1867,7 @@
         "size": 6561253,
         "sha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6"
       },
-      "updatedAt": "2026-08-30T13:19:59.894163+00:00",
+      "updatedAt": "2026-08-30T13:44:16.629930+00:00",
       "normalizedSha256": "53ce5d262d05ce33f66eb98de659e53c3ba164bd822f90483cfb2e50aeb2c2d6",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2349,7 +2349,7 @@
         "size": 6587662,
         "sha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4"
       },
-      "updatedAt": "2026-08-30T13:20:01.413069+00:00",
+      "updatedAt": "2026-08-30T13:44:18.032426+00:00",
       "normalizedSha256": "1738990e64324691909d4d4e8784b62e98dc45ea958a1c817e9c5b4d1a5816f4",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2423,7 +2423,7 @@
         "size": 6561245,
         "sha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d"
       },
-      "updatedAt": "2026-08-30T13:20:02.880387+00:00",
+      "updatedAt": "2026-08-30T13:44:19.388705+00:00",
       "normalizedSha256": "3b69d3e94b6184d037634bfece2f4167d533bb7dab66389c5849ba92cc78423d",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2599,7 +2599,7 @@
         "size": 6561222,
         "sha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370"
       },
-      "updatedAt": "2026-08-30T13:20:04.426926+00:00",
+      "updatedAt": "2026-08-30T13:44:20.765160+00:00",
       "normalizedSha256": "33b500fc59595c3e3244ca06bb6e6d27117f4aa04edc8b861764986c59e3c370",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2673,7 +2673,7 @@
         "size": 6524890,
         "sha256": "93d81a7fd85b021435b1b44a2406bdd5eab03882039513e90588782667b532f1"
       },
-      "updatedAt": "2026-08-30T13:20:05.860220+00:00",
+      "updatedAt": "2026-08-30T13:44:22.063910+00:00",
       "normalizedSha256": "93d81a7fd85b021435b1b44a2406bdd5eab03882039513e90588782667b532f1",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -2849,7 +2849,7 @@
         "size": 6590175,
         "sha256": "e0ce32fe7e1b797dc30d4e5ae22f7959c3b5ff6154ff940765dd371be1e7e3be"
       },
-      "updatedAt": "2026-08-30T13:20:07.270810+00:00",
+      "updatedAt": "2026-08-30T13:44:23.446948+00:00",
       "normalizedSha256": "e0ce32fe7e1b797dc30d4e5ae22f7959c3b5ff6154ff940765dd371be1e7e3be",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3229,7 +3229,7 @@
         "size": 6561211,
         "sha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347"
       },
-      "updatedAt": "2026-08-30T13:20:08.700691+00:00",
+      "updatedAt": "2026-08-30T13:44:24.843997+00:00",
       "normalizedSha256": "ec399629da620c3e115731cc4031e9edca0c685f3ca604c7c264a2f53b7d2347",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3609,14 +3609,14 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-08-30T13:20:18.176423+00:00",
+      "updatedAt": "2026-08-30T13:44:34.914157+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 429,
       "uploadResponse": {
         "code": "RESOURCE_EXHAUSTED",
         "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
       },
-      "uploadedAt": "2026-08-30T13:20:19.240637+00:00",
+      "uploadedAt": "2026-08-30T13:44:35.113947+00:00",
       "status": "UPLOAD_QUOTA_BLOCKED"
     }
   },
@@ -3660,7 +3660,7 @@
     "displayName": "GudangPet88"
   },
   "folderItemCount": 68,
-  "updatedAt": "2026-08-30T13:19:40.107065+00:00",
+  "updatedAt": "2026-08-30T13:43:58.407864+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
   "lastLiveSequence": 41,

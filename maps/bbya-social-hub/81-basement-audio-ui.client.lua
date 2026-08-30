@@ -93,7 +93,8 @@ local function suiteSafety()
   close.Activated:Connect(function()
    task.defer(function()
     suite.Enabled=false
-    if hub then hub.Visible=true end
+    -- Full-close contract: do not resurrect the retired HubPanel/music shell.
+    if hub then hub.Visible=false end
    end)
   end)
  end
