@@ -1,0 +1,179 @@
+name: BBYA Music UI Final Publish MASTER V2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-music-ui-master-v2-final.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-music-ui-master-v2-final.yml'
+
+concurrency:
+  group: bbya-music-ui-final-master-v2
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  exact-publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      BBYA_SOURCE_SHA: 26c77a07828a8578f6e83fb92f6b292c067ca715
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail closed if BBYA source moved
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $head=if('${{ github.event_name }}' -eq 'pull_request'){$env:PR_HEAD_SHA}else{'${{ github.sha }}'}
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Music-UI-Master-V2'}
+          $cmp=Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/compare/$env:BBYA_SOURCE_SHA...$head"
+          if([string]$cmp.merge_base_commit.sha -ne $env:BBYA_SOURCE_SHA){throw 'Exact BBYA source is not ancestor of publisher head'}
+          $bbya=@($cmp.files | Where-Object {$_.filename -like 'maps/bbya-social-hub/*'})
+          if($bbya.Count -gt 0){throw "BBYA source changed after exact target: $($bbya.filename -join ', ')"}
+          Write-Host "BBYA_FINAL_SOURCE_LOCK_PASS source=$env:BBYA_SOURCE_SHA head=$head"
+
+      - name: Download exact source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-music-ui-final-source'
+          $arc=Join-Path $env:RUNNER_TEMP 'bbya-music-ui-final.tar.gz'
+          if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Music-UI-Master-V2'}
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/tarball/$env:BBYA_SOURCE_SHA" -OutFile $arc
+          $tar=Get-Command tar.exe -ErrorAction SilentlyContinue
+          if(-not $tar){$tar=Get-Command tar -ErrorAction SilentlyContinue}
+          if(-not $tar){throw 'Windows tar unavailable'}
+          & $tar.Source -xzf $arc -C $dir --strip-components=1
+          if($LASTEXITCODE -ne 0){throw 'Exact source extraction failed'}
+          "BBYA_SOURCE_DIR=$dir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Verify Music UI and audio hard locks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:BBYA_SOURCE_DIR 'maps/bbya-social-hub'
+          $bridge=Get-Content (Join-Path $root '93-venue-music-ui.client.lua') -Raw
+          $legacy=Get-Content (Join-Path $root '81-basement-audio-ui.client.lua') -Raw
+          $suite=Get-Content (Join-Path $root '103-music-ui-final.client.lua') -Raw
+          $integrity=Get-Content (Join-Path $root '105-music-ui-integrity.client.lua') -Raw
+          $router=Get-Content (Join-Path $root '104-venue-audio-router.client.lua') -Raw
+          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v6 MAIN-SAFE'){throw 'Main-safe bridge missing'}
+          if($bridge -match '\.Volume\s*='){throw 'Venue bridge mutates volume'}
+          foreach($n in @('FUNKOT','VIP','SKATEPARK','ROOFTOP','VIPMusic')){if($bridge -notmatch [regex]::Escape($n)){throw "Venue contract missing: $n"}}
+          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement missing'}
+          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite missing'}
+          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Integrity layer missing'}
+          foreach($n in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($n)){throw "Audio hard lock missing: $n"}}
+          Write-Host 'BBYA_FINAL_AUTHORITY_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-final-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-final-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact BBYA source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'BBYA-MUSIC-UI-FINAL.rbxl'
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {& $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}} finally {Pop-Location}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw 'RBXL too small'}
+          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
+          "BBYA_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_BUILD_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_FINAL_BUILD_PASS bytes=$bytes sha256=$hash source=$env:BBYA_SOURCE_SHA"
+
+      - name: Publish exact source via MASTER V2
+        if: github.event_name == 'push'
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
+          Push-Location $env:BBYA_SOURCE_DIR
+          try {
+            $env:PLACE_FILE_OVERRIDE=$env:BBYA_PLACE_FILE
+            $env:PUBLISH_RECEIPT_DIR='deploy-status-exact'
+            $env:GITHUB_SHA=$env:BBYA_SOURCE_SHA
+            node scripts/publish-map.js a-club
+            if($LASTEXITCODE -ne 0){throw 'Roblox exact publish failed'}
+          } finally {Pop-Location}
+
+      - name: Verify exact PUBLISHED receipt
+        if: github.event_name == 'push'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=Join-Path $env:BBYA_SOURCE_DIR 'deploy-status-exact/a-club.json'
+          if(-not (Test-Path $path)){throw 'Receipt missing'}
+          $r=Get-Content $path -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if($r.sourceCommit -ne $env:BBYA_SOURCE_SHA){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if([string]$r.universeId -ne '8116636513'){throw 'Universe mismatch'}
+          if([string]$r.placeId -ne '131894120482837'){throw 'Place mismatch'}
+          if(-not $r.response.versionNumber){throw 'Roblox version missing'}
+          $tmp=Join-Path $env:RUNNER_TEMP 'bbya-music-ui-final-receipt.json'
+          Copy-Item $path $tmp -Force
+          "BBYA_RECEIPT_TMP=$tmp" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BBYA_VERSION=$($r.response.versionNumber)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Get-Content $path
+          Write-Host "BBYA_FINAL_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit) build_sha256=$env:BBYA_BUILD_SHA256"
+
+      - name: Persist verified receipt
+        if: github.event_name == 'push'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $text=Get-Content $env:BBYA_RECEIPT_TMP -Raw
+          $content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='BBYA-Music-UI-Master-V2'}
+          foreach($path in @('deploy-status/a-club.json','deploy-status/a-club-exact-source.json')){
+            $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+            $sha=$null
+            try {$old=Invoke-RestMethod -Headers $headers -Uri ($uri+'?ref=main');$sha=[string]$old.sha} catch {if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
+            $body=@{message="Record BBYA Music UI exact deploy v$env:BBYA_VERSION [skip ci]";content=$content;branch='main'}
+            if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($body|ConvertTo-Json -Depth 4)|Out-Null
+          }
+          Write-Host "BBYA_FINAL_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:BBYA_SOURCE_SHA"
+
+      - name: Upload receipt artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-music-ui-final-${{ env.BBYA_SOURCE_SHA }}
+          path: ${{ env.BBYA_RECEIPT_TMP }}
+          retention-days: 30
