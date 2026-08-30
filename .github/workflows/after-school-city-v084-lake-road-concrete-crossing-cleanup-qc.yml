@@ -82,7 +82,7 @@ jobs:
           }
 
           # Prove the screenshot defect source still comes from the locked V03 Park loop.
-          foreach($token in @('V03_ParkLife', 'PathNorth', 'PathSouth', 'Vector3.new(130, 0.4, 8)')){
+          foreach($token in @('V03_ParkLife', 'PathNorth', 'PathSouth', 'Vector3.new(130, 0.55, 10)')){
             if($cityLife -notmatch [regex]::Escape($token)){ throw "Locked Park loop source marker missing: $token" }
           }
 
