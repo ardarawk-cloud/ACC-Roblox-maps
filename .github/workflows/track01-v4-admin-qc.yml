@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -Eq 'ROBLOX_API_KEY|ROCKET_RACOON_PUBLISH|publish-track01' .github/workflows/track01-v4-admin-qc.yml; then
+          if grep -Ev '^[[:space:]]*if grep ' .github/workflows/track01-v4-admin-qc.yml | grep -Eq 'ROBLOX_API_KEY|ROCKET_RACOON_PUBLISH|publish-track01'; then
             echo 'QC workflow must remain build-only and contain no publisher references.' >&2
             exit 1
           fi
