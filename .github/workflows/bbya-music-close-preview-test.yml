@@ -19,21 +19,33 @@ jobs:
       - name: Checkout candidate merge context
         uses: actions/checkout@v4
 
-      - name: Verify close contract and test target
+      - name: Verify close contract and prepare isolated test target
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           if($env:CANDIDATE_SHA -notmatch '^[0-9a-fA-F]{40}$'){throw 'Invalid candidate SHA'}
-          $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
-          $target=$reg.maps.'bbya-music-test'
-          if(-not $target){throw 'bbya-music-test missing'}
-          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
-          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
           $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
           if($legacy -notmatch 'suite\.Enabled=false\s*\r?\n\s*-- Full-close contract:[^\r\n]*\r?\n\s*if hub then hub\.Visible=false end'){throw 'Full-close contract missing'}
           $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
           foreach($n in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($n)){throw "Audio hard lock missing: $n"}}
-          Write-Host "BBYA_CLOSE_PREVIEW_AUTHORITY_PASS candidate=$env:CANDIDATE_SHA"
+          $registryPath='maps/registry.json'
+          $reg=Get-Content $registryPath -Raw | ConvertFrom-Json
+          if($reg.maps.PSObject.Properties.Name -contains 'bbya-music-test'){$reg.maps.PSObject.Properties.Remove('bbya-music-test')}
+          $test=[pscustomobject]@{
+            name='BBYA Music UI Test'
+            enabled=$true
+            universeId='10762005984'
+            placeId='124607344716828'
+            file='maps/bbya-social-hub/place.rbxlx'
+          }
+          $reg.maps | Add-Member -MemberType NoteProperty -Name 'bbya-music-test' -Value $test
+          $reg | ConvertTo-Json -Depth 10 | Set-Content $registryPath -Encoding utf8
+          $check=Get-Content $registryPath -Raw | ConvertFrom-Json
+          $target=$check.maps.'bbya-music-test'
+          if(-not $target){throw 'Runtime bbya-music-test injection failed'}
+          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
+          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
+          Write-Host "BBYA_CLOSE_PREVIEW_AUTHORITY_PASS candidate=$env:CANDIDATE_SHA isolated_registry=runtime_only"
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
