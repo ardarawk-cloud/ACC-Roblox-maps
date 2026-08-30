@@ -1,0 +1,122 @@
+name: BBYA Music Main-safe V2 Test Preview
+
+on:
+  push:
+    branches:
+      - test/bbya-music-suite-main-safe-v2
+    paths:
+      - '.github/workflows/bbya-music-test-v2-preview.yml'
+      - 'maps/bbya-social-hub/**'
+      - 'maps/registry.json'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-music-test:
+    if: github.ref == 'refs/heads/test/bbya-music-suite-main-safe-v2'
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout isolated candidate
+        uses: actions/checkout@v4
+
+      - name: Hard-lock candidate, target, and audio authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $candidate='94ac32a488fa11b69756dbc74c1adfa56397def6'
+          $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
+          $target=$reg.maps.'bbya-music-test'
+          if(-not $target){throw 'bbya-music-test missing'}
+          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
+          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
+
+          $bridge=Get-Content 'maps/bbya-social-hub/93-venue-music-ui.client.lua' -Raw
+          $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
+          $suite=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
+          $integrity=Get-Content 'maps/bbya-social-hub/105-music-ui-integrity.client.lua' -Raw
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+
+          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v6 MAIN-SAFE'){throw 'Main-safe venue bridge marker missing'}
+          if($bridge -match '\.Volume\s*='){throw 'Venue bridge may not mutate audio volume'}
+          foreach($needle in @('FUNKOT','VIP','SKATEPARK','ROOFTOP','VIPMusic')){if($bridge -notmatch [regex]::Escape($needle)){throw "Bridge venue contract missing: $needle"}}
+          if($legacy -notmatch 'LEGACY AUDIO ROUTE COMPATIBILITY v8 \+ MUSIC SUITE SAFETY'){throw 'Legacy compatibility marker missing'}
+          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement attr missing'}
+          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite authority missing'}
+          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Premium integrity layer missing'}
+
+          foreach($needle in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($needle)){throw "Router v9 hard lock missing: $needle"}}
+          if($router -match '(?m)^\s*[^-\r\n].*SoundGroup\.Volume\s*='){throw 'Router v9 writes SoundGroup.Volume'}
+          if($router -match '(?m)^\s*[^-\r\n].*Sound\.Volume\s*='){throw 'Router v9 writes Sound.Volume'}
+          $routerBlob=(git rev-parse 'HEAD:maps/bbya-social-hub/104-venue-audio-router.client.lua').Trim()
+          if($routerBlob -ne '615ba63ba6ef99237ce6cb7221ad7a370c391344'){throw "Router blob changed: $routerBlob"}
+          Write-Host "BBYA_MUSIC_MAIN_SAFE_AUTHORITY_PASS candidate=$candidate router=$routerBlob target=bbya-music-test"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-music-v2-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-music-v2-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            if(Test-Path $zip){Remove-Item $zip -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact candidate RBXL
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-MAIN-SAFE-V2.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw 'RBXL too small'}
+          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
+          "$hash  BBYA-MUSIC-MAIN-SAFE-V2.rbxl" | Set-Content 'BBYA-MUSIC-MAIN-SAFE-V2.sha256' -Encoding ascii
+          Write-Host "BBYA_MUSIC_V2_BUILD_PASS candidate=94ac32a488fa11b69756dbc74c1adfa56397def6 bytes=$bytes sha256=$hash"
+
+      - name: Publish hard-locked BBYA Music UI Test via MASTER V2
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status-test
+          PLACE_FILE_OVERRIDE: ${{ github.workspace }}\BBYA-MUSIC-MAIN-SAFE-V2.rbxl
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
+          $env:GITHUB_SHA='94ac32a488fa11b69756dbc74c1adfa56397def6'
+          node scripts/publish-map.js bbya-music-test
+          if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
+          $receipt='deploy-status-test\bbya-music-test.json'
+          if(-not (Test-Path $receipt)){throw 'Receipt missing'}
+          $r=Get-Content $receipt -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if($r.mapId -ne 'bbya-music-test'){throw 'Receipt map mismatch'}
+          if([string]$r.universeId -ne '10762005984'){throw 'Receipt universe mismatch'}
+          if([string]$r.placeId -ne '124607344716828'){throw 'Receipt place mismatch'}
+          if($r.sourceCommit -ne '94ac32a488fa11b69756dbc74c1adfa56397def6'){throw "Receipt source mismatch: $($r.sourceCommit)"}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          Get-Content $receipt
+          Write-Host "BBYA_MUSIC_V2_TEST_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
+
+      - name: Upload exact test receipt and build
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBYA-MUSIC-MAIN-SAFE-V2
+          path: |
+            BBYA-MUSIC-MAIN-SAFE-V2.rbxl
+            BBYA-MUSIC-MAIN-SAFE-V2.sha256
+            deploy-status-test/bbya-music-test.json
+          retention-days: 7
