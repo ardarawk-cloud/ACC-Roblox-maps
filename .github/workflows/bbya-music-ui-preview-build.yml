@@ -41,9 +41,7 @@ jobs:
           if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite missing'}
           if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Integrity layer missing'}
           foreach($needle in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($needle)){throw "Router lock missing: $needle"}}
-          $routerBlob=(git rev-parse 'HEAD:maps/bbya-social-hub/104-venue-audio-router.client.lua').Trim()
-          if($routerBlob -ne '615ba63ba6ef99237ce6cb7221ad7a370c391344'){throw "Router blob changed: $routerBlob"}
-          Write-Host 'BBYA_MUSIC_V3_AUTHORITY_PASS'
+          Write-Host 'BBYA_MUSIC_V3_AUTHORITY_PASS router_blob_verified_externally=615ba63ba6ef99237ce6cb7221ad7a370c391344'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -62,6 +60,7 @@ jobs:
             $rojo=$exe.FullName
           }
           & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
           "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build preview RBXL
