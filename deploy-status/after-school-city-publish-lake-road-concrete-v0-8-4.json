@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "LAKE_ROAD_CONCRETE_CROSSING_FINAL_CLEANUP_V0_8_4",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "cea1a483acd5ec4c6d3c9bb7dad3a783072c01af",
+  "baseLiveCommit": "dda124b235dc3e165e9062926cb9b300d6c65c02",
+  "qcRunId": "33316188579",
+  "qcArtifactId": 9733511700,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 31,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 118246,
+  "placeSha256": "0774417f3636e655c5290fb4cf1d8f319a196de1738eeb079577bca1b95d3759",
+  "runId": "33324232993",
+  "publishedAt": "2026-08-30T17:05:00Z",
+  "note": "V0.8.4 exact QC-locked artifact; splits V03_ParkLife PathNorth and PathSouth at the protected NorthSouthRoad asphalt corridor; road geometry, central intersection, V0.4.7 orientation, V0.5.3 centerline, gameplay systems, and dedication unchanged."
+}
