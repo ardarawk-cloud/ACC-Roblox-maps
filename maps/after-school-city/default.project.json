@@ -99,6 +99,9 @@
       },
       "ASC_SouthRoadConcreteCleanup": {
         "$path": "after-school-city.south-road-concrete-cleanup.server.lua"
+      },
+      "ASC_LakeRoadConcreteCrossingCleanup": {
+        "$path": "after-school-city.lake-road-concrete-crossing-cleanup.server.lua"
       }
     },
     "StarterGui": {
