@@ -20,40 +20,7 @@
     "assetPermissionsWrite": true
   },
   "moderationState": "Approved",
-  "moderationChecks": [
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Reviewing"
-    },
-    {
-      "http": 200,
-      "state": "Approved"
-    }
-  ],
+  "moderationChecks": [],
   "bbyaPermission": {
     "http": 200,
     "ok": true,
