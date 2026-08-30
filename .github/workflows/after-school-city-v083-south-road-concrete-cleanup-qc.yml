@@ -1,0 +1,162 @@
+name: After School City V0.8.3 South Road Concrete Cleanup QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v083-south-road-concrete-cleanup
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v083-south-road-concrete-cleanup-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact-source narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = '398f80859527a09d65eae59474342895fef31949'
+          $allowed = @(
+            '.github/workflows/after-school-city-v083-south-road-concrete-cleanup-qc.yml',
+            'maps/after-school-city/after-school-city.south-road-concrete-cleanup.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if(-not $changed){ throw 'No candidate changes detected' }
+          foreach($path in $changed){
+            if($allowed -notcontains $path){ throw "V0.8.3 scope violation: $path" }
+          }
+          foreach($required in @(
+            'maps/after-school-city/after-school-city.south-road-concrete-cleanup.server.lua',
+            'maps/after-school-city/default.project.json'
+          )){
+            if($changed -notcontains $required){ throw "Required V0.8.3 change missing: $required" }
+          }
+          Write-Host "V0.8.3 NARROW DIFF PASS: $($changed -join ', ')"
+
+      - name: V0.8.3 static hard-lock checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scriptPath = 'maps/after-school-city/after-school-city.south-road-concrete-cleanup.server.lua'
+          $projectPath = 'maps/after-school-city/default.project.json'
+          $script = Get-Content $scriptPath -Raw
+          $project = Get-Content $projectPath -Raw
+          $null = $project | ConvertFrom-Json
+
+          foreach($token in @(
+            '0.8.3-south-road-concrete-cleanup-1',
+            'ASC_RoadSidewalkIntersectionCleanupPass',
+            'ASC_SouthRoadConcreteCleanupPass',
+            'NorthSouthRoad',
+            'WalkingPath',
+            'LakeBorderN',
+            'LakeBorderS',
+            'ROAD_CLEAR_MARGIN = 1.5',
+            'ASC_V083RoadUnchanged'
+          )){
+            if($script -notmatch [regex]::Escape($token)){ throw "V0.8.3 marker missing: $token" }
+          }
+
+          foreach($forbidden in @(
+            'EastWestRoad',
+            'SchoolSportsRoad',
+            'SideStreet',
+            'CrossStreet',
+            'MarketplaceService',
+            'DataStoreService',
+            'PromptProductPurchase',
+            'ProcessReceipt'
+          )){
+            if($script -match [regex]::Escape($forbidden)){ throw "Forbidden V0.8.3 authority found: $forbidden" }
+          }
+
+          foreach($roadMutation in @(
+            'road.Size =',
+            'road.CFrame =',
+            'road.Position =',
+            'road.Parent =',
+            'road:Destroy()',
+            'road.Transparency =',
+            'road.Material ='
+          )){
+            if($script -match [regex]::Escape($roadMutation)){ throw "Road mutation forbidden: $roadMutation" }
+          }
+
+          foreach($token in @(
+            'ASC_SouthRoadConcreteCleanup',
+            'after-school-city.south-road-concrete-cleanup.server.lua'
+          )){
+            if($project -notmatch [regex]::Escape($token)){ throw "Rojo V0.8.3 marker missing: $token" }
+          }
+
+          $orientationDiff = git diff --name-only '398f80859527a09d65eae59474342895fef31949' $env:GITHUB_SHA -- 'maps/after-school-city/after-school-city.orientation-correction.server.lua'
+          if($orientationDiff){ throw 'V0.4.7 orientation lock changed' }
+          $centerlineDiff = git diff --name-only '398f80859527a09d65eae59474342895fef31949' $env:GITHUB_SHA -- 'maps/after-school-city/after-school-city.road-centerline-clearance.server.lua'
+          if($centerlineDiff){ throw 'V0.5.3 road centerline lock changed' }
+          $introDiff = git diff --name-only '398f80859527a09d65eae59474342895fef31949' $env:GITHUB_SHA -- 'maps/after-school-city/after-school-city.intro.client.lua'
+          if($introDiff){ throw 'Dedication lock changed' }
+
+          Write-Host 'AFTER SCHOOL CITY V0.8.3 STATIC HARD-LOCK QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe not found' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0){ throw 'Rojo version check failed' }
+          if($version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO LOCK PASS: $version"
+
+      - name: Build exact candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-v083-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v083.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){ throw "Rojo build failed: $LASTEXITCODE" }
+          if(-not (Test-Path $place)){ throw 'Generated RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            "STATUS=QC_PASSED",
+            "MODE=SOUTH_ROAD_CONCRETE_CLEANUP_V0_8_3",
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash"
+          )
+          $receiptPath = Join-Path $outDir 'qc-receipt.txt'
+          $receipt | Set-Content $receiptPath -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v083-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
