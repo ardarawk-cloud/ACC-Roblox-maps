@@ -3604,12 +3604,10 @@
       "filename": "6.Sebastian Ingrosso, Tommy Trash & John Martin - Reload (Reid Stefan Remix) RedMusic.pl.mp3",
       "sequence": 42,
       "preflight": {
-        "status": "READY",
-        "duration": 375.092245,
-        "size": 6002261,
-        "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
+        "status": "SOURCE_DOWNLOAD_FAILED",
+        "stderr": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1dWdfgrP3jhjP0Uq7cynGcodW0dZs05sD\n\nbut Gdown can't. Please check connections and permissions.\n"
       },
-      "updatedAt": "2026-08-30T23:20:30.652053+00:00",
+      "updatedAt": "2026-08-30T23:44:39.158445+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 429,
       "uploadResponse": {
@@ -3617,7 +3615,7 @@
         "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
       },
       "uploadedAt": "2026-08-30T23:20:33.142327+00:00",
-      "status": "UPLOAD_QUOTA_BLOCKED"
+      "status": "SOURCE_DOWNLOAD_FAILED"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
