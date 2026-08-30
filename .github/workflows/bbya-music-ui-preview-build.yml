@@ -8,6 +8,13 @@ on:
       - 'maps/bbya-social-hub/**'
       - 'maps/registry.json'
       - '.github/workflows/bbya-music-ui-preview-build.yml'
+  pull_request:
+    branches:
+      - bbya-music-test-preview-base-v2
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - 'maps/registry.json'
+      - '.github/workflows/bbya-music-ui-preview-build.yml'
   workflow_dispatch:
 
 permissions:
@@ -15,11 +22,40 @@ permissions:
 
 jobs:
   build-preview:
+    if: github.event_name != 'pull_request' || github.head_ref == 'feat/bbya-music-ui-v1'
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
     steps:
-      - name: Checkout preview branch
+      - name: Checkout preview source
         uses: actions/checkout@v4
+
+      - name: Verify isolated BBYA Music test target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
+          $target=$reg.maps.'bbya-music-test'
+          if(-not $target){throw 'bbya-music-test target missing'}
+          if([string]$target.universeId -ne '10762005984'){throw 'Unexpected test universe'}
+          if([string]$target.placeId -ne '124607344716828'){throw 'Unexpected test place'}
+          Write-Host 'BBYA_MUSIC_TEST_TARGET_LOCK_PASS map=bbya-music-test universe=10762005984 place=124607344716828'
+
+      - name: Verify unified Music Suite authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $bridge=Get-Content 'maps/bbya-social-hub/93-venue-music-ui.client.lua' -Raw
+          $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
+          $suite=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
+          $integrity=Get-Content 'maps/bbya-social-hub/105-music-ui-integrity.client.lua' -Raw
+          if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v5'){throw 'Venue bridge v5 missing'}
+          if($bridge -notmatch 'BBYAMusicSuiteV1'){throw 'Venue bridge not bound to Music Suite'}
+          if($bridge -match '\.Volume\s*='){throw 'Venue bridge must not mutate audio volume'}
+          if($legacy -notmatch 'LEGACY VENUE GAIN COMPATIBILITY v7'){throw 'Legacy UI retirement marker missing'}
+          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement attribute missing'}
+          if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Primary Music Suite missing'}
+          if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Premium Music Suite integrity layer missing'}
+          Write-Host 'BBYA_MUSIC_TEST_UI_AUTHORITY_QC_PASS suite=103+105 bridge=93 legacy_ui_retired=81'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -55,7 +91,7 @@ jobs:
           if((Get-Item $place).Length -lt 1024){throw 'Preview RBXL unexpectedly small'}
           $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
           "$hash  BBYA-MUSIC-UI-PREVIEW.rbxl" | Set-Content (Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-UI-PREVIEW.sha256') -Encoding ascii
-          Write-Host "BBYA_PREVIEW_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
+          Write-Host "BBYA_PREVIEW_BUILD_PASS source=${{ github.sha }} bytes=$((Get-Item $place).Length) sha256=$hash"
 
       - name: Publish preview to isolated BBYA Music test place
         shell: powershell
@@ -69,7 +105,13 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
           $receipt=Join-Path $env:GITHUB_WORKSPACE 'deploy-status-test\bbya-music-test.json'
           if(-not (Test-Path $receipt)){throw 'Publish receipt missing'}
+          $r=Get-Content $receipt -Raw | ConvertFrom-Json
+          if($r.mapId -ne 'bbya-music-test'){throw 'Receipt map mismatch'}
+          if([string]$r.universeId -ne '10762005984'){throw 'Receipt universe mismatch'}
+          if([string]$r.placeId -ne '124607344716828'){throw 'Receipt place mismatch'}
+          if($r.sourceCommit -ne '${{ github.sha }}'){throw "Receipt source mismatch: $($r.sourceCommit)"}
           Get-Content $receipt
+          Write-Host "BBYA_MUSIC_TEST_RECEIPT_PASS version=$($r.response.versionNumber) source=$($r.sourceCommit)"
 
       - name: Upload preview artifact
         uses: actions/upload-artifact@v4
