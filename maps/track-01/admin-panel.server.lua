@@ -32,6 +32,9 @@ query.Parent=remoteFolder
 
 local LOBBY_RECOVERY=CFrame.new(-38,4.5,-123)
 local GROUP_ADMIN_MIN_RANK=255 -- fail closed by default; lower-rank staff require explicit allowlist
+local EXPLICIT_ADMIN_USERNAMES={
+    ["ridhoomaukamu"]=true, -- RocketRacoon owner account
+}
 local lastCommandAt={}
 local COMMAND_COOLDOWN=0.20
 
@@ -89,6 +92,7 @@ end
 local function isAuthorized(player)
     if not player then return false end
     if RunService:IsStudio() then return true end
+    if EXPLICIT_ADMIN_USERNAMES[string.lower(player.Name or "")] then return true end
     if optionalAllowlistContains(player.UserId) then return true end
     if game.CreatorType==Enum.CreatorType.User then
         return player.UserId==game.CreatorId
@@ -223,4 +227,4 @@ end)
 
 Workspace:SetAttribute("ACC_TRACK01_ADMIN_PANEL_READY",true)
 Workspace:SetAttribute("ACC_TRACK01_PANEL_VERSION","4.0.0")
-print("[TRACK 01] server-authoritative admin panel ready v4.0.0")
+print("[TRACK 01] server-authoritative admin panel ready v4.0.0 + owner auth hotfix")
