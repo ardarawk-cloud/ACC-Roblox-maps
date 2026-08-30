@@ -1,7 +1,7 @@
 name: BBYA Live Rescue Windows
 
-# Rescue v8: canonical self-hosted publish lane with permanent audio + lighting + local floor-surface + skatepark hard gates.
-# Deploy trigger: BBYA stability authority + entrance-car + skatepark + venue-audio-router + local floor-surface exact-source publish.
+# Rescue v9: canonical self-hosted publish lane with permanent audio + lighting + local floor-surface + skatepark hard gates.
+# Deploy trigger: BBYA stability authority + entrance-car + skatepark geometry/lamp fixes + venue-audio-router + local floor-surface exact-source publish.
 on:
   pull_request:
     branches: [main]
@@ -9,6 +9,7 @@ on:
       - '.github/workflows/bbya-live-rescue-windows.yml'
       - 'maps/bbya-social-hub/73-skatepark.server.lua'
       - 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+      - 'maps/bbya-social-hub/88-skatepark-exposure-fix.server.lua'
       - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
       - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
   push:
@@ -17,6 +18,7 @@ on:
       - '.github/workflows/bbya-live-rescue-windows.yml'
       - 'maps/bbya-social-hub/73-skatepark.server.lua'
       - 'maps/bbya-social-hub/77-entrance-car-cleanup.server.lua'
+      - 'maps/bbya-social-hub/88-skatepark-exposure-fix.server.lua'
       - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
       - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
   workflow_dispatch:
@@ -91,6 +93,7 @@ jobs:
             'maps/bbya-social-hub/108-party-stuff-menu.client.lua'=@('SIMPAN / PUT AWAY');
             'maps/bbya-social-hub/121-mainclub-beauty-v5.server.lua'=@('MAIN CLUB BEAUTY v5');
             'maps/bbya-social-hub/73-skatepark.server.lua'=@('PREMIUM SKATE PLAZA v4','PREMIUM_SKATE_PLAZA_V4','TeleportCenterClear",true','MobileLightweight",true','GlobalLightingWrites",false','BoardRackEastSideReserved",true');
+            'maps/bbya-social-hub/88-skatepark-exposure-fix.server.lua'=@('SKATEPARK EXPOSURE + LAMP GROUNDING FIX v3','LAMP_GROUNDING_V3','StreetMastsGrounded",streetMasts>0','StadiumMastsGrounded",stadiumMasts>0','GlobalLightingWrites",false');
             'maps/bbya-social-hub/104-venue-audio-groups.server.lua'=@('BBYASkateparkMasterSound','BBYASkateparkPlaylistCatalog','134928414278364','ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED');
             'maps/bbya-social-hub/104-venue-audio-router.client.lua'=@('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','FUNKOT_HARD_LEAK_GUARD_V9','BBYAFunkotHardGateV9','BBYAAudioIsolationAuthority');
             'maps/bbya-social-hub/28-lighting-ambience.server.lua'=@('GLOBAL LIGHTING AUTHORITY v4','GLOBAL_LIGHTING_AUTHORITY_V4','28_LIGHTING_AMBIENCE_V4');
@@ -127,7 +130,9 @@ jobs:
           $skate=Get-Content 'maps/bbya-social-hub/73-skatepark.server.lua' -Raw
           if($skate -match 'game:GetService\("Lighting"\)'){throw 'SKATEPARK_LIGHTING_REGRESSION: skatepark pass must not own global Lighting'}
           if($skate -match 'Lighting\.(Brightness|ExposureCompensation|Ambient|OutdoorAmbient|ClockTime|EnvironmentDiffuseScale|EnvironmentSpecularScale|ShadowSoftness)\s*='){throw 'SKATEPARK_LIGHTING_REGRESSION: skatepark pass touches global Lighting'}
-          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_STABILITY_AUDIO_V9_LIGHTING_V4_FLOOR_GUARD_V1_SKATE_V4'
+          $lampfix=Get-Content 'maps/bbya-social-hub/88-skatepark-exposure-fix.server.lua' -Raw
+          if($lampfix -match 'game:GetService\("Lighting"\)'){throw 'SKATEPARK_LAMP_REGRESSION: lamp grounding pass must not own global Lighting'}
+          Write-Host 'BBYA_FINAL_SOURCE_QC_PASS_STABILITY_AUDIO_V9_LIGHTING_V4_FLOOR_GUARD_V1_SKATE_V4_LAMPS_V3'
 
       - name: Build canonical BBYA place
         shell: powershell
