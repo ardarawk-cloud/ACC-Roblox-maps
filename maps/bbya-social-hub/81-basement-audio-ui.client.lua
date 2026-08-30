@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — LEGACY AUDIO ROUTE COMPATIBILITY v8
--- Player-facing music UI ownership is retired from this legacy script.
--- The existing MAIN / UNDERGROUND / FUNKOT SoundGroup routing behavior is preserved
--- unchanged in purpose so the Premium Music Suite migration does not alter audio behavior.
+-- BBYA SOCIAL HUB — LEGACY AUDIO ROUTE COMPATIBILITY v8 + MUSIC SUITE SAFETY
+-- Legacy panel styling is retired. Existing MAIN / UNDERGROUND / FUNKOT SoundGroup routing
+-- is preserved in purpose, while this script only adds overlap/cleanup guards for BBYAMusicSuiteV1.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
@@ -71,5 +70,62 @@ RunService.Heartbeat:Connect(function()
  end
 end)
 
+-- MUSIC SUITE SAFETY ----------------------------------------------------------
+-- This section does not touch audio. It only prevents old/new music panels from overlapping.
+local boundButtons=setmetatable({},{__mode="k"})
+local boundClose=setmetatable({},{__mode="k"})
+local boundHub=setmetatable({},{__mode="k"})
+
+local function suiteSafety()
+ local suite=pg:FindFirstChild("BBYAMusicSuiteV1")
+ local clubUI=pg:FindFirstChild("BBYAClubUI")
+ if not suite or not clubUI then return end
+ local hub=clubUI:FindFirstChild("HubPanel")
+
+ local compact=clubUI:FindFirstChild("BBYACompactMusicLayerV7")
+ if compact then compact:Destroy() end
+ local livePill=suite:FindFirstChild("LivePillV3",true)
+ if livePill then livePill:Destroy() end
+
+ local close=suite:FindFirstChild("Close",true)
+ if close and close:IsA("GuiButton") and not boundClose[close] then
+  boundClose[close]=true
+  close.Activated:Connect(function()
+   task.defer(function()
+    suite.Enabled=false
+    if hub then hub.Visible=true end
+   end)
+  end)
+ end
+
+ if hub and not boundHub[hub] then
+  boundHub[hub]=true
+  hub:GetPropertyChangedSignal("Visible"):Connect(function()
+   if hub.Visible and suite.Enabled then suite.Enabled=false end
+  end)
+ end
+
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ local drawer=menu and menu:FindFirstChild("FeatureDrawer")
+ if drawer then
+  for _,slot in ipairs(drawer:GetDescendants()) do
+   if slot:IsA("GuiObject") and slot.Name:match("^Slot_") and slot.Name~="Slot_MUSIC" then
+    for _,b in ipairs(slot:GetChildren()) do
+     if b:IsA("TextButton") and not boundButtons[b] then
+      boundButtons[b]=true
+      b.Activated:Connect(function()
+       task.defer(function()if suite.Enabled then suite.Enabled=false end end)
+      end)
+     end
+    end
+   end
+  end
+ end
+end
+
+pg.ChildAdded:Connect(function()task.defer(suiteSafety)end)
+for i=0,12 do task.delay(i*.35,suiteSafety) end
 player:SetAttribute("BBYALegacyMusicUIRetired",true)
-print("[BBYA] Legacy audio route compatibility v8 online: UI writes retired / existing venue gain route preserved")
+player:SetAttribute("BBYAMusicSuiteMainSafety","V1")
+
+print("[BBYA] Legacy audio route compatibility v8 + Music Suite safety online: old styling retired / route preserved")
