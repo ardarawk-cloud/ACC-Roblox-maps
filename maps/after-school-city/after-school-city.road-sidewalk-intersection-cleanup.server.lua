@@ -72,11 +72,12 @@ layer:SetAttribute("ASC_Layer", "ROAD_SIDEWALK_INTERSECTION_CLEANUP")
 layer:SetAttribute("ASC_Version", VERSION)
 layer.Parent = root
 
+-- Return vectors that match local +X / +Z offsets used when rebuilding segments.
 local function dominantHorizontalAxis(part)
     if part.Size.X >= part.Size.Z then
         return part.CFrame.RightVector, "X", part.Size.X, part.Size.Z
     end
-    return part.CFrame.LookVector, "Z", part.Size.Z, part.Size.X
+    return -part.CFrame.LookVector, "Z", part.Size.Z, part.Size.X
 end
 
 local function projectedHalfExtent(part, axis)
@@ -161,7 +162,7 @@ end
 for _, sidewalk in ipairs(sidewalkTargets) do
     if sidewalk.Parent then
         local longVector, longAxisName, longLength, shortLength = dominantHorizontalAxis(sidewalk)
-        local shortVector = longAxisName == "X" and sidewalk.CFrame.LookVector or sidewalk.CFrame.RightVector
+        local shortVector = longAxisName == "X" and -sidewalk.CFrame.LookVector or sidewalk.CFrame.RightVector
         local halfLength = longLength * 0.5
         local halfShort = shortLength * 0.5
         local cuts = {}
@@ -218,8 +219,8 @@ for _, container in ipairs({roadsFolder, grid}) do
     for _, child in ipairs(container:GetChildren()) do
         if child:IsA("BasePart")
             and (MAIN_SIDEWALK_NAMES[child.Name] or GRID_SIDEWALK_NAMES[child.Name]) then
-            local longVector, _, longLength, shortLength = dominantHorizontalAxis(child)
-            local shortVector = child.Size.X >= child.Size.Z and child.CFrame.LookVector or child.CFrame.RightVector
+            local longVector, longAxisName, longLength, shortLength = dominantHorizontalAxis(child)
+            local shortVector = longAxisName == "X" and -child.CFrame.LookVector or child.CFrame.RightVector
             for _, road in ipairs(roadSurfaces) do
                 local roadLongVector = dominantHorizontalAxis(road)
                 if math.abs(longVector:Dot(roadLongVector)) <= PERPENDICULAR_DOT_MAX then
