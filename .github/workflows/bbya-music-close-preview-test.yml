@@ -39,7 +39,9 @@ jobs:
             file='maps/bbya-social-hub/place.rbxlx'
           }
           $reg.maps | Add-Member -MemberType NoteProperty -Name 'bbya-music-test' -Value $test
-          $reg | ConvertTo-Json -Depth 10 | Set-Content $registryPath -Encoding utf8
+          $json=$reg | ConvertTo-Json -Depth 10
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText((Join-Path $env:GITHUB_WORKSPACE $registryPath),$json,$utf8NoBom)
           $check=Get-Content $registryPath -Raw | ConvertFrom-Json
           $target=$check.maps.'bbya-music-test'
           if(-not $target){throw 'Runtime bbya-music-test injection failed'}
