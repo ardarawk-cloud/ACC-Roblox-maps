@@ -38,34 +38,58 @@ jobs:
           echo 'MASTER_V2_SCOPES:'
           jq -r '.scopes[]? | "  \(.name):\((.operations // [])|join(","))"' "$introspect"
 
-          meta="$RUNNER_TEMP/asset-delivery.json"
-          code=$(curl -sS --location -o "$meta" -w '%{http_code}' \
-            -H "x-api-key: $ROBLOX_API_KEY" \
-            "https://apis.roblox.com/asset-delivery-api/v1/assetId/${PLACE_ID}/version/${BASE_VERSION}")
-          echo "OPEN_CLOUD_ASSET_DELIVERY_HTTP=$code"
-          [[ "$code" == 200 ]] || { head -c 2000 "$meta" || true; echo; exit 20; }
-
-          ctype=$(file -b --mime-type "$meta" || true)
-          bytes=$(stat -c%s "$meta")
-          echo "DELIVERY_RESPONSE type=$ctype bytes=$bytes"
-
           out="$RUNNER_TEMP/lost-found-v59.rbxl"
-          if jq -e . "$meta" >/dev/null 2>&1; then
-            location=$(jq -r '.location // .locations[0].location // .locations[0].url // empty' "$meta")
-            [[ -n "$location" ]] || { echo 'DELIVERY_LOCATION_MISSING'; jq -c 'keys' "$meta"; exit 21; }
-            host=$(python3 - "$location" <<'PY'
+          success=''
+
+          try_delivery() {
+            local label="$1" url="$2" header_mode="$3"
+            local tmp="$RUNNER_TEMP/${label}.response"
+            local code
+            if [[ "$header_mode" == key ]]; then
+              code=$(curl -sS --location -o "$tmp" -w '%{http_code}' -H "x-api-key: $ROBLOX_API_KEY" "$url")
+            else
+              code=$(curl -sS --location -o "$tmp" -w '%{http_code}' "$url")
+            fi
+            echo "${label}_HTTP=$code"
+            [[ "$code" == 200 ]] || return 1
+
+            if jq -e . "$tmp" >/dev/null 2>&1; then
+              local location
+              location=$(jq -r '.location // .locations[0].location // .locations[0].url // empty' "$tmp")
+              [[ -n "$location" ]] || { echo "${label}_LOCATION_MISSING"; jq -c 'keys' "$tmp"; return 1; }
+              local host
+              host=$(python3 - "$location" <<'PY'
           import sys, urllib.parse
           print(urllib.parse.urlparse(sys.argv[1]).netloc)
           PY
-            )
-            echo "DELIVERY_SIGNED_LOCATION_HOST=$host"
-            curl -fsSL "$location" -o "$out"
-          else
-            cp "$meta" "$out"
+              )
+              echo "${label}_SIGNED_HOST=$host"
+              curl -fsSL "$location" -o "$out" || return 1
+            else
+              cp "$tmp" "$out"
+            fi
+            local bytes
+            bytes=$(stat -c%s "$out")
+            (( bytes > 10000 )) || { echo "${label}_PLACE_TOO_SMALL=$bytes"; return 1; }
+            success="$label"
+            return 0
+          }
+
+          try_delivery OPEN_CLOUD_KEY \
+            "https://apis.roblox.com/asset-delivery-api/v1/assetId/${PLACE_ID}/version/${BASE_VERSION}" key || true
+
+          if [[ -z "$success" ]]; then
+            try_delivery DIRECT_V2 \
+              "https://assetdelivery.roblox.com/v2/assetId/${PLACE_ID}/version/${BASE_VERSION}" none || true
           fi
 
+          if [[ -z "$success" ]]; then
+            try_delivery DIRECT_V1 \
+              "https://assetdelivery.roblox.com/v1/assetId/${PLACE_ID}/version/${BASE_VERSION}" none || true
+          fi
+
+          [[ -n "$success" ]] || { echo 'ALL_PLACE_DELIVERY_ROUTES_FAILED'; exit 20; }
           place_bytes=$(stat -c%s "$out")
-          (( place_bytes > 10000 )) || { echo "PLACE_TOO_SMALL $place_bytes"; exit 22; }
           sha=$(sha256sum "$out" | awk '{print $1}')
           prefix=$(xxd -p -l 16 "$out" | tr -d '\n')
-          echo "LIVE_V59_DOWNLOAD_PASS bytes=$place_bytes sha256=$sha prefix=$prefix"
+          echo "LIVE_V59_DOWNLOAD_PASS route=$success bytes=$place_bytes sha256=$sha prefix=$prefix"
