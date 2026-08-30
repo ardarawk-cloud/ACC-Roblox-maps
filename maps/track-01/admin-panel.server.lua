@@ -31,14 +31,14 @@ query.Name="Query"
 query.Parent=remoteFolder
 
 local LOBBY_RECOVERY=CFrame.new(-38,4.5,-123)
-local GROUP_ADMIN_MIN_RANK=200
+local GROUP_ADMIN_MIN_RANK=255 -- fail closed by default; lower-rank staff require explicit allowlist
 local lastCommandAt={}
 local COMMAND_COOLDOWN=0.20
 
 local lightingPresets={
     STANDARD={brightness=1.80,exposure=0.12}, -- v3.9.1 verified night balance
     READABLE={brightness=2.02,exposure=0.22}, -- modest mobile readability lift, still night
-    LOW_NIGHT={brightness=1.55,exposure=-0.02},
+    LOW_NIGHT={brightness=1.68,exposure=0.05}, -- moodier without undoing v3.9.1 readability work
 }
 
 local paPresets={
@@ -58,6 +58,12 @@ local paPresets={
         kicker="TRACK 01 • END OF LINE",
         voice="End of Line announcement. Car Zero Four dan area The Yard sedang aktif. No destination. Just the night.",
         caption="END OF LINE • CAR 04 • THE YARD • NO DESTINATION. JUST THE NIGHT.",
+        warning=false,
+    },
+    LAST_TRAIN={
+        kicker="TRACK 01 • LAST TRAIN",
+        voice="Last train advisory. Layanan malam Track Zero One memasuki fase terakhir. Pastikan barang bawaan Anda tidak tertinggal dan ikuti jalur kembali menuju Station Lobby.",
+        caption="LAST TRAIN ADVISORY • FINAL NIGHT SERVICE PHASE",
         warning=false,
     },
     CLOSING={
@@ -125,7 +131,7 @@ local function snapshot()
         pulseEnabled=Workspace:GetAttribute("TRACK01_LIGHT_PULSE_ENABLED")~=false,
         lightingPreset=Workspace:GetAttribute("TRACK01_LIGHTING_PRESET") or "STANDARD",
         featureComplete=Workspace:GetAttribute("ACC_TRACK01_FEATURE_COMPLETE")==true,
-        liveSourceVersion=Workspace:GetAttribute("ACC_TRACK01_VERSION") or "UNKNOWN",
+        sourceRuntimeVersion=Workspace:GetAttribute("ACC_TRACK01_VERSION") or "UNKNOWN",
         playerCount=#Players:GetPlayers(),
     }
 end
@@ -192,7 +198,11 @@ command.OnServerEvent:Connect(function(player,action,value)
         if value=="CLOSING" then announceEvent:FireAllClients(paPresets.CLOSING) end
     elseif action=="EVENT_MODE" and validEventMode[value] then
         Workspace:SetAttribute("TRACK01_EVENT_MODE",value)
-        if value=="END_OF_LINE" then announceEvent:FireAllClients(paPresets.END_OF_LINE) end
+        if value=="END_OF_LINE" then
+            announceEvent:FireAllClients(paPresets.END_OF_LINE)
+        elseif value=="LAST_TRAIN" then
+            announceEvent:FireAllClients(paPresets.LAST_TRAIN)
+        end
     elseif action=="LIGHTING_PRESET" and type(value)=="string" then
         applyLightingPreset(value)
     elseif action=="PULSE" and type(value)=="boolean" then
