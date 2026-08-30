@@ -96,6 +96,9 @@
       },
       "ASC_RoadSidewalkIntersectionCleanup": {
         "$path": "after-school-city.road-sidewalk-intersection-cleanup.server.lua"
+      },
+      "ASC_SouthRoadConcreteCleanup": {
+        "$path": "after-school-city.south-road-concrete-cleanup.server.lua"
       }
     },
     "StarterGui": {
