@@ -127,8 +127,11 @@ jobs:
             enabled=$true
           }
           if($r.maps.PSObject.Properties.Name -contains 'bbya-music-test'){$r.maps.'bbya-music-test'=$target}else{$r.maps | Add-Member -NotePropertyName 'bbya-music-test' -NotePropertyValue $target}
-          $r | ConvertTo-Json -Depth 20 | Set-Content $path -Encoding UTF8
-          Write-Host 'BBYA_MUSIC_TEST_RUNTIME_TARGET_PASS universe=10762005984 place=124607344716828'
+          $json=$r | ConvertTo-Json -Depth 20
+          $full=(Resolve-Path $path).Path
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($full,$json,$utf8NoBom)
+          Write-Host 'BBYA_MUSIC_TEST_RUNTIME_TARGET_PASS universe=10762005984 place=124607344716828 encoding=UTF8_NO_BOM'
 
       - name: Publish current-main candidate to isolated Music UI Test
         shell: powershell
