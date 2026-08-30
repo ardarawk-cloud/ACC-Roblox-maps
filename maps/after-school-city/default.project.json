@@ -93,6 +93,9 @@
       },
       "ASC_RoadConcreteStripCleanup": {
         "$path": "after-school-city.road-concrete-strip-cleanup.server.lua"
+      },
+      "ASC_RoadSidewalkIntersectionCleanup": {
+        "$path": "after-school-city.road-sidewalk-intersection-cleanup.server.lua"
       }
     },
     "StarterGui": {
