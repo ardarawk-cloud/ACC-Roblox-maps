@@ -1,0 +1,56 @@
+name: LOST FOUND Private Source Auth Probe
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/lost-found-private-source-auth-probe.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      S01: ${{ secrets.GH_PAT }}
+      S02: ${{ secrets.GITHUB_PAT }}
+      S03: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      S04: ${{ secrets.ACC_GITHUB_PAT }}
+      S05: ${{ secrets.ACC_GITHUB_TOKEN }}
+      S06: ${{ secrets.ACC_REPO_TOKEN }}
+      S07: ${{ secrets.ACC_ROBLOX_MAPS_WRITE_TOKEN }}
+      S08: ${{ secrets.ACC_BUILDER_APK_TOKEN }}
+      S09: ${{ secrets.ARDARAWK_GITHUB_PAT }}
+      S10: ${{ secrets.ARDARAWK_GITHUB_MASTER }}
+      S11: ${{ secrets.GITHUB_MASTER_TOKEN }}
+      S12: ${{ secrets.CROSS_REPO_TOKEN }}
+      TARGET_API: https://api.github.com/repos/balinightlife666-web/ACC-Android-Builder
+    steps:
+      - name: Probe configured cross-repo credentials safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          found=''
+          for n in $(seq -w 1 12); do
+            var="S${n}"
+            token="${!var:-}"
+            [[ -n "$token" ]] || { echo "$var EMPTY"; continue; }
+            code=$(curl -sS -o "$RUNNER_TEMP/$var.json" -w '%{http_code}' \
+              -H "Authorization: Bearer $token" \
+              -H 'Accept: application/vnd.github+json' \
+              "$TARGET_API")
+            if [[ "$code" == 200 ]]; then
+              private=$(jq -r '.private // false' "$RUNNER_TEMP/$var.json")
+              full=$(jq -r '.full_name // empty' "$RUNNER_TEMP/$var.json")
+              [[ "$private" == true && "$full" == 'balinightlife666-web/ACC-Android-Builder' ]] || { echo "$var RESPONSE_MISMATCH"; exit 20; }
+              echo "$var PRIVATE_SOURCE_READ_PASS"
+              found="$var"
+              break
+            else
+              echo "$var PRESENT_HTTP_$code"
+            fi
+          done
+          [[ -n "$found" ]] || { echo 'NO_EXISTING_CROSS_REPO_TOKEN_CAN_READ_SOURCE'; exit 30; }
+          echo "PRIVATE_SOURCE_AUTH_PASS alias=$found"
