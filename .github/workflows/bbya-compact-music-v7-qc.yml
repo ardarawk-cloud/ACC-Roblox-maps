@@ -1,4 +1,4 @@
-name: BBYA Compact Music v7 QC
+name: BBYA Music Suite v1 QC
 
 on:
   pull_request:
@@ -29,42 +29,36 @@ jobs:
       - name: Build BBYA place
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-compact-music-v7.rbxl
-          test -s /tmp/bbya-compact-music-v7.rbxl
-      - name: Validate compact music authority
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-music-suite-v1.rbxl
+          test -s /tmp/bbya-music-suite-v1.rbxl
+      - name: Validate premium music suite authority
         shell: bash
         run: |
           set -euo pipefail
           ui='maps/bbya-social-hub/103-music-ui-final.client.lua'
           router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
 
-          grep -q 'COMPACT MUSIC UI FINAL AUTHORITY v7' "$ui"
-          grep -q 'CompactMusicCardV7' "$ui"
-          grep -q 'PlaylistDrawerV7' "$ui"
-          grep -q 'TrackCover' "$ui"
-          grep -q 'PlaylistButtonV7' "$ui"
-          grep -q 'REQUEST' "$ui"
-          grep -q 'PlaylistScrollerV7' "$ui"
-          grep -q 'PLAYLIST KOSONG' "$ui"
-          grep -q 'BELUM ADA LAGU' "$ui"
-          grep -q 'legacyMusicFrame.Visible=false' "$ui"
-          grep -q 'visualAcc<1/20' "$ui"
-          grep -q 'PlaybackLoudness' "$ui"
-          grep -q 'math.clamp(math.floor(vp.X\*.43),340,470)' "$ui"
-          grep -q 'math.clamp(math.floor(vp.X\*.53),350,580)' "$ui"
-          grep -q 'VIP={label="VIP"' "$ui"
-          grep -q 'SKATEPARK={label="SKATEPARK"' "$ui"
-          grep -q 'ROOFTOP={label="ROOFTOP"' "$ui"
-          grep -q 'resetActive()' "$ui"
+          grep -q 'BBYA MUSIC SUITE v1' "$ui"
+          grep -q 'BBYAMusicSuiteV1' "$ui"
+          grep -q 'LIBRARY' "$ui"
+          grep -q 'NOW PLAYING' "$ui"
+          grep -q 'QUEUE' "$ui"
+          grep -q 'Search songs' "$ui"
+          grep -q 'Slot_MUSIC' "$ui"
+          grep -q 'music:FireServer("request"' "$ui"
+          grep -q 'music:FireServer("list"' "$ui"
           grep -q 'BBYAMusicMuted' "$ui"
+          grep -q 'PlaybackLoudness' "$ui"
+          grep -q 'vp.X<900' "$ui"
+          grep -q 'UNDERGROUND' "$ui"
+          grep -q 'MAIN CLUB' "$ui"
+          grep -q 'admin Prev/Next' "$ui"
 
-          grep -q 'STRICT VENUE AUDIO ROUTER v4' "$router"
           grep -q 'player:GetAttribute("BBYAMusicMuted")' "$router"
-          grep -q 'VIP={name="BBYAVIPMaster"}' "$router"
 
           if grep -q 'Size=UDim2.fromOffset(760' "$ui"; then
-            echo 'Old oversized 760px music dashboard returned.' >&2
+            echo 'Legacy fixed oversized music dashboard returned.' >&2
             exit 1
           fi
 
-          echo 'BBYA Compact Music v7 QC passed.'
+          echo 'BBYA Music Suite v1 QC passed.'

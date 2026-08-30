@@ -1,0 +1,51 @@
+name: BBYA Music Direct ID Test
+
+on:
+  push:
+    branches:
+      - feat/bbya-music-ui-v1
+    paths:
+      - '.github/workflows/bbya-music-direct-id-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+    steps:
+      - name: Probe isolated test-universe Messaging API
+        shell: bash
+        run: |
+          set -u
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          result={'secret_present': bool(os.environ.get('ROBLOX_API_KEY'))}
+          if result['secret_present']:
+              url='https://apis.roblox.com/cloud/v2/universes/10762005984:publishMessage'
+              payload=json.dumps({'topic':'BBYA_MUSIC_UNDERGROUND_V1','message':json.dumps({'v':1,'z':'underground','op':'upsert','rev':2026083002,'trackId':'direct-probe-01','assetId':'86006580589828','title':'DJ LUKA NEGARA VERSI JEPANG V2','artist':'Direct Test','order':1,'enabled':True},separators=(',',':'))}).encode()
+              req=urllib.request.Request(url,data=payload,method='POST',headers={'x-api-key':os.environ['ROBLOX_API_KEY'],'Content-Type':'application/json','Accept':'application/json'})
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      result['http']=r.status
+                      result['body']=r.read().decode('utf-8','replace')[:2000]
+              except urllib.error.HTTPError as e:
+                  result['http']=e.code
+                  result['body']=e.read().decode('utf-8','replace')[:2000]
+              except Exception as e:
+                  result['http']=0
+                  result['body']=type(e).__name__+': '+str(e)
+          open('bbya-direct-messaging-diagnostic.json','w').write(json.dumps(result,indent=2))
+          print(json.dumps(result))
+          PY
+
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBYA-DIRECT-MESSAGING-DIAGNOSTIC
+          path: bbya-direct-messaging-diagnostic.json
+          retention-days: 2

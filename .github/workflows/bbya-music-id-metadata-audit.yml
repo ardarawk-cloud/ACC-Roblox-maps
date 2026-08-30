@@ -1,0 +1,37 @@
+name: BBYA Music ID Metadata Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/bbya-music-ui-v1
+    paths:
+      - '.github/workflows/bbya-music-id-metadata-audit.yml'
+      - 'scripts/bbya-music-id-metadata-audit.ps1'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Query Roblox asset metadata
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bbya-music-id-metadata-audit.ps1
+
+      - name: Upload metadata audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBYA-MUSIC-ID-METADATA-AUDIT
+          path: |
+            bbya-music-id-metadata-audit.json
+            bbya-music-id-metadata-audit.md
+          if-no-files-found: error
+          retention-days: 7
