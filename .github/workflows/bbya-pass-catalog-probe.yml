@@ -1,0 +1,49 @@
+name: BBYA Pass Catalog Probe
+
+on:
+  push:
+    branches: ['feat/bbya-pass-icons-v1']
+    paths:
+      - '.github/workflows/bbya-pass-catalog-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    env:
+      ROBLOX_OPEN_CLOUD_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+    steps:
+      - name: List BBYA game passes
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $universe='8116636513'
+          $headers=@{'x-api-key'=$env:ROBLOX_OPEN_CLOUD_API_KEY}
+          $uri="https://apis.roblox.com/game-passes/v1/universes/$universe/game-passes/creator?pageSize=100"
+          Write-Host "BBYA_PASS_CATALOG_TARGET universe=$universe"
+          try {
+            $r=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+          } catch {
+            Write-Host "CREATOR_ENDPOINT_FAILED=$($_.Exception.Message)"
+            $uri="https://apis.roblox.com/game-passes/v1/universes/$universe/game-passes?passView=Full&pageSize=100"
+            $r=Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+          }
+          $json=$r | ConvertTo-Json -Depth 20 -Compress
+          Write-Host "BBYA_PASS_CATALOG_JSON=$json"
+          $items=@()
+          if($r.gamePasses){$items=$r.gamePasses}
+          elseif($r.gamePassesCreator){$items=$r.gamePassesCreator}
+          elseif($r.data){$items=$r.data}
+          elseif($r.passes){$items=$r.passes}
+          else {
+            $props=$r.PSObject.Properties.Name -join ','
+            Write-Host "BBYA_PASS_CATALOG_KEYS=$props"
+          }
+          foreach($p in $items){
+            Write-Host ("BBYA_PASS id={0} name={1} displayName={2} price={3}" -f $p.id,$p.name,$p.displayName,$p.price)
+          }
+          Write-Host "BBYA_PASS_CATALOG_PASS count=$($items.Count)"
