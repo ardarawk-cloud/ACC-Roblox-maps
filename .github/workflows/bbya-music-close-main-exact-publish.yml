@@ -1,0 +1,101 @@
+name: BBYA Music Close Main Exact Publish
+
+on:
+  pull_request:
+    branches: [ops/bbya-close-v553-publish-base]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: cf12d1a4ab69230d6ea3176fa708aab471a178ab
+    steps:
+      - name: Checkout exact merged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+
+      - name: Verify hotfix and hard locks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $legacy=Get-Content 'maps/bbya-social-hub/81-basement-audio-ui.client.lua' -Raw
+          if($legacy -notmatch 'suite\.Enabled=false\s*\r?\n\s*-- Full-close contract:[^\r\n]*\r?\n\s*if hub then hub\.Visible=false end'){throw 'Full-close contract missing'}
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          foreach($n in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($n)){throw "Audio hard lock missing: $n"}}
+          Write-Host "BBYA_CLOSE_MAIN_AUTHORITY_PASS source=$env:SOURCE_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-close-main-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-close-main-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact RBXL
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:GITHUB_WORKSPACE 'BBYA-MUSIC-CLOSE-MAIN.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){throw 'RBXL too small'}
+          $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
+          "$hash  BBYA-MUSIC-CLOSE-MAIN.rbxl" | Set-Content 'BBYA-MUSIC-CLOSE-MAIN.sha256' -Encoding ascii
+          "PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BUILD_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "BUILD_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BBYA_CLOSE_MAIN_BUILD_PASS bytes=$bytes sha256=$hash source=$env:SOURCE_SHA"
+
+      - name: Publish exact source to BBYA main via MASTER V2
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          PUBLISH_RECEIPT_DIR: deploy-status-close-main
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
+          $env:PLACE_FILE_OVERRIDE=$env:PLACE_FILE
+          $env:GITHUB_SHA=$env:SOURCE_SHA
+          node scripts/publish-map.js a-club
+          if($LASTEXITCODE -ne 0){throw 'Roblox main publish failed'}
+          $receipt='deploy-status-close-main\a-club.json'
+          if(-not (Test-Path $receipt)){throw 'Main receipt missing'}
+          $r=Get-Content $receipt -Raw | ConvertFrom-Json
+          if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
+          if([string]$r.universeId -ne '8116636513'){throw 'Main universe mismatch'}
+          if([string]$r.placeId -ne '131894120482837'){throw 'Main place mismatch'}
+          if($r.sourceCommit -ne $env:SOURCE_SHA){throw "Source mismatch: $($r.sourceCommit)"}
+          if(-not $r.response.versionNumber){throw 'versionNumber missing'}
+          Write-Host "BBYA_CLOSE_MAIN_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit) bytes=$env:BUILD_BYTES build_sha256=$env:BUILD_SHA256"
+          Write-Host 'BBYA_CLOSE_MAIN_RECEIPT_JSON_BEGIN'
+          Get-Content $receipt -Raw
+          Write-Host 'BBYA_CLOSE_MAIN_RECEIPT_JSON_END'
+
+      - name: Upload proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-music-close-main-${{ env.SOURCE_SHA }}
+          path: |
+            BBYA-MUSIC-CLOSE-MAIN.rbxl
+            BBYA-MUSIC-CLOSE-MAIN.sha256
+            deploy-status-close-main/a-club.json
+          retention-days: 7
