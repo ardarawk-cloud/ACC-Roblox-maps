@@ -136,7 +136,7 @@ jobs:
       - name: Publish current-main candidate to isolated Music UI Test
         shell: powershell
         env:
-          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PUBLISH_RECEIPT_DIR: deploy-status-test
         run: |
           $ErrorActionPreference='Stop'
