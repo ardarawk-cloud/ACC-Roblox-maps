@@ -1,0 +1,3 @@
+-- Legacy wall showcase retired in M4-D.
+-- PersonalShiftRuntime now builds a replicated three-item public showcase inside
+-- each occupied station so nearby players can actually see another player's flex.
