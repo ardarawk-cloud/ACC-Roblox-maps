@@ -102,6 +102,9 @@
       },
       "ASC_LakeRoadConcreteCrossingCleanup": {
         "$path": "after-school-city.lake-road-concrete-crossing-cleanup.server.lua"
+      },
+      "ASC_LakeRoadWaterOverlapFinalFix": {
+        "$path": "after-school-city.lake-road-water-overlap-final-fix.server.lua"
       }
     },
     "StarterGui": {
