@@ -1,4 +1,6 @@
--- BBYA SOCIAL HUB — BASEMENT PREMIUM UPGRADE v2
+-- BBYA SOCIAL HUB — BASEMENT PREMIUM UPGRADE v3
+-- Underground builder defaults are dark-safe so startup ordering can never expose the old whiteout profile.
+-- Global Lighting and audio are untouched; Basement Full Upgrade v4 remains the final local dark-profile authority.
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
@@ -6,14 +8,16 @@ local old=root:FindFirstChild("Underground")
 if old then old:Destroy() end
 local m=Instance.new("Model");m.Name="Underground";m.Parent=root
 m:SetAttribute("Pass","BASEMENT_PREMIUM_V2")
+m:SetAttribute("BuilderLightingProfile","DARK_SAFE_V3")
+m:SetAttribute("GlobalLightingWrites",false)
 
-local C={black=Color3.fromRGB(10,11,14),white=Color3.fromRGB(236,236,232),wall=Color3.fromRGB(24,28,34),metal=Color3.fromRGB(52,57,64),blue=Color3.fromRGB(0,144,255),yellow=Color3.fromRGB(255,205,38),leather=Color3.fromRGB(34,35,40),glass=Color3.fromRGB(52,62,72)}
+local C={black=Color3.fromRGB(10,11,14),white=Color3.fromRGB(138,140,138),wall=Color3.fromRGB(24,28,34),metal=Color3.fromRGB(52,57,64),blue=Color3.fromRGB(0,144,255),yellow=Color3.fromRGB(255,205,38),leather=Color3.fromRGB(34,35,40),glass=Color3.fromRGB(52,62,72)}
 local function part(name,size,cf,color,mat,collide,parent)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or C.wall;p.Material=mat or Enum.Material.SmoothPlastic;p.Anchored=true;p.CanCollide=collide~=false;p.CanTouch=false;p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=parent or m;return p
 end
 local function neon(name,size,cf,color,parent)
  local p=part(name,size,cf,color,Enum.Material.Neon,false,parent);p.CastShadow=false
- local l=Instance.new("SurfaceLight");l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=.45;l.Range=10;l.Shadows=false;l.Parent=p
+ local l=Instance.new("SurfaceLight");l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=.15;l.Range=10;l.Shadows=false;l.Parent=p
  return p
 end
 local function cylinder(name,size,cf,color,mat,parent)
@@ -31,7 +35,7 @@ part("SouthWall",Vector3.new(120,16,2),CFrame.new(0,-8,-44),C.wall,Enum.Material
 part("WestWall",Vector3.new(2,16,90),CFrame.new(-59,-8,0),C.wall,Enum.Material.Concrete,true)
 part("EastWall",Vector3.new(2,16,90),CFrame.new(59,-8,0),C.wall,Enum.Material.Concrete,true)
 
--- true black/white checker floor; overlays the structural basement slab.
+-- dark-safe black/grey checker floor; overlays the structural basement slab.
 local checker=Instance.new("Model");checker.Name="CheckerFloor";checker.Parent=m
 local tile=10
 for xi=-5,5 do
@@ -49,7 +53,7 @@ neon("WallYellowL",Vector3.new(.14,8,0.14),CFrame.new(-57.8,-7.5,-22),C.yellow)
 neon("WallBlueR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,-22),C.blue)
 neon("WallYellowR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,22),C.yellow)
 
--- full white pentagon fixtures above lounge zones.
+-- controlled pentagon fixtures above lounge zones.
 local pentagons=Instance.new("Model");pentagons.Name="WhitePentagonCeilingLights";pentagons.Parent=m
 local function pentagon(name,center,radius)
  local pts={}
@@ -62,10 +66,10 @@ pentagon("PentagonWest",Vector3.new(-39,-1.22,3),8)
 pentagon("PentagonCenter",Vector3.new(0,-1.22,-12),8.5)
 pentagon("PentagonEast",Vector3.new(39,-1.22,3),8)
 
--- premium white DJ stage + booth.
+-- premium DJ stage + booth, dark-safe at builder time.
 part("DJStage",Vector3.new(46,1.2,15),CFrame.new(0,-14.25,31),Color3.fromRGB(40,42,46),Enum.Material.Metal,true)
 part("DJBoothBase",Vector3.new(30,3.6,5.5),CFrame.new(0,-11.9,32),C.white,Enum.Material.SmoothPlastic,true)
-part("DJBoothTop",Vector3.new(32,.45,6.2),CFrame.new(0,-9.88,32),Color3.fromRGB(250,250,246),Enum.Material.SmoothPlastic,true)
+part("DJBoothTop",Vector3.new(32,.45,6.2),CFrame.new(0,-9.88,32),Color3.fromRGB(148,150,153),Enum.Material.SmoothPlastic,true)
 neon("DJBoothBlue",Vector3.new(28,.12,.12),CFrame.new(0,-10.1,29),C.blue)
 neon("DJBoothYellow",Vector3.new(19,.10,.10),CFrame.new(0,-9.95,28.85),C.yellow)
 for _,x in ipairs({-8.2,8.2}) do
@@ -109,4 +113,4 @@ for i=-4,4 do
  part("StoolStem"..i,Vector3.new(.35,2.4,.35),CFrame.new(i*4,-14,-27.8),C.metal,Enum.Material.Metal,true,bar)
 end
 
-print("[BBYA] Basement Premium v2 online: checker floor / blue-yellow neon / white DJ booth / premium bar-sofas / white pentagons")
+print("[BBYA] Basement Premium v3 online: dark-safe checker / controlled local neon / premium bar-sofas / no global Lighting writes")

@@ -1,74 +1,37 @@
--- BBYA SOCIAL HUB — LEGACY AUDIO ROUTE COMPATIBILITY v8 + MUSIC SUITE SAFETY
--- Legacy panel styling is retired. Existing MAIN / UNDERGROUND / FUNKOT SoundGroup routing
--- is preserved in purpose, while this script only adds overlap/cleanup guards for BBYAMusicSuiteV1.
+-- BBYA SOCIAL HUB — LEGACY AUDIO ROUTE COMPATIBILITY v9 + MUSIC SUITE SAFETY
+-- Legacy panel styling is retired. Router v9 is the sole client-side venue isolation authority.
+-- This compatibility script MUST NOT write SoundGroup.Volume or Sound.Volume.
 
 local Players=game:GetService("Players")
 local SoundService=game:GetService("SoundService")
-local RunService=game:GetService("RunService")
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 
-local function rootPosition()
- local ch=player.Character
- local root=ch and ch:FindFirstChild("HumanoidRootPart")
- return root and root.Position or nil
-end
-
-local muteButton=nil
-local function isLocallyMuted()
- if not muteButton or not muteButton.Parent then
-  muteButton=nil
-  local gui=pg:FindFirstChild("BBYAClubUI")
-  if gui then
-   for _,d in ipairs(gui:GetDescendants()) do
-    if d:IsA("TextButton") and ((d.Text or "")=="MUTE LOCAL" or (d.Text or "")=="UNMUTE LOCAL") then
-     muteButton=d
-     break
-    end
-   end
+-- Compatibility telemetry only: mirror Router v9's resolved venue onto the legacy
+-- route attributes without owning gain, mute state, playlists, or transport.
+local lastVenue=""
+local function mirrorRouterVenue()
+ local venue=player:GetAttribute("BBYAAudioVenue") or "NONE"
+ if venue==lastVenue then return end
+ lastVenue=venue
+ for _,name in ipairs({"BBYAClubMaster","BBYABasementMaster","BBYAFunkotMaster"}) do
+  local g=SoundService:FindFirstChild(name)
+  if g and g:IsA("SoundGroup") then
+   g:SetAttribute("ClientRouteV8",venue)
+   g:SetAttribute("BBYALegacyVolumeWriterDisabled",true)
   end
  end
- return muteButton and muteButton.Text=="UNMUTE LOCAL" or false
+ player:SetAttribute("BBYALegacyVolumeWriterDisabled",true)
 end
 
-local function mainTarget(p)
- if p.Y>40 then return .34,"ROOFTOP" end
- if p.Y>18 then return .48,"VIP" end
- if p.Z<-45 then return .10,"ARRIVAL" end
- if p.Z<-18 then return .20,"FRONT HALL" end
- if p.Z<0 then return .36,"TRANSITION" end
- if math.abs(p.X)>28 then return .62,"BAR / VIP LOUNGE" end
- if p.Z>27 then return .92,"DJ / STAGE" end
- return .84,"MAIN CLUB"
-end
-
-local function routeTargets()
- local p=rootPosition()
- if not p then return .20,0,0,"MAIN" end
- if p.Y<-4.5 then return 0,.94,0,"UNDERGROUND" end
- if p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253 then return 0,0,.96,"FUNKOT" end
- local m=mainTarget(p)
- return m,0,0,"MAIN"
-end
-
-local lastVenue=""
-RunService.Heartbeat:Connect(function()
- local main,under,funkot,venue=routeTargets()
- if isLocallyMuted() then main,under,funkot=0,0,0 end
- local mg=SoundService:FindFirstChild("BBYAClubMaster")
- local ug=SoundService:FindFirstChild("BBYABasementMaster")
- local fg=SoundService:FindFirstChild("BBYAFunkotMaster")
- if mg and mg:IsA("SoundGroup") then mg.Volume=main end
- if ug and ug:IsA("SoundGroup") then ug.Volume=under end
- if fg and fg:IsA("SoundGroup") then fg.Volume=funkot end
- if venue~=lastVenue then
-  lastVenue=venue
-  if mg then mg:SetAttribute("ClientRouteV8",venue) end
-  if ug then ug:SetAttribute("ClientRouteV8",venue) end
-  if fg then fg:SetAttribute("ClientRouteV8",venue) end
- end
+player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()
+ task.defer(mirrorRouterVenue)
 end)
+SoundService.ChildAdded:Connect(function(child)
+ if child:IsA("SoundGroup") then task.defer(mirrorRouterVenue) end
+end)
+task.defer(mirrorRouterVenue)
 
 -- MUSIC SUITE SAFETY ----------------------------------------------------------
 -- This section does not touch audio. It only prevents old/new music panels from overlapping.
@@ -96,7 +59,7 @@ local function suiteSafety()
     -- Full-close contract: do not resurrect the retired HubPanel/music shell.
     if hub then hub.Visible=false end
    end)
-  end)
+  end
  end
 
  if hub and not boundHub[hub] then
@@ -129,4 +92,4 @@ for i=0,12 do task.delay(i*.35,suiteSafety) end
 player:SetAttribute("BBYALegacyMusicUIRetired",true)
 player:SetAttribute("BBYAMusicSuiteMainSafety","V1")
 
-print("[BBYA] Legacy audio route compatibility v8 + Music Suite safety online: old styling retired / route preserved")
+print("[BBYA] Legacy route compatibility v9 + Music Suite safety online: Router v9 owns isolation / legacy volume writer disabled")
