@@ -3,6 +3,7 @@
 -- Mall-only: denser front-of-store merchandising, warmer local visibility,
 -- benches/planters and retail islands. No global Lighting/audio/router/economy writes.
 local Workspace=game:GetService("Workspace")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",60);if not root then return end
 local mall=root:WaitForChild("BBYAMall",90);if not mall then return end
 local galleryAuthority=mall:WaitForChild("MallPremiumGalleryV6",90);if not galleryAuthority then return end
@@ -10,7 +11,7 @@ task.wait(1)
 
 local previous=mall:FindFirstChild("MallRetailDensityV3");if previous then previous:Destroy() end
 local out=Instance.new("Model");out.Name="MallRetailDensityV3";out.Parent=mall
-out:SetAttribute("Authority","MALL_RETAIL_DENSITY_V3")
+out:SetAttribute("Authority","MALL_RETAIL_DENSITY_V3_INTERACTION_TEST")
 out:SetAttribute("GlobalLightingUntouched",true)
 out:SetAttribute("AudioUntouched",true)
 out:SetAttribute("EconomyUntouched",true)
@@ -48,7 +49,6 @@ for name,spec in pairs(stores) do
   local cx=floor.Position.X;local y=floor.Position.Y-.7;local z=floor.Position.Z;local inward=(cx<0) and 1 or -1;local accent=spec[2];local kind=spec[1]
   for _,n in ipairs({"ExteriorBack","ShortSideReturn","FeaturePanel"}) do for _,d in ipairs(gallery:GetChildren()) do if d.Name==n and d:IsA("BasePart") then d.Color=C.char end end end
   lightAt(stock,Vector3.new(cx+inward*7,y+9.8,z))
-  -- Two front islands put merchandise close to the corridor instead of hiding it on rear walls.
   for island,zo in ipairs({-5.2,5.2}) do
    p("IslandBase"..island,Vector3.new(8,.5,3.3),CFrame.new(cx+inward*10,y+1.35,z+zo),C.wood,Enum.Material.WoodPlanks,stock,true,0)
    p("IslandTop"..island,Vector3.new(7.5,.18,3.0),CFrame.new(cx+inward*10,y+1.72,z+zo),accent,Enum.Material.Metal,stock,false,.14)
@@ -70,7 +70,6 @@ for name,spec in pairs(stores) do
  end
 end
 
--- Corridor furniture breaks the long empty strips seen on mobile screenshots.
 local furniture=Instance.new("Model");furniture.Name="MallRetailFurnitureV3";furniture.Parent=out
 for _,levelY in ipairs({1,15}) do
  for _,z in ipairs({332,365,398}) do
@@ -83,14 +82,56 @@ for _,levelY in ipairs({1,15}) do
  end
 end
 
--- Retail islands on L3 keep Food Hall/Cafe visible while removing dead floor.
 local islands=Instance.new("Model");islands.Name="MallRetailIslandsV3";islands.Parent=out
 for _,spec in ipairs({{-42,334,Color3.fromRGB(224,132,70)},{42,334,Color3.fromRGB(63,183,207)},{-42,398,Color3.fromRGB(194,77,77)},{42,398,Color3.fromRGB(78,170,116)}}) do
  local x,z,a=spec[1],spec[2],spec[3];p("RetailIslandBase",Vector3.new(12,.45,7),CFrame.new(x,30.15,z),C.char,Enum.Material.Metal,islands,true,0);p("RetailIslandCounter",Vector3.new(10,1.15,2.4),CFrame.new(x,31.05,z),C.wood,Enum.Material.WoodPlanks,islands,true,0)
  for i=1,7 do local xx=x-3.6+(i-1)*1.2;if i%2==0 then cyl("RetailIslandItem",Vector3.new(xx,31.95,z),.65,.34,(i%3==0) and C.white or a,islands) else p("RetailIslandItem",Vector3.new(.62,.68,.62),CFrame.new(xx,31.95,z),(i%3==0) and C.gold or a,Enum.Material.SmoothPlastic,islands,false,0) end end
 end
 
-mall:SetAttribute("MallRetailDensityAuthority","MALL_RETAIL_DENSITY_V3")
+-- TESTABLE COMMERCE UX: make visible retail displays open the existing Marketplace panel directly.
+local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
+local commerceRemote=remotes and remotes:WaitForChild("MallRobuxCommerce",30)
+local commerceStores={
+ Tenant_luma={key="FASHION",title="LUMA FASHION",subtitle="ROBUX FASHION MARKET"},
+ Tenant_stride={key="SHOES",title="STRIDE SNEAKERS",subtitle="ROBUX SHOE MARKET"},
+ Tenant_muse={key="BEAUTY",title="MUSE BEAUTY",subtitle="ROBUX BEAUTY MARKET"},
+ Tenant_north={key="STREET",title="NORTH LABEL",subtitle="ROBUX STREET MARKET"},
+}
+local interactive=0
+if commerceRemote then
+ for unitName,store in pairs(commerceStores) do
+  local unit=mall:FindFirstChild(unitName)
+  local gallery=unit and unit:FindFirstChild("PremiumRetailGalleryV6")
+  local stock=gallery and gallery:FindFirstChild("DenseRetailStockV3")
+  if stock then
+   for _,targetName in ipairs({"IslandTop1","IslandTop2","MannequinTorso"}) do
+    local target=stock:FindFirstChild(targetName)
+    if target and target:IsA("BasePart") then
+     target.CanQuery=true
+     local oldPrompt=target:FindFirstChild("RetailTryPrompt")
+     if oldPrompt then oldPrompt:Destroy() end
+     local q=Instance.new("ProximityPrompt")
+     q.Name="RetailTryPrompt"
+     q.ActionText="SHOP / TRY"
+     q.ObjectText=store.title
+     q.HoldDuration=0
+     q.MaxActivationDistance=11
+     q.RequiresLineOfSight=false
+     q.KeyboardKeyCode=Enum.KeyCode.E
+     q.GamepadKeyCode=Enum.KeyCode.ButtonX
+     q.Parent=target
+     q.Triggered:Connect(function(player)
+      commerceRemote:FireClient(player,"open",{key=store.key,title=store.title,subtitle=store.subtitle})
+     end)
+     interactive+=1
+    end
+   end
+  end
+ end
+end
+
+mall:SetAttribute("MallRetailDensityAuthority","MALL_RETAIL_DENSITY_V3_INTERACTION_TEST")
 mall:SetAttribute("MallDenseRetailStores",dense)
+mall:SetAttribute("MallInteractiveCommerceDisplays",interactive)
 out:SetAttribute("TotalNativeParts",total)
-print(string.format("[BBYA] Mall Retail Density v3 online: %d stores / %d native parts",dense,total))
+print(string.format("[BBYA] Mall Retail Density v3 interaction test online: %d stores / %d prompts / %d native parts",dense,interactive,total))
