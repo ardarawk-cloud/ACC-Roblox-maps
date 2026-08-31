@@ -108,6 +108,9 @@
       },
       "ASC_RemainingRoadIntrusionCleanup": {
         "$path": "after-school-city.remaining-road-intrusion-cleanup.server.lua"
+      },
+      "ASC_SkateparkApproachMicroCleanup": {
+        "$path": "after-school-city.skatepark-approach-micro-cleanup.server.lua"
       }
     },
     "StarterGui": {
