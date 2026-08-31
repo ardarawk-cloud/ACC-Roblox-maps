@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — PREMIUM VALET ARRIVAL v6
+-- BBYA SOCIAL HUB — PREMIUM VALET ARRIVAL v6.1
 -- Keeps the six official Roblox vehicles and adds lightweight arrival dressing:
 -- warm local floor lights, champagne-gold guide accents, and velvet valet ropes.
 -- No global Lighting writes; all gameplay/audio bundled with vehicle packs is stripped.
+-- v6.1 fail-safe: fallback red/blue entrance cars remain until all six premium cars are ready.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
@@ -24,9 +25,9 @@ if not scene then return end
 
 task.wait(0.35)
 
+-- IMPORTANT: do not remove CloudCarSlot_Red / CloudCarSlot_Blue here.
+-- They are the fail-safe arrival cars and are removed only after all premium cars load.
 for _, name in ipairs({
-	"CloudCarSlot_Red",
-	"CloudCarSlot_Blue",
 	"PremiumCarPairV1",
 	"PremiumCarPairV2",
 	"PremiumCar_Left_Wine",
@@ -41,7 +42,7 @@ end
 
 local gallery = Instance.new("Model")
 gallery.Name = "PremiumValetGalleryV6"
-gallery:SetAttribute("Pass", "PREMIUM_VALET_ARRIVAL_V6")
+gallery:SetAttribute("Pass", "PREMIUM_VALET_ARRIVAL_V6_1")
 gallery:SetAttribute("Source", "ROBLOX_CREATOR_STORE_OFFICIAL")
 gallery:SetAttribute("TargetVehicleCount", 6)
 gallery:SetAttribute("CenterAccessKeptOpen", true)
@@ -350,8 +351,17 @@ local leftCars = loadThree(LEFT_ASSET_ID, "Valet_Left_Sports", LEFT_SLOTS, 0)
 local rightCars = loadThree(RIGHT_ASSET_ID, "Valet_Right_Super", RIGHT_SLOTS, 180)
 local ready = leftCars ~= nil and rightCars ~= nil and #leftCars == 3 and #rightCars == 3
 
+local fallbackRed = scene:FindFirstChild("CloudCarSlot_Red")
+local fallbackBlue = scene:FindFirstChild("CloudCarSlot_Blue")
+local fallbackReady = fallbackRed ~= nil and fallbackBlue ~= nil
+
 local polishReady = false
 if ready then
+	-- Premium swap is transactional: only now may the dependable fallback cars disappear.
+	if fallbackRed then fallbackRed:Destroy() end
+	if fallbackBlue then fallbackBlue:Destroy() end
+	fallbackReady = false
+
 	local okPolish, polishErr = pcall(addArrivalPolish)
 	polishReady = okPolish
 	if not okPolish then
@@ -363,20 +373,23 @@ else
 	gallery:Destroy()
 end
 
-scene:SetAttribute("FallbackCarsRemoved", true)
-scene:SetAttribute("EntranceCarsQuarantined", not ready)
-scene:SetAttribute("EntranceCarAuthority", "PREMIUM_VALET_ARRIVAL_V6")
+scene:SetAttribute("FallbackCarsRemoved", ready)
+scene:SetAttribute("FallbackCarsRetained", not ready and fallbackReady)
+scene:SetAttribute("EntranceCarsQuarantined", not ready and not fallbackReady)
+scene:SetAttribute("EntranceCarAuthority", ready and "PREMIUM_VALET_ARRIVAL_V6_1" or "FALLBACK_STREET_CARS_FAILSAFE_V1")
 scene:SetAttribute("PremiumCarsRequested", true)
 scene:SetAttribute("PremiumCarsReady", ready)
 scene:SetAttribute("PremiumCarsLeftAsset", LEFT_ASSET_ID)
 scene:SetAttribute("PremiumCarsRightAsset", RIGHT_ASSET_ID)
-scene:SetAttribute("PremiumEntranceCarCount", ready and 6 or 0)
+scene:SetAttribute("PremiumEntranceCarCount", ready and 6 or (fallbackReady and 2 or 0))
 scene:SetAttribute("PremiumEntranceCenterClearance", 26)
 scene:SetAttribute("PremiumArrivalPolishReady", polishReady)
 scene:SetAttribute("PremiumArrivalLocalLightCount", polishReady and 10 or 0)
 
 if ready then
-	print(string.format("[BBYA] Premium valet arrival v6 online cars=6 polish=%s left=%d right=%d", tostring(polishReady), LEFT_ASSET_ID, RIGHT_ASSET_ID))
+	print(string.format("[BBYA] Premium valet arrival v6.1 online cars=6 polish=%s left=%d right=%d", tostring(polishReady), LEFT_ASSET_ID, RIGHT_ASSET_ID))
+elseif fallbackReady then
+	warn("[BBYA] Premium valet unavailable; fallback red/blue entrance cars retained")
 else
-	warn("[BBYA] Premium valet arrival v6 failed closed; road left clean")
+	warn("[BBYA] Premium valet unavailable and fallback entrance cars missing")
 end
