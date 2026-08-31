@@ -1,0 +1,193 @@
+name: After School City V0.8.7 Skatepark Approach Micro Cleanup QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v087-skatepark-approach-micro-cleanup
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v087-skatepark-approach-micro-cleanup-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact-source narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = '9bd0ac9f18ecd2f71c564ddea754a6521846e2b2'
+          git cat-file -e "$base^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'V0.8.6 LIVE base commit unavailable' }
+          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $base){ throw "Candidate is not based on exact V0.8.6 LIVE source: merge-base=$mergeBase" }
+
+          $allowed = @(
+            '.github/workflows/after-school-city-v087-skatepark-approach-micro-cleanup-qc.yml',
+            'maps/after-school-city/after-school-city.skatepark-approach-micro-cleanup.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if($changed.Count -ne 3){ throw "Expected exactly 3 V0.8.7 files, got $($changed.Count): $($changed -join ', ')" }
+          foreach($path in $changed){
+            if($allowed -notcontains $path){ throw "V0.8.7 scope violation: $path" }
+          }
+          foreach($required in $allowed){
+            if($changed -notcontains $required){ throw "Required V0.8.7 change missing: $required" }
+          }
+          Write-Host "V0.8.7 NARROW DIFF PASS: $($changed -join ', ')"
+
+      - name: V0.8.7 static hard-lock checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = '9bd0ac9f18ecd2f71c564ddea754a6521846e2b2'
+          $scriptPath = 'maps/after-school-city/after-school-city.skatepark-approach-micro-cleanup.server.lua'
+          $projectPath = 'maps/after-school-city/default.project.json'
+          $script = Get-Content $scriptPath -Raw
+          $project = Get-Content $projectPath -Raw
+          $null = $project | ConvertFrom-Json
+
+          foreach($token in @(
+            '0.8.7-skatepark-approach-micro-cleanup-1',
+            'ASC_RemainingRoadIntrusionCleanupPass',
+            'EastWestRoad',
+            'SkatePark',
+            'SkateGround',
+            'Deck',
+            'EW_Sidewalk_N',
+            'EW_Sidewalk_S',
+            'ASC_V082Origin',
+            'SKATE_EDGE_MARGIN = 0.75',
+            'ASC_V087RoadUnchanged',
+            'ASC_V087SkateGroundUnchanged',
+            'ASC_V087DeckUnchanged',
+            'ASC_SkateparkApproachMicroCleanupPass'
+          )){
+            if($script -notmatch [regex]::Escape($token)){ throw "V0.8.7 marker missing: $token" }
+          }
+
+          foreach($token in @(
+            'ASC_SkateparkApproachMicroCleanup',
+            'after-school-city.skatepark-approach-micro-cleanup.server.lua'
+          )){
+            if($project -notmatch [regex]::Escape($token)){ throw "Rojo V0.8.7 marker missing: $token" }
+          }
+
+          if($script -match '(?m)^\s*road\.(?:Size|CFrame|Position|Parent|Transparency|Material|Color|CanCollide)\s*=(?!=)'){
+            throw 'EastWestRoad property assignment forbidden in V0.8.7'
+          }
+          if($script -match 'road\s*:\s*Destroy\s*\('){ throw 'EastWestRoad destroy forbidden in V0.8.7' }
+          if($script -match '(?m)^\s*skateGround\.(?:Size|CFrame|Position|Parent|Transparency|Material|Color|CanCollide)\s*=(?!=)'){
+            throw 'SkateGround property assignment forbidden in V0.8.7'
+          }
+          if($script -match '(?m)^\s*deck\.(?:Size|CFrame|Position|Parent|Transparency|Material|Color|CanCollide)\s*=(?!=)'){
+            throw 'Deck property assignment forbidden in V0.8.7'
+          }
+
+          foreach($forbidden in @(
+            'NorthSouthRoad',
+            'SchoolSportsRoad',
+            'LakeBorderN',
+            'LakeBorderS',
+            'LakeEdgeWest',
+            'PathNorth',
+            'PathSouth',
+            'WalkingPath',
+            'MarketplaceService',
+            'DataStoreService',
+            'PromptProductPurchase',
+            'ProcessReceipt'
+          )){
+            if($script -match [regex]::Escape($forbidden)){ throw "Forbidden V0.8.7 authority found: $forbidden" }
+          }
+
+          foreach($lockedPath in @(
+            'maps/after-school-city/after-school-city.world.server.lua',
+            'maps/after-school-city/after-school-city.orientation-correction.server.lua',
+            'maps/after-school-city/after-school-city.road-centerline-clearance.server.lua',
+            'maps/after-school-city/after-school-city.road-sidewalk-intersection-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.remaining-road-intrusion-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua'
+          )){
+            $lockedDiff = git diff --name-only $base $env:GITHUB_SHA -- $lockedPath
+            if($lockedDiff){ throw "Protected source changed in V0.8.7: $lockedPath" }
+          }
+
+          $world = Get-Content 'maps/after-school-city/after-school-city.world.server.lua' -Raw
+          foreach($token in @(
+            'skate.Name = "SkatePark"',
+            'part(skate, "SkateGround", Vector3.new(150, 1, 150)',
+            'part(skate, "Deck", Vector3.new(122, 0.8, 112)',
+            'part(roads, "EastWestRoad", Vector3.new(600, 0.7, 40)',
+            'part(roads, "EW_Sidewalk_N", Vector3.new(600, 0.8, 9)',
+            'part(roads, "EW_Sidewalk_S", Vector3.new(600, 0.8, 9)'
+          )){
+            if($world -notmatch [regex]::Escape($token)){ throw "Locked source geometry marker missing: $token" }
+          }
+
+          $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+          foreach($token in @('PUTU AZYA PUTRI', 'BINTANG HARDAJAYA', 'WITH LOVE, DAD', 'ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication text lock missing: $token" }
+          }
+          Write-Host 'AFTER SCHOOL CITY V0.8.7 STATIC HARD-LOCK QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe not found' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO LOCK PASS: $version"
+
+      - name: Build exact candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-v087-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v087.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed or RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            'STATUS=QC_PASSED',
+            'MODE=SKATEPARK_APPROACH_MICRO_CLEANUP_V0_8_7',
+            'BASE_LIVE_COMMIT=9bd0ac9f18ecd2f71c564ddea754a6521846e2b2',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash"
+          )
+          $receiptPath = Join-Path $outDir 'qc-receipt.txt'
+          $receipt | Set-Content $receiptPath -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v087-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
