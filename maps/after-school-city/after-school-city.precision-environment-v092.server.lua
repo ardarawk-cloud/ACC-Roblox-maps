@@ -1,11 +1,11 @@
 -- AFTER SCHOOL CITY — Precision Environment Cleanup v0.9.2
--- Exact-map cleanup after V0.9.1: compact signage, clear camera sightlines,
+-- Exact-map cleanup after V0.9.1: readable signage, clear sightlines,
 -- normalize core-corridor vegetation, and declutter skate/park presentation.
 -- No road, pool-water, gameplay, economy, persistence, monetization, music, or dedication authority.
 
 local Workspace = game:GetService("Workspace")
 
-local VERSION = "0.9.2-precision-environment-cleanup-1"
+local VERSION = "0.9.2-precision-environment-cleanup-2"
 local NEW_PART_BUDGET = 64
 
 local function waitForAttribute(name, timeoutSeconds)
@@ -133,12 +133,36 @@ local function normalizeSignText(plate, text, textSize)
     end
 end
 
+local function maximizeSignText(plate, text)
+    if not plate or not plate:IsA("BasePart") then return end
+    for _, gui in ipairs(plate:GetChildren()) do
+        if gui:IsA("SurfaceGui") then
+            gui.AlwaysOnTop = false
+            gui.LightInfluence = 0.3
+            gui.PixelsPerStud = math.max(gui.PixelsPerStud, 42)
+            for _, child in ipairs(gui:GetChildren()) do
+                if child:IsA("TextLabel") then
+                    child.Text = text or child.Text
+                    child.Size = UDim2.fromScale(1, 1)
+                    child.Position = UDim2.fromScale(0, 0)
+                    child.TextScaled = true
+                    child.TextWrapped = false
+                    child.Font = Enum.Font.GothamBold
+                    child.TextXAlignment = Enum.TextXAlignment.Center
+                    child.TextYAlignment = Enum.TextYAlignment.Center
+                    child.TextTruncate = Enum.TextTruncate.None
+                end
+            end
+        end
+    end
+end
+
 local function snapshotTransform(part)
     return part and part:IsA("BasePart") and {CFrame = part.CFrame, Size = part.Size} or nil
 end
 
 -- =========================================================
--- A. CITY PARK: replace billboard-scale entrance presence with compact two-post marker.
+-- A. CITY PARK: keep the original V060 board scale/placement; fix text readability only.
 -- Source authority: V060_PremiumExterior/V060_ParkExterior.
 -- =========================================================
 local parkExterior = premium060 and premium060:FindFirstChild("V060_ParkExterior")
@@ -147,18 +171,18 @@ if parkExterior then
     local postL = parkExterior:FindFirstChild("ParkSignPostL")
     local postR = parkExterior:FindFirstChild("ParkSignPostR")
     if sign and sign:IsA("BasePart") and postL and postL:IsA("BasePart") and postR and postR:IsA("BasePart") then
-        sign.Size = Vector3.new(13.5, 2.6, 0.5)
-        sign.CFrame = CFrame.new(-84, 7.0, -145)
+        sign.Size = Vector3.new(22, 4.2, 0.55)
+        sign.CFrame = CFrame.new(-70, 7.2, -145)
         sign.CanCollide = false
         sign.CanTouch = false
         sign.CanQuery = false
-        postL.Size = Vector3.new(0.55, 4.6, 0.55)
-        postR.Size = Vector3.new(0.55, 4.6, 0.55)
-        postL.CFrame = CFrame.new(-89.7, 3.7, -145)
-        postR.CFrame = CFrame.new(-78.3, 3.7, -145)
+        postL.Size = Vector3.new(0.7, 5.5, 0.7)
+        postR.Size = Vector3.new(0.7, 5.5, 0.7)
+        postL.CFrame = CFrame.new(-81, 4.1, -145)
+        postR.CFrame = CFrame.new(-59, 4.1, -145)
         postL.CanCollide = false
         postR.CanCollide = false
-        normalizeSignText(sign, "CITY PARK", 18)
+        maximizeSignText(sign, "CITY PARK")
         compactedSigns += 1
     end
 end
@@ -273,7 +297,7 @@ if corridor then
 end
 
 -- =========================================================
--- E. CAMERA-CLEARANCE AUDIT: no remaining giant freestanding sign in targeted systems.
+-- E. TARGET SIGN AUDIT: Park retains original scale; pedestrian/skate signs stay normalized.
 -- =========================================================
 local oversizedTargetSigns = 0
 local function auditSign(part, maxWidth, maxHeight)
@@ -281,7 +305,7 @@ local function auditSign(part, maxWidth, maxHeight)
         oversizedTargetSigns += 1
     end
 end
-if parkExterior then auditSign(parkExterior:FindFirstChild("ParkEntrySign"), 14, 3) end
+if parkExterior then auditSign(parkExterior:FindFirstChild("ParkEntrySign"), 22.5, 4.5) end
 if streetPremium then
     for _, obj in ipairs(streetPremium:GetChildren()) do
         if obj:IsA("BasePart") and obj.Name == "WayfindingPlate" then auditSign(obj, 11, 2.5) end
@@ -324,11 +348,12 @@ layer:SetAttribute("ASC_V092CompactedSigns", compactedSigns)
 layer:SetAttribute("ASC_V092MovedFurnitureGroups", movedFurnitureGroups)
 layer:SetAttribute("ASC_V092RefinedCanopies", refinedCanopies)
 layer:SetAttribute("ASC_V092NewPartCount", newPartCount)
+layer:SetAttribute("ASC_V092CityParkTextScaled", true)
 root:SetAttribute("ASC_PrecisionEnvironmentV092", true)
 Workspace:SetAttribute("ASC_PrecisionEnvironmentPass", VERSION)
 
 print(string.format(
-    "[AFTER SCHOOL CITY] V0.9.2 precision environment initialized; signs=%d furnitureGroups=%d canopies=%d newParts=%d oversized=0",
+    "[AFTER SCHOOL CITY] V0.9.2 precision environment initialized; signs=%d furnitureGroups=%d canopies=%d newParts=%d oversized=0 cityParkTextScaled=true",
     compactedSigns,
     movedFurnitureGroups,
     refinedCanopies,
