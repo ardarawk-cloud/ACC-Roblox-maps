@@ -119,6 +119,25 @@ local carCenters={-58,-5,48,101}
 local access=Instance.new("Folder")
 access.Name="TicketEntryCheckpoints"
 access.Parent=folder
+
+-- Car 01 is the public boarding entry in the intended venue flow. Native Roblox
+-- signage makes that entrance obvious from Platform 01 without using image assets.
+local entryGuidance=Instance.new("Folder")
+entryGuidance.Name="Car01EntryGuidance"
+entryGuidance.Parent=folder
+local car01DoorZ=carCenters[1]+0.5
+local doorMarker=part(entryGuidance,"Car01EnterDoorMarker",Vector3.new(0.18,2.6,7.4),cf(13.34,15.05,car01DoorZ),C.black,Enum.Material.CorrodedMetal,0,false)
+surfaceText(doorMarker,Enum.NormalId.Left,"ENTER CAR 01\n↓",C.amber)
+local approachBoard=part(entryGuidance,"Car01ApproachBoard",Vector3.new(7.8,3.2,0.28),cf(7.0,7.2,car01DoorZ-7.5),C.black,Enum.Material.CorrodedMetal,0,false)
+surfaceText(approachBoard,Enum.NormalId.Front,"ENTER CAR 01  →",C.amber)
+surfaceText(approachBoard,Enum.NormalId.Back,"←  ENTER CAR 01",C.amber)
+part(entryGuidance,"ApproachPostL",Vector3.new(0.28,5.7,0.28),cf(4.2,4.25,car01DoorZ-7.5),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+part(entryGuidance,"ApproachPostR",Vector3.new(0.28,5.7,0.28),cf(9.8,4.25,car01DoorZ-7.5),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+local floorGuide=part(entryGuidance,"Car01FloorArrow",Vector3.new(5.2,0.08,2.0),cf(9.5,2.96,car01DoorZ),C.black,Enum.Material.SmoothPlastic,0,false)
+surfaceText(floorGuide,Enum.NormalId.Top,"ENTER  →",C.amber)
+part(entryGuidance,"Car01ThresholdGuide",Vector3.new(0.16,0.12,6.0),cf(12.72,3.03,car01DoorZ),C.amber,Enum.Material.Neon,0.18,false)
+root:SetAttribute("Car01EntryGuidanceVersion","1.0.0")
+
 local deniedAt={}
 
 local function bouncePlayer(plr,carIndex,doorZ)
