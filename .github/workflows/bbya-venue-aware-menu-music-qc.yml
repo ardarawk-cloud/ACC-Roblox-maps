@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'maps/bbya-social-hub/104-venue-audio-groups.server.lua'
       - 'maps/bbya-social-hub/114-venue-aware-menu-music.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
       - '.github/workflows/bbya-venue-aware-menu-music-qc.yml'
@@ -30,13 +31,15 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-venue-aware-menu.rbxl
           test -s /tmp/bbya-venue-aware-menu.rbxl
-      - name: Validate venue-aware menu music label and mobile guard
+      - name: Validate venue-aware menu + Skatepark Music Suite bridge
         shell: bash
         run: |
           set -euo pipefail
           f='maps/bbya-social-hub/114-venue-aware-menu-music.client.lua'
+          masters='maps/bbya-social-hub/104-venue-audio-groups.server.lua'
           project='maps/bbya-social-hub/default.project.json'
-          grep -q 'VENUE-AWARE MENU MUSIC v2' "$f"
+
+          grep -q 'VENUE-AWARE MENU MUSIC v3' "$f"
           grep -q 'MAIN="CLUB"' "$f"
           grep -q 'UNDERGROUND="UNDERGROUND"' "$f"
           grep -q 'VIP="VIP"' "$f"
@@ -49,7 +52,32 @@ jobs:
           grep -q 'BBYAMobileControlsGuard' "$f"
           grep -q 'AdminNextV7' "$f"
           grep -q 'maxRight=cw-pad' "$f"
+
+          grep -q 'SKATEPARK MUSIC SUITE BRIDGE v1' "$f"
+          grep -q 'BBYASkateparkPlaylistCatalog' "$f"
+          grep -q 'BBYASkateparkMusicControl' "$f"
+          grep -q 'BBYASkateparkCurrentIndex' "$f"
+          grep -q 'BBYASkateparkCurrentTitle' "$f"
+          grep -q 'BBYASkateparkQueueCount' "$f"
+          grep -q 'skateControl:FireServer("next")\|skateControl:FireServer(action)' "$f"
+          grep -q 'skateControl:FireServer("request",i)' "$f"
+          grep -q 'BBYASkateparkMusicSuiteBridge' "$f"
+
+          grep -q 'VENUE AUDIO MASTERS v4.4' "$masters"
+          grep -q 'BBYASkateparkMusicControl' "$masters"
+          grep -q 'skateControl.OnServerEvent' "$masters"
+          grep -q 'action=="next"' "$masters"
+          grep -q 'action=="prev"' "$masters"
+          grep -q 'action=="request"' "$masters"
+          grep -q 'BBYASkateparkQueueCount' "$masters"
+          grep -q '101433831748471' "$masters"
+          grep -q 'playbackSpeed=0.8' "$masters"
+
           grep -q '"VenueAwareMenuMusicV1"' "$project"
           grep -q '"$path": "114-venue-aware-menu-music.client.lua"' "$project"
-          ! grep -q 'FireServer' "$f"
-          echo 'BBYA venue-aware menu music v2 QC passed.'
+
+          # v3 may write only through the dedicated Skatepark control remote.
+          bad=$(grep -n 'FireServer' "$f" | grep -v 'skateControl:FireServer' || true)
+          test -z "$bad"
+
+          echo 'BBYA venue-aware menu music v3 + Skatepark bridge QC passed.'
