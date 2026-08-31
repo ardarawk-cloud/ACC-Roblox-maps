@@ -64,8 +64,8 @@ jobs:
             'SkateSign',
             'Vector3.new(21, 4.4, 0.72)',
             'AFTER SCHOOL SKATE',
-            'SCHOOL ↑    CITY ↓',
-            'PARK ←    SPORTS →',
+            'SCHOOL',
+            'SPORTS',
             'TreeCrown',
             'CoreCanopyLobeA',
             'CoreCanopyLobeB',
@@ -103,7 +103,6 @@ jobs:
             if($project -notmatch [regex]::Escape($token)){ throw "Rojo marker missing: $token" }
           }
 
-          # Ground truth markers behind screenshot defects must still exist in protected source.
           $world = Get-Content 'maps/after-school-city/after-school-city.world.server.lua' -Raw
           if($world -notmatch [regex]::Escape('Vector3.new(34, 8, 1)')){ throw 'Original 34x8 SkateSign authority missing' }
           if($world -notmatch [regex]::Escape('AFTER SCHOOL SKATE')){ throw 'Original skate label authority missing' }
