@@ -1,8 +1,8 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.5
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.6
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
--- v4.5 removes the duplicate legacy Untungnya upload and keeps the 0.8x test asset only.
+-- v4.6 adds the approved Vierra Perih 1.25x upload with Roblox playback restored at 0.8x.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -16,6 +16,7 @@ local SKATE_PLAYLIST={
  {title="Fuel Fury",assetId="9042632936"},
  {title="Boom Boom (b 30)",assetId="1840009708"},
  {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8},
+ {title="Vierra - Perih (Pop Punk Version)",assetId="73111765506214",playbackSpeed=0.8},
 }
 
 local function ensure(name,venue,active,state)
@@ -35,7 +36,7 @@ local function ensure(name,venue,active,state)
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V5")
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V6")
 skateGroup.Volume=1.0
 skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
@@ -213,4 +214,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.5: Skatepark 7-track deduped catalog + request/transport controls active")
+print("[BBYA] Venue audio masters v4.6: Skatepark 8-track catalog + request/transport controls active; Vierra Perih restored at 0.8x")
