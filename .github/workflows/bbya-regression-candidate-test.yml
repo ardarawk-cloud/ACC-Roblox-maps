@@ -17,8 +17,25 @@ jobs:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
     steps:
-      - name: Checkout exact candidate
-        uses: actions/checkout@v4
+      - name: Fetch exact candidate archive without Git
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP ("bbya-source-"+$env:GITHUB_SHA+".zip")
+          $extract=Join-Path $env:RUNNER_TEMP ("bbya-source-"+$env:GITHUB_SHA)
+          if(Test-Path $zip){Remove-Item $zip -Force}
+          if(Test-Path $extract){Remove-Item $extract -Recurse -Force}
+          New-Item -ItemType Directory -Path $extract -Force | Out-Null
+          $uri="https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:GITHUB_SHA"
+          Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $zip
+          if(-not (Test-Path $zip) -or (Get-Item $zip).Length -lt 1024){throw 'Exact source archive missing or unexpectedly small'}
+          Expand-Archive -Path $zip -DestinationPath $extract -Force
+          $sourceRoot=Get-ChildItem $extract -Directory | Select-Object -First 1
+          if(-not $sourceRoot){throw 'Extracted source root missing'}
+          Get-ChildItem $env:GITHUB_WORKSPACE -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem $sourceRoot.FullName -Force | ForEach-Object { Copy-Item $_.FullName -Destination $env:GITHUB_WORKSPACE -Recurse -Force }
+          if(-not (Test-Path (Join-Path $env:GITHUB_WORKSPACE 'maps\bbya-social-hub\default.project.json'))){throw 'Candidate project missing after archive extraction'}
+          Write-Host "BBYA_EXACT_SOURCE_ARCHIVE_PASS source=$env:GITHUB_SHA bytes=$((Get-Item $zip).Length)"
 
       - name: Verify isolated test target
         shell: powershell
