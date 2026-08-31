@@ -1,8 +1,11 @@
 name: BBYA Validated Regression MASTER V2
-# Registered trigger pass v2.
 
 on:
   push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-regression-production-masterv2.yml'
+  pull_request:
     branches: [main]
     paths:
       - '.github/workflows/bbya-regression-production-masterv2.yml'
@@ -14,24 +17,27 @@ jobs:
   publish:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 20
+    env:
+      TARGET_SOURCE: ${{ github.event.pull_request.base.sha || github.sha }}
     steps:
-      - name: Fetch exact source without Git
+      - name: Fetch exact production source without Git
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $zip=Join-Path $env:RUNNER_TEMP ("bbya-masterv2-"+$env:GITHUB_SHA+".zip")
-          $extract=Join-Path $env:RUNNER_TEMP ("bbya-masterv2-"+$env:GITHUB_SHA)
+          if(-not $env:TARGET_SOURCE){throw 'TARGET_SOURCE missing'}
+          $zip=Join-Path $env:RUNNER_TEMP ("bbya-masterv2-"+$env:TARGET_SOURCE+".zip")
+          $extract=Join-Path $env:RUNNER_TEMP ("bbya-masterv2-"+$env:TARGET_SOURCE)
           if(Test-Path $zip){Remove-Item $zip -Force}
           if(Test-Path $extract){Remove-Item $extract -Recurse -Force}
           New-Item -ItemType Directory -Path $extract -Force | Out-Null
-          Invoke-WebRequest -UseBasicParsing -Uri ("https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/"+$env:GITHUB_SHA) -OutFile $zip
+          Invoke-WebRequest -UseBasicParsing -Uri ("https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/"+$env:TARGET_SOURCE) -OutFile $zip
           if(-not (Test-Path $zip) -or (Get-Item $zip).Length -lt 1024){throw 'Source archive missing'}
           Expand-Archive -Path $zip -DestinationPath $extract -Force
           $root=Get-ChildItem $extract -Directory | Select-Object -First 1
           if(-not $root){throw 'Extracted source root missing'}
           Get-ChildItem $env:GITHUB_WORKSPACE -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
           Get-ChildItem $root.FullName -Force | ForEach-Object { Copy-Item $_.FullName -Destination $env:GITHUB_WORKSPACE -Recurse -Force }
-          Write-Host "BBYA_EXACT_SOURCE_PASS source=$env:GITHUB_SHA"
+          Write-Host "BBYA_EXACT_SOURCE_PASS source=$env:TARGET_SOURCE"
 
       - name: Verify validated runtime locks
         shell: powershell
@@ -93,12 +99,12 @@ jobs:
           PUBLISH_RECEIPT_DIR: deploy-status-masterv2
         run: |
           $ErrorActionPreference='Stop'
-          node scripts/publish-map.js a-club
+          node -e "process.env.GITHUB_SHA=process.env.TARGET_SOURCE; process.argv[2]='a-club'; require('./scripts/publish-map.js')"
           if($LASTEXITCODE -ne 0){throw 'MASTER_V2 publish failed'}
           $receipt='deploy-status-masterv2/a-club.json'
           $r=Get-Content $receipt -Raw | ConvertFrom-Json
           if($r.status -ne 'PUBLISHED'){throw 'Receipt not PUBLISHED'}
-          if($r.sourceCommit -ne $env:GITHUB_SHA){throw 'Receipt source mismatch'}
+          if($r.sourceCommit -ne $env:TARGET_SOURCE){throw 'Receipt source mismatch'}
           if([string]$r.universeId -ne '8116636513' -or [string]$r.placeId -ne '131894120482837'){throw 'Receipt target mismatch'}
           Get-Content $receipt
           Write-Host "BBYA_MASTER_V2_PASS version=$($r.response.versionNumber) source=$($r.sourceCommit)"
