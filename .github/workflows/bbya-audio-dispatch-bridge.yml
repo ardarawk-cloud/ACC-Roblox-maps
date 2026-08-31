@@ -1,0 +1,100 @@
+name: BBYA Audio Dispatch Bridge
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dispatch-audio:
+    if: startsWith(github.event.issue.title, 'BBYA AUDIO UPLOAD')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")"
+          DRIVE_FILE_ID="$(printf '%s\n' "$BODY" | sed -n 's/^drive_file_id=//p' | head -n1)"
+          AUDIO_TITLE="$(printf '%s\n' "$BODY" | sed -n 's/^title=//p' | head -n1)"
+          UNIVERSE_ID="$(printf '%s\n' "$BODY" | sed -n 's/^universe_id=//p' | head -n1)"
+          TARGET_VENUE="$(printf '%s\n' "$BODY" | sed -n 's/^target_venue=//p' | head -n1)"
+
+          [ -n "$DRIVE_FILE_ID" ] || { echo 'drive_file_id missing'; exit 10; }
+          [ -n "$AUDIO_TITLE" ] || { echo 'title missing'; exit 11; }
+          [ -n "$UNIVERSE_ID" ] || UNIVERSE_ID='8116636513'
+          [ -n "$TARGET_VENUE" ] || TARGET_VENUE='SKATEPARK'
+
+          {
+            echo "drive_file_id=$DRIVE_FILE_ID"
+            echo "audio_title=$AUDIO_TITLE"
+            echo "universe_id=$UNIVERSE_ID"
+            echo "target_venue=$TARGET_VENUE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch uploader repository
+        id: dispatch
+        shell: bash
+        env:
+          BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
+          DRIVE_FILE_ID: ${{ steps.request.outputs.drive_file_id }}
+          AUDIO_TITLE: ${{ steps.request.outputs.audio_title }}
+          UNIVERSE_ID: ${{ steps.request.outputs.universe_id }}
+        run: |
+          set -euo pipefail
+          [ -n "${BRIDGE_TOKEN:-}" ] || { echo 'BALI_ENTERTAIMENT_TOKEN missing in ACC-Roblox-maps'; exit 20; }
+
+          PAYLOAD="$(jq -nc \
+            --arg ref 'main' \
+            --arg drive "$DRIVE_FILE_ID" \
+            --arg title "$AUDIO_TITLE" \
+            --arg universe "$UNIVERSE_ID" \
+            '{ref:$ref,inputs:{drive_file_id:$drive,title:$title,universe_id:$universe}}')"
+
+          HTTP="$(curl -sS -o /tmp/dispatch-response.txt -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Bearer $BRIDGE_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            'https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/actions/workflows/roblox-audio-talonthedevil.yml/dispatches' \
+            -d "$PAYLOAD")"
+
+          if [ "$HTTP" != '204' ]; then
+            echo "Cross-repo dispatch failed HTTP=$HTTP"
+            cat /tmp/dispatch-response.txt || true
+            exit 21
+          fi
+
+          echo 'Cross-repo uploader dispatch accepted.'
+
+      - name: Mark request dispatched
+        if: success()
+        uses: actions/github-script@v7
+        env:
+          AUDIO_TITLE: ${{ steps.request.outputs.audio_title }}
+          TARGET_VENUE: ${{ steps.request.outputs.target_venue }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `AUDIO_DISPATCHED | ${process.env.AUDIO_TITLE} | target=${process.env.TARGET_VENUE}`
+            })
+
+      - name: Mark dispatch failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'AUDIO_DISPATCH_FAILED | Check BBYA Audio Dispatch Bridge workflow logs.'
+            })

@@ -58,7 +58,8 @@ jobs:
           if($src -notmatch 'local SKATE_PLAYLIST='){throw 'SKATE_PLAYLIST authority missing'}
           if($src -notmatch 'BBYASkateparkMasterSound'){throw 'Skatepark master sound missing'}
           if($src -notmatch 'BBYASkateparkPlaylistCatalog'){throw 'Skatepark catalog publisher missing'}
-          if($src -notmatch '134928414278364'){throw 'Approved pop-punk test asset missing'}
+          if($src -notmatch 'playbackSpeed=0\.8'){throw 'Restored 0.8x playback track missing'}
+          if($src -notmatch 'row:SetAttribute\("PlaybackSpeed"'){throw 'Per-track PlaybackSpeed catalog metadata missing'}
           if($src -notmatch 'ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED'){throw 'Mixed rights profile marker missing'}
           Write-Host 'Skatepark audio authority QC PASS'
 
