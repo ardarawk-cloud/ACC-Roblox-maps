@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "NATIVE_SWIMMABLE_POOL_V0_8_8",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "0fc72f121f945f6f2b4281481f77318ab82c9893",
+  "baseLiveCommit": "f065a1a4811f3b59d34359e8a1b8f30dcccff36c",
+  "qcRunId": "33404053242",
+  "qcArtifactId": 9762403328,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 35,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 130044,
+  "placeSha256": "d46392239cbc6f3c22d622f3c0f58585deb827a24fa9a3168b62dcd7147d1f7e",
+  "runId": "33410159502",
+  "publishedAt": "2026-08-31T15:44:38Z",
+  "note": "V0.8.8 exact QC-locked artifact; Park Lake upgraded to native Roblox Terrain Water for true swimming, with inset water volume, basin/walls and exit ladder; NorthSouthRoad, orientation/centerline locks, gameplay economy/persistence/monetization, and dedication unchanged."
+}
