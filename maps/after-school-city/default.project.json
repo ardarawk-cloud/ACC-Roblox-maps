@@ -126,6 +126,9 @@
       },
       "ASC_PrecisionEnvironmentV092": {
         "$path": "after-school-city.precision-environment-v092.server.lua"
+      },
+      "ASC_GlobalSignageReadabilityV0922": {
+        "$path": "after-school-city.global-signage-readability-v0922.server.lua"
       }
     },
     "StarterGui": {
