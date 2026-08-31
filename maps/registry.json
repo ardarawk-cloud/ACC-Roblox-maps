@@ -8,6 +8,13 @@
       "placeId": "131894120482837",
       "file": "maps/bbya-social-hub/place.rbxlx"
     },
+    "bbya-music-test": {
+      "name": "BBYA Music UI Test",
+      "enabled": true,
+      "universeId": "10762005984",
+      "placeId": "124607344716828",
+      "file": "maps/bbya-social-hub/place.rbxlx"
+    },
     "bali-nightlife": {
       "name": "Bali Virtual Nightlife 24/7",
       "enabled": false,
