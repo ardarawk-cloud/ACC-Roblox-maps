@@ -48,23 +48,26 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $p='maps/bbya-social-hub/default.project.json'
-          $s=Get-Content $p -Raw
-
-          $commerce='"MallRobuxCommerceClientV1":\s*\{\s*"\$path":\s*"133-mall-robux-commerce\.client\.lua"\s*\}'
-          $focus='"MallRobuxCommerceClientV1": {`n          "$path": "133-mall-robux-commerce.client.lua"`n        },`n        "MallCatalogFocusModeV1": {`n          "$path": "134-mall-catalog-focus-mode.client.lua"`n        }'
-          $patched=[regex]::Replace($s,$commerce,$focus,1)
-          if($patched -eq $s){throw 'Focus client mapping not inserted'}
-
-          $workspace='"Workspace"\s*:\s*\{\s*"\$className"\s*:\s*"Workspace"\s*\}'
-          $workspaceReplacement='"Workspace": {"$className":"Workspace","$properties":{"AllowThirdPartySales":true}}'
-          $patched2=[regex]::Replace($patched,$workspace,$workspaceReplacement,1)
-          if($patched2 -eq $patched){throw 'Workspace block not patched'}
-
+          $obj=(Get-Content $p -Raw | ConvertFrom-Json)
+          $focus=[pscustomobject]@{'$path'='134-mall-catalog-focus-mode.client.lua'}
+          $scripts=$obj.tree.StarterPlayer.StarterPlayerScripts
+          if($scripts.PSObject.Properties.Name -contains 'MallCatalogFocusModeV1'){
+            $scripts.MallCatalogFocusModeV1=$focus
+          } else {
+            $scripts | Add-Member -NotePropertyName 'MallCatalogFocusModeV1' -NotePropertyValue $focus
+          }
+          $props=[pscustomobject]@{AllowThirdPartySales=$true}
+          if($obj.tree.Workspace.PSObject.Properties.Name -contains '$properties'){
+            $obj.tree.Workspace.'$properties'=$props
+          } else {
+            $obj.tree.Workspace | Add-Member -NotePropertyName '$properties' -NotePropertyValue $props
+          }
+          $json=$obj | ConvertTo-Json -Depth 100
           $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
-          [System.IO.File]::WriteAllText((Resolve-Path $p),$patched2,$utf8NoBom)
+          [System.IO.File]::WriteAllText((Resolve-Path $p),$json,$utf8NoBom)
           $check=Get-Content $p -Raw
           if(-not $check.Contains('MallCatalogFocusModeV1')){throw 'Focus mapping missing after write'}
-          if(-not $check.Contains('"AllowThirdPartySales":true')){throw 'Third-party sales missing after write'}
+          if(-not $check.Contains('AllowThirdPartySales')){throw 'Third-party sales missing after write'}
           Write-Host 'BBYA_TEST_FOCUS_MAPPING_ENABLED'
 
       - name: Build and publish test
@@ -81,9 +84,10 @@ jobs:
             Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
             Expand-Archive $z -DestinationPath $toolDir -Force
           }
+          if((& $rojo --version) -notmatch '7\.7\.0'){throw 'Rojo 7.7.0 required'}
           $out=Join-Path $env:RUNNER_TEMP 'bbya-mall-focus-test.rbxl'
           & $rojo build 'maps/bbya-social-hub/default.project.json' -o $out
-          if($LASTEXITCODE -ne 0){throw 'Build failed'}
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){throw 'Build failed'}
           $bytes=(Get-Item $out).Length
           $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
           if($sha -eq '882da9c516386ea4ab14f78ae5c5029969318fe9cd7f9b69c85c282d3007b118'){throw 'Focus client did not change build hash'}
