@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.3
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.4
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
+-- v4.4 adds server-authoritative Skatepark request + PREV/NEXT controls for Music Suite.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -35,12 +36,20 @@ local function ensure(name,venue,active,state)
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V3")
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V4")
 -- Skatepark-specific gain. Do not raise Rooftop or any other venue group.
 skateGroup.Volume=1.0
 skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
 ensure("BBYAVIPMaster","VIP",false)
+
+local skateControl=ReplicatedStorage:FindFirstChild("BBYASkateparkMusicControl")
+if skateControl and not skateControl:IsA("RemoteEvent") then skateControl:Destroy();skateControl=nil end
+if not skateControl then
+ skateControl=Instance.new("RemoteEvent")
+ skateControl.Name="BBYASkateparkMusicControl"
+ skateControl.Parent=ReplicatedStorage
+end
 
 local function publishSkateCatalog()
  local folder=ReplicatedStorage:FindFirstChild("BBYASkateparkPlaylistCatalog")
@@ -51,6 +60,7 @@ local function publishSkateCatalog()
  folder:SetAttribute("Venue","SKATEPARK")
  folder:SetAttribute("Count",#SKATE_PLAYLIST)
  folder:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED")
+ folder:SetAttribute("ControlRemote","BBYASkateparkMusicControl")
  for i,t in ipairs(SKATE_PLAYLIST) do
   local row=Instance.new("StringValue")
   row.Name=string.format("Track%02d",i)
@@ -77,6 +87,16 @@ sound:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 local index=tonumber(ReplicatedStorage:GetAttribute("BBYASkateparkCurrentIndex")) or 1
 if index<1 or index>#SKATE_PLAYLIST then index=1 end
 local switching=false
+local skateQueue={}
+
+local function publishQueue()
+ local count=#skateQueue
+ local nextIndex=tonumber(skateQueue[1]) or 0
+ ReplicatedStorage:SetAttribute("BBYASkateparkQueueCount",count)
+ ReplicatedStorage:SetAttribute("BBYASkateparkNextRequestIndex",nextIndex)
+ skateGroup:SetAttribute("QueueCount",count)
+ skateGroup:SetAttribute("NextRequestIndex",nextIndex)
+end
 
 local function publishState(track)
  ReplicatedStorage:SetAttribute("BBYASkateparkCurrentIndex",index)
@@ -89,6 +109,7 @@ local function publishState(track)
  skateGroup:SetAttribute("CurrentAssetId",track.assetId)
  skateGroup:SetAttribute("CurrentPlaybackSpeed",tonumber(track.playbackSpeed) or 1)
  skateGroup:SetAttribute("PlaylistReady",true)
+ publishQueue()
 end
 
 local function waitLoaded(timeout)
@@ -133,11 +154,55 @@ local function playIndex(wanted)
  warn("[BBYA] Skatepark playlist: no track could start")
 end
 
+local function popNextWanted()
+ if #skateQueue>0 then
+  local wanted=table.remove(skateQueue,1)
+  publishQueue()
+  return wanted
+ end
+ return index%#SKATE_PLAYLIST+1
+end
+
+local function isAdmin(player)
+ return player:GetAttribute("BBYAAdmin")==true
+  or (game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
+end
+
+skateControl.OnServerEvent:Connect(function(player,action,wanted)
+ action=tostring(action or "")
+ if action=="request" then
+  local n=tonumber(wanted)
+  if not n or n<1 or n>#SKATE_PLAYLIST then return end
+  table.insert(skateQueue,math.floor(n))
+  publishQueue()
+  if not sound.IsPlaying and not switching then
+   local nextWanted=popNextWanted()
+   task.defer(function()playIndex(nextWanted)end)
+  end
+  return
+ end
+ if not isAdmin(player) then return end
+ if action=="play" then
+  local n=tonumber(wanted)
+  if n and n>=1 and n<=#SKATE_PLAYLIST then task.defer(function()playIndex(n)end) end
+ elseif action=="next" then
+  local n=popNextWanted()
+  task.defer(function()playIndex(n)end)
+ elseif action=="prev" then
+  local n=((math.max(index,1)-2)%#SKATE_PLAYLIST)+1
+  task.defer(function()playIndex(n)end)
+ elseif action=="clearqueue" then
+  table.clear(skateQueue)
+  publishQueue()
+ end
+end)
+
 sound.Ended:Connect(function()
- task.defer(function()playIndex(index%#SKATE_PLAYLIST+1)end)
+ task.defer(function()playIndex(popNextWanted())end)
 end)
 
 publishSkateCatalog()
+publishQueue()
 playIndex(index)
 
 task.spawn(function()
@@ -147,8 +212,8 @@ task.spawn(function()
   sound.Volume=1.0
   skateGroup:SetAttribute("PlaylistReady",true)
   skateGroup:SetAttribute("PlaylistCount",#SKATE_PLAYLIST)
-  if not sound.IsPlaying and not switching then playIndex(index) end
+  if not sound.IsPlaying and not switching then playIndex(popNextWanted()) end
  end
 end)
 
-print("[BBYA] Venue audio masters v4.3: Skatepark 8-track full-level active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4.4: Skatepark 8-track request + transport controls active; Rooftop active; VIP isolated")
