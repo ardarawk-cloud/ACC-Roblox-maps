@@ -275,7 +275,7 @@ local function addMerchandise(parent,cx,y,z,inward,accent,kind)
   for i=0,2 do box("FoldedApparel"..i,p1+Vector3.new(0,i*.22,0),Vector3.new(1.55,.16,1.15),i==1 and accent or C.white,Enum.Material.Fabric,8) end
   box("FashionTorsoA",p2+Vector3.new(0,.85,0),Vector3.new(1.25,1.9,.48),accent,Enum.Material.Fabric,0)
   box("FashionTorsoB",p3+Vector3.new(0,.78,0),Vector3.new(1.12,1.7,.45),C.white,Enum.Material.Fabric,0)
-  box("FashionPlinthBag",p2+Vector3.new(0,.10,-.72),Vector3.new(.72,.62,.32),C.black,Enum.Material.Leather,12)
+  box("FashionPlinthBag",p2+Vector3.new(0,.10,-.72),Vector3.new(.72,.62,.32),C.black,Enum.Material.Fabric,12)
  elseif kind=="shoes" then
   for index,pos in ipairs({p1,p2,p3}) do
    box("SneakerSole"..index,pos+Vector3.new(0,.15,0),Vector3.new(1.55,.20,.62),C.white,Enum.Material.SmoothPlastic,10)
