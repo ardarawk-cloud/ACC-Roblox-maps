@@ -229,6 +229,9 @@
       "MallSafeSecurityOverrideV1": {
         "$path": "97-mall-safe-security-override.server.lua"
       },
+      "MallRetailDensityV3": {
+        "$path": "137-mall-retail-density-v3.server.lua"
+      },
       "NightMarketV1": {
         "$path": "98-night-market.server.lua"
       },
