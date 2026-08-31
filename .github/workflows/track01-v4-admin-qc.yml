@@ -79,6 +79,20 @@ jobs:
           grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
           echo 'TRACK 01 v4 admin panel QC PASS'
 
+      - name: Validate compact mobile panel hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'DeviceSafeInsets' maps/track-01/place.rbxlx
+          grep -q 'ClipToDeviceSafeArea' maps/track-01/place.rbxlx
+          grep -q 'Server &amp; venue overview' maps/track-01/place.rbxlx || grep -q 'Server & venue overview' maps/track-01/place.rbxlx
+          grep -q 'Station announcement controls' maps/track-01/place.rbxlx
+          grep -q 'Venue lighting presets' maps/track-01/place.rbxlx
+          grep -q 'Player recovery tools' maps/track-01/place.rbxlx
+          grep -q 'compact mobile admin panel client ready v4.0.1' maps/track-01/place.rbxlx
+          grep -q 'ScrollingFrame' maps/track-01/place.rbxlx
+          echo 'TRACK 01 compact mobile admin panel QC PASS'
+
       - name: Confirm build-only workflow
         shell: bash
         run: |
