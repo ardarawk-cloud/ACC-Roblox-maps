@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "PREMIUM_ENVIRONMENT_V0_9_1",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "06de195e303f69c6e466ec162fa119ff56f41f42",
+  "baseLiveCommit": "16f9eb7823f2dfd0d5f41683b5a2d04707e72198",
+  "qcRunId": "33434756635",
+  "qcArtifactId": 9773957332,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 38,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 146041,
+  "placeSha256": "90df1cb4ca3668c3835102e10a2aa390d3f6c3b8f75468feed85efcc31b117c3",
+  "runId": "33436658803",
+  "publishedAt": "2026-08-31T20:33:31Z",
+  "note": "V0.9.1 exact QC-locked artifact; premium environment pass adds school facade/roof service depth, downtown/storefront and Student Row architectural service detail, streetscape furniture/wayfinding/tree grates, and pool coping/signage. New visual geometry is non-collide/non-touch/non-query. Roads, pool authority, gameplay/economy/persistence/monetization, personal music player and dedication remain unchanged."
+}
