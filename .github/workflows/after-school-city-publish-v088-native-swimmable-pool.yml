@@ -1,0 +1,170 @@
+name: After School City Publish V0.8.8 Native Swimmable Pool
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/after-school-city-publish-v088-native-swimmable-pool.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_REPO: ardarawk-cloud/ACC-Roblox-maps
+      SOURCE_SHA: 0fc72f121f945f6f2b4281481f77318ab82c9893
+      BASE_LIVE_SHA: f065a1a4811f3b59d34359e8a1b8f30dcccff36c
+      QC_RUN_ID: '33404053242'
+      QC_ARTIFACT_ID: '9762403328'
+      QC_ARTIFACT_NAME: after-school-city-v088-qc-0fc72f121f945f6f2b4281481f77318ab82c9893
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      EXPECTED_BYTES: '130044'
+      EXPECTED_SHA256: d46392239cbc6f3c22d622f3c0f58585deb827a24fa9a3168b62dcd7147d1f7e
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout publisher repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact QC run and artifact authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'; exit 9; }
+          api='https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps'
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID" -o "$RUNNER_TEMP/qc-run.json"
+          [[ "$(jq -r '.status' "$RUNNER_TEMP/qc-run.json")" == 'completed' ]] || { echo 'QC run is not completed'; exit 10; }
+          [[ "$(jq -r '.conclusion' "$RUNNER_TEMP/qc-run.json")" == 'success' ]] || { echo 'QC run is not SUCCESS'; exit 11; }
+          [[ "$(jq -r '.head_sha' "$RUNNER_TEMP/qc-run.json")" == "$SOURCE_SHA" ]] || { echo 'QC source SHA mismatch'; exit 12; }
+          [[ "$(jq -r '.path' "$RUNNER_TEMP/qc-run.json")" == '.github/workflows/after-school-city-v088-swimmable-pool-qc.yml' ]] || { echo 'Unexpected QC workflow'; exit 13; }
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID/artifacts" -o "$RUNNER_TEMP/qc-artifacts.json"
+          count=$(jq --argjson id "$QC_ARTIFACT_ID" --arg n "$QC_ARTIFACT_NAME" '[.artifacts[] | select(.id == $id and .name == $n and .expired == false and .workflow_run.head_sha == env.SOURCE_SHA)] | length' "$RUNNER_TEMP/qc-artifacts.json")
+          [[ "$count" == '1' ]] || { cat "$RUNNER_TEMP/qc-artifacts.json"; echo 'Exact QC artifact authority not found'; exit 14; }
+          echo "QC AUTHORITY PASS run=$QC_RUN_ID artifact=$QC_ARTIFACT_ID source=$SOURCE_SHA"
+
+      - name: Checkout exact V0.8.8 source for lock verification
+        uses: actions/checkout@v4
+        with:
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          ref: 0fc72f121f945f6f2b4281481f77318ab82c9893
+          path: asc-source
+          fetch-depth: 0
+
+      - name: Verify exact source and narrow V0.8.8 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual=$(git -C asc-source rev-parse HEAD)
+          [[ "$actual" == "$SOURCE_SHA" ]] || { echo "Source SHA mismatch: $actual"; exit 20; }
+          git -C asc-source cat-file -e "${BASE_LIVE_SHA}^{commit}"
+          mapfile -t files < <(git -C asc-source diff --name-only "$BASE_LIVE_SHA" "$SOURCE_SHA")
+          [[ ${#files[@]} -eq 3 ]] || { printf '%s\n' "${files[@]}"; echo "Unexpected delta count ${#files[@]}"; exit 21; }
+          expected=(
+            '.github/workflows/after-school-city-v088-swimmable-pool-qc.yml'
+            'maps/after-school-city/after-school-city.swimmable-pool.server.lua'
+            'maps/after-school-city/default.project.json'
+          )
+          for f in "${expected[@]}"; do printf '%s\n' "${files[@]}" | grep -Fxq "$f" || { echo "Missing expected delta $f"; exit 22; }; done
+          grep -Fq 'PUTU AZYA PUTRI' asc-source/maps/after-school-city/after-school-city.intro.client.lua
+          grep -Fq 'BINTANG HARDAJAYA' asc-source/maps/after-school-city/after-school-city.intro.client.lua
+          grep -Fq 'WITH LOVE, DAD' asc-source/maps/after-school-city/after-school-city.intro.client.lua
+          grep -Fq 'ASC_SkateparkApproachMicroCleanupPass' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'FindFirstChildOfClass("Terrain")' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'terrain:FillBlock' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'Enum.Material.Water' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'WATER_INSET = 4.5' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'WATER_DEPTH = 5.0' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          grep -Fq 'ASC_ParkPoolUsesNativeSwimming' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          ! grep -Fq 'Humanoid:ChangeState' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          ! grep -Fq 'BodyVelocity' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          ! grep -Fq 'VectorForce' asc-source/maps/after-school-city/after-school-city.swimmable-pool.server.lua
+          echo "SOURCE LOCK PASS source=$actual delta=3-files"
+
+      - name: Download exact QC-locked artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: after-school-city-v088-qc-0fc72f121f945f6f2b4281481f77318ab82c9893
+          path: ${{ runner.temp }}/asc-v088-qc
+          github-token: ${{ github.token }}
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          run-id: 33404053242
+
+      - name: Verify QC receipt and exact RBXL bytes/SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$RUNNER_TEMP/asc-v088-qc/qc-receipt.txt"
+          [[ -f "$receipt" ]] || { find "$RUNNER_TEMP/asc-v088-qc" -maxdepth 3 -type f -print; echo 'QC receipt missing'; exit 29; }
+          grep -Fxq 'STATUS=QC_PASSED' "$receipt"
+          grep -Fxq 'MODE=NATIVE_SWIMMABLE_POOL_V0_8_8' "$receipt"
+          grep -Fxq "SOURCE_COMMIT=$SOURCE_SHA" "$receipt"
+          grep -Fxq "RBXL_BYTES=$EXPECTED_BYTES" "$receipt"
+          grep -Fxq "SHA256=$EXPECTED_SHA256" "$receipt"
+          mapfile -t places < <(find "$RUNNER_TEMP/asc-v088-qc" -type f -name '*.rbxl' -print)
+          [[ ${#places[@]} -eq 1 ]] || { find "$RUNNER_TEMP/asc-v088-qc" -maxdepth 3 -type f -print; echo "Expected exactly one RBXL, found ${#places[@]}"; exit 30; }
+          place="${places[0]}"
+          bytes=$(stat -c%s "$place")
+          sha=$(sha256sum "$place" | awk '{print $1}')
+          [[ "$bytes" == "$EXPECTED_BYTES" ]] || { echo "Byte mismatch: $bytes expected=$EXPECTED_BYTES"; exit 31; }
+          [[ "$sha" == "$EXPECTED_SHA256" ]] || { echo "SHA256 mismatch: $sha expected=$EXPECTED_SHA256"; exit 32; }
+          echo "PLACE_FILE=$place" >> "$GITHUB_ENV"
+          echo "PLACE_BYTES=$bytes" >> "$GITHUB_ENV"
+          echo "PLACE_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "EXACT QC ARTIFACT PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish V0.8.8 LIVE to Roblox
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://apis.roblox.com/universes/v1/${UNIVERSE_ID}/places/${PLACE_ID}/versions?versionType=Published"
+          http=$(curl -sS --location -o "$RUNNER_TEMP/asc-publish-response.json" -w '%{http_code}' -X POST "$url" -H "x-api-key: $ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$PLACE_FILE")
+          body=$(cat "$RUNNER_TEMP/asc-publish-response.json")
+          [[ "$http" =~ ^2[0-9][0-9]$ ]] || { echo "HTTP $http: $body"; exit 40; }
+          version=$(jq -r '.versionNumber // empty' "$RUNNER_TEMP/asc-publish-response.json")
+          [[ -n "$version" && "$version" =~ ^[0-9]+$ ]] || { echo "Missing/invalid versionNumber: $body"; exit 41; }
+          echo "PUBLISHED_VERSION=$version" >> "$GITHUB_ENV"
+          echo "ROBLOX PUBLISH PASS version=$version"
+
+      - name: Persist V0.8.8 LIVE receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          jq -n \
+            --arg status 'LIVE_PUBLISHED' \
+            --arg project 'AFTER SCHOOL CITY' \
+            --arg mode 'NATIVE_SWIMMABLE_POOL_V0_8_8' \
+            --arg sourceRepo "$SOURCE_REPO" \
+            --arg sourceCommit "$SOURCE_SHA" \
+            --arg baseLiveCommit "$BASE_LIVE_SHA" \
+            --arg qcRunId "$QC_RUN_ID" \
+            --arg qcArtifactId "$QC_ARTIFACT_ID" \
+            --arg universeId "$UNIVERSE_ID" \
+            --arg placeId "$PLACE_ID" \
+            --arg versionNumber "$PUBLISHED_VERSION" \
+            --arg rojoVersion '7.7.0' \
+            --arg placeBytes "$PLACE_BYTES" \
+            --arg placeSha256 "$PLACE_SHA256" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,qcRunId:$qcRunId,qcArtifactId:($qcArtifactId|tonumber),universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"V0.8.8 exact QC-locked artifact; Park Lake upgraded to native Roblox Terrain Water for true swimming, with inset water volume, basin/walls and exit ladder; NorthSouthRoad, orientation/centerline locks, gameplay economy/persistence/monetization, and dedication unchanged."}' > deploy-status/after-school-city-publish-native-swimmable-pool-v0-8-8.json
+          cat deploy-status/after-school-city-publish-native-swimmable-pool-v0-8-8.json
+          git config user.name 'After School City Publish Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- deploy-status/after-school-city-publish-native-swimmable-pool-v0-8-8.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record After School City V0.8.8 LIVE publish [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
