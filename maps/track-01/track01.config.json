@@ -5,9 +5,9 @@
   "enabled": true,
   "universeId": "10745349805",
   "placeId": "79748872921213",
-  "version": "4.0.0",
-  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub with lobby-first arrival and Night Ticket flow, mobile-readable station PA and personalized TTS welcome, enclosed railway vestibules, usable social seating, standing tables, cosmetic drinks, dance interaction zones, Yard photo mode, final aisle collision guard, fall/out-of-bounds recovery to the station lobby, verified v3.9.1 night readability balance, plus a compact centered server-authoritative operator panel for venue status, fixed PA presets, night lighting presets, DJ/club pulse, event mode, and safe player recovery/respawn controls without uploaded audio assets",
-  "publishAttempt": 26,
+  "version": "4.1.0",
+  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub with lobby-first arrival and Night Ticket flow, mobile-readable station PA, enclosed railway vestibules, usable social seating, cosmetic drinks, dance zones, Yard photo mode, verified night readability, compact mobile-safe operator panel, server-authoritative DJ/music transport prepared for explicitly approved Roblox audio only, coordinated event-operation presets, PA controls, lighting/pulse controls, operator/server status, and safe player recovery/respawn controls",
+  "publishAttempt": 27,
   "file": "maps/track-01/place.rbxlx",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
