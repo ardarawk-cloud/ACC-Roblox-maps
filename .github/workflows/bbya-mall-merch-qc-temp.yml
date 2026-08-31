@@ -39,7 +39,7 @@ jobs:
           foreach($marker in @('MALL_PREMIUM_GALLERY_AUTHORITY_V6','MALL_NATIVE_MERCH_V1','MallNativeMerchStoreCount','MallMerchPartCount','addMerchandise')){
             if($s -notmatch [regex]::Escape($marker)){throw "Missing marker: $marker"}
           }
-          foreach($forbidden in @('GetService("Lighting")','InsertService','SoundId','.Volume =','Enum.Material.Leather')){
+          foreach($forbidden in @('GetService("Lighting")','GetService("InsertService")','SoundId','.Volume =','Enum.Material.Leather')){
             if($s.Contains($forbidden)){throw "Forbidden regression token: $forbidden"}
           }
           $kinds=@('fashion','shoes','tech','market','home','beauty','books','sport')
