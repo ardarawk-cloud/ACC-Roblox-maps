@@ -1,0 +1,179 @@
+name: After School City V0.9.0 Personal Music Player QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v090-personal-music-player
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v090-personal-music-player-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact-source narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'f2584421b92426fca12930aa8559a0e3ce4a5106'
+          git cat-file -e "$base^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'V0.8.9 LIVE base commit unavailable' }
+          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $base){ throw "Candidate is not based on exact V0.8.9 LIVE source: merge-base=$mergeBase" }
+
+          $allowed = @(
+            '.github/workflows/after-school-city-v090-personal-music-player-qc.yml',
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if($changed.Count -ne 4){ throw "Expected exactly 4 V0.9.0 files, got $($changed.Count): $($changed -join ', ')" }
+          foreach($path in $changed){ if($allowed -notcontains $path){ throw "V0.9.0 scope violation: $path" } }
+          foreach($required in $allowed){ if($changed -notcontains $required){ throw "Required V0.9.0 change missing: $required" } }
+          Write-Host "V0.9.0 NARROW DIFF PASS: $($changed -join ', ')"
+
+      - name: Personal music player static checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $clientPath = 'maps/after-school-city/after-school-city.music-player.client.lua'
+          $configPath = 'maps/after-school-city/after-school-city.music-config.lua'
+          $projectPath = 'maps/after-school-city/default.project.json'
+          $client = Get-Content $clientPath -Raw
+          $config = Get-Content $configPath -Raw
+          $project = Get-Content $projectPath -Raw
+          $null = $project | ConvertFrom-Json
+
+          foreach($token in @(
+            'Personal Music Player v0.9.0',
+            'Players.LocalPlayer',
+            'SoundService',
+            'ASC_PersonalMusicSound',
+            'ASC_PersonalMusic',
+            'MusicToggle',
+            'MusicPanel',
+            'PREV',
+            'PLAY',
+            'NEXT',
+            'ContentProvider:PreloadAsync',
+            'sound.PlaybackSpeed = 1.0',
+            'Playing · personal',
+            'LoopPlaylist',
+            'ResetOnSpawn = false'
+          )){
+            if($client -notmatch [regex]::Escape($token)){ throw "Music client marker missing: $token" }
+          }
+
+          foreach($token in @(
+            '0.9.0-personal-music-player-1',
+            'DefaultVolume = 0.45',
+            'PlaybackSpeed = 1.0',
+            'AutoPlay = false',
+            'Tracks = {}'
+          )){
+            if($config -notmatch [regex]::Escape($token)){ throw "Music config marker missing: $token" }
+          }
+
+          foreach($token in @(
+            'ASCMusicConfig',
+            'after-school-city.music-config.lua',
+            'StarterPlayerScripts',
+            'ASC_PersonalMusicPlayer',
+            'after-school-city.music-player.client.lua'
+          )){
+            if($project -notmatch [regex]::Escape($token)){ throw "Rojo music marker missing: $token" }
+          }
+
+          foreach($forbidden in @(
+            'RemoteEvent',
+            'RemoteFunction',
+            'MarketplaceService',
+            'DataStoreService',
+            'PromptProductPurchase',
+            'ProcessReceipt',
+            'Workspace.Sound',
+            'SoundId = "rbxassetid://0"'
+          )){
+            if($client -match [regex]::Escape($forbidden)){ throw "Forbidden music authority found: $forbidden" }
+          }
+
+          $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+          foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication lock missing: $token" }
+          }
+
+          foreach($lockedPath in @(
+            'maps/after-school-city/after-school-city.environment-safety-vegetation.server.lua',
+            'maps/after-school-city/after-school-city.swimmable-pool.server.lua',
+            'maps/after-school-city/after-school-city.world.server.lua',
+            'maps/after-school-city/after-school-city.orientation-correction.server.lua',
+            'maps/after-school-city/after-school-city.road-centerline-clearance.server.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua'
+          )){
+            $lockedDiff = git diff --name-only 'f2584421b92426fca12930aa8559a0e3ce4a5106' $env:GITHUB_SHA -- $lockedPath
+            if($lockedDiff){ throw "Protected source changed in V0.9.0: $lockedPath" }
+          }
+          Write-Host 'AFTER SCHOOL CITY V0.9.0 STATIC QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe not found' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-v090-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v090.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed or RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            'STATUS=QC_PASSED',
+            'MODE=PERSONAL_MUSIC_PLAYER_V0_9_0',
+            'BASE_LIVE_COMMIT=f2584421b92426fca12930aa8559a0e3ce4a5106',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'PLAYBACK_SCOPE=LOCAL_PLAYER_ONLY',
+            'PLAYBACK_SPEED=1.0',
+            'PLAYLIST_STATUS=READY_FOR_AUTHORIZED_AUDIO_IDS'
+          )
+          $receipt | Set-Content (Join-Path $outDir 'qc-receipt.txt') -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v090-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
