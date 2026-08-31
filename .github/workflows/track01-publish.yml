@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TRACK01_SOURCE_SHA: 1dc05a2db7b0cf39dd31cb6ca468cf186b660d89
+  TRACK01_SOURCE_SHA: 84d7d80a95b12fa006968af2237fde517adbf670
   TRACK01_VERSION: 4.0.0
   TRACK01_UNIVERSE_ID: '10745349805'
   TRACK01_PLACE_ID: '79748872921213'
-  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_0_OWNER_AUTH
+  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_1_COMPACT_MOBILE
 
 jobs:
   build-publish-verify:
@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Checkout exact TRACK 01 v4 source
+      - name: Checkout exact TRACK 01 compact mobile source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TRACK01_SOURCE_SHA }}
@@ -56,11 +56,11 @@ jobs:
           console.log('TRACK 01 direct source lock PASS', process.env.TRACK01_SOURCE_SHA, c.version);
           NODE
 
-      - name: Build canonical TRACK 01 v4 place
+      - name: Build canonical TRACK 01 place
         working-directory: source
         run: node scripts/build-track01.js
 
-      - name: Validate retained runtime and admin panel
+      - name: Validate retained runtime and compact mobile panel
         shell: bash
         run: |
           set -euo pipefail
@@ -83,10 +83,16 @@ jobs:
           grep -q 'TRACK01_ADMIN_USER_IDS' "$place"
           grep -q 'TRACK01_LIGHT_PULSE_ENABLED' "$place"
           grep -q 'TRACK01_AdminTTS' "$place"
-          grep -q 'NO KICK BUTTON' "$place"
+          grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
           grep -q 'AudioTextToSpeech' "$place"
           grep -qi 'ridhoomaukamu' "$place"
-          echo 'TRACK 01 v4 owner-auth canonical validation PASS'
+          grep -q 'DeviceSafeInsets' "$place"
+          grep -q 'ClipToDeviceSafeArea' "$place"
+          grep -q 'Station announcement controls' "$place"
+          grep -q 'Venue lighting presets' "$place"
+          grep -q 'Player recovery tools' "$place"
+          grep -q 'compact mobile admin panel client ready v4.0.1' "$place"
+          echo 'TRACK 01 compact mobile canonical validation PASS'
 
       - name: Record place metadata
         id: meta
@@ -97,7 +103,7 @@ jobs:
           echo "bytes=$(wc -c < "$place" | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "sha256=$(sha256sum "$place" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
-      - name: Publish exact TRACK 01 v4 source to Roblox
+      - name: Publish exact TRACK 01 source to Roblox
         id: publish
         continue-on-error: true
         working-directory: source
@@ -122,7 +128,7 @@ jobs:
           if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
           const robloxVersion=Number(raw?.payload?.versionNumber);
           const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
-          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>24;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>25;
           const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
           const receipt={
             status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
@@ -157,7 +163,7 @@ jobs:
           git add deploy-status/track01-direct-attempt.json
           if [ -f deploy-status/track01-direct.json ]; then git add deploy-status/track01-direct.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Record TRACK 01 v4 owner-auth publish receipt [skip ci]'
+            git commit -m 'Record TRACK 01 compact mobile publish receipt [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -174,7 +180,7 @@ jobs:
           if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
           if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
           if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
-          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=24) throw new Error('Roblox version did not increment beyond v24');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=25) throw new Error('Roblox version did not increment beyond v25');
           if(!Number.isInteger(r.placeBytes) || r.placeBytes<=200000) throw new Error('Place bytes receipt invalid');
           if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
           console.log('TRACK 01 LIVE VERIFIED', r);
