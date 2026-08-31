@@ -120,6 +120,9 @@
       },
       "ASC_EnvironmentSafetyVegetation": {
         "$path": "after-school-city.environment-safety-vegetation.server.lua"
+      },
+      "ASC_PremiumEnvironmentV091": {
+        "$path": "after-school-city.premium-environment-v091.server.lua"
       }
     },
     "StarterGui": {
