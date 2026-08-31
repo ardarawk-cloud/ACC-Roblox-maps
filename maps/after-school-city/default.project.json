@@ -123,6 +123,9 @@
       },
       "ASC_PremiumEnvironmentV091": {
         "$path": "after-school-city.premium-environment-v091.server.lua"
+      },
+      "ASC_PrecisionEnvironmentV092": {
+        "$path": "after-school-city.precision-environment-v092.server.lua"
       }
     },
     "StarterGui": {
