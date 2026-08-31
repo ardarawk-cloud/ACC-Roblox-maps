@@ -1,0 +1,197 @@
+name: After School City V0.8.8 Native Swimmable Pool QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v088-swimmable-pool
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v088-swimmable-pool-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact-source narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'f065a1a4811f3b59d34359e8a1b8f30dcccff36c'
+          git cat-file -e "$base^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'V0.8.7 LIVE base commit unavailable' }
+          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $base){ throw "Candidate is not based on exact V0.8.7 LIVE source: merge-base=$mergeBase" }
+
+          $allowed = @(
+            '.github/workflows/after-school-city-v088-swimmable-pool-qc.yml',
+            'maps/after-school-city/after-school-city.swimmable-pool.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if($changed.Count -ne 3){ throw "Expected exactly 3 V0.8.8 files, got $($changed.Count): $($changed -join ', ')" }
+          foreach($path in $changed){
+            if($allowed -notcontains $path){ throw "V0.8.8 scope violation: $path" }
+          }
+          foreach($required in $allowed){
+            if($changed -notcontains $required){ throw "Required V0.8.8 change missing: $required" }
+          }
+          Write-Host "V0.8.8 NARROW DIFF PASS: $($changed -join ', ')"
+
+      - name: V0.8.8 native swimming hard-lock checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'f065a1a4811f3b59d34359e8a1b8f30dcccff36c'
+          $scriptPath = 'maps/after-school-city/after-school-city.swimmable-pool.server.lua'
+          $projectPath = 'maps/after-school-city/default.project.json'
+          $script = Get-Content $scriptPath -Raw
+          $project = Get-Content $projectPath -Raw
+          $null = $project | ConvertFrom-Json
+
+          foreach($token in @(
+            '0.8.8-native-swimmable-pool-1',
+            'ASC_SkateparkApproachMicroCleanupPass',
+            'Park',
+            'Lake',
+            'ASC_V085Trimmed',
+            'NorthSouthRoad',
+            'FindFirstChildOfClass("Terrain")',
+            'terrain:FillBlock',
+            'Enum.Material.Water',
+            'WATER_INSET = 4.5',
+            'WATER_DEPTH = 5.0',
+            'PoolFloor',
+            'PoolWallWest',
+            'PoolWallEast',
+            'PoolExitLadder',
+            'ASC_V088NativeTerrainWater',
+            'ASC_V088RoadUnchanged',
+            'ASC_ParkPoolUsesNativeSwimming',
+            'ASC_SwimmablePoolPass'
+          )){
+            if($script -notmatch [regex]::Escape($token)){ throw "V0.8.8 marker missing: $token" }
+          }
+
+          foreach($token in @(
+            'ASC_SwimmablePool',
+            'after-school-city.swimmable-pool.server.lua'
+          )){
+            if($project -notmatch [regex]::Escape($token)){ throw "Rojo V0.8.8 marker missing: $token" }
+          }
+
+          if($script -match '(?m)^\s*road\.(?:Size|CFrame|Position|Parent|Transparency|Material|Color|CanCollide)\s*=(?!=)'){
+            throw 'NorthSouthRoad property assignment forbidden in V0.8.8'
+          }
+          if($script -match 'road\s*:\s*Destroy\s*\('){ throw 'NorthSouthRoad destroy forbidden in V0.8.8' }
+
+          foreach($forbidden in @(
+            'EastWestRoad',
+            'SchoolSportsRoad',
+            'MarketplaceService',
+            'DataStoreService',
+            'PromptProductPurchase',
+            'ProcessReceipt',
+            'Humanoid:ChangeState',
+            'BodyVelocity',
+            'VectorForce'
+          )){
+            if($script -match [regex]::Escape($forbidden)){ throw "Forbidden V0.8.8 authority/mechanic found: $forbidden" }
+          }
+
+          foreach($lockedPath in @(
+            'maps/after-school-city/after-school-city.world.server.lua',
+            'maps/after-school-city/after-school-city.orientation-correction.server.lua',
+            'maps/after-school-city/after-school-city.road-centerline-clearance.server.lua',
+            'maps/after-school-city/after-school-city.road-sidewalk-intersection-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.remaining-road-intrusion-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.skatepark-approach-micro-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua'
+          )){
+            $lockedDiff = git diff --name-only $base $env:GITHUB_SHA -- $lockedPath
+            if($lockedDiff){ throw "Protected source changed in V0.8.8: $lockedPath" }
+          }
+
+          $world = Get-Content 'maps/after-school-city/after-school-city.world.server.lua' -Raw
+          foreach($token in @(
+            'local lake = part(park, "Lake", Vector3.new(88, 0.8, 58)',
+            'lake.CanCollide = true',
+            'part(roads, "NorthSouthRoad", Vector3.new(40, 0.7, 570)'
+          )){
+            if($world -notmatch [regex]::Escape($token)){ throw "Locked source geometry marker missing: $token" }
+          }
+
+          $v085 = Get-Content 'maps/after-school-city/after-school-city.lake-road-water-overlap-final-fix.server.lua' -Raw
+          foreach($token in @(
+            'ASC_V085Trimmed',
+            'ROAD_CLEAR_MARGIN = 1.5',
+            'NorthSouthRoad',
+            'lake.Size = Vector3.new(newWidthX'
+          )){
+            if($v085 -notmatch [regex]::Escape($token)){ throw "V0.8.5 lake authority marker missing: $token" }
+          }
+
+          $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+          foreach($token in @('PUTU AZYA PUTRI', 'BINTANG HARDAJAYA', 'WITH LOVE, DAD', 'ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication text lock missing: $token" }
+          }
+          Write-Host 'AFTER SCHOOL CITY V0.8.8 STATIC HARD-LOCK QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe not found' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO LOCK PASS: $version"
+
+      - name: Build exact candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-v088-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v088.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed or RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            'STATUS=QC_PASSED',
+            'MODE=NATIVE_SWIMMABLE_POOL_V0_8_8',
+            'BASE_LIVE_COMMIT=f065a1a4811f3b59d34359e8a1b8f30dcccff36c',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash"
+          )
+          $receiptPath = Join-Path $outDir 'qc-receipt.txt'
+          $receipt | Set-Content $receiptPath -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$outDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v088-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
