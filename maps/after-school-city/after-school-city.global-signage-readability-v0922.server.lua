@@ -1,10 +1,10 @@
 -- AFTER SCHOOL CITY — Global Signage Readability v0.9.2.2
--- Normalizes world signage typography after V0.9.2 and fixes the oversized CITY PARK board.
+-- Normalizes all world SurfaceGui text after V0.9.2 and fixes the oversized CITY PARK board.
 -- No road, pool, gameplay, economy, persistence, monetization, music, or dedication authority.
 
 local Workspace = game:GetService("Workspace")
 
-local VERSION = "0.9.2.2-global-signage-readability-1"
+local VERSION = "0.9.2.2-global-signage-readability-2"
 
 local function waitForAttribute(name, timeoutSeconds)
     local deadline = os.clock() + (timeoutSeconds or 45)
@@ -41,35 +41,9 @@ local adjustedSurfaces = 0
 local adjustedLabels = 0
 local adjustedParts = 0
 
-local function lowerName(obj)
-    return string.lower(obj and obj.Name or "")
-end
-
-local function isSignLikePart(part)
-    if not part or not part:IsA("BasePart") then
-        return false
-    end
-    local current = part
-    for _ = 1, 4 do
-        if not current then break end
-        local n = lowerName(current)
-        if string.find(n, "sign", 1, true)
-            or string.find(n, "wayfinding", 1, true)
-            or string.find(n, "marquee", 1, true)
-            or string.find(n, "plate", 1, true)
-            or string.find(n, "board", 1, true)
-            or string.find(n, "fascia", 1, true)
-        then
-            return true
-        end
-        current = current.Parent
-    end
-    return false
-end
-
 local function normalizeSurface(gui)
-    local plate = gui.Parent
-    if not isSignLikePart(plate) then
+    local plate = gui.Adornee or gui.Parent
+    if not plate or not plate:IsA("BasePart") then
         return
     end
 
@@ -99,6 +73,8 @@ local function normalizeSurface(gui)
         label.TextXAlignment = Enum.TextXAlignment.Center
         label.TextYAlignment = Enum.TextYAlignment.Center
 
+        -- Single-title boards should visually use their board instead of leaving a tiny label
+        -- floating in the center. Multi-label boards keep their authored regions.
         if #labels == 1 then
             label.AnchorPoint = Vector2.new(0, 0)
             label.Position = UDim2.new(0, 6, 0, 4)
@@ -113,8 +89,8 @@ local function normalizeSurface(gui)
     adjustedSurfaces += 1
 end
 
--- CITY PARK: this board is visibly oversized at avatar scale. Reduce the physical board,
--- but keep a large single-line headline that fills the new plate.
+-- CITY PARK: the physical plate is oversized at avatar scale. Reduce it while keeping
+-- the same landmark center and a headline that fills the board.
 local premium060 = root:FindFirstChild("V060_PremiumExterior")
 local parkExterior = premium060 and premium060:FindFirstChild("V060_ParkExterior")
 if parkExterior then
@@ -142,7 +118,8 @@ if parkExterior then
     end
 end
 
--- Global pass: normalize all sign-like SurfaceGui typography already present in the world.
+-- World-wide pass. This intentionally does NOT depend on object naming; any SurfaceGui
+-- with actual TextLabel content under AfterSchoolCity gets readability normalization.
 for _, obj in ipairs(root:GetDescendants()) do
     if obj:IsA("SurfaceGui") then
         normalizeSurface(obj)
