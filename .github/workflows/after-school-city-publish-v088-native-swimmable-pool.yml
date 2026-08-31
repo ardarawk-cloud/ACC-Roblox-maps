@@ -105,12 +105,14 @@ jobs:
         run: |
           set -euo pipefail
           receipt="$RUNNER_TEMP/asc-v088-qc/qc-receipt.txt"
+          normalized="$RUNNER_TEMP/asc-v088-qc/qc-receipt-normalized.txt"
           [[ -f "$receipt" ]] || { find "$RUNNER_TEMP/asc-v088-qc" -maxdepth 3 -type f -print; echo 'QC receipt missing'; exit 29; }
-          grep -Fxq 'STATUS=QC_PASSED' "$receipt"
-          grep -Fxq 'MODE=NATIVE_SWIMMABLE_POOL_V0_8_8' "$receipt"
-          grep -Fxq "SOURCE_COMMIT=$SOURCE_SHA" "$receipt"
-          grep -Fxq "RBXL_BYTES=$EXPECTED_BYTES" "$receipt"
-          grep -Fxq "SHA256=$EXPECTED_SHA256" "$receipt"
+          tr -d '\r' < "$receipt" > "$normalized"
+          grep -Fxq 'STATUS=QC_PASSED' "$normalized"
+          grep -Fxq 'MODE=NATIVE_SWIMMABLE_POOL_V0_8_8' "$normalized"
+          grep -Fxq "SOURCE_COMMIT=$SOURCE_SHA" "$normalized"
+          grep -Fxq "RBXL_BYTES=$EXPECTED_BYTES" "$normalized"
+          grep -Fxq "SHA256=$EXPECTED_SHA256" "$normalized"
           mapfile -t places < <(find "$RUNNER_TEMP/asc-v088-qc" -type f -name '*.rbxl' -print)
           [[ ${#places[@]} -eq 1 ]] || { find "$RUNNER_TEMP/asc-v088-qc" -maxdepth 3 -type f -print; echo "Expected exactly one RBXL, found ${#places[@]}"; exit 30; }
           place="${places[0]}"
