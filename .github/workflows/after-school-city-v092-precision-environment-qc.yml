@@ -55,10 +55,15 @@ jobs:
 
           foreach($token in @(
             'Precision Environment Cleanup v0.9.2',
+            '0.9.2-precision-environment-cleanup-2',
             'ASC_PremiumEnvironmentPass',
             'V092_PrecisionEnvironmentCleanup',
             'ParkEntrySign',
-            'Vector3.new(13.5, 2.6, 0.5)',
+            'Vector3.new(22, 4.2, 0.55)',
+            'CFrame.new(-70, 7.2, -145)',
+            'maximizeSignText(sign, "CITY PARK")',
+            'child.TextScaled = true',
+            'ASC_V092CityParkTextScaled',
             'WayfindingPlate',
             'Vector3.new(10.8, 2.2, 0.48)',
             'SkateSign',
@@ -79,6 +84,8 @@ jobs:
           )){
             if($script -notmatch [regex]::Escape($token)){ throw "V0.9.2 marker missing: $token" }
           }
+
+          if($script -match [regex]::Escape('Vector3.new(13.5, 2.6, 0.5)')){ throw 'Obsolete compact CITY PARK geometry remains' }
 
           foreach($forbidden in @(
             'DataStoreService',
@@ -109,6 +116,7 @@ jobs:
           $premium060 = Get-Content 'maps/after-school-city/after-school-city.premium-exterior.server.lua' -Raw
           if($premium060 -notmatch [regex]::Escape('ParkEntrySign')){ throw 'V060 park sign authority missing' }
           if($premium060 -notmatch [regex]::Escape('Vector3.new(22, 4.2, 0.55)')){ throw 'V060 22x4.2 park sign authority missing' }
+          if($premium060 -notmatch [regex]::Escape('surfaceText(parkSign, "CITY PARK"')){ throw 'V060 CITY PARK text authority missing' }
           $premium091 = Get-Content 'maps/after-school-city/after-school-city.premium-environment-v091.server.lua' -Raw
           if($premium091 -notmatch [regex]::Escape('Vector3.new(16, 3.2, 0.55)')){ throw 'V091 oversized wayfinding authority missing' }
           if($premium091 -notmatch [regex]::Escape('{x = -62, z = 92')){ throw 'V091 school/city wayfinding placement missing' }
@@ -172,7 +180,8 @@ jobs:
             "ROJO=$env:ROJO_VERSION",
             "RBXL_BYTES=$bytes",
             "SHA256=$hash",
-            'SCOPE=SIGNAGE_SIGHTLINE_VEGETATION_COMPOSITION',
+            'SCOPE=SIGNAGE_READABILITY_SIGHTLINE_VEGETATION_COMPOSITION',
+            'CITY_PARK=ORIGINAL_BOARD_SCALE_TEXTSCALED',
             'PROTECTED=ROADS_POOL_GAMEPLAY_MUSIC_DEDICATION'
           )
           $receipt | Set-Content (Join-Path $outDir 'qc-receipt.txt') -Encoding ascii
