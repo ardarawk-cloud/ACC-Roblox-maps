@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "SKATEPARK_APPROACH_MICRO_CLEANUP_V0_8_7",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "f065a1a4811f3b59d34359e8a1b8f30dcccff36c",
+  "baseLiveCommit": "9bd0ac9f18ecd2f71c564ddea754a6521846e2b2",
+  "qcRunId": "33375948004",
+  "qcArtifactId": 9751864361,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 34,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 126025,
+  "placeSha256": "20fa3623272e236f9bc9d05539cf1dae3d1ec6f28cb2c3684014963c8e835a16",
+  "runId": "33402879427",
+  "publishedAt": "2026-08-31T14:29:08Z",
+  "note": "V0.8.7 exact QC-locked artifact; trims only legacy EW_Sidewalk_N/EW_Sidewalk_S east endpoints so the skatepark approach stops cleanly before the SkateGround footprint; protected EastWestRoad, SkateGround, Deck, central intersection, V0.4.7 orientation, V0.5.3 centerline, gameplay systems, economy, persistence, monetization, and dedication unchanged."
+}
