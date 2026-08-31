@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "LAKE_ROAD_WATER_OVERLAP_FINAL_FIX_V0_8_5",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "93f69856b1e694cfd4d7e1708f08aaa2b6762d8e",
+  "baseLiveCommit": "cea1a483acd5ec4c6d3c9bb7dad3a783072c01af",
+  "qcRunId": "33356321404",
+  "qcArtifactId": 9745243473,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 32,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 120871,
+  "placeSha256": "74e55d676edc50dcdb78a40e6176cacca95c704c760bd640a400b8ce06d13658",
+  "runId": "33371585425",
+  "publishedAt": "2026-08-31T08:09:54Z",
+  "note": "V0.8.5 exact QC-locked artifact; trims only the west side of Park/Lake to 1.5 studs beyond the protected east edge of NorthSouthRoad; road geometry, central intersection, V0.4.7 orientation, V0.5.3 centerline, gameplay systems, lake borders/paths, and dedication unchanged."
+}
