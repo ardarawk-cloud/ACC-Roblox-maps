@@ -126,6 +126,9 @@
       },
       "ASC_PrecisionEnvironmentV092": {
         "$path": "after-school-city.precision-environment-v092.server.lua"
+      },
+      "ASC_CityParkSignHotfixV0921": {
+        "$path": "after-school-city.city-park-sign-hotfix-v0921.server.lua"
       }
     },
     "StarterGui": {
