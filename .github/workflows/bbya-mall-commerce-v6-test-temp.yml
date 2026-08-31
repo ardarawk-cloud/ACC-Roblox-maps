@@ -45,7 +45,8 @@ jobs:
           $replacement='"Workspace": {"$className":"Workspace","$properties":{"AllowThirdPartySales":true}}'
           $patched=[regex]::Replace($s,$pattern,$replacement,1)
           if($patched -eq $s){throw 'Workspace project block not patched'}
-          $patched | Set-Content $p -Encoding UTF8
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText((Resolve-Path $p),$patched,$utf8NoBom)
           if(-not ((Get-Content $p -Raw).Contains('"AllowThirdPartySales":true'))){throw 'AllowThirdPartySales missing'}
           Write-Host 'BBYA_TEST_THIRD_PARTY_SALES_ENABLED'
       - name: Build canonical test candidate
