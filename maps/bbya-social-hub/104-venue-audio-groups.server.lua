@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.2
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.3
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
@@ -15,6 +15,7 @@ local SKATE_PLAYLIST={
  {title="Fuel Fury",assetId="9042632936"},
  {title="Boom Boom (b 30)",assetId="1840009708"},
  {title="Untungnya, Hidup Harus Tetap Berjalan — Pop Punk Cover",assetId="134928414278364"},
+ {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8},
 }
 
 local function ensure(name,venue,active,state)
@@ -34,7 +35,7 @@ local function ensure(name,venue,active,state)
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V2")
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V3")
 -- Skatepark-specific gain. Do not raise Rooftop or any other venue group.
 skateGroup.Volume=1.0
 skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
@@ -56,6 +57,7 @@ local function publishSkateCatalog()
   row.Value=t.title
   row:SetAttribute("AssetId",t.assetId)
   row:SetAttribute("Index",i)
+  row:SetAttribute("PlaybackSpeed",tonumber(t.playbackSpeed) or 1)
   row.Parent=folder
  end
 end
@@ -80,10 +82,12 @@ local function publishState(track)
  ReplicatedStorage:SetAttribute("BBYASkateparkCurrentIndex",index)
  ReplicatedStorage:SetAttribute("BBYASkateparkCurrentTitle",track.title)
  ReplicatedStorage:SetAttribute("BBYASkateparkCurrentAssetId",track.assetId)
+ ReplicatedStorage:SetAttribute("BBYASkateparkCurrentPlaybackSpeed",tonumber(track.playbackSpeed) or 1)
  skateGroup:SetAttribute("PlaylistCount",#SKATE_PLAYLIST)
  skateGroup:SetAttribute("CurrentIndex",index)
  skateGroup:SetAttribute("CurrentTitle",track.title)
  skateGroup:SetAttribute("CurrentAssetId",track.assetId)
+ skateGroup:SetAttribute("CurrentPlaybackSpeed",tonumber(track.playbackSpeed) or 1)
  skateGroup:SetAttribute("PlaylistReady",true)
 end
 
@@ -105,16 +109,18 @@ local function playIndex(wanted)
   local track=SKATE_PLAYLIST[index]
   sound:Stop()
   sound.SoundId="rbxassetid://"..track.assetId
+  sound.PlaybackSpeed=tonumber(track.playbackSpeed) or 1
   sound.TimePosition=0
   sound:SetAttribute("Title",track.title)
   sound:SetAttribute("PlaylistIndex",index)
+  sound:SetAttribute("PlaybackSpeed",sound.PlaybackSpeed)
   publishState(track)
   local preloadOk=pcall(function()ContentProvider:PreloadAsync({sound})end)
   if preloadOk and waitLoaded(6) then
    local ok=pcall(function()sound:Play()end)
    if ok then
     switching=false
-    print("[BBYA] Skatepark playing",index,track.title,track.assetId)
+    print("[BBYA] Skatepark playing",index,track.title,track.assetId,"speed",sound.PlaybackSpeed)
     return
    end
   end
@@ -145,4 +151,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.2: Skatepark 7-track full-level active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4.3: Skatepark 8-track full-level active; Rooftop active; VIP isolated")
