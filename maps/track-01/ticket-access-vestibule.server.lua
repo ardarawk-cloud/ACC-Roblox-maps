@@ -72,6 +72,41 @@ local function surfaceText(target,face,text,color)
     label.Parent=gui
 end
 
+local function sightlineText(target,face,headline,subline)
+    local gui=Instance.new("SurfaceGui")
+    gui.Name="Car01SightlineSignage"
+    gui.Face=face
+    gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+    gui.PixelsPerStud=52
+    gui.LightInfluence=0.08
+    gui.Parent=target
+
+    local headlineLabel=Instance.new("TextLabel")
+    headlineLabel.Size=UDim2.fromScale(0.94,0.62)
+    headlineLabel.Position=UDim2.fromScale(0.03,0.04)
+    headlineLabel.BackgroundColor3=C.black
+    headlineLabel.BackgroundTransparency=0.04
+    headlineLabel.BorderSizePixel=0
+    headlineLabel.Text=headline
+    headlineLabel.TextColor3=C.amber
+    headlineLabel.TextScaled=true
+    headlineLabel.TextWrapped=true
+    headlineLabel.Font=Enum.Font.RobotoMono
+    headlineLabel.Parent=gui
+
+    local subLabel=Instance.new("TextLabel")
+    subLabel.Size=UDim2.fromScale(0.94,0.25)
+    subLabel.Position=UDim2.fromScale(0.03,0.69)
+    subLabel.BackgroundTransparency=1
+    subLabel.BorderSizePixel=0
+    subLabel.Text=subline
+    subLabel.TextColor3=C.cream
+    subLabel.TextScaled=true
+    subLabel.TextWrapped=false
+    subLabel.Font=Enum.Font.RobotoMono
+    subLabel.Parent=gui
+end
+
 -- Convert the three 4-stud gaps between the 50-stud railcars into proper enclosed
 -- gangways. The opening in each carriage end is about 4.6 studs wide, so the new
 -- corridor stays centered inside that opening and does not intrude into the aisle.
@@ -137,6 +172,54 @@ local floorGuide=part(entryGuidance,"Car01FloorArrow",Vector3.new(5.2,0.08,2.0),
 surfaceText(floorGuide,Enum.NormalId.Top,"ENTER  →",C.amber)
 part(entryGuidance,"Car01ThresholdGuide",Vector3.new(0.16,0.12,6.0),cf(12.72,3.03,car01DoorZ),C.amber,Enum.Material.Neon,0.18,false)
 root:SetAttribute("Car01EntryGuidanceVersion","1.0.0")
+
+-- v1.1 sightline pass: the first guidance worked at the door but was hidden by the
+-- carriage body from the actual player approach. These non-colliding railway boards
+-- sit ahead of the Car 01 end and on the platform side, then hand the player off to a
+-- short floor trail and a restrained amber doorway frame. No image assets are used.
+local staleSightline=world:FindFirstChild("TRACK01_Car01SightlineGuidance")
+if staleSightline then staleSightline:Destroy() end
+local sightline=Instance.new("Model")
+sightline.Name="TRACK01_Car01SightlineGuidance"
+sightline.Parent=folder
+
+local longRangeZ=car01DoorZ-27.0
+local longRangeBoard=part(sightline,"LongRangeEntryBoard",Vector3.new(9.4,4.2,0.34),cf(9.6,9.0,longRangeZ),C.black,Enum.Material.CorrodedMetal,0,false)
+sightlineText(longRangeBoard,Enum.NormalId.Front,"CAR 01 ENTRY  →","PLATFORM SIDE")
+sightlineText(longRangeBoard,Enum.NormalId.Back,"←  CAR 01 ENTRY","PLATFORM SIDE")
+part(sightline,"LongRangePostL",Vector3.new(0.32,7.0,0.32),cf(5.7,5.45,longRangeZ),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+part(sightline,"LongRangePostR",Vector3.new(0.32,7.0,0.32),cf(13.5,5.45,longRangeZ),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+part(sightline,"LongRangeAmberCap",Vector3.new(9.7,0.12,0.40),cf(9.6,11.15,longRangeZ),C.amber,Enum.Material.Metal,0,false)
+
+local midRangeZ=car01DoorZ-15.5
+local midRangeBoard=part(sightline,"PlatformSideEntryBoard",Vector3.new(7.4,2.8,0.30),cf(9.4,7.1,midRangeZ),C.black,Enum.Material.CorrodedMetal,0,false)
+sightlineText(midRangeBoard,Enum.NormalId.Front,"ENTER CAR 01  →","SIDE DOOR")
+sightlineText(midRangeBoard,Enum.NormalId.Back,"←  ENTER CAR 01","SIDE DOOR")
+part(sightline,"MidRangePostL",Vector3.new(0.28,5.5,0.28),cf(6.5,4.25,midRangeZ),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+part(sightline,"MidRangePostR",Vector3.new(0.28,5.5,0.28),cf(12.3,4.25,midRangeZ),C.steelDark,Enum.Material.CorrodedMetal,0,false)
+
+local trail={
+    {x=8.3,z=car01DoorZ-21.5,text="→"},
+    {x=8.9,z=car01DoorZ-17.0,text="→"},
+    {x=9.6,z=car01DoorZ-12.5,text="→"},
+    {x=10.5,z=car01DoorZ-8.2,text="→"},
+    {x=11.4,z=car01DoorZ-4.2,text="ENTER  →"},
+}
+for i,mark in ipairs(trail) do
+    local floorMark=part(sightline,string.format("EntryTrail_%02d",i),Vector3.new(i==#trail and 4.2 or 2.5,0.07,1.35),cf(mark.x,2.965,mark.z),C.black,Enum.Material.SmoothPlastic,0,false)
+    surfaceText(floorMark,Enum.NormalId.Top,mark.text,C.amber)
+end
+
+-- Outline the real Platform 01 side doorway so it reads as an entrance instead of a
+-- dark section of the retired maroon carriage. The glow is deliberately restrained.
+part(sightline,"DoorFrameNear",Vector3.new(0.14,7.8,0.18),cf(13.18,8.75,car01DoorZ-3.65),C.amber,Enum.Material.Neon,0.28,false)
+part(sightline,"DoorFrameFar",Vector3.new(0.14,7.8,0.18),cf(13.18,8.75,car01DoorZ+3.65),C.amber,Enum.Material.Neon,0.28,false)
+part(sightline,"DoorFrameTop",Vector3.new(0.14,0.18,7.48),cf(13.18,12.65,car01DoorZ),C.amber,Enum.Material.Neon,0.28,false)
+local doorCallout=part(sightline,"DoorEntryCallout",Vector3.new(0.16,1.5,7.1),cf(13.15,13.55,car01DoorZ),C.black,Enum.Material.CorrodedMetal,0,false)
+surfaceText(doorCallout,Enum.NormalId.Left,"CAR 01  •  ENTER",C.amber)
+
+root:SetAttribute("Car01EntryGuidanceVersion","1.1.0")
+Workspace:SetAttribute("ACC_TRACK01_CAR01_SIGHTLINE_GUIDANCE_READY","v1.1")
 
 local deniedAt={}
 
