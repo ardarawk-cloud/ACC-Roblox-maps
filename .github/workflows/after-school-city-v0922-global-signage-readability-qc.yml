@@ -52,10 +52,11 @@ jobs:
           $null = $project | ConvertFrom-Json
 
           foreach($token in @(
-            '0.9.2.2-global-signage-readability-1',
+            '0.9.2.2-global-signage-readability-2',
             'ASC_PrecisionEnvironmentPass',
             'root:GetDescendants()',
             'obj:IsA("SurfaceGui")',
+            'gui.Adornee or gui.Parent',
             'TextScaled = true',
             'Enum.Font.GothamBlack',
             'ASC_V0922ReadableSign',
@@ -141,7 +142,7 @@ jobs:
             "RBXL_BYTES=$bytes",
             "SHA256=$hash",
             'CITY_PARK_BOARD=12.8x2.6',
-            'SIGNAGE_SCOPE=GLOBAL_WORLD_SURFACEGUI_SIGNLIKE_PARTS',
+            'SIGNAGE_SCOPE=ALL_WORLD_SURFACEGUI_TEXT',
             'PROTECTED=ROADS_POOL_GAMEPLAY_MUSIC_DEDICATION'
           )
           $receipt | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding ascii
