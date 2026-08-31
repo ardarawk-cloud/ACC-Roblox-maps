@@ -246,8 +246,88 @@ local function addBackDisplay(parent,outerX,inward,y,z,accent,kind)
  return panel
 end
 
+-- MALL_NATIVE_MERCH_V1: lightweight deterministic merchandise silhouettes.
+-- No InsertService / external assets; everything is native geometry and mobile-safe.
+local function addMerchandise(parent,cx,y,z,inward,accent,kind)
+ local merch=Instance.new("Model")
+ merch.Name="MallNativeMerchV1"
+ merch:SetAttribute("Authority","MALL_NATIVE_MERCH_V1")
+ merch:SetAttribute("Kind",kind)
+ merch.Parent=parent
+
+ local p1=Vector3.new(cx+inward*5.0,y+2.05,z-5.3)
+ local p2=Vector3.new(cx+inward*6.2,y+2.05,z+5.3)
+ local p3=Vector3.new(cx+inward*9.0,y+2.02,z)
+ local function box(name,pos,size,color,material,rotY)
+  return part(name,size,CFrame.new(pos)*CFrame.Angles(0,math.rad(rotY or 0),0),color or C.white,material or Enum.Material.SmoothPlastic,merch,false,0)
+ end
+ local function can(name,pos,h,d,color)
+  return cylinder(name,h,d,CFrame.new(pos),color or accent,Enum.Material.SmoothPlastic,merch,false,0)
+ end
+ local function ball(name,pos,d,color)
+  local b=part(name,Vector3.new(d,d,d),CFrame.new(pos),color or accent,Enum.Material.SmoothPlastic,merch,false,0)
+  b.Shape=Enum.PartType.Ball
+  return b
+ end
+
+ if kind=="fashion" then
+  -- Folded apparel stacks + two clean mannequin-like torso silhouettes.
+  for i=0,2 do box("FoldedApparel"..i,p1+Vector3.new(0,i*.22,0),Vector3.new(1.55,.16,1.15),i==1 and accent or C.white,Enum.Material.Fabric,8) end
+  box("FashionTorsoA",p2+Vector3.new(0,.85,0),Vector3.new(1.25,1.9,.48),accent,Enum.Material.Fabric,0)
+  box("FashionTorsoB",p3+Vector3.new(0,.78,0),Vector3.new(1.12,1.7,.45),C.white,Enum.Material.Fabric,0)
+  box("FashionPlinthBag",p2+Vector3.new(0,.10,-.72),Vector3.new(.72,.62,.32),C.black,Enum.Material.Leather,12)
+ elseif kind=="shoes" then
+  for index,pos in ipairs({p1,p2,p3}) do
+   box("SneakerSole"..index,pos+Vector3.new(0,.15,0),Vector3.new(1.55,.20,.62),C.white,Enum.Material.SmoothPlastic,10)
+   box("SneakerUpper"..index,pos+Vector3.new(-inward*.10,.38,0),Vector3.new(1.05,.34,.56),index==2 and C.black or accent,Enum.Material.Fabric,10)
+  end
+ elseif kind=="tech" then
+  box("PhoneDisplay",p1+Vector3.new(0,.65,0),Vector3.new(.16,1.35,.72),C.black,Enum.Material.Metal,0)
+  neon("PhoneScreen",Vector3.new(.05,1.08,.54),CFrame.new(p1+Vector3.new(inward*.10,.65,0)),accent,merch,.18)
+  box("TabletDisplay",p2+Vector3.new(0,.68,0),Vector3.new(.18,1.48,1.08),C.black,Enum.Material.Metal,0)
+  neon("TabletScreen",Vector3.new(.05,1.18,.82),CFrame.new(p2+Vector3.new(inward*.11,.68,0)),accent,merch,.20)
+  box("LaptopBase",p3+Vector3.new(0,.18,0),Vector3.new(1.45,.12,1.05),C.metal,Enum.Material.Metal,0)
+  box("LaptopScreen",p3+Vector3.new(-inward*.52,.82,0),Vector3.new(.12,1.18,1.45),C.black,Enum.Material.Metal,0)
+ elseif kind=="market" then
+  for i,zo in ipairs({-.48,0,.48}) do can("Bottle"..i,p1+Vector3.new(0,.48,zo),.95,.32,i==2 and C.white or accent) end
+  box("MarketBoxA",p2+Vector3.new(0,.34,-.38),Vector3.new(.82,.68,.62),accent,Enum.Material.SmoothPlastic,0)
+  box("MarketBoxB",p2+Vector3.new(0,.28,.42),Vector3.new(.72,.56,.72),C.white,Enum.Material.SmoothPlastic,0)
+  for i,zo in ipairs({-.42,.42}) do can("Can"..i,p3+Vector3.new(0,.34,zo),.66,.42,C.champagne) end
+ elseif kind=="home" then
+  can("DecorVase",p1+Vector3.new(0,.58,0),1.15,.72,accent)
+  box("CushionA",p2+Vector3.new(0,.28,-.40),Vector3.new(1.15,.55,1.15),C.white,Enum.Material.Fabric,18)
+  box("CushionB",p2+Vector3.new(0,.33,.45),Vector3.new(1.05,.62,1.05),accent,Enum.Material.Fabric,-12)
+  box("LampStem",p3+Vector3.new(0,.65,0),Vector3.new(.16,1.30,.16),C.brass,Enum.Material.Metal,0)
+  local shade=can("LampShade",p3+Vector3.new(0,1.36,0),.72,1.05,C.warm);shade.Transparency=.10
+ elseif kind=="beauty" then
+  for i,zo in ipairs({-.52,0,.52}) do
+   can("BeautyBottle"..i,p1+Vector3.new(0,.42,zo),.78,.30,i==2 and C.white or accent)
+   box("BeautyCap"..i,p1+Vector3.new(0,.87,zo),Vector3.new(.20,.16,.20),C.brass,Enum.Material.Metal,0)
+  end
+  can("BeautyJarA",p2+Vector3.new(0,.25,-.36),.42,.68,C.white)
+  can("BeautyJarB",p2+Vector3.new(0,.25,.36),.42,.68,accent)
+  box("Palette",p3+Vector3.new(0,.20,0),Vector3.new(1.15,.16,.82),C.black,Enum.Material.Metal,12)
+ elseif kind=="books" then
+  for stack,pos in ipairs({p1,p2,p3}) do
+   for i=0,2 do
+    box("Book"..stack.."_"..i,pos+Vector3.new(0,.14+i*.18,0),Vector3.new(1.35,.15,.88),i==1 and accent or C.white,Enum.Material.SmoothPlastic,(i-1)*7)
+   end
+  end
+ elseif kind=="sport" then
+  ball("SportBall",p1+Vector3.new(0,.55,0),1.10,accent)
+  box("DumbbellBar",p2+Vector3.new(0,.35,0),Vector3.new(1.45,.16,.16),C.metal,Enum.Material.Metal,0)
+  for _,xo in ipairs({-.72,.72}) do can("DumbbellWeight",p2+Vector3.new(xo,.35,0),.28,.58,C.black) end
+  can("SportBottle",p3+Vector3.new(0,.55,0),1.08,.38,C.white)
+  box("SportCap",p3+Vector3.new(0,1.13,0),Vector3.new(.22,.16,.22),accent,Enum.Material.SmoothPlastic,0)
+ end
+
+ return #merch:GetChildren()
+end
+
 local rebuilt=0
 local nativeCount=0
+local merchStores=0
+local merchParts=0
 for _,unitName in ipairs(requiredTenants) do
  local unit=mall:FindFirstChild(unitName)
  local spec=stores[unitName]
@@ -327,6 +407,14 @@ for _,unitName in ipairs(requiredTenants) do
    addPodium(gallery,cx+inward*6.2,y+1.15,z+5.3,spec.accent,.90)
    addPodium(gallery,cx+inward*9.0,y+1.15,z,spec.accent,.74)
    addBackDisplay(gallery,outerX,inward,y,z,spec.accent,spec.kind)
+   local addedMerch=addMerchandise(gallery,cx,y,z,inward,spec.accent,spec.kind)
+   if addedMerch>0 then
+    merchStores+=1
+    merchParts+=addedMerch
+    unit:SetAttribute("MallMerchAuthority","MALL_NATIVE_MERCH_V1")
+    unit:SetAttribute("MallMerchKind",spec.kind)
+    unit:SetAttribute("MallMerchPartCount",addedMerch)
+   end
 
    -- One restrained local ceiling rail and one local light per store.
    local rail=part("TrackRail",Vector3.new(5.8,.14,12.5),CFrame.new(cx-inward*2.0,y+10.58,z),C.black,Enum.Material.Metal,gallery,false,0)
@@ -478,7 +566,11 @@ end
 
 mall:SetAttribute("StorefrontAuthority","V6")
 mall:SetAttribute("MallMobileVisualAuthority","PREMIUM_GALLERY_V6")
+mall:SetAttribute("MallNativeMerchAuthority","MALL_NATIVE_MERCH_V1")
+mall:SetAttribute("MallNativeMerchStoreCount",merchStores)
 mall:SetAttribute("PremiumSecurityUntouchedMall",true)
 out:SetAttribute("RebuiltTenants",rebuilt)
 out:SetAttribute("NativeStores",nativeCount)
-print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; legacy slabs/stage/billboards retired",rebuilt,nativeCount))
+out:SetAttribute("NativeMerchStores",merchStores)
+out:SetAttribute("NativeMerchParts",merchParts)
+print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; %d stores populated with %d native merch parts; legacy slabs/stage/billboards retired",rebuilt,nativeCount,merchStores,merchParts))
