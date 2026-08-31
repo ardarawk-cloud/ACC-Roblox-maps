@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "PERSONAL_MUSIC_PLAYER_V0_9_0",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "16f9eb7823f2dfd0d5f41683b5a2d04707e72198",
+  "baseLiveCommit": "f2584421b92426fca12930aa8559a0e3ce4a5106",
+  "qcRunId": "33422008577",
+  "qcArtifactId": 9769271192,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 37,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 139780,
+  "placeSha256": "0b4e15eec6997e065b52628a7e83e8a15d3b9011345e2405cf975e19dae85f88",
+  "runId": "33423078410",
+  "publishedAt": "2026-08-31T18:05:33Z",
+  "note": "V0.9.0 exact QC-locked artifact; adds compact local-player-only personal music UI with play/pause, previous/next, seek, volume and normalized 1.0x playback. Playlist is intentionally empty pending exact authorized Roblox audio asset IDs. V0.8.9 environment safety/vegetation, pool, roads, gameplay/economy/persistence/monetization and dedication remain unchanged."
+}
