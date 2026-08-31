@@ -114,6 +114,9 @@
       },
       "ASC_SwimmablePool": {
         "$path": "after-school-city.swimmable-pool.server.lua"
+      },
+      "ASC_EnvironmentSafetyVegetation": {
+        "$path": "after-school-city.environment-safety-vegetation.server.lua"
       }
     },
     "StarterGui": {
