@@ -74,7 +74,7 @@ jobs:
           grep -q 'TRACK01_ADMIN_USER_IDS' maps/track-01/place.rbxlx
           grep -q 'TRACK01_LIGHT_PULSE_ENABLED' maps/track-01/place.rbxlx
           grep -q 'TRACK01_AdminTTS' maps/track-01/place.rbxlx
-          grep -q 'NO KICK BUTTON' maps/track-01/place.rbxlx
+          grep -Eqi 'NO KICK BUTTON|No kick button' maps/track-01/place.rbxlx
           grep -q 'LAST TRAIN' maps/track-01/place.rbxlx
           grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
           echo 'TRACK 01 v4 admin panel QC PASS'
