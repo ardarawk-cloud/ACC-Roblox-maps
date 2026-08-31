@@ -1,4 +1,4 @@
-name: Publish TRACK 01 Direct Master V2 v4
+name: Publish TRACK 01 Direct Master V2 v4.1
 
 on:
   push:
@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TRACK01_SOURCE_SHA: 84d7d80a95b12fa006968af2237fde517adbf670
-  TRACK01_VERSION: 4.0.0
+  TRACK01_SOURCE_SHA: fe48802b29b248592d0e3a11f74523e49fcde172
+  TRACK01_VERSION: 4.1.0
   TRACK01_UNIVERSE_ID: '10745349805'
   TRACK01_PLACE_ID: '79748872921213'
-  TRACK01_MODE: DIRECT_MASTER_V2_V4_0_1_COMPACT_MOBILE
+  TRACK01_MODE: DIRECT_MASTER_V2_V4_1_0_DJ_EVENT_OPS
 
 jobs:
   build-publish-verify:
@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Checkout exact TRACK 01 compact mobile source
+      - name: Checkout exact TRACK 01 v4.1 source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TRACK01_SOURCE_SHA }}
@@ -53,14 +53,14 @@ jobs:
           if(String(c.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Wrong Place ID');
           if(String(c.version)!==process.env.TRACK01_VERSION) throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
-          console.log('TRACK 01 direct source lock PASS', process.env.TRACK01_SOURCE_SHA, c.version);
+          console.log('TRACK 01 v4.1 direct source lock PASS', process.env.TRACK01_SOURCE_SHA, c.version);
           NODE
 
-      - name: Build canonical TRACK 01 place
+      - name: Build canonical TRACK 01 v4.1 place
         working-directory: source
         run: node scripts/build-track01.js
 
-      - name: Validate retained runtime and compact mobile panel
+      - name: Validate retained runtime and v4.1 operator controls
         shell: bash
         run: |
           set -euo pipefail
@@ -74,25 +74,33 @@ jobs:
           grep -q 'TRACK01_TicketAccessVestibule' "$place"
           grep -q 'TRACK01_SocialInteractions' "$place"
           grep -q 'TRACK01_EndOfLineHero' "$place"
-          grep -q 'END OF LINE' "$place"
           grep -q 'TRACK01_AdminPanelServer' "$place"
           grep -q 'TRACK01_AdminPanelClient' "$place"
           grep -q 'TRACK01_AdminPAClient' "$place"
           grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' "$place"
           grep -q 'ACC_TRACK01_PANEL_VERSION' "$place"
-          grep -q 'TRACK01_ADMIN_USER_IDS' "$place"
-          grep -q 'TRACK01_LIGHT_PULSE_ENABLED' "$place"
-          grep -q 'TRACK01_AdminTTS' "$place"
-          grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
-          grep -q 'AudioTextToSpeech' "$place"
+          grep -q 'ACC_TRACK01_DJ_EVENT_OPS_READY' "$place"
           grep -qi 'ridhoomaukamu' "$place"
           grep -q 'DeviceSafeInsets' "$place"
           grep -q 'ClipToDeviceSafeArea' "$place"
-          grep -q 'Station announcement controls' "$place"
-          grep -q 'Venue lighting presets' "$place"
-          grep -q 'Player recovery tools' "$place"
-          grep -q 'compact mobile admin panel client ready v4.0.1' "$place"
-          echo 'TRACK 01 compact mobile canonical validation PASS'
+          grep -q 'TRACK01_Music' "$place"
+          grep -q 'VenueMusic' "$place"
+          grep -q 'TRACK01_APPROVED_MUSIC_SOUND_ID' "$place"
+          grep -q 'MUSIC_PLAY' "$place"
+          grep -q 'MUSIC_PAUSE' "$place"
+          grep -q 'MUSIC_RESTART' "$place"
+          grep -q 'MUSIC_VOLUME' "$place"
+          grep -q 'NO APPROVED SOURCE' "$place"
+          grep -q 'EVENT_PRESET' "$place"
+          grep -q 'OPS_RESET' "$place"
+          grep -q 'NORMAL NIGHT' "$place"
+          grep -q 'BOARDING HOLD' "$place"
+          grep -q 'LAST TRAIN' "$place"
+          grep -q 'operatorName' "$place"
+          grep -q 'uptimeSeconds' "$place"
+          grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
+          grep -q 'AudioTextToSpeech' "$place"
+          echo 'TRACK 01 v4.1 DJ/event canonical validation PASS'
 
       - name: Record place metadata
         id: meta
@@ -103,7 +111,7 @@ jobs:
           echo "bytes=$(wc -c < "$place" | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "sha256=$(sha256sum "$place" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
-      - name: Publish exact TRACK 01 source to Roblox
+      - name: Publish exact TRACK 01 v4.1 source to Roblox
         id: publish
         continue-on-error: true
         working-directory: source
@@ -128,7 +136,7 @@ jobs:
           if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
           const robloxVersion=Number(raw?.payload?.versionNumber);
           const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
-          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>25;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>26;
           const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
           const receipt={
             status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
@@ -163,7 +171,7 @@ jobs:
           git add deploy-status/track01-direct-attempt.json
           if [ -f deploy-status/track01-direct.json ]; then git add deploy-status/track01-direct.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Record TRACK 01 compact mobile publish receipt [skip ci]'
+            git commit -m 'Record TRACK 01 v4.1 direct publish receipt [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -180,8 +188,8 @@ jobs:
           if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
           if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
           if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
-          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=25) throw new Error('Roblox version did not increment beyond v25');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=26) throw new Error('Roblox version did not increment beyond v26');
           if(!Number.isInteger(r.placeBytes) || r.placeBytes<=200000) throw new Error('Place bytes receipt invalid');
           if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
-          console.log('TRACK 01 LIVE VERIFIED', r);
+          console.log('TRACK 01 v4.1 LIVE VERIFIED', r);
           NODE
