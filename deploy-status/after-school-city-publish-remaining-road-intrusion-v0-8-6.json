@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "REMAINING_ROAD_INTRUSION_CLEANUP_V0_8_6",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "9bd0ac9f18ecd2f71c564ddea754a6521846e2b2",
+  "baseLiveCommit": "93f69856b1e694cfd4d7e1708f08aaa2b6762d8e",
+  "qcRunId": "33372894699",
+  "qcArtifactId": 9750745355,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 33,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 123257,
+  "placeSha256": "e3f4d6e3757ee01f36f087b06dc3fd79a3ac3022057a9659beba63b9f4f74294",
+  "runId": "33373688030",
+  "publishedAt": "2026-08-31T08:36:34Z",
+  "note": "V0.8.6 exact QC-locked artifact; splits legacy Downtown ServiceWalk around NorthSouthRoad, removes only the centered LoadingPad intruding into asphalt, and removes obsolete V060 Park LakeEdgeWest; protected asphalt road geometry, central intersection, V0.4.7 orientation, V0.5.3 centerline, gameplay systems, lake/path authority, and dedication unchanged."
+}
