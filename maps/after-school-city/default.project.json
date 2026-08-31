@@ -111,6 +111,9 @@
       },
       "ASC_SkateparkApproachMicroCleanup": {
         "$path": "after-school-city.skatepark-approach-micro-cleanup.server.lua"
+      },
+      "ASC_SwimmablePool": {
+        "$path": "after-school-city.swimmable-pool.server.lua"
       }
     },
     "StarterGui": {
