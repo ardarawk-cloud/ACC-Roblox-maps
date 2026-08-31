@@ -1,14 +1,18 @@
 name: BBYA Mall Commerce V7 Test
 
 on:
-  push:
-    branches: [feat/bbya-mall-commerce-v7-test-20260901]
+  pull_request:
+    branches: [main]
     paths:
       - '.github/workflows/bbya-mall-commerce-v7-test-temp.yml'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  TARGET_SOURCE: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   test:
@@ -22,12 +26,12 @@ jobs:
           $zip=Join-Path $env:RUNNER_TEMP 'mall-v7-source.zip'
           $dir=Join-Path $env:RUNNER_TEMP 'mall-v7-source'
           Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
-          Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:GITHUB_SHA" -OutFile $zip
+          Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:TARGET_SOURCE" -OutFile $zip
           Expand-Archive $zip -DestinationPath $dir -Force
           $repo=Get-ChildItem $dir -Directory | Select-Object -First 1
           if(-not $repo){throw 'Exact source missing'}
           Get-ChildItem $repo.FullName -Force | ForEach-Object { Copy-Item $_.FullName $env:GITHUB_WORKSPACE -Recurse -Force }
-          Write-Host "EXACT_SOURCE=$env:GITHUB_SHA"
+          Write-Host "EXACT_SOURCE=$env:TARGET_SOURCE"
 
       - name: Static Mall V7 QC
         shell: powershell
@@ -79,7 +83,7 @@ jobs:
           "PLACE_FILE=$out" | Out-File $env:GITHUB_ENV -Append
           "BUILD_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Append
           "BUILD_SHA=$sha" | Out-File $env:GITHUB_ENV -Append
-          Write-Host "BBYA_MALL_COMMERCE_V7_BUILD_PASS bytes=$bytes sha256=$sha source=$env:GITHUB_SHA"
+          Write-Host "BBYA_MALL_COMMERCE_V7_BUILD_PASS bytes=$bytes sha256=$sha source=$env:TARGET_SOURCE"
 
       - name: Publish test place only
         shell: powershell
@@ -93,11 +97,11 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Test publish failed'}
           $r=$resp | ConvertFrom-Json
           if(-not $r.versionNumber){throw 'versionNumber missing'}
-          $receipt=[ordered]@{status='PUBLISHED';sourceCommit=$env:GITHUB_SHA;buildSha256=$env:BUILD_SHA;buildBytes=[int64]$env:BUILD_BYTES;universeId='10762005984';placeId='124607344716828';versionNumber=$r.versionNumber;thirdPartySales=$true;publishedAt=(Get-Date).ToUniversalTime().ToString('o')}
+          $receipt=[ordered]@{status='PUBLISHED';sourceCommit=$env:TARGET_SOURCE;buildSha256=$env:BUILD_SHA;buildBytes=[int64]$env:BUILD_BYTES;universeId='10762005984';placeId='124607344716828';versionNumber=$r.versionNumber;thirdPartySales=$true;publishedAt=(Get-Date).ToUniversalTime().ToString('o')}
           $proof=Join-Path $env:RUNNER_TEMP 'BBYA-MALL-COMMERCE-V7-TEST-RECEIPT.json'
           $receipt | ConvertTo-Json -Depth 4 | Set-Content $proof
           "PROOF_FILE=$proof" | Out-File $env:GITHUB_ENV -Append
-          Write-Host "BBYA_MALL_COMMERCE_V7_TEST_PUBLISHED version=$($r.versionNumber) source=$env:GITHUB_SHA build=$env:BUILD_SHA"
+          Write-Host "BBYA_MALL_COMMERCE_V7_TEST_PUBLISHED version=$($r.versionNumber) source=$env:TARGET_SOURCE build=$env:BUILD_SHA"
 
       - name: Upload proof
         uses: actions/upload-artifact@v4
