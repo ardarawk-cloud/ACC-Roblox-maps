@@ -75,13 +75,13 @@ jobs:
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
           PLACE_FILE_OVERRIDE: ${{ env.PLACE_FILE }}
-          PUBLISH_RECEIPT_DIR: ${{ runner.temp }}/bbya-mall-test-receipt
+          PUBLISH_RECEIPT_DIR: .tmp/bbya-mall-test-receipt
         run: |
           $ErrorActionPreference='Stop'
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'}
           node scripts/publish-map.js bbya-music-test
           if($LASTEXITCODE -ne 0){throw 'Publisher failed'}
-          $receipt=Join-Path $env:PUBLISH_RECEIPT_DIR 'bbya-music-test.json'
+          $receipt=Join-Path $env:GITHUB_WORKSPACE '.tmp\bbya-mall-test-receipt\bbya-music-test.json'
           if(-not (Test-Path $receipt)){throw 'Receipt missing'}
           $r=Get-Content $receipt -Raw | ConvertFrom-Json
           if($r.status -ne 'PUBLISHED'){throw "Receipt status $($r.status)"}
