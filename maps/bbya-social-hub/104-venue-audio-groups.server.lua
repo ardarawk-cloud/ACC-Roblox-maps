@@ -1,8 +1,8 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.4
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.5
 -- Independent local-only SoundGroups for every music venue.
 -- Rooftop + Skatepark are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
--- v4.4 adds server-authoritative Skatepark request + PREV/NEXT controls for Music Suite.
+-- v4.5 removes the duplicate legacy Untungnya upload and keeps the 0.8x test asset only.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -15,7 +15,6 @@ local SKATE_PLAYLIST={
  {title="We've Got This! - 60",assetId="9043707741"},
  {title="Fuel Fury",assetId="9042632936"},
  {title="Boom Boom (b 30)",assetId="1840009708"},
- {title="Untungnya, Hidup Harus Tetap Berjalan — Pop Punk Cover",assetId="134928414278364"},
  {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8},
 }
 
@@ -36,8 +35,7 @@ local function ensure(name,venue,active,state)
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V4")
--- Skatepark-specific gain. Do not raise Rooftop or any other venue group.
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V5")
 skateGroup.Volume=1.0
 skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
@@ -207,7 +205,6 @@ playIndex(index)
 
 task.spawn(function()
  while task.wait(1.25) do
-  -- Keep only Skatepark at full level; other venue masters are untouched.
   skateGroup.Volume=1.0
   sound.Volume=1.0
   skateGroup:SetAttribute("PlaylistReady",true)
@@ -216,4 +213,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.4: Skatepark 8-track request + transport controls active; Rooftop active; VIP isolated")
+print("[BBYA] Venue audio masters v4.5: Skatepark 7-track deduped catalog + request/transport controls active")
