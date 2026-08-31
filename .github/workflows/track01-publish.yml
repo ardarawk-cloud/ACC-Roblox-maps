@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TRACK01_SOURCE_SHA: fe48802b29b248592d0e3a11f74523e49fcde172
+  TRACK01_SOURCE_SHA: e24f7131ac0e80f13bb22721a20a06e52192cebe
   TRACK01_VERSION: 4.1.0
   TRACK01_UNIVERSE_ID: '10745349805'
   TRACK01_PLACE_ID: '79748872921213'
-  TRACK01_MODE: DIRECT_MASTER_V2_V4_1_0_DJ_EVENT_OPS
+  TRACK01_MODE: DIRECT_MASTER_V2_V4_1_0_CAR01_ENTRY_GUIDANCE
 
 jobs:
   build-publish-verify:
@@ -60,7 +60,7 @@ jobs:
         working-directory: source
         run: node scripts/build-track01.js
 
-      - name: Validate retained runtime and v4.1 operator controls
+      - name: Validate retained runtime and Car 01 entry guidance
         shell: bash
         run: |
           set -euo pipefail
@@ -100,7 +100,11 @@ jobs:
           grep -q 'uptimeSeconds' "$place"
           grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
           grep -q 'AudioTextToSpeech' "$place"
-          echo 'TRACK 01 v4.1 DJ/event canonical validation PASS'
+          grep -q 'Car01EntryGuidance' "$place"
+          grep -q 'Car01EnterDoorMarker' "$place"
+          grep -q 'Car01FloorArrow' "$place"
+          grep -q 'ENTER CAR 01' "$place"
+          echo 'TRACK 01 v4.1 Car 01 entry guidance canonical validation PASS'
 
       - name: Record place metadata
         id: meta
@@ -136,7 +140,7 @@ jobs:
           if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
           const robloxVersion=Number(raw?.payload?.versionNumber);
           const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
-          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>26;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>27;
           const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
           const receipt={
             status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
@@ -171,7 +175,7 @@ jobs:
           git add deploy-status/track01-direct-attempt.json
           if [ -f deploy-status/track01-direct.json ]; then git add deploy-status/track01-direct.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m 'Record TRACK 01 v4.1 direct publish receipt [skip ci]'
+            git commit -m 'Record TRACK 01 v4.1 Car 01 entry guidance publish receipt [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -188,8 +192,8 @@ jobs:
           if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
           if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
           if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
-          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=26) throw new Error('Roblox version did not increment beyond v26');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=27) throw new Error('Roblox version did not increment beyond v27');
           if(!Number.isInteger(r.placeBytes) || r.placeBytes<=200000) throw new Error('Place bytes receipt invalid');
           if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
-          console.log('TRACK 01 v4.1 LIVE VERIFIED', r);
+          console.log('TRACK 01 v4.1 Car 01 entry guidance LIVE VERIFIED', r);
           NODE
