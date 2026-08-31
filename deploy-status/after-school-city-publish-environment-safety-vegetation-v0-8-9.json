@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "ENVIRONMENT_SAFETY_VEGETATION_V0_8_9",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "f2584421b92426fca12930aa8559a0e3ce4a5106",
+  "baseLiveCommit": "0fc72f121f945f6f2b4281481f77318ab82c9893",
+  "qcRunId": "33412135696",
+  "qcArtifactId": 9765553622,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 36,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 133644,
+  "placeSha256": "3f9140bdd71958c3951ecd0e715c60929f3cd863282f9db1d1c5787fa1a11230",
+  "runId": "33421636014",
+  "publishedAt": "2026-08-31T17:49:29Z",
+  "note": "V0.8.9 exact QC-locked artifact; poolside street lights moved clear of the V0.8.8 native pool and legacy trees re-grounded with corrected vertical trunks/canopy connection; pool, roads, orientation/centerline, gameplay economy/persistence/monetization, and dedication unchanged."
+}
