@@ -6,6 +6,9 @@
       "$className": "ReplicatedStorage",
       "ASCConfig": {
         "$path": "after-school-city.config.lua"
+      },
+      "ASCMusicConfig": {
+        "$path": "after-school-city.music-config.lua"
       }
     },
     "ServerScriptService": {
@@ -123,6 +126,15 @@
       "$className": "StarterGui",
       "ASC_DedicationIntro": {
         "$path": "after-school-city.intro.client.lua"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "ASC_PersonalMusicPlayer": {
+          "$path": "after-school-city.music-player.client.lua"
+        }
       }
     },
     "Workspace": {
