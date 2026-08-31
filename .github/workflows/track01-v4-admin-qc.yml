@@ -1,4 +1,4 @@
-name: QC TRACK 01 v4 Admin Panel
+name: QC TRACK 01 v4.1 DJ Event Ops
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: track01-v4-admin-qc-${{ github.ref }}
+  group: track01-v41-qc-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,16 +27,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate target and v4 source lock
+      - name: Validate target and v4.1 source lock
         shell: bash
         run: |
           node - <<'NODE'
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='4.0.0') throw new Error('Wrong TRACK 01 version');
+          if(String(c.version)!=='4.1.0') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
-          console.log('TRACK 01 v4 target lock PASS');
+          console.log('TRACK 01 v4.1 target lock PASS');
           NODE
 
       - name: Build canonical TRACK 01 place
@@ -46,52 +46,73 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s maps/track-01/place.rbxlx
-          test "$(wc -c < maps/track-01/place.rbxlx)" -gt 200000
-          grep -q 'TRACK01_NightVisibilityHotfix' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' maps/track-01/place.rbxlx
-          grep -q 'Lighting.Brightness=1.80' maps/track-01/place.rbxlx
-          grep -q 'Lighting.ExposureCompensation=0.12' maps/track-01/place.rbxlx
-          grep -q 'YardReadabilityFill' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_FinalQC' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_FinalQCClient' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_FEATURE_COMPLETE' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_TicketAccessVestibule' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_SocialInteractions' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_EndOfLineHero' maps/track-01/place.rbxlx
-          grep -q 'END OF LINE' maps/track-01/place.rbxlx
+          place='maps/track-01/place.rbxlx'
+          test -s "$place"
+          test "$(wc -c < "$place")" -gt 200000
+          grep -q 'TRACK01_NightVisibilityHotfix' "$place"
+          grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' "$place"
+          grep -q 'Lighting.Brightness=1.80' "$place"
+          grep -q 'Lighting.ExposureCompensation=0.12' "$place"
+          grep -q 'YardReadabilityFill' "$place"
+          grep -q 'TRACK01_FinalQC' "$place"
+          grep -q 'ACC_TRACK01_FEATURE_COMPLETE' "$place"
+          grep -q 'TRACK01_TicketAccessVestibule' "$place"
+          grep -q 'TRACK01_SocialInteractions' "$place"
+          grep -q 'TRACK01_EndOfLineHero' "$place"
+          grep -q 'END OF LINE' "$place"
           echo 'TRACK 01 retained-runtime QC PASS'
 
-      - name: Validate admin panel v4 runtime
+      - name: Validate compact mobile operator panel
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'TRACK01_AdminPanelServer' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_AdminPanelClient' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_AdminPAClient' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' maps/track-01/place.rbxlx
-          grep -q 'ACC_TRACK01_PANEL_VERSION' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_ADMIN_USER_IDS' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_LIGHT_PULSE_ENABLED' maps/track-01/place.rbxlx
-          grep -q 'TRACK01_AdminTTS' maps/track-01/place.rbxlx
-          grep -Eqi 'NO KICK BUTTON|No kick button' maps/track-01/place.rbxlx
-          grep -q 'LAST TRAIN' maps/track-01/place.rbxlx
-          grep -q 'AudioTextToSpeech' maps/track-01/place.rbxlx
-          echo 'TRACK 01 v4 admin panel QC PASS'
+          place='maps/track-01/place.rbxlx'
+          grep -q 'TRACK01_AdminPanelServer' "$place"
+          grep -q 'TRACK01_AdminPanelClient' "$place"
+          grep -q 'TRACK01_AdminPAClient' "$place"
+          grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' "$place"
+          grep -q 'ACC_TRACK01_PANEL_VERSION' "$place"
+          grep -q 'DeviceSafeInsets' "$place"
+          grep -q 'ClipToDeviceSafeArea' "$place"
+          grep -q 'ScrollingFrame' "$place"
+          grep -q 'Player recovery tools' "$place"
+          grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
+          grep -qi 'ridhoomaukamu' "$place"
+          echo 'TRACK 01 compact operator panel QC PASS'
 
-      - name: Validate compact mobile panel hotfix
+      - name: Validate v4.1 DJ music authority
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'DeviceSafeInsets' maps/track-01/place.rbxlx
-          grep -q 'ClipToDeviceSafeArea' maps/track-01/place.rbxlx
-          grep -q 'Server &amp; venue overview' maps/track-01/place.rbxlx || grep -q 'Server & venue overview' maps/track-01/place.rbxlx
-          grep -q 'Station announcement controls' maps/track-01/place.rbxlx
-          grep -q 'Venue lighting presets' maps/track-01/place.rbxlx
-          grep -q 'Player recovery tools' maps/track-01/place.rbxlx
-          grep -q 'compact mobile admin panel client ready v4.0.1' maps/track-01/place.rbxlx
-          grep -q 'ScrollingFrame' maps/track-01/place.rbxlx
-          echo 'TRACK 01 compact mobile admin panel QC PASS'
+          place='maps/track-01/place.rbxlx'
+          grep -q 'ACC_TRACK01_DJ_EVENT_OPS_READY' "$place"
+          grep -q 'TRACK01_Music' "$place"
+          grep -q 'VenueMusic' "$place"
+          grep -q 'TRACK01_APPROVED_MUSIC_SOUND_ID' "$place"
+          grep -q 'MUSIC_PLAY' "$place"
+          grep -q 'MUSIC_PAUSE' "$place"
+          grep -q 'MUSIC_RESTART' "$place"
+          grep -q 'MUSIC_VOLUME' "$place"
+          grep -q 'NO APPROVED SOURCE' "$place"
+          grep -q 'Audio source stays fail-closed' "$place"
+          echo 'TRACK 01 DJ/music fail-closed authority QC PASS'
+
+      - name: Validate coordinated event operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='maps/track-01/place.rbxlx'
+          grep -q 'EVENT_PRESET' "$place"
+          grep -q 'OPS_RESET' "$place"
+          grep -q 'NORMAL NIGHT' "$place"
+          grep -q 'BOARDING HOLD' "$place"
+          grep -q 'END OF LINE' "$place"
+          grep -q 'LAST TRAIN' "$place"
+          grep -q 'CLOSING' "$place"
+          grep -q 'operatorName' "$place"
+          grep -q 'uptimeSeconds' "$place"
+          grep -q 'compact admin panel ready v4.1.0 DJ/music + event operations' "$place"
+          echo 'TRACK 01 v4.1 event operations QC PASS'
 
       - name: Confirm build-only workflow
         shell: bash
