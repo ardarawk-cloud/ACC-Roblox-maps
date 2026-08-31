@@ -5,15 +5,15 @@
   "universeId": "10745349805",
   "placeId": "79748872921213",
   "trackVersion": "4.0.0",
-  "sourceCommit": "1dc05a2db7b0cf39dd31cb6ca468cf186b660d89",
-  "mode": "DIRECT_MASTER_V2_V4_0_0_OWNER_AUTH",
-  "robloxVersion": 25,
-  "placeBytes": 281298,
-  "sha256": "42573845e1e9eb3d020907019ca17e25fff7f7381d5afa1bb8da2d332ef9320d",
-  "publishRun": 33311900408,
-  "publishedAt": "2026-08-30T12:35:49.088Z",
+  "sourceCommit": "84d7d80a95b12fa006968af2237fde517adbf670",
+  "mode": "DIRECT_MASTER_V2_V4_0_1_COMPACT_MOBILE",
+  "robloxVersion": 26,
+  "placeBytes": 282340,
+  "sha256": "055911792d931e90c7c1f1cb44718ee6f97700c2cef6aca580291471f7cd902d",
+  "publishRun": 33358910999,
+  "publishedAt": "2026-08-31T04:59:04.467Z",
   "previewUrl": "https://www.roblox.com/games/79748872921213",
   "payload": {
-    "versionNumber": 25
+    "versionNumber": 26
   }
 }
