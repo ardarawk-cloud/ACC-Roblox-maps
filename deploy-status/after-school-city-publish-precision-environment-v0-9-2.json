@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "PRECISION_ENVIRONMENT_CLEANUP_V0_9_2",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "a5b130144d88268be05ab231ab32075ff389c8f2",
+  "baseLiveCommit": "06de195e303f69c6e466ec162fa119ff56f41f42",
+  "qcRunId": "33444578411",
+  "qcArtifactId": 9777535091,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 39,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 150475,
+  "placeSha256": "9135591f20338cbdb6572d823361c3af72043e000c6220fffaec978ef32bd575",
+  "runId": "33444712574",
+  "publishedAt": "2026-08-31T22:07:38Z",
+  "note": "V0.9.2 exact QC-locked precision environment cleanup. CITY PARK retains original V0.6.0 board scale/placement and now uses full-board TextScaled typography for readability. Core wayfinding and skate signage remain normalized, skate bench sightline is cleared, and corridor tree canopies are refined. Roads, pool authority, gameplay/economy/persistence/monetization, personal music player and dedication remain unchanged."
+}
