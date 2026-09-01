@@ -1,206 +1,118 @@
--- BBYA MUSIC UI TEST — DANCE DIRECT SCROLL HOST v6
+-- BBYA MUSIC UI TEST — DANCE NATIVE SCROLL AUTHORITY v7
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Temporary host: FishingVisualIndex client slot is repurposed only on this isolated test branch.
--- The source 212 catalog/filter remains owned by 92-freecam.client.lua.
--- This patch MOVES generated dance buttons out of the source ScrollingFrame into a dedicated
--- manually-laid-out ScrollingFrame so mobile users can browse the whole catalog by swipe/scroll.
--- v6 fixes the v5 second-pass bug that deleted already-harvested rows when the source list was empty.
+-- 92-freecam.client.lua owns the 212 catalog and every dance button/click callback.
+-- v7 deliberately DOES NOT reparent dance buttons. Keeping rows inside the source
+-- ScrollingFrame preserves their original Activated connections and makes touch input reliable.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 
-local boundRoot
 local boundList
-local boundStatus
-local host
-local rows={}
-local busy=false
-local generation=0
+local boundRoot
+local syncing=false
 
-local function corner(o,r)
- local c=o:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
- c.CornerRadius=UDim.new(0,r or 8)
- c.Parent=o
+local function isDanceRow(o)
+ return o:IsA("TextButton") and string.sub(o.Name or "",1,6)=="Dance_"
 end
 
-local function isDanceRow(obj)
- return obj:IsA("TextButton") and string.sub(obj.Name or "",1,6)=="Dance_"
-end
-
-local function destroyOldRows()
- for _,b in ipairs(rows) do
-  if b and b.Parent then b:Destroy() end
+local function cleanupLegacyHosts(root)
+ for _,name in ipairs({"DanceDirectPageHostV4","DanceDirectScrollHostV5","DanceDirectScrollHostV6","DanceDirectScrollHostV7"}) do
+  local old=root:FindFirstChild(name)
+  if old then old:Destroy() end
  end
- table.clear(rows)
 end
 
-local function ensureHost(root)
- if host and host.Parent==root then return end
- local oldV4=root:FindFirstChild("DanceDirectPageHostV4")
- if oldV4 then oldV4:Destroy() end
- local oldV5=root:FindFirstChild("DanceDirectScrollHostV5")
- if oldV5 then oldV5:Destroy() end
- local oldV6=root:FindFirstChild("DanceDirectScrollHostV6")
- if oldV6 then oldV6:Destroy() end
+local function syncRows(resetScroll)
+ if syncing or not boundList or not boundList.Parent then return end
+ syncing=true
+ boundList.Visible=true
+ boundList.Active=true
+ boundList.ScrollingEnabled=true
+ boundList.ScrollingDirection=Enum.ScrollingDirection.Y
+ boundList.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
+ boundList.ScrollBarThickness=4
+ boundList.ScrollBarImageColor3=Color3.fromRGB(244,48,149)
+ boundList.AutomaticCanvasSize=Enum.AutomaticSize.None
+ boundList.ClipsDescendants=true
+ boundList.ZIndex=80
 
- host=Instance.new("ScrollingFrame")
- host.Name="DanceDirectScrollHostV6"
- host.BackgroundTransparency=1
- host.BorderSizePixel=0
- host.Position=UDim2.fromOffset(0,100)
- host.Size=UDim2.new(1,0,1,-108)
- host.ClipsDescendants=true
- host.ScrollBarThickness=4
- host.ScrollBarImageColor3=Color3.fromRGB(244,48,149)
- host.ScrollingDirection=Enum.ScrollingDirection.Y
- host.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
- host.CanvasSize=UDim2.new()
- host.AutomaticCanvasSize=Enum.AutomaticSize.None
- host.Active=true
- host.ZIndex=80
- host.Parent=root
-end
-
-local function layoutRows()
- if not host then return end
- local width=host.AbsoluteSize.X
- local cols=width>=360 and 2 or 1
- local gap=8
- local rowH=40
- local pitch=rowH+gap
- local count=#rows
- local totalRows=math.ceil(count/cols)
-
- for i,b in ipairs(rows) do
-  if b and b.Parent==host then
-   local slot=i-1
-   local col=slot%cols
-   local row=math.floor(slot/cols)
+ local layout=boundList:FindFirstChildWhichIsA("UIListLayout")
+ local count=0
+ for _,b in ipairs(boundList:GetChildren()) do
+  if isDanceRow(b) then
+   count+=1
    b.Visible=true
    b.Active=true
-   b.AnchorPoint=Vector2.new(0,0)
-   if cols==1 then
-    b.Position=UDim2.fromOffset(0,row*pitch)
-    b.Size=UDim2.new(1,-6,0,rowH)
-   else
-    b.Position=UDim2.new(col*.5,col==0 and 0 or 4,0,row*pitch)
-    b.Size=UDim2.new(.5,-4,0,rowH)
-   end
+   b.Selectable=true
+   b.AutoButtonColor=true
    b.ZIndex=88
-   b.TextTransparency=0
-   b.BackgroundTransparency=.10
+   b.Size=UDim2.new(1,-6,0,38)
+   b.TextWrapped=false
+   b.TextTruncate=Enum.TextTruncate.AtEnd
+   b.TextSize=9
+   b.BackgroundTransparency=.14
   end
  end
 
- host.CanvasSize=UDim2.fromOffset(0,math.max(0,totalRows*pitch-gap+6))
+ local contentH=0
+ if layout then contentH=layout.AbsoluteContentSize.Y+8 end
+ boundList.CanvasSize=UDim2.fromOffset(0,math.max(contentH,boundList.AbsoluteSize.Y+2))
+ if resetScroll then boundList.CanvasPosition=Vector2.new(0,0) end
  if boundRoot then
-  boundRoot:SetAttribute("BBYADanceDirectScrollHost","V6")
+  boundRoot:SetAttribute("BBYADanceNativeScrollAuthority","V7")
   boundRoot:SetAttribute("BBYADanceVisibleRows",count)
   boundRoot:SetAttribute("BBYADanceBrowseMode","SCROLL")
  end
+ syncing=false
 end
 
-local function collectFresh()
- local fresh={}
- if not boundList then return fresh end
- for _,child in ipairs(boundList:GetChildren()) do
-  if isDanceRow(child) then table.insert(fresh,child) end
- end
- table.sort(fresh,function(a,b)
-  local ao=a.LayoutOrder or 0
-  local bo=b.LayoutOrder or 0
-  if ao==bo then return a.Name<b.Name end
-  return ao<bo
- end)
- return fresh
-end
-
-local function harvest(resetScroll)
- if busy or not boundList or not boundList.Parent or not boundRoot then return end
- busy=true
- ensureHost(boundRoot)
-
- local fresh=collectFresh()
- -- Important: after the first harvest the source list is intentionally empty because its rows
- -- now live in the visible host. A later verification pass must NOT destroy those hosted rows.
- if #fresh==0 then
-  boundList.Visible=false
-  layoutRows()
-  busy=false
-  return
- end
-
- destroyOldRows()
- for _,b in ipairs(fresh) do
-  b.Parent=host
-  b.Visible=false
-  table.insert(rows,b)
- end
-
- boundList.Visible=false
- if resetScroll and host then host.CanvasPosition=Vector2.new(0,0) end
- layoutRows()
- busy=false
-end
-
-local function scheduleHarvest(resetScroll)
- generation+=1
- local token=generation
- task.delay(.08,function()
-  if token~=generation then return end
-  harvest(resetScroll)
- end)
- task.delay(.22,function()
-  if token~=generation then return end
-  harvest(false)
+local scheduled=false
+local resetWanted=false
+local function schedule(resetScroll)
+ resetWanted=resetWanted or resetScroll==true
+ if scheduled then return end
+ scheduled=true
+ task.delay(.06,function()
+  scheduled=false
+  local r=resetWanted
+  resetWanted=false
+  syncRows(r)
  end)
 end
 
-local function bind(root,list,status)
- if boundList==list and boundRoot==root then return end
+local function bind(root,list)
+ if boundList==list and boundRoot==root then schedule(false);return end
  boundRoot=root
  boundList=list
- boundStatus=status
- ensureHost(root)
-
+ cleanupLegacyHosts(root)
+ list.Visible=true
  list.ChildAdded:Connect(function(child)
-  if isDanceRow(child) then scheduleHarvest(true) end
+  if isDanceRow(child) then schedule(false) end
  end)
-
- if status then
-  status:GetPropertyChangedSignal("Text"):Connect(function()
-   -- Category/search render has finished when status count changes.
-   scheduleHarvest(true)
-  end)
- end
-
- host:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutRows)
- scheduleHarvest(true)
- print("[BBYA TEST] Dance direct scroll host v6 bound")
+ list:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()schedule(false)end)
+ local layout=list:FindFirstChildWhichIsA("UIListLayout")
+ if layout then layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()schedule(false)end) end
+ schedule(true)
+ print("[BBYA TEST] Dance native scroll v7 bound: source buttons remain clickable")
 end
 
 local function findUI()
  local gui=pg:FindFirstChild("BBYASocialHangoutUI")
  local panel=gui and gui:FindFirstChild("DancePanel")
  local root=panel and panel:FindFirstChild("BBYADanceCatalogV1")
- if not root then return false end
- local list=root:FindFirstChild("DanceCatalogScroll")
- local status=root:FindFirstChild("DanceStatus")
- if list and list:IsA("ScrollingFrame") then
-  bind(root,list,status)
-  return true
- end
+ local list=root and root:FindFirstChild("DanceCatalogScroll")
+ if root and list and list:IsA("ScrollingFrame") then bind(root,list);return true end
  return false
 end
 
 task.spawn(function()
- for _=1,160 do
+ for _=1,180 do
   if findUI() then break end
-  task.wait(.20)
+  task.wait(.18)
  end
 end)
 
-pg.ChildAdded:Connect(function()
- task.delay(.1,findUI)
+pg.DescendantAdded:Connect(function(d)
+ if d.Name=="DanceCatalogScroll" or isDanceRow(d) then task.defer(findUI) end
 end)
