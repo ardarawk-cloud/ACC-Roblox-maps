@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v2
+-- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v2.1
 -- Independent underground channel: Indo breakbeat / indo-bounce only.
 -- Uses its own Deck A/B, FIFO request queue and 4-second AutoMix.
--- v2 removes confirmed dead legacy audio and adds approved custom Breakbeat uploads with per-track playback restoration.
+-- v2.1 removes confirmed dead audio and restores the real live-track state when an incoming track stalls.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -44,12 +44,8 @@ local PLAYLIST={
  {title="MORENA BKB (HARLY EDIT)",id="97696234195316",style="underground"},
  {title="I LOVE IT - KIN EDIT",id="131463436495955",style="underground",playbackSpeed=0.8},
  {title="Christina Perri - Jar of Hearts (Noka AxL) Breakbeat Remix",id="90545257553901",style="underground",playbackSpeed=0.8},
- {title="BREAKBEAT BAILAR - SHELTER - REMIX DJ TELOOR",id="82694276529271",style="underground",playbackSpeed=0.8},
- {title="Lie Stadium Breakbeat - NightSoundClouds",id="95672519158444",style="underground",playbackSpeed=0.8},
  {title="YOU DON'T EVEN KNOW ME STADIUM BREAKBEAT - SlowBass Nation",id="133306911098734",style="underground",playbackSpeed=0.8},
- {title="Russian Roulette Remix Stadium - GABUT MEDIA",id="114401398635082",style="underground",playbackSpeed=0.8},
  {title="MILLION STARS STADIUM BREAKBEAT - SlowBass Nation",id="118285103846602",style="underground",playbackSpeed=0.8},
- {title="BREAKBEAT STADIUM LOVE ME CRAZY REMIX By YUSKEN DJOKZ",id="126182016289963",style="underground",playbackSpeed=0.8},
  {title="DJ TELOOR - WET GUITAR",id="74227363291004",style="underground",playbackSpeed=0.8},
  {title="EE SAKADUNG KADING 2026 - -Ndhy Huo-",id="82680681349117",style="underground",playbackSpeed=0.8},
  {title="BLACK HOLE - DJ TELOOR REMIX",id="126615725566516",style="underground",playbackSpeed=0.8},
@@ -141,9 +137,10 @@ local function transition(forceImmediate)
  ensureStandby();local nextIndex=standbyIndex;if not nextIndex or not validTrack(nextIndex) then return false end
  local ready=standbyDeck:GetAttribute("PreparedReady")==true;if not ready then local deadline=os.clock()+LOAD_TIMEOUT;while os.clock()<deadline and standbyIndex==nextIndex do if standbyDeck:GetAttribute("PreparedReady")==true then ready=true;break end;task.wait(.1) end end
  if not ready or standbyIndex~=nextIndex then quarantine(nextIndex,"standby_not_ready");standbyIndex=nil;standbyFromRequest=false;ensureStandby();return false end
+ local previousIndex=current
  transitioning=true;local oldDeck,newDeck=activeDeck,standbyDeck;local req=standbyFromRequest and popRequestIfMatches(nextIndex) or nil;current=nextIndex;newDeck.TimePosition=0;newDeck.Volume=forceImmediate and 1 or 0;newDeck:SetAttribute("DeckRole","MIXING_IN");oldDeck:SetAttribute("DeckRole","MIXING_OUT");newDeck:Play()
  local p0=newDeck.TimePosition;task.wait(.25)
- if not newDeck.IsPlaying or newDeck.TimePosition<=p0+.02 then newDeck:Stop();newDeck.Volume=0;oldDeck.Volume=1;oldDeck:SetAttribute("DeckRole","LIVE");quarantine(nextIndex,"incoming_stalled");transitioning=false;standbyIndex=nil;standbyFromRequest=false;if req then toastBasement("Request Basement dilewati: audio tidak tersedia.") end;ensureStandby();fireState();return false end
+ if not newDeck.IsPlaying or newDeck.TimePosition<=p0+.02 then newDeck:Stop();newDeck.Volume=0;oldDeck.Volume=1;oldDeck:SetAttribute("DeckRole","LIVE");quarantine(nextIndex,"incoming_stalled");current=previousIndex;transitioning=false;standbyIndex=nil;standbyFromRequest=false;if req then toastBasement("Request Basement dilewati: audio tidak tersedia.") end;ensureStandby();fireState();return false end
  if req then toastBasement("Basement AutoMix request: "..PLAYLIST[nextIndex].title) end;fireState()
  if forceImmediate then oldDeck:Stop();oldDeck.Volume=0 else local ti=TweenInfo.new(MIX_SECONDS,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut);local down=TweenService:Create(oldDeck,ti,{Volume=0});local up=TweenService:Create(newDeck,ti,{Volume=1});down:Play();up:Play();up.Completed:Wait();oldDeck:Stop();oldDeck.Volume=0 end
  activeDeck,standbyDeck=newDeck,oldDeck;activeDeck:SetAttribute("DeckRole","LIVE");activeDeck:SetAttribute("PreparedIndex",current);activeDeck:SetAttribute("PreparedReady",true);standbyDeck:SetAttribute("DeckRole","STANDBY");standbyDeck:SetAttribute("PreparedIndex",0);standbyDeck:SetAttribute("PreparedReady",false);standbyDeck.SoundId="";standbyIndex=nil;standbyFromRequest=false;shuffleBag={};transitioning=false;ensureStandby();fireState();return true
