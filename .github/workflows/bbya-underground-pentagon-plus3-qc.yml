@@ -1,0 +1,48 @@
+name: BBYA Underground Pentagon Plus3 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+      - '.github/workflows/bbya-underground-pentagon-plus3-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-underground-pentagon-plus3.rbxl
+          test -s /tmp/bbya-underground-pentagon-plus3.rbxl
+      - name: Validate six emissive-only pentagons
+        shell: bash
+        run: |
+          set -euo pipefail
+          src='maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+          grep -q 'PentagonFixtureCount",6' "$src"
+          grep -q 'FixtureCount",6' "$src"
+          test "$(grep -c '^pentagon("Pentagon' "$src")" -eq 6
+          grep -q 'PentagonRearWest' "$src"
+          grep -q 'PentagonFrontCenter' "$src"
+          grep -q 'PentagonRearEast' "$src"
+          grep -q 'BBYALocalLightEmitter",false' "$src"
+          if grep -q 'Instance.new("SurfaceLight")\|Instance.new("PointLight")\|Instance.new("SpotLight")' "$src"; then
+            echo 'Pentagon pass must remain emissive-only; room lighting authority stays in v6.' >&2
+            exit 1
+          fi
+          echo 'BBYA Underground six-pentagon contract passed.'
