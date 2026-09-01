@@ -36,14 +36,14 @@ jobs:
           src='maps/bbya-social-hub/87-basement-full-upgrade.server.lua'
           grep -q 'LightingAuthority","V6_SINGLE_LOCAL_AUTHORITY' "$src"
           grep -q 'DedicatedLightCount",4' "$src"
-          grep -q 's.Brightness=.30' "$src"
-          grep -q 's.Range=40' "$src"
-          grep -q 's.Angle=135' "$src"
+          grep -q 's.Brightness=.46' "$src"
+          grep -q 's.Range=48' "$src"
+          grep -q 's.Angle=145' "$src"
           grep -q 'DecorativeNeonEmitters",false' "$src"
           grep -q 'ContinuousDarkLock",false' "$src"
-          grep -q 'DARK_UNDERGROUND_V9_READABLE' "$src"
+          grep -q 'DARK_UNDERGROUND_V10_PLUS2' "$src"
           if grep -q 'Lighting%.Brightness\|Lighting%.Ambient\|Lighting%.OutdoorAmbient' "$src"; then
             echo 'Underground balance pass must not write global Lighting.' >&2
             exit 1
           fi
-          echo 'BBYA Underground readable-light contract passed.'
+          echo 'BBYA Underground plus-two readable-light contract passed.'
