@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT PREMIUM UPGRADE v3
--- Underground builder defaults are dark-safe so startup ordering can never expose the old whiteout profile.
--- Global Lighting and audio are untouched; Basement Full Upgrade v4 remains the final local dark-profile authority.
+-- BBYA SOCIAL HUB — BASEMENT PREMIUM UPGRADE v4
+-- Root-cause lighting cleanup: decorative Underground neon is emissive-only.
+-- No SurfaceLight is attached to every strip/pad/edge, preventing dozens of overlapping local emitters.
+-- Global Lighting and audio are untouched; Basement Full Upgrade v6 owns the small dedicated room-light set.
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
@@ -8,7 +9,8 @@ local old=root:FindFirstChild("Underground")
 if old then old:Destroy() end
 local m=Instance.new("Model");m.Name="Underground";m.Parent=root
 m:SetAttribute("Pass","BASEMENT_PREMIUM_V2")
-m:SetAttribute("BuilderLightingProfile","DARK_SAFE_V3")
+m:SetAttribute("BuilderLightingProfile","DARK_SAFE_V4_EMISSIVE_ONLY")
+m:SetAttribute("DecorativeNeonEmitters",false)
 m:SetAttribute("GlobalLightingWrites",false)
 
 local C={black=Color3.fromRGB(10,11,14),white=Color3.fromRGB(138,140,138),wall=Color3.fromRGB(24,28,34),metal=Color3.fromRGB(52,57,64),blue=Color3.fromRGB(0,144,255),yellow=Color3.fromRGB(255,205,38),leather=Color3.fromRGB(34,35,40),glass=Color3.fromRGB(52,62,72)}
@@ -17,7 +19,8 @@ local function part(name,size,cf,color,mat,collide,parent)
 end
 local function neon(name,size,cf,color,parent)
  local p=part(name,size,cf,color,Enum.Material.Neon,false,parent);p.CastShadow=false
- local l=Instance.new("SurfaceLight");l.Face=Enum.NormalId.Bottom;l.Color=color;l.Brightness=.15;l.Range=10;l.Shadows=false;l.Parent=p
+ p:SetAttribute("BBYAEmissiveOnly",true)
+ p:SetAttribute("BBYALocalLightEmitter",false)
  return p
 end
 local function cylinder(name,size,cf,color,mat,parent)
@@ -45,7 +48,7 @@ for xi=-5,5 do
  end
 end
 
--- blue/yellow club lighting only.
+-- blue/yellow club accents: visible Neon geometry only, not room floodlights.
 for i,z in ipairs({-34,-17,0,17,34}) do neon("CeilingBlue"..i,Vector3.new(86,.16,.16),CFrame.new(0,-1.05,z),C.blue) end
 for i,x in ipairs({-48,-32,-16,0,16,32,48}) do neon("CeilingYellow"..i,Vector3.new(.16,.16,58),CFrame.new(x,-1.08,0),C.yellow) end
 neon("WallBlueL",Vector3.new(.14,8,0.14),CFrame.new(-57.8,-7.5,22),C.blue)
@@ -53,7 +56,7 @@ neon("WallYellowL",Vector3.new(.14,8,0.14),CFrame.new(-57.8,-7.5,-22),C.yellow)
 neon("WallBlueR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,-22),C.blue)
 neon("WallYellowR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,22),C.yellow)
 
--- controlled pentagon fixtures above lounge zones.
+-- pentagon fixtures are emissive geometry; final room illumination is centralized in v6.
 local pentagons=Instance.new("Model");pentagons.Name="WhitePentagonCeilingLights";pentagons.Parent=m
 local function pentagon(name,center,radius)
  local pts={}
@@ -113,4 +116,4 @@ for i=-4,4 do
  part("StoolStem"..i,Vector3.new(.35,2.4,.35),CFrame.new(i*4,-14,-27.8),C.metal,Enum.Material.Metal,true,bar)
 end
 
-print("[BBYA] Basement Premium v3 online: dark-safe checker / controlled local neon / premium bar-sofas / no global Lighting writes")
+print("[BBYA] Basement Premium v4 online: emissive-only decorative neon / no stacked per-strip lights / global Lighting untouched")
