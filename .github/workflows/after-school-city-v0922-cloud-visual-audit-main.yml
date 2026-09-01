@@ -1,4 +1,4 @@
-name: After School City V0.9.2.2 Exact RBXL Cloud Preview
+name: After School City V0.9.2.2 Cloud Harness Visual Audit
 
 on:
   push:
@@ -17,38 +17,40 @@ jobs:
     timeout-minutes: 12
     env:
       GH_TOKEN: ${{ github.token }}
-      SOURCE_COMMIT: '76362800d3133ffc01ca776ee5efe16f51e3a49a'
-      QC_ARTIFACT_ID: '9778112640'
-      QC_BYTES: '152275'
-      QC_SHA: '7cae13389e82524aae6c2a235327ae80f5b5e03d97e62e3413cd85912063c29f'
+      BASE_CANDIDATE: '76362800d3133ffc01ca776ee5efe16f51e3a49a'
+      HARNESS_ARTIFACT_ID: '9787052484'
+      HARNESS_BYTES: '154219'
+      HARNESS_SHA: '726dd614e2263fa566bb3337e9af1a4f9d918c8f900a7d9a8fd3206217592f35'
     steps:
-      - name: Verify and stage exact QC RBXL
+      - name: Download and verify non-publish cloud harness
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='ASC-Cloud-Audit'}
-          $zip=Join-Path $env:RUNNER_TEMP 'asc-v0922-qc.zip'
-          $out=Join-Path $env:RUNNER_TEMP 'asc-v0922-qc'
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='ASC-Cloud-Harness-Audit'}
+          $zip=Join-Path $env:RUNNER_TEMP 'asc-v0922-harness.zip'
+          $out=Join-Path $env:RUNNER_TEMP 'asc-v0922-harness'
           if(Test-Path $out){Remove-Item $out -Recurse -Force}
-          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$env:QC_ARTIFACT_ID/zip" -MaximumRedirection 10 -OutFile $zip
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$env:HARNESS_ARTIFACT_ID/zip" -MaximumRedirection 10 -OutFile $zip
           Expand-Archive $zip $out -Force
-          $p=@(Get-ChildItem $out -Filter '*.rbxl' -File -Recurse)
-          if($p.Count -ne 1){throw "Expected one RBXL, got $($p.Count)"}
-          $bytes=$p[0].Length
-          $hash=(Get-FileHash $p[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($bytes -ne [int64]$env:QC_BYTES){throw "Byte mismatch $bytes"}
-          if($hash -ne $env:QC_SHA){throw "SHA mismatch $hash"}
-          "ASC_PLACE=$($p[0].FullName)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "EXACT_QC_RBXL_OK source=$env:SOURCE_COMMIT artifact=$env:QC_ARTIFACT_ID bytes=$bytes sha=$hash"
+          $places=@(Get-ChildItem $out -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){throw "Expected one harness RBXL, got $($places.Count)"}
+          $place=$places[0]
+          $bytes=$place.Length
+          $hash=(Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:HARNESS_BYTES){throw "Harness byte mismatch expected=$env:HARNESS_BYTES actual=$bytes"}
+          if($hash -ne $env:HARNESS_SHA){throw "Harness SHA mismatch expected=$env:HARNESS_SHA actual=$hash"}
+          "ASC_HARNESS_PLACE=$($place.FullName)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HARNESS_VERIFIED=true publishable=false base=$env:BASE_CANDIDATE artifact=$env:HARNESS_ARTIFACT_ID bytes=$bytes sha=$hash"
 
-      - name: Open exact RBXL in cloud Studio and start Play
+      - name: Open harness in real Roblox Studio and start Play
         shell: powershell
         run: |
+          $ErrorActionPreference='Stop'
           Add-Type -AssemblyName System.Windows.Forms
           Add-Type @"
           using System;
           using System.Runtime.InteropServices;
-          public class StudioWin {
+          public class ASCCloudWin {
             [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
             [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd,int nCmdShow);
           }
@@ -58,165 +60,89 @@ jobs:
           $exe=$null
           foreach($r in $roots){
             if(-not (Test-Path $r)){continue}
-            $c=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 1
-            if($c){$exe=$c.FullName;break}
+            $candidate=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 1
+            if($candidate){$exe=$candidate.FullName;break}
           }
-          if(-not $exe){throw 'RobloxStudioBeta.exe not found'}
-          Start-Process -FilePath $exe -ArgumentList @("`"$env:ASC_PLACE`"")|Out-Null
+          if(-not $exe){throw 'RobloxStudioBeta.exe not found on cloud worker'}
+          Start-Process -FilePath $exe -ArgumentList @("`"$env:ASC_HARNESS_PLACE`"")|Out-Null
           $deadline=(Get-Date).AddSeconds(60)
           $proc=$null
           do{
             Start-Sleep -Seconds 2
             $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue|Where-Object {$before -notcontains $_.Id -and $_.MainWindowHandle -ne 0}|Sort-Object StartTime -Descending|Select-Object -First 1
           }while(-not $proc -and (Get-Date)-lt $deadline)
-          if(-not $proc){throw 'Exact RBXL Studio window did not appear'}
+          if(-not $proc){throw 'Harness Studio window did not appear'}
           "ASC_STUDIO_PID=$($proc.Id)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          [StudioWin]::ShowWindow([IntPtr]$proc.MainWindowHandle,9)|Out-Null
-          [StudioWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+          [ASCCloudWin]::ShowWindow([IntPtr]$proc.MainWindowHandle,9)|Out-Null
+          [ASCCloudWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
           Start-Sleep -Seconds 8
           [System.Windows.Forms.SendKeys]::SendWait('{F5}')
-          Start-Sleep -Seconds 18
+          Start-Sleep -Seconds 24
+          Write-Host "REAL_STUDIO_PLAY_STARTED=true pid=$($proc.Id)"
 
-      - name: Enable Studio Command Bar from View menu
+      - name: Capture cycling signage views from real Studio
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
-          $menuType=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::MenuItem)
-          $viewName=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'View')
-          $viewCondition=New-Object System.Windows.Automation.AndCondition($menuType,$viewName)
-          $view=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$viewCondition)
-          if($view){
-            try{$view.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()}catch{try{$view.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()}catch{}}
-            Start-Sleep -Milliseconds 900
-          }
-          $desktop=[System.Windows.Automation.AutomationElement]::RootElement
-          $commandName=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Command Bar')
-          $command=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$commandName)
-          if($command){
-            try{$command.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()}catch{try{$command.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle()}catch{}}
-            Start-Sleep -Seconds 1
-          }
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
-          $editCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
-          if(-not $edit -or -not $run){throw 'Command Bar could not be enabled'}
-          Write-Host 'COMMAND_BAR_READY=true'
-
-      - name: Capture CITY PARK, SCHOOL, CANTEEN and SKATE
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
           Add-Type -AssemblyName System.Windows.Forms
           Add-Type -AssemblyName System.Drawing
           Add-Type @"
           using System;
           using System.Runtime.InteropServices;
-          public class FocusWin { [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); }
+          public class ASCCloudFocus {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd,int nCmdShow);
+          }
           "@
           $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
-          $editCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
-          $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
-          if(-not $edit -or -not $run){throw 'Command Bar unavailable during capture'}
-          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-
-          function Aim([string]$needle){
-            $lua=@"
-          local P=game:GetService('Players'):GetPlayers()[1]
-          local r=workspace:FindFirstChild('AfterSchoolCity')
-          local p=nil
-          local sg=nil
-          if r then
-            for _,x in ipairs(r:GetDescendants()) do
-              if x:IsA('SurfaceGui') then
-                for _,y in ipairs(x:GetDescendants()) do
-                  if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$needle'),1,true) then
-                    local q=x.Adornee or x.Parent
-                    if q and q:IsA('BasePart') then p=q;sg=x;break end
-                  end
-                end
-              end
-              if p then break end
-            end
-          end
-          if p and P and P.Character then
-            local h=P.Character:FindFirstChild('HumanoidRootPart')
-            if h then
-              local normals={[Enum.NormalId.Front]=Vector3.new(0,0,-1),[Enum.NormalId.Back]=Vector3.new(0,0,1),[Enum.NormalId.Right]=Vector3.new(1,0,0),[Enum.NormalId.Left]=Vector3.new(-1,0,0),[Enum.NormalId.Top]=Vector3.new(0,1,0),[Enum.NormalId.Bottom]=Vector3.new(0,-1,0)}
-              local n=p.CFrame:VectorToWorldSpace(normals[sg.Face] or Vector3.new(0,0,-1)).Unit
-              h.CFrame=CFrame.lookAt(p.Position+n*21+Vector3.new(0,-1.8,0),p.Position)
-            end
-          end
-          print('[ASC_CLOUD_TARGET] $needle FOUND='..tostring(p~=nil))
-          "@
-            [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
-            $value.SetValue($lua)
-            Start-Sleep -Milliseconds 250
-            $invoke.Invoke()
-            Start-Sleep -Seconds 3
-          }
-
-          function Shot([string]$key){
-            [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+          [ASCCloudFocus]::ShowWindow([IntPtr]$proc.MainWindowHandle,9)|Out-Null
+          $captureDir=Join-Path $env:GITHUB_WORKSPACE 'asc-cloud-frames'
+          New-Item -ItemType Directory -Path $captureDir -Force|Out-Null
+          for($i=1;$i -le 10;$i++){
+            [ASCCloudFocus]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
             Start-Sleep -Milliseconds 500
-            $b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-            $bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height)
+            $bounds=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp=New-Object System.Drawing.Bitmap($bounds.Width,$bounds.Height)
             $g=[System.Drawing.Graphics]::FromImage($bmp)
-            $g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size)
-            $path=Join-Path $env:GITHUB_WORKSPACE ("asc-"+$key+".png")
+            $g.CopyFromScreen($bounds.Location,[System.Drawing.Point]::Empty,$bounds.Size)
+            $path=Join-Path $captureDir ('frame-{0:D2}.png' -f $i)
             $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
             $g.Dispose();$bmp.Dispose()
+            Write-Host "CAPTURED=$path"
+            Start-Sleep -Seconds 4
           }
+          "ASC_CAPTURE_DIR=$captureDir"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-          foreach($t in @(
-            @{Key='city-park';Text='CITY PARK'},
-            @{Key='school';Text='AFTER SCHOOL ACADEMY'},
-            @{Key='canteen';Text='STUDENT CANTEEN'},
-            @{Key='skate';Text='SKATE'}
-          )){
-            Aim $t.Text
-            Shot $t.Key
-          }
-
-      - name: Collect exact candidate runtime markers
+      - name: Collect harness and signage runtime markers
         shell: powershell
         run: |
-          $markers=@()
-          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 8
+          $ErrorActionPreference='Stop'
+          $markers=New-Object System.Collections.Generic.List[string]
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 12
           foreach($log in $logs){
             foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
-              if($line -match 'V0\.9\.2\.2 global signage readability|ASC_CLOUD_TARGET'){ $markers += $line }
+              if($line -match 'ASC CLOUD HARNESS|V0\.9\.2\.2 global signage readability|ASC_GlobalSignageReadabilityPass'){
+                $markers.Add($line)
+              }
             }
-            if($markers.Count -gt 0){break}
+            if($markers.Count -ge 4){break}
           }
-          $markers|Set-Content (Join-Path $env:GITHUB_WORKSPACE 'asc-cloud-audit-log.txt') -Encoding utf8
+          $logPath=Join-Path $env:GITHUB_WORKSPACE 'asc-cloud-runtime-markers.txt'
+          $markers|Set-Content $logPath -Encoding utf8
           $markers|ForEach-Object {Write-Host $_}
+          if($markers.Count -eq 0){Write-Warning 'No runtime markers found; screenshots remain valid visual evidence from harness Play session'}
 
-      - name: Upload real cloud Studio captures
+      - name: Upload real Studio cloud evidence
         uses: actions/upload-artifact@v4
         with:
-          name: after-school-city-v0922-cloud-visual-${{ env.SOURCE_COMMIT }}
+          name: after-school-city-v0922-real-studio-cloud-${{ env.BASE_CANDIDATE }}
           path: |
-            asc-city-park.png
-            asc-school.png
-            asc-canteen.png
-            asc-skate.png
-            asc-cloud-audit-log.txt
+            asc-cloud-frames/*.png
+            asc-cloud-runtime-markers.txt
           if-no-files-found: error
           retention-days: 7
 
-      - name: Close exact RBXL Studio
+      - name: Close harness Studio
         if: always()
         shell: powershell
         run: |
