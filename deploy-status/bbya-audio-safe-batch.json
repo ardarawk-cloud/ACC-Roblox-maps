@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "STOPPED_UPLOAD_QUOTA",
+  "status": "RUNNING_SEQUENTIAL",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -13,7 +13,7 @@
         "size": 3691128,
         "sha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba"
       },
-      "updatedAt": "2026-09-01T05:24:12.086059+00:00",
+      "updatedAt": "2026-09-01T05:25:23.845320+00:00",
       "normalizedSha256": "332e9cf3eebe2e724a7f4c2a0075c69d040091a7fb9829979168b55b5a6fb5ba",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3609,14 +3609,14 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-09-01T05:24:52.817669+00:00",
+      "updatedAt": "2026-09-01T05:21:26.346781+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 429,
       "uploadResponse": {
         "code": "RESOURCE_EXHAUSTED",
         "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
       },
-      "uploadedAt": "2026-09-01T05:24:54.077099+00:00",
+      "uploadedAt": "2026-09-01T05:21:27.066935+00:00",
       "status": "UPLOAD_QUOTA_BLOCKED"
     }
   },
