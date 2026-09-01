@@ -129,6 +129,9 @@
       },
       "ASC_GlobalSignageReadabilityV0922": {
         "$path": "after-school-city.global-signage-readability-v0922.server.lua"
+      },
+      "ASC_SignageTypographyBoostV0923": {
+        "$path": "after-school-city.signage-typography-v0923.server.lua"
       }
     },
     "StarterGui": {
