@@ -1,6 +1,6 @@
--- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v3
+-- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v4
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Party panel is a direct child of BBYACommandMenuUI, never inside FeatureDrawer.
+-- Party panel is standalone and copies DancePanel geometry exactly.
 
 local Players=game:GetService("Players")
 local StarterGui=game:GetService("StarterGui")
@@ -23,7 +23,6 @@ local function label(parent,value,pos,size,font,ts,color)
 end
 local function hideBackpack()pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)end)end
 
--- Replace only our own previous slot/panel.
 local oldSlot=body:FindFirstChild("Slot_PARTY_STUFF")
 if oldSlot then oldSlot:Destroy() end
 local oldPanel=menuGui:FindFirstChild("PartyStuffPanel",true)
@@ -51,14 +50,24 @@ local layout=Instance.new("UIListLayout");layout.Padding=UDim.new(0,10);layout.F
 
 local function layoutPanel()
  camera=workspace.CurrentCamera or camera
- local v=camera and camera.ViewportSize or Vector2.new(1280,720)
- local w=math.clamp(math.floor(v.X*.19),270,320)
- local h=math.clamp(math.floor(v.Y*.66),420,520)
- panel.Position=UDim2.new(1,-12,.5,0);panel.Size=UDim2.fromOffset(w,h)
+ local social=pg:FindFirstChild("BBYASocialHangoutUI")
+ local dance=social and social:FindFirstChild("DancePanel")
+ panel.AnchorPoint=Vector2.new(1,.5)
+ panel.Position=UDim2.new(1,-12,.5,0)
+ if dance then
+  panel.AnchorPoint=dance.AnchorPoint
+  panel.Position=dance.Position
+  panel.Size=dance.Size
+ else
+  local v=camera and camera.ViewportSize or Vector2.new(1280,720)
+  panel.Size=UDim2.fromOffset(math.clamp(math.floor(v.X*.19),270,320),math.clamp(math.floor(v.Y*.72),470,560))
+ end
+ panel:SetAttribute("BBYAPartyGeometry","MATCH_DANCE_V4")
 end
 layoutPanel()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutPanel) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layoutPanel)end)
+pg.ChildAdded:Connect(function(child)if child.Name=="BBYASocialHangoutUI" then task.defer(layoutPanel);task.delay(.2,layoutPanel) end end)
 
 local GEAR={{name="Money Gun",label="MONEY GUN",accent=Color3.fromRGB(66,230,124)},{name="Glowstick",label="GLOWSTICK",accent=C.cyan},{name="Party Sparkler",label="PARTY SPARKLER",accent=C.gold}}
 local function closePanel(showMenu)
@@ -85,12 +94,12 @@ local put=Instance.new("TextButton")
 put.Name="Party_PUT_AWAY";put.LayoutOrder=4;put.Size=UDim2.new(1,0,0,58);put.BackgroundColor3=Color3.fromRGB(35,31,40);put.BackgroundTransparency=.18;put.BorderSizePixel=0;put.Text="SIMPAN / PUT AWAY";put.TextColor3=C.white;put.Font=Enum.Font.GothamBlack;put.TextSize=10;put.ZIndex=505;put.Active=true;put.Parent=list
 corner(put,10);stroke(put,C.pink,.35);put.Activated:Connect(putAway)
 
-partyButton.Activated:Connect(function()drawer.Visible=false;panel.Visible=true;panel.ZIndex=500;hideBackpack()end)
+partyButton.Activated:Connect(function()layoutPanel();drawer.Visible=false;panel.Visible=true;panel.ZIndex=500;hideBackpack()end)
 back.Activated:Connect(function()closePanel(true)end)
 
 player:SetAttribute("BBYACustomPartyGearUI",true);player:SetAttribute("BBYAPartyGearStored",true)
 for i=1,6 do task.delay(i*.35,hideBackpack) end
 player.CharacterAdded:Connect(function()task.delay(1.2,function()player:SetAttribute("BBYAPartyGearStored",true);hideBackpack()end)end)
 task.defer(hideBackpack)
-menuGui:SetAttribute("BBYAPartyStuffAuthority","V3_STANDALONE_COMPACT")
-print("[BBYA TEST] Party Stuff v3 standalone compact online")
+menuGui:SetAttribute("BBYAPartyStuffAuthority","V4_MATCH_DANCE")
+print("[BBYA TEST] Party Stuff v4 online: standalone + exact DancePanel geometry")
