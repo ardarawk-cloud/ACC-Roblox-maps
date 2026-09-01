@@ -1,0 +1,177 @@
+name: After School City V0.9.3 Final Environment QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v093-final-environment-polish
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v093-final-environment-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact-source narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = '0d930f955522d36f16b0d363f74d962105eefcdc'
+          git cat-file -e "$base^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'V0.9.2.3 LIVE base unavailable' }
+          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $base){ throw "Candidate not based on exact v41 LIVE source: $mergeBase" }
+          $allowed = @(
+            '.github/workflows/after-school-city-v093-final-environment-qc.yml',
+            'maps/after-school-city/after-school-city.final-environment-v093.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if($changed.Count -ne 3){ throw "Expected exactly 3 files, got $($changed.Count): $($changed -join ', ')" }
+          foreach($path in $changed){ if($allowed -notcontains $path){ throw "Scope violation: $path" } }
+          foreach($path in $allowed){ if($changed -notcontains $path){ throw "Missing required change: $path" } }
+          Write-Host "V0.9.3 NARROW DIFF PASS source=$env:GITHUB_SHA"
+
+      - name: Final environment static checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scriptPath = 'maps/after-school-city/after-school-city.final-environment-v093.server.lua'
+          $projectPath = 'maps/after-school-city/default.project.json'
+          $script = Get-Content $scriptPath -Raw
+          $project = Get-Content $projectPath -Raw
+          $null = $project | ConvertFrom-Json
+
+          foreach($token in @(
+            '0.9.3-final-environment-polish-1',
+            'ASC_SignageTypographyBoostPass',
+            'V093_FinalEnvironmentPolish',
+            'SchoolFinalArchitecturalDepth',
+            'DowntownFinalServiceDepth',
+            'StudentRowFinalServiceDepth',
+            'StreetTreeFinalSilhouette',
+            'RecreationFinalFurniture',
+            'ASC_V093FinalGrade',
+            'ASC_V093Atmosphere',
+            'CanCollide = false',
+            'CanTouch = false',
+            'CanQuery = false',
+            'ASC_V093RoadsUnchanged',
+            'ASC_V093PoolUnchanged',
+            'ASC_V093VisualSafety',
+            'ASC_FinalEnvironmentPolishPass'
+          )){
+            if($script -notmatch [regex]::Escape($token)){ throw "Missing final-environment marker: $token" }
+          }
+
+          foreach($forbidden in @(
+            'SurfaceGui',
+            'TextLabel',
+            'StoreSign',
+            'ParkEntrySign',
+            'SkateSign',
+            'Lighting.ClockTime =',
+            'SoundId',
+            'MarketplaceService',
+            'DataStoreService',
+            'PromptProductPurchase',
+            'ProcessReceipt',
+            'Terrain:FillBlock',
+            'RemoteEvent',
+            'RemoteFunction',
+            'HumanoidStateType'
+          )){
+            if($script -match [regex]::Escape($forbidden)){ throw "Forbidden authority introduced: $forbidden" }
+          }
+
+          foreach($token in @(
+            'ASC_FinalEnvironmentPolishV093',
+            'after-school-city.final-environment-v093.server.lua',
+            'ASC_SignageTypographyBoostV0923',
+            'ASC_GlobalSignageReadabilityV0922',
+            'ASC_PersonalMusicPlayer'
+          )){
+            if($project -notmatch [regex]::Escape($token)){ throw "Missing Rojo marker: $token" }
+          }
+
+          $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+          foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication lock missing: $token" }
+          }
+
+          foreach($lockedPath in @(
+            'maps/after-school-city/after-school-city.signage-typography-v0923.server.lua',
+            'maps/after-school-city/after-school-city.global-signage-readability-v0922.server.lua',
+            'maps/after-school-city/after-school-city.precision-environment-v092.server.lua',
+            'maps/after-school-city/after-school-city.premium-environment-v091.server.lua',
+            'maps/after-school-city/after-school-city.premium-exterior.server.lua',
+            'maps/after-school-city/after-school-city.swimmable-pool.server.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua',
+            'maps/after-school-city/after-school-city.world.server.lua'
+          )){
+            $diff = git diff --name-only '0d930f955522d36f16b0d363f74d962105eefcdc' $env:GITHUB_SHA -- $lockedPath
+            if($diff){ throw "Protected source changed: $lockedPath" }
+          }
+          Write-Host 'FINAL ENVIRONMENT STATIC QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe missing' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'asc-v093-qc'
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          $place = Join-Path $out 'after-school-city-v093.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            'STATUS=QC_PASSED',
+            'MODE=FINAL_ENVIRONMENT_POLISH_V0_9_3',
+            'BASE_LIVE_COMMIT=0d930f955522d36f16b0d363f74d962105eefcdc',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'SCOPE=VISUAL_NONCOLLIDE_FINAL_ENVIRONMENT',
+            'SIGNAGE_GEOMETRY=UNCHANGED',
+            'PROTECTED=ROADS_POOL_GAMEPLAY_MUSIC_DEDICATION_SIGNAGE'
+          )
+          $receipt | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v093-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
