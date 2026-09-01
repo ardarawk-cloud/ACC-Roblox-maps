@@ -1,7 +1,7 @@
--- BBYA MUSIC UI TEST — UI KERNEL v1.2
+-- BBYA MUSIC UI TEST — UI KERNEL v1.3
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
 -- ONE shell authority. No polling loops. No competing resize scripts.
--- Normal panels use the exact proven Dance v12 geometry. Music is large. Developer DJ is untouched.
+-- Normal panels use the exact proven Dance v10 outer geometry. Music is large. Developer DJ is untouched.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -20,7 +20,7 @@ local wallRemote=remotes and remotes:FindFirstChild("DJWall")
 
 local old=pg:FindFirstChild("BBYACommandMenuUI");if old then old:Destroy() end
 local gui=Instance.new("ScreenGui");gui.Name="BBYACommandMenuUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=220;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V1_2_DANCE_GEOMETRY")
+gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V1_3_DANCE_V10_GEOMETRY")
 gui:SetAttribute("BBYASinglePanelMode",true)
 dock.Visible=false
 
@@ -30,10 +30,10 @@ local function stroke(o,c,tr)local x=o:FindFirstChild("KernelStroke") or Instanc
 local function label(parent,value,pos,size,font,ts,color)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=value;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=color or C.white;l.TextWrapped=true;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.Parent=parent;return l end
 local function button(parent,value,pos,size,color)local b=Instance.new("TextButton");b.Text=value;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=color or C.card;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=10;b.AutoButtonColor=true;b.Active=true;b.Selectable=true;b.Parent=parent;corner(b,9);stroke(b,C.line,.6);return b end
 local function vp()camera=workspace.CurrentCamera or camera;return camera and camera.ViewportSize or Vector2.new(1280,720)end
-local function normalRect()local v=vp();return math.clamp(math.floor(v.X*.19),270,320),math.clamp(math.floor(v.Y*.72),470,560)end
+local function normalRect()local v=vp();return math.clamp(math.floor(v.X*.18),220,270),math.clamp(v.Y-18,390,700)end
 local function clearLegacyScale(o)if not o then return end;for _,n in ipairs({"BBYAOwnerPanelScaleV7","BBYAOwnerCommunityScaleV7","BBYAMatchDanceScaleV4","BBYAMatchDanceScaleV5","BBYAMatchDanceScaleV6","BBYAMatchDanceScaleV13","BBYAMatchDanceScaleV14"}) do local s=o:FindFirstChild(n);if s and s:IsA("UIScale") then s:Destroy() end end end
-local function placeNormal(o)if not o or not o:IsA("GuiObject") then return end;clearLegacyScale(o);local w,h=normalRect();o.AnchorPoint=Vector2.new(1,.5);o.Position=UDim2.new(1,-12,.5,0);o.Size=UDim2.fromOffset(w,h);o.ClipsDescendants=true;o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V1_2_DANCE_V12")end
-local function placeMusic(o)if not o or not o:IsA("GuiObject") then return end;clearLegacyScale(o);local v=vp();o.AnchorPoint=Vector2.new(.5,.5);o.Position=UDim2.fromScale(.5,.53);o.Size=UDim2.fromOffset(math.clamp(v.X-80,720,980),math.clamp(v.Y-36,480,680));o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V1_2_MUSIC")end
+local function placeNormal(o)if not o or not o:IsA("GuiObject") then return end;clearLegacyScale(o);local w,h=normalRect();o.AnchorPoint=Vector2.new(1,.5);o.Position=UDim2.new(1,-12,.5,0);o.Size=UDim2.fromOffset(w,h);o.ClipsDescendants=true;o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V1_3_DANCE_V10")end
+local function placeMusic(o)if not o or not o:IsA("GuiObject") then return end;clearLegacyScale(o);local v=vp();o.AnchorPoint=Vector2.new(.5,.5);o.Position=UDim2.fromScale(.5,.53);o.Size=UDim2.fromOffset(math.clamp(v.X-80,720,980),math.clamp(v.Y-36,480,680));o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V1_3_MUSIC")end
 
 local menuButton=button(gui,"MENU",UDim2.new(1,-86,0,8),UDim2.fromOffset(74,36),Color3.fromRGB(18,18,25));menuButton.Name="MenuButton";stroke(menuButton,C.pink,.28)
 local drawer=Instance.new("Frame");drawer.Name="FeatureDrawer";drawer.BackgroundColor3=C.bg;drawer.BackgroundTransparency=.24;drawer.BorderSizePixel=0;drawer.Visible=false;drawer.ZIndex=201;drawer.Parent=gui;corner(drawer,14);stroke(drawer,C.pink,.46);placeNormal(drawer)
@@ -144,4 +144,4 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 pg.ChildAdded:Connect(function(child)if child.Name=="BBYASocialHangoutUI" or child.Name=="BBYADJWallUI" then task.defer(bindSources);task.delay(.15,bindSources) end end)
 for i=0,8 do task.delay(i*.2,bindSources) end
 task.defer(function()bindSources();layoutAll()end)
-print("[BBYA TEST] UI KERNEL v1.2 online: proven Dance v12 geometry restored")
+print("[BBYA TEST] UI KERNEL v1.3 online: exact proven Dance v10 outer geometry")
