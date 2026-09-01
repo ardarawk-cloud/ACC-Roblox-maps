@@ -1,9 +1,10 @@
--- BBYA SOCIAL HUB — CLUB GEAR v1
+-- BBYA SOCIAL HUB — CLUB GEAR v2
 -- Common hangout props: Money Gun, Glowstick and Party Sparkler. Cosmetic only; no damage.
 local Players=game:GetService("Players")
 local Debris=game:GetService("Debris")
 local TweenService=game:GetService("TweenService")
 local Workspace=game:GetService("Workspace")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 
 local COLORS={
  Color3.fromRGB(0,205,235),
@@ -12,9 +13,15 @@ local COLORS={
  Color3.fromRGB(255,255,255),
 }
 
+local GEAR_NAMES={
+ ["Money Gun"]=true,
+ ["Glowstick"]=true,
+ ["Party Sparkler"]=true,
+}
+
 local function clearOld(container)
  if not container then return end
- for _,name in ipairs({"Money Gun","Glowstick","Party Sparkler"}) do
+ for name in pairs(GEAR_NAMES) do
   local old=container:FindFirstChild(name);if old then old:Destroy() end
  end
 end
@@ -69,6 +76,12 @@ local function makeSparkler()
  return tool
 end
 
+local function makeGear(player,name)
+ if name=="Money Gun" then return makeMoneyGun(player) end
+ if name=="Glowstick" then return makeGlowstick() end
+ if name=="Party Sparkler" then return makeSparkler() end
+end
+
 local function give(player)
  local backpack=player:FindFirstChildOfClass("Backpack");if not backpack then return end
  clearOld(backpack);clearOld(player.Character)
@@ -77,6 +90,41 @@ local function give(player)
  makeSparkler().Parent=backpack
 end
 
+local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
+if not remotes then remotes=Instance.new("Folder");remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage end
+local gearRemote=remotes:FindFirstChild("ClubGear")
+if not gearRemote then gearRemote=Instance.new("RemoteEvent");gearRemote.Name="ClubGear";gearRemote.Parent=remotes end
+
+local function equipGear(player,name)
+ if not GEAR_NAMES[name] then return end
+ local char=player.Character
+ local hum=char and char:FindFirstChildOfClass("Humanoid")
+ local backpack=player:FindFirstChildOfClass("Backpack")
+ if not hum or not backpack then return end
+ hum:UnequipTools()
+ local tool=backpack:FindFirstChild(name)
+ if not tool then
+  local inChar=char:FindFirstChild(name)
+  if inChar and inChar:IsA("Tool") then tool=inChar;tool.Parent=backpack end
+ end
+ if not tool then
+  tool=makeGear(player,name)
+  if tool then tool.Parent=backpack end
+ end
+ if tool and tool:IsA("Tool") then hum:EquipTool(tool) end
+end
+
+gearRemote.OnServerEvent:Connect(function(player,action,name)
+ if action=="equip" then
+  equipGear(player,tostring(name or ""))
+ elseif action=="putAway" then
+  local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid")
+  if hum then hum:UnequipTools() end
+ elseif action=="refresh" then
+  give(player)
+ end
+end)
+
 local function bind(player)
  player.CharacterAdded:Connect(function()task.wait(1);if player.Parent then give(player) end end)
  if player.Character then task.defer(function()task.wait(1);give(player)end) end
@@ -84,4 +132,4 @@ end
 Players.PlayerAdded:Connect(bind)
 for _,p in ipairs(Players:GetPlayers()) do bind(p) end
 
-print("[BBYA] Club Gear online: Money Gun + Glowstick + Party Sparkler (cosmetic/no damage)")
+print("[BBYA] Club Gear v2 online: server-authoritative equip + cosmetic tools")
