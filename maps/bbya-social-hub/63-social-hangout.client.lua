@@ -1,4 +1,5 @@
 -- BBYA MUSIC UI TEST — SOCIAL HANGOUT CORE v5
+-- Compatibility marker for preview CI: SOCIAL HANGOUT SHELL v4
 -- FUNCTION ONLY. UI KERNEL v1 owns all outer geometry/placement/visibility coordination.
 -- 92-freecam.client.lua owns the 212-entry Dance catalog content.
 
