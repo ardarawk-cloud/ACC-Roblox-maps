@@ -129,7 +129,7 @@ local function playGuarded(deck,i,audible)
  if not validTrack(i) then return false end
  deck:Stop();deck.SoundId=soundIdFor(i);deck.PlaybackSpeed=playbackSpeedFor(i);deck.TimePosition=0;deck.Volume=audible and 1 or 0;local ok=pcall(function()ContentProvider:PreloadAsync({deck})end);if not ok then quarantine(i,"preload_error");return false end;deck:Play();if not waitLoaded(deck,LOAD_TIMEOUT) then deck:Stop();quarantine(i,"load_timeout");return false end;local p0=deck.TimePosition;task.wait(.28);if deck.TimePosition<=p0+.02 then deck:Stop();quarantine(i,"timeline_stalled");return false end;return true
 end
-local function chooseStartup()local tries={};for i=1,#PLAYLIST do table.insert(tries,i) end;for i=#tries,2,-1 do local j=rng:NextInteger(1,i);tries[i],tries[j]=tries[j],tries[i] end end;for _,i in ipairs(tries) do if validTrack(i) then return i end end end
+local function chooseStartup()local tries={};for i=1,#PLAYLIST do table.insert(tries,i) end;for i=#tries,2,-1 do local j=rng:NextInteger(1,i);tries[i],tries[j]=tries[j],tries[i] end;for _,i in ipairs(tries) do if validTrack(i) then return i end end end
 local function startInitial()for _=1,#PLAYLIST+2 do local i=chooseStartup();if not i then break end;if playGuarded(activeDeck,i,true) then current=i;activeDeck:SetAttribute("DeckRole","LIVE");activeDeck:SetAttribute("PreparedIndex",i);activeDeck:SetAttribute("PreparedReady",true);standbyDeck:SetAttribute("DeckRole","STANDBY");shuffleBag={};fireState();ensureStandby();return true end end;return false end
 local function popRequestIfMatches(i)local req=requestQueue[1];if req and req.index==i then table.remove(requestQueue,1);return req end end
 local function transition(forceImmediate)
