@@ -1,0 +1,50 @@
+name: BBYA Underground Pentagram Plus4 QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+      - '.github/workflows/bbya-underground-pentagram-plus4-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-underground-pentagram-plus4.rbxl
+          test -s /tmp/bbya-underground-pentagram-plus4.rbxl
+      - name: Validate four emissive pentagram fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          src='maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+          grep -q 'PentagonFixtureCount",6' "$src"
+          grep -q 'PentagramFixtureCount",4' "$src"
+          grep -q 'WhitePentagramCeilingLights' "$src"
+          grep -q 'StarNorthWest' "$src"
+          grep -q 'StarNorthEast' "$src"
+          grep -q 'StarSouthWest' "$src"
+          grep -q 'StarSouthEast' "$src"
+          grep -q 'BBYAEmissiveOnly' "$src"
+          grep -q 'BBYALocalLightEmitter",false' "$src"
+          if grep -q 'Instance.new("SurfaceLight")\|Instance.new("PointLight")\|Instance.new("SpotLight")' "$src"; then
+            echo 'Pentagram fixture pass must remain emissive-only.' >&2
+            exit 1
+          fi
+          echo 'BBYA Underground four-pentagram fixture contract passed.'
