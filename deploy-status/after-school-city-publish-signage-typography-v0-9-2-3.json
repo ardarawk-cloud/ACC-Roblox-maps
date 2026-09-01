@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "SIGNAGE_TYPOGRAPHY_BOOST_V0_9_2_3",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "0d930f955522d36f16b0d363f74d962105eefcdc",
+  "baseLiveCommit": "76362800d3133ffc01ca776ee5efe16f51e3a49a",
+  "qcRunId": "33531359049",
+  "qcArtifactId": 9809857234,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 41,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 154906,
+  "placeSha256": "14a1c57aa9b3fc67047082f04a95f479452da7c1c0228797f8db309cf70d7fd9",
+  "runId": "33537517070",
+  "publishedAt": "2026-09-01T17:24:06Z",
+  "note": "V0.9.2.3 exact QC-locked signage typography boost. All world SurfaceGui sign text is explicitly fitted larger and bolder while physical board geometry remains unchanged. Roads, swimmable pool authority, gameplay/economy/persistence/monetization, personal music player and dedication remain unchanged."
+}
