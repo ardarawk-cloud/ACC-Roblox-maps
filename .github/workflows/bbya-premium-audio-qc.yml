@@ -68,7 +68,7 @@ jobs:
           fi
 
           grep -q 'BBYAAudioReactive' "$lighting"
-          grep -q 'client audio intensity' "$lighting"
+          grep -q 'actual audio amplitude' "$lighting"
           if grep -q 'r.s.Brightness=r.base' "$lighting"; then
             echo 'Server lighting must not fight client loudness intensity.' >&2
             exit 1
