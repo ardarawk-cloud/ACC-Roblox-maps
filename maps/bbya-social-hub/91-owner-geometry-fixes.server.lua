@@ -1,11 +1,13 @@
--- BBYA SOCIAL HUB — OWNER GEOMETRY + TALL-AVATAR FIXES v5
+-- BBYA SOCIAL HUB — OWNER GEOMETRY + TALL-AVATAR FIXES v6
 -- Targeted geometry fixes plus local daytime floor-reflection suppression.
 -- Adds street entrance + Main Club headroom for tall/Zepeto-style avatars while preserving approved identity.
+-- v6 raises the remaining Main Club overhead light rigs and removes the obsolete wooden reception ceiling slats.
 -- Global Lighting, audio, Underground lighting, VIP, Rooftop and Mall are untouched.
 -- VIP floor-neon ownership belongs EXCLUSIVELY to 72-vip-floor-neon-fix.server.lua.
 -- IMPORTANT: never delete South/West/North/East approved PreciseInnerFloorNeon segments here.
 
 local Workspace=game:GetService("Workspace")
+local TweenService=game:GetService("TweenService")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
 if not root then return end
 
@@ -236,4 +238,107 @@ task.spawn(function()
  root:SetAttribute("BBYAMainEntranceHeadroomAuthority","MAIN_ENTRANCE_TALL_AVATAR_V2")
 end)
 
-print("[BBYA] Owner geometry v5 online: Underground safety collider + floor guard + Zepeto-safe entrance/Main headroom; legendary entrance logo preserved")
+-- 10) MAIN CLUB OVERHEAD LIGHT HEIGHT + RECEPTION WOOD CLEANUP V1
+-- The base ceiling moved in v2, but two late beauty/premium passes still spawn their own fixtures at the old height.
+-- Raise those remaining fixtures to the new ceiling line. The animated moving-head rig is rebuilt at the raised datum
+-- so its Tween targets cannot drag it back down. Remove only the obsolete wooden reception ceiling slats; keep its lights.
+local LIGHT_MARK="BBYAMainOverheadLightRaisedV1"
+
+local function shiftLightPartY(part,delta)
+ if not part or not part:IsA("BasePart") or part:GetAttribute(LIGHT_MARK) then return end
+ part.CFrame=part.CFrame+Vector3.new(0,delta,0)
+ part:SetAttribute(LIGHT_MARK,true)
+end
+
+task.spawn(function()
+ local front=root:WaitForChild("Floor1FrontPremium",45)
+ local premium=root:WaitForChild("MainClubPremiumV4",45)
+ local beauty=root:WaitForChild("MainClubBeautyV5",45)
+ if not premium or not beauty then return end
+
+ -- Let the v2 headroom pass and late beauty builders settle first.
+ local deadline=os.clock()+20
+ repeat task.wait(.15) until root:GetAttribute("BBYAMainTallAvatarClearance")==true or os.clock()>=deadline
+ beauty:WaitForChild("CeilingFillFixture_6",15)
+ beauty:WaitForChild("BarPendantBulb_3",15)
+ task.wait(1.2)
+
+ -- Remove the old wooden slatted reception canopy. The already-raised reception downlights remain.
+ if front then
+  local reception=front:FindFirstChild("Reception",true)
+  if reception then
+   local removed=0
+   for _,d in ipairs(reception:GetChildren()) do
+    if d:IsA("BasePart") and d.Name:match("^ReceptionCeilingSlat") then d:Destroy();removed+=1 end
+   end
+   reception:SetAttribute("BBYAOldWoodCeilingRemoved",true)
+   reception:SetAttribute("BBYAOldWoodCeilingRemovedCount",removed)
+  end
+ end
+
+ -- Beauty v5/v7 spawns six ceiling fills and three bar pendants independently of CeilingArchitecture.
+ for _,d in ipairs(beauty:GetDescendants()) do
+  if d:IsA("BasePart") then
+   local n=d.Name
+   if n:match("^CeilingFillFixture_") or n:match("^CeilingFillDiffuser_")
+    or n:match("^BarPendantStem_") or n:match("^BarPendantShade_") or n:match("^BarPendantBulb_") then
+    shiftLightPartY(d,HEADROOM_DELTA)
+   end
+  end
+ end
+ beauty:SetAttribute("BBYAOverheadLightDeltaY",HEADROOM_DELTA)
+ beauty:SetAttribute("BBYACeilingFillsRaised",true)
+ beauty:SetAttribute("BBYABarPendantsRaised",true)
+
+ -- Premium v4 moving heads have active absolute-CFrame tweens. Rebuild the rig at +8 so animation stays correct.
+ local oldRig=premium:FindFirstChild("DanceFloorMovingHeads",true)
+ if oldRig then oldRig:Destroy() end
+ local rig=Instance.new("Model")
+ rig.Name="DanceFloorMovingHeads"
+ rig:SetAttribute("BBYARaisedForTallAvatar",true)
+ rig:SetAttribute("BBYAVerticalDeltaY",HEADROOM_DELTA)
+ rig.Parent=premium
+
+ local colors={
+  pink=Color3.fromRGB(247,55,158),
+  cyan=Color3.fromRGB(32,190,215),
+  warm=Color3.fromRGB(255,219,184),
+  black=Color3.fromRGB(7,7,9),
+  metal=Color3.fromRGB(61,60,66),
+ }
+ local fixtures={
+  {-18,25.15,4,-10,colors.pink},{-8,25.15,4,10,colors.cyan},{4,25.15,4,-8,colors.warm},{16,25.15,4,8,colors.pink},
+  {-18,25.15,25,9,colors.cyan},{-8,25.15,25,-9,colors.pink},{4,25.15,25,7,colors.cyan},{16,25.15,25,-7,colors.warm},
+ }
+ local function rigPart(name,size,cf,color,material,parent)
+  local p=Instance.new("Part")
+  p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color;p.Material=material or Enum.Material.Metal
+  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=material~=Enum.Material.Neon
+  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth;p.Parent=parent
+  p:SetAttribute(LIGHT_MARK,true)
+  return p
+ end
+ for i,d in ipairs(fixtures) do
+  local m=Instance.new("Model");m.Name="MovingHead_"..i;m.Parent=rig
+  rigPart("Clamp",Vector3.new(1.25,.28,.50),CFrame.new(d[1],d[2]+.70,d[3]),colors.metal,Enum.Material.Metal,m)
+  rigPart("Yoke",Vector3.new(.20,1.25,1.35),CFrame.new(d[1],d[2],d[3]),colors.black,Enum.Material.Metal,m)
+  local baseCF=CFrame.new(d[1],d[2]-.35,d[3])*CFrame.Angles(math.rad(-24),math.rad(d[4]),0)
+  local head=rigPart("Head",Vector3.new(1.18,1.05,1.65),baseCF,colors.black,Enum.Material.Metal,m)
+  local lens=rigPart("Lens",Vector3.new(.72,.55,.08),baseCF*CFrame.new(0,0,-.86),d[5],Enum.Material.Neon,m)
+  lens.Transparency=.18;lens.CastShadow=false
+  local light=Instance.new("SpotLight")
+  light.Name="ClubBeam";light.Face=Enum.NormalId.Front;light.Color=d[5]
+  light.Brightness=(d[5]==colors.warm) and .42 or .52;light.Range=38;light.Angle=24;light.Shadows=false;light.Parent=head
+  local target=baseCF*CFrame.Angles(math.rad(7),math.rad((i%2==0) and 14 or -14),0)
+  local duration=6.4+(i%3)*.8
+  TweenService:Create(head,TweenInfo.new(duration,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{CFrame=target}):Play()
+  TweenService:Create(lens,TweenInfo.new(duration,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{CFrame=target*CFrame.new(0,0,-.86)}):Play()
+ end
+
+ premium:SetAttribute("BBYAMovingHeadsRaised",true)
+ premium:SetAttribute("BBYAMovingHeadDeltaY",HEADROOM_DELTA)
+ root:SetAttribute("BBYAMainOverheadLightsRaised","V1_PLUS8")
+ root:SetAttribute("BBYAReceptionOldWoodCeilingRemoved",true)
+end)
+
+print("[BBYA] Owner geometry v6 online: Zepeto headroom + raised Main Club overhead lights + old reception wood removed; legendary entrance logo preserved")
