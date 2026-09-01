@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v4
+-- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v5
 -- Underground-only dark-profile hard lock after live mobile overexposure regression.
--- Reacquires the final premium Underground if startup order races, then re-enforces the
--- approved DARK_UNDERGROUND_V6_SLIGHT_LIFT values after all builders settle.
+-- Reacquires the final premium Underground if startup order races, then keeps the
+-- approved DARK_UNDERGROUND_V6_SLIGHT_LIFT values guarded for the full server lifetime.
 -- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
 local Workspace=game:GetService("Workspace")
@@ -34,7 +34,7 @@ repeat
  task.wait(.15)
 until os.clock()>=deadline
 if not basement then
- warn("[BBYA] Basement Full Upgrade v4 skipped: stable premium Underground not ready")
+ warn("[BBYA] Basement Full Upgrade v5 skipped: stable premium Underground not ready")
  return
 end
 
@@ -55,6 +55,7 @@ out:SetAttribute("AudioSystemUntouched",true)
 out:SetAttribute("GlobalLightingUntouched",true)
 out:SetAttribute("BrightnessMicroAdjust",true)
 out:SetAttribute("StartupRaceHardened",true)
+out:SetAttribute("ContinuousDarkLock",true)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -279,13 +280,32 @@ local function enforceDarkLock()
  basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
  basement:SetAttribute("OverbrightRegressionFixed",true)
  basement:SetAttribute("BrightnessMicroAdjust",true)
- basement:SetAttribute("DarkLockVersion","V4_LATE_ENFORCED")
+ basement:SetAttribute("DarkLockVersion","V5_CONTINUOUS_LOCAL_GUARD")
  basement:SetAttribute("DarkLockLastApplied",os.time())
 end
 
+-- Initial boot settle remains for builder-order races.
 enforceDarkLock()
 for _,delaySeconds in ipairs({2,5,10,20}) do
  task.delay(delaySeconds,enforceDarkLock)
 end
 
-print("[BBYA] Basement Full Upgrade v4 online: dark profile hard-locked / startup race hardened / audio untouched")
+-- Runtime guard: the old v4 authority stopped after 20 seconds, so any later writer could
+-- revive the white checker / hot local-light profile. Keep ONLY Underground-local values
+-- authoritative for the server lifetime. Audio and global Lighting remain completely untouched.
+local guardAlive=true
+basement.AncestryChanged:Connect(function()
+ if basement.Parent~=root then guardAlive=false end
+end)
+basement.DescendantAdded:Connect(function()
+ if guardAlive then task.defer(enforceDarkLock) end
+end)
+task.spawn(function()
+ while guardAlive and basement.Parent==root and root:FindFirstChild("Underground")==basement do
+  task.wait(5)
+  if not guardAlive or basement.Parent~=root or root:FindFirstChild("Underground")~=basement then break end
+  enforceDarkLock()
+ end
+end)
+
+print("[BBYA] Basement Full Upgrade v5 online: continuous Underground dark lock / audio + global Lighting untouched")
