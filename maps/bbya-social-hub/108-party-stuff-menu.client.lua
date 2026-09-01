@@ -1,9 +1,10 @@
--- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v4
+-- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v5
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Party panel is standalone and copies DancePanel geometry exactly.
+-- Party is standalone, visually matches DancePanel, and gear equip is server-authoritative.
 
 local Players=game:GetService("Players")
 local StarterGui=game:GetService("StarterGui")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local menuGui=pg:WaitForChild("BBYACommandMenuUI",30)
@@ -48,21 +49,32 @@ local list=Instance.new("Frame")
 list.Position=UDim2.fromOffset(14,68);list.Size=UDim2.new(1,-28,1,-82);list.BackgroundTransparency=1;list.ZIndex=501;list.Parent=panel
 local layout=Instance.new("UIListLayout");layout.Padding=UDim.new(0,10);layout.FillDirection=Enum.FillDirection.Vertical;layout.HorizontalAlignment=Enum.HorizontalAlignment.Center;layout.SortOrder=Enum.SortOrder.LayoutOrder;layout.Parent=list
 
-local function layoutPanel()
- camera=workspace.CurrentCamera or camera
+local function danceMetrics()
  local social=pg:FindFirstChild("BBYASocialHangoutUI")
  local dance=social and social:FindFirstChild("DancePanel")
- panel.AnchorPoint=Vector2.new(1,.5)
- panel.Position=UDim2.new(1,-12,.5,0)
  if dance then
-  panel.AnchorPoint=dance.AnchorPoint
-  panel.Position=dance.Position
-  panel.Size=dance.Size
+  local scale=dance:FindFirstChild("BBYAViewportScaleV1") or dance:FindFirstChildWhichIsA("UIScale")
+  return dance,scale and scale.Scale or 1
+ end
+ return nil,1
+end
+local function applyDanceScale(target,scale)
+ local s=target:FindFirstChild("BBYAMatchDanceScaleV5")
+ if not s then s=Instance.new("UIScale");s.Name="BBYAMatchDanceScaleV5";s.Parent=target end
+ s.Scale=scale
+end
+local function layoutPanel()
+ camera=workspace.CurrentCamera or camera
+ local dance,scale=danceMetrics()
+ panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-12,.5,0)
+ if dance then
+  panel.AnchorPoint=dance.AnchorPoint;panel.Position=dance.Position;panel.Size=dance.Size
  else
   local v=camera and camera.ViewportSize or Vector2.new(1280,720)
   panel.Size=UDim2.fromOffset(math.clamp(math.floor(v.X*.19),270,320),math.clamp(math.floor(v.Y*.72),470,560))
  end
- panel:SetAttribute("BBYAPartyGeometry","MATCH_DANCE_V4")
+ applyDanceScale(panel,scale)
+ panel:SetAttribute("BBYAPartyGeometry","MATCH_DANCE_SIZE_SCALE_V5")
 end
 layoutPanel()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutPanel) end
@@ -70,28 +82,40 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 pg.ChildAdded:Connect(function(child)if child.Name=="BBYASocialHangoutUI" then task.defer(layoutPanel);task.delay(.2,layoutPanel) end end)
 
 local GEAR={{name="Money Gun",label="MONEY GUN",accent=Color3.fromRGB(66,230,124)},{name="Glowstick",label="GLOWSTICK",accent=C.cyan},{name="Party Sparkler",label="PARTY SPARKLER",accent=C.gold}}
+local gearRemote=nil
+local function remote()
+ if gearRemote and gearRemote.Parent then return gearRemote end
+ local folder=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
+ gearRemote=folder and folder:FindFirstChild("ClubGear")
+ return gearRemote
+end
 local function closePanel(showMenu)
  panel.Visible=false
  if showMenu then drawer.Visible=true end
  hideBackpack()
 end
 local function equip(name)
- local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid");local backpack=player:FindFirstChildOfClass("Backpack")
- if not hum or not backpack then return end
- hum:UnequipTools();task.wait()
- local tool=backpack:FindFirstChild(name);if tool and tool:IsA("Tool") then hum:EquipTool(tool) end
- player:SetAttribute("BBYAPartyGearStored",false);closePanel(false)
+ local r=remote()
+ if r and r:IsA("RemoteEvent") then
+  r:FireServer("equip",name)
+ else
+  local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid");local backpack=player:FindFirstChildOfClass("Backpack")
+  local tool=backpack and backpack:FindFirstChild(name)
+  if hum and tool and tool:IsA("Tool") then hum:UnequipTools();hum:EquipTool(tool) end
+ end
+ player:SetAttribute("BBYAPartyGearStored",false)
+ task.delay(.08,function()closePanel(false)end)
 end
 local function putAway()
- local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid");if hum then hum:UnequipTools() end
+ local r=remote();if r and r:IsA("RemoteEvent") then r:FireServer("putAway") else local ch=player.Character;local h=ch and ch:FindFirstChildOfClass("Humanoid");if h then h:UnequipTools() end end
  player:SetAttribute("BBYAPartyGearStored",true);closePanel(false)
 end
 for i,g in ipairs(GEAR) do
- local b=Instance.new("TextButton");b.Name="Party_"..g.label:gsub(" ","_");b.LayoutOrder=i;b.Size=UDim2.new(1,0,0,58);b.BackgroundColor3=C.card;b.BackgroundTransparency=.22;b.BorderSizePixel=0;b.Text=g.label;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=11;b.ZIndex=505;b.Active=true;b.Parent=list
+ local b=Instance.new("TextButton");b.Name="Party_"..g.label:gsub(" ","_");b.LayoutOrder=i;b.Size=UDim2.new(1,0,0,58);b.BackgroundColor3=C.card;b.BackgroundTransparency=.22;b.BorderSizePixel=0;b.Text=g.label;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=11;b.ZIndex=505;b.Active=true;b.Selectable=true;b.Parent=list
  corner(b,10);stroke(b,g.accent,.48);b.Activated:Connect(function()equip(g.name)end)
 end
 local put=Instance.new("TextButton")
-put.Name="Party_PUT_AWAY";put.LayoutOrder=4;put.Size=UDim2.new(1,0,0,58);put.BackgroundColor3=Color3.fromRGB(35,31,40);put.BackgroundTransparency=.18;put.BorderSizePixel=0;put.Text="SIMPAN / PUT AWAY";put.TextColor3=C.white;put.Font=Enum.Font.GothamBlack;put.TextSize=10;put.ZIndex=505;put.Active=true;put.Parent=list
+put.Name="Party_PUT_AWAY";put.LayoutOrder=4;put.Size=UDim2.new(1,0,0,58);put.BackgroundColor3=Color3.fromRGB(35,31,40);put.BackgroundTransparency=.18;put.BorderSizePixel=0;put.Text="SIMPAN / PUT AWAY";put.TextColor3=C.white;put.Font=Enum.Font.GothamBlack;put.TextSize=10;put.ZIndex=505;put.Active=true;put.Selectable=true;put.Parent=list
 corner(put,10);stroke(put,C.pink,.35);put.Activated:Connect(putAway)
 
 partyButton.Activated:Connect(function()layoutPanel();drawer.Visible=false;panel.Visible=true;panel.ZIndex=500;hideBackpack()end)
@@ -101,5 +125,5 @@ player:SetAttribute("BBYACustomPartyGearUI",true);player:SetAttribute("BBYAParty
 for i=1,6 do task.delay(i*.35,hideBackpack) end
 player.CharacterAdded:Connect(function()task.delay(1.2,function()player:SetAttribute("BBYAPartyGearStored",true);hideBackpack()end)end)
 task.defer(hideBackpack)
-menuGui:SetAttribute("BBYAPartyStuffAuthority","V4_MATCH_DANCE")
-print("[BBYA TEST] Party Stuff v4 online: standalone + exact DancePanel geometry")
+menuGui:SetAttribute("BBYAPartyStuffAuthority","V5_MATCH_DANCE_SCALE_SERVER_GEAR")
+print("[BBYA TEST] Party Stuff v5 online: Dance visual scale + server gear equip")
