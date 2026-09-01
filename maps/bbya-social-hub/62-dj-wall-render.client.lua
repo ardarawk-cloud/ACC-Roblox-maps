@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — AUDIO-REACTIVE NIGHTLIFE RENDERER v2
--- Reads local Sound.PlaybackLoudness from the existing MAIN / UNDERGROUND / FUNKOT engines.
--- No playlist, queue, purchase, or transport authority lives here.
+-- BBYA SOCIAL HUB — AUDIO-REACTIVE NIGHTLIFE RENDERER v3
+-- Reads local Sound.PlaybackLoudness from MAIN and FUNKOT only.
+-- Underground lighting is intentionally decoupled from music: its visual authority is static/local.
+-- No playlist, queue, purchase, transport, or Underground lighting authority lives here.
 -- Visual response is amplitude/envelope based; this does NOT pretend to be a frequency spectrum.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -117,7 +118,6 @@ wallRemote.OnClientEvent:Connect(function(action,data)if action=="wallRenderStat
 
 local venue={
  MAIN={soundNames={"BBYAClubDeckA","BBYAClubDeckB"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
- BASEMENT={soundNames={"BBYABasementDeckA","BBYABasementDeckB"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
  FUNKOT={soundNames={"BBYAFunkotDeck"},peak=120,fast=0,slow=0,energy=0,beat=0,lights={},beams={}},
 }
 
@@ -140,15 +140,8 @@ local function refreshFX()
    if isLight(d) and d.Parent and (d.Parent.Name:find("StageBeam",1,true) or d.Parent.Name:find("DanceBeam",1,true)) then cacheLight(venue.MAIN,d) end
   end
  end
- local underground=root:FindFirstChild("Underground")
- if underground then
-  for _,d in ipairs(underground:GetDescendants()) do
-   if isLight(d) and d.Parent then
-    local n=d.Parent.Name
-    if n:find("CeilingBlue",1,true) or n:find("CeilingYellow",1,true) or n:find("DJBoothBlue",1,true) or n:find("DJBoothYellow",1,true) or n:find("BarBlue",1,true) or n:find("BarYellow",1,true) then cacheLight(venue.BASEMENT,d) end
-   end
-  end
- end
+ -- Underground intentionally has no audio-reactive light scan. Music cannot mutate
+ -- Underground light brightness anymore; v6 local lighting owns the room by itself.
  local funkot=root:FindFirstChild("FunkotClubV1")
  if funkot then
   local movers=funkot:FindFirstChild("MovingHeads")
@@ -198,9 +191,8 @@ RunService.RenderStepped:Connect(function(dt)
  if accumulator<.05 then return end
  accumulator=0
  local mainRaw=updateEnvelope(venue.MAIN)
- updateEnvelope(venue.BASEMENT);updateEnvelope(venue.FUNKOT)
+ updateEnvelope(venue.FUNKOT)
  applyRig(venue.MAIN,.48,.76,.34)
- applyRig(venue.BASEMENT,.58,.90,.36)
  applyRig(venue.FUNKOT,.32,.72,.28)
 
  if wallState.mode=="message" then return end
@@ -233,5 +225,6 @@ RunService.RenderStepped:Connect(function(dt)
  end
 end)
 
-screen:SetAttribute("BBYAAudioReactiveRenderer","V2_PLAYBACK_LOUDNESS")
-print("[BBYA] audio-reactive renderer v2 online: real loudness envelope / MAIN + UNDERGROUND + FUNKOT")
+screen:SetAttribute("BBYAAudioReactiveRenderer","V3_MAIN_FUNKOT_ONLY")
+screen:SetAttribute("BBYAUndergroundAudioReactiveLighting",false)
+print("[BBYA] audio-reactive renderer v3 online: MAIN + FUNKOT only / Underground lighting decoupled from music")
