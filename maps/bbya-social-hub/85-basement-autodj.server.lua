@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v1
+-- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v2
 -- Independent underground channel: Indo breakbeat / indo-bounce only.
 -- Uses its own Deck A/B, FIFO request queue and 4-second AutoMix.
+-- v2 removes confirmed dead legacy audio and adds approved custom Breakbeat uploads with per-track playback restoration.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -16,20 +17,15 @@ local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("Bind
 local PLAYLIST={
  {title="Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",id="77926481439798",style="underground"},
  {title="SOLEDAD [ DESTRA PRAYOGO ]#BKB2K25",id="112400686884526",style="underground"},
- {title="SIAPKAH JATUH CINTA LAGI [ DESTRA PRAYOGO ]#BKB2K25",id="75709298846740",style="underground"},
  {title="MASIH DENGANMU [ DESTRA PRAYOGO ]#BKB2K25",id="140443777425109",style="underground"},
  {title="MACARENA 2026 - ZHAK (BKB EDIT)",id="135670059308492",style="underground"},
- {title="JAUH KO PERGI BKB - NATALINO DE [ ND MIX ]",id="114038149273002",style="underground"},
  {title="JANGAN TUNGGU LAMA LAMA BKB VOL 5 ( SAHRUL AGAM )",id="99406970263948",style="underground"},
  {title="I NEED A DOCTOR 2025 - VAY BREAKS #BKB STYLE",id="129689050998627",style="underground"},
  {title="I KNOW YOU WANT ME - KIN BKB EDIT",id="117479133947987",style="underground"},
- {title="EMANG DASAR -IVNSYH-",id="125107386771710",style="underground"},
  {title="EM - KUNTUL PANJANG - [ GERALD ATIMANG BOOTLEG ] 2026",id="95368919127704",style="underground"},
  {title="BANG BANG BANG - KIN EDIT",id="123499438012066",style="underground"},
  {title="ANIMA BINTANG [ DESTRA PRAYOGO ]#BKB2K25",id="140442667497371",style="underground"},
  {title="ANAK SINGKONG [ DESTRA PRAYOGO ]#BKB2K25",id="90986894139778",style="underground"},
- {title="Adry WG - GAK ENGGA DULU (BKB)#LocalPACK2026",id="130909529715712",style="underground"},
- {title="666 L3 - TONY RAY PUT YOUR HAND'S UP BKB REVOLUTIONS",id="116771187608517",style="underground"},
  {title="17.Mugwanti (Mahesa & hmp BKB Edit)",id="113698017406179",style="underground"},
  {title="06. ARIA PIL KB (EANN BKB EDIT)",id="109573287368195",style="underground"},
  {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="underground"},
@@ -46,7 +42,19 @@ local PLAYLIST={
  {title="NGAPAIN REPOT (DEKA EDIT)",id="105840679569825",style="underground"},
  {title="Ngapain Repot ( Aldy Alvaro BKB edit )",id="106277277729828",style="underground"},
  {title="MORENA BKB (HARLY EDIT)",id="97696234195316",style="underground"},
- {title="MATTA BAND - KETAHUAN BKB (VIP LORDBOY EDIT)-1",id="106194805739169",style="underground"}
+ {title="I LOVE IT - KIN EDIT",id="131463436495955",style="underground",playbackSpeed=0.8},
+ {title="Christina Perri - Jar of Hearts (Noka AxL) Breakbeat Remix",id="90545257553901",style="underground",playbackSpeed=0.8},
+ {title="BREAKBEAT BAILAR - SHELTER - REMIX DJ TELOOR",id="82694276529271",style="underground",playbackSpeed=0.8},
+ {title="Lie Stadium Breakbeat - NightSoundClouds",id="95672519158444",style="underground",playbackSpeed=0.8},
+ {title="YOU DON'T EVEN KNOW ME STADIUM BREAKBEAT - SlowBass Nation",id="133306911098734",style="underground",playbackSpeed=0.8},
+ {title="Russian Roulette Remix Stadium - GABUT MEDIA",id="114401398635082",style="underground",playbackSpeed=0.8},
+ {title="MILLION STARS STADIUM BREAKBEAT - SlowBass Nation",id="118285103846602",style="underground",playbackSpeed=0.8},
+ {title="BREAKBEAT STADIUM LOVE ME CRAZY REMIX By YUSKEN DJOKZ",id="126182016289963",style="underground",playbackSpeed=0.8},
+ {title="DJ TELOOR - WET GUITAR",id="74227363291004",style="underground",playbackSpeed=0.8},
+ {title="EE SAKADUNG KADING 2026 - -Ndhy Huo-",id="82680681349117",style="underground",playbackSpeed=0.8},
+ {title="BLACK HOLE - DJ TELOOR REMIX",id="126615725566516",style="underground",playbackSpeed=0.8},
+ {title="SERANA - FOR REVENGE (DJ Ugi Mekti BKB Edit)",id="79441401193706",style="underground",playbackSpeed=0.8},
+ {title="MUTIARA - IYAN.FG - #AlbumJDMBreaks2026",id="117092832313612",style="underground",playbackSpeed=0.8}
 }
 
 local MIX_SECONDS=4.0
@@ -76,7 +84,7 @@ local eq=Instance.new("EqualizerSoundEffect");eq.Name="BasementEQ";eq.LowGain=2.
 local comp=Instance.new("CompressorSoundEffect");comp.Name="BasementCompressor";comp.Threshold=-11;comp.Ratio=2.5;comp.Attack=.05;comp.Release=.24;comp.GainMakeup=.7;comp.Parent=group
 local room=Instance.new("ReverbSoundEffect");room.Name="BasementRoom";room.DecayTime=1.15;room.Density=.86;room.Diffusion=.9;room.DryLevel=-1;room.WetLevel=-11;room.Parent=group
 
-local function makeDeck(name)local s=Instance.new("Sound");s.Name=name;s.Volume=0;s.Looped=false;s.SoundGroup=group;s.Parent=SoundService;s:SetAttribute("DeckRole","STANDBY");s:SetAttribute("PreparedIndex",0);s:SetAttribute("PreparedReady",false);return s end
+local function makeDeck(name)local s=Instance.new("Sound");s.Name=name;s.Volume=0;s.Looped=false;s.PlaybackSpeed=1;s.SoundGroup=group;s.Parent=SoundService;s:SetAttribute("DeckRole","STANDBY");s:SetAttribute("PreparedIndex",0);s:SetAttribute("PreparedReady",false);return s end
 local deckA=makeDeck("BBYABasementDeckA")
 local deckB=makeDeck("BBYABasementDeckB")
 local activeDeck,standbyDeck=deckA,deckB;activeDeck:SetAttribute("DeckRole","LIVE")
@@ -95,10 +103,11 @@ local standbyLoadToken=0
 
 local function validTrack(i)local t=PLAYLIST[i];return t and t.id and tostring(t.id)~="" and not badTracks[i] end
 local function soundIdFor(i)return validTrack(i) and ("rbxassetid://"..tostring(PLAYLIST[i].id)) or nil end
+local function playbackSpeedFor(i)local t=PLAYLIST[i];return tonumber(t and t.playbackSpeed) or 1 end
 local function deckName(deck)return deck==deckA and "A" or "B" end
 local function stateData()
  local t=PLAYLIST[current];local qTop=requestQueue[1]
- return {index=current,title=t and t.title or "",style=t and t.style or "",playing=activeDeck.IsPlaying and not paused,queue=#requestQueue,audioMode="BASEMENT_INDO_AUTOMIX",venue="BASEMENT",genre="INDO",library=#PLAYLIST,liveDeck=deckName(activeDeck),standbyDeck=deckName(standbyDeck),standbyIndex=standbyIndex or 0,standbyTitle=(standbyIndex and PLAYLIST[standbyIndex] and PLAYLIST[standbyIndex].title) or "",nextRequest=qTop and qTop.index or 0,mixSeconds=MIX_SECONDS}
+ return {index=current,title=t and t.title or "",style=t and t.style or "",playbackSpeed=t and (tonumber(t.playbackSpeed) or 1) or 1,playing=activeDeck.IsPlaying and not paused,queue=#requestQueue,audioMode="BASEMENT_INDO_AUTOMIX",venue="BASEMENT",genre="INDO",library=#PLAYLIST,liveDeck=deckName(activeDeck),standbyDeck=deckName(standbyDeck),standbyIndex=standbyIndex or 0,standbyTitle=(standbyIndex and PLAYLIST[standbyIndex] and PLAYLIST[standbyIndex].title) or "",nextRequest=qTop and qTop.index or 0,mixSeconds=MIX_SECONDS}
 end
 local function fireState(target)if target then stateRemote:FireClient(target,"music",stateData());return end;forBasementPlayers(function(p)stateRemote:FireClient(p,"music",stateData())end)end
 local function quarantine(i,reason)if not i or badTracks[i] then return end;badTracks[i]=reason or true;shuffleBag={};warn(string.format("[BBYA/Basement] quarantined %d %s (%s)",i,PLAYLIST[i] and PLAYLIST[i].title or "?",tostring(reason)));group:SetAttribute("LastBadTrack",i);group:SetAttribute("LastBadReason",tostring(reason))end
@@ -110,7 +119,7 @@ local function waitLoaded(sound,timeout)local deadline=os.clock()+(timeout or LO
 local function prepareStandby(i,fromRequest)
  if not validTrack(i) or transitioning then return false end
  if standbyIndex==i and standbyDeck:GetAttribute("PreparedReady")==true then standbyFromRequest=fromRequest==true;return true end
- standbyLoadToken+=1;local token=standbyLoadToken;standbyIndex=i;standbyFromRequest=fromRequest==true;standbyDeck:Stop();standbyDeck.Volume=0;standbyDeck.SoundId=soundIdFor(i);standbyDeck.TimePosition=0;standbyDeck:SetAttribute("PreparedIndex",i);standbyDeck:SetAttribute("PreparedReady",false);standbyDeck:SetAttribute("DeckRole","STANDBY");fireState()
+ standbyLoadToken+=1;local token=standbyLoadToken;standbyIndex=i;standbyFromRequest=fromRequest==true;standbyDeck:Stop();standbyDeck.Volume=0;standbyDeck.SoundId=soundIdFor(i);standbyDeck.PlaybackSpeed=playbackSpeedFor(i);standbyDeck.TimePosition=0;standbyDeck:SetAttribute("PreparedIndex",i);standbyDeck:SetAttribute("PreparedReady",false);standbyDeck:SetAttribute("DeckRole","STANDBY");fireState()
  task.spawn(function()
   local ok=pcall(function()ContentProvider:PreloadAsync({standbyDeck})end)
   if token~=standbyLoadToken or standbyIndex~=i then return end
@@ -122,7 +131,7 @@ end
 local function ensureStandby()if transitioning then return end;local i,fromReq=desiredStandby();if i and (standbyIndex~=i or standbyFromRequest~=(fromReq==true)) then prepareStandby(i,fromReq) end end
 local function playGuarded(deck,i,audible)
  if not validTrack(i) then return false end
- deck:Stop();deck.SoundId=soundIdFor(i);deck.TimePosition=0;deck.Volume=audible and 1 or 0;local ok=pcall(function()ContentProvider:PreloadAsync({deck})end);if not ok then quarantine(i,"preload_error");return false end;deck:Play();if not waitLoaded(deck,LOAD_TIMEOUT) then deck:Stop();quarantine(i,"load_timeout");return false end;local p0=deck.TimePosition;task.wait(.28);if deck.TimePosition<=p0+.02 then deck:Stop();quarantine(i,"timeline_stalled");return false end;return true
+ deck:Stop();deck.SoundId=soundIdFor(i);deck.PlaybackSpeed=playbackSpeedFor(i);deck.TimePosition=0;deck.Volume=audible and 1 or 0;local ok=pcall(function()ContentProvider:PreloadAsync({deck})end);if not ok then quarantine(i,"preload_error");return false end;deck:Play();if not waitLoaded(deck,LOAD_TIMEOUT) then deck:Stop();quarantine(i,"load_timeout");return false end;local p0=deck.TimePosition;task.wait(.28);if deck.TimePosition<=p0+.02 then deck:Stop();quarantine(i,"timeline_stalled");return false end;return true
 end
 local function chooseStartup()local tries={};for i=1,#PLAYLIST do table.insert(tries,i) end;for i=#tries,2,-1 do local j=rng:NextInteger(1,i);tries[i],tries[j]=tries[j],tries[i] end;for _,i in ipairs(tries) do if validTrack(i) then return i end end end
 local function startInitial()for _=1,#PLAYLIST+2 do local i=chooseStartup();if not i then break end;if playGuarded(activeDeck,i,true) then current=i;activeDeck:SetAttribute("DeckRole","LIVE");activeDeck:SetAttribute("PreparedIndex",i);activeDeck:SetAttribute("PreparedReady",true);standbyDeck:SetAttribute("DeckRole","STANDBY");shuffleBag={};fireState();ensureStandby();return true end end;return false end
