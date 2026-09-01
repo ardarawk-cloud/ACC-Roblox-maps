@@ -13,7 +13,7 @@
   "rojoVersion": "7.7.0",
   "placeBytes": 152275,
   "placeSha256": "7cae13389e82524aae6c2a235327ae80f5b5e03d97e62e3413cd85912063c29f",
-  "runId": "33518989976",
-  "publishedAt": "2026-09-01T14:21:46Z",
+  "runId": "33519245398",
+  "publishedAt": "2026-09-01T14:24:15Z",
   "note": "V0.9.2.2 exact QC-locked global signage readability pass. CITY PARK board is compacted to 12.8x2.6 and world SurfaceGui signage typography is normalized for stronger readability across school, park, skate, storefront, Student Row and wayfinding signs. Roads, swimmable pool authority, gameplay/economy/persistence/monetization, personal music player and dedication remain unchanged."
 }
