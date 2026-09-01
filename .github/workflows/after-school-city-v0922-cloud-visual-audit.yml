@@ -1,0 +1,196 @@
+name: After School City V0.9.2.2 Cloud Studio Visual Audit
+
+on:
+  push:
+    branches:
+      - after-school-city/v0922-cloud-visual-audit
+    paths:
+      - '.github/workflows/after-school-city-v0922-cloud-visual-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  visual-audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      QC_ARTIFACT_ID: '9778112640'
+      QC_SOURCE_COMMIT: '76362800d3133ffc01ca776ee5efe16f51e3a49a'
+      QC_RBXL_BYTES: '152275'
+      QC_RBXL_SHA256: '7cae13389e82524aae6c2a235327ae80f5b5e03d97e62e3413cd85912063c29f'
+      AUDIT_BRANCH: 'after-school-city/v0922-cloud-visual-audit'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download and verify exact QC artifact
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP 'asc-v0922-qc.zip'
+          $out=Join-Path $env:RUNNER_TEMP 'asc-v0922-qc'
+          if(Test-Path $out){Remove-Item $out -Recurse -Force}
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='ASC-Cloud-Visual-Audit'}
+          $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$env:QC_ARTIFACT_ID/zip"
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $uri -MaximumRedirection 10 -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $out -Force
+          $place=Get-ChildItem $out -Filter '*.rbxl' -File -Recurse
+          if($place.Count -ne 1){throw "Expected exactly one RBXL in artifact, got $($place.Count)"}
+          $place=$place[0]
+          $bytes=$place.Length
+          $hash=(Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:QC_RBXL_BYTES){throw "RBXL byte mismatch expected=$env:QC_RBXL_BYTES actual=$bytes"}
+          if($hash -ne $env:QC_RBXL_SHA256){throw "RBXL SHA mismatch expected=$env:QC_RBXL_SHA256 actual=$hash"}
+          "ASC_PLACE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT_QC_ARTIFACT_OK id=$env:QC_ARTIFACT_ID bytes=$bytes sha=$hash"
+
+      - name: Open exact candidate in cloud Roblox Studio and capture representative signage
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class ASCNativeWin {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+            public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+          }
+          "@
+
+          $studio=Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if(-not $studio){throw 'RobloxStudioBeta.exe not found on cloud worker'}
+          $before=@(Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
+          $launched=Start-Process -FilePath $studio.FullName -ArgumentList @("`"$env:ASC_PLACE`"") -PassThru
+          Start-Sleep -Seconds 18
+          $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$before -notcontains $_.Id} | Sort-Object StartTime -Descending | Select-Object -First 1
+          if(-not $proc){$proc=Get-Process -Id $launched.Id -ErrorAction SilentlyContinue}
+          if(-not $proc){throw 'Cloud Studio process did not start'}
+          $proc.Refresh()
+          $deadline=(Get-Date).AddSeconds(20)
+          while($proc.MainWindowHandle -eq 0 -and (Get-Date) -lt $deadline){Start-Sleep -Seconds 1;$proc.Refresh()}
+          if($proc.MainWindowHandle -eq 0){throw 'Cloud Studio window handle unavailable'}
+          $hwnd=[IntPtr]$proc.MainWindowHandle
+          [ASCNativeWin]::ShowWindow($hwnd,9)|Out-Null
+          [ASCNativeWin]::SetForegroundWindow($hwnd)|Out-Null
+          Start-Sleep -Seconds 2
+          [System.Windows.Forms.SendKeys]::SendWait('{F5}')
+          Start-Sleep -Seconds 12
+
+          $rootUI=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+          $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$rootUI.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+          $run=$rootUI.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+          if(-not $edit -or -not $run){throw 'Studio Command Bar controls unavailable on cloud worker'}
+          $valuePattern=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+
+          function Run-Target([string]$needle){
+            $safe=$needle.Replace('\\','\\\\').Replace('"','\\"')
+            $lua=@"
+          print('[ASC_JOB_BEGIN:signage-$safe]')
+          local Players=game:GetService('Players')
+          local root=workspace:FindFirstChild('AfterSchoolCity')
+          local target=nil
+          local targetGui=nil
+          if root then
+            for _,gui in ipairs(root:GetDescendants()) do
+              if gui:IsA('SurfaceGui') then
+                for _,obj in ipairs(gui:GetDescendants()) do
+                  if obj:IsA('TextLabel') and string.find(string.upper(obj.Text or ''), string.upper('$safe'), 1, true) then
+                    local plate=gui.Adornee or gui.Parent
+                    if plate and plate:IsA('BasePart') then target=plate;targetGui=gui;break end
+                  end
+                end
+              end
+              if target then break end
+            end
+          end
+          print('TARGET=$safe|FOUND='..tostring(target~=nil)..'|PART='..tostring(target and target:GetFullName() or 'nil'))
+          local p=Players:GetPlayers()[1]
+          if target and p and p.Character then
+            local hrp=p.Character:FindFirstChild('HumanoidRootPart')
+            if hrp then
+              local normals={
+                [Enum.NormalId.Front]=Vector3.new(0,0,-1),[Enum.NormalId.Back]=Vector3.new(0,0,1),
+                [Enum.NormalId.Right]=Vector3.new(1,0,0),[Enum.NormalId.Left]=Vector3.new(-1,0,0),
+                [Enum.NormalId.Top]=Vector3.new(0,1,0),[Enum.NormalId.Bottom]=Vector3.new(0,-1,0)
+              }
+              local localNormal=normals[targetGui.Face] or Vector3.new(0,0,-1)
+              local normal=target.CFrame:VectorToWorldSpace(localNormal).Unit
+              local eye=target.Position
+              local pos=eye+normal*20+Vector3.new(0,-1.5,0)
+              hrp.CFrame=CFrame.lookAt(pos,eye)
+              print('TELEPORTED=true|POS='..tostring(pos)..'|TARGETPOS='..tostring(eye))
+            end
+          end
+          print('[ASC_JOB_END:signage-$safe]')
+          "@
+            $valuePattern.SetValue($lua)
+            Start-Sleep -Milliseconds 250
+            $invoke.Invoke()
+            Start-Sleep -Seconds 3
+          }
+
+          function Capture([string]$name){
+            $rect=New-Object ASCNativeWin+RECT
+            [ASCNativeWin]::GetWindowRect($hwnd,[ref]$rect)|Out-Null
+            $w=[Math]::Max(640,$rect.Right-$rect.Left);$h=[Math]::Max(360,$rect.Bottom-$rect.Top)
+            $bmp=New-Object System.Drawing.Bitmap($w,$h)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($rect.Left,$rect.Top,0,0,(New-Object System.Drawing.Size($w,$h)))
+            $targetW=1100;$targetH=[int]($h*$targetW/$w)
+            $small=New-Object System.Drawing.Bitmap($targetW,$targetH)
+            $g2=[System.Drawing.Graphics]::FromImage($small)
+            $g2.DrawImage($bmp,0,0,$targetW,$targetH)
+            $path=Join-Path $env:GITHUB_WORKSPACE ("asc-cloud-$name.jpg")
+            $codec=[System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders()|Where-Object {$_.MimeType -eq 'image/jpeg'}|Select-Object -First 1
+            $enc=New-Object System.Drawing.Imaging.EncoderParameters(1)
+            $enc.Param[0]=New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality,[long]72)
+            $small.Save($path,$codec,$enc)
+            $g.Dispose();$g2.Dispose();$bmp.Dispose();$small.Dispose()
+            return $path
+          }
+
+          $captures=@{}
+          foreach($item in @(
+            @{Key='city-park';Needle='CITY PARK'},
+            @{Key='school';Needle='AFTER SCHOOL ACADEMY'},
+            @{Key='canteen';Needle='STUDENT CANTEEN'},
+            @{Key='skate';Needle='SKATE'}
+          )){
+            [ASCNativeWin]::SetForegroundWindow($hwnd)|Out-Null
+            Run-Target $item.Needle
+            $captures[$item.Key]=Capture $item.Key
+          }
+
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='ASC-Cloud-Visual-Audit'}
+          function Put-RepoFile([string]$path,[byte[]]$bytes,[string]$message){
+            $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+            $sha=$null
+            try{$sha=(Invoke-RestMethod -Method Get -Uri ($api+'?ref='+[uri]::EscapeDataString($env:AUDIT_BRANCH)) -Headers $headers).sha}catch{if($_.Exception.Response.StatusCode.value__ -ne 404){throw}}
+            $body=@{message=$message;content=[Convert]::ToBase64String($bytes);branch=$env:AUDIT_BRANCH}
+            if($sha){$body.sha=$sha}
+            Invoke-RestMethod -Method Put -Uri $api -Headers $headers -Body ($body|ConvertTo-Json) -ContentType 'application/json'|Out-Null
+          }
+          foreach($key in $captures.Keys){Put-RepoFile "deploy-status/asc-v0922-cloud-$key.jpg" ([IO.File]::ReadAllBytes($captures[$key])) "Record ASC V0.9.2.2 cloud visual $key [skip ci]"}
+          $status=@{
+            status='CLOUD_STUDIO_CAPTURED';sourceCommit=$env:QC_SOURCE_COMMIT;qcArtifactId=[int64]$env:QC_ARTIFACT_ID;
+            rbxlBytes=[int64]$env:QC_RBXL_BYTES;rbxlSha256=$env:QC_RBXL_SHA256;capturedAt=(Get-Date -Format o);
+            targets=@('CITY PARK','AFTER SCHOOL ACADEMY','STUDENT CANTEEN','SKATE');studioProcess=$proc.Id
+          }|ConvertTo-Json -Depth 5
+          Put-RepoFile 'deploy-status/asc-v0922-cloud-visual.json' ([Text.Encoding]::UTF8.GetBytes($status)) 'Record ASC V0.9.2.2 cloud visual status [skip ci]'
+
+          [ASCNativeWin]::SetForegroundWindow($hwnd)|Out-Null
+          [System.Windows.Forms.SendKeys]::SendWait('+{F5}')
+          Start-Sleep -Seconds 2
+          try{$proc.CloseMainWindow()|Out-Null}catch{}
