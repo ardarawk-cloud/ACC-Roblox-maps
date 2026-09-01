@@ -143,6 +143,9 @@
         "$className": "StarterPlayerScripts",
         "ASC_PersonalMusicPlayer": {
           "$path": "after-school-city.music-player.client.lua"
+        },
+        "ASC_CloudAuditCamera": {
+          "$path": "after-school-city.cloud-audit-camera.client.lua"
         }
       }
     },
