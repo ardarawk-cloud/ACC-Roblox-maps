@@ -1,0 +1,79 @@
+name: After School City V0.9.2.2 Cloud Harness Build
+
+on:
+  push:
+    branches:
+      - after-school-city/v0922-cloud-harness
+    paths:
+      - 'maps/after-school-city/**'
+      - '.github/workflows/after-school-city-v0922-cloud-harness-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout harness
+        uses: actions/checkout@v4
+
+      - name: Harness isolation gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $base='76362800d3133ffc01ca776ee5efe16f51e3a49a'
+          git fetch origin $base --depth=1
+          $changed=@(git diff --name-only $base $env:GITHUB_SHA)
+          $allowed=@(
+            '.github/workflows/after-school-city-v0922-cloud-harness-build.yml',
+            'maps/after-school-city/after-school-city.cloud-audit-camera.client.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          foreach($p in $changed){if($allowed -notcontains $p){throw "Harness scope violation: $p"}}
+          foreach($p in $allowed){if($changed -notcontains $p){throw "Harness file missing: $p"}}
+          Write-Host "HARNESS_ISOLATED=true base=$base source=$env:GITHUB_SHA"
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          $zip=Join-Path $env:RUNNER_TEMP 'rojo.zip'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive $zip $dir -Force
+          $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse|Select-Object -First 1
+          if(-not $exe){throw 'rojo.exe missing'}
+          "ROJO_EXE=$($exe.FullName)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build cloud harness
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'asc-v0922-cloud-harness'
+          New-Item -ItemType Directory -Path $out -Force|Out-Null
+          $place=Join-Path $out 'after-school-city-v0922-cloud-harness.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){throw 'Harness build failed'}
+          $bytes=(Get-Item $place).Length
+          $hash=(Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            'STATUS=CLOUD_HARNESS_BUILT',
+            'PUBLISHABLE=false',
+            'BASE_CANDIDATE=76362800d3133ffc01ca776ee5efe16f51e3a49a',
+            "HARNESS_COMMIT=$env:GITHUB_SHA",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash"
+          )|Set-Content (Join-Path $out 'harness-receipt.txt') -Encoding ascii
+          Write-Host "HARNESS_BYTES=$bytes"
+          Write-Host "HARNESS_SHA256=$hash"
+          "HARNESS_OUT=$out"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload non-publish harness
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v0922-cloud-harness-${{ github.sha }}
+          path: ${{ env.HARNESS_OUT }}
+          if-no-files-found: error
+          retention-days: 3
