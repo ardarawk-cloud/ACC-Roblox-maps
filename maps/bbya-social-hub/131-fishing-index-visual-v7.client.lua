@@ -1,9 +1,10 @@
--- BBYA MUSIC UI TEST — DANCE DIRECT SCROLL HOST v5
+-- BBYA MUSIC UI TEST — DANCE DIRECT SCROLL HOST v6
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
 -- Temporary host: FishingVisualIndex client slot is repurposed only on this isolated test branch.
 -- The source 212 catalog/filter remains owned by 92-freecam.client.lua.
 -- This patch MOVES generated dance buttons out of the source ScrollingFrame into a dedicated
 -- manually-laid-out ScrollingFrame so mobile users can browse the whole catalog by swipe/scroll.
+-- v6 fixes the v5 second-pass bug that deleted already-harvested rows when the source list was empty.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
@@ -36,13 +37,15 @@ end
 
 local function ensureHost(root)
  if host and host.Parent==root then return end
- local old=root:FindFirstChild("DanceDirectPageHostV4")
- if old then old:Destroy() end
- local oldScroll=root:FindFirstChild("DanceDirectScrollHostV5")
- if oldScroll then oldScroll:Destroy() end
+ local oldV4=root:FindFirstChild("DanceDirectPageHostV4")
+ if oldV4 then oldV4:Destroy() end
+ local oldV5=root:FindFirstChild("DanceDirectScrollHostV5")
+ if oldV5 then oldV5:Destroy() end
+ local oldV6=root:FindFirstChild("DanceDirectScrollHostV6")
+ if oldV6 then oldV6:Destroy() end
 
  host=Instance.new("ScrollingFrame")
- host.Name="DanceDirectScrollHostV5"
+ host.Name="DanceDirectScrollHostV6"
  host.BackgroundTransparency=1
  host.BorderSizePixel=0
  host.Position=UDim2.fromOffset(0,100)
@@ -92,20 +95,15 @@ local function layoutRows()
 
  host.CanvasSize=UDim2.fromOffset(0,math.max(0,totalRows*pitch-gap+6))
  if boundRoot then
-  boundRoot:SetAttribute("BBYADanceDirectScrollHost","V5")
+  boundRoot:SetAttribute("BBYADanceDirectScrollHost","V6")
   boundRoot:SetAttribute("BBYADanceVisibleRows",count)
   boundRoot:SetAttribute("BBYADanceBrowseMode","SCROLL")
  end
 end
 
-local function harvest(resetScroll)
- if busy or not boundList or not boundList.Parent or not boundRoot then return end
- busy=true
- ensureHost(boundRoot)
-
- destroyOldRows()
-
+local function collectFresh()
  local fresh={}
+ if not boundList then return fresh end
  for _,child in ipairs(boundList:GetChildren()) do
   if isDanceRow(child) then table.insert(fresh,child) end
  end
@@ -115,15 +113,31 @@ local function harvest(resetScroll)
   if ao==bo then return a.Name<b.Name end
   return ao<bo
  end)
+ return fresh
+end
 
+local function harvest(resetScroll)
+ if busy or not boundList or not boundList.Parent or not boundRoot then return end
+ busy=true
+ ensureHost(boundRoot)
+
+ local fresh=collectFresh()
+ -- Important: after the first harvest the source list is intentionally empty because its rows
+ -- now live in the visible host. A later verification pass must NOT destroy those hosted rows.
+ if #fresh==0 then
+  boundList.Visible=false
+  layoutRows()
+  busy=false
+  return
+ end
+
+ destroyOldRows()
  for _,b in ipairs(fresh) do
   b.Parent=host
   b.Visible=false
   table.insert(rows,b)
  end
 
- -- Source list stays alive because 92-freecam owns rendering/filtering,
- -- but the visible browsing surface is the dedicated scroll host above.
  boundList.Visible=false
  if resetScroll and host then host.CanvasPosition=Vector2.new(0,0) end
  layoutRows()
@@ -139,11 +153,7 @@ local function scheduleHarvest(resetScroll)
  end)
  task.delay(.22,function()
   if token~=generation then return end
-  local found=false
-  if boundList then
-   for _,c in ipairs(boundList:GetChildren()) do if isDanceRow(c) then found=true;break end end
-  end
-  if found then harvest(resetScroll) else layoutRows() end
+  harvest(false)
  end)
 end
 
@@ -167,7 +177,7 @@ local function bind(root,list,status)
 
  host:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutRows)
  scheduleHarvest(true)
- print("[BBYA TEST] Dance direct scroll host v5 bound")
+ print("[BBYA TEST] Dance direct scroll host v6 bound")
 end
 
 local function findUI()
