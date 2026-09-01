@@ -1,8 +1,7 @@
--- BBYA MUSIC UI TEST — MENU-ONLY DANCE VISUAL AUTHORITY v5
+-- BBYA MUSIC UI TEST — MENU ABSOLUTE VISUAL MATCH v6
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Owns ONLY main feature menu geometry + vertical scrolling.
--- Menu keeps Command Menu right dock; only Size + UIScale are copied from Dance.
--- Exactly one scroll host.
+-- Dance is READ-ONLY. Menu copies only Dance.AbsoluteSize (final on-screen pixels).
+-- Menu keeps its own right dock and owns exactly one vertical scroll host.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
@@ -11,35 +10,25 @@ local camera=workspace.CurrentCamera
 
 local SIDE_RIGHT_OFFSET=96
 local SIDE_TOP=8
-local SCALE_NAME="BBYAMatchDanceScaleV5"
-
-local function fallbackSize()
- camera=workspace.CurrentCamera or camera
- local v=camera and camera.ViewportSize or Vector2.new(1280,720)
- return math.clamp(math.floor(v.X*.30),296,330),math.clamp(math.floor(v.Y*.45),286,390)
-end
 
 local function isSlot(o)
  return o:IsA("GuiObject") and string.sub(o.Name or "",1,5)=="Slot_"
 end
 
-local function danceMetrics()
+local function danceVisualSize()
  local social=pg:FindFirstChild("BBYASocialHangoutUI")
  local dance=social and social:FindFirstChild("DancePanel")
- if not dance then return nil,1 end
- local s=dance:FindFirstChild("BBYAOwnerPanelScaleV7") or dance:FindFirstChildWhichIsA("UIScale")
- return dance,(s and s.Scale or 1)
+ if not dance or not dance:IsA("GuiObject") then return nil end
+ local a=dance.AbsoluteSize
+ if a.X<40 or a.Y<40 then return nil end
+ return Vector2.new(math.floor(a.X+.5),math.floor(a.Y+.5))
 end
 
-local function setScale(target,value)
- -- Remove previous test-owned menu scales so they cannot stack.
- for _,name in ipairs({"BBYAMatchDanceScaleV4",SCALE_NAME}) do
-  local old=target:FindFirstChild(name)
-  if old and old:IsA("UIScale") and name~=SCALE_NAME then old:Destroy() end
+local function clearOldMenuScales(drawer)
+ for _,name in ipairs({"BBYAMatchDanceScaleV4","BBYAMatchDanceScaleV5","BBYAMatchDanceScaleV6"}) do
+  local s=drawer:FindFirstChild(name)
+  if s and s:IsA("UIScale") then s:Destroy() end
  end
- local s=target:FindFirstChild(SCALE_NAME)
- if not s then s=Instance.new("UIScale");s.Name=SCALE_NAME;s.Parent=target end
- s.Scale=value
 end
 
 local function getSingleHost(drawer)
@@ -50,7 +39,7 @@ local function getSingleHost(drawer)
   end
  end
  if not keep then keep=Instance.new("ScrollingFrame");keep.Parent=drawer end
- keep.Name="BBYAMainMenuScrollOnlyV5"
+ keep.Name="BBYAMainMenuScrollOnlyV6"
  keep.Position=UDim2.fromOffset(10,72)
  keep.Size=UDim2.new(1,-20,1,-84)
  keep.BackgroundTransparency=1
@@ -65,93 +54,68 @@ local function getSingleHost(drawer)
  keep.ClipsDescendants=true
  keep.ZIndex=250
 
- local layouts={}
- for _,c in ipairs(keep:GetChildren()) do if c:IsA("UIListLayout") then table.insert(layouts,c) end end
- local layout=layouts[1]
- for i=2,#layouts do layouts[i]:Destroy() end
- if not layout then layout=Instance.new("UIListLayout");layout.Parent=keep end
- layout.Name="CompactMenuListV5"
+ local layout=keep:FindFirstChild("CompactMenuListV6")
+ if not layout or not layout:IsA("UIListLayout") then
+  for _,c in ipairs(keep:GetChildren()) do if c:IsA("UIListLayout") then c:Destroy() end end
+  layout=Instance.new("UIListLayout")
+  layout.Name="CompactMenuListV6"
+  layout.Parent=keep
+ end
  layout.FillDirection=Enum.FillDirection.Vertical
  layout.HorizontalAlignment=Enum.HorizontalAlignment.Center
  layout.SortOrder=Enum.SortOrder.LayoutOrder
  layout.Padding=UDim.new(0,8)
 
- if not keep:FindFirstChildWhichIsA("UIPadding") then
-  local pad=Instance.new("UIPadding")
-  pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,6)
-  pad.PaddingLeft=UDim.new(0,1);pad.PaddingRight=UDim.new(0,1)
-  pad.Parent=keep
- end
+ local pad=keep:FindFirstChildWhichIsA("UIPadding")
+ if not pad then pad=Instance.new("UIPadding");pad.Parent=keep end
+ pad.PaddingTop=UDim.new(0,2);pad.PaddingBottom=UDim.new(0,6)
+ pad.PaddingLeft=UDim.new(0,1);pad.PaddingRight=UDim.new(0,1)
  return keep,layout
 end
 
 local applying=false
-local boundDrawer=nil
 local function applyMenu()
  if applying then return end
  applying=true
-
  local gui=pg:FindFirstChild("BBYACommandMenuUI")
  local drawer=gui and gui:FindFirstChild("FeatureDrawer",true)
  if not drawer or not drawer:IsA("GuiObject") then applying=false;return end
 
- local dance,scale=danceMetrics()
- -- IMPORTANT: never copy Dance AnchorPoint/Position. Command Menu owns its own dock.
+ clearOldMenuScales(drawer)
  drawer.AnchorPoint=Vector2.new(1,0)
  drawer.Position=UDim2.new(1,-SIDE_RIGHT_OFFSET,0,SIDE_TOP)
- if dance then
-  drawer.Size=dance.Size
- else
-  local w,h=fallbackSize();drawer.Size=UDim2.fromOffset(w,h)
- end
- setScale(drawer,scale)
+ local visual=danceVisualSize()
+ if visual then drawer.Size=UDim2.fromOffset(visual.X,visual.Y) end
  drawer.ClipsDescendants=true
  drawer.Active=true
  drawer.BackgroundTransparency=math.max(drawer.BackgroundTransparency,.42)
- drawer:SetAttribute("BBYAMainMenuAuthority","RIGHT_DOCK_MATCH_DANCE_SIZE_SCALE_V5")
+ drawer:SetAttribute("BBYAMainMenuAuthority","DANCE_ABSOLUTE_PIXELS_V6")
 
  local host,layout=getSingleHost(drawer)
- local sourceParents={}
  local slots={}
  for _,d in ipairs(drawer:GetDescendants()) do if isSlot(d) then table.insert(slots,d) end end
- for _,d in ipairs(slots) do
-  if d.Parent~=host then sourceParents[d.Parent]=true;d.Parent=host end
- end
+ for _,d in ipairs(slots) do if d.Parent~=host then d.Parent=host end end
  for _,d in ipairs(host:GetChildren()) do
   if isSlot(d) then
    d.Size=UDim2.new(1,-4,0,48)
    d.Visible=(d.Name~="Slot_BBYA")
-   d.Active=true
-   d.ZIndex=251
+   d.Active=true;d.ZIndex=251
    for _,x in ipairs(d:GetDescendants()) do
     if x:IsA("TextButton") then x.Active=true;x.Selectable=true;x.ZIndex=252
     elseif x:IsA("TextLabel") then x.ZIndex=252 end
    end
   end
  end
- for p in pairs(sourceParents) do
-  if p and p.Parent and p:IsA("GuiObject") and p~=drawer and p~=host then p.Visible=false end
- end
- host.Visible=true
  task.defer(function()
   if host.Parent and layout.Parent then
-   host.CanvasSize=UDim2.fromOffset(0,math.max(host.AbsoluteSize.Y/math.max(scale,.01)+2,layout.AbsoluteContentSize.Y+10))
+   host.CanvasSize=UDim2.fromOffset(0,math.max(host.AbsoluteSize.Y+2,layout.AbsoluteContentSize.Y+10))
   end
  end)
-
- if boundDrawer~=drawer then
-  boundDrawer=drawer
-  drawer:GetPropertyChangedSignal("Visible"):Connect(function()
-   if drawer.Visible then task.defer(applyMenu);task.delay(.03,applyMenu);task.delay(.12,applyMenu) end
-  end)
- end
  applying=false
 end
 
 pg.ChildAdded:Connect(function(child)
- if child.Name=="BBYACommandMenuUI" or child.Name=="BBYASocialHangoutUI" then
-  task.defer(applyMenu);task.delay(.2,applyMenu)
- end
+ if child.Name=="BBYACommandMenuUI" or child.Name=="BBYASocialHangoutUI" then task.defer(applyMenu);task.delay(.2,applyMenu) end
 end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
  camera=workspace.CurrentCamera
@@ -160,6 +124,6 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyMenu) end
 for i=1,8 do task.delay(i*.25,applyMenu) end
-task.spawn(function()while true do task.wait(.35);applyMenu() end end)
+task.spawn(function()while true do task.wait(.5);applyMenu() end end)
 task.defer(applyMenu)
-print("[BBYA TEST] Main menu v5 online: right dock + Dance visual size + one scroll host")
+print("[BBYA TEST] Menu v6: Dance READ-ONLY, absolute visual pixels, right dock")
