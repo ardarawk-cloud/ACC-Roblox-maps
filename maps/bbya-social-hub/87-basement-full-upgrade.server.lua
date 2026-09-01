@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v5
--- Underground-only dark-profile hard lock after live mobile overexposure regression.
--- Reacquires the final premium Underground if startup order races, then keeps the
--- approved DARK_UNDERGROUND_V6_SLIGHT_LIFT values guarded for the full server lifetime.
+-- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v6
+-- Root-cause Underground lighting cleanup.
+-- One local lighting authority, four dedicated low-output room fills, and no runtime watchdog.
+-- Decorative neon remains visible but does not own SurfaceLight/PointLight emitters.
 -- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
 local Workspace=game:GetService("Workspace")
@@ -18,8 +18,8 @@ local function finalCandidate()
  end
 end
 
--- BasementPremiumUpgrade destroys/rebuilds Underground at server start. Instead of
--- aborting when that race happens, require the final candidate to remain stable.
+-- BasementPremiumUpgrade destroys/rebuilds Underground at startup. Wait for the
+-- final builder instance once, then configure it once. No recurring re-assert loop.
 local basement=nil
 local deadline=os.clock()+45
 repeat
@@ -34,7 +34,7 @@ repeat
  task.wait(.15)
 until os.clock()>=deadline
 if not basement then
- warn("[BBYA] Basement Full Upgrade v5 skipped: stable premium Underground not ready")
+ warn("[BBYA] Basement Full Upgrade v6 skipped: stable premium Underground not ready")
  return
 end
 
@@ -53,9 +53,10 @@ out:SetAttribute("PremiumLoungeV4",true)
 out:SetAttribute("UndergroundIdentity",true)
 out:SetAttribute("AudioSystemUntouched",true)
 out:SetAttribute("GlobalLightingUntouched",true)
-out:SetAttribute("BrightnessMicroAdjust",true)
 out:SetAttribute("StartupRaceHardened",true)
-out:SetAttribute("ContinuousDarkLock",true)
+out:SetAttribute("ContinuousDarkLock",false)
+out:SetAttribute("LightingAuthority","V6_SINGLE_LOCAL_AUTHORITY")
+out:SetAttribute("DecorativeNeonEmitters",false)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -67,7 +68,7 @@ local C={
  white=Color3.fromRGB(208,210,207),
  blue=Color3.fromRGB(0,144,255),
  yellow=Color3.fromRGB(255,205,38),
- wash=Color3.fromRGB(178,188,201),
+ wash=Color3.fromRGB(150,160,174),
 }
 
 local function part(name,size,cf,color,mat,collide,parent,transparency)
@@ -86,61 +87,64 @@ local function hiddenAnchor(name,pos,parent)
 end
 
 -- -----------------------------------------------------------------------------
--- 1) DARK CLUB LIGHTING AUTHORITY — APPROVED v436 PROFILE
+-- 1) SINGLE UNDERGROUND LOCAL LIGHTING AUTHORITY
 -- -----------------------------------------------------------------------------
-local lighting=Instance.new("Model");lighting.Name="DarkRoomLighting";lighting.Parent=out
-
-if pentagons then
- for _,obj in ipairs(pentagons:GetDescendants()) do
-  if obj:IsA("SurfaceLight") then
-   obj.Brightness=.16
-   obj.Range=12
-   obj.Angle=120
-   obj.Shadows=false
-  elseif obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
-   obj.Color=Color3.fromRGB(165,167,169)
-   obj.Transparency=.08
-  end
+-- Historical Underground builders attached a SurfaceLight to every decorative neon
+-- strip, pentagon edge, deck pad and bar accent. Those emitters overlapped and clipped
+-- mobile exposure. Remove that source once; do not create another system to fight it.
+local removedLocalLights=0
+for _,obj in ipairs(basement:GetDescendants()) do
+ if obj:IsA("SurfaceLight") or obj:IsA("PointLight") or obj:IsA("SpotLight") then
+  obj:Destroy()
+  removedLocalLights+=1
  end
 end
 
+-- Decorative fixtures stay visible as emissive geometry only.
+if pentagons then
+ for _,obj in ipairs(pentagons:GetDescendants()) do
+  if obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
+   obj.Color=Color3.fromRGB(165,167,169)
+   obj.Transparency=.08
+   obj:SetAttribute("BBYAEmissiveOnly",true)
+  end
+ end
+end
 for _,obj in ipairs(basement:GetChildren()) do
  if obj:IsA("BasePart") and (
   obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
   or obj.Name:match("^WallBlue") or obj.Name:match("^WallYellow")
  ) then
   obj.Transparency=.03
-  for _,light in ipairs(obj:GetChildren()) do
-   if light:IsA("SurfaceLight") then
-    light.Brightness=.15
-    light.Range=10.5
-    light.Angle=115
-    light.Shadows=false
-   end
-  end
+  obj:SetAttribute("BBYAEmissiveOnly",true)
  end
 end
 
-for xi,x in ipairs({-32,32}) do
- for zi,z in ipairs({-24,0,24}) do
-  local a=hiddenAnchor(string.format("CeilingFill_%d_%d",xi,zi),Vector3.new(x,-1.55,z),lighting)
-  local s=Instance.new("SurfaceLight")
-  s.Name="DarkCeilingWash";s.Face=Enum.NormalId.Bottom;s.Color=C.wash;s.Brightness=.11;s.Range=16;s.Angle=125;s.Shadows=false;s.Parent=a
- end
-end
-
-for i,d in ipairs({
- {Vector3.new(-52,-8,-22),Color3.fromRGB(120,141,166)},
- {Vector3.new(-52,-8,22),Color3.fromRGB(155,144,118)},
- {Vector3.new(52,-8,-22),Color3.fromRGB(155,144,118)},
- {Vector3.new(52,-8,22),Color3.fromRGB(120,141,166)},
+-- Four dedicated low-output fills replace dozens of overlapping local emitters.
+local lighting=Instance.new("Model")
+lighting.Name="UndergroundRoomLightingV6"
+lighting:SetAttribute("Authority","V6_SINGLE_LOCAL_AUTHORITY")
+lighting:SetAttribute("DedicatedLightCount",4)
+lighting.Parent=out
+for i,pos in ipairs({
+ Vector3.new(-30,-1.55,-20),
+ Vector3.new(30,-1.55,-20),
+ Vector3.new(-30,-1.55,20),
+ Vector3.new(30,-1.55,20),
 }) do
- local a=hiddenAnchor("SoftFill"..i,d[1],lighting)
- local l=Instance.new("PointLight")
- l.Name="DarkRoomFill";l.Color=d[2];l.Brightness=.10;l.Range=15;l.Shadows=false;l.Parent=a
+ local a=hiddenAnchor("RoomFillAnchor"..i,pos,lighting)
+ local s=Instance.new("SurfaceLight")
+ s.Name="UndergroundRoomFill"
+ s.Face=Enum.NormalId.Bottom
+ s.Color=C.wash
+ s.Brightness=.14
+ s.Range=22
+ s.Angle=125
+ s.Shadows=false
+ s.Parent=a
 end
 
-local function enforceChecker(targetChecker)
+local function setChecker(targetChecker)
  if not targetChecker then return end
  for _,tile in ipairs(targetChecker:GetChildren()) do
   if tile:IsA("BasePart") then
@@ -149,7 +153,7 @@ local function enforceChecker(targetChecker)
    local xi,zi=tile.Name:match("^Tile_([%-]?%d+)_([%-]?%d+)$")
    if xi and zi then
     if (tonumber(xi)+tonumber(zi))%2==0 then
-     tile.Color=Color3.fromRGB(138,140,138)
+     tile.Color=Color3.fromRGB(126,128,126)
     else
      tile.Color=Color3.fromRGB(10,11,14)
     end
@@ -157,24 +161,21 @@ local function enforceChecker(targetChecker)
   end
  end
 end
-enforceChecker(checker)
+setChecker(checker)
 
 local toneTargets={
- DJBoothBase=Color3.fromRGB(120,123,128),
- DJBoothTop=Color3.fromRGB(148,150,153),
- BarFrontWhite=Color3.fromRGB(112,115,120),
- BarTop=Color3.fromRGB(142,144,148),
+ DJBoothBase=Color3.fromRGB(112,115,120),
+ DJBoothTop=Color3.fromRGB(138,140,143),
+ BarFrontWhite=Color3.fromRGB(104,107,112),
+ BarTop=Color3.fromRGB(132,134,138),
 }
-local function enforceToneTargets()
- for name,color in pairs(toneTargets) do
-  local p=basement:FindFirstChild(name,true)
-  if p and p:IsA("BasePart") then
-   p.Color=color
-   p.Reflectance=0
-  end
+for name,color in pairs(toneTargets) do
+ local p=basement:FindFirstChild(name,true)
+ if p and p:IsA("BasePart") then
+  p.Color=color
+  p.Reflectance=0
  end
 end
-enforceToneTargets()
 
 -- -----------------------------------------------------------------------------
 -- 2) PREMIUM LOUNGE REBUILD
@@ -185,7 +186,7 @@ local lounge=Instance.new("Model");lounge.Name="PremiumLoungeV4";lounge.Parent=o
 local function lowGlow(name,size,cf,color,parent)
  local p=part(name,size,cf,color,Enum.Material.Neon,false,parent)
  p.CastShadow=false
- local l=Instance.new("SurfaceLight");l.Name="LoungeUnderglow";l.Face=Enum.NormalId.Top;l.Color=color;l.Brightness=.12;l.Range=4.5;l.Angle=110;l.Shadows=false;l.Parent=p
+ p:SetAttribute("BBYAEmissiveOnly",true)
  return p
 end
 
@@ -237,75 +238,16 @@ for _,x in ipairs({-48,-24,0,24,48}) do
  part("SouthTrim"..x,Vector3.new(.09,9.8,.18),CFrame.new(x,-7.8,-42.55),C.metal,Enum.Material.Metal,false,identity)
 end
 
-local function enforceDarkLock()
- if basement.Parent~=root or root:FindFirstChild("Underground")~=basement then return end
- local currentPentagons=basement:FindFirstChild("WhitePentagonCeilingLights")
- if currentPentagons then
-  for _,obj in ipairs(currentPentagons:GetDescendants()) do
-   if obj:IsA("SurfaceLight") then
-    obj.Brightness=.16;obj.Range=12;obj.Angle=120;obj.Shadows=false
-   elseif obj:IsA("BasePart") and obj.Material==Enum.Material.Neon then
-    obj.Color=Color3.fromRGB(165,167,169);obj.Transparency=.08
-   end
-  end
- end
- for _,obj in ipairs(basement:GetChildren()) do
-  if obj:IsA("BasePart") and (
-   obj.Name:match("^CeilingBlue") or obj.Name:match("^CeilingYellow")
-   or obj.Name:match("^WallBlue") or obj.Name:match("^WallYellow")
-  ) then
-   obj.Transparency=.03
-   for _,light in ipairs(obj:GetChildren()) do
-    if light:IsA("SurfaceLight") then
-     light.Brightness=.15;light.Range=10.5;light.Angle=115;light.Shadows=false
-    end
-   end
-  end
- end
- enforceChecker(basement:FindFirstChild("CheckerFloor"))
- enforceToneTargets()
- if out.Parent==basement then
-  for _,obj in ipairs(out:GetDescendants()) do
-   if obj:IsA("SurfaceLight") and obj.Name=="DarkCeilingWash" then
-    obj.Brightness=.11;obj.Range=16;obj.Angle=125;obj.Shadows=false
-   elseif obj:IsA("PointLight") and obj.Name=="DarkRoomFill" then
-    obj.Brightness=.10;obj.Range=15;obj.Shadows=false
-   elseif obj:IsA("SurfaceLight") and obj.Name=="LoungeUnderglow" then
-    obj.Brightness=.12;obj.Range=4.5;obj.Angle=110;obj.Shadows=false
-   end
-  end
- end
- basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V6_SLIGHT_LIFT")
- basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
- basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
- basement:SetAttribute("OverbrightRegressionFixed",true)
- basement:SetAttribute("BrightnessMicroAdjust",true)
- basement:SetAttribute("DarkLockVersion","V5_CONTINUOUS_LOCAL_GUARD")
- basement:SetAttribute("DarkLockLastApplied",os.time())
-end
+-- Final state is written once. There is intentionally no DescendantAdded hook,
+-- delayed re-assert sequence, or five-second watchdog.
+basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V7_SINGLE_AUTHORITY")
+basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
+basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
+basement:SetAttribute("OverbrightRootCauseFix",true)
+basement:SetAttribute("LegacyLocalLightsRemoved",removedLocalLights)
+basement:SetAttribute("DedicatedRoomLightCount",4)
+basement:SetAttribute("DecorativeNeonEmitters",false)
+basement:SetAttribute("ContinuousDarkLock",false)
+basement:SetAttribute("DarkLockVersion","REMOVED_V6_SINGLE_AUTHORITY")
 
--- Initial boot settle remains for builder-order races.
-enforceDarkLock()
-for _,delaySeconds in ipairs({2,5,10,20}) do
- task.delay(delaySeconds,enforceDarkLock)
-end
-
--- Runtime guard: the old v4 authority stopped after 20 seconds, so any later writer could
--- revive the white checker / hot local-light profile. Keep ONLY Underground-local values
--- authoritative for the server lifetime. Audio and global Lighting remain completely untouched.
-local guardAlive=true
-basement.AncestryChanged:Connect(function()
- if basement.Parent~=root then guardAlive=false end
-end)
-basement.DescendantAdded:Connect(function()
- if guardAlive then task.defer(enforceDarkLock) end
-end)
-task.spawn(function()
- while guardAlive and basement.Parent==root and root:FindFirstChild("Underground")==basement do
-  task.wait(5)
-  if not guardAlive or basement.Parent~=root or root:FindFirstChild("Underground")~=basement then break end
-  enforceDarkLock()
- end
-end)
-
-print("[BBYA] Basement Full Upgrade v5 online: continuous Underground dark lock / audio + global Lighting untouched")
+print(string.format("[BBYA] Basement Full Upgrade v6 online: removed %d stacked local lights / 4 dedicated fills / no watchdog",removedLocalLights))
