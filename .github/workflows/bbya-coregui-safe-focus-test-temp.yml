@@ -1,0 +1,99 @@
+name: BBYA CoreGui Safe Focus Test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-coregui-safe-focus-test-temp.yml'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
+      - 'maps/bbya-social-hub/134-mall-catalog-focus-mode.client.lua'
+      - 'maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+
+permissions:
+  contents: read
+
+env:
+  TARGET_SOURCE: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  test:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Fetch exact source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP 'core-safe-source.zip'
+          $dir=Join-Path $env:RUNNER_TEMP 'core-safe-source'
+          Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+          Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:TARGET_SOURCE" -OutFile $zip
+          Expand-Archive $zip -DestinationPath $dir -Force
+          $repo=Get-ChildItem $dir -Directory | Select-Object -First 1
+          if(-not $repo){throw 'Exact source missing'}
+          Get-ChildItem $repo.FullName -Force | ForEach-Object { Copy-Item $_.FullName $env:GITHUB_WORKSPACE -Recurse -Force }
+          Write-Host "EXACT_SOURCE=$env:TARGET_SOURCE"
+
+      - name: Static CoreGui safe-area QC
+        shell: powershell
+        run: |
+          $mall=Get-Content 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua' -Raw
+          $focus=Get-Content 'maps/bbya-social-hub/134-mall-catalog-focus-mode.client.lua' -Raw
+          $travel=Get-Content 'maps/bbya-social-hub/76-travel-ui-patch.client.lua' -Raw
+          foreach($m in @('MALL COMMERCE UI v7','SHOP / TRY / CART / SAVED')){if(-not $mall.Contains($m)){throw "Missing Mall V7 marker: $m"}}
+          foreach($m in @('CORE GUI SAFE FOCUS MODE v2','TOP_SAFE_TOUCH=126','BindToRenderStep','TRAVEL_V2','MALL_V2','BBYACoreGuiSafeFocus')){if(-not $focus.Contains($m)){throw "Missing focus marker: $m"}}
+          foreach($m in @('TRAVEL UI PATCH v13','TravelDestinationScroller')){if(-not $travel.Contains($m)){throw "Missing Travel marker: $m"}}
+          foreach($bad in @('SetCoreGuiEnabled','GetService("Lighting")','SoundId','.Volume =')){if($focus.Contains($bad)){throw "Forbidden focus marker: $bad"}}
+          Write-Host 'BBYA_COREGUI_SAFE_STATIC_QC_PASS'
+
+      - name: Map focus client and enable third party sales in test build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p='maps/bbya-social-hub/default.project.json'
+          $obj=(Get-Content $p -Raw | ConvertFrom-Json)
+          $scripts=$obj.tree.StarterPlayer.StarterPlayerScripts
+          $focus=[pscustomobject]@{'$path'='134-mall-catalog-focus-mode.client.lua'}
+          if($scripts.PSObject.Properties.Name -contains 'MallCatalogFocusModeV2'){
+            $scripts.MallCatalogFocusModeV2=$focus
+          } elseif($scripts.PSObject.Properties.Name -contains 'MallCatalogFocusModeV1'){
+            $scripts.MallCatalogFocusModeV1=$focus
+          } else {
+            $scripts | Add-Member -NotePropertyName 'MallCatalogFocusModeV2' -NotePropertyValue $focus
+          }
+          $props=[pscustomobject]@{AllowThirdPartySales=$true}
+          if($obj.tree.Workspace.PSObject.Properties.Name -contains '$properties'){$obj.tree.Workspace.'$properties'=$props}else{$obj.tree.Workspace|Add-Member -NotePropertyName '$properties' -NotePropertyValue $props}
+          $json=$obj|ConvertTo-Json -Depth 100
+          $utf8=New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText((Resolve-Path $p),$json,$utf8)
+          $check=Get-Content $p -Raw
+          if(-not $check.Contains('134-mall-catalog-focus-mode.client.lua')){throw 'Focus mapping missing'}
+          if(-not $check.Contains('AllowThirdPartySales')){throw 'Third-party sales test flag missing'}
+          Write-Host 'BBYA_COREGUI_SAFE_TEST_MAPPING_ENABLED'
+
+      - name: Build and publish test
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $toolDir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $z=Join-Path $env:RUNNER_TEMP 'rojo.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z -DestinationPath $toolDir -Force
+          }
+          if((& $rojo --version) -notmatch '7\.7\.0'){throw 'Rojo 7.7.0 required'}
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-coregui-safe-test.rbxl'
+          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){throw 'Build failed'}
+          $bytes=(Get-Item $out).Length
+          $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          $url='https://apis.roblox.com/universes/v1/10762005984/places/124607344716828/versions?versionType=Published'
+          $resp=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/octet-stream' --header 'Expect:' --data-binary "@$out" $url
+          if($LASTEXITCODE -ne 0){throw 'Publish failed'}
+          $r=$resp|ConvertFrom-Json
+          if(-not $r.versionNumber){throw 'versionNumber missing'}
+          Write-Host "BBYA_COREGUI_SAFE_TEST_PUBLISHED version=$($r.versionNumber) bytes=$bytes sha256=$sha source=$env:TARGET_SOURCE"
