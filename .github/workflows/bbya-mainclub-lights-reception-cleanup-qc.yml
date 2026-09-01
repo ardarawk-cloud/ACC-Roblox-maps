@@ -1,0 +1,51 @@
+name: BBYA Main Club Lights Reception Cleanup QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+      - '.github/workflows/bbya-mainclub-lights-reception-cleanup-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mainclub-light-cleanup.rbxl
+          test -s /tmp/bbya-mainclub-light-cleanup.rbxl
+      - name: Validate raised lights and reception wood removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          src='maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+          grep -q 'OWNER GEOMETRY + TALL-AVATAR FIXES v6' "$src"
+          grep -q 'BBYAMainOverheadLightsRaised","V1_PLUS8' "$src"
+          grep -q 'BBYAReceptionOldWoodCeilingRemoved",true' "$src"
+          grep -q 'ReceptionCeilingSlat' "$src"
+          grep -q 'CeilingFillFixture_' "$src"
+          grep -q 'BarPendantStem_' "$src"
+          grep -q 'DanceFloorMovingHeads' "$src"
+          grep -q '{-18,25.15,4' "$src"
+          grep -q 'TweenService:Create(head' "$src"
+          grep -q 'TweenService:Create(lens' "$src"
+          if grep -n 'SoundGroup.Volume\|Sound.Volume' "$src"; then
+            echo 'Headroom cleanup must not write audio volumes.' >&2
+            exit 1
+          fi
+          echo 'Main Club raised-light + reception cleanup contract passed.'
