@@ -1,15 +1,16 @@
--- BBYA MUSIC UI TEST — DANCE NATIVE SCROLL AUTHORITY v8
+-- BBYA MUSIC UI TEST — DANCE + PANEL UX AUTHORITY v9
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- 92-freecam.client.lua owns the 212 catalog and every dance button/click callback.
--- v8 keeps native dance callbacks, gives the approved compact panel a little more height,
--- removes Community/Message full-screen dark backdrops, compacts both panels, and makes
--- Party Stuff fully own the drawer while open so menu controls cannot steal touch input.
+-- Keeps the native 212 dance callbacks, fixes Support routing, restores readable COMM,
+-- keeps Party Stuff open above the menu, makes Music glassier, and restores DJ Wall
+-- to a usable phone-sized composer without a full-screen dark backdrop.
 
 local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
 
+-- DANCE 212 ------------------------------------------------------------------
 local boundList
 local boundRoot
 local syncing=false
@@ -57,12 +58,11 @@ local function syncRows(resetScroll)
   end
  end
 
- local contentH=0
- if layout then contentH=layout.AbsoluteContentSize.Y+8 end
+ local contentH=layout and (layout.AbsoluteContentSize.Y+8) or 0
  boundList.CanvasSize=UDim2.fromOffset(0,math.max(contentH,boundList.AbsoluteSize.Y+2))
  if resetScroll then boundList.CanvasPosition=Vector2.new(0,0) end
  if boundRoot then
-  boundRoot:SetAttribute("BBYADanceNativeScrollAuthority","V8")
+  boundRoot:SetAttribute("BBYADanceNativeScrollAuthority","V9")
   boundRoot:SetAttribute("BBYADanceVisibleRows",count)
   boundRoot:SetAttribute("BBYADanceBrowseMode","SCROLL")
  end
@@ -71,7 +71,7 @@ end
 
 local scheduled=false
 local resetWanted=false
-local function schedule(resetScroll)
+local function scheduleDance(resetScroll)
  resetWanted=resetWanted or resetScroll==true
  if scheduled then return end
  scheduled=true
@@ -83,20 +83,18 @@ local function schedule(resetScroll)
  end)
 end
 
-local function bind(root,list)
- if boundList==list and boundRoot==root then schedule(false);return end
+local function bindDance(root,list)
+ if boundList==list and boundRoot==root then scheduleDance(false);return end
  boundRoot=root
  boundList=list
  cleanupLegacyHosts(root)
  list.Visible=true
- list.ChildAdded:Connect(function(child)
-  if isDanceRow(child) then schedule(false) end
- end)
- list:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()schedule(false)end)
+ list.ChildAdded:Connect(function(child)if isDanceRow(child) then scheduleDance(false) end end)
+ list:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()scheduleDance(false)end)
  local layout=list:FindFirstChildWhichIsA("UIListLayout")
- if layout then layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()schedule(false)end) end
- schedule(true)
- print("[BBYA TEST] Dance native scroll v8 bound: source buttons remain clickable")
+ if layout then layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()scheduleDance(false)end) end
+ scheduleDance(true)
+ print("[BBYA TEST] Dance 212 native scroll v9 bound")
 end
 
 local function viewport()
@@ -104,32 +102,22 @@ local function viewport()
  return camera and camera.ViewportSize or Vector2.new(1280,720)
 end
 
-local function approvedCompactSize()
+local function danceSize()
  local vp=viewport()
- local w=math.clamp(math.floor(vp.X*.17),210,240)
- local h=math.clamp(vp.Y-18,380,680)
- return w,h
+ return math.clamp(math.floor(vp.X*.17),210,240),math.clamp(vp.Y-18,390,680)
 end
 
-local layoutBusy=setmetatable({}, {__mode="k"})
-local function setCompactSize(panel,tag)
- if not panel or not panel:IsA("GuiObject") or layoutBusy[panel] then return end
- local w,h=approvedCompactSize()
- layoutBusy[panel]=true
- panel.Size=UDim2.fromOffset(w,h)
- panel.ClipsDescendants=true
- if panel:IsA("Frame") or panel:IsA("ScrollingFrame") then
-  panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.42)
- end
- panel:SetAttribute("BBYAApprovedCompactV8",tag or "COMPACT")
- layoutBusy[panel]=nil
-end
-
-local function polishDanceGeometry()
+local function polishDance()
  local gui=pg:FindFirstChild("BBYASocialHangoutUI")
  local panel=gui and gui:FindFirstChild("DancePanel")
  if not panel then return end
- setCompactSize(panel,"DANCE_TALLER")
+ local w,h=danceSize()
+ panel.AnchorPoint=Vector2.new(1,.5)
+ panel.Position=UDim2.new(1,-12,.5,0)
+ panel.Size=UDim2.fromOffset(w,h)
+ panel.ClipsDescendants=true
+ panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.42)
+ panel:SetAttribute("BBYADancePanelGeometry","RIGHT_TALL_V9")
  local root=panel:FindFirstChild("BBYADanceCatalogV1")
  if root and root:IsA("GuiObject") then
   root.Position=UDim2.fromOffset(10,44)
@@ -140,145 +128,271 @@ local function polishDanceGeometry()
    list.Size=UDim2.new(1,0,1,-94)
    list.Visible=true
    list.Active=true
+   bindDance(root,list)
   end
  end
 end
 
-local function capText(root)
- for _,d in ipairs(root:GetDescendants()) do
-  if d:IsA("TextLabel") or d:IsA("TextButton") then
-   local t=string.upper(tostring(d.Text or ""))
-   if t=="BBYA COMMUNITY" or t=="DJ WALL MESSAGE" or t=="DJ WALL" then
-    d.TextSize=math.min(d.TextSize,14)
-   elseif string.find(t,"OFFICIAL COMMUNITY",1,true) then
-    d.TextSize=math.min(d.TextSize,8)
-   elseif d.TextSize>11 then
-    d.TextSize=10
+-- SUPPORT --------------------------------------------------------------------
+local supportBound=setmetatable({}, {__mode="k"})
+
+local function findHubHeaderLabel(hub,wantSub)
+ for _,d in ipairs(hub:GetDescendants()) do
+  if d:IsA("TextLabel") and d.Parent and d.Parent.Parent==hub then
+   local u=string.upper(tostring(d.Text or ""))
+   if not wantSub then
+    if u=="MUSIC SYSTEM" or u=="SUPPORT BBYA" or u=="SUPPORT" or u=="TRAVEL" then return d end
+   else
+    if string.find(u,"MAIN WESTERN",1,true) or string.find(u,"COMMUNITY SUPPORT",1,true) or string.find(u,"QUICK ACCESS",1,true) or string.find(u,"VENUE-AWARE",1,true) then return d end
+   end
+  end
+ end
+ return nil
+end
+
+local function openSupport()
+ local clubUI=pg:FindFirstChild("BBYAClubUI")
+ local hub=clubUI and clubUI:FindFirstChild("HubPanel")
+ if not hub then return end
+ local gridCard=hub:FindFirstChild("SupportGrid",true)
+ local supportFrame=gridCard and gridCard.Parent
+ local content=supportFrame and supportFrame.Parent
+ if not supportFrame or not content then return end
+
+ for _,c in ipairs(content:GetChildren()) do
+  if c:IsA("GuiObject") then c.Visible=(c==supportFrame) end
+ end
+ hub.Visible=true
+ local title=findHubHeaderLabel(hub,false)
+ local sub=findHubHeaderLabel(hub,true)
+ if title then title.Text="SUPPORT" end
+ if sub then sub.Text="Community support • scroll to choose an amount" end
+
+ local w,h=danceSize()
+ hub.AnchorPoint=Vector2.new(1,.5)
+ hub.Position=UDim2.new(1,-12,.5,0)
+ hub.Size=UDim2.fromOffset(w,h)
+ hub.ClipsDescendants=true
+ hub.BackgroundTransparency=math.max(hub.BackgroundTransparency,.52)
+ hub:SetAttribute("BBYASupportDirectOpen","V9")
+
+ local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
+ local remote=remotes and remotes:FindFirstChild("Support")
+ if remote and remote:IsA("RemoteEvent") then remote:FireServer("list") end
+
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ local drawer=menu and menu:FindFirstChild("FeatureDrawer",true)
+ if drawer and drawer:IsA("GuiObject") then drawer.Visible=false end
+end
+
+local function bindSupportButtons()
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ if not menu then return end
+ for _,d in ipairs(menu:GetDescendants()) do
+  if d:IsA("TextButton") then
+   local u=string.upper(tostring(d.Text or ""))
+   if u=="SUPPORT" or string.find(u,"SUPPORT",1,true)==1 then
+    if not supportBound[d] then
+     supportBound[d]=true
+     d.Activated:Connect(function()
+      task.defer(openSupport)
+      task.delay(.06,openSupport)
+     end)
+    end
    end
   end
  end
 end
 
+-- COMMUNITY ------------------------------------------------------------------
 local function polishCommunity()
  local clubUI=pg:FindFirstChild("BBYAClubUI")
  local shade=clubUI and clubUI:FindFirstChild("CommunityOverlay",true)
  local panel=shade and shade:FindFirstChild("CommunityPanel",true)
  if not shade or not panel then return end
+ local vp=viewport()
+ local w=math.clamp(math.floor(vp.X*.29),340,430)
+ local h=math.clamp(vp.Y-40,460,650)
+
  shade.BackgroundTransparency=1
- shade:SetAttribute("BBYACommunityBackdrop","CLEAR_V8")
- setCompactSize(panel,"COMMUNITY")
- capText(panel)
+ shade.Active=false
+ shade:SetAttribute("BBYACommunityBackdrop","CLEAR_V9")
+ panel.AnchorPoint=Vector2.new(1,.5)
+ panel.Position=UDim2.new(1,-12,.5,0)
+ panel.Size=UDim2.fromOffset(w,h)
+ panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.34)
+ panel.ClipsDescendants=true
+ panel:SetAttribute("BBYACommunityGeometry","READABLE_MEDIUM_V9")
+
  local scroller=panel:FindFirstChild("CommunityScroller",true)
  if scroller and scroller:IsA("ScrollingFrame") then
-  scroller.Position=UDim2.fromOffset(8,62)
-  scroller.Size=UDim2.new(1,-16,1,-70)
-  scroller.ScrollBarThickness=3
+  scroller.Position=UDim2.fromOffset(12,80)
+  scroller.Size=UDim2.new(1,-24,1,-92)
+  scroller.ScrollBarThickness=4
   scroller.Active=true
   scroller.ScrollingEnabled=true
  end
- -- Compact the header without rewriting Community content; the body remains scrollable.
- for _,d in ipairs(panel:GetChildren()) do
-  if d:IsA("Frame") and d~=scroller and d.AbsoluteSize.Y>=60 then
-   local hasClose=d:FindFirstChildWhichIsA("TextButton")~=nil
-   if hasClose then d.Size=UDim2.new(1,0,0,56) end
+
+ for _,d in ipairs(panel:GetDescendants()) do
+  if d:IsA("TextLabel") or d:IsA("TextButton") then
+   local u=string.upper(tostring(d.Text or ""))
+   if u=="BBYA COMMUNITY" then d.TextSize=18
+   elseif u=="DISCORD COMMUNITY" then d.TextSize=15
+   elseif string.find(u,"JOIN FROM",1,true) then d.TextSize=13
+   elseif string.find(u,"OFFICIAL COMMUNITY HUB",1,true) then d.TextSize=9
+   elseif d.TextSize<10 then d.TextSize=10 end
   end
  end
 end
 
+-- DJ WALL MESSAGE ------------------------------------------------------------
 local function polishMessage()
  local gui=pg:FindFirstChild("BBYADJWallUI")
  local panel=gui and gui:FindFirstChild("DJWallComposerPanel",true)
  if not gui or not panel then return end
- -- Remove the phone-sized dark shade while keeping the native TextBox/keyboard behavior unchanged.
+ local vp=viewport()
+ local w=math.clamp(math.floor(vp.X*.30),360,440)
+ local h=math.clamp(vp.Y-28,500,680)
+
  for _,d in ipairs(gui:GetChildren()) do
   if d:IsA("Frame") and d~=panel and d.Size.X.Scale>=.95 and d.Size.Y.Scale>=.95 then
    d.BackgroundTransparency=1
-   d:SetAttribute("BBYAMessageBackdrop","CLEAR_V8")
+   d.Active=false
+   d:SetAttribute("BBYAMessageBackdrop","CLEAR_V9")
   end
  end
- setCompactSize(panel,"MESSAGE")
- capText(panel)
+
+ panel.AnchorPoint=Vector2.new(1,.5)
+ panel.Position=UDim2.new(1,-12,.5,0)
+ panel.Size=UDim2.fromOffset(w,h)
+ panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.24)
+ panel.ClipsDescendants=true
+ panel:SetAttribute("BBYADJWallGeometry","PHONE_SCREEN_V9")
+
  local header=panel:FindFirstChild("StickyHeader",true)
  local footer=panel:FindFirstChild("StickyFooter",true)
  local body=panel:FindFirstChild("ComposerBody",true)
- if header and header:IsA("GuiObject") then header.Size=UDim2.new(1,0,0,58) end
- if footer and footer:IsA("GuiObject") then footer.Size=UDim2.new(1,0,0,58) end
+ if header and header:IsA("GuiObject") then header.Size=UDim2.new(1,0,0,72) end
+ if footer and footer:IsA("GuiObject") then footer.Size=UDim2.new(1,0,0,66) end
  if body and body:IsA("ScrollingFrame") then
-  body.Position=UDim2.fromOffset(0,58)
-  body.Size=UDim2.new(1,0,1,-116)
-  body.ScrollBarThickness=3
+  body.Position=UDim2.fromOffset(0,72)
+  body.Size=UDim2.new(1,0,1,-138)
+  body.ScrollBarThickness=4
   body.Active=true
   body.ScrollingEnabled=true
  end
 end
 
-local partyBound=setmetatable({}, {__mode="k"})
-local partyGuard=false
-local function syncPartyPanel(panel)
- if not panel or not panel.Parent or partyGuard then return end
- local drawer=panel.Parent
- partyGuard=true
- if panel.Visible then
-  -- Party Stuff temporarily owns the whole compact drawer. Hidden menu widgets cannot intercept touch.
-  for _,d in ipairs(drawer:GetChildren()) do
-   if d:IsA("GuiObject") and d~=panel then
-    if d:GetAttribute("BBYAPartyOldVisibleV8")==nil then d:SetAttribute("BBYAPartyOldVisibleV8",d.Visible) end
-    d.Visible=false
-   end
-  end
-  panel.AnchorPoint=Vector2.new(0,0)
-  panel.Position=UDim2.fromOffset(0,0)
-  panel.Size=UDim2.fromScale(1,1)
-  panel.ZIndex=400
-  panel.Active=true
-  panel.ClipsDescendants=true
-  panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.42)
-  for _,d in ipairs(panel:GetDescendants()) do
-   if d:IsA("GuiObject") then
-    d.ZIndex=math.max(d.ZIndex,401)
-    if d:IsA("TextButton") then d.Active=true;d.Selectable=true end
-   end
-  end
-  panel:SetAttribute("BBYAPartyTouchAuthority","V8_FULL_DRAWER")
- else
-  for _,d in ipairs(drawer:GetChildren()) do
-   if d:IsA("GuiObject") and d~=panel then
-    local old=d:GetAttribute("BBYAPartyOldVisibleV8")
-    if old~=nil then d.Visible=old;d:SetAttribute("BBYAPartyOldVisibleV8",nil) end
-   end
-  end
- end
- partyGuard=false
+-- MUSIC GLASS ----------------------------------------------------------------
+local function polishMusicBackdrop()
+ local clubUI=pg:FindFirstChild("BBYAClubUI")
+ local hub=clubUI and clubUI:FindFirstChild("HubPanel")
+ if not hub then return end
+ local title=findHubHeaderLabel(hub,false)
+ local u=title and string.upper(tostring(title.Text or "")) or ""
+ if u~="MUSIC SYSTEM" then return end
+ hub.BackgroundTransparency=math.max(hub.BackgroundTransparency,.62)
+ local playerCard=hub:FindFirstChild("PlayerCard",true)
+ local libraryCard=hub:FindFirstChild("LibraryCard",true)
+ if playerCard and playerCard:IsA("GuiObject") then playerCard.BackgroundTransparency=math.max(playerCard.BackgroundTransparency,.34) end
+ if libraryCard and libraryCard:IsA("GuiObject") then libraryCard.BackgroundTransparency=math.max(libraryCard.BackgroundTransparency,.34) end
+ hub:SetAttribute("BBYAMusicBackdrop","GLASS_V9")
 end
 
-local function polishParty()
+-- PARTY STUFF ----------------------------------------------------------------
+local partyWanted=false
+local partyBound=setmetatable({}, {__mode="k"})
+local partyOld=setmetatable({}, {__mode="k"})
+
+local function restorePartyDrawer(drawer,panel)
+ local saved=partyOld[drawer]
+ if saved then
+  for obj,vis in pairs(saved) do
+   if obj and obj.Parent==drawer and obj~=panel then obj.Visible=vis end
+  end
+  partyOld[drawer]=nil
+ end
+end
+
+local function showParty()
  local menu=pg:FindFirstChild("BBYACommandMenuUI")
  local drawer=menu and menu:FindFirstChild("FeatureDrawer",true)
  local panel=drawer and drawer:FindFirstChild("PartyStuffPanel",true)
- if not panel then return end
- if not partyBound[panel] then
-  partyBound[panel]=true
-  panel:GetPropertyChangedSignal("Visible"):Connect(function()
-   task.defer(function()syncPartyPanel(panel)end)
-   task.delay(.05,function()syncPartyPanel(panel)end)
-  end)
-  panel:GetPropertyChangedSignal("Position"):Connect(function()if panel.Visible then task.defer(function()syncPartyPanel(panel)end) end end)
-  panel:GetPropertyChangedSignal("Size"):Connect(function()if panel.Visible then task.defer(function()syncPartyPanel(panel)end) end end)
+ if not drawer or not panel then return end
+
+ if not partyWanted then
+  restorePartyDrawer(drawer,panel)
+  return
  end
- syncPartyPanel(panel)
+
+ if not partyOld[drawer] then
+  local saved={}
+  for _,d in ipairs(drawer:GetChildren()) do
+   if d:IsA("GuiObject") and d~=panel then saved[d]=d.Visible end
+  end
+  partyOld[drawer]=saved
+ end
+
+ drawer.Visible=true
+ for _,d in ipairs(drawer:GetChildren()) do
+  if d:IsA("GuiObject") and d~=panel then d.Visible=false end
+ end
+ panel.Visible=true
+ panel.AnchorPoint=Vector2.new(0,0)
+ panel.Position=UDim2.fromOffset(0,0)
+ panel.Size=UDim2.fromScale(1,1)
+ panel.ZIndex=400
+ panel.Active=true
+ panel.ClipsDescendants=true
+ panel.BackgroundTransparency=math.max(panel.BackgroundTransparency,.42)
+ for _,d in ipairs(panel:GetDescendants()) do
+  if d:IsA("GuiObject") then
+   d.ZIndex=math.max(d.ZIndex,401)
+   if d:IsA("TextButton") then d.Active=true;d.Selectable=true end
+  end
+ end
+ panel:SetAttribute("BBYAPartyTouchAuthority","V9_STICKY_DRAWER")
 end
 
+local function bindParty()
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ local drawer=menu and menu:FindFirstChild("FeatureDrawer",true)
+ local panel=drawer and drawer:FindFirstChild("PartyStuffPanel",true)
+ if not menu or not drawer or not panel then return end
+
+ for _,d in ipairs(menu:GetDescendants()) do
+  if d:IsA("TextButton") and not partyBound[d] then
+   local u=string.upper(tostring(d.Text or ""))
+   if d.Name=="PartyStuffButton" or u=="PARTY STUFF" then
+    partyBound[d]=true
+    d.Activated:Connect(function()
+     partyWanted=true
+     task.defer(showParty)
+     task.delay(.08,showParty)
+     task.delay(.22,showParty)
+    end)
+   elseif d.Name=="PartyBack" or d.Name=="Party_PUT_AWAY" or string.sub(d.Name or "",1,6)=="Party_" then
+    partyBound[d]=true
+    d.Activated:Connect(function()
+     partyWanted=false
+     task.defer(function()restorePartyDrawer(drawer,panel)end)
+    end)
+   end
+  end
+ end
+
+ if partyWanted then showParty() end
+end
+
+-- MASTER LOOP ----------------------------------------------------------------
 local function findUI()
- local gui=pg:FindFirstChild("BBYASocialHangoutUI")
- local panel=gui and gui:FindFirstChild("DancePanel")
- local root=panel and panel:FindFirstChild("BBYADanceCatalogV1")
- local list=root and root:FindFirstChild("DanceCatalogScroll")
- if root and list and list:IsA("ScrollingFrame") then bind(root,list) end
- polishDanceGeometry()
+ polishDance()
+ bindSupportButtons()
  polishCommunity()
  polishMessage()
- polishParty()
- return root~=nil and list~=nil
+ polishMusicBackdrop()
+ bindParty()
+ if partyWanted then showParty() end
 end
 
 local uiScheduled=false
@@ -292,14 +406,14 @@ local function scheduleUI()
 end
 
 task.spawn(function()
- for _=1,180 do
+ for _=1,220 do
   findUI()
   task.wait(.18)
  end
 end)
 
 pg.DescendantAdded:Connect(function(d)
- if d.Name=="DanceCatalogScroll" or isDanceRow(d) or d.Name=="CommunityPanel" or d.Name=="DJWallComposerPanel" or d.Name=="PartyStuffPanel" then
+ if d.Name=="DanceCatalogScroll" or isDanceRow(d) or d.Name=="CommunityPanel" or d.Name=="DJWallComposerPanel" or d.Name=="PartyStuffPanel" or d:IsA("TextButton") then
   scheduleUI()
  end
 end)
@@ -308,3 +422,5 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
  scheduleUI()
 end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(scheduleUI) end
+
+print("[BBYA TEST] Panel UX v9 online: Support fixed / readable COMM / sticky Party / Music glass / DJ phone-size")
