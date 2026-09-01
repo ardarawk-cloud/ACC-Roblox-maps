@@ -1,6 +1,6 @@
 -- BBYA SOCIAL HUB — BASEMENT FULL UPGRADE v6
 -- Root-cause Underground lighting cleanup.
--- One local lighting authority, four dedicated low-output room fills, and no runtime watchdog.
+-- One local lighting authority, four dedicated balanced low-output room fills, and no runtime watchdog.
 -- Decorative neon remains visible but does not own SurfaceLight/PointLight emitters.
 -- Audio routing / Basement Indo AutoDJ / global Lighting / every other BBYA area are untouched.
 
@@ -57,6 +57,9 @@ out:SetAttribute("StartupRaceHardened",true)
 out:SetAttribute("ContinuousDarkLock",false)
 out:SetAttribute("LightingAuthority","V6_SINGLE_LOCAL_AUTHORITY")
 out:SetAttribute("DecorativeNeonEmitters",false)
+out:SetAttribute("BalancedAfterHeadroom",true)
+out:SetAttribute("FillBrightness",.22)
+out:SetAttribute("FillRange",36)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -120,7 +123,9 @@ for _,obj in ipairs(basement:GetChildren()) do
  end
 end
 
--- Four dedicated low-output fills replace dozens of overlapping local emitters.
+-- Four dedicated fills stay the only room-light source. After the 28-stud headroom pass
+-- their range is widened and brightness raised modestly so avatars/floor remain readable
+-- without reactivating the old dozens-of-neon floodlights that caused whiteout.
 local lighting=Instance.new("Model")
 lighting.Name="UndergroundRoomLightingV6"
 lighting:SetAttribute("Authority","V6_SINGLE_LOCAL_AUTHORITY")
@@ -137,9 +142,9 @@ for i,pos in ipairs({
  s.Name="UndergroundRoomFill"
  s.Face=Enum.NormalId.Bottom
  s.Color=C.wash
- s.Brightness=.14
- s.Range=22
- s.Angle=125
+ s.Brightness=.22
+ s.Range=36
+ s.Angle=130
  s.Shadows=false
  s.Parent=a
 end
@@ -240,7 +245,7 @@ end
 
 -- Final state is written once. There is intentionally no DescendantAdded hook,
 -- delayed re-assert sequence, or five-second watchdog.
-basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V7_SINGLE_AUTHORITY")
+basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V8_BALANCED")
 basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
 basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
 basement:SetAttribute("OverbrightRootCauseFix",true)
@@ -250,4 +255,4 @@ basement:SetAttribute("DecorativeNeonEmitters",false)
 basement:SetAttribute("ContinuousDarkLock",false)
 basement:SetAttribute("DarkLockVersion","REMOVED_V6_SINGLE_AUTHORITY")
 
-print(string.format("[BBYA] Basement Full Upgrade v6 online: removed %d stacked local lights / 4 dedicated fills / no watchdog",removedLocalLights))
+print(string.format("[BBYA] Basement Full Upgrade v6 balanced: removed %d stacked local lights / 4 wider soft fills / no watchdog",removedLocalLights))
