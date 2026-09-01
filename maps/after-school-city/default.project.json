@@ -132,6 +132,9 @@
       },
       "ASC_SignageTypographyBoostV0923": {
         "$path": "after-school-city.signage-typography-v0923.server.lua"
+      },
+      "ASC_FinalEnvironmentPolishV093": {
+        "$path": "after-school-city.final-environment-v093.server.lua"
       }
     },
     "StarterGui": {
@@ -143,7 +146,6 @@
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
-        "$className": "StarterPlayerScripts",
         "ASC_PersonalMusicPlayer": {
           "$path": "after-school-city.music-player.client.lua"
         }
