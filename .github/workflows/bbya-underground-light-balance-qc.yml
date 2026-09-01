@@ -1,0 +1,49 @@
+name: BBYA Underground Balanced Light QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/87-basement-full-upgrade.server.lua'
+      - '.github/workflows/bbya-underground-light-balance-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-underground-balanced-light.rbxl
+          test -s /tmp/bbya-underground-balanced-light.rbxl
+      - name: Validate safe Underground light balance
+        shell: bash
+        run: |
+          set -euo pipefail
+          src='maps/bbya-social-hub/87-basement-full-upgrade.server.lua'
+          grep -q 'LightingAuthority","V6_SINGLE_LOCAL_AUTHORITY' "$src"
+          grep -q 'DedicatedLightCount",4' "$src"
+          grep -q 's.Brightness=.22' "$src"
+          grep -q 's.Range=36' "$src"
+          grep -q 's.Angle=130' "$src"
+          grep -q 'DecorativeNeonEmitters",false' "$src"
+          grep -q 'ContinuousDarkLock",false' "$src"
+          grep -q 'DARK_UNDERGROUND_V8_BALANCED' "$src"
+          if grep -q 'Lighting%.Brightness\|Lighting%.Ambient\|Lighting%.OutdoorAmbient' "$src"; then
+            echo 'Underground balance pass must not write global Lighting.' >&2
+            exit 1
+          fi
+          echo 'BBYA Underground balanced-light contract passed.'
