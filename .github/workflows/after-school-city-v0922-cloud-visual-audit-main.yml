@@ -1,4 +1,4 @@
-name: After School City V0.9.2.2 Cloud Studio Preview
+name: After School City V0.9.2.2 Exact RBXL Cloud Preview
 
 on:
   push:
@@ -22,13 +22,7 @@ jobs:
       QC_BYTES: '152275'
       QC_SHA: '7cae13389e82524aae6c2a235327ae80f5b5e03d97e62e3413cd85912063c29f'
     steps:
-      - name: Checkout exact candidate source
-        uses: actions/checkout@v4
-        with:
-          ref: 76362800d3133ffc01ca776ee5efe16f51e3a49a
-          path: candidate
-
-      - name: Verify exact QC artifact
+      - name: Verify and stage exact QC RBXL
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -44,9 +38,10 @@ jobs:
           $hash=(Get-FileHash $p[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           if($bytes -ne [int64]$env:QC_BYTES){throw "Byte mismatch $bytes"}
           if($hash -ne $env:QC_SHA){throw "SHA mismatch $hash"}
-          Write-Host "EXACT_QC_ARTIFACT_OK source=$env:SOURCE_COMMIT artifact=$env:QC_ARTIFACT_ID bytes=$bytes sha=$hash"
+          "ASC_PLACE=$($p[0].FullName)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT_QC_RBXL_OK source=$env:SOURCE_COMMIT artifact=$env:QC_ARTIFACT_ID bytes=$bytes sha=$hash"
 
-      - name: Open ASC v39 in cloud Studio and start Play
+      - name: Open exact RBXL in cloud Studio and start Play
         shell: powershell
         run: |
           Add-Type -AssemblyName System.Windows.Forms
@@ -67,52 +62,53 @@ jobs:
             if($c){$exe=$c.FullName;break}
           }
           if(-not $exe){throw 'RobloxStudioBeta.exe not found'}
-          Start-Process -FilePath $exe -ArgumentList '--task','EditPlace','--placeId','121603385909425','--universeId','10745359869'|Out-Null
-          $deadline=(Get-Date).AddSeconds(65)
+          Start-Process -FilePath $exe -ArgumentList @("`"$env:ASC_PLACE`"")|Out-Null
+          $deadline=(Get-Date).AddSeconds(60)
           $proc=$null
           do{
             Start-Sleep -Seconds 2
             $proc=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue|Where-Object {$before -notcontains $_.Id -and $_.MainWindowHandle -ne 0}|Sort-Object StartTime -Descending|Select-Object -First 1
           }while(-not $proc -and (Get-Date)-lt $deadline)
-          if(-not $proc){throw 'ASC Studio window did not appear'}
+          if(-not $proc){throw 'Exact RBXL Studio window did not appear'}
           "ASC_STUDIO_PID=$($proc.Id)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           [StudioWin]::ShowWindow([IntPtr]$proc.MainWindowHandle,9)|Out-Null
           [StudioWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
-          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 8
           [System.Windows.Forms.SendKeys]::SendWait('{F5}')
-          Start-Sleep -Seconds 12
+          Start-Sleep -Seconds 18
 
-      - name: Apply exact V0.9.2.2 source in Play preview
+      - name: Enable Studio Command Bar from View menu
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           Add-Type -AssemblyName UIAutomationClient
           Add-Type -AssemblyName UIAutomationTypes
           $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
-          $code=Get-Content 'candidate/maps/after-school-city/after-school-city.global-signage-readability-v0922.server.lua' -Raw
-          $code += "`r`nprint('[ASC_PREVIEW_APPLIED]'..tostring(workspace:GetAttribute('ASC_GlobalSignageReadabilityPass')))"
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $menuType=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::MenuItem)
+          $viewName=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'View')
+          $viewCondition=New-Object System.Windows.Automation.AndCondition($menuType,$viewName)
+          $view=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$viewCondition)
+          if($view){
+            try{$view.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()}catch{try{$view.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()}catch{}}
+            Start-Sleep -Milliseconds 900
+          }
+          $desktop=[System.Windows.Automation.AutomationElement]::RootElement
+          $commandName=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'Command Bar')
+          $command=$desktop.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$commandName)
+          if($command){
+            try{$command.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()}catch{try{$command.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle()}catch{}}
+            Start-Sleep -Seconds 1
+          }
           $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
           $editCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
           $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
           $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
           $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
-          if(-not $edit -or -not $run){throw 'Studio command bar controls not found'}
-          $valuePattern=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-          $valuePattern.SetValue($code)
-          Start-Sleep -Milliseconds 350
-          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          $invoke.Invoke()
-          Start-Sleep -Milliseconds 900
-          $buttonType=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Button)
-          $buttons=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$buttonType)
-          foreach($b in $buttons){
-            if($b.Current.Name -match 'Run Anyway|Execute|Continue|Allow|Yes|OK'){
-              try{$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 400}catch{}
-            }
-          }
-          Start-Sleep -Seconds 5
+          if(-not $edit -or -not $run){throw 'Command Bar could not be enabled'}
+          Write-Host 'COMMAND_BAR_READY=true'
 
-      - name: Aim and capture four signage views
+      - name: Capture CITY PARK, SCHOOL, CANTEEN and SKATE
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -131,12 +127,12 @@ jobs:
           $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
           $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
           $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
-          if(-not $edit -or -not $run){throw 'Studio command bar controls not found for target capture'}
-          $valuePattern=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          if(-not $edit -or -not $run){throw 'Command Bar unavailable during capture'}
+          $value=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
           $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
 
           function Aim([string]$needle){
-            $code=@"
+            $lua=@"
           local P=game:GetService('Players'):GetPlayers()[1]
           local r=workspace:FindFirstChild('AfterSchoolCity')
           local p=nil
@@ -157,11 +153,7 @@ jobs:
           if p and P and P.Character then
             local h=P.Character:FindFirstChild('HumanoidRootPart')
             if h then
-              local normals={
-                [Enum.NormalId.Front]=Vector3.new(0,0,-1),[Enum.NormalId.Back]=Vector3.new(0,0,1),
-                [Enum.NormalId.Right]=Vector3.new(1,0,0),[Enum.NormalId.Left]=Vector3.new(-1,0,0),
-                [Enum.NormalId.Top]=Vector3.new(0,1,0),[Enum.NormalId.Bottom]=Vector3.new(0,-1,0)
-              }
+              local normals={[Enum.NormalId.Front]=Vector3.new(0,0,-1),[Enum.NormalId.Back]=Vector3.new(0,0,1),[Enum.NormalId.Right]=Vector3.new(1,0,0),[Enum.NormalId.Left]=Vector3.new(-1,0,0),[Enum.NormalId.Top]=Vector3.new(0,1,0),[Enum.NormalId.Bottom]=Vector3.new(0,-1,0)}
               local n=p.CFrame:VectorToWorldSpace(normals[sg.Face] or Vector3.new(0,0,-1)).Unit
               h.CFrame=CFrame.lookAt(p.Position+n*21+Vector3.new(0,-1.8,0),p.Position)
             end
@@ -169,49 +161,49 @@ jobs:
           print('[ASC_CLOUD_TARGET] $needle FOUND='..tostring(p~=nil))
           "@
             [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
-            $valuePattern.SetValue($code)
+            $value.SetValue($lua)
             Start-Sleep -Milliseconds 250
             $invoke.Invoke()
             Start-Sleep -Seconds 3
           }
 
-          function Capture([string]$key){
+          function Shot([string]$key){
             [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
             Start-Sleep -Milliseconds 500
-            $bounds=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-            $bmp=New-Object System.Drawing.Bitmap($bounds.Width,$bounds.Height)
+            $b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height)
             $g=[System.Drawing.Graphics]::FromImage($bmp)
-            $g.CopyFromScreen($bounds.Location,[System.Drawing.Point]::Empty,$bounds.Size)
+            $g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size)
             $path=Join-Path $env:GITHUB_WORKSPACE ("asc-"+$key+".png")
             $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
             $g.Dispose();$bmp.Dispose()
           }
 
-          foreach($target in @(
+          foreach($t in @(
             @{Key='city-park';Text='CITY PARK'},
             @{Key='school';Text='AFTER SCHOOL ACADEMY'},
             @{Key='canteen';Text='STUDENT CANTEEN'},
             @{Key='skate';Text='SKATE'}
           )){
-            Aim $target.Text
-            Capture $target.Key
+            Aim $t.Text
+            Shot $t.Key
           }
 
-      - name: Collect Studio audit markers
+      - name: Collect exact candidate runtime markers
         shell: powershell
         run: |
           $markers=@()
-          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 6
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 8
           foreach($log in $logs){
             foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
-              if($line -match 'ASC_PREVIEW_APPLIED|V0\.9\.2\.2 global signage readability|ASC_CLOUD_TARGET'){ $markers += $line }
+              if($line -match 'V0\.9\.2\.2 global signage readability|ASC_CLOUD_TARGET'){ $markers += $line }
             }
             if($markers.Count -gt 0){break}
           }
           $markers|Set-Content (Join-Path $env:GITHUB_WORKSPACE 'asc-cloud-audit-log.txt') -Encoding utf8
           $markers|ForEach-Object {Write-Host $_}
 
-      - name: Upload real Studio captures
+      - name: Upload real cloud Studio captures
         uses: actions/upload-artifact@v4
         with:
           name: after-school-city-v0922-cloud-visual-${{ env.SOURCE_COMMIT }}
@@ -224,7 +216,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Stop ASC Studio preview
+      - name: Close exact RBXL Studio
         if: always()
         shell: powershell
         run: |
