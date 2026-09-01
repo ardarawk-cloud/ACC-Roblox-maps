@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — UNIFIED UI v5
--- Responsive shell + per-player venue mixer: Main western vs Basement Indo.
+-- BBYA SOCIAL HUB — UNIFIED UI v6
+-- Responsive shell only. Audio audibility is owned exclusively by VenueAudioRouter; this UI never writes SoundGroup/Sound Volume.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -126,10 +126,7 @@ end
 brand.MouseButton1Click:Connect(function()if panel.Visible then panel.Visible=false else setPage("music") end end)
 musicTab.MouseButton1Click:Connect(function()setPage("music")end);supportTab.MouseButton1Click:Connect(function()setPage("support")end);travelTab.MouseButton1Click:Connect(function()setPage("travel")end);close.MouseButton1Click:Connect(function()panel.Visible=false end)
 
--- Per-player venue audio mixer. Only one venue feed is audible at a time.
-local muted=false
-local currentMainVolume=.35
-local currentBasementVolume=0
+-- UI-only venue context. 104-venue-audio-router.client.lua is the sole local audibility authority.
 local function getZoneMix()
  local ch=player.Character;local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
  if not hrp then return .20,0,"LOADING","MAIN" end
@@ -144,7 +141,16 @@ local function getZoneMix()
  if p.Z>27 then return .92,0,"DJ / STAGE","MAIN" end
  return .84,0,"MAIN CLUB","MAIN"
 end
-localMute.MouseButton1Click:Connect(function()muted=not muted;localMute.Text=muted and "UNMUTE LOCAL" or "MUTE LOCAL" end)
+local function refreshMuteButton()
+ local isMuted=player:GetAttribute("BBYAMusicMuted")==true
+ localMute.Text=isMuted and "UNMUTE LOCAL" or "MUTE LOCAL"
+end
+localMute.MouseButton1Click:Connect(function()
+ player:SetAttribute("BBYAMusicMuted",not (player:GetAttribute("BBYAMusicMuted")==true))
+ refreshMuteButton()
+end)
+refreshMuteButton()
+player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(refreshMuteButton)
 adminPause.MouseButton1Click:Connect(function()musicRemote:FireServer("pause")end);adminNext.MouseButton1Click:Connect(function()musicRemote:FireServer("next")end);adminResume.MouseButton1Click:Connect(function()musicRemote:FireServer("resume")end)
 local function refreshAdmin()
  local admin=player:GetAttribute("BBYAAdmin")==true or (game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
@@ -210,11 +216,7 @@ RunService.RenderStepped:Connect(function(dt)
  t+=dt
  for i,b in ipairs(eqBars) do local h=10+math.abs(math.sin(t*3.4+i*.72))*46+math.abs(math.sin(t*1.6+i*.31))*8;b.Size=UDim2.new(.035,0,0,h) end
  local mainTarget,basementTarget,zone,venue=getZoneMix()
- if muted then mainTarget=0;basementTarget=0 end
- currentMainVolume=currentMainVolume+(mainTarget-currentMainVolume)*math.min(1,dt*4.8)
- currentBasementVolume=currentBasementVolume+(basementTarget-currentBasementVolume)*math.min(1,dt*4.8)
- local mainGroup=SoundService:FindFirstChild("BBYAClubMaster");if mainGroup then mainGroup.Volume=currentMainVolume end
- local basementGroup=SoundService:FindFirstChild("BBYABasementMaster");if basementGroup then basementGroup.Volume=currentBasementVolume end
+ if player:GetAttribute("BBYAMusicMuted")==true then mainTarget=0;basementTarget=0 end
  zoneLabel.Text=string.format("AUDIO VENUE: %s  •  %d%%",zone,math.floor(math.max(mainTarget,basementTarget)*100+.5))
  if venue~=currentVenue then
   currentVenue=venue;applyVenueCopy();musicRemote:FireServer("list");musicRemote:FireServer("queue")
@@ -222,4 +224,4 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 musicRemote:FireServer("list");supportRemote:FireServer("list")
-print("[BBYA] Unified UI v5 online: automatic Main-Western / Basement-Indo audio routing")
+print("[BBYA] Unified UI v6 online: UI-only venue context / audio routing owned by VenueAudioRouter")
