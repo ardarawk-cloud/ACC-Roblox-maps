@@ -1,0 +1,67 @@
+name: BBYA Mall Cloud Spatial Audit V2
+
+on:
+  push:
+    branches:
+      - 'bbya-mall/**'
+    paths:
+      - 'maps/bbya-social-hub/94-mall.server.lua'
+      - 'maps/bbya-social-hub/94-mall-polish.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/137-mall-spatial-boundary-authority-v1.server.lua'
+      - '.github/scripts/bbya-mall-cloud-spatial-audit-v2.ps1'
+      - '.github/workflows/bbya-mall-cloud-spatial-audit-v2.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/94-mall.server.lua'
+      - 'maps/bbya-social-hub/94-mall-polish.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live-upgrade.server.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/137-mall-spatial-boundary-authority-v1.server.lua'
+      - '.github/scripts/bbya-mall-cloud-spatial-audit-v2.ps1'
+      - '.github/workflows/bbya-mall-cloud-spatial-audit-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact_source_spatial_gpu_audit:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact audited source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Attach runner to interactive console
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sid=[System.Diagnostics.Process]::GetCurrentProcess().SessionId
+          $state=(quser 2>&1|Out-String)
+          Write-Host $state
+          if($state -notmatch 'console\s+'+$sid+'\s+Active'){
+            & "$env:SystemRoot\System32\tscon.exe" $sid /dest:console
+            if($LASTEXITCODE -ne 0){throw "tscon failed: $LASTEXITCODE"}
+            Start-Sleep -Seconds 3
+          }
+
+      - name: Run same-session Mall spatial and GPU audit
+        shell: powershell
+        run: ./.github/scripts/bbya-mall-cloud-spatial-audit-v2.ps1
+
+      - name: Upload exact Mall cloud evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-mall-spatial-v2-${{ github.run_id }}
+          path: ${{ env.OUTDIR }}
+          if-no-files-found: warn
+          retention-days: 14
