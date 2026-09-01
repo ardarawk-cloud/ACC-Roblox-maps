@@ -1,0 +1,55 @@
+name: BBYA Audio Single Authority QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/31-club-ui.client.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
+      - '.github/workflows/bbya-audio-single-authority-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-audio-single-authority.rbxl
+          test -s /tmp/bbya-audio-single-authority.rbxl
+      - name: Validate one audio authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ui='maps/bbya-social-hub/31-club-ui.client.lua'
+          router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
+
+          grep -q 'BBYAMusicMuted' "$ui"
+          grep -q 'UI-only venue context' "$ui"
+          if grep -q 'mainGroup.Volume\|basementGroup.Volume\|currentMainVolume\|currentBasementVolume' "$ui"; then
+            echo 'Legacy ClubUI must not write Main/Underground SoundGroup volume.' >&2
+            exit 1
+          fi
+
+          grep -q 'ROUTER_V9_EQ_ONLY' "$router"
+          grep -q 'BBYAMusicMuted' "$router"
+          grep -q 'setGate' "$router"
+          if grep -q 'SoundGroup.Volume\|Sound.Volume' "$router" && ! grep -q 'never mutates SoundGroup.Volume or Sound.Volume' "$router"; then
+            echo 'Venue router must remain EQ-only.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA audio single-authority contract passed.'
