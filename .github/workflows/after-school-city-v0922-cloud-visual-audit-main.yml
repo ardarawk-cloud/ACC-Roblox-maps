@@ -82,86 +82,134 @@ jobs:
           [System.Windows.Forms.SendKeys]::SendWait('{F5}')
           Start-Sleep -Seconds 12
 
-      - name: Apply exact V0.9.2.2 signage source in Play preview
+      - name: Apply exact V0.9.2.2 source in Play preview
         shell: powershell
         run: |
+          $ErrorActionPreference='Stop'
           Add-Type -AssemblyName UIAutomationClient
           Add-Type -AssemblyName UIAutomationTypes
           $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
           $code=Get-Content 'candidate/maps/after-school-city/after-school-city.global-signage-readability-v0922.server.lua' -Raw
           $code += "`r`nprint('[ASC_PREVIEW_APPLIED]'..tostring(workspace:GetAttribute('ASC_GlobalSignageReadabilityPass')))"
           $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'))
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
+          $editCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
           if(-not $edit -or -not $run){throw 'Studio command bar controls not found'}
-          $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($code)
+          $valuePattern=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $valuePattern.SetValue($code)
           Start-Sleep -Milliseconds 350
-          $run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $invoke.Invoke()
           Start-Sleep -Milliseconds 900
-          $buttons=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Button)))
-          foreach($b in $buttons){if($b.Current.Name -match 'Run Anyway|Execute|Continue|Allow|Yes|OK'){try{$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 400}catch{}}}
+          $buttonType=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Button)
+          $buttons=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$buttonType)
+          foreach($b in $buttons){
+            if($b.Current.Name -match 'Run Anyway|Execute|Continue|Allow|Yes|OK'){
+              try{$b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 400}catch{}
+            }
+          }
           Start-Sleep -Seconds 5
 
-      - name: Aim CITY PARK
+      - name: Aim and capture four signage views
         shell: powershell
-        env:
-          ASC_TARGET_TEXT: CITY PARK
         run: |
+          $ErrorActionPreference='Stop'
           Add-Type -AssemblyName UIAutomationClient
           Add-Type -AssemblyName UIAutomationTypes
-          $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
-          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
-          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'))
-          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'))
-          $t=$env:ASC_TARGET_TEXT
-          $code="local P=game:GetService('Players'):GetPlayers()[1];local r=workspace:FindFirstChild('AfterSchoolCity');local p,g;for _,x in ipairs(r:GetDescendants()) do if x:IsA('SurfaceGui') then for _,y in ipairs(x:GetDescendants()) do if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$t'),1,true) then local q=x.Adornee or x.Parent;if q and q:IsA('BasePart') then p=q;g=x;break end end end end;if p then break end end;if p and P and P.Character then local h=P.Character:FindFirstChild('HumanoidRootPart');if h then local n=p.CFrame:VectorToWorldSpace(Vector3.new(0,0,-1));h.CFrame=CFrame.lookAt(p.Position+n*20+Vector3.new(0,-1.5,0),p.Position) end end;print('[ASC_AIM] $t '..tostring(p~=nil))"
-          $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($code);Start-Sleep -Milliseconds 250;$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Seconds 3
-
-      - name: Capture CITY PARK
-        shell: powershell
-        run: |
           Add-Type -AssemblyName System.Windows.Forms
           Add-Type -AssemblyName System.Drawing
-          $b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-          $bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($bmp);$g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size);$bmp.Save((Join-Path $env:GITHUB_WORKSPACE 'asc-city-park.png'));$g.Dispose();$bmp.Dispose()
+          Add-Type @"
+          using System;
+          using System.Runtime.InteropServices;
+          public class FocusWin { [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd); }
+          "@
+          $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop
+          $root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle)
+          $editCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+          $runCondition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+          $edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCondition)
+          $run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCondition)
+          if(-not $edit -or -not $run){throw 'Studio command bar controls not found for target capture'}
+          $valuePattern=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $invoke=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
 
-      - name: Aim SCHOOL
-        shell: powershell
-        env:
-          ASC_TARGET_TEXT: AFTER SCHOOL ACADEMY
-        run: |
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          $proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop;$root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle);$edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'));$t=$env:ASC_TARGET_TEXT;$code="local P=game:GetService('Players'):GetPlayers()[1];local r=workspace:FindFirstChild('AfterSchoolCity');local p;for _,x in ipairs(r:GetDescendants()) do if x:IsA('SurfaceGui') then for _,y in ipairs(x:GetDescendants()) do if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$t'),1,true) then local q=x.Adornee or x.Parent;if q and q:IsA('BasePart') then p=q;break end end end end;if p then break end end;if p and P and P.Character then local h=P.Character:FindFirstChild('HumanoidRootPart');if h then local n=p.CFrame:VectorToWorldSpace(Vector3.new(0,0,-1));h.CFrame=CFrame.lookAt(p.Position+n*22+Vector3.new(0,-3,0),p.Position) end end";$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($code);Start-Sleep -Milliseconds 250;$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Seconds 3
+          function Aim([string]$needle){
+            $code=@"
+          local P=game:GetService('Players'):GetPlayers()[1]
+          local r=workspace:FindFirstChild('AfterSchoolCity')
+          local p=nil
+          local sg=nil
+          if r then
+            for _,x in ipairs(r:GetDescendants()) do
+              if x:IsA('SurfaceGui') then
+                for _,y in ipairs(x:GetDescendants()) do
+                  if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$needle'),1,true) then
+                    local q=x.Adornee or x.Parent
+                    if q and q:IsA('BasePart') then p=q;sg=x;break end
+                  end
+                end
+              end
+              if p then break end
+            end
+          end
+          if p and P and P.Character then
+            local h=P.Character:FindFirstChild('HumanoidRootPart')
+            if h then
+              local normals={
+                [Enum.NormalId.Front]=Vector3.new(0,0,-1),[Enum.NormalId.Back]=Vector3.new(0,0,1),
+                [Enum.NormalId.Right]=Vector3.new(1,0,0),[Enum.NormalId.Left]=Vector3.new(-1,0,0),
+                [Enum.NormalId.Top]=Vector3.new(0,1,0),[Enum.NormalId.Bottom]=Vector3.new(0,-1,0)
+              }
+              local n=p.CFrame:VectorToWorldSpace(normals[sg.Face] or Vector3.new(0,0,-1)).Unit
+              h.CFrame=CFrame.lookAt(p.Position+n*21+Vector3.new(0,-1.8,0),p.Position)
+            end
+          end
+          print('[ASC_CLOUD_TARGET] $needle FOUND='..tostring(p~=nil))
+          "@
+            [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+            $valuePattern.SetValue($code)
+            Start-Sleep -Milliseconds 250
+            $invoke.Invoke()
+            Start-Sleep -Seconds 3
+          }
 
-      - name: Capture SCHOOL
-        shell: powershell
-        run: |
-          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($bmp);$g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size);$bmp.Save((Join-Path $env:GITHUB_WORKSPACE 'asc-school.png'));$g.Dispose();$bmp.Dispose()
+          function Capture([string]$key){
+            [FocusWin]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+            Start-Sleep -Milliseconds 500
+            $bounds=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp=New-Object System.Drawing.Bitmap($bounds.Width,$bounds.Height)
+            $g=[System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($bounds.Location,[System.Drawing.Point]::Empty,$bounds.Size)
+            $path=Join-Path $env:GITHUB_WORKSPACE ("asc-"+$key+".png")
+            $bmp.Save($path,[System.Drawing.Imaging.ImageFormat]::Png)
+            $g.Dispose();$bmp.Dispose()
+          }
 
-      - name: Aim CANTEEN
-        shell: powershell
-        env:
-          ASC_TARGET_TEXT: STUDENT CANTEEN
-        run: |
-          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes;$proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop;$root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle);$edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'));$t=$env:ASC_TARGET_TEXT;$code="local P=game:GetService('Players'):GetPlayers()[1];local r=workspace:FindFirstChild('AfterSchoolCity');local p;for _,x in ipairs(r:GetDescendants()) do if x:IsA('SurfaceGui') then for _,y in ipairs(x:GetDescendants()) do if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$t'),1,true) then local q=x.Adornee or x.Parent;if q and q:IsA('BasePart') then p=q;break end end end end;if p then break end end;if p and P and P.Character then local h=P.Character:FindFirstChild('HumanoidRootPart');if h then local n=p.CFrame:VectorToWorldSpace(Vector3.new(0,0,-1));h.CFrame=CFrame.lookAt(p.Position+n*20+Vector3.new(0,-2,0),p.Position) end end";$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($code);Start-Sleep -Milliseconds 250;$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Seconds 3
+          foreach($target in @(
+            @{Key='city-park';Text='CITY PARK'},
+            @{Key='school';Text='AFTER SCHOOL ACADEMY'},
+            @{Key='canteen';Text='STUDENT CANTEEN'},
+            @{Key='skate';Text='SKATE'}
+          )){
+            Aim $target.Text
+            Capture $target.Key
+          }
 
-      - name: Capture CANTEEN
+      - name: Collect Studio audit markers
         shell: powershell
         run: |
-          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($bmp);$g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size);$bmp.Save((Join-Path $env:GITHUB_WORKSPACE 'asc-canteen.png'));$g.Dispose();$bmp.Dispose()
-
-      - name: Aim SKATE
-        shell: powershell
-        env:
-          ASC_TARGET_TEXT: SKATE
-        run: |
-          Add-Type -AssemblyName UIAutomationClient;Add-Type -AssemblyName UIAutomationTypes;$proc=Get-Process -Id ([int]$env:ASC_STUDIO_PID) -ErrorAction Stop;$root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$proc.MainWindowHandle);$edit=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor'));$run=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,(New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton'));$t=$env:ASC_TARGET_TEXT;$code="local P=game:GetService('Players'):GetPlayers()[1];local r=workspace:FindFirstChild('AfterSchoolCity');local p;for _,x in ipairs(r:GetDescendants()) do if x:IsA('SurfaceGui') then for _,y in ipairs(x:GetDescendants()) do if y:IsA('TextLabel') and string.find(string.upper(y.Text or ''),string.upper('$t'),1,true) then local q=x.Adornee or x.Parent;if q and q:IsA('BasePart') then p=q;break end end end end;if p then break end end;if p and P and P.Character then local h=P.Character:FindFirstChild('HumanoidRootPart');if h then local n=p.CFrame:VectorToWorldSpace(Vector3.new(0,0,-1));h.CFrame=CFrame.lookAt(p.Position+n*22+Vector3.new(0,-2,0),p.Position) end end";$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($code);Start-Sleep -Milliseconds 250;$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Seconds 3
-
-      - name: Capture SKATE
-        shell: powershell
-        run: |
-          Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds;$bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height);$g=[System.Drawing.Graphics]::FromImage($bmp);$g.CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size);$bmp.Save((Join-Path $env:GITHUB_WORKSPACE 'asc-skate.png'));$g.Dispose();$bmp.Dispose()
+          $markers=@()
+          $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue|Sort-Object LastWriteTime -Descending|Select-Object -First 6
+          foreach($log in $logs){
+            foreach($line in (Get-Content $log.FullName -ErrorAction SilentlyContinue)){
+              if($line -match 'ASC_PREVIEW_APPLIED|V0\.9\.2\.2 global signage readability|ASC_CLOUD_TARGET'){ $markers += $line }
+            }
+            if($markers.Count -gt 0){break}
+          }
+          $markers|Set-Content (Join-Path $env:GITHUB_WORKSPACE 'asc-cloud-audit-log.txt') -Encoding utf8
+          $markers|ForEach-Object {Write-Host $_}
 
       - name: Upload real Studio captures
         uses: actions/upload-artifact@v4
@@ -172,6 +220,7 @@ jobs:
             asc-school.png
             asc-canteen.png
             asc-skate.png
+            asc-cloud-audit-log.txt
           if-no-files-found: error
           retention-days: 7
 
