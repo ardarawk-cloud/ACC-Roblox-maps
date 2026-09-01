@@ -1,0 +1,75 @@
+name: BBYA Main Entrance Tall Avatar Headroom QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+      - 'maps/bbya-social-hub/20-entrance.server.lua'
+      - 'maps/bbya-social-hub/21-site-basement.server.lua'
+      - 'maps/bbya-social-hub/42-main-club-realism.server.lua'
+      - 'maps/bbya-social-hub/43-floor1-front-premium.server.lua'
+      - '.github/workflows/bbya-main-entrance-tall-avatar-headroom-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-main-entrance-headroom.rbxl
+          test -s /tmp/bbya-main-entrance-headroom.rbxl
+      - name: Validate tall-avatar clearance contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner='maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
+          entrance='maps/bbya-social-hub/20-entrance.server.lua'
+          stack='maps/bbya-social-hub/21-site-basement.server.lua'
+          main='maps/bbya-social-hub/42-main-club-realism.server.lua'
+          front='maps/bbya-social-hub/43-floor1-front-premium.server.lua'
+
+          grep -q 'OWNER GEOMETRY + TALL-AVATAR FIXES v5' "$owner"
+          grep -q 'local HEADROOM_DELTA=8' "$owner"
+          grep -q 'ZEPETO_CLEARANCE_V2' "$owner"
+          grep -q 'BBYALegendaryLogoPreserved' "$owner"
+          grep -q 'CeilingArchitecture' "$owner"
+          grep -q 'EntranceToClubTransition' "$owner"
+          grep -q 'BBYAMainTargetClearHeadroom",28' "$owner"
+
+          # Existing vertical-stack authority remains the structural source of the 28-stud Main target.
+          grep -q 'TARGET_CLEAR_HEADROOM=28' "$stack"
+          grep -q 'BBYAHeadroomMainAnchorPreserved' "$stack"
+
+          # Legendary entrance identity must remain present and unredesigned.
+          grep -q 'drawText3D(signModel,"BBYA3D","BBYA"' "$entrance"
+          grep -q 'drawText3D(signModel,"SocialHub3D","SOCIAL HUB"' "$entrance"
+          grep -q 'drawText3D(signModel,"AlwaysOpen3D","24 / 7"' "$entrance"
+          grep -q 'CrownBase2' "$entrance"
+
+          # Main premium ceiling and inner portal authorities still exist; the late geometry pass only moves them upward.
+          grep -q 'CeilingField' "$main"
+          grep -q 'CeilingArchitecture' "$main"
+          grep -q 'EntranceToClubTransition' "$front"
+          grep -q 'PortalTop' "$front"
+
+          # This geometry pass must never become an audio/global-Lighting authority.
+          if grep -q 'SoundGroup.Volume\|Sound.Volume\|Lighting.Brightness\|Lighting.ClockTime' "$owner"; then
+            echo 'Headroom pass must not write audio volume or global Lighting.' >&2
+            exit 1
+          fi
+          echo 'BBYA Main + entrance tall-avatar clearance contract passed.'

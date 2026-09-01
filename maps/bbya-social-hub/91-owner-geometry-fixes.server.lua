@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — OWNER GEOMETRY + FLOOR SURFACE FIXES v4
+-- BBYA SOCIAL HUB — OWNER GEOMETRY + TALL-AVATAR FIXES v5
 -- Targeted geometry fixes plus local daytime floor-reflection suppression.
--- Main Club / Underground / Funkot only; global Lighting, audio and venue lights are untouched.
+-- Adds street entrance + Main Club headroom for tall/Zepeto-style avatars while preserving approved identity.
+-- Global Lighting, audio, Underground lighting, VIP, Rooftop and Mall are untouched.
 -- VIP floor-neon ownership belongs EXCLUSIVELY to 72-vip-floor-neon-fix.server.lua.
 -- IMPORTANT: never delete South/West/North/East approved PreciseInnerFloorNeon segments here.
 
@@ -134,4 +135,105 @@ for _,delaySeconds in ipairs({1,6,22,40}) do
  task.delay(delaySeconds,applyDaytimeFloorGuard)
 end
 
-print("[BBYA] Owner geometry v4 online: invisible Underground safety collider relocated below floor / local floor reflection guard enabled")
+-- 9) ENTRANCE + MAIN CLUB TALL-AVATAR HEADROOM V2
+-- Existing SiteBasement tall-avatar stack already gives Main roughly 28 studs of structural room,
+-- but the premium false ceiling still sits near Y=20.6 and the entrance portals are much lower.
+-- Raise only those overhead layers by 8 studs. X/Z, floors, furniture, audio authority and venue stack stay fixed.
+local HEADROOM_DELTA=8
+local HEADROOM_MARK="BBYAMainEntranceHeadroomV2"
+
+local function shiftPartY(part,delta)
+ if not part or not part:IsA("BasePart") or part:GetAttribute(HEADROOM_MARK) then return end
+ part.CFrame=part.CFrame+Vector3.new(0,delta,0)
+ part:SetAttribute(HEADROOM_MARK,true)
+end
+
+local function extendUp(part,extra)
+ if not part or not part:IsA("BasePart") or part:GetAttribute(HEADROOM_MARK) then return end
+ part.Size=Vector3.new(part.Size.X,part.Size.Y+extra,part.Size.Z)
+ part.CFrame=part.CFrame+Vector3.new(0,extra/2,0)
+ part:SetAttribute(HEADROOM_MARK,true)
+end
+
+local function shiftModelY(model,delta)
+ if not model or not model:IsA("Model") or model:GetAttribute(HEADROOM_MARK) then return end
+ model:PivotTo(model:GetPivot()+Vector3.new(0,delta,0))
+ model:SetAttribute(HEADROOM_MARK,true)
+ for _,d in ipairs(model:GetDescendants()) do
+  if d:IsA("BasePart") then d:SetAttribute(HEADROOM_MARK,true) end
+ end
+end
+
+-- Street entrance: preserve the legendary approved BBYA logo/crown/signage; translate it upward as one assembly.
+task.spawn(function()
+ local entrance=root:WaitForChild("Entrance",30);if not entrance then return end
+ local signage=entrance:WaitForChild("EntranceSignage",20)
+ local portalTop=entrance:WaitForChild("PortalTop",20)
+ local crown=entrance:WaitForChild("CrownBase2",20)
+ if not signage or not portalTop or not crown then return end
+ task.wait(.4)
+
+ for _,name in ipairs({"FacadeLeft","FacadeRight","PortalLeft","PortalRight","GlassLeft","GlassRight"}) do
+  extendUp(entrance:FindFirstChild(name),HEADROOM_DELTA)
+ end
+ shiftPartY(entrance:FindFirstChild("FacadeHeader"),HEADROOM_DELTA)
+ shiftPartY(portalTop,HEADROOM_DELTA)
+ shiftPartY(entrance:FindFirstChild("PortalPinkTop"),HEADROOM_DELTA)
+ shiftModelY(signage,HEADROOM_DELTA)
+ for _,d in ipairs(entrance:GetChildren()) do
+  if d:IsA("BasePart") and d.Name:match("^Crown") then shiftPartY(d,HEADROOM_DELTA) end
+ end
+
+ entrance:SetAttribute("BBYATallAvatarEntranceProfile","ZEPETO_CLEARANCE_V2")
+ entrance:SetAttribute("BBYAEntranceVerticalDeltaY",HEADROOM_DELTA)
+ entrance:SetAttribute("BBYALegendaryLogoPreserved",true)
+ root:SetAttribute("BBYAEntranceTallAvatarClearance",true)
+end)
+
+-- Reception + inner club portal: remove the second low overhead pinch-point between entrance and dance floor.
+task.spawn(function()
+ local front=root:WaitForChild("Floor1FrontPremium",35);if not front then return end
+ local reception=front:WaitForChild("Reception",20)
+ local transition=front:WaitForChild("EntranceToClubTransition",20)
+ if not reception or not transition then return end
+ task.wait(.4)
+
+ for _,d in ipairs(reception:GetDescendants()) do
+  if d:IsA("BasePart") and (d.Name:match("^ReceptionCeilingSlat") or d.Name:match("^ReceptionDownlight")) then
+   shiftPartY(d,HEADROOM_DELTA)
+  end
+ end
+ for _,d in ipairs(transition:GetDescendants()) do
+  if d:IsA("BasePart") then
+   if d.Name:match("^CeilingFin") or d.Name:match("^FinLight") or d.Name=="PortalTop" then
+    shiftPartY(d,HEADROOM_DELTA)
+   elseif d.Name=="PortalL" or d.Name=="PortalR" or d.Name=="PortalAccentL" or d.Name=="PortalAccentR" then
+    extendUp(d,HEADROOM_DELTA)
+   end
+  end
+ end
+ front:SetAttribute("BBYATallAvatarTransitionProfile","ZEPETO_CLEARANCE_V2")
+end)
+
+-- Main Club: lift the complete premium false-ceiling assembly into the structural headroom already available.
+task.spawn(function()
+ local main=root:WaitForChild("MainClubRealism",40);if not main then return end
+ local architecture=main:WaitForChild("Architecture",20);if not architecture then return end
+ local ceiling=architecture:WaitForChild("CeilingArchitecture",20)
+ local shell=architecture:WaitForChild("PremiumShell",20)
+ if not ceiling or not shell then return end
+ task.wait(.6)
+
+ shiftModelY(ceiling,HEADROOM_DELTA)
+ for _,d in ipairs(shell:GetChildren()) do
+  if d:IsA("BasePart") and d.Name:match("^ColumnCore") then extendUp(d,HEADROOM_DELTA) end
+ end
+
+ main:SetAttribute("BBYATallAvatarMainProfile","ZEPETO_CLEARANCE_V2")
+ main:SetAttribute("BBYAMainCeilingDeltaY",HEADROOM_DELTA)
+ main:SetAttribute("BBYAMainTargetClearHeadroom",28)
+ root:SetAttribute("BBYAMainTallAvatarClearance",true)
+ root:SetAttribute("BBYAMainEntranceHeadroomAuthority","MAIN_ENTRANCE_TALL_AVATAR_V2")
+end)
+
+print("[BBYA] Owner geometry v5 online: Underground safety collider + floor guard + Zepeto-safe entrance/Main headroom; legendary entrance logo preserved")
