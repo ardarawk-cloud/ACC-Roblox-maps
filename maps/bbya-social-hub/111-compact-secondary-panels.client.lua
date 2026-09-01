@@ -1,32 +1,41 @@
--- BBYA MUSIC UI TEST — COMPACT SECONDARY PANELS v3
+-- BBYA MUSIC UI TEST — COMPACT SECONDARY PANELS v4
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Experiment requested for mobile landscape:
--- * MUSIC / MESSAGE / COMMUNITY stay large.
--- * Other panels become a slim right-side card so the avatar stays visible.
--- * Long catalog/menu content is expected to use vertical swipe/scroll.
+-- Mobile-landscape experiment:
+-- * MUSIC / MESSAGE / COMMUNITY (COMM) stay large.
+-- * Every other content panel, including the main command menu, uses the same slim right-side size as DANCE/CARRY.
+-- * Main command-menu choices are moved into a vertical swipe/scroll surface.
 -- * Decorative equalizer / waveform visualizers are hidden.
 -- * The redundant BBYA dock button is hidden; MUSIC remains the explicit music launcher.
--- Dance list/canvas ownership stays with 92-freecam + the v5 direct scroll host.
+-- Dance list ownership stays with 92-freecam + direct scroll host v6.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
 
-local EXEMPT_TOKENS={"music","message","community","comm"}
 local compacted=setmetatable({}, {__mode="k"})
+local hubOriginal=setmetatable({}, {__mode="k"})
+local menuHosts=setmetatable({}, {__mode="k"})
 
 local function lower(v)return string.lower(tostring(v or "")) end
 
+local function exemptName(name)
+ local n=lower(name)
+ if string.find(n,"music",1,true) then return true end
+ if string.find(n,"message",1,true) then return true end
+ if string.find(n,"community",1,true) then return true end
+ -- COMM is an explicit panel alias only. Do NOT treat "command" as COMM.
+ if n=="comm" or n=="commpanel" or n=="commframe" or n=="commwindow" then return true end
+ if string.match(n,"^comm[_%-]") or string.match(n,"[_%-]comm$") then return true end
+ return false
+end
+
 local function hasExemptToken(obj)
- local s=lower(obj.Name)
- for _,t in ipairs(EXEMPT_TOKENS) do if string.find(s,t,1,true) then return true end end
- -- ScreenGui / ancestor names are also authoritative for explicit exceptions.
+ if exemptName(obj.Name) then return true end
  local p=obj.Parent
  for _=1,4 do
   if not p then break end
-  local n=lower(p.Name)
-  for _,t in ipairs(EXEMPT_TOKENS) do if string.find(n,t,1,true) then return true end end
+  if exemptName(p.Name) then return true end
   p=p.Parent
  end
  return false
@@ -37,6 +46,7 @@ local function viewport()
  return camera and camera.ViewportSize or Vector2.new(1280,720)
 end
 
+-- This is the exact geometry family already approved on DANCE/CARRY in the previous test.
 local function compactSize()
  local vp=viewport()
  local w=math.clamp(math.floor(vp.X*.17),210,240)
@@ -44,16 +54,15 @@ local function compactSize()
  return w,h
 end
 
-local function compactPanel(panel)
+local function compactPanel(panel,authority)
  if not panel or not panel:IsA("GuiObject") or hasExemptToken(panel) then return end
- if panel.Name=="HubPanel" then return end -- SUPPORT/TRAVEL handled by page title below.
  local w,h=compactSize()
  panel.AnchorPoint=Vector2.new(1,.5)
  panel.Position=UDim2.new(1,-12,.5,0)
  panel.Size=UDim2.fromOffset(w,h)
  panel.ClipsDescendants=true
  compacted[panel]=true
- panel:SetAttribute("BBYACompactSecondaryPanel","RIGHT_SLIM_V3")
+ panel:SetAttribute("BBYACompactSecondaryPanel",authority or "RIGHT_SLIM_V4")
 end
 
 local function titleMode(panel)
@@ -61,31 +70,55 @@ local function titleMode(panel)
   if d:IsA("TextLabel") then
    local t=string.upper(d.Text or "")
    if t=="SUPPORT BBYA" or t=="TRAVEL" or string.find(t,"MOVE THROUGH BBYA",1,true) then return "compact" end
-   if t=="MUSIC SYSTEM" then return "music" end
+   if t=="MUSIC SYSTEM" or t=="LIBRARY" or t=="NOW PLAYING" then return "music" end
   end
  end
  return nil
+end
+
+local function saveHubGeometry(hub)
+ if hubOriginal[hub] then return end
+ hubOriginal[hub]={
+  AnchorPoint=hub.AnchorPoint,
+  Position=hub.Position,
+  Size=hub.Size,
+  ClipsDescendants=hub.ClipsDescendants,
+ }
+end
+
+local function restoreHub(hub)
+ local s=hubOriginal[hub]
+ if not s then return end
+ hub.AnchorPoint=s.AnchorPoint
+ hub.Position=s.Position
+ hub.Size=s.Size
+ hub.ClipsDescendants=s.ClipsDescendants
+ hub:SetAttribute("BBYACompactSecondaryPanel",nil)
 end
 
 local function patchHubPanel()
  local gui=pg:FindFirstChild("BBYAClubUI")
  local hub=gui and gui:FindFirstChild("HubPanel")
  if not hub then return end
+ saveHubGeometry(hub)
  local function apply()
   local mode=titleMode(hub)
   if mode=="compact" then
-   local w,h=compactSize()
-   hub.AnchorPoint=Vector2.new(1,.5)
-   hub.Position=UDim2.new(1,-12,.5,0)
-   hub.Size=UDim2.fromOffset(w,h)
-   hub.ClipsDescendants=true
-   hub:SetAttribute("BBYACompactSecondaryPanel","SUPPORT_TRAVEL_RIGHT_SLIM_V3")
+   compactPanel(hub,"SUPPORT_TRAVEL_RIGHT_SLIM_V4")
+  elseif mode=="music" then
+   restoreHub(hub)
   end
  end
- for _,d in ipairs(hub:GetDescendants()) do
-  if d:IsA("TextLabel") then d:GetPropertyChangedSignal("Text"):Connect(function()task.defer(apply)end) end
+ if not hub:GetAttribute("BBYACompactHubBoundV4") then
+  hub:SetAttribute("BBYACompactHubBoundV4",true)
+  for _,d in ipairs(hub:GetDescendants()) do
+   if d:IsA("TextLabel") then d:GetPropertyChangedSignal("Text"):Connect(function()task.defer(apply)end) end
+  end
+  hub.DescendantAdded:Connect(function(d)
+   if d:IsA("TextLabel") then d:GetPropertyChangedSignal("Text"):Connect(function()task.defer(apply)end) end
+  end)
+  hub:GetPropertyChangedSignal("Visible"):Connect(function()if hub.Visible then task.defer(apply)end end)
  end
- hub:GetPropertyChangedSignal("Visible"):Connect(function()if hub.Visible then task.defer(apply)end end)
  task.defer(apply)
 end
 
@@ -107,7 +140,7 @@ local function hideVisualizers(root)
  for _,d in ipairs(root:GetDescendants()) do
   if looksLikeVisualizer(d) then
    d.Visible=false
-   d:SetAttribute("BBYAVisualizerHidden","V3")
+   d:SetAttribute("BBYAVisualizerHidden","V4")
   end
  end
 end
@@ -121,18 +154,101 @@ local function hideRedundantBrandButton()
    d.Visible=false
    d.Active=false
    d.AutoButtonColor=false
-   d:SetAttribute("BBYARedundantBrandButtonHidden","V3")
+   d:SetAttribute("BBYARedundantBrandButtonHidden","V4")
   end
+ end
+end
+
+local function menuSlot(obj)
+ return obj:IsA("GuiObject") and string.sub(obj.Name or "",1,5)=="Slot_"
+end
+
+local function ensureMenuScroll(drawer)
+ if not drawer or not drawer:IsA("GuiObject") then return end
+ compactPanel(drawer,"MAIN_MENU_RIGHT_SLIM_V4")
+
+ local grid=drawer:FindFirstChildWhichIsA("UIGridLayout",true)
+ local body=grid and grid.Parent
+ if not body or not body:IsA("GuiObject") then return end
+
+ local host=menuHosts[drawer]
+ if not host or not host.Parent then
+  local old=drawer:FindFirstChild("BBYAMainMenuScrollV4")
+  if old then old:Destroy() end
+  host=Instance.new("ScrollingFrame")
+  host.Name="BBYAMainMenuScrollV4"
+  host.Position=body.Position
+  host.Size=body.Size
+  host.BackgroundTransparency=1
+  host.BorderSizePixel=0
+  host.ScrollBarThickness=4
+  host.ScrollBarImageColor3=Color3.fromRGB(244,48,149)
+  host.ScrollingDirection=Enum.ScrollingDirection.Y
+  host.ElasticBehavior=Enum.ElasticBehavior.WhenScrollable
+  host.AutomaticCanvasSize=Enum.AutomaticSize.None
+  host.CanvasSize=UDim2.new()
+  host.Active=true
+  host.ClipsDescendants=true
+  host.ZIndex=math.max(body.ZIndex,202)
+  host.Parent=drawer
+
+  local gl=Instance.new("UIGridLayout")
+  gl.Name="CompactMenuGridV4"
+  gl.CellSize=UDim2.new(.48,-4,0,50)
+  gl.CellPadding=UDim2.new(.04,0,0,8)
+  gl.FillDirection=Enum.FillDirection.Horizontal
+  gl.FillDirectionMaxCells=2
+  gl.SortOrder=Enum.SortOrder.LayoutOrder
+  gl.Parent=host
+  gl:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+   if host and host.Parent then host.CanvasSize=UDim2.fromOffset(0,math.max(0,gl.AbsoluteContentSize.Y+8)) end
+  end)
+  menuHosts[drawer]=host
+ end
+
+ local hostGrid=host:FindFirstChild("CompactMenuGridV4")
+ local moved=0
+ for _,d in ipairs(body:GetChildren()) do
+  if menuSlot(d) then d.Parent=host;moved+=1 end
+ end
+ -- Some feature scripts may append slots after startup; collect any loose Slot_* descendants too.
+ for _,d in ipairs(drawer:GetDescendants()) do
+  if d.Parent~=host and menuSlot(d) then d.Parent=host;moved+=1 end
+ end
+ if hostGrid and hostGrid:IsA("UIGridLayout") then
+  host.CanvasSize=UDim2.fromOffset(0,math.max(0,hostGrid.AbsoluteContentSize.Y+8))
+ end
+ if moved>0 or #host:GetChildren()>1 then
+  body.Visible=false
+  drawer:SetAttribute("BBYAMainMenuBrowseMode","SCROLL")
+ end
+end
+
+local function patchCommandMenu()
+ local gui=pg:FindFirstChild("BBYACommandMenuUI")
+ local drawer=gui and gui:FindFirstChild("FeatureDrawer",true)
+ if not drawer or not drawer:IsA("GuiObject") then return end
+ ensureMenuScroll(drawer)
+ if not drawer:GetAttribute("BBYAMainMenuScrollBoundV4") then
+  drawer:SetAttribute("BBYAMainMenuScrollBoundV4",true)
+  drawer:GetPropertyChangedSignal("Visible"):Connect(function()
+   if drawer.Visible then task.defer(function()ensureMenuScroll(drawer)end) end
+  end)
+  drawer.DescendantAdded:Connect(function(d)
+   if menuSlot(d) then task.defer(function()ensureMenuScroll(drawer)end) end
+  end)
  end
 end
 
 local function patchNamedPanels(root)
  for _,d in ipairs(root:GetDescendants()) do
   if d:IsA("Frame") and string.find(lower(d.Name),"panel",1,true) and not hasExemptToken(d) then
-   -- Only actual content panels: avoid tiny status/pill frames that merely happen to contain "panel".
-   local a=d.AbsoluteSize
-   if d.Name=="DancePanel" or d.Name=="CarryPanel" or d.Name=="PartyStuffPanel" or a.X>=300 or a.Y>=300 then
-    compactPanel(d)
+   -- HubPanel must switch between MUSIC-large and SUPPORT/TRAVEL-compact dynamically.
+   if d.Name~="HubPanel" then
+    local a=d.AbsoluteSize
+    if d.Name=="DancePanel" or d.Name=="CarryPanel" or d.Name=="PartyStuffPanel" or a.X>=300 or a.Y>=300 then
+     compactPanel(d)
+    end
    end
   end
  end
@@ -142,11 +258,11 @@ local function patchDanceAuthority()
  local gui=pg:FindFirstChild("BBYASocialHangoutUI")
  local panel=gui and gui:FindFirstChild("DancePanel")
  if not panel then return end
- panel:SetAttribute("BBYADanceCanvasAuthority","CATALOG_92_PLUS_SCROLL_HOST_V5")
+ panel:SetAttribute("BBYADanceCanvasAuthority","CATALOG_92_PLUS_SCROLL_HOST_V6")
  panel:SetAttribute("BBYADanceBrowseMode","SCROLL")
- compactPanel(panel)
+ compactPanel(panel,"DANCE_RIGHT_SLIM_V4")
  local carry=gui:FindFirstChild("CarryPanel")
- if carry then compactPanel(carry) end
+ if carry then compactPanel(carry,"CARRY_RIGHT_SLIM_V4") end
 end
 
 local function applyAll()
@@ -158,6 +274,7 @@ local function applyAll()
  end
  patchDanceAuthority()
  patchHubPanel()
+ patchCommandMenu()
  hideRedundantBrandButton()
 end
 
@@ -182,6 +299,6 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(schedule) end
 
-for i=1,8 do task.delay(i*.35,schedule) end
+for i=1,10 do task.delay(i*.35,schedule) end
 task.defer(schedule)
-print("[BBYA TEST] Compact secondary panels v3 online: right-side slim panels / scroll-first / visualizers hidden / redundant BBYA dock button hidden")
+print("[BBYA TEST] Compact secondary panels v4 online: all non Music/Message/Comm panels match Dance/Carry / main menu scroll / visualizers hidden")
