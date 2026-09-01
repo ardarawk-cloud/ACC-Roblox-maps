@@ -1,109 +1,193 @@
--- BBYA SOCIAL HUB — MALL CATALOG FOCUS MODE v1
--- Hides BBYA custom UI while Mall catalog is open and keeps Roblox CoreGui unobstructed.
+-- BBYA SOCIAL HUB — CORE GUI SAFE FOCUS MODE v2
+-- Final mobile-safe placement authority while Mall or Travel is open.
+-- Keeps Roblox CoreGui visible, pushes BBYA panels below the Roblox top controls,
+-- and temporarily hides other BBYA ScreenGuis (including MENU / ROLES).
 -- Test candidate only until owner acceptance.
 
 local Players=game:GetService("Players")
 local UserInputService=game:GetService("UserInputService")
+local RunService=game:GetService("RunService")
 
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 
 local COMMERCE_GUI_NAME="BBYAMallRobuxCommerceUI"
-local TOP_SAFE_TOUCH=118
+local CLUB_GUI_NAME="BBYAClubUI"
+local RENDER_BIND="BBYACoreGuiSafeFocusV2"
+local TOP_SAFE_TOUCH=126
 local TOP_SAFE_DESKTOP=88
 local BOTTOM_SAFE=18
 local SIDE_SAFE=18
 
-local saved={}
-local focusActive=false
+local activeMode=nil
+local activeGui=nil
+local activePanel=nil
+local savedEnabled={}
+local enabledGuards={}
 local childConn=nil
 local camera=workspace.CurrentCamera
+local applying=false
 
-local function hideGui(g)
- if not focusActive or not g:IsA("ScreenGui") or g.Name==COMMERCE_GUI_NAME then return end
- if saved[g]==nil then saved[g]=g.Enabled end
- g.Enabled=false
+local function topSafe()
+ return UserInputService.TouchEnabled and TOP_SAFE_TOUCH or TOP_SAFE_DESKTOP
+end
+
+local function disconnectGuards()
+ for g,c in pairs(enabledGuards) do
+  if c then c:Disconnect() end
+  enabledGuards[g]=nil
+ end
+end
+
+local function hideOtherGui(g)
+ if not activeMode or not g:IsA("ScreenGui") or g==activeGui then return end
+ if savedEnabled[g]==nil then savedEnabled[g]=g.Enabled end
+ if g.Enabled then g.Enabled=false end
+ if not enabledGuards[g] then
+  enabledGuards[g]=g:GetPropertyChangedSignal("Enabled"):Connect(function()
+   if activeMode and g~=activeGui and g.Parent and g.Enabled then
+    g.Enabled=false
+   end
+  end)
+ end
+end
+
+local function hideAllOtherGuis()
+ for _,g in ipairs(pg:GetChildren()) do hideOtherGui(g) end
 end
 
 local function restoreAll()
- for g,wasEnabled in pairs(saved) do
+ disconnectGuards()
+ for g,wasEnabled in pairs(savedEnabled) do
   if g and g.Parent then g.Enabled=wasEnabled end
  end
- table.clear(saved)
+ table.clear(savedEnabled)
 end
 
-local function fitPanel(gui,panel)
+local function viewport()
  camera=workspace.CurrentCamera or camera
- if not camera or not panel then return end
- local vp=camera.ViewportSize
- local topSafe=UserInputService.TouchEnabled and TOP_SAFE_TOUCH or TOP_SAFE_DESKTOP
- local maxW=math.max(520,vp.X-(SIDE_SAFE*2))
- local maxH=math.max(300,vp.Y-topSafe-BOTTOM_SAFE)
- local w=math.clamp(math.floor(vp.X*(UserInputService.TouchEnabled and .76 or .70)),620,920)
- local h=math.clamp(math.floor(vp.Y*(UserInputService.TouchEnabled and .60 or .58)),350,470)
- w=math.min(w,maxW)
- h=math.min(h,maxH)
- panel.AnchorPoint=Vector2.new(.5,.5)
- panel.Size=UDim2.fromOffset(w,h)
- panel.Position=UDim2.fromOffset(math.floor(vp.X/2),math.floor(topSafe+(maxH/2)))
+ return (camera and camera.ViewportSize) or Vector2.new(1280,720)
+end
+
+local function setFrame(frame,anchor,pos,size)
+ if frame.AnchorPoint~=anchor then frame.AnchorPoint=anchor end
+ if frame.Position~=pos then frame.Position=pos end
+ if frame.Size~=size then frame.Size=size end
+end
+
+local function fitMall(gui,panel)
+ if not gui or not panel then return end
+ local vp=viewport()
+ local top=topSafe()
+ local maxW=math.max(300,vp.X-(SIDE_SAFE*2))
+ local maxH=math.max(220,vp.Y-top-BOTTOM_SAFE)
+ local desiredW=math.clamp(math.floor(vp.X*(UserInputService.TouchEnabled and .70 or .68)),620,920)
+ local desiredH=math.clamp(math.floor(vp.Y*(UserInputService.TouchEnabled and .58 or .56)),320,470)
+ local w=math.min(desiredW,maxW)
+ local h=math.min(desiredH,maxH)
  gui.IgnoreGuiInset=true
+ setFrame(panel,Vector2.new(.5,0),UDim2.fromOffset(math.floor(vp.X/2),top),UDim2.fromOffset(w,h))
+ panel:SetAttribute("BBYACoreGuiSafeArea","MALL_V2")
 end
 
-local function enterFocus(gui,panel)
- if focusActive then fitPanel(gui,panel);return end
- focusActive=true
- for _,g in ipairs(pg:GetChildren()) do hideGui(g) end
- gui.Enabled=true
- if childConn then childConn:Disconnect() end
- childConn=pg.ChildAdded:Connect(function(g)
-  task.defer(function()hideGui(g)end)
- end)
- fitPanel(gui,panel)
- player:SetAttribute("BBYAMallCatalogFocusMode",true)
+local function fitTravel(gui,panel)
+ if not gui or not panel then return end
+ local vp=viewport()
+ local top=topSafe()
+ local maxW=math.max(300,vp.X-(SIDE_SAFE*2))
+ local maxH=math.max(220,vp.Y-top-BOTTOM_SAFE)
+ local desiredW=math.clamp(math.floor(vp.X*(UserInputService.TouchEnabled and .72 or .68)),620,1080)
+ local desiredH=math.clamp(math.floor(vp.Y*(UserInputService.TouchEnabled and .66 or .62)),320,470)
+ local w=math.min(desiredW,maxW)
+ local h=math.min(desiredH,maxH)
+ gui.IgnoreGuiInset=true
+ setFrame(panel,Vector2.new(.5,0),UDim2.fromOffset(math.floor(vp.X/2),top),UDim2.fromOffset(w,h))
+ panel:SetAttribute("BBYACoreGuiSafeArea","TRAVEL_V2")
 end
 
-local function leaveFocus()
- if not focusActive then return end
- focusActive=false
+local function applySafeLayout()
+ if applying or not activeMode or not activeGui or not activePanel then return end
+ applying=true
+ if activeMode=="MALL" then fitMall(activeGui,activePanel) else fitTravel(activeGui,activePanel) end
+ hideAllOtherGuis()
+ applying=false
+end
+
+local function findTravelState()
+ local gui=pg:FindFirstChild(CLUB_GUI_NAME)
+ local hub=gui and gui:FindFirstChild("HubPanel")
+ if not gui or not hub then return nil end
+ local travel=nil
+ local scroller=hub:FindFirstChild("TravelDestinationScroller",true)
+ if scroller then travel=scroller.Parent end
+ if not travel then
+  for _,d in ipairs(hub:GetDescendants()) do
+   if d:IsA("TextLabel") and d.Text=="MOVE THROUGH BBYA" then travel=d.Parent;break end
+  end
+ end
+ if travel and travel.Visible and hub.Visible and gui.Enabled then return gui,hub end
+ return nil
+end
+
+local function findMallState()
+ local gui=pg:FindFirstChild(COMMERCE_GUI_NAME)
+ local panel=gui and gui:FindFirstChild("Panel")
+ if gui and panel and gui.Enabled and panel.Visible then return gui,panel end
+ return nil
+end
+
+local function stopFocus()
+ if not activeMode then return end
+ RunService:UnbindFromRenderStep(RENDER_BIND)
  if childConn then childConn:Disconnect();childConn=nil end
+ activeMode=nil;activeGui=nil;activePanel=nil
  restoreAll()
+ player:SetAttribute("BBYACoreGuiSafeFocus",false)
  player:SetAttribute("BBYAMallCatalogFocusMode",false)
 end
 
-local function bindCommerce(gui)
- if not gui:IsA("ScreenGui") then return end
- local panel=gui:WaitForChild("Panel",10)
- if not panel then return end
- local function sync()
-  if panel.Visible and gui.Enabled then enterFocus(gui,panel) else leaveFocus() end
+local function startFocus(mode,gui,panel)
+ if activeMode==mode and activeGui==gui and activePanel==panel then
+  applySafeLayout();return
  end
- panel:GetPropertyChangedSignal("Visible"):Connect(sync)
- gui:GetPropertyChangedSignal("Enabled"):Connect(sync)
- sync()
-
- local function refit()
-  if focusActive and panel.Visible then fitPanel(gui,panel) end
- end
- if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(refit) end
- workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-  camera=workspace.CurrentCamera
-  if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(refit) end
-  task.defer(refit)
+ if activeMode then stopFocus() end
+ activeMode=mode;activeGui=gui;activePanel=panel
+ if savedEnabled[gui]~=nil then savedEnabled[gui]=nil end
+ gui.Enabled=true
+ hideAllOtherGuis()
+ childConn=pg.ChildAdded:Connect(function(g)
+  task.defer(function()hideOtherGui(g)end)
  end)
+ RunService:BindToRenderStep(RENDER_BIND,Enum.RenderPriority.Last.Value,function()
+  if activeMode then applySafeLayout() end
+ end)
+ player:SetAttribute("BBYACoreGuiSafeFocus",mode)
+ player:SetAttribute("BBYAMallCatalogFocusMode",mode=="MALL")
+ applySafeLayout()
 end
 
-local existing=pg:FindFirstChild(COMMERCE_GUI_NAME)
-if existing then task.defer(bindCommerce,existing) end
-pg.ChildAdded:Connect(function(g)
- if g.Name==COMMERCE_GUI_NAME then task.defer(bindCommerce,g) end
+local function reconcile()
+ local mallGui,mallPanel=findMallState()
+ if mallGui then startFocus("MALL",mallGui,mallPanel);return end
+ local travelGui,travelPanel=findTravelState()
+ if travelGui then startFocus("TRAVEL",travelGui,travelPanel);return end
+ stopFocus()
+end
+
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+ camera=workspace.CurrentCamera
+ task.defer(reconcile)
+end)
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(applySafeLayout)end) end
+pg.ChildAdded:Connect(function()task.defer(reconcile);task.delay(.05,reconcile)end)
+
+player.CharacterAdded:Connect(function()task.delay(.35,reconcile)end)
+
+task.spawn(function()
+ while script.Parent do
+  reconcile()
+  task.wait(.12)
+ end
 end)
 
-player.CharacterAdded:Connect(function()
- task.defer(function()
-  local gui=pg:FindFirstChild(COMMERCE_GUI_NAME)
-  local panel=gui and gui:FindFirstChild("Panel")
-  if gui and panel and panel.Visible then enterFocus(gui,panel) end
- end)
-end)
-
-print("[BBYA] Mall Catalog Focus Mode v1 online: BBYA UI hidden while catalog open; Roblox CoreGui preserved")
+print("[BBYA] CoreGui Safe Focus v2 online: Mall + Travel below Roblox controls; BBYA MENU/ROLES hidden while focused")
