@@ -42,7 +42,7 @@ jobs:
 
           $audio=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
           foreach($needle in @(
-            'STRICT VENUE AUDIO ROUTER v5',
+            'STRICT VENUE AUDIO ROUTER v9',
             'FORMER_STUDIO_LOUNGE=-3.0',
             'RESTROOM=-7.0',
             'BBYAAudioRoom',
@@ -148,3 +148,4 @@ jobs:
 
 # trigger-current-main-live-20260826
 # trigger-current-main-live-20260901-underground-dark-lock-v5
+# trigger-current-main-live-20260901-audio-router-v9-refresh
