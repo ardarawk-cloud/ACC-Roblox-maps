@@ -6,6 +6,7 @@ on:
     paths:
       - 'maps/bbya-social-hub/21-site-basement.server.lua'
       - 'maps/bbya-social-hub/32-teleport.server.lua'
+      - 'maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
       - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
       - '.github/workflows/bbya-tall-avatar-headroom-qc.yml'
 
@@ -37,6 +38,7 @@ jobs:
           set -euo pipefail
           stack='maps/bbya-social-hub/21-site-basement.server.lua'
           travel='maps/bbya-social-hub/32-teleport.server.lua'
+          geometry='maps/bbya-social-hub/91-owner-geometry-fixes.server.lua'
           router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
 
           grep -q 'TARGET_CLEAR_HEADROOM=28' "$stack"
@@ -48,6 +50,13 @@ jobs:
           grep -q 'BBYAHeadroomXZPreserved' "$stack"
           grep -q 'LightingAuthorityPreserved' "$stack"
           grep -q 'AudioSystemUntouched' "$stack"
+
+          # The legacy invisible SafetyFloor starts at Y=-18 in RuntimeQC. After the Underground
+          # floor moves to -29.5 it must be relocated below the real floor, never left in playable air.
+          grep -q 'UNDERGROUND INVISIBLE-COLLIDER FIX' "$geometry"
+          grep -q 'BBYASafetyFloorBelowUnderground' "$geometry"
+          grep -q 'FALL_PROTECTION_BELOW_UNDERGROUND' "$geometry"
+          grep -q 'floorBottom-1.5-(current.Size.Y/2)' "$geometry"
 
           # Travel must land above the relocated walkable surfaces.
           grep -q 'VIP=CFrame.new(46,32,2)' "$travel"
