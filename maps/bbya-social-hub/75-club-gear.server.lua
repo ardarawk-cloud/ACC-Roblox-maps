@@ -1,40 +1,30 @@
--- BBYA SOCIAL HUB — CLUB GEAR v2
--- Common hangout props: Money Gun, Glowstick and Party Sparkler. Cosmetic only; no damage.
+-- BBYA MUSIC UI TEST — CLUB GEAR v3 ON-DEMAND
+-- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
+-- Party props are created only when requested. Nothing is preloaded into Backpack/hotbar.
+
 local Players=game:GetService("Players")
 local Debris=game:GetService("Debris")
 local TweenService=game:GetService("TweenService")
 local Workspace=game:GetService("Workspace")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 
-local COLORS={
- Color3.fromRGB(0,205,235),
- Color3.fromRGB(255,42,157),
- Color3.fromRGB(255,211,55),
- Color3.fromRGB(255,255,255),
-}
+local COLORS={Color3.fromRGB(0,205,235),Color3.fromRGB(255,42,157),Color3.fromRGB(255,211,55),Color3.fromRGB(255,255,255)}
+local GEAR_NAMES={["Money Gun"]=true,["Glowstick"]=true,["Party Sparkler"]=true}
 
-local GEAR_NAMES={
- ["Money Gun"]=true,
- ["Glowstick"]=true,
- ["Party Sparkler"]=true,
-}
-
-local function clearOld(container)
+local function clearGear(container)
  if not container then return end
  for name in pairs(GEAR_NAMES) do
-  local old=container:FindFirstChild(name);if old then old:Destroy() end
+  local old=container:FindFirstChild(name)
+  if old then old:Destroy() end
  end
 end
-
 local function baseTool(name,size,color,material)
  local tool=Instance.new("Tool");tool.Name=name;tool.RequiresHandle=true;tool.CanBeDropped=false;tool.ToolTip="BBYA cosmetic club prop"
  local h=Instance.new("Part");h.Name="Handle";h.Size=size;h.Color=color;h.Material=material;h.CanCollide=false;h.Massless=true;h.TopSurface=Enum.SurfaceType.Smooth;h.BottomSurface=Enum.SurfaceType.Smooth;h.Parent=tool
  return tool,h
 end
-
-local function makeMoneyGun(player)
+local function makeMoneyGun()
  local tool,h=baseTool("Money Gun",Vector3.new(.55,.8,1.7),Color3.fromRGB(32,34,39),Enum.Material.Metal)
- local muzzle=Instance.new("Attachment");muzzle.Name="Muzzle";muzzle.Position=Vector3.new(0,0,-.92);muzzle.Parent=h
  local accent=Instance.new("PointLight");accent.Color=Color3.fromRGB(66,230,124);accent.Brightness=.35;accent.Range=5;accent.Parent=h
  local busy=false
  tool.Activated:Connect(function()
@@ -55,17 +45,13 @@ local function makeMoneyGun(player)
  end)
  return tool
 end
-
 local function makeGlowstick()
  local tool,h=baseTool("Glowstick",Vector3.new(.28,2.4,.28),COLORS[1],Enum.Material.Neon)
  local light=Instance.new("PointLight");light.Color=COLORS[1];light.Brightness=1.15;light.Range=12;light.Shadows=false;light.Parent=h
  local idx=1
- tool.Activated:Connect(function()
-  idx=(idx%#COLORS)+1;h.Color=COLORS[idx];light.Color=COLORS[idx]
- end)
+ tool.Activated:Connect(function()idx=(idx%#COLORS)+1;h.Color=COLORS[idx];light.Color=COLORS[idx]end)
  return tool
 end
-
 local function makeSparkler()
  local tool,h=baseTool("Party Sparkler",Vector3.new(.22,2.1,.22),Color3.fromRGB(80,80,84),Enum.Material.Metal)
  local att=Instance.new("Attachment");att.Position=Vector3.new(0,1.08,0);att.Parent=h
@@ -75,19 +61,10 @@ local function makeSparkler()
  tool.Activated:Connect(function()on=not on;emitter.Enabled=on;light.Enabled=on end)
  return tool
 end
-
-local function makeGear(player,name)
- if name=="Money Gun" then return makeMoneyGun(player) end
+local function makeGear(name)
+ if name=="Money Gun" then return makeMoneyGun() end
  if name=="Glowstick" then return makeGlowstick() end
  if name=="Party Sparkler" then return makeSparkler() end
-end
-
-local function give(player)
- local backpack=player:FindFirstChildOfClass("Backpack");if not backpack then return end
- clearOld(backpack);clearOld(player.Character)
- makeMoneyGun(player).Parent=backpack
- makeGlowstick().Parent=backpack
- makeSparkler().Parent=backpack
 end
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
@@ -95,41 +72,31 @@ if not remotes then remotes=Instance.new("Folder");remotes.Name="BBYAClubRemotes
 local gearRemote=remotes:FindFirstChild("ClubGear")
 if not gearRemote then gearRemote=Instance.new("RemoteEvent");gearRemote.Name="ClubGear";gearRemote.Parent=remotes end
 
+local function putAway(player)
+ local backpack=player:FindFirstChildOfClass("Backpack")
+ clearGear(backpack);clearGear(player.Character)
+end
 local function equipGear(player,name)
  if not GEAR_NAMES[name] then return end
- local char=player.Character
- local hum=char and char:FindFirstChildOfClass("Humanoid")
- local backpack=player:FindFirstChildOfClass("Backpack")
+ local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid");local backpack=player:FindFirstChildOfClass("Backpack")
  if not hum or not backpack then return end
- hum:UnequipTools()
- local tool=backpack:FindFirstChild(name)
- if not tool then
-  local inChar=char:FindFirstChild(name)
-  if inChar and inChar:IsA("Tool") then tool=inChar;tool.Parent=backpack end
- end
- if not tool then
-  tool=makeGear(player,name)
-  if tool then tool.Parent=backpack end
- end
- if tool and tool:IsA("Tool") then hum:EquipTool(tool) end
+ putAway(player)
+ local tool=makeGear(name)
+ if not tool then return end
+ tool.Parent=backpack
+ hum:EquipTool(tool)
 end
-
 gearRemote.OnServerEvent:Connect(function(player,action,name)
- if action=="equip" then
-  equipGear(player,tostring(name or ""))
- elseif action=="putAway" then
-  local char=player.Character;local hum=char and char:FindFirstChildOfClass("Humanoid")
-  if hum then hum:UnequipTools() end
- elseif action=="refresh" then
-  give(player)
- end
+ if action=="equip" then equipGear(player,tostring(name or ""))
+ elseif action=="putAway" then putAway(player)
+ elseif action=="refresh" then putAway(player) end
 end)
-
-local function bind(player)
- player.CharacterAdded:Connect(function()task.wait(1);if player.Parent then give(player) end end)
- if player.Character then task.defer(function()task.wait(1);give(player)end) end
+Players.PlayerAdded:Connect(function(player)
+ player.CharacterAdded:Connect(function()task.defer(function()putAway(player)end)end)
+end)
+for _,player in ipairs(Players:GetPlayers()) do
+ player.CharacterAdded:Connect(function()task.defer(function()putAway(player)end)end)
+ task.defer(function()putAway(player)end)
 end
-Players.PlayerAdded:Connect(bind)
-for _,p in ipairs(Players:GetPlayers()) do bind(p) end
 
-print("[BBYA] Club Gear v2 online: server-authoritative equip + cosmetic tools")
+print("[BBYA TEST] Club Gear v3 online: on-demand only, no preloaded hotbar tools")
