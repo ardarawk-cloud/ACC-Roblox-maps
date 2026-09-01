@@ -12,6 +12,7 @@ m:SetAttribute("Pass","BASEMENT_PREMIUM_V2")
 m:SetAttribute("BuilderLightingProfile","DARK_SAFE_V4_EMISSIVE_ONLY")
 m:SetAttribute("DecorativeNeonEmitters",false)
 m:SetAttribute("GlobalLightingWrites",false)
+m:SetAttribute("PentagonFixtureCount",6)
 
 local C={black=Color3.fromRGB(10,11,14),white=Color3.fromRGB(138,140,138),wall=Color3.fromRGB(24,28,34),metal=Color3.fromRGB(52,57,64),blue=Color3.fromRGB(0,144,255),yellow=Color3.fromRGB(255,205,38),leather=Color3.fromRGB(34,35,40),glass=Color3.fromRGB(52,62,72)}
 local function part(name,size,cf,color,mat,collide,parent)
@@ -56,8 +57,9 @@ neon("WallYellowL",Vector3.new(.14,8,0.14),CFrame.new(-57.8,-7.5,-22),C.yellow)
 neon("WallBlueR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,-22),C.blue)
 neon("WallYellowR",Vector3.new(.14,8,0.14),CFrame.new(57.8,-7.5,22),C.yellow)
 
--- pentagon fixtures are emissive geometry; final room illumination is centralized in v6.
+-- Six white pentagon fixtures are emissive-only geometry; room illumination stays centralized in v6.
 local pentagons=Instance.new("Model");pentagons.Name="WhitePentagonCeilingLights";pentagons.Parent=m
+pentagons:SetAttribute("FixtureCount",6)
 local function pentagon(name,center,radius)
  local pts={}
  for i=0,4 do
@@ -68,6 +70,9 @@ end
 pentagon("PentagonWest",Vector3.new(-39,-1.22,3),8)
 pentagon("PentagonCenter",Vector3.new(0,-1.22,-12),8.5)
 pentagon("PentagonEast",Vector3.new(39,-1.22,3),8)
+pentagon("PentagonRearWest",Vector3.new(-28,-1.22,-28),7.5)
+pentagon("PentagonFrontCenter",Vector3.new(0,-1.22,22),8)
+pentagon("PentagonRearEast",Vector3.new(28,-1.22,-28),7.5)
 
 -- premium DJ stage + booth, dark-safe at builder time.
 part("DJStage",Vector3.new(46,1.2,15),CFrame.new(0,-14.25,31),Color3.fromRGB(40,42,46),Enum.Material.Metal,true)
@@ -116,4 +121,4 @@ for i=-4,4 do
  part("StoolStem"..i,Vector3.new(.35,2.4,.35),CFrame.new(i*4,-14,-27.8),C.metal,Enum.Material.Metal,true,bar)
 end
 
-print("[BBYA] Basement Premium v4 online: emissive-only decorative neon / no stacked per-strip lights / global Lighting untouched")
+print("[BBYA] Basement Premium v4 online: 6 emissive-only pentagons / no stacked per-strip lights / global Lighting untouched")
