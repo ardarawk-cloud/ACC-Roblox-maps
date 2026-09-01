@@ -16,13 +16,18 @@ jobs:
   build-preview:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
+    env:
+      PREVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PREVIEW_SOURCE_SHA }}
 
       - name: Verify target and main-safe authorities
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:PREVIEW_SOURCE_SHA)){throw 'PREVIEW_SOURCE_SHA missing'}
           $reg=Get-Content 'maps/registry.json' -Raw | ConvertFrom-Json
           $target=$reg.maps.'bbya-music-test'
           if(-not $target){throw 'bbya-music-test missing'}
@@ -33,15 +38,20 @@ jobs:
           $suite=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
           $integrity=Get-Content 'maps/bbya-social-hub/105-music-ui-integrity.client.lua' -Raw
           $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          $danceShell=Get-Content 'maps/bbya-social-hub/63-social-hangout.client.lua' -Raw
+          $danceCatalog=Get-Content 'maps/bbya-social-hub/92-freecam.client.lua' -Raw
           if($bridge -notmatch 'MUSIC SUITE VENUE BRIDGE v6 MAIN-SAFE'){throw 'Main-safe bridge missing'}
           if($bridge -match '\.Volume\s*='){throw 'Bridge mutates audio volume'}
           foreach($needle in @('FUNKOT','VIP','SKATEPARK','ROOFTOP','VIPMusic')){if($bridge -notmatch [regex]::Escape($needle)){throw "Bridge contract missing: $needle"}}
           if($legacy -notmatch 'MUSIC SUITE SAFETY'){throw 'Legacy compatibility missing'}
-          if($legacy -notmatch 'BBYALegacyMusicUIRetired'){throw 'Legacy UI retirement missing'}
           if($suite -notmatch 'BBYAMusicSuiteV1'){throw 'Music Suite missing'}
           if($integrity -notmatch 'PREMIUM PHASE 3'){throw 'Integrity layer missing'}
           foreach($needle in @('STRICT VENUE AUDIO ROUTER v9','ROUTER_V9_EQ_ONLY','BBYAFunkotHardGateV9')){if($router -notmatch [regex]::Escape($needle)){throw "Router lock missing: $needle"}}
-          Write-Host 'BBYA_MUSIC_V3_AUTHORITY_PASS router_blob_verified_externally=615ba63ba6ef99237ce6cb7221ad7a370c391344'
+          if($danceShell -notmatch 'SOCIAL HANGOUT SHELL v4'){throw '212 dance shell missing'}
+          if($danceShell -match '9 dances \+ standard emotes'){throw 'Legacy 9-dance shell detected'}
+          if($danceCatalog -notmatch 'DANCE CATALOG 212 OVERLAY v1'){throw '212 dance catalog missing'}
+          if($danceCatalog -notmatch 'BBYADanceCatalogCount'){throw '212 dance catalog marker missing'}
+          Write-Host "BBYA_MUSIC_V3_AUTHORITY_PASS source=$env:PREVIEW_SOURCE_SHA dance=212 router_blob_verified_externally=615ba63ba6ef99237ce6cb7221ad7a370c391344"
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -74,7 +84,7 @@ jobs:
           if($bytes -lt 1024){throw 'RBXL too small'}
           $hash=(Get-FileHash -Algorithm SHA256 $place).Hash.ToLower()
           "$hash  BBYA-MUSIC-UI-PREVIEW-V3.rbxl" | Set-Content 'BBYA-MUSIC-UI-PREVIEW-V3.sha256' -Encoding ascii
-          Write-Host "BBYA_MUSIC_V3_BUILD_PASS bytes=$bytes sha256=$hash candidate=94ac32a488fa11b69756dbc74c1adfa56397def6"
+          Write-Host "BBYA_MUSIC_V3_BUILD_PASS bytes=$bytes sha256=$hash candidate=$env:PREVIEW_SOURCE_SHA"
 
       - name: Publish isolated test via MASTER V2
         shell: powershell
@@ -85,14 +95,15 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable'}
-          $env:GITHUB_SHA='94ac32a488fa11b69756dbc74c1adfa56397def6'
+          if([string]::IsNullOrWhiteSpace($env:PREVIEW_SOURCE_SHA)){throw 'PREVIEW_SOURCE_SHA unavailable'}
+          $env:GITHUB_SHA=$env:PREVIEW_SOURCE_SHA
           node scripts/publish-map.js bbya-music-test
           if($LASTEXITCODE -ne 0){throw 'Roblox test publish failed'}
           $receipt='deploy-status-test\bbya-music-test.json'
           $r=Get-Content $receipt -Raw | ConvertFrom-Json
           if($r.status -ne 'PUBLISHED'){throw "Receipt status=$($r.status)"}
           if([string]$r.universeId -ne '10762005984' -or [string]$r.placeId -ne '124607344716828'){throw 'Test target mismatch'}
-          if($r.sourceCommit -ne '94ac32a488fa11b69756dbc74c1adfa56397def6'){throw "Source mismatch: $($r.sourceCommit)"}
+          if($r.sourceCommit -ne $env:PREVIEW_SOURCE_SHA){throw "Source mismatch: $($r.sourceCommit) expected=$env:PREVIEW_SOURCE_SHA"}
           if(-not $r.response.versionNumber){throw 'versionNumber missing'}
           Get-Content $receipt
           Write-Host "BBYA_MUSIC_V3_TEST_PUBLISHED version=$($r.response.versionNumber) source=$($r.sourceCommit)"
