@@ -7,6 +7,8 @@ on:
       - 'maps/bbya-social-hub/28-lighting-ambience.server.lua'
       - 'maps/bbya-social-hub/59-dj-wall-visuals.server.lua'
       - 'maps/bbya-social-hub/62-dj-wall-render.client.lua'
+      - 'maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+      - 'maps/bbya-social-hub/87-basement-full-upgrade.server.lua'
       - '.github/workflows/bbya-premium-audio-qc.yml'
 
 permissions:
@@ -38,16 +40,21 @@ jobs:
           client='maps/bbya-social-hub/62-dj-wall-render.client.lua'
           fallback='maps/bbya-social-hub/59-dj-wall-visuals.server.lua'
           lighting='maps/bbya-social-hub/28-lighting-ambience.server.lua'
+          basement_builder='maps/bbya-social-hub/74-basement-premium-upgrade.server.lua'
+          basement_final='maps/bbya-social-hub/87-basement-full-upgrade.server.lua'
 
           grep -q 'PlaybackLoudness' "$client"
           grep -q 'accumulator<.05' "$client"
           grep -q 'BBYAClubDeckA' "$client"
           grep -q 'BBYAClubDeckB' "$client"
-          grep -q 'BBYABasementDeckA' "$client"
-          grep -q 'BBYABasementDeckB' "$client"
           grep -q 'BBYAFunkotDeck' "$client"
           grep -q 'LIVE ENVELOPE' "$client"
           grep -q 'BBYAAudioReactiveRenderer' "$client"
+          grep -q 'BBYAUndergroundAudioReactiveLighting",false' "$client"
+          if grep -q 'BBYABasementDeckA\|BBYABasementDeckB' "$client"; then
+            echo 'Underground must stay decoupled from PlaybackLoudness lighting.' >&2
+            exit 1
+          fi
 
           grep -q 'Static fallback only' "$fallback"
           grep -q 'BBYAFakeSpectrumRemoved' "$fallback"
@@ -67,8 +74,23 @@ jobs:
             exit 1
           fi
 
+          # Underground root-cause contract: decorative Neon cannot own real Light
+          # emitters, and the final pass cannot use a runtime dark-lock watchdog.
+          grep -q 'DecorativeNeonEmitters",false' "$basement_builder"
+          if grep -q 'Instance.new("SurfaceLight")\|Instance.new("PointLight")\|Instance.new("SpotLight")' "$basement_builder"; then
+            echo 'Basement builder must keep decorative Neon emissive-only.' >&2
+            exit 1
+          fi
+          grep -q 'DedicatedRoomLightCount",4' "$basement_final"
+          grep -q 'ContinuousDarkLock",false' "$basement_final"
+          grep -q 'DarkLockVersion","REMOVED_V6_SINGLE_AUTHORITY"' "$basement_final"
+          if grep -q 'while guardAlive\|DescendantAdded:Connect\|task.delay(delaySeconds,enforceDarkLock)' "$basement_final"; then
+            echo 'Underground runtime lighting watchdog must remain removed.' >&2
+            exit 1
+          fi
+
           if grep -q 'local h=.18+math.abs(math.sin' "$client"; then
             echo 'Legacy fake sine spectrum still present in client.' >&2
             exit 1
           fi
-          echo 'BBYA audio-reactive QC passed.'
+          echo 'BBYA audio-reactive + Underground single-authority QC passed.'
