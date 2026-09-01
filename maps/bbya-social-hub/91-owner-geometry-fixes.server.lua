@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — OWNER GEOMETRY + FLOOR SURFACE FIXES v3
+-- BBYA SOCIAL HUB — OWNER GEOMETRY + FLOOR SURFACE FIXES v4
 -- Targeted geometry fixes plus local daytime floor-reflection suppression.
 -- Main Club / Underground / Funkot only; global Lighting, audio and venue lights are untouched.
 -- VIP floor-neon ownership belongs EXCLUSIVELY to 72-vip-floor-neon-fix.server.lua.
@@ -52,7 +52,37 @@ task.spawn(function()
  active:SetAttribute("OwnerGeometryPreservesAllVIPNeonSides",true)
 end)
 
--- 7) DAYTIME FLOOR REFLECTION GUARD
+-- 7) UNDERGROUND INVISIBLE-COLLIDER FIX
+-- RuntimeQC historically created SafetyFloor at Y=-18 while the Underground floor was near Y=-15.5.
+-- The tall-avatar pass lowers the real BasementFloor to Y=-29.5. Leaving SafetyFloor at -18 turns that
+-- invisible fall-protection slab into a false ceiling across the Underground. Keep the safety net, but
+-- relocate it beneath the deepened structural floor so the playable air volume remains completely clear.
+task.spawn(function()
+ local site=root:WaitForChild("SiteBasement",30);if not site then return end
+ local basementFloor=site:WaitForChild("BasementFloor",30);if not basementFloor or not basementFloor:IsA("BasePart") then return end
+ local safety=root:WaitForChild("SafetyFloor",30);if not safety or not safety:IsA("BasePart") then return end
+
+ local function relocateSafetyFloor()
+  local current=root:FindFirstChild("SafetyFloor")
+  if not current or not current:IsA("BasePart") then return end
+  local floorBottom=basementFloor.Position.Y-(basementFloor.Size.Y/2)
+  local targetY=floorBottom-1.5-(current.Size.Y/2)
+  current.Anchored=true
+  current.CanCollide=true
+  current.Transparency=1
+  current.CFrame=CFrame.new(current.Position.X,targetY,current.Position.Z)*current.CFrame.Rotation
+  current:SetAttribute("BBYASafetyFloorRole","FALL_PROTECTION_BELOW_UNDERGROUND")
+  current:SetAttribute("BBYASafetyFloorRelocatedV1",true)
+  root:SetAttribute("BBYASafetyFloorBelowUnderground","V1_CLEAR_AIRSPACE")
+  root:SetAttribute("BBYASafetyFloorY",targetY)
+ end
+
+ relocateSafetyFloor()
+ -- Defensive re-asserts cover startup ordering without creating any watchdog loop.
+ for _,delaySeconds in ipairs({2,8,20}) do task.delay(delaySeconds,relocateSafetyFloor) end
+end)
+
+-- 8) DAYTIME FLOOR REFLECTION GUARD
 -- Roblox environment/specular response can make smooth indoor floors mirror the daytime sky/sun.
 -- Keep the fix local to the three music venues; do not reduce EnvironmentSpecularScale globally.
 local function matte(part,material)
@@ -104,4 +134,4 @@ for _,delaySeconds in ipairs({1,6,22,40}) do
  task.delay(delaySeconds,applyDaytimeFloorGuard)
 end
 
-print("[BBYA] Owner geometry v3 online: geometry preserved / Club-Underground-Funkot daytime floor reflection guard enabled")
+print("[BBYA] Owner geometry v4 online: invisible Underground safety collider relocated below floor / local floor reflection guard enabled")
