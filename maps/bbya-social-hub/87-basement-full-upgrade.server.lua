@@ -58,8 +58,8 @@ out:SetAttribute("ContinuousDarkLock",false)
 out:SetAttribute("LightingAuthority","V6_SINGLE_LOCAL_AUTHORITY")
 out:SetAttribute("DecorativeNeonEmitters",false)
 out:SetAttribute("BalancedAfterHeadroom",true)
-out:SetAttribute("FillBrightness",.22)
-out:SetAttribute("FillRange",36)
+out:SetAttribute("FillBrightness",.30)
+out:SetAttribute("FillRange",40)
 
 local C={
  dark=Color3.fromRGB(12,14,18),
@@ -124,8 +124,8 @@ for _,obj in ipairs(basement:GetChildren()) do
 end
 
 -- Four dedicated fills stay the only room-light source. After the 28-stud headroom pass
--- their range is widened and brightness raised modestly so avatars/floor remain readable
--- without reactivating the old dozens-of-neon floodlights that caused whiteout.
+-- their output is raised one controlled step so avatars, floor, DJ booth and bar remain
+-- readable without reactivating the old dozens-of-neon floodlights that caused whiteout.
 local lighting=Instance.new("Model")
 lighting.Name="UndergroundRoomLightingV6"
 lighting:SetAttribute("Authority","V6_SINGLE_LOCAL_AUTHORITY")
@@ -142,9 +142,9 @@ for i,pos in ipairs({
  s.Name="UndergroundRoomFill"
  s.Face=Enum.NormalId.Bottom
  s.Color=C.wash
- s.Brightness=.22
- s.Range=36
- s.Angle=130
+ s.Brightness=.30
+ s.Range=40
+ s.Angle=135
  s.Shadows=false
  s.Parent=a
 end
@@ -245,7 +245,7 @@ end
 
 -- Final state is written once. There is intentionally no DescendantAdded hook,
 -- delayed re-assert sequence, or five-second watchdog.
-basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V8_BALANCED")
+basement:SetAttribute("LightingProfile","DARK_UNDERGROUND_V9_READABLE")
 basement:SetAttribute("LoungeProfile","LOW_SECTIONAL_V4")
 basement:SetAttribute("RoomIdentity","BBYA_UNDERGROUND_INDO")
 basement:SetAttribute("OverbrightRootCauseFix",true)
@@ -255,4 +255,4 @@ basement:SetAttribute("DecorativeNeonEmitters",false)
 basement:SetAttribute("ContinuousDarkLock",false)
 basement:SetAttribute("DarkLockVersion","REMOVED_V6_SINGLE_AUTHORITY")
 
-print(string.format("[BBYA] Basement Full Upgrade v6 balanced: removed %d stacked local lights / 4 wider soft fills / no watchdog",removedLocalLights))
+print(string.format("[BBYA] Basement Full Upgrade v6 readable: removed %d stacked local lights / 4 controlled soft fills / no watchdog",removedLocalLights))
