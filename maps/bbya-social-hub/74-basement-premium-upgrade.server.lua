@@ -13,7 +13,7 @@ m:SetAttribute("BuilderLightingProfile","DARK_SAFE_V4_EMISSIVE_ONLY")
 m:SetAttribute("DecorativeNeonEmitters",false)
 m:SetAttribute("GlobalLightingWrites",false)
 m:SetAttribute("PentagonFixtureCount",6)
-m:SetAttribute("PentagramFixtureCount",4)
+m:SetAttribute("PentagramFixtureCount",7)
 
 local C={black=Color3.fromRGB(10,11,14),white=Color3.fromRGB(138,140,138),wall=Color3.fromRGB(24,28,34),metal=Color3.fromRGB(52,57,64),blue=Color3.fromRGB(0,144,255),yellow=Color3.fromRGB(255,205,38),leather=Color3.fromRGB(34,35,40),glass=Color3.fromRGB(52,62,72)}
 local function part(name,size,cf,color,mat,collide,parent)
@@ -75,10 +75,10 @@ pentagon("PentagonRearWest",Vector3.new(-28,-1.22,-28),7.5)
 pentagon("PentagonFrontCenter",Vector3.new(0,-1.22,22),8)
 pentagon("PentagonRearEast",Vector3.new(28,-1.22,-28),7.5)
 
--- Four additional white pentagram fixtures. These are true five-point star outlines,
+-- Seven additional white pentagram fixtures. These are true five-point star outlines,
 -- still emissive-only geometry: they add ceiling identity without adding local light emitters.
 local pentagrams=Instance.new("Model");pentagrams.Name="WhitePentagramCeilingLights";pentagrams.Parent=m
-pentagrams:SetAttribute("FixtureCount",4)
+pentagrams:SetAttribute("FixtureCount",7)
 local function pentagram(name,center,radius)
  local pts={}
  for i=0,4 do
@@ -94,6 +94,9 @@ pentagram("StarNorthWest",Vector3.new(-45,-1.24,-20),6.5)
 pentagram("StarNorthEast",Vector3.new(45,-1.24,-20),6.5)
 pentagram("StarSouthWest",Vector3.new(-42,-1.24,25),6.5)
 pentagram("StarSouthEast",Vector3.new(42,-1.24,25),6.5)
+pentagram("StarCenterRear",Vector3.new(0,-1.24,-32),6.3)
+pentagram("StarMidWest",Vector3.new(-20,-1.24,8),6.2)
+pentagram("StarMidEast",Vector3.new(20,-1.24,8),6.2)
 
 -- premium DJ stage + booth, dark-safe at builder time.
 part("DJStage",Vector3.new(46,1.2,15),CFrame.new(0,-14.25,31),Color3.fromRGB(40,42,46),Enum.Material.Metal,true)
@@ -142,4 +145,4 @@ for i=-4,4 do
  part("StoolStem"..i,Vector3.new(.35,2.4,.35),CFrame.new(i*4,-14,-27.8),C.metal,Enum.Material.Metal,true,bar)
 end
 
-print("[BBYA] Basement Premium v4 online: 6 pentagons + 4 pentagrams emissive-only / no stacked per-strip lights / global Lighting untouched")
+print("[BBYA] Basement Premium v4 online: 6 pentagons + 7 pentagrams emissive-only / no stacked per-strip lights / global Lighting untouched")
