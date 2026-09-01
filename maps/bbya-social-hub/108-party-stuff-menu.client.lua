@@ -1,6 +1,7 @@
--- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v5
+-- BBYA MUSIC UI TEST — PARTY STUFF STANDALONE v6
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- Party is standalone, visually matches DancePanel, and gear equip is server-authoritative.
+-- Dance is READ-ONLY. Party uses Dance.AbsoluteSize and keeps its own right dock.
+-- Gear equip remains server-authoritative.
 
 local Players=game:GetService("Players")
 local StarterGui=game:GetService("StarterGui")
@@ -37,7 +38,7 @@ partyButton.Name="PartyStuffButton";partyButton.Size=UDim2.fromScale(1,1);partyB
 corner(partyButton,9);stroke(partyButton,C.gold,.66)
 
 local panel=Instance.new("Frame")
-panel.Name="PartyStuffPanel";panel.AnchorPoint=Vector2.new(1,.5);panel.BackgroundColor3=C.panel;panel.BackgroundTransparency=.38;panel.BorderSizePixel=0;panel.Visible=false;panel.ZIndex=500;panel.Active=true;panel.ClipsDescendants=true;panel.Parent=menuGui
+panel.Name="PartyStuffPanel";panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(1,-96,0,8);panel.BackgroundColor3=C.panel;panel.BackgroundTransparency=.38;panel.BorderSizePixel=0;panel.Visible=false;panel.ZIndex=500;panel.Active=true;panel.ClipsDescendants=true;panel.Parent=menuGui
 corner(panel,14);stroke(panel,C.gold,.35)
 label(panel,"PARTY STUFF",UDim2.fromOffset(16,12),UDim2.new(1,-72,0,24),Enum.Font.GothamBlack,15,C.white)
 label(panel,"Equip or put away cosmetic gear",UDim2.fromOffset(16,36),UDim2.new(1,-32,0,18),Enum.Font.GothamMedium,9,C.muted)
@@ -49,32 +50,35 @@ local list=Instance.new("Frame")
 list.Position=UDim2.fromOffset(14,68);list.Size=UDim2.new(1,-28,1,-82);list.BackgroundTransparency=1;list.ZIndex=501;list.Parent=panel
 local layout=Instance.new("UIListLayout");layout.Padding=UDim.new(0,10);layout.FillDirection=Enum.FillDirection.Vertical;layout.HorizontalAlignment=Enum.HorizontalAlignment.Center;layout.SortOrder=Enum.SortOrder.LayoutOrder;layout.Parent=list
 
-local function danceMetrics()
+local function danceVisualSize()
  local social=pg:FindFirstChild("BBYASocialHangoutUI")
  local dance=social and social:FindFirstChild("DancePanel")
- if dance then
-  local scale=dance:FindFirstChild("BBYAViewportScaleV1") or dance:FindFirstChildWhichIsA("UIScale")
-  return dance,scale and scale.Scale or 1
+ if not dance or not dance:IsA("GuiObject") then return nil end
+ local a=dance.AbsoluteSize
+ if a.X<40 or a.Y<40 then return nil end
+ return Vector2.new(math.floor(a.X+.5),math.floor(a.Y+.5))
+end
+
+local function clearOldScales()
+ for _,name in ipairs({"BBYAMatchDanceScaleV5","BBYAMatchDanceScaleV6"}) do
+  local s=panel:FindFirstChild(name)
+  if s and s:IsA("UIScale") then s:Destroy() end
  end
- return nil,1
 end
-local function applyDanceScale(target,scale)
- local s=target:FindFirstChild("BBYAMatchDanceScaleV5")
- if not s then s=Instance.new("UIScale");s.Name="BBYAMatchDanceScaleV5";s.Parent=target end
- s.Scale=scale
-end
+
 local function layoutPanel()
- camera=workspace.CurrentCamera or camera
- local dance,scale=danceMetrics()
- panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-12,.5,0)
- if dance then
-  panel.AnchorPoint=dance.AnchorPoint;panel.Position=dance.Position;panel.Size=dance.Size
+ clearOldScales()
+ panel.AnchorPoint=Vector2.new(1,0)
+ panel.Position=UDim2.new(1,-96,0,8)
+ local visual=danceVisualSize()
+ if visual then
+  panel.Size=UDim2.fromOffset(visual.X,visual.Y)
  else
+  camera=workspace.CurrentCamera or camera
   local v=camera and camera.ViewportSize or Vector2.new(1280,720)
-  panel.Size=UDim2.fromOffset(math.clamp(math.floor(v.X*.19),270,320),math.clamp(math.floor(v.Y*.72),470,560))
+  panel.Size=UDim2.fromOffset(math.clamp(math.floor(v.X*.30),296,330),math.clamp(math.floor(v.Y*.45),286,390))
  end
- applyDanceScale(panel,scale)
- panel:SetAttribute("BBYAPartyGeometry","MATCH_DANCE_SIZE_SCALE_V5")
+ panel:SetAttribute("BBYAPartyGeometry","DANCE_ABSOLUTE_PIXELS_V6")
 end
 layoutPanel()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutPanel) end
@@ -125,5 +129,5 @@ player:SetAttribute("BBYACustomPartyGearUI",true);player:SetAttribute("BBYAParty
 for i=1,6 do task.delay(i*.35,hideBackpack) end
 player.CharacterAdded:Connect(function()task.delay(1.2,function()player:SetAttribute("BBYAPartyGearStored",true);hideBackpack()end)end)
 task.defer(hideBackpack)
-menuGui:SetAttribute("BBYAPartyStuffAuthority","V5_MATCH_DANCE_SCALE_SERVER_GEAR")
-print("[BBYA TEST] Party Stuff v5 online: Dance visual scale + server gear equip")
+menuGui:SetAttribute("BBYAPartyStuffAuthority","V6_DANCE_ABSOLUTE_SERVER_GEAR")
+print("[BBYA TEST] Party Stuff v6: Dance READ-ONLY + absolute visual pixels + server gear equip")
