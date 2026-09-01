@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9.1
 -- Deterministic local venue isolation using EQ gates only.
--- V9 adds a second fail-closed EQ directly on every Funkot Sound so spawn/track
--- replication races cannot leak Funkot audio outside the Funkot Diskotik zone.
+-- V9.1 changes only VIP/Rooftop coordinate bounds for the tall-avatar vertical stack.
 -- IMPORTANT: this router never mutates SoundGroup.Volume or Sound.Volume.
 
 local Players=game:GetService("Players")
@@ -82,8 +81,8 @@ end
 
 local function venueAtPosition(p)
  if p.Y<-4.5 then return "UNDERGROUND",nil end
- if p.Y>=40 and p.Y<=60 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48 then return "ROOFTOP",nil end
- if p.Y>=20 and p.Y<40 and math.abs(p.X)<=58 and p.Z>=-46 and p.Z<=46 then return "VIP",nil end
+ if p.Y>=55 and p.Y<=80 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48 then return "ROOFTOP",nil end
+ if p.Y>=20 and p.Y<55 and math.abs(p.X)<=58 and p.Z>=-46 and p.Z<=46 then return "VIP",nil end
  if p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253 then return "FUNKOT",nil end
  if p.Y>-4 and p.Y<20 and math.abs(p.X)<=61 and p.Z>=72 and p.Z<=152 then return "SKATEPARK",nil end
  local mainRoom=mainRoomAtPosition(p)
@@ -150,11 +149,7 @@ local function enforce()
    g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_EQ_ONLY")
   end
  end
-
- -- Second-layer hard isolation for the reported Funkot-at-spawn leak.
- -- Fail closed anywhere except the explicit Funkot coordinate box.
  enforceDirectFunkot(not muted and currentVenue=="FUNKOT")
-
  player:SetAttribute("BBYAAudioVenue",currentVenue)
  player:SetAttribute("BBYAAudioRoom",currentRoom or "NONE")
  player:SetAttribute("BBYAMainTrimDb",currentVenue=="MAIN" and mainTrim or -80)
@@ -174,11 +169,7 @@ SoundService.ChildAdded:Connect(function(child)
  if child:IsA("SoundGroup") then task.defer(enforce) end
 end)
 SoundService.DescendantAdded:Connect(function(child)
- if child:IsA("Sound") and isFunkotSound(child) then
-  -- New/replicated Funkot sounds are muted immediately, then opened only after
-  -- the current position is re-evaluated as inside the Funkot zone.
-  setGate(ensureDirectFunkotGate(child),false,0)
- end
+ if child:IsA("Sound") and isFunkotSound(child) then setGate(ensureDirectFunkotGate(child),false,0) end
  task.defer(enforce)
 end)
 SoundService.ChildRemoved:Connect(function(child)
@@ -202,4 +193,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v9: EQ-only isolation + FUNKOT_HARD_LEAK_GUARD_V9 active")
+print("[BBYA] Strict venue audio router v9.1: EQ-only isolation preserved / tall-stack Y bounds aligned")

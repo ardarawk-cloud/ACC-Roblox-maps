@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v9
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v9.1
 -- Reliable server-authoritative travel with explicit client result events.
--- Photo Studio + Look Lab now point to their current Mall Level 2 locations.
+-- Tall-avatar vertical-stack coordinates: Main stays anchored; Underground/VIP/Rooftop follow their new Y levels.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
@@ -25,14 +25,14 @@ end
 
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.new(78,18,369), -- GLOW LAB photo side, Mall L2
- LookLab=CFrame.new(61,18,361), -- GLOW LAB styling side, Mall L2
+ Photo=CFrame.new(78,18,369),
+ LookLab=CFrame.new(61,18,361),
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
- VIP=CFrame.new(46,27,2),
- Rooftop=CFrame.new(43,47,-28),
- Pool=CFrame.new(0,47,-12),
- Basement=CFrame.new(0,-12,0),
+ VIP=CFrame.new(46,32,2),
+ Rooftop=CFrame.new(43,61.5,-28),
+ Pool=CFrame.new(0,61.5,-12),
+ Basement=CFrame.new(0,-26,0),
  Skatepark=CFrame.new(0,3,112),
  Funkot=CFrame.new(0,3,178),
  Mall=CFrame.new(0,4,302),
@@ -96,14 +96,9 @@ tp.OnServerEvent:Connect(function(player,key)
  if not destinations[key] then send(player,false,key,"Destination tidak tersedia");return end
  local now=os.clock();local last=debounce[player.UserId] or 0
  if now-last<.35 then return end;debounce[player.UserId]=now
-
  local price=PRICES[key]
- if not price then
-  local ok,msg=doTeleport(player,key);send(player,ok,key,msg);return
- end
- if owns(player,key) then
-  local ok,msg=doTeleport(player,key);send(player,ok,key,msg);return
- end
+ if not price then local ok,msg=doTeleport(player,key);send(player,ok,key,msg);return end
+ if owns(player,key) then local ok,msg=doTeleport(player,key);send(player,ok,key,msg);return end
  local passId=tonumber(PASSES[key]) or 0
  if passId<=0 then
   toast(player,"One-time access sedang sinkron. Coba lagi sebentar.")
@@ -112,10 +107,7 @@ tp.OnServerEvent:Connect(function(player,key)
  end
  player:SetAttribute("BBYAPendingTravelPass",key)
  local ok=pcall(function()MarketplaceService:PromptGamePassPurchase(player,passId)end)
- if not ok then
-  player:SetAttribute("BBYAPendingTravelPass",nil)
-  send(player,false,key,"Roblox purchase prompt gagal dibuka")
- end
+ if not ok then player:SetAttribute("BBYAPendingTravelPass",nil);send(player,false,key,"Roblox purchase prompt gagal dibuka") end
 end)
 
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId,purchased)
@@ -134,4 +126,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)
  ownershipCache[player.UserId]=nil;debounce[player.UserId]=nil
 end)
-print("[BBYA] Travel v9 online: reliable touch result + Mall L2 Photo/Look destinations + server acknowledgement")
+print("[BBYA] Travel v9.1 online: tall-avatar stack destinations aligned / Mall coordinates preserved")

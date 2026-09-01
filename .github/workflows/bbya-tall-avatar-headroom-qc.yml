@@ -1,0 +1,79 @@
+name: BBYA Tall Avatar Headroom QC
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/21-site-basement.server.lua'
+      - 'maps/bbya-social-hub/32-teleport.server.lua'
+      - 'maps/bbya-social-hub/104-venue-audio-router.client.lua'
+      - '.github/workflows/bbya-tall-avatar-headroom-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: rojo-cache
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+      - name: Build BBYA place
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-tall-avatar-headroom.rbxl
+          test -s /tmp/bbya-tall-avatar-headroom.rbxl
+      - name: Validate vertical-stack contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          stack='maps/bbya-social-hub/21-site-basement.server.lua'
+          travel='maps/bbya-social-hub/32-teleport.server.lua'
+          router='maps/bbya-social-hub/104-venue-audio-router.client.lua'
+
+          grep -q 'TARGET_CLEAR_HEADROOM=28' "$stack"
+          grep -q 'UNDERGROUND_DELTA=-14' "$stack"
+          grep -q 'VIP_FLOOR_DELTA=5' "$stack"
+          grep -q 'ROOFTOP_DELTA=14.5' "$stack"
+          grep -q 'TALL_AVATAR_VERTICAL_STACK_V1' "$stack"
+          grep -q 'BBYAHeadroomMainAnchorPreserved' "$stack"
+          grep -q 'BBYAHeadroomXZPreserved' "$stack"
+          grep -q 'LightingAuthorityPreserved' "$stack"
+          grep -q 'AudioSystemUntouched' "$stack"
+
+          # Travel must land above the relocated walkable surfaces.
+          grep -q 'VIP=CFrame.new(46,32,2)' "$travel"
+          grep -q 'Rooftop=CFrame.new(43,61.5,-28)' "$travel"
+          grep -q 'Pool=CFrame.new(0,61.5,-12)' "$travel"
+          grep -q 'Basement=CFrame.new(0,-26,0)' "$travel"
+          grep -q 'MainClub=CFrame.new(3,3,11)' "$travel"
+
+          # Audio authority remains the v582 EQ-only router; only Y bounds may change here.
+          grep -q 'ROUTER_V9_EQ_ONLY' "$router"
+          grep -q 'BBYAMusicMuted' "$router"
+          grep -q 'p.Y>=55 and p.Y<=80' "$router"
+          grep -q 'p.Y>=20 and p.Y<55' "$router"
+          if grep -q 'mainGroup.Volume\|basementGroup.Volume\|currentMainVolume\|currentBasementVolume' "$router"; then
+            echo 'Tall-avatar pass must not reintroduce legacy audio volume ownership.' >&2
+            exit 1
+          fi
+
+          # Structural headroom authority must not mutate global Lighting or add a competing audio writer.
+          if grep -q 'Lighting\.' "$stack"; then
+            echo 'Headroom pass must not mutate global Lighting.' >&2
+            exit 1
+          fi
+          if grep -q 'SoundGroup.Volume\|Sound.Volume' "$stack"; then
+            echo 'Headroom pass must not own audio volume.' >&2
+            exit 1
+          fi
+
+          echo 'BBYA tall-avatar vertical-stack contract passed.'
