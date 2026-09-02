@@ -1,7 +1,9 @@
--- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v5
--- Full-wall dual entrance displays.
+-- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v6
+-- Full-wall dual entrance displays fitted to the usable facade fields.
 -- Left: Top Supporters / Hall of Fame.
 -- Right: Live Community / dynamic welcome + recent arrivals.
+-- v6: expand both boards from the old 16x13 glass openings to the full visible
+--     facade fields while keeping the 3-stud portal columns unobstructed.
 
 local W = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -16,7 +18,7 @@ if old then old:Destroy() end
 
 local model = Instance.new("Model")
 model.Name = "SupportDashboard"
-model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V5")
+model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V6")
 model.Parent = root
 
 local PINK = Color3.fromRGB(255,38,155)
@@ -53,17 +55,24 @@ local function label(parent,textValue,pos,size,color,font,align,scaled)
     return t
 end
 
+local BOARD_W=20.40
+local BOARD_H=23.40
+local RECESS_W=20.80
+local RECESS_H=23.80
+local BOARD_Y=12.00
+
 local function makeBoard(name,x,accentTop,accentBottom)
     local holder=Instance.new("Model");holder.Name=name;holder.Parent=model
-    local cf=CFrame.new(x,7.0,-44.50)
-    -- Glass opening is ~16x13. Fill almost the entire field while preserving a slim architectural reveal.
-    part("Recess",Vector3.new(16.10,13.05,.34),cf*CFrame.new(0,0,.10),Color3.fromRGB(4,4,6),Enum.Material.Metal,0,holder)
-    local face=part("DisplayGlass",Vector3.new(15.72,12.68,.10),cf*CFrame.new(0,0,-.15),Color3.fromRGB(10,9,13),Enum.Material.Glass,.04,holder)
+    local cf=CFrame.new(x,BOARD_Y,-44.50)
+    -- Facade is 24x24. The usable display field is the facade minus the inner
+    -- portal-column strip. A 0.1-0.3 stud reveal keeps the board architecturally clean.
+    part("Recess",Vector3.new(RECESS_W,RECESS_H,.34),cf*CFrame.new(0,0,.10),Color3.fromRGB(4,4,6),Enum.Material.Metal,0,holder)
+    local face=part("DisplayGlass",Vector3.new(BOARD_W,BOARD_H,.10),cf*CFrame.new(0,0,-.15),Color3.fromRGB(10,9,13),Enum.Material.Glass,.04,holder)
     face.Reflectance=.07
-    part("TopTrim",Vector3.new(15.78,.12,.12),cf*CFrame.new(0,6.39,-.22),accentTop,Enum.Material.Neon,0,holder)
-    part("BottomTrim",Vector3.new(15.78,.09,.12),cf*CFrame.new(0,-6.39,-.22),accentBottom,Enum.Material.Neon,0,holder)
-    part("LeftTrim",Vector3.new(.09,12.55,.12),cf*CFrame.new(-7.91,0,-.22),accentBottom,Enum.Material.Neon,0,holder)
-    part("RightTrim",Vector3.new(.09,12.55,.12),cf*CFrame.new(7.91,0,-.22),accentTop,Enum.Material.Neon,0,holder)
+    part("TopTrim",Vector3.new(BOARD_W+.06,.12,.12),cf*CFrame.new(0,BOARD_H*.5+.06,-.22),accentTop,Enum.Material.Neon,0,holder)
+    part("BottomTrim",Vector3.new(BOARD_W+.06,.09,.12),cf*CFrame.new(0,-(BOARD_H*.5+.06),-.22),accentBottom,Enum.Material.Neon,0,holder)
+    part("LeftTrim",Vector3.new(.09,BOARD_H-.12,.12),cf*CFrame.new(-(BOARD_W*.5+.06),0,-.22),accentBottom,Enum.Material.Neon,0,holder)
+    part("RightTrim",Vector3.new(.09,BOARD_H-.12,.12),cf*CFrame.new(BOARD_W*.5+.06,0,-.22),accentTop,Enum.Material.Neon,0,holder)
     local light=Instance.new("PointLight");light.Color=accentTop;light.Brightness=.25;light.Range=8;light.Shadows=false;light.Parent=face
     local gui=Instance.new("SurfaceGui");gui.Name="CommunityWallUI";gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=false;gui.LightInfluence=.18;gui.PixelsPerStud=76;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;gui.Parent=face
     local bg=frame(gui,UDim2.fromScale(0,0),UDim2.fromScale(1,1),DARK,0)
@@ -74,7 +83,8 @@ local function makeBoard(name,x,accentTop,accentBottom)
 end
 
 -- LEFT — HALL OF FAME ----------------------------------------------------------
-local _,leftFace,left=makeBoard("TopSupportersWall",-33,GOLD,PINK)
+-- Shift outward so the board fills the facade without covering PortalLeft.
+local _,leftFace,left=makeBoard("TopSupportersWall",-34.5,GOLD,PINK)
 label(left,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(left,"COMMUNITY HALL OF FAME",UDim2.fromScale(.045,.105),UDim2.fromScale(.83,.085),GOLD,Enum.Font.GothamBlack)
 label(left,"The people who help keep the room alive",UDim2.fromScale(.045,.190),UDim2.fromScale(.70,.040),MUTED,Enum.Font.GothamMedium)
@@ -93,7 +103,8 @@ local footL=frame(left,UDim2.fromScale(.045,.915),UDim2.fromScale(.91,.045),Colo
 label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromScale(.03,.08),UDim2.fromScale(.94,.84),Color3.fromRGB(206,197,211),Enum.Font.GothamBold,Enum.TextXAlignment.Center)
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
-local _,rightFace,right=makeBoard("LiveCommunityWall",33,PINK,CYAN)
+-- Shift outward so the board fills the facade without covering PortalRight.
+local _,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
 label(right,"You are part of the room the moment you arrive",UDim2.fromScale(.045,.190),UDim2.fromScale(.80,.040),MUTED,Enum.Font.GothamMedium)
@@ -163,4 +174,4 @@ for _,face in ipairs({leftFace,rightFace}) do
     prompt.Triggered:Connect(function(player)if state then state:FireClient(player,"openSupport",true) end end)
 end
 
-print("[BBYA] Full-wall community honor system online: hall of fame + live guest recognition")
+print("[BBYA] Entrance community honor walls v6 online: facade-fit hall of fame + live guest recognition")
