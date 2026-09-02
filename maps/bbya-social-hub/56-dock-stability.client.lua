@@ -1,4 +1,4 @@
--- BBYA MUSIC UI TEST — UI KERNEL v2.1
+-- BBYA MUSIC UI TEST — UI KERNEL v2.2
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
 -- ONE UI shell authority. v69 geometry is locked.
 -- Support/Party are server-authoritative. Music is large. Developer DJ stays full-screen.
@@ -89,8 +89,20 @@ list.ScrollBarThickness=3; list.ScrollBarImageColor3=C.pink; list.AutomaticCanva
 local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,7); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.HorizontalAlignment=Enum.HorizontalAlignment.Center; ll.Parent=list
 local pad=Instance.new("UIPadding"); pad.PaddingBottom=UDim.new(0,8); pad.Parent=list
 
-local managed={}; local current=nil
-local function register(key,obj) managed[key]=obj; return obj end
+local managed={}; local current=nil; local visibilityBound={}
+local function restoreMenu()
+ current=nil; menuButton.Visible=true; menuButton.Text="MENU"
+end
+local function register(key,obj)
+ managed[key]=obj
+ if obj and obj:IsA("GuiObject") and not visibilityBound[obj] then
+  visibilityBound[obj]=true
+  obj:GetPropertyChangedSignal("Visible"):Connect(function()
+   if not obj.Visible and current==key then restoreMenu() end
+  end)
+ end
+ return obj
+end
 local function hideAll(except)
  for key,obj in pairs(managed) do if key~=except and obj and obj:IsA("GuiObject") then obj.Visible=false end end
  local hub=clubUI:FindFirstChild("HubPanel",true); if except~="MUSIC" and hub then hub.Visible=false end
@@ -98,7 +110,7 @@ local function hideAll(except)
 end
 local function closeMenu() drawer.Visible=false; menuButton.Text="MENU" end
 local function showNormal(key,obj)
- hideAll(key); placeNormal(obj); obj.Visible=true; closeMenu(); current=key
+ hideAll(key); placeNormal(obj); obj.Visible=true; closeMenu(); current=key; menuButton.Visible=false
 end
 local function makePanel(name,title,accent,parent)
  local p=Instance.new("Frame"); p.Name=name; p.BackgroundColor3=C.bg; p.BackgroundTransparency=.28; p.BorderSizePixel=0
@@ -118,8 +130,8 @@ local function menuEntry(textValue,order,accent,callback)
  local b=button(list,textValue,nil,UDim2.new(1,-4,0,44),C.card); b.LayoutOrder=order; b.ZIndex=204; stroke(b,accent,.58); b.Activated:Connect(callback); return b
 end
 
--- SUPPORT: buttons ask the ONE server monetization authority. No client product IDs.
-local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan,clubUI))
+-- SUPPORT: same ScreenGui/coordinate system as Party Stuff.
+local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan,gui))
 label(supportPanel,"Choose Robux amount",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local supportScroll=Instance.new("ScrollingFrame"); supportScroll.Name="KernelSupportScroller"; supportScroll.Position=UDim2.fromOffset(12,70)
 supportScroll.Size=UDim2.new(1,-24,1,-82); supportScroll.BackgroundTransparency=1; supportScroll.BorderSizePixel=0; supportScroll.Active=true
@@ -134,8 +146,8 @@ for i,a in ipairs({10,25,50,100,250,500,1000,2000}) do
  end)
 end
 
--- TRAVEL
-local travelPanel=register("TRAVEL",makePanel("TravelPanel","TRAVEL",C.gold,clubUI))
+-- TRAVEL: same ScreenGui/coordinate system as Party Stuff.
+local travelPanel=register("TRAVEL",makePanel("TravelPanel","TRAVEL",C.gold,gui))
 label(travelPanel,"Tap destination",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local travelScroll=Instance.new("ScrollingFrame"); travelScroll.Position=UDim2.fromOffset(12,70); travelScroll.Size=UDim2.new(1,-24,1,-82)
 travelScroll.BackgroundTransparency=1; travelScroll.BorderSizePixel=0; travelScroll.Active=true; travelScroll.ScrollingEnabled=true
@@ -155,8 +167,8 @@ if travelResult then travelResult.OnClientEvent:Connect(function(ok,key)
  else b.Text="TRY AGAIN"; task.delay(1,function() for _,d in ipairs(destinations) do if d[2]==key and b.Parent then b.Text=d[1] end end end) end
 end) end
 
--- COMMUNITY
-local communityPanel=register("COMMUNITY",makePanel("CommunityPanel","BBYA COMMUNITY",C.cyan,clubUI))
+-- COMMUNITY: same ScreenGui/coordinate system as Party Stuff.
+local communityPanel=register("COMMUNITY",makePanel("CommunityPanel","BBYA COMMUNITY",C.cyan,gui))
 local communityBody=Instance.new("ScrollingFrame"); communityBody.Position=UDim2.fromOffset(12,52); communityBody.Size=UDim2.new(1,-24,1,-64)
 communityBody.BackgroundTransparency=1; communityBody.BorderSizePixel=0; communityBody.Active=true; communityBody.ScrollingEnabled=true
 communityBody.AutomaticCanvasSize=Enum.AutomaticSize.Y; communityBody.CanvasSize=UDim2.new(); communityBody.ScrollBarThickness=3; communityBody.ZIndex=402; communityBody.Parent=communityPanel
@@ -170,7 +182,7 @@ infoCard("DISCORD COMMUNITY","Event alerts • DJ nights • updates • feedbac
 infoCard("HOW TO JOIN","Open the BBYA game page → Social Links → Discord.",C.gold)
 infoCard("WHY JOIN?","Early announcements • polls • music updates • community hangout",C.pink)
 
--- PARTY STUFF: gear stays equipped, but Roblox Backpack/hotbar stays hidden while Party gear is active.
+-- PARTY STUFF
 local partyPanel=register("PARTY",makePanel("PartyStuffPanel","PARTY STUFF",C.gold,gui))
 label(partyPanel,"Equip cosmetic gear",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local partyList=Instance.new("Frame"); partyList.Position=UDim2.fromOffset(12,72); partyList.Size=UDim2.new(1,-24,1,-84); partyList.BackgroundTransparency=1; partyList.ZIndex=402; partyList.Parent=partyPanel
@@ -189,17 +201,17 @@ end
 local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,50),C.card); away.LayoutOrder=4; away.ZIndex=403; stroke(away,C.pink,.5)
 away.Activated:Connect(function() gearRemote:FireServer("putAway") end)
 
--- Menu entries. Their outer geometry is all owned here.
+-- Menu entries.
 menuEntry("MUSIC",1,C.pink,function()
- hideAll("MUSIC"); closeMenu(); local hub=clubUI:FindFirstChild("HubPanel",true)
+ hideAll("MUSIC"); closeMenu(); menuButton.Visible=false; local hub=clubUI:FindFirstChild("HubPanel",true)
  if hub then placeMusic(hub); hub.Visible=true; current="MUSIC" end
 end)
 menuEntry("SUPPORT",2,C.cyan,function() showNormal("SUPPORT",supportPanel) end)
 menuEntry("TRAVEL",3,C.gold,function() showNormal("TRAVEL",travelPanel) end)
 menuEntry("MESSAGE",4,C.purple,function()
- hideAll("MESSAGE"); closeMenu(); if wallRemote then wallRemote:FireServer("config") end
+ hideAll("MESSAGE"); closeMenu(); menuButton.Visible=false; if wallRemote then wallRemote:FireServer("config") end
  local wall=pg:FindFirstChild("BBYADJWallUI"); local p=wall and wall:FindFirstChild("DJWallComposerPanel",true)
- if p then register("MESSAGE",p); placeNormal(p); p.Visible=true; current="MESSAGE" end
+ if p then register("MESSAGE",p); placeNormal(p); p.Visible=true; current="MESSAGE" else restoreMenu() end
 end)
 menuEntry("DANCE",5,C.pink,function()
  local social=pg:FindFirstChild("BBYASocialHangoutUI"); local dp=social and social:FindFirstChild("DancePanel")
@@ -212,12 +224,13 @@ end)
 menuEntry("COMMUNITY",7,C.cyan,function() showNormal("COMMUNITY",communityPanel) end)
 menuEntry("PARTY STUFF",8,C.gold,function() showNormal("PARTY",partyPanel); setBackpackVisible(false) end)
 menuEntry("DJ LIVE",9,C.gold,function()
- hideAll("DJ"); closeMenu()
+ hideAll("DJ"); closeMenu(); menuButton.Visible=false
  local dj=pg:FindFirstChild("BBYADeveloperDJUI"); local p=dj and dj:FindFirstChild("DeveloperDJMixerPanel",true)
- if p then p.Visible=true; current="DJ" else toast("DJ LIVE NOT AVAILABLE") end
+ if p then p.Visible=true; current="DJ" else restoreMenu(); toast("DJ LIVE NOT AVAILABLE") end
 end)
 
 menuButton.Activated:Connect(function()
+ menuButton.Visible=true
  if drawer.Visible then closeMenu() else hideAll(nil); placeNormal(drawer); drawer.Visible=true; menuButton.Text="CLOSE" end
 end)
 
@@ -245,7 +258,7 @@ gearRemote.OnClientEvent:Connect(function(action,data)
   end
  end
 end)
-player.CharacterAdded:Connect(function() task.defer(function() setBackpackVisible(true) end) end)
+player.CharacterAdded:Connect(function() task.defer(function() setBackpackVisible(true); restoreMenu() end) end)
 
 local function layoutAll()
  placeNormal(drawer); placeNormal(supportPanel); placeNormal(travelPanel); placeNormal(communityPanel); placeNormal(partyPanel)
@@ -255,4 +268,4 @@ end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() camera=workspace.CurrentCamera; task.defer(layoutAll) end)
 task.defer(layoutAll)
-print("[BBYA TEST] UI KERNEL v2.1 online: v69 geometry locked + Party hotbar hidden while equipped")
+print("[BBYA TEST] UI KERNEL v2.2 online: one secondary-panel coordinate system + menu hidden behind active panel")
