@@ -1,0 +1,107 @@
+name: TRACK 01 v4.2 Music Permissions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/track01-v42-music-permissions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: track01-v42-music-permissions
+  cancel-in-progress: false
+
+jobs:
+  grant-use:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Grant approved BBYA catalog to TRACK 01 universe
+        env:
+          AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+          AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
+          MASTER_V2_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          UNIVERSE_ID: '10745349805'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, urllib.request, urllib.error
+          root=pathlib.Path('.')
+          src=(root/'maps/track-01/music-runtime.server.lua').read_text(encoding='utf-8')
+          ids=[]
+          for x in re.findall(r'\{id="(\d+)",source="(?:PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}',src):
+              if x not in ids: ids.append(x)
+          if len(ids)!=67: raise SystemExit(f'catalog count mismatch: {len(ids)}')
+          universe=os.environ['UNIVERSE_ID']
+          def req(url,method='GET',payload=None,headers=None):
+              body=None if payload is None else json.dumps(payload).encode()
+              h=dict(headers or {})
+              if payload is not None and 'Content-Type' not in h:h['Content-Type']='application/json'
+              r=urllib.request.Request(url,data=body,headers=h,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=30) as q:
+                      raw=q.read().decode('utf-8','replace');return q.status,json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try:data=json.loads(raw) if raw.strip() else {}
+                  except Exception:data={'raw':raw[-1000:]}
+                  return e.code,data
+          def info(key):
+              if not key:return {'present':False}
+              code,data=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key})
+              scopes=[{'name':s.get('name'),'operations':s.get('operations') or []} for s in (data.get('scopes') or [])] if isinstance(data,dict) else []
+              return {'present':True,'http':code,'name':data.get('name') if isinstance(data,dict) else None,'enabled':data.get('enabled') if isinstance(data,dict) else None,'expired':data.get('expired') if isinstance(data,dict) else None,'scopes':scopes}
+          def usable(i):
+              return i.get('present') and i.get('http')==200 and i.get('enabled') is not False and i.get('expired') is not True and any(s.get('name')=='asset-permissions:write' for s in i.get('scopes',[]))
+          granted=set();attempts=[]
+          keys=[('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),('ROBLOX_OPEN_CLOUD_MASTER_V2',os.environ.get('MASTER_V2_KEY','').strip())]
+          for label,key in keys:
+              ki=info(key);entry={'key':label,'keyInfo':ki,'batches':[]}
+              if not usable(ki):entry['result']='NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE';attempts.append(entry);continue
+              remaining=[x for x in ids if x not in granted]
+              for pos in range(0,len(remaining),20):
+                  batch=remaining[pos:pos+20]
+                  payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(x)} for x in batch]}
+                  code,data=req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+                  success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+                  granted.update(success)
+                  entry['batches'].append({'http':code,'requested':len(batch),'successCount':len(success)})
+              entry['result']='ATTEMPTED';attempts.append(entry)
+              if len(granted)==len(ids):break
+          report={'status':'GRANTED_ALL' if len(granted)==len(ids) else 'PARTIAL_OR_FAILED','universeId':universe,'catalogCount':len(ids),'catalogAssetIds':ids,'grantedCount':len(granted),'grantedAssetIds':[x for x in ids if x in granted],'missingAssetIds':[x for x in ids if x not in granted],'attempts':attempts}
+          pathlib.Path('deploy-status').mkdir(exist_ok=True)
+          pathlib.Path('deploy-status/track01-music-permissions.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps({'status':report['status'],'catalog':len(ids),'granted':len(granted),'missing':len(report['missingAssetIds'])}))
+          PY
+
+      - name: Persist permission report
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy-status/track01-music-permissions.json
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/track01-music-permissions.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record TRACK 01 v4.2 music permissions [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Enforce useful permission result
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const r=require('./deploy-status/track01-music-permissions.json');
+          if(r.universeId!=='10745349805'||r.catalogCount!==67) throw new Error('TRACK 01 permission target/catalog mismatch');
+          if(!Number.isInteger(r.grantedCount)||r.grantedCount<1) throw new Error('No TRACK 01 music asset permission was granted');
+          console.log('TRACK 01 music permissions',r.status,r.grantedCount+'/'+r.catalogCount);
+          NODE

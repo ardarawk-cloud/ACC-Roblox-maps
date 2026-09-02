@@ -1,0 +1,14 @@
+const fs=require('fs');
+const path=require('path');
+const {execFileSync}=require('child_process');
+const root=process.cwd();
+execFileSync(process.execPath,[path.join(root,'scripts/build-track01.js')],{stdio:'inherit',cwd:root});
+const place=path.join(root,'maps/track-01/place.rbxlx');
+const music=fs.readFileSync(path.join(root,'maps/track-01/music-runtime.server.lua'),'utf8').replaceAll(']]>',']]]]><![CDATA[>');
+let xml=fs.readFileSync(place,'utf8');
+const marker='</Item><Item class="StarterPlayer" referent="P">';
+if(!xml.includes(marker)) throw new Error('TRACK 01 ServerScriptService insertion marker missing');
+const item=`<Item class="Script" referent="TM42"><Properties><string name="Name">TRACK01_MusicAutoDJ</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${music}]]></ProtectedString></Properties></Item>`;
+xml=xml.replace(marker,item+marker);
+fs.writeFileSync(place,xml);
+console.log('[TRACK 01] built v4.2.0 Auto Random 24/7 + Automix',Buffer.byteLength(xml),'bytes',place);
