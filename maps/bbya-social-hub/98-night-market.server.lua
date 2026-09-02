@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — PASAR MALAM v1
+-- BBYA SOCIAL HUB — PASAR MALAM v2
 -- Built behind BBYA Mall (rear edge ~Z443). Playable rides + carnival skill games.
 -- IMPORTANT: no global soundtrack is created. Existing/local ride-game audio stays authoritative.
+-- OWNER LOCK: stall/ticket/game tent canopies use tall mobile-camera clearance from source.
 
 local Workspace=game:GetService("Workspace")
 local Players=game:GetService("Players")
@@ -16,6 +17,7 @@ market:SetAttribute("TeleportKey","NightMarket")
 market:SetAttribute("TravelPriceRobux",10)
 market:SetAttribute("BackgroundMusicInjected",false)
 market:SetAttribute("AudioPolicy","RIDE_NATIVE_ONLY")
+market:SetAttribute("TentCanopyHeightStuds",14)
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
 local state=remotes and remotes:FindFirstChild("State")
@@ -44,10 +46,12 @@ local function bulb(cf,color,parent)
 end
 local function tent(name,cf,w,d,color,title)
  local m=Instance.new("Model");m.Name=name;m.Parent=market
+ m:SetAttribute("BBYATallTentClearance",true)
+ m:SetAttribute("CanopyHeightStuds",14)
  part("Floor",Vector3.new(w,.45,d),cf*CFrame.new(0,.3,0),C.wood,Enum.Material.WoodPlanks,true,m)
- for _,x in ipairs({-w/2+.7,w/2-.7}) do for _,z in ipairs({-d/2+.7,d/2-.7}) do part("Pole",Vector3.new(.4,8,.4),cf*CFrame.new(x,4,z),C.metal,Enum.Material.Metal,true,m) end end
- part("Canopy",Vector3.new(w+1,.4,d+1),cf*CFrame.new(0,8,0),color,Enum.Material.Fabric,false,m)
- sign(m,"Banner",title,Vector3.new(w-2,2.2,.35),cf*CFrame.new(0,6.4,-d/2-.25),color);return m
+ for _,x in ipairs({-w/2+.7,w/2-.7}) do for _,z in ipairs({-d/2+.7,d/2-.7}) do part("Pole",Vector3.new(.4,14,.4),cf*CFrame.new(x,7,z),C.metal,Enum.Material.Metal,true,m) end end
+ part("Canopy",Vector3.new(w+1,.4,d+1),cf*CFrame.new(0,14,0),color,Enum.Material.Fabric,false,m)
+ sign(m,"Banner",title,Vector3.new(w-2,2.2,.35),cf*CFrame.new(0,11.7,-d/2-.25),color);return m
 end
 
 -- ACCESS: walkable route around Mall east side, then into rear fairground.
@@ -68,9 +72,9 @@ prompt(desk,"INFO","PASAR MALAM").Triggered:Connect(function(plr)toast(plr,"Pasa
 
 -- String lights and food/snack row.
 for _,z in ipairs({490,520,550,580,610}) do
- part("LightPoleL",Vector3.new(.45,14,.45),CFrame.new(-100,7,z),C.metal,Enum.Material.Metal,true)
- part("LightPoleR",Vector3.new(.45,14,.45),CFrame.new(100,7,z),C.metal,Enum.Material.Metal,true)
- for x=-96,96,8 do local n=math.floor((x+96)/8)%3;bulb(CFrame.new(x,13.6,z),n==0 and C.red or (n==1 and C.yellow or C.cyan),market) end
+ part("LightPoleL",Vector3.new(.45,16,.45),CFrame.new(-100,8,z),C.metal,Enum.Material.Metal,true)
+ part("LightPoleR",Vector3.new(.45,16,.45),CFrame.new(100,8,z),C.metal,Enum.Material.Metal,true)
+ for x=-96,96,8 do local n=math.floor((x+96)/8)%3;bulb(CFrame.new(x,15.5,z),n==0 and C.red or (n==1 and C.yellow or C.cyan),market) end
 end
 local stalls={{-96,495,C.orange,"JAGUNG BAKAR"},{-96,518,C.red,"SATE & SOSIS"},{-96,541,C.pink,"GULALI"},{-96,564,C.cyan,"ES CAMPUR"},{-96,587,C.yellow,"MARTABAK"},{-96,610,C.green,"JAJANAN"},{96,495,C.purple,"POPCORN"},{96,518,C.blue,"MINUMAN"},{96,541,C.red,"BAKSO BAKAR"},{96,564,C.orange,"TAHU CRISPY"},{96,587,C.pink,"PERMEN KAPAS"},{96,610,C.green,"KOPI & TEH"}}
 for i,s in ipairs(stalls) do local m=tent("Stall"..i,CFrame.new(s[1],0,s[2]),17,13,s[3],s[4]);part("Counter",Vector3.new(14,3,2.2),CFrame.new(s[1],2,s[2]-4.8),C.wood,Enum.Material.WoodPlanks,true,m) end
@@ -142,4 +146,4 @@ local board=sign(market,"ScoreBoard","PASAR MALAM SCORE\nMainkan 3 game & kumpul
 prompt(board,"CEK SCORE","PASAR MALAM").Triggered:Connect(function(plr)toast(plr,"Pasar Malam Score: "..tostring(plr:GetAttribute("BBYANightMarketScore") or 0))end)
 Players.PlayerRemoving:Connect(function(plr)shootSession[plr.UserId]=nil;whackSession[plr.UserId]=nil end)
 
-print("[BBYA] Pasar Malam v1 online behind Mall: 3 playable rides + 3 skill games / Travel 10R / no injected soundtrack")
+print("[BBYA] Pasar Malam v2 online: tall 14-stud canopies / 3 playable rides + 3 skill games / no injected soundtrack")
