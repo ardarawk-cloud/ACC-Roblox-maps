@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — MALL CATALOG UI v9.1 DYNAMIC MARKETPLACE
+-- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V9.1 DYNAMIC MARKETPLACE
 -- TEST CANDIDATE ONLY. Reference-style Mall shell backed by live Roblox Marketplace queries.
 -- Architecture: CatalogLauncher + avatar preview + CATEGORIES/STORES/PRODUCTS/CART/SAVED.
 -- One Mall UI authority. v83 shell position + v84 header are locked.
