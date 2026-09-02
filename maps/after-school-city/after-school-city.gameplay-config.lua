@@ -1,5 +1,5 @@
 local GameplayConfig = {
-    Version = "1.0.0-gameplay-foundation-1",
+    Version = "1.2.0-school-life-foundation-1",
     DataStoreName = "ASC_PlayerProfile_v1",
     SchemaVersion = 1,
     AutosaveSeconds = 60,
@@ -13,6 +13,9 @@ local GameplayConfig = {
         "FIRST_STEPS_DOWNTOWN",
         "VISIT_SKATEPARK",
         "VISIT_CITY_PARK",
+        "SCHOOL_MEET_TEACHER",
+        "SCHOOL_HELP_CANTEEN",
+        "SCHOOL_JOIN_CLUB",
     },
 
     Quests = {
@@ -36,6 +39,24 @@ local GameplayConfig = {
             District = "Park",
             RewardCoins = 150,
             RewardRep = 50,
+        },
+        SCHOOL_MEET_TEACHER = {
+            Title = "School Check-In",
+            Objective = "Meet Ms. Maya in Classroom A",
+            RewardCoins = 100,
+            RewardRep = 30,
+        },
+        SCHOOL_HELP_CANTEEN = {
+            Title = "Canteen Helper",
+            Objective = "Help Mr. Budi at the school canteen",
+            RewardCoins = 120,
+            RewardRep = 35,
+        },
+        SCHOOL_JOIN_CLUB = {
+            Title = "Club Time",
+            Objective = "Talk to Naya in the club room",
+            RewardCoins = 150,
+            RewardRep = 45,
         },
     },
 }
