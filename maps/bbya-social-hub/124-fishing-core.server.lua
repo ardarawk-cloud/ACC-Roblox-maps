@@ -81,11 +81,18 @@ end
 local function saveData(player)
  local d=dataByUser[player.UserId];if not d then return end;pcall(function() store:SetAsync("u_"..player.UserId,d) end)
 end
-local function skinSnapshot(d)
- local list={};for _,s in ipairs(SKINS) do table.insert(list,{name=s.name,rarity=s.rarity,price=s.price,required=s.required,unlocked=d.unlocked[s.name]==true,equipped=d.equipped==s.name}) end;return list
+local function skinSnapshot(player,d)
+ local heldName=nil
+ local char=player.Character
+ if char then
+  for _,v in ipairs(char:GetChildren()) do
+   if v:IsA("Tool") and v:GetAttribute("BBYAFishingRod") then heldName=tostring(v:GetAttribute("RodSkin") or d.equipped);break end
+  end
+ end
+ local list={};for _,s in ipairs(SKINS) do table.insert(list,{name=s.name,rarity=s.rarity,price=s.price,required=s.required,unlocked=d.unlocked[s.name]==true,equipped=d.equipped==s.name,held=heldName==s.name}) end;return list
 end
 local function sendSnapshot(player)
- local d=dataByUser[player.UserId];if not d then return end;stateRemote:FireClient(player,"Snapshot",{tokens=d.tokens,total=d.total,best=math.floor(d.best*100)/100,equipped=d.equipped,skins=skinSnapshot(d)})
+ local d=dataByUser[player.UserId];if not d then return end;stateRemote:FireClient(player,"Snapshot",{tokens=d.tokens,total=d.total,best=math.floor(d.best*100)/100,equipped=d.equipped,skins=skinSnapshot(player,d)})
 end
 
 -- =============================================================================
@@ -179,6 +186,22 @@ local function grantRod(player,equip)
  local rod=findRod(player) or createRod(player)
  if equip and player.Character then local h=player.Character:FindFirstChildOfClass("Humanoid");if h then h:EquipTool(rod) end end;return rod
 end
+local function toggleRod(player,skinName)
+ local d=dataByUser[player.UserId]
+ if not d or type(skinName)~="string" or not d.unlocked[skinName] or not skinByName[skinName] then return end
+ if sessions[player] then stateRemote:FireClient(player,"Toast",{text="Selesaikan mancing dulu sebelum menyimpan rod."});return end
+ local char=player.Character
+ local rod=findRod(player)
+ if rod and char and rod.Parent==char and d.equipped==skinName then
+  local bag=player:FindFirstChildOfClass("Backpack")
+  if bag then rod.Parent=bag end
+  sendSnapshot(player);stateRemote:FireClient(player,"Toast",{text=skinName.." disimpan."});return
+ end
+ d.equipped=skinName;publishAttributes(player,d)
+ rod=rod or createRod(player);applySkin(rod,skinName)
+ if char then local h=char:FindFirstChildOfClass("Humanoid");if h then h:EquipTool(rod) end end
+ sendSnapshot(player);stateRemote:FireClient(player,"Toast",{text=skinName.." dipegang."})
+end
 
 -- =============================================================================
 -- PROCEDURAL 3D FISH
@@ -267,7 +290,9 @@ local function finish(player,fish)
 end
 local function startCast(player)
  if not inDistrict(player) then stateRemote:FireClient(player,"Toast",{text="Dekati danau untuk mancing."});return end;if sessions[player] then return end
- local rod=grantRod(player,true);local target=castTarget(player);if not rod or not target then return end;local bobber,beam=createBobber(rod,target);local s={state="WAITING",rod=rod,bobber=bobber,beam=beam};sessions[player]=s;stateRemote:FireClient(player,"Waiting",{})
+ local rod=findRod(player);local char=player.Character
+ if not rod or not char or rod.Parent~=char then stateRemote:FireClient(player,"Toast",{text="Pilih rod di menu ROD dulu."});sendSnapshot(player);return end
+ local target=castTarget(player);if not target then return end;local bobber,beam=createBobber(rod,target);local s={state="WAITING",rod=rod,bobber=bobber,beam=beam};sessions[player]=s;stateRemote:FireClient(player,"Waiting",{})
  task.delay(2.2+math.random()*3.1,function() if sessions[player]~=s or s.state~="WAITING" then return end;s.fish=pickFish(player);s.state="BITE";s.deadline=os.clock()+2.35;stateRemote:FireClient(player,"Bite",{});task.delay(2.4,function() if sessions[player]==s and s.state=="BITE" then fail(player,"Strike terlambat — ikan lepas.") end end) end)
 end
 local function hook(player)
@@ -296,6 +321,7 @@ actionRemote.OnServerEvent:Connect(function(player,action,payload)
  if type(action)~="string" then return end;local d=dataByUser[player.UserId]
  if action=="Snapshot" then sendSnapshot(player);return end;if not d then return end
  if action=="GetRod" then grantRod(player,true);sendSnapshot(player);return end
+ if action=="ToggleRod" then toggleRod(player,payload);return end
  if action=="Cast" then startCast(player);return end
  if action=="Hook" then hook(player);return end
  if action=="Reel" then local s=sessions[player];if s and s.state=="FIGHT" then s.reeling=payload==true end;return end
@@ -321,4 +347,4 @@ Players.PlayerRemoving:Connect(function(player) cleanup(player);saveData(player)
 task.spawn(function() while task.wait(90) do for _,p in ipairs(Players:GetPlayers()) do task.spawn(saveData,p) end end end)
 game:BindToClose(function() for _,p in ipairs(Players:GetPlayers()) do saveData(p) end end)
 
-print("[BBYA] Fishing core v2 online: server-authoritative tension fishing + 3D fish + dimensional rod skins")
+print("[BBYA] Fishing core v2 online: server-authoritative tension fishing + 3D fish + dimensional rod skins + explicit rod hold toggle")
