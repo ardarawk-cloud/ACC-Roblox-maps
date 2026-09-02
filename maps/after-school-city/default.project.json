@@ -15,6 +15,9 @@
       },
       "ASCActivityConfig": {
         "$path": "after-school-city.activity-config.lua"
+      },
+      "ASCSchoolLifeConfig": {
+        "$path": "after-school-city.school-life-config.lua"
       }
     },
     "ServerScriptService": {
@@ -64,7 +67,8 @@
       "ASC_SkateparkLightClearanceV112": {"$path": "after-school-city.skatepark-light-clearance-v112.server.lua"},
       "ASC_GameplayService": {"$path": "after-school-city.gameplay-service.lua"},
       "ASC_GameplayBootstrap": {"$path": "after-school-city.gameplay-bootstrap.server.lua"},
-      "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"}
+      "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"},
+      "ASC_SchoolLifeGameplayV120": {"$path": "after-school-city.school-life-gameplay-v120.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
@@ -76,7 +80,8 @@
         "ASC_PersonalMusicPlayer": {"$path": "after-school-city.music-player.client.lua"},
         "ASC_GameplayHUD": {"$path": "after-school-city.gameplay-hud.client.lua"},
         "ASC_UIGlassV102": {"$path": "after-school-city.ui-glass-v102.client.lua"},
-        "ASC_ActivitiesClientV110": {"$path": "after-school-city.activities.client.lua"}
+        "ASC_ActivitiesClientV110": {"$path": "after-school-city.activities.client.lua"},
+        "ASC_SchoolLifeClientV120": {"$path": "after-school-city.school-life-v120.client.lua"}
       }
     },
     "Workspace": {"$className": "Workspace"},
