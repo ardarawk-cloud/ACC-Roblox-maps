@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v4
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v5
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
--- Developer account arda_moron123 gets the runtime EDIT button visible by default.
--- Other authorized admins keep the existing hidden-by-default /bbyaedit behavior.
+-- Runtime EDIT stays hidden by default for all admins; /bbyaedit can still show it when needed.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -145,20 +144,22 @@ local function stopRecovery(v)
  return false
 end
 
-local function showDeveloperEditor(player)
- if not isStaticAdmin(player) then return end
- player:SetAttribute("BBYAEditorVisible",true)
- player:SetAttribute("BBYAEditorAutoShownV1",true)
+-- Keep the runtime editor hidden by default. The existing /bbyaedit command in the editor server
+-- remains available to authorized admins whenever the editor is needed again.
+local function hideEditorByDefault(player)
+ if not player then return end
+ player:SetAttribute("BBYAEditorVisible",false)
+ player:SetAttribute("BBYAEditorAutoShownV1",false)
 end
 
 for _,p in ipairs(Players:GetPlayers()) do
  task.delay(2,function()
-  if p.Parent then showDeveloperEditor(p) end
+  if p.Parent then hideEditorByDefault(p) end
  end)
 end
 Players.PlayerAdded:Connect(function(p)
  task.delay(2,function()
-  if p.Parent then showDeveloperEditor(p) end
+  if p.Parent then hideEditorByDefault(p) end
  end)
 end)
 
@@ -187,4 +188,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v4 online: arda_moron123 static ADMIN + full bypass + EDIT visible by default; /bbyaedit preserved; community bottom neon v2 active")
+print("[BBYA] Admin NEXT + editor hotfix v5 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved; community bottom neon v2 active")
