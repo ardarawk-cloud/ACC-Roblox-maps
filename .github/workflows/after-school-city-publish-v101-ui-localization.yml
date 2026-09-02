@@ -1,0 +1,193 @@
+name: After School City Publish V1.0.1 UI Localization
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/after-school-city-publish-v101-ui-localization.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_REPO: ardarawk-cloud/ACC-Roblox-maps
+      SOURCE_SHA: a33dd55bd6b9e83dabf27c10c55b8654d5e218f3
+      BASE_LIVE_SHA: ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce
+      QC_RUN_ID: '33595751344'
+      QC_ARTIFACT_ID: '9833327234'
+      QC_ARTIFACT_NAME: after-school-city-v101-qc-a33dd55bd6b9e83dabf27c10c55b8654d5e218f3
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      EXPECTED_BYTES: '172621'
+      EXPECTED_SHA256: bd45681392d932487fc5bfb8e6d5a8e299fafc53858b20468efba6becc92a78b
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout publisher repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify previous LIVE authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt='deploy-status/after-school-city-publish-gameplay-foundation-v1-0-0.json'
+          [[ -f "$receipt" ]] || { echo 'V1.0 LIVE receipt missing'; exit 7; }
+          [[ "$(jq -r '.status' "$receipt")" == 'LIVE_PUBLISHED' ]] || { echo 'Previous receipt is not LIVE_PUBLISHED'; exit 8; }
+          [[ "$(jq -r '.sourceCommit' "$receipt")" == "$BASE_LIVE_SHA" ]] || { echo 'Previous LIVE source mismatch'; exit 9; }
+          [[ "$(jq -r '.versionNumber' "$receipt")" == '43' ]] || { echo 'Previous LIVE version is not v43'; exit 10; }
+          echo 'PREVIOUS LIVE AUTHORITY PASS v43'
+
+      - name: Verify exact QC run and artifact authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'; exit 11; }
+          api='https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps'
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID" -o "$RUNNER_TEMP/qc-run.json"
+          [[ "$(jq -r '.status' "$RUNNER_TEMP/qc-run.json")" == 'completed' ]] || { echo 'QC run is not completed'; exit 12; }
+          [[ "$(jq -r '.conclusion' "$RUNNER_TEMP/qc-run.json")" == 'success' ]] || { echo 'QC run is not SUCCESS'; exit 13; }
+          [[ "$(jq -r '.head_sha' "$RUNNER_TEMP/qc-run.json")" == "$SOURCE_SHA" ]] || { echo 'QC source SHA mismatch'; exit 14; }
+          [[ "$(jq -r '.path' "$RUNNER_TEMP/qc-run.json")" == '.github/workflows/after-school-city-v101-ui-localization-qc.yml' ]] || { echo 'Unexpected QC workflow'; exit 15; }
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID/artifacts" -o "$RUNNER_TEMP/qc-artifacts.json"
+          count=$(jq --argjson id "$QC_ARTIFACT_ID" --arg n "$QC_ARTIFACT_NAME" --arg s "$SOURCE_SHA" '[.artifacts[] | select(.id == $id and .name == $n and .expired == false and .workflow_run.head_sha == $s)] | length' "$RUNNER_TEMP/qc-artifacts.json")
+          [[ "$count" == '1' ]] || { cat "$RUNNER_TEMP/qc-artifacts.json"; echo 'Exact QC artifact authority not found'; exit 16; }
+          echo "QC AUTHORITY PASS run=$QC_RUN_ID artifact=$QC_ARTIFACT_ID source=$SOURCE_SHA"
+
+      - name: Checkout exact V1.0.1 source for lock verification
+        uses: actions/checkout@v4
+        with:
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          ref: a33dd55bd6b9e83dabf27c10c55b8654d5e218f3
+          path: asc-source
+          fetch-depth: 0
+
+      - name: Verify exact source and narrow V1.0.1 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual=$(git -C asc-source rev-parse HEAD)
+          [[ "$actual" == "$SOURCE_SHA" ]] || { echo "Source SHA mismatch: $actual"; exit 20; }
+          git -C asc-source cat-file -e "${BASE_LIVE_SHA}^{commit}"
+          mapfile -t files < <(git -C asc-source diff --name-only "$BASE_LIVE_SHA" "$SOURCE_SHA")
+          [[ ${#files[@]} -eq 2 ]] || { printf '%s\n' "${files[@]}"; echo "Unexpected delta count ${#files[@]}"; exit 21; }
+          expected=(
+            '.github/workflows/after-school-city-v101-ui-localization-qc.yml'
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+          )
+          for f in "${expected[@]}"; do printf '%s\n' "${files[@]}" | grep -Fxq "$f" || { echo "Missing expected delta $f"; exit 22; }; done
+          hud='asc-source/maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+          grep -Fq '1.0.1-ui-localization-1' "$hud"
+          grep -Fq 'LocalizationService' "$hud"
+          grep -Fq 'RobloxLocaleId' "$hud"
+          grep -Fq 'MissionButton' "$hud"
+          grep -Fq 'CreditsButton' "$hud"
+          grep -Fq 'MISI' "$hud"
+          grep -Fq 'KREDIT' "$hud"
+          grep -Fq 'PUTU AZYA PUTRI BINTANG HARDAJAYA' "$hud"
+          echo "SOURCE LOCK PASS source=$actual delta=2-files scope=ui-localization"
+
+      - name: Download exact QC-locked artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: after-school-city-v101-qc-a33dd55bd6b9e83dabf27c10c55b8654d5e218f3
+          path: ${{ runner.temp }}/asc-v101-qc
+          github-token: ${{ github.token }}
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          run-id: 33595751344
+
+      - name: Verify QC receipt and exact RBXL bytes/SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$RUNNER_TEMP/asc-v101-qc/qc-receipt.txt"
+          normalized="$RUNNER_TEMP/asc-v101-qc/qc-receipt-normalized.txt"
+          [[ -f "$receipt" ]] || { find "$RUNNER_TEMP/asc-v101-qc" -maxdepth 3 -type f -print; echo 'QC receipt missing'; exit 29; }
+          tr -d '\r' < "$receipt" > "$normalized"
+          grep -Fxq 'STATUS=QC_PASSED' "$normalized"
+          grep -Fxq 'MODE=UI_LOCALIZATION_V1_0_1' "$normalized"
+          grep -Fxq "BASE_LIVE_COMMIT=$BASE_LIVE_SHA" "$normalized"
+          grep -Fxq "SOURCE_COMMIT=$SOURCE_SHA" "$normalized"
+          grep -Fxq "RBXL_BYTES=$EXPECTED_BYTES" "$normalized"
+          grep -Fxq "SHA256=$EXPECTED_SHA256" "$normalized"
+          grep -Fxq 'HUD=TOP_COMPACT_336X76' "$normalized"
+          grep -Fxq 'MISSION_BUTTON=ENABLED' "$normalized"
+          grep -Fxq 'CREDITS_BUTTON=ENABLED' "$normalized"
+          grep -Fxq 'LOCALIZATION=ROBLOX_LOCALE_ID_ID_EN_FALLBACK' "$normalized"
+          grep -Fxq 'DEDICATION=LOCKED' "$normalized"
+          mapfile -t places < <(find "$RUNNER_TEMP/asc-v101-qc" -type f -name '*.rbxl' -print)
+          [[ ${#places[@]} -eq 1 ]] || { find "$RUNNER_TEMP/asc-v101-qc" -maxdepth 3 -type f -print; echo "Expected exactly one RBXL, found ${#places[@]}"; exit 30; }
+          place="${places[0]}"
+          bytes=$(stat -c%s "$place")
+          sha=$(sha256sum "$place" | awk '{print $1}')
+          [[ "$bytes" == "$EXPECTED_BYTES" ]] || { echo "Byte mismatch: $bytes expected=$EXPECTED_BYTES"; exit 31; }
+          [[ "$sha" == "$EXPECTED_SHA256" ]] || { echo "SHA256 mismatch: $sha expected=$EXPECTED_SHA256"; exit 32; }
+          echo "PLACE_FILE=$place" >> "$GITHUB_ENV"
+          echo "PLACE_BYTES=$bytes" >> "$GITHUB_ENV"
+          echo "PLACE_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "EXACT QC ARTIFACT PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish V1.0.1 LIVE to Roblox
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://apis.roblox.com/universes/v1/${UNIVERSE_ID}/places/${PLACE_ID}/versions?versionType=Published"
+          http=$(curl -sS --location -o "$RUNNER_TEMP/asc-publish-response.json" -w '%{http_code}' -X POST "$url" -H "x-api-key: $ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$PLACE_FILE")
+          body=$(cat "$RUNNER_TEMP/asc-publish-response.json")
+          [[ "$http" =~ ^2[0-9][0-9]$ ]] || { echo "HTTP $http: $body"; exit 40; }
+          version=$(jq -r '.versionNumber // empty' "$RUNNER_TEMP/asc-publish-response.json")
+          [[ -n "$version" && "$version" =~ ^[0-9]+$ ]] || { echo "Missing/invalid versionNumber: $body"; exit 41; }
+          echo "PUBLISHED_VERSION=$version" >> "$GITHUB_ENV"
+          echo "ROBLOX PUBLISH PASS version=$version"
+
+      - name: Persist V1.0.1 LIVE receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          receipt='deploy-status/after-school-city-publish-ui-localization-v1-0-1.json'
+          jq -n \
+            --arg status 'LIVE_PUBLISHED' \
+            --arg project 'AFTER SCHOOL CITY' \
+            --arg mode 'UI_LOCALIZATION_V1_0_1' \
+            --arg sourceRepo "$SOURCE_REPO" \
+            --arg sourceCommit "$SOURCE_SHA" \
+            --arg baseLiveCommit "$BASE_LIVE_SHA" \
+            --arg qcRunId "$QC_RUN_ID" \
+            --arg qcArtifactId "$QC_ARTIFACT_ID" \
+            --arg universeId "$UNIVERSE_ID" \
+            --arg placeId "$PLACE_ID" \
+            --arg versionNumber "$PUBLISHED_VERSION" \
+            --arg rojoVersion '7.7.0' \
+            --arg placeBytes "$PLACE_BYTES" \
+            --arg placeSha256 "$PLACE_SHA256" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,qcRunId:$qcRunId,qcArtifactId:($qcArtifactId|tonumber),universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"V1.0.1 exact QC-locked UI/localization pass. Moves HUD to compact top-center, adds Mission and Credits controls, follows Roblox player locale for Indonesian with English fallback, preserves locked dedication text, and leaves gameplay authority, persistence, environment, roads, pool and music unchanged."}' > "$receipt"
+          cat "$receipt"
+          git config user.name 'After School City Publish Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- "$receipt"
+          git commit -m 'Record After School City V1.0.1 LIVE publish [skip ci]'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin main || { git rebase --abort || true; }
+            if git push origin HEAD:main; then
+              echo "Receipt push succeeded attempt=$attempt"
+              exit 0
+            fi
+            echo "Receipt push retry attempt=$attempt"
+            sleep $((attempt * 2))
+          done
+          echo 'Failed to persist V1.0.1 LIVE receipt after retries'
+          exit 50
