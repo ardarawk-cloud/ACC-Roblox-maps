@@ -1,0 +1,162 @@
+name: After School City V1.0.1 UI Localization QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v101-ui-localization
+    paths:
+      - 'maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+      - '.github/workflows/after-school-city-v101-ui-localization-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact v43 source and narrow diff gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce'
+          git cat-file -e "$base^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'V1.0 v43 LIVE source unavailable' }
+          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $base){ throw "Candidate is not based on exact v43 LIVE source: $mergeBase" }
+          $allowed = @(
+            '.github/workflows/after-school-city-v101-ui-localization-qc.yml',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+          )
+          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+          if($changed.Count -ne 2){ throw "Expected exactly 2 files, got $($changed.Count): $($changed -join ', ')" }
+          foreach($path in $changed){ if($allowed -notcontains $path){ throw "Scope violation: $path" } }
+          foreach($path in $allowed){ if($changed -notcontains $path){ throw "Missing required change: $path" } }
+          Write-Host "V1.0.1 NARROW DIFF PASS source=$env:GITHUB_SHA"
+
+      - name: Compact HUD localization static checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $hudPath = 'maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+          $hud = Get-Content $hudPath -Raw
+
+          foreach($token in @(
+            '1.0.1-ui-localization-1',
+            'LocalizationService',
+            'RobloxLocaleId',
+            'language = string.sub(localeId, 1, 2) == "id" and "id" or "en"',
+            'gui.IgnoreGuiInset = true',
+            'card.Position = UDim2.new(0.5, 0, 0, 18)',
+            'card.Size = UDim2.fromOffset(336, 76)',
+            'MissionButton',
+            'CreditsButton',
+            'MissionPanel',
+            'CreditsPanel',
+            'MISI',
+            'KREDIT',
+            'MISSION',
+            'CREDITS',
+            'FIRST_STEPS_DOWNTOWN',
+            'VISIT_SKATEPARK',
+            'VISIT_CITY_PARK',
+            'PUTU AZYA PUTRI BINTANG HARDAJAYA',
+            'This game was made especially for you.',
+            'WITH LOVE, DAD',
+            'ENTER THE CITY.',
+            'RequestState',
+            'StatePush',
+            'Toast',
+            'Dialogue'
+          )){
+            if($hud -notmatch [regex]::Escape($token)){ throw "Missing UI/localization marker: $token" }
+          }
+
+          foreach($forbidden in @('FireServer(','PromptProductPurchase','ProcessReceipt','MarketplaceService','DataStoreService')){
+            if($hud -match [regex]::Escape($forbidden)){ throw "Client authority/monetization violation: $forbidden" }
+          }
+
+          $base = 'ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce'
+          foreach($lockedPath in @(
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-bootstrap.server.lua',
+            'maps/after-school-city/after-school-city.config.lua',
+            'maps/after-school-city/default.project.json',
+            'maps/after-school-city/after-school-city.intro.client.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua',
+            'maps/after-school-city/after-school-city.swimmable-pool.server.lua',
+            'maps/after-school-city/after-school-city.world.server.lua',
+            'maps/after-school-city/after-school-city.final-environment-v093.server.lua'
+          )){
+            $diff = git diff --name-only $base $env:GITHUB_SHA -- $lockedPath
+            if($diff){ throw "Protected source changed: $lockedPath" }
+          }
+
+          $intro = Get-Content 'maps/after-school-city/after-school-city.intro.client.lua' -Raw
+          foreach($token in @('PUTU AZYA PUTRI','BINTANG HARDAJAYA','WITH LOVE, DAD','ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Original dedication lock missing: $token" }
+          }
+
+          Write-Host 'V1.0.1 COMPACT HUD + LOCALIZATION STATIC QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe missing' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact V1.0.1 candidate and hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'asc-v101-qc'
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          $place = Join-Path $out 'after-school-city-v101.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          $receipt = @(
+            'STATUS=QC_PASSED',
+            'MODE=UI_LOCALIZATION_V1_0_1',
+            'BASE_LIVE_COMMIT=ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "ROJO=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'HUD=TOP_COMPACT_336X76',
+            'MISSION_BUTTON=ENABLED',
+            'CREDITS_BUTTON=ENABLED',
+            'LOCALIZATION=ROBLOX_LOCALE_ID_ID_EN_FALLBACK',
+            'DEDICATION=LOCKED',
+            'PROTECTED=GAMEPLAY_PERSISTENCE_ENVIRONMENT_ROADS_POOL_MUSIC'
+          )
+          $receipt | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding ascii
+          $receipt | ForEach-Object { Write-Host $_ }
+          "QC_OUT_DIR=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload exact V1.0.1 QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v101-qc-${{ github.sha }}
+          path: ${{ env.QC_OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
