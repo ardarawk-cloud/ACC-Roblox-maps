@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V9.1 DYNAMIC MARKETPLACE
+-- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V9.2 STORE-SPECIFIC MARKETPLACE
 -- TEST CANDIDATE ONLY. Reference-style Mall shell backed by live Roblox Marketplace queries.
 -- Architecture: CatalogLauncher + avatar preview + CATEGORIES/STORES/PRODUCTS/CART/SAVED.
 -- One Mall UI authority. v83 shell position + v84 header are locked.
+-- GAMEPLAY LOCK: physical store determines catalog scope; directory cannot switch store remotely.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -64,9 +65,11 @@ local ALL_BUNDLES={Enum.BundleType.BodyParts,Enum.BundleType.Animations,Enum.Bun
 local TYPES={
  BEST=ALL_ASSETS,
  HAIR={Enum.AvatarAssetType.HairAccessory},
- CLOTHES={Enum.AvatarAssetType.Shirt,Enum.AvatarAssetType.TShirt,Enum.AvatarAssetType.Pants,Enum.AvatarAssetType.TShirtAccessory,Enum.AvatarAssetType.ShirtAccessory,Enum.AvatarAssetType.JacketAccessory,Enum.AvatarAssetType.SweaterAccessory,Enum.AvatarAssetType.PantsAccessory,Enum.AvatarAssetType.ShortsAccessory,Enum.AvatarAssetType.DressSkirtAccessory,Enum.AvatarAssetType.LeftShoeAccessory,Enum.AvatarAssetType.RightShoeAccessory},
+ CLOTHES={Enum.AvatarAssetType.Shirt,Enum.AvatarAssetType.TShirt,Enum.AvatarAssetType.Pants,Enum.AvatarAssetType.TShirtAccessory,Enum.AvatarAssetType.ShirtAccessory,Enum.AvatarAssetType.JacketAccessory,Enum.AvatarAssetType.SweaterAccessory,Enum.AvatarAssetType.PantsAccessory,Enum.AvatarAssetType.ShortsAccessory,Enum.AvatarAssetType.DressSkirtAccessory},
+ SHOES={Enum.AvatarAssetType.LeftShoeAccessory,Enum.AvatarAssetType.RightShoeAccessory},
  ACCESSORY={Enum.AvatarAssetType.Hat,Enum.AvatarAssetType.FaceAccessory,Enum.AvatarAssetType.NeckAccessory,Enum.AvatarAssetType.ShoulderAccessory,Enum.AvatarAssetType.FrontAccessory,Enum.AvatarAssetType.BackAccessory,Enum.AvatarAssetType.WaistAccessory,Enum.AvatarAssetType.EyebrowAccessory,Enum.AvatarAssetType.EyelashAccessory},
  FACE={Enum.AvatarAssetType.Head,Enum.AvatarAssetType.Face,Enum.AvatarAssetType.DynamicHead,Enum.AvatarAssetType.FaceAccessory,Enum.AvatarAssetType.EyebrowAccessory,Enum.AvatarAssetType.EyelashAccessory,Enum.AvatarAssetType.FaceMakeup,Enum.AvatarAssetType.LipMakeup,Enum.AvatarAssetType.EyeMakeup},
+ BEAUTY={Enum.AvatarAssetType.HairAccessory,Enum.AvatarAssetType.Head,Enum.AvatarAssetType.Face,Enum.AvatarAssetType.DynamicHead,Enum.AvatarAssetType.FaceAccessory,Enum.AvatarAssetType.EyebrowAccessory,Enum.AvatarAssetType.EyelashAccessory,Enum.AvatarAssetType.FaceMakeup,Enum.AvatarAssetType.LipMakeup,Enum.AvatarAssetType.EyeMakeup},
 }
 local ACCESSORY_MAP={Hat="Hat",HairAccessory="Hair",FaceAccessory="Face",NeckAccessory="Neck",ShoulderAccessory="Shoulder",FrontAccessory="Front",BackAccessory="Back",WaistAccessory="Waist",TShirtAccessory="TShirt",ShirtAccessory="Shirt",SweaterAccessory="Sweater",JacketAccessory="Jacket",PantsAccessory="Pants",ShortsAccessory="Shorts",DressSkirtAccessory="DressSkirt",LeftShoeAccessory="LeftShoe",RightShoeAccessory="RightShoe",EyebrowAccessory="Eyebrow",EyelashAccessory="Eyelash"}
 local DIRECT_DESC={Head="Head",Face="Face",Torso="Torso",RightArm="RightArm",LeftArm="LeftArm",LeftLeg="LeftLeg",RightLeg="RightLeg",ClimbAnimation="ClimbAnimation",FallAnimation="FallAnimation",IdleAnimation="IdleAnimation",JumpAnimation="JumpAnimation",RunAnimation="RunAnimation",SwimAnimation="SwimAnimation",WalkAnimation="WalkAnimation",MoodAnimation="MoodAnimation"}
@@ -80,7 +83,7 @@ local STORE={
 
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYAMallRobuxCommerceUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAMallCatalogAuthority","V9_DYNAMIC_MARKETPLACE")
+gui:SetAttribute("BBYAMallCatalogAuthority","V9_STORE_SPECIFIC_MARKETPLACE")
 local root=Instance.new("Frame");root.Name="CatalogRoot";root.Size=UDim2.fromScale(1,1);root.BackgroundTransparency=1;root.Visible=false;root.Parent=gui
 
 local top=Instance.new("Frame");top.Name="CatalogLauncher";top.BackgroundTransparency=1;top.Size=UDim2.fromOffset(440,46);top.Parent=root
@@ -122,14 +125,37 @@ local clothes=tile(categories,"CLOTHES","PAKAIAN",UDim2.new(.76,0,0,0),UDim2.new
 local bundles=tile(categories,"BUNDLE","PAKET",UDim2.new(.44,0,.34,0),UDim2.new(.31,-6,.26,-5),C.orange)
 local accessory=tile(categories,"ACCESSORY","AKSESORI",UDim2.new(.44,0,.62,0),UDim2.new(.56,-6,.38,0),Color3.fromRGB(245,66,120))
 local face=tile(categories,"FACE","WAJAH",UDim2.new(.76,0,.57,0),UDim2.new(.24,0,.43,0),C.yellow)
+local allTiles={best,hair,clothes,bundles,accessory,face}
+local function tileLabel(b,s)local l=b:FindFirstChild("TileLabel");if l then l.Text=s end end
+local function placeTile(b,name,label,pos,size)
+ b.Visible=true;b.Name=name;b.Position=pos;b.Size=size;tileLabel(b,label)
+end
+local activeStore="FASHION"
+local function configureStoreCatalog()
+ for _,b in ipairs(allTiles) do b.Visible=false end
+ if activeStore=="BEAUTY" then
+  placeTile(best,"BEST","TERBAIK DI MUSE",UDim2.new(0,0,0,0),UDim2.new(.40,-7,1,0))
+  placeTile(hair,"HAIR","RAMBUT",UDim2.new(.41,0,0,0),UDim2.new(.285,-6,1,0))
+  placeTile(face,"FACE","WAJAH",UDim2.new(.705,0,0,0),UDim2.new(.295,0,1,0))
+ elseif activeStore=="SHOES" then
+  placeTile(best,"BEST","TERBAIK DI STRIDE",UDim2.new(0,0,0,0),UDim2.new(.46,-7,1,0))
+  placeTile(clothes,"SHOES","SEPATU",UDim2.new(.47,0,0,0),UDim2.new(.53,0,1,0))
+ elseif activeStore=="STREET" then
+  placeTile(best,"BEST","TERBAIK DI NORTH",UDim2.new(0,0,0,0),UDim2.new(.46,-7,1,0))
+  placeTile(accessory,"ACCESSORY","AKSESORI",UDim2.new(.47,0,0,0),UDim2.new(.53,0,1,0))
+ else
+  placeTile(best,"BEST","TERBAIK DI LUMA",UDim2.new(0,0,0,0),UDim2.new(.46,-7,1,0))
+  placeTile(clothes,"CLOTHES","PAKAIAN",UDim2.new(.47,0,0,0),UDim2.new(.53,0,1,0))
+ end
+end
 
-local storeTitle=txt(stores,"PILIH TOKO",UDim2.fromOffset(0,0),UDim2.new(1,0,0,36),Enum.Font.GothamBold,18,C.white,Enum.TextXAlignment.Center)
+local storeTitle=txt(stores,"DIRECTORY TOKO • DATANGI TOKO UNTUK BELANJA",UDim2.fromOffset(0,0),UDim2.new(1,0,0,36),Enum.Font.GothamBold,13,C.white,Enum.TextXAlignment.Center)
 storeTitle.BackgroundTransparency=.08;storeTitle.BackgroundColor3=C.dark;storeTitle.ZIndex=2;corner(storeTitle,9);stroke(storeTitle,C.line,.45)
 local storeGrid=Instance.new("Frame");storeGrid.Position=UDim2.fromOffset(0,45);storeGrid.Size=UDim2.new(1,0,1,-45);storeGrid.BackgroundTransparency=1;storeGrid.Parent=stores
 local sg=Instance.new("UIGridLayout");sg.CellSize=UDim2.new(.5,-6,.5,-6);sg.CellPadding=UDim2.fromOffset(12,12);sg.Parent=storeGrid
 local storeButtons={}
 for _,key in ipairs({"FASHION","SHOES","BEAUTY","STREET"}) do
- local d=STORE[key];local b=btn(storeGrid,d.title.."\n"..d.sub,UDim2.new(),UDim2.new(),d.accent);b.Name=key;b.TextSize=18;b.TextWrapped=true;storeButtons[key]=b
+ local d=STORE[key];local b=btn(storeGrid,d.title.."\n"..d.sub.."\nKunjungi toko ini di Mall",UDim2.new(),UDim2.new(),d.accent);b.Name=key;b.TextSize=16;b.TextWrapped=true;b.AutoButtonColor=false;b.Active=false;storeButtons[key]=b
 end
 
 local backProducts=btn(products,"‹ KATALOG",UDim2.fromOffset(0,0),UDim2.fromOffset(102,34),C.panel2)
@@ -155,7 +181,6 @@ local savedNote=txt(savedView,"Belum ada item tersimpan.",UDim2.fromOffset(0,92)
 local savedList=Instance.new("ScrollingFrame");savedList.Position=UDim2.fromOffset(0,124);savedList.Size=UDim2.new(1,0,1,-124);savedList.BackgroundTransparency=1;savedList.BorderSizePixel=0;savedList.AutomaticCanvasSize=Enum.AutomaticSize.Y;savedList.CanvasSize=UDim2.new();savedList.ScrollBarThickness=3;savedList.Parent=savedView
 local sl=Instance.new("UIGridLayout");sl.CellSize=UDim2.new(.24,-8,0,160);sl.CellPadding=UDim2.fromOffset(10,10);sl.Parent=savedList
 
-local activeStore="FASHION"
 local activeCategory="BEST"
 local selected=nil
 local baseDescription=nil
@@ -289,12 +314,16 @@ end
 
 local function querySpec(category)
  local store=STORE[activeStore] or STORE.FASHION
- if category=="BUNDLE" then return {bundleTypes=ALL_BUNDLES,keyword="",title="Paket"} end
  if category=="HAIR" then return {assetTypes=TYPES.HAIR,keyword="",title="Rambut"} end
- if category=="CLOTHES" then return {assetTypes=TYPES.CLOTHES,keyword=activeStore=="SHOES" and "shoes" or "",title="Pakaian"} end
- if category=="ACCESSORY" then return {assetTypes=TYPES.ACCESSORY,keyword="",title="Aksesori"} end
  if category=="FACE" then return {assetTypes=TYPES.FACE,keyword="",title="Wajah"} end
- return {assetTypes=TYPES.BEST,bundleTypes=ALL_BUNDLES,keyword="",categoryFilter=Enum.CatalogCategoryFilter.Recommended,title="Terbaik",storeKeyword=store.q}
+ if category=="CLOTHES" then return {assetTypes=TYPES.CLOTHES,keyword="",title="Pakaian"} end
+ if category=="SHOES" then return {assetTypes=TYPES.SHOES,keyword="shoes",title="Sepatu"} end
+ if category=="ACCESSORY" then return {assetTypes=TYPES.ACCESSORY,keyword="",title="Aksesori"} end
+ if category=="BUNDLE" then return {bundleTypes=ALL_BUNDLES,keyword="",title="Paket"} end
+ if activeStore=="BEAUTY" then return {assetTypes=TYPES.BEAUTY,keyword="",categoryFilter=Enum.CatalogCategoryFilter.Recommended,title="Terbaik di "..store.title} end
+ if activeStore=="SHOES" then return {assetTypes=TYPES.SHOES,keyword="shoes",categoryFilter=Enum.CatalogCategoryFilter.Recommended,title="Terbaik di "..store.title} end
+ if activeStore=="STREET" then return {assetTypes=TYPES.ACCESSORY,keyword="",categoryFilter=Enum.CatalogCategoryFilter.Recommended,title="Terbaik di "..store.title} end
+ return {assetTypes=TYPES.CLOTHES,keyword="",categoryFilter=Enum.CatalogCategoryFilter.Recommended,title="Terbaik di "..store.title}
 end
 local function appendCurrentPage(token)
  if token~=searchToken or not catalogPages then return false end
@@ -318,7 +347,7 @@ local function loadNextPage()
 end
 local function doSearch()
  searchToken+=1;local token=searchToken;catalogPages=nil;loadingPage=false;exhausted=false;loadedCount=0;retry.Visible=false
- status.Text="Memuat Roblox Marketplace…";status.TextColor3=C.yellow;clearGui(productList,{[grid]=true});productList.CanvasPosition=Vector2.zero
+ status.Text="Memuat katalog toko…";status.TextColor3=C.yellow;clearGui(productList,{[grid]=true});productList.CanvasPosition=Vector2.zero
  local spec=querySpec(activeCategory);local q=search.Text:match("^%s*(.-)%s*$")
  if q=="" then q=spec.keyword or "" end
  task.delay(7,function()if token==searchToken and loadedCount==0 then status.Text="Marketplace lambat. Tap RETRY.";status.TextColor3=C.red;retry.Visible=true end end)
@@ -332,14 +361,14 @@ local function doSearch()
   if token~=searchToken then return end
   if not ok or not pages then status.Text="Marketplace belum merespons. Tap RETRY.";status.TextColor3=C.red;retry.Visible=true;return end
   catalogPages=pages;retry.Visible=false
-  if not appendCurrentPage(token) then status.Text="Tidak ada hasil. Coba kata lain.";status.TextColor3=C.muted end
+  if not appendCurrentPage(token) then status.Text="Tidak ada hasil di toko ini. Coba kata lain.";status.TextColor3=C.muted end
  end)
 end
 local function openProducts(category)
- activeCategory=category;local spec=querySpec(category);productTitle.Text=spec.title;search.Text="";showModule("PRODUCTS");doSearch()
+ activeCategory=category;local spec=querySpec(category);productTitle.Text=spec.title;search.Text="";search.PlaceholderText="Cari di "..((STORE[activeStore] or STORE.FASHION).title).."..";showModule("PRODUCTS");doSearch()
 end
-for _,b in ipairs({best,hair,clothes,bundles,accessory,face}) do b.Activated:Connect(function()openProducts(b.Name)end) end
-backProducts.Activated:Connect(function()showModule("CATEGORIES")end)
+for _,b in ipairs(allTiles) do b.Activated:Connect(function()if b.Visible then openProducts(b.Name)end end) end
+backProducts.Activated:Connect(function()configureStoreCatalog();showModule("CATEGORIES")end)
 go.Activated:Connect(doSearch);retry.Activated:Connect(doSearch);search.FocusLost:Connect(function(enter)if enter then doSearch() end end)
 productList:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
  if not products.Visible or loadingPage or exhausted or not catalogPages then return end
@@ -347,17 +376,14 @@ productList:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
  if nearBottom then loadNextPage() end
 end)
 
-for key,b in pairs(storeButtons) do
- b.Activated:Connect(function()activeStore=key;local d=STORE[key];storeBtn.Text=d.title;showModule("CATEGORIES")end)
-end
-catBtn.Activated:Connect(function()showModule("CATEGORIES")end)
+catBtn.Activated:Connect(function()configureStoreCatalog();showModule("CATEGORIES")end)
 storeBtn.Activated:Connect(function()showModule("STORES")end)
-homeTool.Activated:Connect(function()showModule("CATEGORIES")end)
+homeTool.Activated:Connect(function()configureStoreCatalog();showModule("CATEGORIES")end)
 cartTool.Activated:Connect(function()renderCart();showModule("CART")end)
 saveTool.Activated:Connect(function()renderSaved();showModule("SAVED")end)
 resetTool.Activated:Connect(resetPreview)
-cartClose.Activated:Connect(function()showModule("CATEGORIES")end)
-savedClose.Activated:Connect(function()showModule("CATEGORIES")end)
+cartClose.Activated:Connect(function()configureStoreCatalog();showModule("CATEGORIES")end)
+savedClose.Activated:Connect(function()configureStoreCatalog();showModule("CATEGORIES")end)
 saveCurrent.Activated:Connect(function()if previewDescription then pcall(function()AvatarEditorService:PromptSaveAvatar(previewDescription,Enum.HumanoidRigType.R15)end)end end)
 
 local action=Instance.new("Frame");action.Name="SelectedActions";action.AnchorPoint=Vector2.new(.5,1);action.BackgroundColor3=C.dark;action.BackgroundTransparency=.04;action.BorderSizePixel=0;action.Visible=false;action.Parent=root;corner(action,12);stroke(action,C.line,.25)
@@ -429,7 +455,7 @@ local function responsive()
  productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76)
  grid.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,178);sl.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,160)
  local tileTextSize=touch and (totalH<250 and 14 or 16) or 22
- for _,b in ipairs({best,hair,clothes,bundles,accessory,face}) do local l=b:FindFirstChild("TileLabel");if l then l.TextSize=tileTextSize end end
+ for _,b in ipairs(allTiles) do local l=b:FindFirstChild("TileLabel");if l then l.TextSize=tileTextSize end end
 end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
@@ -437,9 +463,9 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=wor
 remote.OnClientEvent:Connect(function(kind,data)
  if kind~="open" or typeof(data)~="table" then return end
  activeStore=tostring(data.key or "FASHION");if not STORE[activeStore] then activeStore="FASHION" end
- local d=STORE[activeStore];storeBtn.Text=d.title;selected=nil;resetPreview();showModule("CATEGORIES");responsive();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);syncAction()
+ local d=STORE[activeStore];storeBtn.Text=d.title;selected=nil;resetPreview();configureStoreCatalog();showModule("CATEGORIES");responsive();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);syncAction()
 end)
 player.CharacterAdded:Connect(function()task.delay(.6,function()if root.Visible then resetPreview() end end)end)
 
 task.defer(responsive)
-print("[BBYA] Mall Catalog UI v9.1 online: live preview + mobile-fit mosaic + dynamic Marketplace")
+print("[BBYA] Mall Catalog UI v9.2 online: store-specific Marketplace + physical-mall gameplay lock")
