@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — PASAR MALAM PREMIUM OVERLAY v3
+-- BBYA SOCIAL HUB — PASAR MALAM PREMIUM OVERLAY v4
 -- Visual/interaction rebuild layered over 98-night-market.server.lua.
 -- Keeps Travel 10R and existing local ride/game audio policy. Creates NO Sound.
+-- OWNER LOCK: premium booth/game canopies use tall avatar/mobile-camera clearance.
 
 local Workspace=game:GetService("Workspace")
 local RunService=game:GetService("RunService")
@@ -17,13 +18,14 @@ if previous then previous:Destroy() end
 local premium=Instance.new("Model")
 premium.Name="PremiumNightMarketV3"
 premium.Parent=market
-market:SetAttribute("Pass","NIGHT_MARKET_PREMIUM_V3")
+market:SetAttribute("Pass","NIGHT_MARKET_PREMIUM_V4_TALL")
 market:SetAttribute("VisualTier","AUTHENTIC_INDONESIAN_FAIR")
 market:SetAttribute("PlayableRides",4)
 market:SetAttribute("PlayableGames",4)
 market:SetAttribute("TravelPriceRobux",10)
 market:SetAttribute("BackgroundMusicInjected",false)
 market:SetAttribute("AudioPolicy","RIDE_NATIVE_ONLY")
+market:SetAttribute("PremiumCanopyHeightStuds",14.5)
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
 local state=remotes and remotes:FindFirstChild("State")
@@ -93,35 +95,36 @@ end
 local function canopy(parent,cf,w,d,c1,c2)
  for i=1,8 do
   local sw=w/8
-  part("Stripe"..i,Vector3.new(sw+.05,.3,d),cf*CFrame.new(-w/2+sw*(i-.5),10.6,0),i%2==0 and c1 or c2,Enum.Material.Fabric,false,parent)
+  part("Stripe"..i,Vector3.new(sw+.05,.3,d),cf*CFrame.new(-w/2+sw*(i-.5),14.5,0),i%2==0 and c1 or c2,Enum.Material.Fabric,false,parent)
  end
 end
 local function booth(name,cf,title,color,parent)
  local m=Instance.new("Model");m.Name=name;m.Parent=parent or premium
  part("Floor",Vector3.new(9,.4,7),cf*CFrame.new(0,.3,0),C.wood,Enum.Material.WoodPlanks,true,m)
- part("Back",Vector3.new(9,9,.35),cf*CFrame.new(0,4.7,3.2),color,Enum.Material.Metal,true,m)
+ part("Back",Vector3.new(9,12,.35),cf*CFrame.new(0,6.2,3.2),color,Enum.Material.Metal,true,m)
  local counter=part("Counter",Vector3.new(9,2.8,1.6),cf*CFrame.new(0,1.8,-2.7),C.dark,Enum.Material.Metal,true,m)
  canopy(m,cf,10,8,color,C.cream)
- sign(m,"Name",title,Vector3.new(7.5,1.8,.25),cf*CFrame.new(0,8.2,-4.1),color,C.white)
- local lamp=part("Lamp",Vector3.new(1,.25,1),cf*CFrame.new(0,9.5,0),C.white,Enum.Material.Neon,false,m)
- local light=Instance.new("PointLight");light.Color=C.warm;light.Brightness=1;light.Range=11;light.Parent=lamp
+ sign(m,"Name",title,Vector3.new(7.5,1.8,.25),cf*CFrame.new(0,12.1,-4.1),color,C.white)
+ local lamp=part("Lamp",Vector3.new(1,.25,1),cf*CFrame.new(0,13.65,0),C.white,Enum.Material.Neon,false,m)
+ local light=Instance.new("PointLight");light.Color=C.warm;light.Brightness=1;light.Range=14;light.Parent=lamp
  return m,counter
 end
 
 local function raiseLegacyTent(m)
  if not m or not m:IsA("Model") or m:GetAttribute("BBYATallTentClearance") then return end
  local canopyPart=m:FindFirstChild("Canopy")
- if canopyPart and canopyPart:IsA("BasePart") then canopyPart.Position+=Vector3.new(0,3,0) end
+ if canopyPart and canopyPart:IsA("BasePart") then canopyPart.Position=Vector3.new(canopyPart.Position.X,14,canopyPart.Position.Z) end
  local banner=m:FindFirstChild("Banner")
- if banner and banner:IsA("BasePart") then banner.Position+=Vector3.new(0,2.7,0) end
+ if banner and banner:IsA("BasePart") then banner.Position=Vector3.new(banner.Position.X,11.7,banner.Position.Z) end
  for _,o in ipairs(m:GetChildren()) do
   if o:IsA("BasePart") and o.Name=="Pole" then
    local bottom=o.Position.Y-o.Size.Y/2
-   o.Size=Vector3.new(o.Size.X,11,o.Size.Z)
-   o.Position=Vector3.new(o.Position.X,bottom+5.5,o.Position.Z)
+   o.Size=Vector3.new(o.Size.X,14,o.Size.Z)
+   o.Position=Vector3.new(o.Position.X,bottom+7,o.Position.Z)
   end
  end
  m:SetAttribute("BBYATallTentClearance",true)
+ m:SetAttribute("CanopyHeightStuds",14)
 end
 
 for _,o in ipairs(market:GetChildren()) do
@@ -152,7 +155,7 @@ local strings=Instance.new("Model");strings.Name="WarmStringLights";strings.Pare
 for row,z in ipairs({493,523,553,583,613}) do
  local pts={}
  for n=0,12 do
-  local x=-100+n*(200/12);local u=math.abs(x)/100;local y=13.2+2.2*u*u
+  local x=-100+n*(200/12);local u=math.abs(x)/100;local y=15.2+2.2*u*u
   pts[#pts+1]=Vector3.new(x,y,z)
  end
  for n=1,#pts-1 do beam("Cable",pts[n],pts[n+1],.055,C.cable,Enum.Material.SmoothPlastic,strings) end
@@ -162,8 +165,8 @@ for row,z in ipairs({493,523,553,583,613}) do
    if row%2==0 and n%2==0 then part("Flag",Vector3.new(1.2,1.5,.08),CFrame.new(p+Vector3.new(0,-1,0)),({C.red,C.yellow,C.blue,C.green})[((n+row)%4)+1],Enum.Material.Fabric,false,strings) end
   end
  end
- part("Pole",Vector3.new(.45,15,.45),CFrame.new(-104,7.5,z),C.wood,Enum.Material.Wood,true,strings)
- part("Pole",Vector3.new(.45,15,.45),CFrame.new(104,7.5,z),C.wood,Enum.Material.Wood,true,strings)
+ part("Pole",Vector3.new(.45,17,.45),CFrame.new(-104,8.5,z),C.wood,Enum.Material.Wood,true,strings)
+ part("Pole",Vector3.new(.45,17,.45),CFrame.new(104,8.5,z),C.wood,Enum.Material.Wood,true,strings)
 end
 
 raiseLegacyTent(market:FindFirstChild("TicketInfo"))
@@ -181,9 +184,9 @@ for i=1,12 do
  local yaw=left and -math.pi/2 or math.pi/2
  local cf=CFrame.new(x,0,z)*CFrame.Angles(0,yaw,0)
  local front=Instance.new("Model");front.Name="StallFront"..i;front.Parent=premium
- sign(front,"Fascia",stallNames[i],Vector3.new(15,2.1,.3),cf*CFrame.new(0,9.3,-7),stallColors[i],C.white)
+ sign(front,"Fascia",stallNames[i],Vector3.new(15,2.1,.3),cf*CFrame.new(0,12.0,-7),stallColors[i],C.white)
  part("CounterTop",Vector3.new(14,.3,3),cf*CFrame.new(0,3.4,-5),C.metal,Enum.Material.Metal,true,front)
- for j=-1,1 do bulb("CounterBulb",cf*CFrame.new(j*4.3,10.1,-7.1),C.warm,front,.35,6) end
+ for j=-1,1 do bulb("CounterBulb",cf*CFrame.new(j*4.3,13.0,-7.1),C.warm,front,.35,7) end
  if i<=4 or (i>=8 and i<=10) then
   local grill=part("Grill",Vector3.new(4.5,.25,2.2),cf*CFrame.new(-2,3.7,-5),C.black,Enum.Material.Metal,false,front)
   local smoke=Instance.new("Smoke");smoke.Color=Color3.fromRGB(200,196,188);smoke.Opacity=.07;smoke.Size=2.3;smoke.RiseVelocity=1.1;smoke.Parent=grill
@@ -306,7 +309,7 @@ for _,x in ipairs({47,94}) do part("Bin",Vector3.new(2.4,3.4,2.4),CFrame.new(x,2
 local ring=Instance.new("Model");ring.Name="RingToss";ring.Parent=premium
 part("Platform",Vector3.new(40,.4,17),CFrame.new(0,1.1,646),C.wood,Enum.Material.WoodPlanks,true,ring)
 canopy(ring,CFrame.new(0,0,646),41,18,C.purple,C.cream)
-sign(ring,"Name","LEMPAR GELANG • STOP DI BOTOL",Vector3.new(34,2.2,.3),CFrame.new(0,9.2,637.2),C.purple,C.white)
+sign(ring,"Name","LEMPAR GELANG • STOP DI BOTOL",Vector3.new(34,2.2,.3),CFrame.new(0,12.1,637.2),C.purple,C.white)
 local counter=part("Counter",Vector3.new(35,2.8,2.3),CFrame.new(0,2.1,639),C.wood2,Enum.Material.WoodPlanks,true,ring)
 local xs={-14,-10,-6,-2,2,6,10,14}
 for row=1,3 do for i,x in ipairs(xs) do local b=cylinder("Bottle",2.5,.8,CFrame.new(x,2.2,646+(row-1)*3)*CFrame.Angles(0,0,math.rad(90)),({C.red,C.yellow,C.blue,C.green})[((row+i)%4)+1],Enum.Material.Glass,false,ring);b.Transparency=.15 end end
@@ -339,4 +342,4 @@ RunService.Heartbeat:Connect(function(dt)
  end
 end)
 
-print("[BBYA] Pasar Malam Premium v3 overlay: realistic frontage + warm fair lighting + refined rides + mini train + ring toss / no injected soundtrack")
+print("[BBYA] Pasar Malam Premium v4 overlay: tall 14.5-stud canopies + realistic frontage + refined rides / no injected soundtrack")
