@@ -1,9 +1,9 @@
--- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v8
+-- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v9
 -- Full-wall dual entrance displays fitted to the usable facade fields.
 -- Left: Top Supporters / Hall of Fame.
 -- Right: Live Community / dynamic welcome + recent arrivals.
--- v8: keep the facade-fit boards and move the Live Community left vertical neon
---     farther into the visible field so the full cyan edge clears the entrance column.
+-- v9: mirror the proven Hall of Fame trim geometry on Live Community.
+--     No manual per-edge offset/resize hacks: both boards now use the same precise frame recipe.
 
 local W = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -18,7 +18,7 @@ if old then old:Destroy() end
 
 local model = Instance.new("Model")
 model.Name = "SupportDashboard"
-model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V8")
+model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V9")
 model.Parent = root
 
 local PINK = Color3.fromRGB(255,38,155)
@@ -103,17 +103,9 @@ local footL=frame(left,UDim2.fromScale(.045,.915),UDim2.fromScale(.91,.045),Colo
 label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromScale(.03,.08),UDim2.fromScale(.94,.84),Color3.fromRGB(206,197,211),Enum.Font.GothamBold,Enum.TextXAlignment.Center)
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
--- Keep the large facade fit but pull this board 1 stud inward so the outer edge stays fully visible.
-local rightHolder,rightFace,right=makeBoard("LiveCommunityWall",33.5,PINK,CYAN)
--- The entrance column still hides most of the left vertical trim at the architectural edge.
--- Move only this trim farther into the visible field and forward; bottom/top/right stay unchanged.
-local liveLeftTrim=rightHolder:FindFirstChild("LeftTrim")
-if liveLeftTrim and liveLeftTrim:IsA("BasePart") then
-    liveLeftTrim.Size=Vector3.new(.18,BOARD_H-.20,.20)
-    liveLeftTrim.CFrame=liveLeftTrim.CFrame*CFrame.new(.85,0,-.18)
-    liveLeftTrim.Material=Enum.Material.Neon
-    liveLeftTrim.Transparency=0
-end
+-- Use the same exact trim recipe as Hall of Fame; no manual edge offset/resize.
+-- The board remains at the established inward position so the frame clears the portal architecture.
+local _,rightFace,right=makeBoard("LiveCommunityWall",33.5,PINK,CYAN)
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
 label(right,"You are part of the room the moment you arrive",UDim2.fromScale(.045,.190),UDim2.fromScale(.80,.040),MUTED,Enum.Font.GothamMedium)
@@ -183,4 +175,4 @@ for _,face in ipairs({leftFace,rightFace}) do
     prompt.Triggered:Connect(function(player)if state then state:FireClient(player,"openSupport",true) end end)
 end
 
-print("[BBYA] Entrance community honor walls v8 online: facade-fit boards + full visible Live Community left neon")
+print("[BBYA] Entrance community honor walls v9 online: mirrored precise trim geometry on both boards")
