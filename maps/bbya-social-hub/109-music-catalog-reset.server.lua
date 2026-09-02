@@ -58,7 +58,7 @@ local function ensureNightMarketOutput()
  catalog:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
  catalog:SetAttribute("OutputSound","BBYANightMarketMasterSound")
  catalog:SetAttribute("SoundGroup","BBYANightMarketMaster")
- catalog:SetAttribute("InjectionState","READY_EMPTY")
+ if catalog:GetAttribute("InjectionState")==nil then catalog:SetAttribute("InjectionState","READY_EMPTY") end
  if catalog:GetAttribute("Count")==nil then catalog:SetAttribute("Count",0) end
 
  local sound=SoundService:FindFirstChild("BBYANightMarketMasterSound")
