@@ -86,7 +86,8 @@ local function fire(action,target,arg)
 end
 local function move(v)if selected then fire("move",selected,v)end end
 local function refreshVisibility()
- local visible=developerOverride or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYACoOwner")==true
+ local authorized=developerOverride or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYACoOwner")==true
+ local visible=authorized and player:GetAttribute("BBYAEditorVisible")==true
  gui.Enabled=visible
  if not visible then setPanel(false) end
 end
@@ -119,4 +120,4 @@ mouse.Button1Down:Connect(function()
  if t and root and t:IsDescendantOf(root) and not t:IsA("SpawnLocation") then selected=t;hl.Adornee=t;hl.Enabled=true;status.Text=t.Name end
 end)
 
-print("[BBYA] Editor UI non-blocking client active; developer override="..tostring(developerOverride))
+print("[BBYA] Editor UI non-blocking client active; visibility gated by BBYAEditorVisible")
