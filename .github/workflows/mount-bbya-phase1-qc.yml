@@ -1,0 +1,44 @@
+name: Mount BBYA Phase 1 QC
+
+on:
+  pull_request:
+    paths:
+      - 'maps/mount-bbya/**'
+      - 'maps/registry.json'
+      - 'scripts/inject-mount-bbya.js'
+      - 'scripts/qc-mount-bbya-phase1.js'
+      - '.github/workflows/mount-bbya-phase1-qc.yml'
+  push:
+    branches:
+      - 'mount-bbya/**'
+    paths:
+      - 'maps/mount-bbya/**'
+      - 'maps/registry.json'
+      - 'scripts/inject-mount-bbya.js'
+      - 'scripts/qc-mount-bbya-phase1.js'
+      - '.github/workflows/mount-bbya-phase1-qc.yml'
+
+jobs:
+  build-qc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build isolated Mount BBYA candidate
+        run: node scripts/inject-mount-bbya.js
+      - name: Static target and Phase 1 QC
+        run: node scripts/qc-mount-bbya-phase1.js
+      - name: Candidate metadata
+        run: |
+          sha256sum maps/mount-bbya/place.rbxlx
+          wc -c maps/mount-bbya/place.rbxlx
+      - name: Upload Phase 1 candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: mount-bbya-phase1-${{ github.sha }}
+          path: maps/mount-bbya/place.rbxlx
+          if-no-files-found: error

@@ -1,0 +1,23 @@
+const fs=require('fs');
+const path=require('path');
+const root=process.cwd();
+const registry=JSON.parse(fs.readFileSync(path.join(root,'maps/registry.json'),'utf8'));
+const t=registry.maps?.['mount-bbya'];
+const fail=m=>{throw new Error('[MOUNT BBYA QC] '+m)};
+if(!t) fail('registry entry missing');
+if(String(t.universeId)!=='4187755690') fail('Universe ID mismatch');
+if(String(t.placeId)!=='11832985967') fail('Place ID mismatch');
+if(String(t.file)!=='maps/mount-bbya/place.rbxlx') fail('file target mismatch');
+const identity=JSON.parse(fs.readFileSync(path.join(root,'maps/mount-bbya/IDENTITY.json'),'utf8'));
+if(String(identity.universeId)!=='4187755690'||String(identity.placeId)!=='11832985967') fail('IDENTITY.json mismatch');
+const donor=['mountain.phase1v6.server.lua','mountain.phase1v61.visual.server.lua','mount-bbya.phase1v65.visual.server.lua','systems/checkpoint.server.lua','systems/ambience.server.lua','mountain.performance.client.lua'];
+for(const rel of donor){const p=path.join(root,'maps/mount-bbya',rel);if(!fs.existsSync(p)||fs.statSync(p).size<500) fail('missing/too small '+rel)}
+const premium=fs.readFileSync(path.join(root,'maps/mount-bbya/mount-bbya.phase1v65.visual.server.lua'),'utf8');
+if(/Terrain\s*:\s*Fill|FillBlock\s*\(|FillBall\s*\(/.test(premium)) fail('v6.5 visual pass must not edit terrain');
+if(!premium.includes('SPAWN_TO_CP1_ONLY')) fail('v6.5 scope lock missing');
+const rbxlx=fs.readFileSync(path.join(root,t.file),'utf8');
+for(const marker of ['<roblox','MountBBYA_Bootstrap','MountBBYA_Phase1_Core','MountBBYA_Phase1_Visual61','MountBBYA_Phase1_Premium65','MountBBYA_Checkpoint','MountBBYA_Ambience','MountBBYA_Release','MountBBYA_QC','mount-bbya-v6.5-phase1-premium']) if(!rbxlx.includes(marker)) fail('generated RBXLX missing '+marker);
+if(rbxlx.includes('10744139279')||rbxlx.includes('82661754996018')) fail('Mountain Social target leaked into candidate');
+if(rbxlx.includes('CP02_POS2')||rbxlx.includes('CheckpointIndex\",2')) fail('CP2+ content detected');
+console.log('[MOUNT BBYA QC] PASS');
+console.log(JSON.stringify({target:{universeId:String(t.universeId),placeId:String(t.placeId)},bytes:Buffer.byteLength(rbxlx),scope:'SPAWN_TO_CP1_ONLY',publish:false},null,2));
