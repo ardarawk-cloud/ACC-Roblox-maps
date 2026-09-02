@@ -1,6 +1,6 @@
--- MOUNT BBYA — Phase 1 sign-facing hotfix v6.5.1
--- Runtime evidence: trail/POS1 boards were readable from the outbound side.
--- Scope: ONLY the three boards confirmed in owner screenshots.
+-- MOUNT BBYA — Phase 1 sign-facing hotfix v6.5.2
+-- Runtime evidence: the trail-start board still faced away from the player's incoming direction.
+-- Scope: ONLY sign-facing correction. No terrain/road/house/lighting/system changes.
 
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("ACC_MountainSocial",60)
@@ -12,10 +12,12 @@ while root:GetAttribute("MountBBYAPhase1PremiumReady")~=true do
  task.wait(.2)
 end
 
+-- Owner runtime evidence confirms the trail-start board needs Front,
+-- while the two POS1-side boards remain correct on Back.
 local targets={
- {folder="ForestEdge",part="TrailMouthSign"},
- {folder="POS1",part="POS1Board"},
- {folder="MountBBYA_Phase1Premium",part="CP1MountBBYA"},
+ {folder="ForestEdge",part="TrailMouthSign",face=Enum.NormalId.Front},
+ {folder="POS1",part="POS1Board",face=Enum.NormalId.Back},
+ {folder="MountBBYA_Phase1Premium",part="CP1MountBBYA",face=Enum.NormalId.Back},
 }
 
 local fixed=0
@@ -26,13 +28,13 @@ for _,target in ipairs(targets) do
  if not gui then
   error(("Mount BBYA sign hotfix: missing SurfaceGui %s/%s"):format(target.folder,target.part))
  end
- gui.Face=Enum.NormalId.Back
+ gui.Face=target.face
  fixed+=1
 end
 
 if fixed~=#targets then error("Mount BBYA sign hotfix: incomplete board correction") end
-root:SetAttribute("MountBBYASignFacingVersion","6.5.1")
+root:SetAttribute("MountBBYASignFacingVersion","6.5.2")
 root:SetAttribute("MountBBYASignFacingFixedCount",fixed)
 root:SetAttribute("MountBBYASignFacingReady",true)
-Workspace:SetAttribute("ACC_MountBBYA_SignFacing","INCOMING_HIKER_SIDE")
-print("[MOUNT BBYA] sign-facing hotfix ready",fixed)
+Workspace:SetAttribute("ACC_MountBBYA_SignFacing","TRAIL_START_FRONT_POS1_BACK")
+print("[MOUNT BBYA] sign-facing hotfix v6.5.2 ready",fixed)
