@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "GAMEPLAY_FOUNDATION_V1_0_0",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce",
+  "baseLiveCommit": "ab82f4f011adc270a104bb02d6b70521a90914fc",
+  "qcRunId": "33592160900",
+  "qcArtifactId": 9832122748,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 43,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 168694,
+  "placeSha256": "f91fa9f891e728c3022acb5d29f6422af1779419e8f5a3dd2121cf7b123534a6",
+  "runId": "33592561094",
+  "publishedAt": "2026-09-02T04:54:09Z",
+  "note": "V1.0 exact QC-locked gameplay foundation. Adds fail-closed persistent player profiles, server-authoritative ASC Coins and City Rep/Level, quest/reward/cooldown and dialogue foundations, compact mobile HUD, and first exploration objectives for Downtown, Skatepark and City Park. Environment, roads, swimmable pool, personal music player and dedication remain unchanged. No monetization introduced."
+}
