@@ -163,7 +163,7 @@ end
 
 -- TRAVEL: same ScreenGui/coordinate system as Party Stuff.
 local travelPanel=register("TRAVEL",makePanel("TravelPanel","TRAVEL",C.gold,gui))
-label(travelPanel,"Tap destination",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
+local travelStatus=label(travelPanel,"Tap destination",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted); travelStatus.ZIndex=402
 local travelScroll=Instance.new("ScrollingFrame"); travelScroll.Position=UDim2.fromOffset(12,70); travelScroll.Size=UDim2.new(1,-24,1,-82)
 travelScroll.BackgroundTransparency=1; travelScroll.BorderSizePixel=0; travelScroll.Active=true; travelScroll.ScrollingEnabled=true
 travelScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; travelScroll.CanvasSize=UDim2.new(); travelScroll.ScrollBarThickness=3; travelScroll.ZIndex=402; travelScroll.Parent=travelPanel
@@ -173,13 +173,18 @@ local travelButtons={}
 for i,d in ipairs(destinations) do
  local b=button(travelScroll,d[1],nil,UDim2.new(1,-4,0,44),C.card); b.LayoutOrder=i; b.ZIndex=403; stroke(b,C.gold,.6); travelButtons[d[2]]=b
  b.Activated:Connect(function()
-  if teleportRemote then b.Text="WORKING..."; teleportRemote:FireServer(d[2]); task.delay(5,function() if b.Parent and b.Text=="WORKING..." then b.Text=d[1] end end) end
+  if teleportRemote then travelStatus.Text="Traveling to "..d[1]; teleportRemote:FireServer(d[2]) end
  end)
 end
 if travelResult then travelResult.OnClientEvent:Connect(function(ok,key)
  local b=travelButtons[tostring(key or "")]; if not b then return end
- if ok then b.Text="READY"; task.delay(.12,function() travelPanel.Visible=false end)
- else b.Text="TRY AGAIN"; task.delay(1,function() for _,d in ipairs(destinations) do if d[2]==key and b.Parent then b.Text=d[1] end end end) end
+ if ok then
+  travelStatus.Text="Arrived • "..b.Text
+  task.delay(.12,function() if travelPanel.Parent then travelPanel.Visible=false end end)
+ else
+  travelStatus.Text="Try again • "..b.Text
+  task.delay(1,function() if travelStatus.Parent and travelPanel.Visible then travelStatus.Text="Tap destination" end end)
+ end
 end) end
 
 -- COMMUNITY: same ScreenGui/coordinate system as Party Stuff.
@@ -222,7 +227,7 @@ menuEntry("MUSIC",1,C.pink,function()
  if hub then placeMusic(hub); hub.Visible=true; current="MUSIC" end
 end)
 menuEntry("SUPPORT",2,C.cyan,function() showNormal("SUPPORT",supportPanel) end)
-menuEntry("TRAVEL",3,C.gold,function() showNormal("TRAVEL",travelPanel) end)
+menuEntry("TRAVEL",3,C.gold,function() travelStatus.Text="Tap destination"; showNormal("TRAVEL",travelPanel) end)
 menuEntry("MESSAGE",4,C.purple,function()
  hideAll("MESSAGE"); closeMenu(); menuButton.Visible=false; if wallRemote then wallRemote:FireServer("config") end
  local wall=pg:FindFirstChild("BBYADJWallUI"); local p=wall and wall:FindFirstChild("DJWallComposerPanel",true)
