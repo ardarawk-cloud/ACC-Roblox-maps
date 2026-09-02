@@ -1,7 +1,9 @@
--- BBYAVATAR FPS vertical slice configuration
+-- BBYAVATAR / ZONA PERANG FPS vertical slice configuration
 return {
-    Version = "FPS-PROTOTYPE-0.3.0-HOTFIX1",
-    CameraRecoilMode = "DISABLED_P0_SKY_FIX",
+    Version = "FPS-PROTOTYPE-0.3.1",
+    CameraRecoilMode = "DISABLED_P0",
+    CameraMode = "CLASSIC_ZOOMABLE",
+    MobileMovement = "ROBLOX_DEFAULT_MOVE_JUMP",
     Mode = "TEAM DEATHMATCH",
     ScoreLimit = 50,
     RoundTime = 480,
@@ -9,8 +11,8 @@ return {
     RespawnTime = 3,
     SpawnProtection = 5,
     FallRescueY = -18,
-    SafeBoundsX = 232,
-    SafeBoundsZ = 172,
+    SafeBoundsX = 248,
+    SafeBoundsZ = 198,
     WalkSpeed = 16,
     SprintSpeed = 22,
     MaxHealth = 100,
