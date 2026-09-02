@@ -6,7 +6,7 @@ on:
     paths:
       - 'maps/bbya-social-hub/112-shared-restroom-soft-club-light.server.lua'
       - 'maps/bbya-social-hub/32-teleport.server.lua'
-      - 'maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+      - 'maps/bbya-social-hub/56-dock-stability.client.lua'
       - 'maps/bbya-social-hub/default.project.json'
       - '.github/workflows/bbya-restroom-softlight-qc.yml'
 
@@ -32,13 +32,13 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-restroom-softlight.rbxl
           test -s /tmp/bbya-restroom-softlight.rbxl
-      - name: Validate premium tall shared restroom and locked club lighting
+      - name: Validate premium tall shared restroom and locked authorities
         shell: bash
         run: |
           set -euo pipefail
           world='maps/bbya-social-hub/112-shared-restroom-soft-club-light.server.lua'
           tp='maps/bbya-social-hub/32-teleport.server.lua'
-          ui='maps/bbya-social-hub/76-travel-ui-patch.client.lua'
+          ui='maps/bbya-social-hub/56-dock-stability.client.lua'
           manifest='maps/bbya-social-hub/default.project.json'
 
           grep -q 'SHARED RESTROOM + MAIN CLUB SOFT LIGHTING v3' "$world"
@@ -71,11 +71,14 @@ jobs:
           grep -q 'SoftCeilingFixture_' "$world"
           grep -q 'SurfaceLight' "$world"
 
-          # Existing one-restroom Travel authority stays exactly where it was.
+          # Existing one-restroom Travel authority remains server-side in 32 and UI-side in the active UI Kernel 56.
           grep -q 'Toilet=CFrame.new(43,3,-13)' "$tp"
-          grep -q 'TRAVEL UI PATCH v11' "$ui"
+          grep -q 'TRAVEL / ONE-TIME ACCESS v9.1' "$tp"
+          grep -q 'UI KERNEL v2.3' "$ui"
           grep -q 'TOILET / RESTROOM' "$ui"
-          grep -q 'ONE RESTROOM FOR ALL VENUES' "$ui"
+          grep -q '"Toilet"' "$ui"
+          grep -q 'TravelResult' "$ui"
+          grep -q 'Tap destination' "$ui"
           grep -q 'SharedRestroomSoftClubLightV1' "$manifest"
           grep -q '112-shared-restroom-soft-club-light.server.lua' "$manifest"
 
@@ -88,4 +91,4 @@ jobs:
             exit 1
           fi
 
-          echo 'BBYA premium tall shared restroom v3 + locked soft club light v2 QC passed.'
+          echo 'BBYA premium tall shared restroom v3 + locked Travel/club-light authorities QC passed.'
