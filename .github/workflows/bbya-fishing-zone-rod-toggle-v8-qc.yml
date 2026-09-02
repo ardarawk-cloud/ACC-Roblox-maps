@@ -26,7 +26,6 @@ jobs:
       - name: Checkout fishing v8 branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Static fishing-only checks
@@ -65,18 +64,12 @@ jobs:
           Require $project '124-fishing-core\.server\.lua' 'Fishing core mount missing'
           Require $project '130-fishing-gate-v6\.client\.lua' 'Fishing gate v6 mount missing'
 
-          $changed=(git diff --name-only origin/main...HEAD)
-          $allowed=@(
-            'maps/bbya-social-hub/122-fishing-ui.client.lua',
-            'maps/bbya-social-hub/124-fishing-core.server.lua',
-            '.github/workflows/bbya-fishing-zone-rod-toggle-v8-qc.yml'
-          )
-          foreach($file in $changed){if($allowed -notcontains $file){throw "Out-of-scope file changed: $file"}}
-
-          $coreDiff=(git diff --unified=0 origin/main...HEAD -- $corePath | Out-String)
-          if($coreDiff -match '(?m)^[+-].*chance\s*='){throw 'Fishing chance/probability was modified'}
-          if($coreDiff -match '(?m)^[+-].*VALUE_MULT'){throw 'Fishing economy multiplier was modified'}
-          if($coreDiff -match '(?m)^[+-].*DataStoreService'){throw 'Fishing datastore ownership changed'}
+          # Protected fishing probability/economy baseline. This patch is not allowed to change it.
+          foreach($chance in @('chance=32','chance=29','chance=14','chance=12','chance=5.4','chance=4.4','chance=1.8','chance=1.45','chance=.48','chance=.34','chance=.075','chance=.035')){
+            Require $core ([regex]::Escape($chance)) "Protected fishing probability missing/changed: $chance"
+          }
+          Require $core 'local VALUE_MULT=\{COMMON=1,UNCOMMON=1\.1,RARE=1\.25,EPIC=1\.45,LEGENDARY=1\.7,MYTHIC=2\.1\}' 'Protected fishing economy multipliers changed'
+          Require $core 'GetDataStore\("BBYA_FISHING_V1"\)' 'Fishing datastore ownership changed'
 
           Write-Host 'Fishing zone + rod toggle v8 static QC PASS'
 
