@@ -47,7 +47,6 @@ local function priceOf(it)return tonumber(it and (it.Price or it.LowestPrice or 
 local function priceText(it)local p=priceOf(it);return p and ("R$ "..tostring(p)) or "OFFSALE" end
 local function itemKey(it)return itemTypeOf(it)..":"..tostring(idOf(it) or 0) end
 
--- Broad Marketplace map. The UI stores category rules, never a hardcoded product inventory.
 local ALL_ASSETS={
  Enum.AvatarAssetType.TShirt,Enum.AvatarAssetType.Hat,Enum.AvatarAssetType.Shirt,Enum.AvatarAssetType.Pants,
  Enum.AvatarAssetType.Head,Enum.AvatarAssetType.Face,Enum.AvatarAssetType.Gear,Enum.AvatarAssetType.Torso,
@@ -116,7 +115,6 @@ local function tile(parent,name,textValue,pos,size,color)
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(color,Color3.new(math.min(color.R+0.18,1),math.min(color.G+0.18,1),math.min(color.B+0.18,1)));g.Rotation=25;g.Parent=b
  return b
 end
--- Home mosaic follows the approved Roblox-reference composition.
 local best=tile(categories,"BEST","Terbaik",UDim2.new(0,0,0,0),UDim2.new(.43,-7,1,0),C.blue)
 local hair=tile(categories,"HAIR","RAMBUT",UDim2.new(.44,0,0,0),UDim2.new(.31,-6,.32,-5),Color3.fromRGB(207,0,245))
 local clothes=tile(categories,"CLOTHES","PAKAIAN",UDim2.new(.76,0,0,0),UDim2.new(.24,0,.55,-5),C.green)
@@ -377,11 +375,30 @@ local function responsive()
  local touch=UserInputService.TouchEnabled;local topSafe=touch and 112 or 78;local left=math.max(72,math.floor(vp.X*.065));local rightSafe=touch and 150 or 70;local bottom=36
  local shiftX=touch and -91 or 0;local shiftY=touch and -63 or 0
  local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe));local totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48));local leftW=math.clamp(math.floor(totalW*.30),260,360);local gap=24;local rightW=totalW-leftW-gap
- top.Position=UDim2.fromOffset(left+leftW+gap+math.floor((rightW-440)/2)+shiftX,topSafe+shiftY)
- avatar.Position=UDim2.fromOffset(left+shiftX,topSafe+52+shiftY);avatar.Size=UDim2.fromOffset(leftW,totalH)
- host.Position=UDim2.fromOffset(left+leftW+gap+shiftX,topSafe+52+shiftY);host.Size=UDim2.fromOffset(rightW,totalH)
- action.Position=UDim2.fromOffset(left+leftW+gap+math.floor(rightW/2)+shiftX,vp.Y-bottom+shiftY);action.Size=UDim2.fromOffset(382,50)
- exit.Position=UDim2.fromOffset(math.min(vp.X-rightSafe+50,left+totalW-44)+shiftX,topSafe+shiftY)
+ local hostX=left+leftW+gap+shiftX
+ local hostY=topSafe+52+shiftY
+ local navReserve=56
+ local navW=math.min(440,math.max(320,rightW-navReserve-12))
+ local navGap=12
+ local navButtonW=math.floor((navW-navGap)/2)
+ top.Size=UDim2.fromOffset(navW,46)
+ catBtn.Position=UDim2.fromOffset(0,0);catBtn.Size=UDim2.fromOffset(navButtonW,44)
+ storeBtn.Position=UDim2.fromOffset(navButtonW+navGap,0);storeBtn.Size=UDim2.fromOffset(navButtonW,44)
+ top.Position=UDim2.fromOffset(hostX+math.floor((rightW-navW-navReserve)/2),topSafe+shiftY)
+ avatar.Position=UDim2.fromOffset(left+shiftX,hostY);avatar.Size=UDim2.fromOffset(leftW,totalH)
+ host.Position=UDim2.fromOffset(hostX,hostY);host.Size=UDim2.fromOffset(rightW,totalH)
+ exit.Position=UDim2.fromOffset(hostX+rightW-44,topSafe+shiftY)
+ action.Position=UDim2.fromOffset(hostX+math.floor(rightW/2),vp.Y-bottom+shiftY);action.Size=UDim2.fromOffset(382,50)
+ local searchW=math.clamp(math.floor(rightW*.26),150,220)
+ local goW=52
+ local searchX=rightW-searchW-goW-10
+ backProducts.Position=UDim2.fromOffset(0,0);backProducts.Size=UDim2.fromOffset(112,34)
+ productTitle.Position=UDim2.fromOffset(124,0);productTitle.Size=UDim2.fromOffset(math.max(90,searchX-132),34);productTitle.TextSize=rightW<700 and 15 or 17
+ search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,34)
+ go.Position=UDim2.fromOffset(rightW-goW,0);go.Size=UDim2.fromOffset(goW,34)
+ status.Position=UDim2.fromOffset(0,44);status.Size=UDim2.new(1,-88,0,22)
+ retry.Position=UDim2.fromOffset(rightW-78,42)
+ productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76)
  grid.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,178);sl.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,160)
 end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
@@ -395,4 +412,4 @@ end)
 player.CharacterAdded:Connect(function()task.delay(.6,function()if root.Visible then resetPreview() end end)end)
 
 task.defer(responsive)
-print("[BBYA] Mall Catalog UI v8 / V9 dynamic Marketplace online: live catalog + bundles + infinite scroll")
+print("[BBYA] Mall Catalog UI v9 dynamic Marketplace online: clean internal header + live catalog + bundles + infinite scroll")
