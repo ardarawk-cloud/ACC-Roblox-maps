@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V9 DYNAMIC MARKETPLACE
--- TEST CANDIDATE ONLY. Reference-style Mall shell, now backed by live Roblox Marketplace queries.
+-- BBYA SOCIAL HUB — MALL CATALOG UI v9.1 DYNAMIC MARKETPLACE
+-- TEST CANDIDATE ONLY. Reference-style Mall shell backed by live Roblox Marketplace queries.
 -- Architecture: CatalogLauncher + avatar preview + CATEGORIES/STORES/PRODUCTS/CART/SAVED.
--- One Mall UI authority. Do not reintroduce the old V7 giant storefront panel.
+-- One Mall UI authority. v83 shell position + v84 header are locked.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -88,7 +88,7 @@ local catBtn=btn(top,"Katalog",UDim2.fromOffset(0,0),UDim2.fromOffset(208,44),Co
 local storeBtn=btn(top,"Toko",UDim2.fromOffset(224,0),UDim2.fromOffset(208,44),Color3.fromRGB(55,74,84));storeBtn.TextSize=20
 
 local avatar=Instance.new("Frame");avatar.Name="AvatarCard";avatar.BackgroundColor3=C.panel;avatar.BorderSizePixel=0;avatar.Parent=root;corner(avatar,12);stroke(avatar,C.line,.18)
-local viewport=Instance.new("ViewportFrame");viewport.Name="AvatarViewport";viewport.Position=UDim2.fromOffset(7,7);viewport.Size=UDim2.new(1,-14,1,-83);viewport.BackgroundColor3=Color3.fromRGB(18,19,23);viewport.BorderSizePixel=0;viewport.Ambient=Color3.fromRGB(215,215,215);viewport.LightColor=Color3.fromRGB(255,248,235);viewport.LightDirection=Vector3.new(-1,-1,-1);viewport.Parent=avatar;corner(viewport,9)
+local viewport=Instance.new("ViewportFrame");viewport.Name="AvatarViewport";viewport.Position=UDim2.fromOffset(7,7);viewport.Size=UDim2.new(1,-14,1,-83);viewport.BackgroundColor3=Color3.fromRGB(24,25,30);viewport.BorderSizePixel=0;viewport.Ambient=Color3.fromRGB(235,235,235);viewport.LightColor=Color3.fromRGB(255,252,245);viewport.LightDirection=Vector3.new(-1,-1,-1);viewport.Parent=avatar;corner(viewport,9)
 local world=Instance.new("WorldModel");world.Parent=viewport
 local vcam=Instance.new("Camera");vcam.Parent=viewport;viewport.CurrentCamera=vcam
 local selectedLabel=txt(avatar,"Avatar saat ini",UDim2.new(0,10,1,-74),UDim2.new(1,-20,0,22),Enum.Font.GothamBold,12,C.white,Enum.TextXAlignment.Center)
@@ -110,9 +110,10 @@ local cartView=module("CART")
 local savedView=module("SAVED")
 
 local function tile(parent,name,textValue,pos,size,color)
- local b=btn(parent,textValue,pos,size,color);b.Name=name;b.TextXAlignment=Enum.TextXAlignment.Left;b.TextYAlignment=Enum.TextYAlignment.Top;b.TextWrapped=true;b.TextSize=22
- local pad=Instance.new("UIPadding");pad.PaddingLeft=UDim.new(0,16);pad.PaddingTop=UDim.new(0,14);pad.PaddingRight=UDim.new(0,10);pad.Parent=b
+ local b=btn(parent,"",pos,size,color);b.Name=name
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(color,Color3.new(math.min(color.R+0.18,1),math.min(color.G+0.18,1),math.min(color.B+0.18,1)));g.Rotation=25;g.Parent=b
+ local label=txt(b,textValue,UDim2.fromOffset(16,12),UDim2.new(1,-26,0,68),Enum.Font.GothamBold,22,C.white,Enum.TextXAlignment.Left)
+ label.Name="TileLabel";label.TextYAlignment=Enum.TextYAlignment.Top;label.TextWrapped=true;label.TextStrokeColor3=Color3.fromRGB(0,0,0);label.TextStrokeTransparency=.86;label.ZIndex=b.ZIndex+1
  return b
 end
 local best=tile(categories,"BEST","Terbaik",UDim2.new(0,0,0,0),UDim2.new(.43,-7,1,0),C.blue)
@@ -190,15 +191,34 @@ local function getDescription()
  if hum then local ok,d=pcall(function()return hum:GetAppliedDescription()end);if ok and d then return d end end
  local ok,d=pcall(function()return Players:GetHumanoidDescriptionFromUserId(player.UserId)end);if ok then return d end
 end
-local function render(desc)
- world:ClearAllChildren();if not desc then return end
- local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);if not ok or not m then return end
+local function framePreviewModel(m)
+ if not m then return false end
  m.Parent=world
- for _,d in ipairs(m:GetDescendants()) do if d:IsA("BasePart") then d.Anchored=true;d.CanCollide=false;d.CanTouch=false;d.CanQuery=false end end
- local _,sz=m:GetBoundingBox();local h=math.max(sz.Y,5);local target=Vector3.new(0,h*.48,0);vcam.CFrame=CFrame.new(target+Vector3.new(0,.1,h*1.12),target);vcam.FieldOfView=34
+ for _,d in ipairs(m:GetDescendants()) do
+  if d:IsA("Script") or d:IsA("LocalScript") then d:Destroy()
+  elseif d:IsA("BasePart") then d.Anchored=true;d.CanCollide=false;d.CanTouch=false;d.CanQuery=false end
+ end
+ local ok,cf,sz=pcall(function()local a,b=m:GetBoundingBox();return a,b end)
+ if not ok or not cf or not sz then return false end
+ local h=math.max(sz.Y,5);local w=math.max(sz.X,3);local target=cf.Position+Vector3.new(0,h*.02,0);local dist=math.max(h*1.05,w*1.45)
+ vcam.CFrame=CFrame.lookAt(target+Vector3.new(0,h*.02,dist),target);vcam.FieldOfView=32
+ return true
+end
+local function render(desc)
+ world:ClearAllChildren();if not desc then return false end
+ local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);if not ok or not m then return false end
+ return framePreviewModel(m)
+end
+local function renderLiveCharacter()
+ world:ClearAllChildren();local ch=player.Character;if not ch then return false end
+ local old=ch.Archivable;ch.Archivable=true;local ok,m=pcall(function()return ch:Clone()end);ch.Archivable=old
+ if not ok or not m then return false end
+ return framePreviewModel(m)
 end
 local function resetPreview()
- baseDescription=getDescription();previewDescription=baseDescription and baseDescription:Clone() or nil;render(previewDescription);selectedLabel.Text="Avatar saat ini";selectedPrice.Text=""
+ baseDescription=getDescription();previewDescription=baseDescription and baseDescription:Clone() or nil
+ if not renderLiveCharacter() then render(previewDescription) end
+ selectedLabel.Text="Avatar saat ini";selectedPrice.Text=""
 end
 local function assetTypeName(raw)
  local s=tostring(raw or "");return s:gsub("Enum%.AvatarAssetType%.","")
@@ -374,9 +394,16 @@ local function responsive()
  camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
  local touch=UserInputService.TouchEnabled;local topSafe=touch and 112 or 78;local left=math.max(72,math.floor(vp.X*.065));local rightSafe=touch and 150 or 70;local bottom=36
  local shiftX=touch and -91 or 0;local shiftY=touch and -63 or 0
- local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe));local totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48));local leftW=math.clamp(math.floor(totalW*.30),260,360);local gap=24;local rightW=totalW-leftW-gap
+ local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe));local leftW=math.clamp(math.floor(totalW*.30),260,360);local gap=24;local rightW=totalW-leftW-gap
  local hostX=left+leftW+gap+shiftX
  local hostY=topSafe+52+shiftY
+ local totalH
+ if touch then
+  local availableH=math.max(190,vp.Y-hostY-10)
+  totalH=math.min(330,availableH)
+ else
+  totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48))
+ end
  local navReserve=56
  local navW=math.min(440,math.max(320,rightW-navReserve-12))
  local navGap=12
@@ -400,6 +427,8 @@ local function responsive()
  retry.Position=UDim2.fromOffset(rightW-78,42)
  productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76)
  grid.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,178);sl.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,160)
+ local tileTextSize=touch and (totalH<250 and 14 or 16) or 22
+ for _,b in ipairs({best,hair,clothes,bundles,accessory,face}) do local l=b:FindFirstChild("TileLabel");if l then l.TextSize=tileTextSize end end
 end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
@@ -412,4 +441,4 @@ end)
 player.CharacterAdded:Connect(function()task.delay(.6,function()if root.Visible then resetPreview() end end)end)
 
 task.defer(responsive)
-print("[BBYA] Mall Catalog UI v9 dynamic Marketplace online: clean internal header + live catalog + bundles + infinite scroll")
+print("[BBYA] Mall Catalog UI v9.1 online: live preview + mobile-fit mosaic + dynamic Marketplace")
