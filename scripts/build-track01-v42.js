@@ -11,4 +11,4 @@ if(!xml.includes(marker)) throw new Error('TRACK 01 ServerScriptService insertio
 const item=`<Item class="Script" referent="TM42"><Properties><string name="Name">TRACK01_MusicAutoDJ</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${music}]]></ProtectedString></Properties></Item>`;
 xml=xml.replace(marker,item+marker);
 fs.writeFileSync(place,xml);
-console.log('[TRACK 01] built v4.2.0 Auto Random 24/7 + Automix',Buffer.byteLength(xml),'bytes',place);
+console.log('[TRACK 01] built v4.2.1 Audio Balance / Phase Hotfix',Buffer.byteLength(xml),'bytes',place);
