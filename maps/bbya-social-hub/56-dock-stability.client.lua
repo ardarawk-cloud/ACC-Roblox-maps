@@ -1,4 +1,4 @@
--- BBYA MUSIC UI TEST — UI KERNEL v2.2
+-- BBYA MUSIC UI TEST — UI KERNEL v2.3
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
 -- ONE UI shell authority. v69 geometry is locked.
 -- Support/Party are server-authoritative. Music is large. Developer DJ stays full-screen.
@@ -92,6 +92,21 @@ local pad=Instance.new("UIPadding"); pad.PaddingBottom=UDim.new(0,8); pad.Parent
 local managed={}; local current=nil; local visibilityBound={}
 local function restoreMenu()
  current=nil; menuButton.Visible=true; menuButton.Text="MENU"
+end
+local musicSuiteBound={}
+local function bindMusicSuiteVisibility()
+ local musicGui=pg:FindFirstChild("BBYAMusicSuiteV1")
+ if not musicGui or not musicGui:IsA("ScreenGui") or musicSuiteBound[musicGui] then return end
+ musicSuiteBound[musicGui]=true
+ local function sync()
+  if musicGui.Enabled then
+   drawer.Visible=false; menuButton.Visible=false; current="MUSIC"
+  elseif current=="MUSIC" then
+   restoreMenu()
+  end
+ end
+ musicGui:GetPropertyChangedSignal("Enabled"):Connect(sync)
+ sync()
 end
 local function register(key,obj)
  managed[key]=obj
@@ -259,6 +274,9 @@ gearRemote.OnClientEvent:Connect(function(action,data)
  end
 end)
 player.CharacterAdded:Connect(function() task.defer(function() setBackpackVisible(true); restoreMenu() end) end)
+pg.ChildAdded:Connect(function(child)
+ if child.Name=="BBYAMusicSuiteV1" then task.defer(bindMusicSuiteVisibility) end
+end)
 
 local function layoutAll()
  placeNormal(drawer); placeNormal(supportPanel); placeNormal(travelPanel); placeNormal(communityPanel); placeNormal(partyPanel)
@@ -267,5 +285,5 @@ local function layoutAll()
 end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() camera=workspace.CurrentCamera; task.defer(layoutAll) end)
-task.defer(layoutAll)
-print("[BBYA TEST] UI KERNEL v2.2 online: one secondary-panel coordinate system + menu hidden behind active panel")
+task.defer(function() bindMusicSuiteVisibility(); layoutAll() end)
+print("[BBYA TEST] UI KERNEL v2.3 online: one secondary-panel coordinate system + Music Suite owns MENU visibility")
