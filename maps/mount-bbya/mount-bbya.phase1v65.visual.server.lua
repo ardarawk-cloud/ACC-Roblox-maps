@@ -1,16 +1,17 @@
--- MOUNT BBYA — Phase 1 visual depth pass v6.5
+-- MOUNT BBYA — Phase 1 visual depth pass v6.6
 -- Donor baseline: v6.4 / commit 08dc1c083289a6505808607546fbfb788ea21d36
 -- Scope: visual-only after terrain freeze. No Terrain Fill* calls in this file.
+-- v6.6 owner runtime scale pass: realistic house / utility-pole / tree proportions.
 
 local Workspace=game:GetService("Workspace")
 local Lighting=game:GetService("Lighting")
 local Terrain=Workspace.Terrain
 
 local root=Workspace:WaitForChild("ACC_MountainSocial",60)
-if not root then error("Mount BBYA v6.5: runtime root missing") end
+if not root then error("Mount BBYA v6.6: runtime root missing") end
 local deadline=os.clock()+60
 while not (root:GetAttribute("TerrainFrozen")==true and root:GetAttribute("Phase1VisualReady")==true) do
- if os.clock()>deadline then error("Mount BBYA v6.5: baseline readiness timeout") end
+ if os.clock()>deadline then error("Mount BBYA v6.6: baseline readiness timeout") end
  task.wait(.25)
 end
 
@@ -39,6 +40,75 @@ local function label(facePart,text)
  t.TextColor3=Color3.fromRGB(242,235,213);t.TextStrokeTransparency=.72;t.Parent=sg
 end
 
+-- OWNER RUNTIME SCALE PASS ---------------------------------------------------
+-- Houses were visibly avatar-sized. Increase vertical architecture only,
+-- preserving every foundation footprint and the frozen terrain.
+local houseScaleY=1.38
+local scaledHouseCount=0
+local village=root:FindFirstChild("Village")
+if village then
+ for _,model in ipairs(village:GetChildren()) do
+  if model:IsA("Model") and string.match(model.Name,"^VillageHouse_") then
+   local anchor=model:FindFirstChild("Foundation") or model:FindFirstChildWhichIsA("BasePart")
+   if anchor then
+    local gy=groundY(anchor.Position.X,anchor.Position.Z)
+    for _,obj in ipairs(model:GetDescendants()) do
+     if obj:IsA("BasePart") then
+      local pos=obj.Position
+      local rot=obj.CFrame-pos
+      local relY=pos.Y-gy
+      obj.Size=Vector3.new(obj.Size.X,obj.Size.Y*houseScaleY,obj.Size.Z)
+      obj.CFrame=CFrame.new(pos.X,gy+relY*houseScaleY,pos.Z)*rot
+     end
+    end
+    scaledHouseCount+=1
+   end
+  end
+ end
+end
+
+-- Existing roadside/forest trees were miniature against a Roblox avatar.
+-- Scale from each trunk ground point so no tree floats after enlargement.
+local treeScaleXZ=1.55
+local treeScaleY=1.80
+local scaledTreeCount=0
+local function scaleTreeFolder(folder)
+ if not folder then return end
+ for _,model in ipairs(folder:GetChildren()) do
+  if model:IsA("Model") and model.Name=="GroundedTree" then
+   local trunk=model:FindFirstChild("Trunk")
+   if trunk and trunk:IsA("BasePart") then
+    local cx,cz=trunk.Position.X,trunk.Position.Z
+    local baseY=trunk.Position.Y-trunk.Size.Y*.5
+    for _,obj in ipairs(model:GetDescendants()) do
+     if obj:IsA("BasePart") then
+      local pos=obj.Position
+      local rot=obj.CFrame-pos
+      local rel=pos-Vector3.new(cx,baseY,cz)
+      local newPos=Vector3.new(cx+rel.X*treeScaleXZ,baseY+rel.Y*treeScaleY,cz+rel.Z*treeScaleXZ)
+      obj.Size=Vector3.new(obj.Size.X*treeScaleXZ,obj.Size.Y*treeScaleY,obj.Size.Z*treeScaleXZ)
+      obj.CFrame=CFrame.new(newPos)*rot
+     end
+    end
+    scaledTreeCount+=1
+   end
+  end
+ end
+end
+scaleTreeFolder(root:FindFirstChild("Roadside"))
+scaleTreeFolder(root:FindFirstChild("ForestEdge"))
+
+-- Retire the miniature donor power line. v6.6 creates one authoritative,
+-- realistic-height utility line below; terrain and road stay untouched.
+local roadside=root:FindFirstChild("Roadside")
+if roadside then
+ for _,obj in ipairs(roadside:GetDescendants()) do
+  if obj:IsA("BasePart") and (obj.Name=="UtilityPole" or obj.Name=="CrossArm" or obj.Name=="PowerWire") then
+   obj:Destroy()
+  end
+ end
+end
+
 -- Authoritative road center from v6 terrain master.
 local roadNodes={{1060,0},{930,8},{800,-4},{670,16},{545,42},{430,59},{335,61},{255,53},{185,42},{150,38}}
 local function roadX(z)
@@ -64,14 +134,15 @@ for z=1030,260,-28 do
  end
 end
 
--- 2) Utility line with restrained warm village lighting.
+-- 2) Single realistic utility line: ~24 studs tall, clearly above avatar/house scale.
 local utilityCount=0
 local previous=nil
+local utilityHeight=24
 for _,z in ipairs({1015,910,805,700,595,490,385,280}) do
  local x=roadX(z)+24;local y=groundY(x,z)
- local poleTop=Vector3.new(x,y+11.5,z)
- part("UtilityPole",Vector3.new(.6,11.5,.6),CFrame.new(x,y+5.75,z),Enum.Material.Wood,Color3.fromRGB(75,57,42),pass,true)
- part("CrossArm",Vector3.new(5,.35,.35),CFrame.new(x,y+10.7,z),Enum.Material.Wood,Color3.fromRGB(72,55,41),pass,false)
+ local poleTop=Vector3.new(x,y+utilityHeight,z)
+ part("UtilityPole",Vector3.new(.9,utilityHeight,.9),CFrame.new(x,y+utilityHeight*.5,z),Enum.Material.Wood,Color3.fromRGB(75,57,42),pass,true)
+ part("CrossArm",Vector3.new(6.4,.48,.48),CFrame.new(x,y+utilityHeight-1.25,z),Enum.Material.Wood,Color3.fromRGB(72,55,41),pass,false)
  if previous then beam("UtilityCable",previous,poleTop,.10,Enum.Material.SmoothPlastic,Color3.fromRGB(38,38,36),pass) end
  previous=poleTop;utilityCount+=1
 end
@@ -90,6 +161,8 @@ local sign=part("MountBBYASign",Vector3.new(14,3.1,.45),CFrame.new(sx,sy+5.6,sz)
 local vegetationCount=0
 local function bambooCluster(x,z,scale)
  local y=groundY(x,z)
+ local naturalScale=1.45
+ scale=scale*naturalScale
  for i=1,5 do
   local ox=(i-3)*.65;local oz=((i%2)*.8-.4);local h=(9+i*.65)*scale
   part("Bamboo",Vector3.new(.22*scale,h,.22*scale),CFrame.new(x+ox,y+h*.5,z+oz)*CFrame.Angles(0,0,math.rad((i-3)*1.8)),Enum.Material.Grass,Color3.fromRGB(78,112,54),pass,false)
@@ -133,12 +206,17 @@ Lighting.EnvironmentDiffuseScale=.72
 Lighting.EnvironmentSpecularScale=.58
 Lighting.ShadowSoftness=.32
 
-root:SetAttribute("MountBBYAPhase1PremiumVersion","6.5")
+root:SetAttribute("MountBBYAPhase1PremiumVersion","6.6")
 root:SetAttribute("MountBBYAPremiumScope","SPAWN_TO_CP1_ONLY")
 root:SetAttribute("MountBBYADrainDetailCount",drainCount)
 root:SetAttribute("MountBBYAUtilityPoleCount",utilityCount)
 root:SetAttribute("MountBBYAVegetationClusterCount",vegetationCount)
 root:SetAttribute("MountBBYATrailEdgeDetailCount",trailEdgeCount)
+root:SetAttribute("MountBBYAScaledHouseCount",scaledHouseCount)
+root:SetAttribute("MountBBYAScaledTreeCount",scaledTreeCount)
+root:SetAttribute("MountBBYAHouseScaleY",houseScaleY)
+root:SetAttribute("MountBBYATreeScaleY",treeScaleY)
+root:SetAttribute("MountBBYAUtilityHeight",utilityHeight)
 root:SetAttribute("MountBBYAPhase1PremiumReady",true)
-Workspace:SetAttribute("ACC_MountainBuild","mount-bbya-v6.5-phase1-premium")
-print("[MOUNT BBYA] v6.5 Phase 1 premium visual pass ready",drainCount,utilityCount,vegetationCount,trailEdgeCount)
+Workspace:SetAttribute("ACC_MountainBuild","mount-bbya-v6.6-realistic-scale-pass")
+print("[MOUNT BBYA] v6.6 realistic scale pass ready",scaledHouseCount,scaledTreeCount,utilityCount)
