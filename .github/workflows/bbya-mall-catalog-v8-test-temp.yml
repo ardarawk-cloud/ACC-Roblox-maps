@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live.client.lua'
 
 permissions:
   contents: read
@@ -43,7 +46,11 @@ jobs:
           foreach($bad in @('GetService("Lighting")','SoundId','.Volume =')){
             if($a.Contains($bad)){throw "Forbidden Mall UI marker: $bad"}
           }
-          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS'
+          $v=Get-Content 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua' -Raw
+          foreach($m in @('MALL VERTICAL SPACING 20 + CINEMA v16','local LEVELS={1,21,41,61}','FloorSpacingStuds",20','VerticalAuthority","V16_20_STUD')){
+            if(-not $v.Contains($m)){throw "Missing 20-stud vertical marker: $m"}
+          }
+          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20'
 
       - name: Enable third party sales in test build only
         shell: powershell
