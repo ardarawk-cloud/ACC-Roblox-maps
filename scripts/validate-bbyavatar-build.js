@@ -4,7 +4,7 @@ const path = require('path');
 const ROOT = process.cwd();
 const TARGET_UNIVERSE = '10744157359';
 const TARGET_PLACE = '85866320744490';
-const BUILD = 'FPS-PROTOTYPE-0.2.1';
+const BUILD = 'FPS-PROTOTYPE-0.2.2';
 
 function read(rel) { return fs.readFileSync(path.join(ROOT, rel), 'utf8'); }
 function fail(message) { console.error(`[BBYAVATAR FPS QC] FAIL: ${message}`); process.exit(1); }
@@ -75,7 +75,12 @@ requireAll(server, [
 requireAll(client, [
   'FPS_HUD',
   'LockFirstPerson',
+  'MOBILE_SAFE_LAYOUT_V1',
+  'gui.IgnoreGuiInset = not mobile',
   'MobileControls',
+  'mobileFrame.Visible = mobile and not loadoutOpen and not scoreboardOpen',
+  'CloseLoadout',
+  'Tap weapon untuk equip.',
   'MATCH SCOREBOARD',
   'SELECT LOADOUT',
   'toggleLoadout',
@@ -86,13 +91,15 @@ requireAll(client, [
   'MuzzleFlash',
   'Tracer',
   'SPAWN PROTECTION',
-  'TDM PROTOTYPE v0.2'
+  'spawnSafe',
+  'TDM PROTOTYPE v0.2.2'
 ], 'fps.client.lua');
 
 requireAll(place, [
   'FPSConfig','FPS_World','FPS_GameServer','FPS_Client',
   BUILD,
   'FPS_URBAN_BLOCK',
+  'MOBILE_SAFE_LAYOUT_V1',
   'MATCH SCOREBOARD',
   'SELECT LOADOUT',
   'placeCharacterSafely'
@@ -120,6 +127,10 @@ console.log(JSON.stringify({
     '5s spawn protection',
     'deterministic safe respawn',
     'fall/out-of-bounds rescue',
+    'mobile safe-area HUD',
+    'responsive mobile loadout',
+    'mobile controls hidden during menus',
+    'spawn-safe client feedback',
     'killstreaks',
     'ADS + recoil recovery',
     'dynamic crosshair',
