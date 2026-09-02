@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "0.8.2-road-sidewalk-intersection-cleanup-1",
+    Version = "1.0.0-gameplay-foundation-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
@@ -19,6 +19,7 @@ local Config = {
     StudentRowShopInteriorsVersion = "0.8.0-student-row-shop-interiors-1",
     RoadConcreteStripCleanupVersion = "0.8.1-road-concrete-strip-cleanup-1",
     RoadSidewalkIntersectionCleanupVersion = "0.8.2-road-sidewalk-intersection-cleanup-1",
+    GameplayFoundationVersion = "1.0.0-gameplay-foundation-1",
 
     Roblox = {
         UniverseId = "10745359869",
@@ -76,9 +77,9 @@ local Config = {
         EnableRoadConcreteStripCleanupPass = true,
         EnableRoadSidewalkIntersectionCleanupPass = true,
         EnableDebugBillboards = false,
-        EnableActivities = false,
-        EnableEconomy = false,
-        EnablePersistence = false,
+        EnableActivities = true,
+        EnableEconomy = true,
+        EnablePersistence = true,
         EnablePersonalRoom = false,
         EnableClubs = false,
     },
