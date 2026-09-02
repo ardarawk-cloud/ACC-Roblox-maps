@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ENTRANCE STREET + ICON CARS v1
+-- BBYA SOCIAL HUB — ENTRANCE STREET + ICON CARS v1.1
 -- Makes the spawn read as a venue on a real main road.
 -- Includes two photo-icon sports-car slots; cloud mesh pipeline can replace fallback shells.
 
@@ -83,14 +83,12 @@ local function sportCar(name, pos, yaw, bodyColor)
     m.Parent=out
 
     local baseCF=CFrame.new(pos)*CFrame.Angles(0,math.rad(yaw),0)
-    -- Lower, wider proportions than a normal block car.
     part("Chassis",Vector3.new(10.8,.75,4.9),baseCF*CFrame.new(0,1.15,0),C.black,Enum.Material.Metal,0,false,m)
     part("BodyLower",Vector3.new(10.2,1.05,4.65),baseCF*CFrame.new(0,1.65,0),bodyColor,Enum.Material.SmoothPlastic,0,false,m)
     part("Hood",Vector3.new(3.5,.58,4.35),baseCF*CFrame.new(3.25,2.15,0)*CFrame.Angles(0,0,math.rad(-5)),bodyColor,Enum.Material.SmoothPlastic,0,false,m,"WedgePart")
     part("RearDeck",Vector3.new(2.7,.62,4.35),baseCF*CFrame.new(-3.7,2.1,0)*CFrame.Angles(0,math.rad(180),math.rad(-4)),bodyColor,Enum.Material.SmoothPlastic,0,false,m,"WedgePart")
     part("Cabin",Vector3.new(4.5,1.25,3.75),baseCF*CFrame.new(-.25,2.55,0),C.glass,Enum.Material.Glass,.18,false,m)
     part("Roof",Vector3.new(3.3,.25,3.45),baseCF*CFrame.new(-.55,3.25,0),bodyColor,Enum.Material.SmoothPlastic,0,false,m)
-    -- Curved-feel nose via cylinders/low profile elements.
     cylinder("Nose",Vector3.new(4.1,4.4,4.4),baseCF*CFrame.new(5.05,1.72,0)*CFrame.Angles(0,math.rad(90),0),bodyColor,m)
     cylinder("Rear",Vector3.new(2.1,4.4,4.4),baseCF*CFrame.new(-5.05,1.72,0)*CFrame.Angles(0,math.rad(90),0),bodyColor,m)
 
@@ -102,7 +100,6 @@ local function sportCar(name, pos, yaw, bodyColor)
             rim.Material=Enum.Material.Metal
         end
     end
-    -- Head/tail light lenses.
     for _,z in ipairs({-1.45,1.45}) do
         part("Headlamp",Vector3.new(.16,.42,.88),baseCF*CFrame.new(5.55,1.9,z),C.white,Enum.Material.Glass,.08,false,m)
         part("TailLamp",Vector3.new(.16,.38,.78),baseCF*CFrame.new(-5.55,1.9,z),Color3.fromRGB(220,25,35),Enum.Material.Glass,.04,false,m)
@@ -110,13 +107,11 @@ local function sportCar(name, pos, yaw, bodyColor)
     return m
 end
 
--- Cars face each other with the venue entrance centered between them.
 local red=sportCar("CloudCarSlot_Red",Vector3.new(-31,1.0,-75.5),90,C.red)
 local blue=sportCar("CloudCarSlot_Blue",Vector3.new(31,1.0,-75.5),-90,C.blue)
 red:SetAttribute("DesiredCloudPrompt","premium exotic sports coupe, glossy red, realistic automotive proportions")
 blue:SetAttribute("DesiredCloudPrompt","premium exotic sports coupe, glossy blue, realistic automotive proportions")
 
--- Warm street lamps frame the arrival without turning the street into a neon set.
 for i,x in ipairs({-52,52}) do
     local pole=part("StreetPole"..i,Vector3.new(.35,10,.35),CFrame.new(x,5.5,-66),C.metal,Enum.Material.Metal,0,false)
     local lamp=part("StreetLamp"..i,Vector3.new(2.5,.45,1.1),CFrame.new(x,10.4,-66),Color3.fromRGB(235,218,188),Enum.Material.SmoothPlastic,0,false)
@@ -128,8 +123,6 @@ for i,x in ipairs({-52,52}) do
     light.Parent=lamp
 end
 
--- Community-wall lower neon readability hotfix.
--- The original trim sits almost flush with the floor, so lift/thicken it slightly.
 local function fixCommunityWallBottomNeon()
     local dashboard=root:FindFirstChild("SupportDashboard")
     if not dashboard then return false end
@@ -162,4 +155,4 @@ root.ChildAdded:Connect(function(child)
     if child.Name=="SupportDashboard" then task.delay(.2,fixCommunityWallBottomNeon) end
 end)
 
-print("[BBYA] Entrance street v1 online: main asphalt road + red/blue photo cars + visible community-wall bottom neon")
+print("[BBYA] Entrance street v1.1 online: main asphalt road + red/blue photo cars + visible community-wall bottom neon")
