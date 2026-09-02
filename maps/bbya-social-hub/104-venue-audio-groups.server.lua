@@ -1,12 +1,13 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.6
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.7
 -- Independent local-only SoundGroups for every music venue.
--- Rooftop + Skatepark are active; VIP remains isolated/reset.
+-- Rooftop + Skatepark + Pasar Malam are active; VIP remains isolated/reset.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
--- v4.6 adds the approved Vierra Perih 1.25x upload with Roblox playback restored at 0.8x.
+-- v4.7 activates the approved 5-track Pasar Malam Dangdut/Koplo bank at playback 0.8x.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local ContentProvider=game:GetService("ContentProvider")
+local Workspace=game:GetService("Workspace")
 
 local SKATE_PLAYLIST={
  {title="Mutronic Plague",assetId="1837057495"},
@@ -17,6 +18,14 @@ local SKATE_PLAYLIST={
  {title="Boom Boom (b 30)",assetId="1840009708"},
  {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8},
  {title="Vierra - Perih (Pop Punk Version)",assetId="73111765506214",playbackSpeed=0.8},
+}
+
+local NIGHT_MARKET_PLAYLIST={
+ {title="Gadis Manis Kalimantan - Shinta Gisul",assetId="132656781327264",playbackSpeed=0.8},
+ {title="Aishiteru 2 - Ajeng Febria",assetId="85424046735289",playbackSpeed=0.8},
+ {title="Nemen (Hiphop Dangdut Version) - NDX AKA",assetId="89901574840210",playbackSpeed=0.8},
+ {title="Apa Kabar Mantan - NDX AKA",assetId="108659387121290",playbackSpeed=0.8},
+ {title="Kopi Dangdut / Tarik Sis Semongko - Vita Alvia",assetId="107887958475943",playbackSpeed=0.8},
 }
 
 local function ensure(name,venue,active,state)
@@ -214,4 +223,152 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.6: Skatepark 8-track catalog + request/transport controls active; Vierra Perih restored at 0.8x")
+-- PASAR MALAM KOPLO -----------------------------------------------------------
+local nightMarketGroup=ensure("BBYANightMarketMaster","NIGHT_MARKET",true,"NIGHT_MARKET_KOPLO_APPROVED_V1")
+nightMarketGroup.Volume=1.0
+nightMarketGroup:SetAttribute("PlaylistId","pasar-malam-koplo")
+nightMarketGroup:SetAttribute("GenrePolicy","DANGDUT_KOPLO")
+nightMarketGroup:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+nightMarketGroup:SetAttribute("PlaylistCount",#NIGHT_MARKET_PLAYLIST)
+nightMarketGroup:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+
+local function publishNightMarketCatalog()
+ local folder=ReplicatedStorage:FindFirstChild("BBYANightMarketPlaylistCatalog")
+ if folder and not folder:IsA("Folder") then folder:Destroy();folder=nil end
+ if not folder then folder=Instance.new("Folder");folder.Name="BBYANightMarketPlaylistCatalog";folder.Parent=ReplicatedStorage end
+ folder:ClearAllChildren()
+ folder:SetAttribute("PlaylistId","pasar-malam-koplo")
+ folder:SetAttribute("Venue","NIGHT_MARKET")
+ folder:SetAttribute("GenrePolicy","DANGDUT_KOPLO")
+ folder:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+ folder:SetAttribute("Count",#NIGHT_MARKET_PLAYLIST)
+ folder:SetAttribute("PlaybackSpeed",0.8)
+ folder:SetAttribute("ApprovalState","5_APPROVED_2_REJECTED_EXCLUDED")
+ folder:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+ folder:SetAttribute("OutputSound","BBYANightMarketMasterSound")
+ folder:SetAttribute("SoundGroup","BBYANightMarketMaster")
+ folder:SetAttribute("InjectionState","ACTIVE_APPROVED_BANK_V1")
+ for i,t in ipairs(NIGHT_MARKET_PLAYLIST) do
+  local row=Instance.new("StringValue")
+  row.Name=string.format("Track%02d",i)
+  row.Value=t.title
+  row:SetAttribute("AssetId",t.assetId)
+  row:SetAttribute("Index",i)
+  row:SetAttribute("PlaybackSpeed",tonumber(t.playbackSpeed) or 0.8)
+  row:SetAttribute("ApprovalState","APPROVED")
+  row.Parent=folder
+ end
+end
+
+local nightMarketSound=SoundService:FindFirstChild("BBYANightMarketMasterSound")
+if nightMarketSound and not nightMarketSound:IsA("Sound") then nightMarketSound:Destroy();nightMarketSound=nil end
+if not nightMarketSound then nightMarketSound=Instance.new("Sound");nightMarketSound.Name="BBYANightMarketMasterSound";nightMarketSound.Parent=SoundService end
+nightMarketSound.SoundGroup=nightMarketGroup
+nightMarketSound.Volume=1.0
+nightMarketSound.Looped=false
+nightMarketSound.PlaybackSpeed=0.8
+nightMarketSound:SetAttribute("Venue","NIGHT_MARKET")
+nightMarketSound:SetAttribute("PlaylistId","pasar-malam-koplo")
+nightMarketSound:SetAttribute("GenrePolicy","DANGDUT_KOPLO")
+nightMarketSound:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+nightMarketSound:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+
+local nightMarketIndex=tonumber(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentIndex")) or 1
+if nightMarketIndex<1 or nightMarketIndex>#NIGHT_MARKET_PLAYLIST then nightMarketIndex=1 end
+local nightMarketSwitching=false
+
+local function publishNightMarketState(track)
+ local speed=tonumber(track.playbackSpeed) or 0.8
+ ReplicatedStorage:SetAttribute("BBYANightMarketPlaylistEnabled",true)
+ ReplicatedStorage:SetAttribute("BBYANightMarketPlaylistId","pasar-malam-koplo")
+ ReplicatedStorage:SetAttribute("BBYANightMarketPlaylistCount",#NIGHT_MARKET_PLAYLIST)
+ ReplicatedStorage:SetAttribute("BBYANightMarketCurrentIndex",nightMarketIndex)
+ ReplicatedStorage:SetAttribute("BBYANightMarketCurrentTitle",track.title)
+ ReplicatedStorage:SetAttribute("BBYANightMarketCurrentAssetId",track.assetId)
+ ReplicatedStorage:SetAttribute("BBYANightMarketCurrentPlaybackSpeed",speed)
+ ReplicatedStorage:SetAttribute("BBYANightMarketPlaylistOutputReady",true)
+ nightMarketGroup:SetAttribute("CurrentIndex",nightMarketIndex)
+ nightMarketGroup:SetAttribute("CurrentTitle",track.title)
+ nightMarketGroup:SetAttribute("CurrentAssetId",track.assetId)
+ nightMarketGroup:SetAttribute("CurrentPlaybackSpeed",speed)
+ nightMarketGroup:SetAttribute("PlaylistReady",true)
+ nightMarketSound:SetAttribute("Title",track.title)
+ nightMarketSound:SetAttribute("PlaylistIndex",nightMarketIndex)
+ nightMarketSound:SetAttribute("PlaybackSpeed",speed)
+end
+
+local function waitNightMarketLoaded(timeout)
+ local deadline=os.clock()+(timeout or 6)
+ while os.clock()<deadline do
+  if nightMarketSound.IsLoaded and (nightMarketSound.TimeLength or 0)>.2 then return true end
+  task.wait(.12)
+ end
+ return nightMarketSound.IsLoaded
+end
+
+local function playNightMarketIndex(wanted)
+ if nightMarketSwitching then return end
+ nightMarketSwitching=true
+ nightMarketIndex=((tonumber(wanted) or 1)-1)%#NIGHT_MARKET_PLAYLIST+1
+ local tried=0
+ while tried<#NIGHT_MARKET_PLAYLIST do
+  local track=NIGHT_MARKET_PLAYLIST[nightMarketIndex]
+  nightMarketSound:Stop()
+  nightMarketSound.SoundId="rbxassetid://"..track.assetId
+  nightMarketSound.PlaybackSpeed=tonumber(track.playbackSpeed) or 0.8
+  nightMarketSound.TimePosition=0
+  publishNightMarketState(track)
+  local preloadOk=pcall(function()ContentProvider:PreloadAsync({nightMarketSound})end)
+  if preloadOk and waitNightMarketLoaded(6) then
+   local ok=pcall(function()nightMarketSound:Play()end)
+   if ok then
+    nightMarketSwitching=false
+    print("[BBYA] Pasar Malam playing",nightMarketIndex,track.title,track.assetId,"speed",nightMarketSound.PlaybackSpeed)
+    return
+   end
+  end
+  nightMarketGroup:SetAttribute("LastUnavailableTitle",track.title)
+  nightMarketGroup:SetAttribute("LastUnavailableAssetId",track.assetId)
+  nightMarketIndex=nightMarketIndex%#NIGHT_MARKET_PLAYLIST+1
+  tried+=1
+ end
+ nightMarketSwitching=false
+ warn("[BBYA] Pasar Malam approved bank: no track could start")
+end
+
+nightMarketSound.Ended:Connect(function()
+ task.defer(function()playNightMarketIndex(nightMarketIndex%#NIGHT_MARKET_PLAYLIST+1)end)
+end)
+
+publishNightMarketCatalog()
+playNightMarketIndex(nightMarketIndex)
+
+task.spawn(function()
+ local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",120)
+ local market=root and root:WaitForChild("BBYANightMarket",120)
+ if market then
+  market:SetAttribute("PlaylistKey","pasar-malam-koplo")
+  market:SetAttribute("PlaylistVenue","NIGHT_MARKET")
+  market:SetAttribute("PlaylistGenrePolicy","DANGDUT_KOPLO")
+  market:SetAttribute("PlaylistSyncAuthority","BBYA_MUSIC_MANAGER")
+  market:SetAttribute("PlaylistOutputReady",true)
+  market:SetAttribute("PlaylistCount",#NIGHT_MARKET_PLAYLIST)
+  market:SetAttribute("BackgroundMusicInjected",true)
+  market:SetAttribute("AudioPolicy","APPROVED_KOPLO_BANK_ACTIVE_V1")
+ end
+end)
+
+task.spawn(function()
+ while task.wait(1.25) do
+  nightMarketGroup.Volume=1.0
+  nightMarketSound.Volume=1.0
+  nightMarketGroup:SetAttribute("PlaylistReady",true)
+  nightMarketGroup:SetAttribute("PlaylistCount",#NIGHT_MARKET_PLAYLIST)
+  ReplicatedStorage:SetAttribute("BBYANightMarketPlaylistEnabled",true)
+  if not nightMarketSound.IsPlaying and not nightMarketSwitching then
+   playNightMarketIndex(nightMarketIndex)
+  end
+ end
+end)
+
+print("[BBYA] Venue audio masters v4.7: Skatepark preserved; Pasar Malam 5-track approved Dangdut/Koplo bank active at 0.8x")
