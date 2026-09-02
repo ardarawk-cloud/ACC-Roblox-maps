@@ -128,4 +128,38 @@ for i,x in ipairs({-52,52}) do
     light.Parent=lamp
 end
 
-print("[BBYA] Entrance street v1 online: main asphalt road + red/blue photo cars")
+-- Community-wall lower neon readability hotfix.
+-- The original trim sits almost flush with the floor, so lift/thicken it slightly.
+local function fixCommunityWallBottomNeon()
+    local dashboard=root:FindFirstChild("SupportDashboard")
+    if not dashboard then return false end
+
+    local fixed=0
+    for _,name in ipairs({"TopSupportersWall","LiveCommunityWall"}) do
+        local holder=dashboard:FindFirstChild(name)
+        local bottom=holder and holder:FindFirstChild("BottomTrim")
+        if bottom and bottom:IsA("BasePart") then
+            if bottom:GetAttribute("BBYABottomNeonVisibleV1")~=true then
+                bottom.Size=Vector3.new(bottom.Size.X,.18,.18)
+                bottom.CFrame=bottom.CFrame*CFrame.new(0,.18,-.10)
+                bottom.Material=Enum.Material.Neon
+                bottom.Transparency=0
+                bottom:SetAttribute("BBYABottomNeonVisibleV1",true)
+            end
+            fixed+=1
+        end
+    end
+    return fixed==2
+end
+
+task.spawn(function()
+    for _=1,100 do
+        if fixCommunityWallBottomNeon() then return end
+        task.wait(.1)
+    end
+end)
+root.ChildAdded:Connect(function(child)
+    if child.Name=="SupportDashboard" then task.delay(.2,fixCommunityWallBottomNeon) end
+end)
+
+print("[BBYA] Entrance street v1 online: main asphalt road + red/blue photo cars + visible community-wall bottom neon")
