@@ -1,4 +1,4 @@
-name: QC TRACK 01 v4.2 AutoDJ Automix
+name: QC TRACK 01 v4.2.1 Audio Balance Phase Hotfix
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: track01-v42-qc-${{ github.ref }}
+  group: track01-v421-qc-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate target and v4.2 source lock
+      - name: Validate target and v4.2.1 source lock
         shell: bash
         run: |
           node - <<'NODE'
@@ -36,7 +36,7 @@ jobs:
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='4.2.0') throw new Error('Wrong TRACK 01 version');
+          if(String(c.version)!=='4.2.1') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
           const src=fs.readFileSync('maps/track-01/music-runtime.server.lua','utf8');
           const rows=[...src.matchAll(/\{id="(\d+)",source="(PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}/g)];
@@ -45,10 +45,15 @@ jobs:
           const skate=['1837057495','1841242625','9040318014','9043707741','9042632936','1840009708','101433831748471','73111765506214'];
           const unmanageable=['117476404561871','139454814636865','94631926635772','103410156771684','97696234195316'];
           for(const id of [...skate,...unmanageable]) if(src.includes(`id="${id}"`)) throw new Error(`Excluded asset leaked into TRACK 01: ${id}`);
-          console.log('TRACK 01 v4.2 final 62-track target/catalog lock PASS');
+          if(src.includes('Z_OFFSETS')) throw new Error('Legacy three-emitter-per-car layout still present');
+          if(src.includes('Emitter_%02d')) throw new Error('Legacy numbered emitters still present');
+          if(!src.includes('p.Name="EmitterCenter"')) throw new Error('Centered emitter missing');
+          if(!src.includes('assert(#decks.A==4 and #decks.B==4')) throw new Error('Single-emitter-per-car deck lock missing');
+          if(!src.includes('ROLLOFF_MIN=18') || !src.includes('ROLLOFF_MAX=26')) throw new Error('Balanced rolloff lock missing');
+          console.log('TRACK 01 v4.2.1 source/catalog/audio topology lock PASS');
           NODE
 
-      - name: Build canonical TRACK 01 v4.2 place
+      - name: Build canonical TRACK 01 v4.2.1 place
         run: node scripts/build-track01-v42.js
 
       - name: Validate retained feature-complete runtime
@@ -84,7 +89,7 @@ jobs:
           grep -qi 'ridhoomaukamu' "$place"
           echo 'TRACK 01 compact operator panel QC PASS'
 
-      - name: Validate v4.2 Auto Random 24/7 Automix
+      - name: Validate v4.2.1 phase-safe AutoDJ automix
         shell: bash
         run: |
           set -euo pipefail
@@ -96,23 +101,32 @@ jobs:
           grep -q 'TRACK01_MUSIC_SPATIAL_CARS_ONLY' "$place"
           grep -q 'TRACK01_MUSIC_SKATEPARK_EXCLUDED' "$place"
           grep -q 'TRACK01_MUSIC_TRACK_COUNT' "$place"
-          grep -q '62-track permissioned BBYA pool' "$place"
+          grep -q 'TRACK01_MUSIC_EMITTERS_PER_CAR' "$place"
+          grep -q 'TRACK01_MUSIC_PHASE_SAFE' "$place"
+          grep -q 'TRACK01_MUSIC_ROLLOFF_MIN' "$place"
+          grep -q 'TRACK01_MUSIC_ROLLOFF_MAX' "$place"
+          grep -q '62-track permissioned pool' "$place"
           grep -q 'CROSSFADE=7' "$place"
+          grep -q 'EmitterCenter' "$place"
+          grep -q 'ROLLOFF_MIN=18' "$place"
+          grep -q 'ROLLOFF_MAX=26' "$place"
           grep -q 'CAR_01' "$place"
           grep -q 'CAR_02' "$place"
           grep -q 'CAR_03' "$place"
           grep -q 'CAR_04' "$place"
-          grep -q 'RollOffMaxDistance=12.5' "$place"
+          grep -q 'phase-safe single centered emitter per car' "$place"
           grep -q 'random 24/7' "$place"
           grep -q 'Skatepark excluded' "$place"
           grep -q 'MUSIC_PLAY' "$place"
           grep -q 'MUSIC_PAUSE' "$place"
           grep -q 'MUSIC_RESTART' "$place"
           grep -q 'MUSIC_VOLUME' "$place"
+          if grep -q 'Z_OFFSETS' "$place"; then echo 'Legacy Z_OFFSETS emitter fan-out leaked into place' >&2; exit 1; fi
+          if grep -q 'Emitter_%02d' "$place"; then echo 'Legacy numbered emitter fan-out leaked into place' >&2; exit 1; fi
           for id in 1837057495 1841242625 9040318014 9043707741 9042632936 1840009708 101433831748471 73111765506214 117476404561871 139454814636865 94631926635772 103410156771684 97696234195316; do
             if grep -q "id=\"$id\"" "$place"; then echo "Excluded asset leak: $id" >&2; exit 1; fi
           done
-          echo 'TRACK 01 v4.2 final 62-track AutoDJ/automix QC PASS'
+          echo 'TRACK 01 v4.2.1 phase-safe single-emitter AutoDJ QC PASS'
 
       - name: Validate coordinated event operations
         shell: bash
