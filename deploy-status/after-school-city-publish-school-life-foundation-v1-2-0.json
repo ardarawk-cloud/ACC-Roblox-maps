@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "SCHOOL_LIFE_FOUNDATION_V1_2_0",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "91bf24724b017361f2ca23d1f17d057c21b2e76c",
+  "baseLiveCommit": "395f45a7d26688baf30f22188092471507f09dbe",
+  "qcRunId": "33682156288",
+  "qcArtifactId": 9866671501,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 51,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 191058,
+  "placeSha256": "393d058eac0d359974c9cb26d40ee3cb35eb6578a3302cb8854179836a93f2ad",
+  "runId": "33695002830",
+  "publishedAt": "2026-09-02T23:25:41Z",
+  "note": "V1.2 exact QC-locked School Life Foundation. Adds three persistent school quests, three runtime school NPCs, repeatable Canteen Shift and Club Practice using existing server-authoritative rewards/cooldowns, and Indonesian/English school prompt presentation. Existing DataStore schema remains v1. V1.1.4 Skate/Pool/Delivery, music, map, roads and dedication remain unchanged."
+}
