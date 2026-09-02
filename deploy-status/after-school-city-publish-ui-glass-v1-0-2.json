@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "UI_GLASS_SAFE_OFFSET_V1_0_2",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "02d569b7ca6adf990355f4e6b1fe6fd13ceac738",
+  "baseLiveCommit": "a33dd55bd6b9e83dabf27c10c55b8654d5e218f3",
+  "qcRunId": "33605937096",
+  "qcArtifactId": 9837003640,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 45,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 173654,
+  "placeSha256": "c4bf92118e71c2d81f7ed9824698a3f949318260b191dee7529f8f839b170611",
+  "runId": "33606102637",
+  "publishedAt": "2026-09-02T07:56:50Z",
+  "note": "V1.0.2 exact QC-locked gameplay UI glass/safe-offset pass. Shifts the top HUD and mission panel right using viewport-aware safe offset and makes Status, Mission, Credits, Toast, Dialogue and HUD buttons translucent. Gameplay authority, persistence, environment, roads, pool, personal music player and dedication remain unchanged."
+}
