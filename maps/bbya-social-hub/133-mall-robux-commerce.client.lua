@@ -123,7 +123,8 @@ local bundles=tile(categories,"BUNDLE","PAKET",UDim2.new(.44,0,.34,0),UDim2.new(
 local accessory=tile(categories,"ACCESSORY","AKSESORI",UDim2.new(.44,0,.62,0),UDim2.new(.56,-6,.38,0),Color3.fromRGB(245,66,120))
 local face=tile(categories,"FACE","WAJAH",UDim2.new(.76,0,.57,0),UDim2.new(.24,0,.43,0),C.yellow)
 
-local storeTitle=txt(stores,"PILIH TOKO",UDim2.fromOffset(4,0),UDim2.new(1,-8,0,34),Enum.Font.GothamBold,22,C.white)
+local storeTitle=txt(stores,"PILIH TOKO",UDim2.fromOffset(0,0),UDim2.new(1,0,0,36),Enum.Font.GothamBold,18,C.white,Enum.TextXAlignment.Center)
+storeTitle.BackgroundTransparency=.08;storeTitle.BackgroundColor3=C.dark;storeTitle.ZIndex=2;corner(storeTitle,9);stroke(storeTitle,C.line,.45)
 local storeGrid=Instance.new("Frame");storeGrid.Position=UDim2.fromOffset(0,45);storeGrid.Size=UDim2.new(1,0,1,-45);storeGrid.BackgroundTransparency=1;storeGrid.Parent=stores
 local sg=Instance.new("UIGridLayout");sg.CellSize=UDim2.new(.5,-6,.5,-6);sg.CellPadding=UDim2.fromOffset(12,12);sg.Parent=storeGrid
 local storeButtons={}
