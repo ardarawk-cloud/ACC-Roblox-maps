@@ -15,48 +15,75 @@
   "snapshot": [
     {
       "name": "BBYA Prestige Support 2000",
-      "id": 3709048779,
-      "price": 2000
+      "resolvedProductId": 3709048779,
+      "price": 2000,
+      "productId": 3709048779,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "#################",
-      "id": 3709047109,
-      "price": 1000
+      "resolvedProductId": 3709047109,
+      "price": 1000,
+      "productId": 3709047109,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "################",
-      "id": 3709047107,
-      "price": 500
+      "resolvedProductId": 3709047107,
+      "price": 500,
+      "productId": 3709047107,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA Support 250",
-      "id": 3709047106,
-      "price": 250
+      "resolvedProductId": 3709047106,
+      "price": 250,
+      "productId": 3709047106,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA Support 100",
-      "id": 3709047104,
-      "price": 100
+      "resolvedProductId": 3709047104,
+      "price": 100,
+      "productId": 3709047104,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA Support 50",
-      "id": 3709047101,
-      "price": 50
+      "resolvedProductId": 3709047101,
+      "price": 50,
+      "productId": 3709047101,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA Support 25",
-      "id": 3709047097,
-      "price": 25
+      "resolvedProductId": 3709047097,
+      "price": 25,
+      "productId": 3709047097,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA Support 10",
-      "id": 3709047095,
-      "price": 10
+      "resolvedProductId": 3709047095,
+      "price": 10,
+      "productId": 3709047095,
+      "id": null,
+      "developerProductId": null
     },
     {
       "name": "BBYA DJ Wall Message",
-      "id": 3709047092,
-      "price": 2
+      "resolvedProductId": 3709047092,
+      "price": 2,
+      "productId": 3709047092,
+      "id": null,
+      "developerProductId": null
     }
   ],
   "products": [
