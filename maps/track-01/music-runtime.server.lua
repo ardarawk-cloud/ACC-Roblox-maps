@@ -1,6 +1,6 @@
--- TRACK 01 v4.2.0 — AUTO RANDOM 24/7 + AUTOMIX
+-- TRACK 01 v4.2.1 — AUDIO BALANCE / PHASE HOTFIX
 -- Approved/active BBYA SoundIds only. Skatepark is hard-excluded.
--- Spatial emitters exist only inside Car 01-04.
+-- One centered spatial emitter per car removes same-car multi-emitter phase/delay.
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -8,11 +8,13 @@ local Workspace=game:GetService("Workspace")
 local ContentProvider=game:GetService("ContentProvider")
 local RunService=game:GetService("RunService")
 
-local VERSION="4.2.0"
+local VERSION="4.2.1"
 local CROSSFADE=7
 local MASTER_DEFAULT=.72
+local ROLLOFF_MIN=18
+local ROLLOFF_MAX=26
+local EMITTER_SIZE=2
 local CAR_SPECS={{name="CAR_01",z=-58,gain=.42},{name="CAR_02",z=-5,gain=.58},{name="CAR_03",z=48,gain=.78},{name="CAR_04",z=101,gain=.96}}
-local Z_OFFSETS={-14,0,14}
 local PLAYLIST={
 -- BBYA Progressive: 28 active routed assets.
 {id="92702917431354",source="PROGRESSIVE"},{id="115888429247140",source="PROGRESSIVE"},{id="81067975196024",source="PROGRESSIVE"},{id="76999503317939",source="PROGRESSIVE"},{id="118117585511088",source="PROGRESSIVE"},{id="100105336048945",source="PROGRESSIVE"},{id="133637574696828",source="PROGRESSIVE"},{id="115630349269312",source="PROGRESSIVE"},{id="103311122364729",source="PROGRESSIVE"},{id="127279442599331",source="PROGRESSIVE"},{id="81269753705199",source="PROGRESSIVE"},{id="107310072452368",source="PROGRESSIVE"},{id="79404897034350",source="PROGRESSIVE"},{id="130628759763851",source="PROGRESSIVE"},{id="80712330348006",source="PROGRESSIVE"},{id="88482943108864",source="PROGRESSIVE"},{id="131113336118215",source="PROGRESSIVE"},{id="130652457794872",source="PROGRESSIVE"},{id="96201307185074",source="PROGRESSIVE"},{id="125068509199097",source="PROGRESSIVE"},{id="132685557961369",source="PROGRESSIVE"},{id="92845805134726",source="PROGRESSIVE"},{id="111162505018062",source="PROGRESSIVE"},{id="86119899029100",source="PROGRESSIVE"},{id="79262763273656",source="PROGRESSIVE"},{id="119021087760906",source="PROGRESSIVE"},{id="76089367016271",source="PROGRESSIVE"},{id="127018756715269",source="PROGRESSIVE"},
@@ -34,14 +36,14 @@ probe=Instance.new("Sound");probe.Name="TRACK01_MusicProbe";probe.Volume=0;probe
 local decks={A={},B={}}
 for _,spec in ipairs(CAR_SPECS) do
  local f=Instance.new("Folder");f.Name=spec.name;f.Parent=root
- for n,dz in ipairs(Z_OFFSETS) do
-  local p=Instance.new("Part");p.Name=string.format("Emitter_%02d",n);p.Size=Vector3.new(.25,.25,.25);p.CFrame=CFrame.new(25.5,9.2,spec.z+dz);p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Transparency=1;p.Parent=f
-  for _,deckName in ipairs({"A","B"}) do
-   local s=Instance.new("Sound");s.Name="Deck"..deckName;s.Volume=0;s.Looped=false;s.RollOffMode=Enum.RollOffMode.InverseTapered;s.RollOffMinDistance=3;s.RollOffMaxDistance=12.5;s.EmitterSize=2;s.Parent=p
-   table.insert(decks[deckName],{sound=s,gain=spec.gain})
-  end
+ local p=Instance.new("Part");p.Name="EmitterCenter";p.Size=Vector3.new(.25,.25,.25);p.CFrame=CFrame.new(25.5,9.2,spec.z);p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Transparency=1;p.Parent=f
+ for _,deckName in ipairs({"A","B"}) do
+  local s=Instance.new("Sound");s.Name="Deck"..deckName;s.Volume=0;s.Looped=false;s.RollOffMode=Enum.RollOffMode.InverseTapered;s.RollOffMinDistance=ROLLOFF_MIN;s.RollOffMaxDistance=ROLLOFF_MAX;s.EmitterSize=EMITTER_SIZE;s.Parent=p
+  s:SetAttribute("Car",spec.name)
+  table.insert(decks[deckName],{sound=s,gain=spec.gain,car=spec.name})
  end
 end
+assert(#decks.A==4 and #decks.B==4,"TRACK01 single-emitter-per-car lock failed")
 
 local rng=Random.new(math.max(1,os.time()%2147483646))
 local bag,bagPos={},1
@@ -85,6 +87,15 @@ local function stopDeck(deckName)
  for _,r in ipairs(decks[deckName]) do pcall(function()r.sound:Stop()end);r.sound.TimePosition=0;r.sound.Volume=0 end
 end
 local function rep(deckName)return decks[deckName][1] and decks[deckName][1].sound or nil end
+local function alignDeck(deckName)
+ local lead=rep(deckName)
+ if not lead or not lead.IsPlaying then return end
+ local t=lead.TimePosition
+ for i=2,#decks[deckName] do
+  local s=decks[deckName][i].sound
+  if s.IsPlaying and math.abs((s.TimePosition or 0)-t)>.035 then pcall(function()s.TimePosition=t end) end
+ end
+end
 local function preload(i)
  local t=PLAYLIST[i];probe:Stop();probe.SoundId="rbxassetid://"..t.id;probe.TimePosition=0
  local ok=pcall(function()ContentProvider:PreloadAsync({probe})end);if not ok then return false end
@@ -99,11 +110,15 @@ local function prepare(deckName,i)
  return true
 end
 local function playDeck(deckName)
- local n=0;for _,r in ipairs(decks[deckName]) do if pcall(function()r.sound:Play()end) then n+=1 end end;return n>0
+ local n=0
+ for _,r in ipairs(decks[deckName]) do if pcall(function()r.sound:Play()end) then n+=1 end end
+ if n>0 then task.defer(function()RunService.Heartbeat:Wait();alignDeck(deckName)end) end
+ return n>0
 end
 local function publish()
  local r=rep(active)
  Workspace:SetAttribute("TRACK01_MUSIC_AUTO",true);Workspace:SetAttribute("TRACK01_MUSIC_AUTOMIX",true);Workspace:SetAttribute("TRACK01_MUSIC_SPATIAL_CARS_ONLY",true);Workspace:SetAttribute("TRACK01_MUSIC_SKATEPARK_EXCLUDED",true)
+ Workspace:SetAttribute("TRACK01_MUSIC_EMITTERS_PER_CAR",1);Workspace:SetAttribute("TRACK01_MUSIC_PHASE_SAFE",true);Workspace:SetAttribute("TRACK01_MUSIC_ROLLOFF_MIN",ROLLOFF_MIN);Workspace:SetAttribute("TRACK01_MUSIC_ROLLOFF_MAX",ROLLOFF_MAX)
  Workspace:SetAttribute("TRACK01_MUSIC_TRACK_COUNT",#PLAYLIST);Workspace:SetAttribute("TRACK01_MUSIC_VERSION",VERSION);Workspace:SetAttribute("TRACK01_MUSIC_VOLUME",masterVolume)
  Workspace:SetAttribute("TRACK01_MUSIC_STATUS",paused and "PAUSED" or (currentTrack and "PLAYING" or "STARTING"));Workspace:SetAttribute("TRACK01_MUSIC_CURRENT_SOUND_ID",currentTrack and currentTrack.id or "");Workspace:SetAttribute("TRACK01_MUSIC_CURRENT_TRACK",currentTrack and ("BBYA "..currentTrack.source) or "AUTO RANDOM 24/7");Workspace:SetAttribute("TRACK01_MUSIC_CURRENT_SOURCE",currentTrack and currentTrack.source or "");Workspace:SetAttribute("TRACK01_MUSIC_PLAYING",r and r.IsPlaying and not paused or false)
  if not stateEvent or not stateEvent.Parent then local folder=ReplicatedStorage:FindFirstChild("TRACK01_Admin");stateEvent=folder and folder:FindFirstChild("State") or nil end
@@ -129,10 +144,14 @@ local function nextMix()
 end
 local function restart()
  if currentIndex<1 then return end
- for _,r in ipairs(decks[active]) do r.sound.TimePosition=0;if not paused then pcall(function()r.sound:Play()end) end end;setVolume(active,1);publish()
+ for _,r in ipairs(decks[active]) do r.sound.TimePosition=0;if not paused then pcall(function()r.sound:Play()end) end end
+ setVolume(active,1);task.defer(function()RunService.Heartbeat:Wait();alignDeck(active)end);publish()
 end
 local function pauseAll()for _,d in ipairs({"A","B"}) do for _,r in ipairs(decks[d]) do pcall(function()r.sound:Pause()end) end end end
-local function resumeAll()for _,d in ipairs({"A","B"}) do for _,r in ipairs(decks[d]) do pcall(function()r.sound:Resume()end) end end end
+local function resumeAll()
+ for _,d in ipairs({"A","B"}) do for _,r in ipairs(decks[d]) do pcall(function()r.sound:Resume()end) end end
+ task.defer(function()RunService.Heartbeat:Wait();alignDeck(active);if transitioning then alignDeck(inactive) end end)
+end
 
 task.spawn(function()
  while task.wait(.4) do
@@ -161,4 +180,4 @@ task.spawn(function()
  end
 end)
 task.spawn(function()while task.wait(2) do publish() end end)
-print("[TRACK 01] v4.2.0 AutoDJ ready: 62-track permissioned BBYA pool, random 24/7, 7s automix, Car 01-04 only, Skatepark excluded")
+print("[TRACK 01] v4.2.1 AutoDJ ready: 62-track permissioned pool, random 24/7, 7s automix, phase-safe single centered emitter per car, Car 01-04 only, Skatepark excluded")
