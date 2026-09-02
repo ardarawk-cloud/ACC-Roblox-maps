@@ -64,9 +64,9 @@ local action = button(hud,"CAST")
 action.Name="Action";action.AnchorPoint=Vector2.new(.5,0);action.Position=UDim2.new(.5,0,0,20);action.Size=UDim2.fromOffset(164,50);action.TextSize=18;action.BackgroundColor3=C.gold;action.TextColor3=C.bg
 stroke(action,Color3.fromRGB(255,211,126),.05,1.3)
 
--- Primary fishing navigation stays at the top, leaving the Roblox rod hotbar alone at the bottom.
+-- Primary fishing navigation stays at the top, aligned with Roblox/map top controls.
 local nav = Instance.new("Frame")
-nav.AnchorPoint=Vector2.new(.5,0);nav.Position=UDim2.new(.5,0,0,12);nav.Size=UDim2.fromOffset(246,34);nav.BackgroundTransparency=1;nav.ZIndex=40;nav.Parent=gui
+nav.AnchorPoint=Vector2.new(.5,0);nav.Position=UDim2.new(.5,0,0,-96);nav.Size=UDim2.fromOffset(246,34);nav.BackgroundTransparency=1;nav.ZIndex=40;nav.Parent=gui
 local navLayout=Instance.new("UIListLayout");navLayout.FillDirection=Enum.FillDirection.Horizontal;navLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center;navLayout.VerticalAlignment=Enum.VerticalAlignment.Center;navLayout.Padding=UDim.new(0,7);navLayout.Parent=nav
 local bagButton=button(nav,"BAG");bagButton.Size=UDim2.fromOffset(74,32)
 local rodButton=button(nav,"ROD");rodButton.Size=UDim2.fromOffset(74,32)
