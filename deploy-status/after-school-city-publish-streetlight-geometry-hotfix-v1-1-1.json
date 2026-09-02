@@ -13,7 +13,7 @@
   "rojoVersion": "7.7.0",
   "placeBytes": 179788,
   "placeSha256": "e5169ca4855fb75c2535fda2513ca35ca9b8bc01b36ee4fe93d106bd585302e8",
-  "runId": "33639258634",
-  "publishedAt": "2026-09-02T14:00:46Z",
+  "runId": "33639371310",
+  "publishedAt": "2026-09-02T14:01:48Z",
   "note": "V1.1.1 exact QC-locked streetlight geometry hotfix. Corrects the cylinder local-axis geometry for all 26 legacy StreetLight/Pole parts through a narrow runtime override. Existing world source, gameplay, UI, music, roads, pool and dedication remain unchanged."
 }
