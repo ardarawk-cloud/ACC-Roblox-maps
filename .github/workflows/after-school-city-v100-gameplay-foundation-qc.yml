@@ -62,7 +62,6 @@ jobs:
           $null = $project | ConvertFrom-Json
 
           foreach($token in @(
-            '1.0.0-gameplay-foundation-1',
             'DataStoreService',
             'GetDataStore',
             'GetAsync',
@@ -84,6 +83,7 @@ jobs:
           }
 
           foreach($token in @(
+            'Version = "1.0.0-gameplay-foundation-1"',
             'ASC_PlayerProfile_v1',
             'FIRST_STEPS_DOWNTOWN',
             'VISIT_SKATEPARK',
