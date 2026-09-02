@@ -1,5 +1,6 @@
--- AFTER SCHOOL CITY — V1.1.3 activity presentation
--- Keeps the compact V1.1 HUD and adds one local-only active checkpoint marker for Skate Line.
+-- AFTER SCHOOL CITY — V1.1.4 Delivery Guidance Hotfix
+-- Keeps the locked V1.1.3 Skate Line presentation intact and adds explicit local-only
+-- guidance for City Delivery using the target position already supplied by the server.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7,6 +8,8 @@ local LocalizationService = game:GetService("LocalizationService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+
+local DELIVERY_UX_VERSION = "1.1.4-delivery-guidance-1"
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -21,7 +24,7 @@ local T = {
         start = "START",
         skate = "SKATE LINE",
         pool = "POOL LAPS",
-        delivery = "CITY DELIVERY",
+        delivery = "PACKAGE DELIVERY",
         checkpoint = "CHECKPOINT",
         destination = "DESTINATION",
         complete = "COMPLETE",
@@ -31,12 +34,14 @@ local T = {
         cooldown = "Activity cooling down",
         profile = "Profile is still loading",
         board = "SKATEBOARD",
+        mailbox = "MAILBOX",
+        followMarker = "FOLLOW MARKER",
     },
     id = {
         start = "MULAI",
         skate = "TANTANGAN SKATE",
         pool = "RENANG KELILING",
-        delivery = "ANTARAN KOTA",
+        delivery = "ANTAR PAKET",
         checkpoint = "TITIK",
         destination = "TUJUAN",
         complete = "SELESAI",
@@ -46,6 +51,8 @@ local T = {
         cooldown = "Aktivitas masih cooldown",
         profile = "Profil masih dimuat",
         board = "SKATEBOARD",
+        mailbox = "KOTAK SURAT",
+        followMarker = "IKUTI MARKER",
     },
 }
 local L = T[lang]
@@ -104,6 +111,7 @@ detail.TextXAlignment = Enum.TextXAlignment.Left
 detail.TextColor3 = Color3.fromRGB(190, 205, 224)
 detail.Parent = card
 
+-- Locked V1.1.3 Skate Line marker authority.
 local markerModel
 local markerRing
 local markerBeam
@@ -186,11 +194,111 @@ local function showCheckpointMarker(target, step, total)
     markerLabel.Text = string.format("▼ %s %d/%d", L.checkpoint, tonumber(step) or 1, tonumber(total) or 1)
 end
 
+-- V1.1.4 City Delivery-only guidance. Kept separate from Skate Line so the locked
+-- skateboard/checkpoint presentation is not redesigned or re-authorized.
+local deliveryMarkerModel
+local deliveryRing
+local deliveryBeam
+local deliveryLabel
+local deliveryTargetPosition
+
+local function clearDeliveryMarker()
+    deliveryTargetPosition = nil
+    if deliveryMarkerModel then
+        deliveryMarkerModel:Destroy()
+        deliveryMarkerModel = nil
+        deliveryRing = nil
+        deliveryBeam = nil
+        deliveryLabel = nil
+    end
+end
+
+local function ensureDeliveryMarker()
+    if deliveryMarkerModel and deliveryMarkerModel.Parent then return end
+
+    deliveryMarkerModel = Instance.new("Model")
+    deliveryMarkerModel.Name = "ASC_ActiveDeliveryTarget_Local"
+    deliveryMarkerModel.Parent = Workspace
+
+    deliveryRing = Instance.new("Part")
+    deliveryRing.Name = "DeliveryRing"
+    deliveryRing.Shape = Enum.PartType.Cylinder
+    deliveryRing.Size = Vector3.new(0.32, 9, 9)
+    deliveryRing.Anchored = true
+    deliveryRing.CanCollide = false
+    deliveryRing.CanTouch = false
+    deliveryRing.CanQuery = false
+    deliveryRing.Material = Enum.Material.Neon
+    deliveryRing.Color = Color3.fromRGB(72, 218, 255)
+    deliveryRing.Transparency = 0.14
+    deliveryRing.Parent = deliveryMarkerModel
+
+    deliveryBeam = Instance.new("Part")
+    deliveryBeam.Name = "DeliveryBeam"
+    deliveryBeam.Size = Vector3.new(0.34, 20, 0.34)
+    deliveryBeam.Anchored = true
+    deliveryBeam.CanCollide = false
+    deliveryBeam.CanTouch = false
+    deliveryBeam.CanQuery = false
+    deliveryBeam.Material = Enum.Material.Neon
+    deliveryBeam.Color = Color3.fromRGB(116, 232, 255)
+    deliveryBeam.Transparency = 0.26
+    deliveryBeam.Parent = deliveryMarkerModel
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "DeliveryBillboard"
+    billboard.Size = UDim2.fromOffset(220, 38)
+    billboard.StudsOffset = Vector3.new(0, 2.2, 0)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    billboard.MaxDistance = 2048
+    billboard.Parent = deliveryBeam
+
+    deliveryLabel = Instance.new("TextLabel")
+    deliveryLabel.BackgroundColor3 = Color3.fromRGB(18, 24, 36)
+    deliveryLabel.BackgroundTransparency = 0.18
+    deliveryLabel.BorderSizePixel = 0
+    deliveryLabel.Size = UDim2.fromScale(1, 1)
+    deliveryLabel.Font = Enum.Font.GothamBold
+    deliveryLabel.TextSize = 12
+    deliveryLabel.TextColor3 = Color3.fromRGB(170, 239, 255)
+    deliveryLabel.Parent = billboard
+
+    local labelCorner = Instance.new("UICorner")
+    labelCorner.CornerRadius = UDim.new(0, 8)
+    labelCorner.Parent = deliveryLabel
+end
+
+local function showDeliveryMarker(target)
+    if typeof(target) ~= "Vector3" then
+        clearDeliveryMarker()
+        return
+    end
+    deliveryTargetPosition = target
+    ensureDeliveryMarker()
+    deliveryRing.CFrame = CFrame.new(target + Vector3.new(0, 0.42, 0)) * CFrame.Angles(0, 0, math.rad(90))
+    deliveryBeam.CFrame = CFrame.new(target + Vector3.new(0, 10.2, 0))
+end
+
 RunService.RenderStepped:Connect(function()
+    local wave = (math.sin((os.clock() - pulseStarted) * 4) + 1) * 0.5
     if markerRing and markerBeam then
-        local wave = (math.sin((os.clock() - pulseStarted) * 4) + 1) * 0.5
         markerRing.Transparency = 0.12 + wave * 0.24
         markerBeam.Transparency = 0.36 + wave * 0.22
+    end
+    if deliveryRing and deliveryBeam then
+        deliveryRing.Transparency = 0.10 + wave * 0.20
+        deliveryBeam.Transparency = 0.20 + wave * 0.22
+    end
+    if deliveryLabel and deliveryTargetPosition then
+        local character = player.Character
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            local distance = math.max(0, math.floor((rootPart.Position - deliveryTargetPosition).Magnitude + 0.5))
+            deliveryLabel.Text = string.format("▼ %s • %d STUD", L.mailbox, distance)
+        else
+            deliveryLabel.Text = "▼ " .. L.mailbox
+        end
     end
 end)
 
@@ -203,32 +311,42 @@ local function scheduleHide(seconds)
     end)
 end
 
+local function clearAllActivityMarkers()
+    clearCheckpointMarker()
+    clearDeliveryMarker()
+end
+
 local function showActivity(data)
     local activityId = data.ActivityId
     title.Text = titles[activityId] or tostring(activityId or "ACTIVITY")
     if data.State == "STARTED" or data.State == "PROGRESS" or data.State == "TICK" then
         local label = activityId == "CITY_DELIVERY" and L.destination or L.checkpoint
         if activityId == "SKATE_LINE" then
+            clearDeliveryMarker()
             detail.Text = string.format("%s • %s %d/%d  •  %ds", L.board, label, tonumber(data.Step) or 1, tonumber(data.Total) or 1, tonumber(data.Remaining) or 0)
             showCheckpointMarker(data.Target, data.Step, data.Total)
+        elseif activityId == "CITY_DELIVERY" then
+            clearCheckpointMarker()
+            detail.Text = string.format("%s • %s • %ds", L.followMarker, L.mailbox, tonumber(data.Remaining) or 0)
+            showDeliveryMarker(data.Target)
         else
             detail.Text = string.format("%s %d/%d  •  %ds", label, tonumber(data.Step) or 1, tonumber(data.Total) or 1, tonumber(data.Remaining) or 0)
-            clearCheckpointMarker()
+            clearAllActivityMarkers()
         end
         card.Visible = true
         hideToken += 1
     elseif data.State == "COMPLETE" then
-        clearCheckpointMarker()
+        clearAllActivityMarkers()
         detail.Text = string.format("%s  •  +%d KOIN/COINS  +%d REP", L.complete, tonumber(data.RewardCoins) or 0, tonumber(data.RewardRep) or 0)
         card.Visible = true
         scheduleHide(3.5)
     elseif data.State == "FAILED" then
-        clearCheckpointMarker()
+        clearAllActivityMarkers()
         detail.Text = data.Reason == "SKATEBOARD_LOST" and L.boardLost or L.failed
         card.Visible = true
         scheduleHide(3)
     elseif data.State == "BLOCKED" then
-        clearCheckpointMarker()
+        clearAllActivityMarkers()
         local reason = data.Reason
         if reason == "BUSY" then detail.Text = L.busy
         elseif reason == "COOLDOWN" then detail.Text = L.cooldown .. " · " .. tostring(data.Remaining or 0) .. "s"
@@ -248,7 +366,7 @@ ProximityPromptService.PromptShown:Connect(function(prompt)
 end)
 
 player.CharacterAdded:Connect(function()
-    clearCheckpointMarker()
+    clearAllActivityMarkers()
 end)
 
-print("[AFTER SCHOOL CITY] V1.1.3 activity HUD ready locale=" .. localeId)
+print("[AFTER SCHOOL CITY] V1.1.4 delivery guidance ready locale=" .. localeId .. " version=" .. DELIVERY_UX_VERSION)
