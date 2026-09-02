@@ -1,11 +1,17 @@
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local player=Players.LocalPlayer
-local remote=ReplicatedStorage:WaitForChild("BBYAEditRemote")
 local mouse=player:GetMouse()
 local selected=nil
 local editOn=false
 local developerOverride=string.lower(player.Name)=="arda_moron123"
+local remote=nil
+
+local function getRemote()
+ if remote and remote.Parent then return remote end
+ remote=ReplicatedStorage:FindFirstChild("BBYAEditRemote")
+ return remote
+end
 
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYAEditorUI"
@@ -69,18 +75,27 @@ local step=Instance.new("TextLabel");step.Position=UDim2.fromOffset(0,346);step.
 local hl=Instance.new("Highlight");hl.FillTransparency=.8;hl.OutlineColor=Color3.fromRGB(255,42,157);hl.Enabled=false;hl.Parent=gui
 local function disableEdit()editOn=false;selected=nil;hl.Enabled=false;status.Text="OFF";toggle.Text="EDIT MODE" end
 local function setPanel(show)frame.Visible=show;if not show then disableEdit() end end
-local function move(v)if selected then remote:FireServer("move",selected,v)end end
+local function fire(action,target,arg)
+ local r=getRemote()
+ if not r then
+  status.Text="EDITOR SYNC..."
+  return false
+ end
+ r:FireServer(action,target,arg)
+ return true
+end
+local function move(v)if selected then fire("move",selected,v)end end
 local function refreshVisibility()
- local visible=developerOverride or (player:GetAttribute("BBYAAdmin")==true and player:GetAttribute("BBYAEditorVisible")==true)
+ local visible=developerOverride or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYACoOwner")==true
  gui.Enabled=visible
  if not visible then setPanel(false) end
 end
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshVisibility)
+player:GetAttributeChangedSignal("BBYACoOwner"):Connect(refreshVisibility)
 player:GetAttributeChangedSignal("BBYAEditorVisible"):Connect(refreshVisibility)
 refreshVisibility()
 task.defer(refreshVisibility)
-task.delay(1,refreshVisibility)
-task.delay(3,refreshVisibility)
+for _,delaySec in ipairs({0.5,1,2,3,5,8}) do task.delay(delaySec,refreshVisibility) end
 
 openBtn.MouseButton1Click:Connect(function()setPanel(not frame.Visible)end)
 close.MouseButton1Click:Connect(function()setPanel(false)end)
@@ -88,20 +103,20 @@ toggle.MouseButton1Click:Connect(function()
  editOn=not editOn
  if editOn then status.Text="ON • TAP OBJECT";toggle.Text="EDIT MODE: ON" else disableEdit() end
 end)
-r15.MouseButton1Click:Connect(function()if selected then remote:FireServer("rotate",selected,15)end end)
-r45.MouseButton1Click:Connect(function()if selected then remote:FireServer("rotate",selected,45)end end)
+r15.MouseButton1Click:Connect(function()if selected then fire("rotate",selected,15)end end)
+r45.MouseButton1Click:Connect(function()if selected then fire("rotate",selected,45)end end)
 forward.MouseButton1Click:Connect(function()move(Vector3.new(0,0,-1))end)
 back.MouseButton1Click:Connect(function()move(Vector3.new(0,0,1))end)
 left.MouseButton1Click:Connect(function()move(Vector3.new(-1,0,0))end)
 right.MouseButton1Click:Connect(function()move(Vector3.new(1,0,0))end)
 up.MouseButton1Click:Connect(function()move(Vector3.new(0,1,0))end)
 down.MouseButton1Click:Connect(function()move(Vector3.new(0,-1,0))end)
-del.MouseButton1Click:Connect(function()if selected then remote:FireServer("delete",selected);selected=nil;hl.Enabled=false;status.Text="ON • TAP OBJECT" end end)
-undo.MouseButton1Click:Connect(function()remote:FireServer("undo")end)
+del.MouseButton1Click:Connect(function()if selected then fire("delete",selected,nil);selected=nil;hl.Enabled=false;status.Text="ON • TAP OBJECT" end end)
+undo.MouseButton1Click:Connect(function()fire("undo",nil,nil)end)
 mouse.Button1Down:Connect(function()
  if not editOn or not frame.Visible or not gui.Enabled then return end
  local t=mouse.Target;local root=workspace:FindFirstChild("BBYA_ZERO_BUILD")
  if t and root and t:IsDescendantOf(root) and not t:IsA("SpawnLocation") then selected=t;hl.Adornee=t;hl.Enabled=true;status.Text=t.Name end
 end)
 
-print("[BBYA] Editor UI client fail-safe active; developer override="..tostring(developerOverride))
+print("[BBYA] Editor UI non-blocking client active; developer override="..tostring(developerOverride))
