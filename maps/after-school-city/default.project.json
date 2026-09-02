@@ -158,6 +158,9 @@
         "ASC_PersonalMusicPlayer": {
           "$path": "after-school-city.music-player.client.lua"
         },
+        "ASC_MusicToggleGlassV103": {
+          "$path": "after-school-city.music-toggle-glass-v103.client.lua"
+        },
         "ASC_GameplayHUD": {
           "$path": "after-school-city.gameplay-hud.client.lua"
         },
