@@ -9,6 +9,9 @@
       },
       "ASCMusicConfig": {
         "$path": "after-school-city.music-config.lua"
+      },
+      "ASCGameplayConfig": {
+        "$path": "after-school-city.gameplay-config.lua"
       }
     },
     "ServerScriptService": {
@@ -135,6 +138,12 @@
       },
       "ASC_FinalEnvironmentPolishV093": {
         "$path": "after-school-city.final-environment-v093.server.lua"
+      },
+      "ASC_GameplayService": {
+        "$path": "after-school-city.gameplay-service.lua"
+      },
+      "ASC_GameplayBootstrap": {
+        "$path": "after-school-city.gameplay-bootstrap.server.lua"
       }
     },
     "StarterGui": {
@@ -148,6 +157,9 @@
       "StarterPlayerScripts": {
         "ASC_PersonalMusicPlayer": {
           "$path": "after-school-city.music-player.client.lua"
+        },
+        "ASC_GameplayHUD": {
+          "$path": "after-school-city.gameplay-hud.client.lua"
         }
       }
     },
