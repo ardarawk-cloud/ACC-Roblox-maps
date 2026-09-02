@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "STREETLIGHT_GEOMETRY_HOTFIX_V1_1_1",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "2636e7affbb33b7e6ae97caebf87f9d1aa797f04",
+  "baseLiveCommit": "582f2ba0bd710aa3e6293240f14da6a8db0e70ae",
+  "qcRunId": "33626865476",
+  "qcArtifactId": 9845147933,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 47,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 179788,
+  "placeSha256": "e5169ca4855fb75c2535fda2513ca35ca9b8bc01b36ee4fe93d106bd585302e8",
+  "runId": "33639258634",
+  "publishedAt": "2026-09-02T14:00:46Z",
+  "note": "V1.1.1 exact QC-locked streetlight geometry hotfix. Corrects the cylinder local-axis geometry for all 26 legacy StreetLight/Pole parts through a narrow runtime override. Existing world source, gameplay, UI, music, roads, pool and dedication remain unchanged."
+}
