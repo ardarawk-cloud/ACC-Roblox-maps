@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "UI_LOCALIZATION_V1_0_1",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "a33dd55bd6b9e83dabf27c10c55b8654d5e218f3",
+  "baseLiveCommit": "ee475f0c0c6e9f5c8fe1fffb86e029e22b9d33ce",
+  "qcRunId": "33595751344",
+  "qcArtifactId": 9833327234,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 44,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 172621,
+  "placeSha256": "bd45681392d932487fc5bfb8e6d5a8e299fafc53858b20468efba6becc92a78b",
+  "runId": "33597783223",
+  "publishedAt": "2026-09-02T06:11:48Z",
+  "note": "V1.0.1 exact QC-locked UI/localization pass. Moves HUD to compact top-center, adds Mission and Credits controls, follows Roblox player locale for Indonesian with English fallback, preserves locked dedication text, and leaves gameplay authority, persistence, environment, roads, pool and music unchanged."
+}
