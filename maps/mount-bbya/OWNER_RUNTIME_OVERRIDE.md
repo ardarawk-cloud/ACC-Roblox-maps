@@ -2,18 +2,21 @@
 
 Status: ACTIVE / HIGHEST PROJECT AUTHORITY
 
-The project owner supplied current authoritative Roblox identifiers and runtime evidence on 2026-09-02.
+The project owner supplied the authoritative identity mapping on 2026-09-02.
 
-- Project: MOUNT BBYA / Gunung BBYA
+## Mount BBYA
 - Universe ID: `4187755690`
 - Place ID: `11832985967`
-- Roblox creator runtime evidence: current experience is shown as Mount BBYA / Gunung BBYA.
+- Current project target for Mount BBYA development.
 
-This explicit owner instruction overrides the older handoff assumption that these IDs belonged to a separate paused Mountain Social target.
+## Mountain Social — PAUSED / DO NOT TOUCH
+- Universe ID: `10744139279`
+- Place ID: `82661754996018`
+- Must remain isolated from Mount BBYA.
 
-Retire that old assumption. Do not create a competing third authority.
+This explicit owner instruction retires all older assumptions that swapped these two targets.
 
-Current Phase 1 scope remains:
+Current Mount BBYA Phase 1 scope remains:
 `Spawn → Village → Road → Trail Entrance → CP1`
 
 Fresh-read current source before editing. Preserve working runtime baseline. Publish only after exact target/source/build/receipt verification.
