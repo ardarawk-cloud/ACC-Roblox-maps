@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v3
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v4
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
--- Runtime editor stays hidden by default; authorized admins can still toggle it with /bbyaedit.
--- v3 hard-locks developer account arda_moron123 as static ADMIN with full travel/access bypass.
+-- Developer account arda_moron123 gets the runtime EDIT button visible by default.
+-- Other authorized admins keep the existing hidden-by-default /bbyaedit behavior.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -104,17 +104,21 @@ local function stopRecovery(v)
  return false
 end
 
-local function keepEditorHidden(player)
- if not isAdmin(player) then return end
- -- Do not auto-expose the runtime editor. 22-editor.server.lua owns the explicit
- -- /bbyaedit toggle and starts every authorized session hidden.
- player:SetAttribute("BBYAEditorVisible",false)
- player:SetAttribute("BBYAEditorAutoShownV1",false)
+local function showDeveloperEditor(player)
+ if not isStaticAdmin(player) then return end
+ player:SetAttribute("BBYAEditorVisible",true)
+ player:SetAttribute("BBYAEditorAutoShownV1",true)
 end
 
-for _,p in ipairs(Players:GetPlayers()) do task.delay(2,function()if p.Parent then keepEditorHidden(p) end end) end
+for _,p in ipairs(Players:GetPlayers()) do
+ task.delay(2,function()
+  if p.Parent then showDeveloperEditor(p) end
+ end)
+end
 Players.PlayerAdded:Connect(function(p)
- task.delay(2,function()if p.Parent then keepEditorHidden(p) end end)
+ task.delay(2,function()
+  if p.Parent then showDeveloperEditor(p) end
+ end)
 end)
 
 -- Observe the existing Music remote. Existing engine handlers still own normal playback.
@@ -142,4 +146,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v3 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved")
+print("[BBYA] Admin NEXT + editor hotfix v4 online: arda_moron123 static ADMIN + full bypass + EDIT visible by default; /bbyaedit preserved")
