@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "LOST & FOUND: NIGHT SHIFT",
+  "mode": "M5E_COLLECTION_PRESTIGE_RESCUE",
+  "sourceRepo": "balinightlife666-web/ACC-Android-Builder",
+  "sourceCommit": "a1e5242b48f693db6c44f3eccbab331fd7568dbe",
+  "baseLiveCommit": "98d9c1a74e9beff24ee5ae4cd6b3143b56a02dae",
+  "publisherRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "publisherCommit": "b2a09c8c83cd033fba433b8a2f1eee4075e4fe27",
+  "universeId": "10745354451",
+  "placeId": "93699016600671",
+  "versionNumber": 60,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 214591,
+  "placeSha256": "90d8d8962c5835f5d41afe77b4eccf8ce7433f9d8e54054706bf4fbbde1148e7",
+  "runId": "33598136069",
+  "publishedAt": "2026-09-02T06:16:45Z",
+  "note": "Temporary Ardarawk rescue route. Includes M5-C.4 rarity display, M5-D structural themes, Indonesian evidence localization coverage, and M5-E collection prestige polish. Gameplay/economy/drop/trading locks preserved."
+}
