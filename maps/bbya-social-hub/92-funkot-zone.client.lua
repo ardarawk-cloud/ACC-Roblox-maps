@@ -1,17 +1,12 @@
--- BBYA SOCIAL HUB — FUNKOT DISKOTIK AUDIO ZONE v1
+-- BBYA SOCIAL HUB — FUNKOT DISKOTIK VISUAL ZONE v2
+-- Audio isolation is owned exclusively by 104-venue-audio-router.client.lua (Router v9).
+-- This script must never write SoundGroup.Volume or Sound.Volume.
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
-local SoundService=game:GetService("SoundService")
 local RunService=game:GetService("RunService")
 local player=Players.LocalPlayer
 local inside=false
-local mainGroup,underGroup,funkotGroup
 
-local function groups()
- mainGroup=SoundService:FindFirstChild("BBYAClubMaster") or mainGroup
- underGroup=SoundService:FindFirstChild("BBYABasementMaster") or underGroup
- funkotGroup=SoundService:FindFirstChild("BBYAFunkotMaster") or funkotGroup
-end
 local function inFunkot()
  local ch=player.Character
  local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
@@ -19,24 +14,16 @@ local function inFunkot()
  local p=hrp.Position
  return p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253
 end
-local guarding=false
-local function enforce()
- if guarding then return end
- guarding=true
- groups();inside=inFunkot()
- if funkotGroup then funkotGroup.Volume=inside and .96 or 0 end
- if inside then
-  if mainGroup then mainGroup.Volume=0 end
-  if underGroup then underGroup.Volume=0 end
- end
- guarding=false
+
+local function refreshInside()
+ inside=inFunkot()
+ player:SetAttribute("BBYAFunkotVisualInside",inside)
 end
 
 task.spawn(function()
- while task.wait(.15) do enforce() end
+ while task.wait(.15) do refreshInside() end
 end)
-SoundService.ChildAdded:Connect(function()task.defer(enforce)end)
-RunService.Heartbeat:Connect(function()if inside then enforce()end end)
+RunService.Heartbeat:Connect(function()if inside then refreshInside()end end)
 
 -- Visible identity only: keep internal Funkot keys/audio group names unchanged.
 local pg=player:WaitForChild("PlayerGui")
@@ -246,7 +233,7 @@ task.spawn(function()
  print(string.format("[BBYA] Funkot moving visible beams v2.2 online: %d moving shafts follow existing heads",#rows))
 end)
 
-print("[BBYA] Funkot Diskotik audio zone v1 online: isolated rear diskotik feed / visible naming locked")
+print("[BBYA] Funkot Diskotik visual zone v2 online: Router v9 is sole audio isolation authority")
 
 -- -----------------------------------------------------------------------------
 -- FUNKOT DISKOTIK PREMIUM VISUAL ENHANCEMENT v3
