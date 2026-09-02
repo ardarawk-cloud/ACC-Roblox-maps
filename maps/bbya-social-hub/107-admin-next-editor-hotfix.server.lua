@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v6
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v7
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
 -- Runtime EDIT stays hidden by default for all admins; /bbyaedit can still show it when needed.
+-- v7 adds a targeted Funkot entrance cleanup for leftover queue/portal debris from retired blackout passes.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -193,4 +194,35 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v6 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved; community bottom neon v3 final-fit active")
+-- FUNKOT CLEAN ENTRY v1 --------------------------------------------------------
+-- The large blackout box is retired. Remove only the small arrival debris that its
+-- follow-up passes still recreate: queue posts/rope/sconces/header and the v2.1
+-- portal/lens/plaque model. The original Funkot venue, sign, stage, dance floor,
+-- lights, bar, audio and paid-zone/travel authority remain untouched.
+local function cleanFunkotEntryDebris()
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+ local club=root and root:FindFirstChild("FunkotClub")
+ if not club then return false end
+
+ local premium=club:FindFirstChild("FunkotDiskotikPremiumV2")
+ if premium then
+  local arrival=premium:FindFirstChild("DiskotikArrivalV2")
+  if arrival then arrival:Destroy() end
+ end
+
+ local identity=club:FindFirstChild("FunkotDiskotikIdentityV21")
+ if identity then identity:Destroy() end
+
+ club:SetAttribute("CleanEntryProfile","NO_BLACKOUT_NO_DEBRIS_V1")
+ club:SetAttribute("ArrivalDebrisRetired",true)
+ return true
+end
+
+task.spawn(function()
+ -- RuntimeQC may build the retired arrival passes late; re-sweep only during startup.
+ for _,delaySeconds in ipairs({1,3,6,10,18,30,45,60}) do
+  task.delay(delaySeconds,cleanFunkotEntryDebris)
+ end
+end)
+
+print("[BBYA] Admin NEXT + editor hotfix v7 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved; community bottom neon v3 final-fit active; Funkot entrance debris cleanup active")
