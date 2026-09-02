@@ -53,7 +53,7 @@ jobs:
       - name: Publish verified Mount BBYA Phase 1
         if: github.event_name == 'push' && hashFiles('maps/mount-bbya/.publish-v65') != ''
         env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
           EXPECTED_RBXLX_SHA256: fb64dbc8994813537e8018a246e0b252d192c13480ad974eedef95eaba79678d
           SOURCE_COMMIT: ${{ github.sha }}
         run: node scripts/publish-mount-bbya.js
