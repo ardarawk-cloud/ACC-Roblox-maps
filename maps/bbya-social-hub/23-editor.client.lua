@@ -5,12 +5,13 @@ local remote=ReplicatedStorage:WaitForChild("BBYAEditRemote")
 local mouse=player:GetMouse()
 local selected=nil
 local editOn=false
+local developerOverride=string.lower(player.Name)=="arda_moron123"
 
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYAEditorUI"
 gui.ResetOnSpawn=false
 gui.IgnoreGuiInset=false
-gui.DisplayOrder=20
+gui.DisplayOrder=1000
 gui.Enabled=false
 gui.Parent=player:WaitForChild("PlayerGui")
 
@@ -19,12 +20,13 @@ local function stroke(o,col,t)local s=Instance.new("UIStroke");s.Color=col;s.Thi
 
 local openBtn=Instance.new("TextButton")
 openBtn.Name="EditorToggle"
-openBtn.Size=UDim2.fromOffset(54,40)
-openBtn.Position=UDim2.new(0,14,0,82)
+openBtn.AnchorPoint=Vector2.new(1,0)
+openBtn.Size=UDim2.fromOffset(120,44)
+openBtn.Position=UDim2.new(1,-14,0,170)
 openBtn.BackgroundColor3=Color3.fromRGB(22,20,28)
 openBtn.TextColor3=Color3.fromRGB(255,80,175)
 openBtn.Text="EDIT"
-openBtn.TextSize=14
+openBtn.TextSize=15
 openBtn.Font=Enum.Font.GothamBold
 openBtn.BorderSizePixel=0
 openBtn.Parent=gui
@@ -69,13 +71,16 @@ local function disableEdit()editOn=false;selected=nil;hl.Enabled=false;status.Te
 local function setPanel(show)frame.Visible=show;if not show then disableEdit() end end
 local function move(v)if selected then remote:FireServer("move",selected,v)end end
 local function refreshVisibility()
- local visible=player:GetAttribute("BBYAAdmin")==true and player:GetAttribute("BBYAEditorVisible")==true
+ local visible=developerOverride or (player:GetAttribute("BBYAAdmin")==true and player:GetAttribute("BBYAEditorVisible")==true)
  gui.Enabled=visible
  if not visible then setPanel(false) end
 end
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(refreshVisibility)
 player:GetAttributeChangedSignal("BBYAEditorVisible"):Connect(refreshVisibility)
 refreshVisibility()
+task.defer(refreshVisibility)
+task.delay(1,refreshVisibility)
+task.delay(3,refreshVisibility)
 
 openBtn.MouseButton1Click:Connect(function()setPanel(not frame.Visible)end)
 close.MouseButton1Click:Connect(function()setPanel(false)end)
@@ -99,4 +104,4 @@ mouse.Button1Down:Connect(function()
  if t and root and t:IsDescendantOf(root) and not t:IsA("SpawnLocation") then selected=t;hl.Adornee=t;hl.Enabled=true;status.Text=t.Name end
 end)
 
-print("[BBYA] Editor UI hidden; admin toggle via /bbyaedit")
+print("[BBYA] Editor UI client fail-safe active; developer override="..tostring(developerOverride))
