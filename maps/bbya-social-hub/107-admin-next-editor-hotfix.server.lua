@@ -6,6 +6,7 @@
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
+local Workspace=game:GetService("Workspace")
 
 local STATIC_ADMIN_USERNAMES={
  ["arda_moron123"]=true,
@@ -58,6 +59,46 @@ end
 
 for _,p in ipairs(Players:GetPlayers()) do bindStaticAdmin(p) end
 Players.PlayerAdded:Connect(bindStaticAdmin)
+
+-- Entrance community-wall bottom neon visibility fix.
+-- The original BottomTrim sits almost flush with the floor and gets visually buried.
+-- Lift only the existing bottom trim on both boards; board size/position/content stay unchanged.
+local function liftCommunityBottomNeon(holder)
+ if not holder or not holder:IsA("Model") then return false end
+ local trim=holder:FindFirstChild("BottomTrim")
+ if not trim or not trim:IsA("BasePart") then return false end
+ if trim:GetAttribute("BBYABottomNeonVisibleV2")~=true then
+  trim.Size=Vector3.new(trim.Size.X,0.18,0.18)
+  trim.CFrame=trim.CFrame*CFrame.new(0,0.30,-0.10)
+  trim.Material=Enum.Material.Neon
+  trim.Transparency=0
+  trim:SetAttribute("BBYABottomNeonVisibleV2",true)
+ end
+ return true
+end
+
+local function applyCommunityBottomNeon()
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+ local dashboard=root and root:FindFirstChild("SupportDashboard")
+ if not dashboard then return false end
+ local left=liftCommunityBottomNeon(dashboard:FindFirstChild("TopSupportersWall"))
+ local right=liftCommunityBottomNeon(dashboard:FindFirstChild("LiveCommunityWall"))
+ return left and right
+end
+
+task.spawn(function()
+ for _=1,120 do
+  if applyCommunityBottomNeon() then return end
+  task.wait(0.1)
+ end
+end)
+
+local bbyaRoot=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+if bbyaRoot then
+ bbyaRoot.ChildAdded:Connect(function(child)
+  if child.Name=="SupportDashboard" then task.delay(0.2,applyCommunityBottomNeon) end
+ end)
+end
 
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
 if not remotes then return end
@@ -146,4 +187,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v4 online: arda_moron123 static ADMIN + full bypass + EDIT visible by default; /bbyaedit preserved")
+print("[BBYA] Admin NEXT + editor hotfix v4 online: arda_moron123 static ADMIN + full bypass + EDIT visible by default; /bbyaedit preserved; community bottom neon v2 active")
