@@ -70,10 +70,10 @@ jobs:
             echo 'Unexpected Lost Found delta; refusing publish.'
             exit 21
           fi
-          grep -Fq 'M5C4_RARITY_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua
-          grep -Fq 'M5D_STRUCTURAL_THEME_V1' upstream/lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua
-          grep -Fq 'M5E_COLLECTION_PRESTIGE_V1' upstream/lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua
-          grep -Fq 'REPEATED TEMPERATURE RISE DETECTED' upstream/lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua
+          grep -Fq 'M5C4_RARITY_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua || { echo 'M5-C.4 version guard failed'; exit 22; }
+          grep -Fq 'M5D_PREMIUM_STRUCTURE_V1' upstream/lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua || { echo 'M5-D version guard failed'; exit 23; }
+          grep -Fq 'M5E_PRESTIGE_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua || { echo 'M5-E version guard failed'; exit 24; }
+          grep -Fq 'REPEATED TEMPERATURE RISE DETECTED' upstream/lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua || { echo 'Localization coverage guard failed'; exit 25; }
           echo "SOURCE LOCK PASS upstream=$actual project_delta=9-files"
 
       - name: Prepare Rojo 7.7.0
