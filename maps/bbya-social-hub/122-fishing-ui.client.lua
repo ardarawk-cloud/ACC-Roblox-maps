@@ -53,7 +53,7 @@ local function button(parent, value)
  local b=Instance.new("TextButton");b.AutoButtonColor=true;b.Text=value;b.TextColor3=C.text;b.Font=Enum.Font.GothamBold;b.TextSize=13;b.BackgroundColor3=C.panel2;b.BorderSizePixel=0;b.Parent=parent;corner(b,10);stroke(b,Color3.fromRGB(72,78,86),.35,1);return b
 end
 
--- Root HUD stays low and narrow so the lake remains the visual focus.
+-- Root HUD keeps the CAST action low and narrow so the lake remains the visual focus.
 local hud = Instance.new("Frame")
 hud.Name="HUD";hud.AnchorPoint=Vector2.new(.5,1);hud.Position=UDim2.new(.5,0,1,-18);hud.Size=UDim2.fromOffset(330,116);hud.BackgroundTransparency=1;hud.Parent=gui
 
@@ -64,8 +64,9 @@ local action = button(hud,"CAST")
 action.Name="Action";action.AnchorPoint=Vector2.new(.5,0);action.Position=UDim2.new(.5,0,0,20);action.Size=UDim2.fromOffset(164,50);action.TextSize=18;action.BackgroundColor3=C.gold;action.TextColor3=C.bg
 stroke(action,Color3.fromRGB(255,211,126),.05,1.3)
 
+-- Primary fishing navigation stays at the top, leaving the Roblox rod hotbar alone at the bottom.
 local nav = Instance.new("Frame")
-nav.AnchorPoint=Vector2.new(.5,0);nav.Position=UDim2.new(.5,0,0,78);nav.Size=UDim2.fromOffset(246,34);nav.BackgroundTransparency=1;nav.Parent=hud
+nav.AnchorPoint=Vector2.new(.5,0);nav.Position=UDim2.new(.5,0,0,12);nav.Size=UDim2.fromOffset(246,34);nav.BackgroundTransparency=1;nav.ZIndex=40;nav.Parent=gui
 local navLayout=Instance.new("UIListLayout");navLayout.FillDirection=Enum.FillDirection.Horizontal;navLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center;navLayout.VerticalAlignment=Enum.VerticalAlignment.Center;navLayout.Padding=UDim.new(0,7);navLayout.Parent=nav
 local bagButton=button(nav,"BAG");bagButton.Size=UDim2.fromOffset(74,32)
 local rodButton=button(nav,"ROD");rodButton.Size=UDim2.fromOffset(74,32)
@@ -281,6 +282,7 @@ local function applyScale()
  local scale=1
  if viewport.X<520 then scale=.86 elseif viewport.X<760 then scale=.93 end
  local oldScale=hud:FindFirstChildOfClass("UIScale") or Instance.new("UIScale");oldScale.Scale=scale;oldScale.Parent=hud
+ local navScale=nav:FindFirstChildOfClass("UIScale") or Instance.new("UIScale");navScale.Scale=scale;navScale.Parent=nav
  local fightScale=fight:FindFirstChildOfClass("UIScale") or Instance.new("UIScale");fightScale.Scale=scale;fightScale.Parent=fight
  local sheetScale=sheet:FindFirstChildOfClass("UIScale") or Instance.new("UIScale");sheetScale.Scale=math.min(1,viewport.X/410);sheetScale.Parent=sheet
 end
