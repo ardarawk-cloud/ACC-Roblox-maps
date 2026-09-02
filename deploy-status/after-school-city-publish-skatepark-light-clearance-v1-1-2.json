@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "SKATEPARK_LIGHT_CLEARANCE_V1_1_2",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "0df86eebafec37054a26db434b5d46c37e2fee2c",
+  "baseLiveCommit": "2636e7affbb33b7e6ae97caebf87f9d1aa797f04",
+  "qcRunId": "33645100853",
+  "qcArtifactId": 9852438793,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 48,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 181023,
+  "placeSha256": "0fb6061d595904d04ca1a85eb63dab6d7036f8059892f9d456a38b85e8b6ac2c",
+  "runId": "33648183141",
+  "publishedAt": "2026-09-02T15:25:05Z",
+  "note": "V1.1.2 exact QC-locked Skatepark Light Clearance hotfix. Relocates the four legacy streetlights detected inside the runtime SkateGround footprint to outside the play perimeter with 12-stud clearance. V1.1 gameplay, UI, music, roads, pool and dedication remain unchanged."
+}
