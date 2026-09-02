@@ -44,10 +44,44 @@ open.AnchorPoint=Vector2.new(0,0);open.TextColor3=C.gold;open.ZIndex=150
 -- share the exact UI Kernel ScreenGui coordinate system with MENU. No compatibility
 -- layout script is allowed to reposition it independently.
 local ROLE_MENU_GAP=8
+local boundMenuButton=nil
+local menuVisibilityConnection=nil
+local rolePanelOpen=false
+
+local function findKernelMenuButton()
+ local menuGui=pg:FindFirstChild("BBYACommandMenuUI")
+ local menuButton=menuGui and menuGui:FindFirstChild("MenuButton",true)
+ if menuButton and menuButton:IsA("GuiObject") then return menuButton end
+ return nil
+end
+
+local function syncRoleLauncherVisibility(menuButton)
+ menuButton=menuButton or findKernelMenuButton()
+ open.Visible=(menuButton~=nil and menuButton.Visible==true and rolePanelOpen==false)
+end
+
+local function bindMenuVisibility(menuButton)
+ if boundMenuButton==menuButton then
+  syncRoleLauncherVisibility(menuButton)
+  return
+ end
+ if menuVisibilityConnection then menuVisibilityConnection:Disconnect();menuVisibilityConnection=nil end
+ boundMenuButton=menuButton
+ if menuButton then
+  menuVisibilityConnection=menuButton:GetPropertyChangedSignal("Visible"):Connect(function()
+   syncRoleLauncherVisibility(menuButton)
+  end)
+ end
+ syncRoleLauncherVisibility(menuButton)
+end
+
 local function dockRoleButton()
  local menuGui=pg:FindFirstChild("BBYACommandMenuUI")
  local menuButton=menuGui and menuGui:FindFirstChild("MenuButton",true)
- if not menuGui or not menuButton or not menuButton:IsA("GuiObject") then return false end
+ if not menuGui or not menuButton or not menuButton:IsA("GuiObject") then
+  bindMenuVisibility(nil)
+  return false
+ end
  if open.Parent~=menuGui then open.Parent=menuGui end
  open.AnchorPoint=Vector2.new(0,0)
  local xOffset=menuButton.Position.X.Offset
@@ -60,6 +94,7 @@ local function dockRoleButton()
  )
  open.ZIndex=math.max(menuButton.ZIndex+1,150)
  open:SetAttribute("BBYARoleDockAuthority","UNDER_MENU_V1")
+ bindMenuVisibility(menuButton)
  return true
 end
 
@@ -143,9 +178,19 @@ vip.Activated:Connect(function()assign("VIP")end)
 crew.Activated:Connect(function()assign("CREW")end)
 admin.Activated:Connect(function()assign("ADMIN")end)
 remove.Activated:Connect(function()assign("NONE")end)
-open.Activated:Connect(function()shade.Visible=true;refresh()end)
-close.Activated:Connect(function()shade.Visible=false end)
-shade.InputBegan:Connect(function(input)if input.UserInputType==Enum.UserInputType.Keyboard and input.KeyCode==Enum.KeyCode.Escape then shade.Visible=false end end)
+open.Activated:Connect(function()
+ rolePanelOpen=true
+ shade.Visible=true
+ syncRoleLauncherVisibility()
+ refresh()
+end)
+local function closeRolePanel()
+ shade.Visible=false
+ rolePanelOpen=false
+ syncRoleLauncherVisibility()
+end
+close.Activated:Connect(closeRolePanel)
+shade.InputBegan:Connect(function(input)if input.UserInputType==Enum.UserInputType.Keyboard and input.KeyCode==Enum.KeyCode.Escape then closeRolePanel() end end)
 Players.PlayerAdded:Connect(function()if shade.Visible then task.delay(.5,refresh)end end)
 Players.PlayerRemoving:Connect(function()if shade.Visible then task.delay(.2,refresh)end end)
 
@@ -166,4 +211,4 @@ task.defer(dockRoleButton)
 for i=1,8 do task.delay(i*.2,dockRoleButton) end
 renderSnapshot(snapshot);setSelection(nil)
 
-print("[BBYA] Role Panel v8 online: ROLES docked directly under UI Kernel MENU")
+print("[BBYA] Role Panel v8 online: ROLES follows UI Kernel MENU visibility")
