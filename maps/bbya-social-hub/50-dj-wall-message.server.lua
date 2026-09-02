@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3.1
+-- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3.2
 -- ONE Developer Product authority for DJ Wall and Support.
 -- Products are discovered from the CURRENT universe; cross-game product IDs are never blindly prompted.
 -- Support purchase prompts are resolved/validated here and opened by the local client; receipts stay server-authoritative.
+-- Roblox current ProductId/productId is authoritative; legacy DeveloperProductId is fallback only.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -31,7 +32,7 @@ local catalogReady=false
 local catalogError=nil
 
 local function upper(v) return string.upper(tostring(v or "")) end
-local function productIdOf(p) return tonumber(p.DeveloperProductId or p.developerProductId or p.ProductId or p.productId or p.id) end
+local function productIdOf(p) return tonumber(p.ProductId or p.productId or p.DeveloperProductId or p.developerProductId or p.id) end
 local function priceOf(p) return tonumber(p.PriceInRobux or p.priceInRobux or p.Price or p.price) end
 local function nameOf(p) return tostring(p.Name or p.name or p.displayName or p.DisplayName or "") end
 local function refreshProducts()
@@ -181,4 +182,4 @@ MarketplaceService.ProcessReceipt=function(receipt)
 end
 
 Players.PlayerRemoving:Connect(function(p) pending[p.UserId]=nil; lastSubmit[p.UserId]=nil end)
-print("[BBYA] DJ Wall + Monetization v3.1 online: support local prompt, one server receipt authority")
+print("[BBYA] DJ Wall + Monetization v3.2 online: current ProductId authority, support local prompt, one server receipt authority")
