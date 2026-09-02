@@ -40,6 +40,29 @@ end
 local open=button(gui,"RolePanelOpen","ROLES",UDim2.fromOffset(78,34),UDim2.new(1,-92,0,82),C.panel)
 open.AnchorPoint=Vector2.new(0,0);open.TextColor3=C.gold;open.ZIndex=150
 
+-- ROLES launcher is part of Role Panel functionality, but its dock coordinates must
+-- share the exact UI Kernel ScreenGui coordinate system with MENU. No compatibility
+-- layout script is allowed to reposition it independently.
+local ROLE_MENU_GAP=8
+local function dockRoleButton()
+ local menuGui=pg:FindFirstChild("BBYACommandMenuUI")
+ local menuButton=menuGui and menuGui:FindFirstChild("MenuButton",true)
+ if not menuGui or not menuButton or not menuButton:IsA("GuiObject") then return false end
+ if open.Parent~=menuGui then open.Parent=menuGui end
+ open.AnchorPoint=Vector2.new(0,0)
+ local xOffset=menuButton.Position.X.Offset
+ if menuButton.Size.X.Scale==0 and open.Size.X.Scale==0 then
+  xOffset+=math.floor((menuButton.Size.X.Offset-open.Size.X.Offset)/2)
+ end
+ open.Position=UDim2.new(
+  menuButton.Position.X.Scale,xOffset,
+  menuButton.Position.Y.Scale,menuButton.Position.Y.Offset+menuButton.Size.Y.Offset+ROLE_MENU_GAP
+ )
+ open.ZIndex=math.max(menuButton.ZIndex+1,150)
+ open:SetAttribute("BBYARoleDockAuthority","UNDER_MENU_V1")
+ return true
+end
+
 local shade=Instance.new("Frame");shade.Name="Shade";shade.Size=UDim2.fromScale(1,1);shade.BackgroundColor3=Color3.new(0,0,0);shade.BackgroundTransparency=.82;shade.Visible=false;shade.BorderSizePixel=0;shade.ZIndex=150;shade.Parent=gui
 local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(1,-96,0,8);panel.Size=UDim2.fromOffset(520,390);panel.BackgroundColor3=C.bg;panel.BorderSizePixel=0;panel.ZIndex=151;panel.Parent=shade;corner(panel,12);stroke(panel,C.stroke,.08)
 panel:SetAttribute("BBYAPositionAuthority","ROLE_PANEL_V8_SELF")
@@ -132,10 +155,15 @@ local function resizeRolePanel()
  local scale=math.clamp(math.min(vp.X/590,vp.Y/470),.62,1)
  if not UserInputService.TouchEnabled then scale=math.clamp(scale,.82,1) end
  panelScale.Scale=scale
- open.Position=UDim2.new(1,-92,0,UserInputService.TouchEnabled and 70 or 82)
+ dockRoleButton()
 end
 resizeRolePanel()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeRolePanel) end
+pg.ChildAdded:Connect(function(child)
+ if child.Name=="BBYACommandMenuUI" then task.defer(dockRoleButton);task.delay(.1,dockRoleButton) end
+end)
+task.defer(dockRoleButton)
+for i=1,8 do task.delay(i*.2,dockRoleButton) end
 renderSnapshot(snapshot);setSelection(nil)
 
-print("[BBYA] Role Panel v8 online: function-only; normal feature layout owned by UI Kernel v2.3")
+print("[BBYA] Role Panel v8 online: ROLES docked directly under UI Kernel MENU")
