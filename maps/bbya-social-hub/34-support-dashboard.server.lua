@@ -103,8 +103,8 @@ local footL=frame(left,UDim2.fromScale(.045,.915),UDim2.fromScale(.91,.045),Colo
 label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromScale(.03,.08),UDim2.fromScale(.94,.84),Color3.fromRGB(206,197,211),Enum.Font.GothamBold,Enum.TextXAlignment.Center)
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
--- Shift outward so the board fills the facade without covering PortalRight.
-local _,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
+-- Keep the large facade fit but pull this board 1 stud inward so the outer edge stays fully visible.
+local _,rightFace,right=makeBoard("LiveCommunityWall",33.5,PINK,CYAN)
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
 label(right,"You are part of the room the moment you arrive",UDim2.fromScale(.045,.190),UDim2.fromScale(.80,.040),MUTED,Enum.Font.GothamMedium)
