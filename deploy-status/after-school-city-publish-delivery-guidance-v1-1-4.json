@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "DELIVERY_GUIDANCE_V1_1_4",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "395f45a7d26688baf30f22188092471507f09dbe",
+  "baseLiveCommit": "35ad050a3561121bca1f97310c51c282e893fd11",
+  "qcRunId": "33668914592",
+  "qcArtifactId": 9861695557,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 50,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 185819,
+  "placeSha256": "eab0830e528234950236b3c4b81a73f8b1d41817656877024335ca7d08e66cac",
+  "runId": "33670198008",
+  "publishedAt": "2026-09-02T18:55:52Z",
+  "note": "V1.1.4 exact QC-locked Delivery Guidance hotfix. City Delivery is presented as Package Delivery / Antar Paket with a local destination marker, mailbox label, and live distance guidance. Existing server delivery target/reward authority remains unchanged. Skate, Pool, persistence, music, map and primary UI remain unchanged."
+}
