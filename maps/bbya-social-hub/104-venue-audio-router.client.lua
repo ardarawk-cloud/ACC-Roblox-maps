@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9.1
+-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9.2
 -- Deterministic local venue isolation using EQ gates only.
--- V9.1 changes only VIP/Rooftop coordinate bounds for the tall-avatar vertical stack.
+-- V9.2 adds Pasar Malam as its own isolated venue using the grounded fair footprint.
 -- IMPORTANT: this router never mutates SoundGroup.Volume or Sound.Volume.
 
 local Players=game:GetService("Players")
@@ -17,6 +17,7 @@ local GROUPS={
  FUNKOT={name="BBYAFunkotMaster"},
  SKATEPARK={name="BBYASkateparkMaster"},
  ROOFTOP={name="BBYARooftopMaster"},
+ NIGHT_MARKET={name="BBYANightMarketMaster"},
 }
 
 local MAIN_TRIM={CORE=0,FORMER_STUDIO_LOUNGE=-3.0,RESTROOM=-7.0}
@@ -85,6 +86,7 @@ local function venueAtPosition(p)
  if p.Y>=20 and p.Y<55 and math.abs(p.X)<=58 and p.Z>=-46 and p.Z<=46 then return "VIP",nil end
  if p.Y>-4 and p.Y<34 and math.abs(p.X)<61 and p.Z>157 and p.Z<253 then return "FUNKOT",nil end
  if p.Y>-4 and p.Y<20 and math.abs(p.X)<=61 and p.Z>=72 and p.Z<=152 then return "SKATEPARK",nil end
+ if p.Y>-4 and p.Y<34 and p.X>=-118 and p.X<=118 and p.Z>=465 and p.Z<=685 then return "NIGHT_MARKET",nil end
  local mainRoom=mainRoomAtPosition(p)
  if mainRoom then return "MAIN",mainRoom end
  return "NONE",nil
@@ -193,4 +195,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 task.defer(function()bindMute();enforce()end)
-print("[BBYA] Strict venue audio router v9.1: EQ-only isolation preserved / tall-stack Y bounds aligned")
+print("[BBYA] Strict venue audio router v9.2: Pasar Malam isolated at X±118 / Z465-685; EQ-only isolation preserved")
