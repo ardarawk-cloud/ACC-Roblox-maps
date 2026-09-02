@@ -12,165 +12,72 @@
       },
       "ASCGameplayConfig": {
         "$path": "after-school-city.gameplay-config.lua"
+      },
+      "ASCActivityConfig": {
+        "$path": "after-school-city.activity-config.lua"
       }
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "ASC_World": {
-        "$path": "after-school-city.world.server.lua"
-      },
-      "ASC_SchoolLife": {
-        "$path": "after-school-city.school-life.server.lua"
-      },
-      "ASC_DowntownLife": {
-        "$path": "after-school-city.downtown-life.server.lua"
-      },
-      "ASC_CityLife": {
-        "$path": "after-school-city.city-life.server.lua"
-      },
-      "ASC_StreetLife": {
-        "$path": "after-school-city.street-life.server.lua"
-      },
-      "ASC_SpatialCleanup": {
-        "$path": "after-school-city.spatial-cleanup.server.lua"
-      },
-      "ASC_StructuralRealignment": {
-        "$path": "after-school-city.structural-realignment.server.lua"
-      },
-      "ASC_LayoutCorrection": {
-        "$path": "after-school-city.layout-correction.server.lua"
-      },
-      "ASC_CirculationSanitize": {
-        "$path": "after-school-city.circulation-sanitize.server.lua"
-      },
-      "ASC_ClearanceSanitize": {
-        "$path": "after-school-city.clearance-sanitize.server.lua"
-      },
-      "ASC_SourceSpatialFix": {
-        "$path": "after-school-city.source-spatial-fix.server.lua"
-      },
-      "ASC_OrientationCorrection": {
-        "$path": "after-school-city.orientation-correction.server.lua"
-      },
-      "ASC_VisualFidelity": {
-        "$path": "after-school-city.visual-fidelity.server.lua"
-      },
-      "ASC_RuntimeReconcile": {
-        "$path": "after-school-city.runtime-reconcile.server.lua"
-      },
-      "ASC_RuntimeHardCleanup": {
-        "$path": "after-school-city.runtime-hard-cleanup.server.lua"
-      },
-      "ASC_RoadCenterlineClearance": {
-        "$path": "after-school-city.road-centerline-clearance.server.lua"
-      },
-      "ASC_PremiumExterior": {
-        "$path": "after-school-city.premium-exterior.server.lua"
-      },
-      "ASC_SchoolInterior": {
-        "$path": "after-school-city.school-interior.server.lua"
-      },
-      "ASC_SchoolInteriorPolish": {
-        "$path": "after-school-city.school-interior-polish.server.lua"
-      },
-      "ASC_SchoolVisualDepth": {
-        "$path": "after-school-city.school-visual-depth.server.lua"
-      },
-      "ASC_SignageOrientationHotfix": {
-        "$path": "after-school-city.signage-orientation-hotfix.server.lua"
-      },
-      "ASC_SchoolArchitecturalCleanup": {
-        "$path": "after-school-city.school-architectural-cleanup.server.lua"
-      },
-      "ASC_LockerClearanceHotfix": {
-        "$path": "after-school-city.locker-clearance-hotfix.server.lua"
-      },
-      "ASC_ExteriorLockerCleanup": {
-        "$path": "after-school-city.exterior-locker-cleanup.server.lua"
-      },
-      "ASC_SchoolRoadVisualDefectCleanup": {
-        "$path": "after-school-city.school-road-visual-defect-cleanup.server.lua"
-      },
-      "ASC_StudentRowShopInteriors": {
-        "$path": "after-school-city.student-row-shop-interiors.server.lua"
-      },
-      "ASC_StudentRowInteriorSignFinalize": {
-        "$path": "after-school-city.student-row-interior-sign-finalize.server.lua"
-      },
-      "ASC_RoadConcreteStripCleanup": {
-        "$path": "after-school-city.road-concrete-strip-cleanup.server.lua"
-      },
-      "ASC_RoadSidewalkIntersectionCleanup": {
-        "$path": "after-school-city.road-sidewalk-intersection-cleanup.server.lua"
-      },
-      "ASC_SouthRoadConcreteCleanup": {
-        "$path": "after-school-city.south-road-concrete-cleanup.server.lua"
-      },
-      "ASC_LakeRoadConcreteCrossingCleanup": {
-        "$path": "after-school-city.lake-road-concrete-crossing-cleanup.server.lua"
-      },
-      "ASC_LakeRoadWaterOverlapFinalFix": {
-        "$path": "after-school-city.lake-road-water-overlap-final-fix.server.lua"
-      },
-      "ASC_RemainingRoadIntrusionCleanup": {
-        "$path": "after-school-city.remaining-road-intrusion-cleanup.server.lua"
-      },
-      "ASC_SkateparkApproachMicroCleanup": {
-        "$path": "after-school-city.skatepark-approach-micro-cleanup.server.lua"
-      },
-      "ASC_SwimmablePool": {
-        "$path": "after-school-city.swimmable-pool.server.lua"
-      },
-      "ASC_EnvironmentSafetyVegetation": {
-        "$path": "after-school-city.environment-safety-vegetation.server.lua"
-      },
-      "ASC_PremiumEnvironmentV091": {
-        "$path": "after-school-city.premium-environment-v091.server.lua"
-      },
-      "ASC_PrecisionEnvironmentV092": {
-        "$path": "after-school-city.precision-environment-v092.server.lua"
-      },
-      "ASC_GlobalSignageReadabilityV0922": {
-        "$path": "after-school-city.global-signage-readability-v0922.server.lua"
-      },
-      "ASC_SignageTypographyBoostV0923": {
-        "$path": "after-school-city.signage-typography-v0923.server.lua"
-      },
-      "ASC_FinalEnvironmentPolishV093": {
-        "$path": "after-school-city.final-environment-v093.server.lua"
-      },
-      "ASC_GameplayService": {
-        "$path": "after-school-city.gameplay-service.lua"
-      },
-      "ASC_GameplayBootstrap": {
-        "$path": "after-school-city.gameplay-bootstrap.server.lua"
-      }
+      "ASC_World": {"$path": "after-school-city.world.server.lua"},
+      "ASC_SchoolLife": {"$path": "after-school-city.school-life.server.lua"},
+      "ASC_DowntownLife": {"$path": "after-school-city.downtown-life.server.lua"},
+      "ASC_CityLife": {"$path": "after-school-city.city-life.server.lua"},
+      "ASC_StreetLife": {"$path": "after-school-city.street-life.server.lua"},
+      "ASC_SpatialCleanup": {"$path": "after-school-city.spatial-cleanup.server.lua"},
+      "ASC_StructuralRealignment": {"$path": "after-school-city.structural-realignment.server.lua"},
+      "ASC_LayoutCorrection": {"$path": "after-school-city.layout-correction.server.lua"},
+      "ASC_CirculationSanitize": {"$path": "after-school-city.circulation-sanitize.server.lua"},
+      "ASC_ClearanceSanitize": {"$path": "after-school-city.clearance-sanitize.server.lua"},
+      "ASC_SourceSpatialFix": {"$path": "after-school-city.source-spatial-fix.server.lua"},
+      "ASC_OrientationCorrection": {"$path": "after-school-city.orientation-correction.server.lua"},
+      "ASC_VisualFidelity": {"$path": "after-school-city.visual-fidelity.server.lua"},
+      "ASC_RuntimeReconcile": {"$path": "after-school-city.runtime-reconcile.server.lua"},
+      "ASC_RuntimeHardCleanup": {"$path": "after-school-city.runtime-hard-cleanup.server.lua"},
+      "ASC_RoadCenterlineClearance": {"$path": "after-school-city.road-centerline-clearance.server.lua"},
+      "ASC_PremiumExterior": {"$path": "after-school-city.premium-exterior.server.lua"},
+      "ASC_SchoolInterior": {"$path": "after-school-city.school-interior.server.lua"},
+      "ASC_SchoolInteriorPolish": {"$path": "after-school-city.school-interior-polish.server.lua"},
+      "ASC_SchoolVisualDepth": {"$path": "after-school-city.school-visual-depth.server.lua"},
+      "ASC_SignageOrientationHotfix": {"$path": "after-school-city.signage-orientation-hotfix.server.lua"},
+      "ASC_SchoolArchitecturalCleanup": {"$path": "after-school-city.school-architectural-cleanup.server.lua"},
+      "ASC_LockerClearanceHotfix": {"$path": "after-school-city.locker-clearance-hotfix.server.lua"},
+      "ASC_ExteriorLockerCleanup": {"$path": "after-school-city.exterior-locker-cleanup.server.lua"},
+      "ASC_SchoolRoadVisualDefectCleanup": {"$path": "after-school-city.school-road-visual-defect-cleanup.server.lua"},
+      "ASC_StudentRowShopInteriors": {"$path": "after-school-city.student-row-shop-interiors.server.lua"},
+      "ASC_StudentRowInteriorSignFinalize": {"$path": "after-school-city.student-row-interior-sign-finalize.server.lua"},
+      "ASC_RoadConcreteStripCleanup": {"$path": "after-school-city.road-concrete-strip-cleanup.server.lua"},
+      "ASC_RoadSidewalkIntersectionCleanup": {"$path": "after-school-city.road-sidewalk-intersection-cleanup.server.lua"},
+      "ASC_SouthRoadConcreteCleanup": {"$path": "after-school-city.south-road-concrete-cleanup.server.lua"},
+      "ASC_LakeRoadConcreteCrossingCleanup": {"$path": "after-school-city.lake-road-concrete-crossing-cleanup.server.lua"},
+      "ASC_LakeRoadWaterOverlapFinalFix": {"$path": "after-school-city.lake-road-water-overlap-final-fix.server.lua"},
+      "ASC_RemainingRoadIntrusionCleanup": {"$path": "after-school-city.remaining-road-intrusion-cleanup.server.lua"},
+      "ASC_SkateparkApproachMicroCleanup": {"$path": "after-school-city.skatepark-approach-micro-cleanup.server.lua"},
+      "ASC_SwimmablePool": {"$path": "after-school-city.swimmable-pool.server.lua"},
+      "ASC_EnvironmentSafetyVegetation": {"$path": "after-school-city.environment-safety-vegetation.server.lua"},
+      "ASC_PremiumEnvironmentV091": {"$path": "after-school-city.premium-environment-v091.server.lua"},
+      "ASC_PrecisionEnvironmentV092": {"$path": "after-school-city.precision-environment-v092.server.lua"},
+      "ASC_GlobalSignageReadabilityV0922": {"$path": "after-school-city.global-signage-readability-v0922.server.lua"},
+      "ASC_SignageTypographyBoostV0923": {"$path": "after-school-city.signage-typography-v0923.server.lua"},
+      "ASC_FinalEnvironmentPolishV093": {"$path": "after-school-city.final-environment-v093.server.lua"},
+      "ASC_GameplayService": {"$path": "after-school-city.gameplay-service.lua"},
+      "ASC_GameplayBootstrap": {"$path": "after-school-city.gameplay-bootstrap.server.lua"},
+      "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
-      "ASC_DedicationIntro": {
-        "$path": "after-school-city.intro.client.lua"
-      }
+      "ASC_DedicationIntro": {"$path": "after-school-city.intro.client.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
-        "ASC_PersonalMusicPlayer": {
-          "$path": "after-school-city.music-player.client.lua"
-        },
-        "ASC_GameplayHUD": {
-          "$path": "after-school-city.gameplay-hud.client.lua"
-        },
-        "ASC_UIGlassV102": {
-          "$path": "after-school-city.ui-glass-v102.client.lua"
-        }
+        "ASC_PersonalMusicPlayer": {"$path": "after-school-city.music-player.client.lua"},
+        "ASC_GameplayHUD": {"$path": "after-school-city.gameplay-hud.client.lua"},
+        "ASC_UIGlassV102": {"$path": "after-school-city.ui-glass-v102.client.lua"},
+        "ASC_ActivitiesClientV110": {"$path": "after-school-city.activities.client.lua"}
       }
     },
-    "Workspace": {
-      "$className": "Workspace"
-    },
-    "Lighting": {
-      "$className": "Lighting"
-    }
+    "Workspace": {"$className": "Workspace"},
+    "Lighting": {"$className": "Lighting"}
   }
 }
