@@ -20,12 +20,14 @@ if not remote then remote=Instance.new("RemoteEvent");remote.Name="FunkotMusic";
 local group=SoundService:FindFirstChild("BBYAFunkotMaster")
 if group and not group:IsA("SoundGroup") then group:Destroy();group=nil end
 if not group then group=Instance.new("SoundGroup");group.Name="BBYAFunkotMaster";group.Parent=SoundService end
-group.Volume=0
+-- Baseline venue gain stays audible; per-player isolation is owned only by Router v9 EQ gates.
+group.Volume=1.0
 group:SetAttribute("Venue","FUNKOT")
 group:SetAttribute("PlaylistReady",true)
 group:SetAttribute("PlaylistCount",#PLAYLIST)
 group:SetAttribute("AudioEngine","FUNKOT_RUNTIME_V6")
 group:SetAttribute("AutoDJHealthy",true)
+group:SetAttribute("VenueGainProfile","FUNKOT_FULL_LEVEL_ROUTER_V9")
 
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistEnabled",true)
 ReplicatedStorage:SetAttribute("BBYAFunkotPlaylistId","funkot")
