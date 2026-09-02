@@ -111,20 +111,70 @@ local function shiftPart(partObj,dy)
 end
 
 local function floorOffsetForY(y)
- if y>=58 then return 23 end
  if y>=43 then return 18 end
  if y>=29 then return 12 end
  if y>=15 then return 6 end
  return 0
 end
 
-local function shiftModelPartsByOldFloor(modelObj)
- if not modelObj then return end
- for _,d in ipairs(modelObj:GetDescendants()) do
+-- Move compact assemblies as one rigid object. The old per-part reflow could split
+-- signs, neon strips and rail assemblies when their pieces straddled a floor band.
+local function verticalSpan(inst)
+ local minY,maxY=math.huge,-math.huge
+ local count=0
+ for _,d in ipairs(inst:GetDescendants()) do
   if d:IsA("BasePart") then
-   shiftPart(d,floorOffsetForY(d.Position.Y))
+   count+=1
+   local half=d.Size.Y*.5
+   minY=math.min(minY,d.Position.Y-half)
+   maxY=math.max(maxY,d.Position.Y+half)
   end
  end
+ return minY,maxY,count
+end
+
+local function dominantOffset(inst)
+ local votes={[0]=0,[6]=0,[12]=0,[18]=0}
+ for _,d in ipairs(inst:GetDescendants()) do
+  if d:IsA("BasePart") then
+   local off=floorOffsetForY(d.Position.Y)
+   votes[off]=(votes[off] or 0)+1
+  end
+ end
+ local best,bestCount=0,-1
+ for _,off in ipairs(OFFSETS) do
+  local c=votes[off] or 0
+  if c>bestCount then
+   best,bestCount=off,c
+  end
+ end
+ return best
+end
+
+local function shiftLegacyNode(node)
+ if node:IsA("BasePart") then
+  shiftPart(node,floorOffsetForY(node.Position.Y))
+  return
+ end
+ if node:IsA("Model") then
+  local minY,maxY,count=verticalSpan(node)
+  if count==0 then return end
+  if maxY-minY<=13 then
+   moveModel(node,dominantOffset(node))
+   return
+  end
+ end
+ for _,child in ipairs(node:GetChildren()) do
+  shiftLegacyNode(child)
+ end
+end
+
+local function shiftLegacyRootRigid(rootObj)
+ if not rootObj then return end
+ for _,child in ipairs(rootObj:GetChildren()) do
+  shiftLegacyNode(child)
+ end
+ rootObj:SetAttribute("BBYAVerticalAlignedRigidV17",true)
 end
 
 local function setWorldY(p,newY)
@@ -191,12 +241,12 @@ if mall:GetAttribute("FloorSpacingStuds")~=20 then
  local sub=mall:FindFirstChild("MallSubSign");if sub and sub:IsA("BasePart") then setWorldY(sub,64) end
 
  -- Later Mall live objects that were authored against the old floor elevations.
- if live then shiftModelPartsByOldFloor(live) end
+ if live then shiftLegacyRootRigid(live) end
 
  -- Architecture pass: retail-depth pieces move with their floors; facade crown is stretched explicitly.
  if architecture then
   local storefrontDepth=architecture:FindFirstChild("StorefrontDepthV3",true)
-  if storefrontDepth then shiftModelPartsByOldFloor(storefrontDepth) end
+  if storefrontDepth then shiftLegacyRootRigid(storefrontDepth) end
 
   for _,d in ipairs(architecture:GetDescendants()) do
    if d:IsA("BasePart") then
@@ -218,17 +268,17 @@ if mall:GetAttribute("FloorSpacingStuds")~=20 then
   end
  end
 
- -- Atmosphere rails/lights may already exist; move each item to its corresponding new level.
+ -- Atmosphere rails/lights may already exist; keep each compact assembly rigid.
  local atmosphere=mall:FindFirstChild("MallPremiumAtmosphereV9")
  if atmosphere then
-  shiftModelPartsByOldFloor(atmosphere)
+  shiftLegacyRootRigid(atmosphere)
   atmosphere:SetAttribute("FloorSpacing20Applied",true)
  else
   task.spawn(function()
    local later=mall:WaitForChild("MallPremiumAtmosphereV9",180)
    if later and not later:GetAttribute("FloorSpacing20Applied") then
     task.wait(1)
-    shiftModelPartsByOldFloor(later)
+    shiftLegacyRootRigid(later)
     later:SetAttribute("FloorSpacing20Applied",true)
    end
   end)
@@ -237,6 +287,7 @@ if mall:GetAttribute("FloorSpacingStuds")~=20 then
  mall:SetAttribute("FloorSpacingStuds",20)
  mall:SetAttribute("FloorLevels","1,21,41,61")
  mall:SetAttribute("VerticalAuthority","V16_20_STUD")
+ mall:SetAttribute("VerticalAlignmentPatch","V17_RIGID_ASSEMBLY")
 end
 
 -- -----------------------------------------------------------------------------
