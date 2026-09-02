@@ -62,7 +62,6 @@ local DIRECT_DESC={Head="Head",Face="Face",Torso="Torso",RightArm="RightArm",Lef
 local TYPE_BY_VALUE={}
 for _,e in ipairs(Enum.AvatarAssetType:GetEnumItems())do TYPE_BY_VALUE[e.Value]=e.Name end
 
--- Twelve retail tenants. Each tenant owns one Marketplace scope.
 local STORE={
  FASHION={tenant="luma",title="LUMA FASHION",sub="Fashion & layered clothing",catalog="PAKAIAN",assetTypes=TYPES.CLOTHES,keyword="",accent=C.pink},
  SHOES={tenant="stride",title="STRIDE SNEAKERS",sub="Shoes & sneaker catalog",catalog="SEPATU",assetTypes=TYPES.SHOES,keyword="shoes",accent=C.orange},
@@ -77,6 +76,7 @@ local STORE={
  SOUND={tenant="sound",title="SOUND ROOM",sub="Headphones & music accessories",catalog="MUSIC ACCESSORIES",assetTypes=TYPES.ACCESSORY,keyword="headphones",accent=C.cyan},
  FIT={tenant="fit",title="FIT DISTRICT",sub="Sportswear & active style",catalog="SPORTSWEAR",assetTypes=TYPES.CLOTHES,keyword="sports",accent=C.green},
 }
+local REMOTE_ALIAS={STREET="NORTH"}
 local TENANTS={
  {id="luma",name="LUMA FASHION",cat="Fashion",floor=1,key="FASHION"},{id="stride",name="STRIDE SNEAKERS",cat="Sneakers",floor=1,key="SHOES"},
  {id="byte",name="BYTE TECH",cat="Electronics / UGC Tech",floor=1,key="BYTE"},{id="daily",name="DAILY MARKET",cat="Food / Fun UGC",floor=1,key="DAILY"},
@@ -114,7 +114,7 @@ local resetTool=btn(avatarTools,"RESET",UDim2.new(),UDim2.new(.24,-4,1,0),C.pane
 local host=Instance.new("Frame");host.Name="ModuleHost";host.BackgroundTransparency=1;host.Parent=root
 local modules={}
 local function module(name)local f=Instance.new("Frame");f.Name=name;f.Size=UDim2.fromScale(1,1);f.BackgroundTransparency=1;f.Visible=false;f.Parent=host;modules[name]=f;return f end
-local categories=module("CATEGORIES") -- compatibility marker; V10 tenant flow bypasses color category tiles.
+local categories=module("CATEGORIES")
 local stores=module("STORES")
 local products=module("PRODUCTS")
 local cartView=module("CART")
@@ -251,22 +251,45 @@ local function promptBuy(it)if not it then return end;local id=idOf(it);if not i
 buyB.Activated:Connect(function()promptBuy(selected)end);checkout.Activated:Connect(function()if cart[1]then promptBuy(cart[1])end end)
 
 local function responsive()
- camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local touch=UserInputService.TouchEnabled;local topSafe=touch and112 or78;local left=math.max(72,math.floor(vp.X*.065));local rightSafe=touch and150 or70;local bottom=36;local shiftX=touch and-91 or0;local shiftY=touch and-63 or0
- local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe));local leftW=math.clamp(math.floor(totalW*.30),260,360);local gap=24;local rightW=totalW-leftW-gap;local hostX=left+leftW+gap+shiftX;local hostY=topSafe+52+shiftY;local totalH
- if touch then totalH=math.min(330,math.max(190,vp.Y-hostY-10))else totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48))end
- local navReserve=56;local navW=math.min(440,math.max(320,rightW-navReserve-12));local navGap=12;local navButtonW=math.floor((navW-navGap)/2);top.Size=UDim2.fromOffset(navW,46);catBtn.Position=UDim2.fromOffset(0,0);catBtn.Size=UDim2.fromOffset(navButtonW,44);storeBtn.Position=UDim2.fromOffset(navButtonW+navGap,0);storeBtn.Size=UDim2.fromOffset(navButtonW,44);top.Position=UDim2.fromOffset(hostX+math.floor((rightW-navW-navReserve)/2),topSafe+shiftY);avatar.Position=UDim2.fromOffset(left+shiftX,hostY);avatar.Size=UDim2.fromOffset(leftW,totalH);host.Position=UDim2.fromOffset(hostX,hostY);host.Size=UDim2.fromOffset(rightW,totalH)
- local exit=root:FindFirstChild("ExitButton");if exit then exit.Position=UDim2.fromOffset(hostX+rightW-44,topSafe+shiftY)end;action.Position=UDim2.fromOffset(hostX+math.floor(rightW/2),vp.Y-bottom+shiftY);action.Size=UDim2.fromOffset(382,50)
- local searchW=math.clamp(math.floor(rightW*.26),150,220);local goW=52;local searchX=rightW-searchW-goW-10;backProducts.Position=UDim2.fromOffset(0,0);productTitle.Position=UDim2.fromOffset(130,0);productTitle.Size=UDim2.fromOffset(math.max(90,searchX-138),34);productTitle.TextSize=rightW<700 and15 or17;search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,34);go.Position=UDim2.fromOffset(rightW-goW,0);go.Size=UDim2.fromOffset(goW,34);status.Position=UDim2.fromOffset(0,44);retry.Position=UDim2.fromOffset(rightW-78,42);productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76);grid.CellSize=UDim2.new(rightW<700 and.32 or.24,-8,0,178);sl.CellSize=UDim2.new(rightW<700 and.32 or.24,-8,0,160);sg.CellSize=UDim2.new(.49,-6,0,touch and62 or72)
+ camera=workspace.CurrentCamera or camera
+ local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
+ local touch=UserInputService.TouchEnabled
+ local topSafe=touch and 112 or 78
+ local left=math.max(72,math.floor(vp.X*.065))
+ local rightSafe=touch and 150 or 70
+ local bottom=36
+ local shiftX=touch and -91 or 0
+ local shiftY=touch and -63 or 0
+ local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe))
+ local leftW=math.clamp(math.floor(totalW*.30),260,360)
+ local gap=24
+ local rightW=totalW-leftW-gap
+ local hostX=left+leftW+gap+shiftX
+ local hostY=topSafe+52+shiftY
+ local totalH
+ if touch then totalH=math.min(330,math.max(190,vp.Y-hostY-10)) else totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48)) end
+ local navReserve=56
+ local navW=math.min(440,math.max(320,rightW-navReserve-12))
+ local navGap=12
+ local navButtonW=math.floor((navW-navGap)/2)
+ top.Size=UDim2.fromOffset(navW,46);catBtn.Position=UDim2.fromOffset(0,0);catBtn.Size=UDim2.fromOffset(navButtonW,44);storeBtn.Position=UDim2.fromOffset(navButtonW+navGap,0);storeBtn.Size=UDim2.fromOffset(navButtonW,44)
+ top.Position=UDim2.fromOffset(hostX+math.floor((rightW-navW-navReserve)/2),topSafe+shiftY);avatar.Position=UDim2.fromOffset(left+shiftX,hostY);avatar.Size=UDim2.fromOffset(leftW,totalH);host.Position=UDim2.fromOffset(hostX,hostY);host.Size=UDim2.fromOffset(rightW,totalH)
+ local exit=root:FindFirstChild("ExitButton");if exit then exit.Position=UDim2.fromOffset(hostX+rightW-44,topSafe+shiftY)end
+ action.Position=UDim2.fromOffset(hostX+math.floor(rightW/2),vp.Y-bottom+shiftY);action.Size=UDim2.fromOffset(382,50)
+ local searchW=math.clamp(math.floor(rightW*.26),150,220);local goW=52;local searchX=rightW-searchW-goW-10
+ backProducts.Position=UDim2.fromOffset(0,0);productTitle.Position=UDim2.fromOffset(130,0);productTitle.Size=UDim2.fromOffset(math.max(90,searchX-138),34);productTitle.TextSize=rightW<700 and 15 or 17
+ search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,34);go.Position=UDim2.fromOffset(rightW-goW,0);go.Size=UDim2.fromOffset(goW,34);status.Position=UDim2.fromOffset(0,44);retry.Position=UDim2.fromOffset(rightW-78,42);productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76)
+ grid.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,178);sl.CellSize=UDim2.new(rightW<700 and .32 or .24,-8,0,160);sg.CellSize=UDim2.new(.49,-6,0,touch and 62 or 72)
  task.defer(function()local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m)end end)
 end
 
 local function openStore(key)
- if not STORE[key]then return end;activeStore=key;local d=STORE[key];storeBtn.Text=d.title;selected=nil;resetPreview();responsive();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);openProducts();syncAction()
+ if not STORE[key]then return end
+ activeStore=key;local d=STORE[key];storeBtn.Text=d.title;selected=nil;resetPreview();responsive();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);openProducts();syncAction()
 end
 
--- Directory: all 18 destinations. Teleport does NOT open a catalog.
 for index,t in ipairs(TENANTS)do
- local accent=t.key and(STORE[t.key]and STORE[t.key].accent or C.blue)or C.panel2
+ local accent=t.key and (STORE[t.key] and STORE[t.key].accent or C.blue) or C.panel2
  local b=btn(storeGrid,string.format("L%d • %s\n%s\nTELEPORT →",t.floor,t.name,t.cat),UDim2.new(),UDim2.new(),accent);b.LayoutOrder=index;b.TextWrapped=true;b.TextSize=11
  b.Activated:Connect(function()mallAction:FireServer("guide",t.id);closeCatalog()end)
 end
@@ -287,24 +310,37 @@ if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsiv
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
 viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(function()local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m)end end)end)
 
--- Indoor catalog displays. Existing front-door prompts are hidden locally.
 local function installTenantKiosks()
  local build=workspace:WaitForChild("BBYA_ZERO_BUILD",60);local mall=build and build:WaitForChild("BBYAMall",60);if not mall then return end
  for key,d in pairs(STORE)do
-  local unit=mall:FindFirstChild("Tenant_"..d.tenant);if unit then
-   for _,x in ipairs(unit:GetDescendants())do if x:IsA("ProximityPrompt")and(x.Name=="NativeRobuxShopPrompt"or(x.Parent and(x.Parent.Name=="Interact"or x.Parent.Name=="StoreDoor")))then x.Enabled=false end end
-   local anchor=unit:FindFirstChild("Display2")or unit:FindFirstChild("Counter");if anchor and anchor:IsA("BasePart")then
+  local unit=mall:FindFirstChild("Tenant_"..d.tenant)
+  if unit then
+   for _,x in ipairs(unit:GetDescendants())do
+    if x:IsA("ProximityPrompt") and (x.Name=="NativeRobuxShopPrompt" or (x.Parent and (x.Parent.Name=="Interact" or x.Parent.Name=="StoreDoor"))) then x.Enabled=false end
+    if x:IsA("BillboardGui") and x.Name=="NativeRobuxBadge" then x.Enabled=false end
+   end
+   local anchor=unit:FindFirstChild("Display2") or unit:FindFirstChild("Counter")
+   if anchor and anchor:IsA("BasePart")then
     local old=unit:FindFirstChild("BBYACatalogKioskLocal");if old then old:Destroy()end
-    local side=anchor.Position.X<0 and-1 or1;local screen=Instance.new("Part");screen.Name="BBYACatalogKioskLocal";screen.Size=Vector3.new(5.8,3.4,.28);screen.Anchored=true;screen.CanCollide=false;screen.CanTouch=false;screen.CanQuery=false;screen.Material=Enum.Material.SmoothPlastic;screen.Color=Color3.fromRGB(16,17,20);local pos=anchor.Position+Vector3.new(0,2.55,0);screen.CFrame=CFrame.lookAt(pos,pos+Vector3.new(-side,0,0));screen.Parent=unit
-    local surface=Instance.new("SurfaceGui");surface.Face=Enum.NormalId.Front;surface.PixelsPerStud=70;surface.Parent=screen;local frame=Instance.new("Frame");frame.Size=UDim2.fromScale(1,1);frame.BackgroundColor3=Color3.fromRGB(15,16,19);frame.BorderSizePixel=0;frame.Parent=surface;local title=txt(frame,d.title.."\n"..d.catalog.."\nTAP BROWSE",UDim2.fromScale(.05,.08),UDim2.fromScale(.9,.84),Enum.Font.GothamBold,18,C.white,Enum.TextXAlignment.Center);title.TextYAlignment=Enum.TextYAlignment.Center;local st=Instance.new("UIStroke");st.Color=d.accent;st.Thickness=3;st.Parent=frame
-    local pr=Instance.new("ProximityPrompt");pr.Name="BBYATenantCatalogPrompt";pr.ActionText="BROWSE";pr.ObjectText=d.title;pr.MaxActivationDistance=8;pr.HoldDuration=0;pr.RequiresLineOfSight=false;pr.Parent=screen;pr.Triggered:Connect(function()openStore(key)end)
+    local side=anchor.Position.X<0 and -1 or 1
+    local screen=Instance.new("Part");screen.Name="BBYACatalogKioskLocal";screen.Size=Vector3.new(5.8,3.4,.28);screen.Anchored=true;screen.CanCollide=false;screen.CanTouch=false;screen.CanQuery=false;screen.Material=Enum.Material.SmoothPlastic;screen.Color=Color3.fromRGB(16,17,20)
+    local pos=anchor.Position+Vector3.new(0,2.55,0);screen.CFrame=CFrame.lookAt(pos,pos+Vector3.new(-side,0,0));screen.Parent=unit
+    local surface=Instance.new("SurfaceGui");surface.Face=Enum.NormalId.Front;surface.PixelsPerStud=70;surface.Parent=screen
+    local frame=Instance.new("Frame");frame.Size=UDim2.fromScale(1,1);frame.BackgroundColor3=Color3.fromRGB(15,16,19);frame.BorderSizePixel=0;frame.Parent=surface
+    local title=txt(frame,d.title.."\n"..d.catalog.."\nTAP BROWSE",UDim2.fromScale(.05,.08),UDim2.fromScale(.9,.84),Enum.Font.GothamBold,18,C.white,Enum.TextXAlignment.Center);title.TextYAlignment=Enum.TextYAlignment.Center
+    local st=Instance.new("UIStroke");st.Color=d.accent;st.Thickness=3;st.Parent=frame
+    local pr=Instance.new("ProximityPrompt");pr.Name="BBYATenantCatalogPrompt";pr.ActionText="BROWSE";pr.ObjectText=d.title;pr.MaxActivationDistance=8;pr.HoldDuration=0;pr.RequiresLineOfSight=false;pr.Parent=screen
+    pr.Triggered:Connect(function()openStore(key)end)
    end
   end
  end
 end
 
 task.defer(installTenantKiosks)
-remote.OnClientEvent:Connect(function(kind,data)if kind~="open"or typeof(data)~="table"then return end;local key=tostring(data.key or"FASHION");if STORE[key]then openStore(key)end end)
+remote.OnClientEvent:Connect(function(kind,data)
+ if kind~="open"or typeof(data)~="table"then return end
+ local key=tostring(data.key or"FASHION");key=REMOTE_ALIAS[key]or key;if STORE[key]then openStore(key)end
+end)
 player.CharacterAdded:Connect(function()task.delay(.8,function()if root.Visible then resetPreview()end end)end)
 task.defer(responsive)
 print("[BBYA] Mall Catalog V10 online: 12 retail tenant kiosks + 18-destination teleport directory + direct live Marketplace")
