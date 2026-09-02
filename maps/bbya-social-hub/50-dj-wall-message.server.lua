@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3
+-- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3.1
 -- ONE Developer Product authority for DJ Wall and Support.
 -- Products are discovered from the CURRENT universe; cross-game product IDs are never blindly prompted.
+-- Support purchase prompts are resolved/validated here and opened by the local client; receipts stay server-authoritative.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -151,10 +152,9 @@ monetizationRemote.OnServerEvent:Connect(function(p,action,value)
  local amount=tonumber(value); if not amount or not table.find(SUPPORT_AMOUNTS,amount) then return end
  local id=supportProductByAmount[amount]
  if not id then refreshProducts(); id=supportProductByAmount[amount] end
- if not id then monetizationRemote:FireClient(p,"status",{amount=amount,ok=false,message=string.format("Support %dR belum punya Developer Product di TEST universe.",amount)}); return end
+ if not id then monetizationRemote:FireClient(p,"status",{amount=amount,ok=false,message=string.format("Support %dR belum punya Developer Product di BBYA universe.",amount)}); return end
  monetizationRemote:FireClient(p,"status",{amount=amount,ok=true,message="Opening Roblox purchase..."})
- local ok=pcall(function() MarketplaceService:PromptProductPurchase(p,id) end)
- if not ok then monetizationRemote:FireClient(p,"status",{amount=amount,ok=false,message="Purchase prompt gagal dibuka."}) end
+ monetizationRemote:FireClient(p,"promptSupportLocal",{amount=amount,productId=id})
 end)
 
 -- THE ONLY Developer Product receipt authority in this map.
@@ -181,4 +181,4 @@ MarketplaceService.ProcessReceipt=function(receipt)
 end
 
 Players.PlayerRemoving:Connect(function(p) pending[p.UserId]=nil; lastSubmit[p.UserId]=nil end)
-print("[BBYA] DJ Wall + Monetization v3 online: one receipt authority, current-universe products only")
+print("[BBYA] DJ Wall + Monetization v3.1 online: support local prompt, one server receipt authority")
