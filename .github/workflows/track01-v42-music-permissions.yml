@@ -32,9 +32,8 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, os, pathlib, re, urllib.request, urllib.error
-          root=pathlib.Path('.')
-          src=(root/'maps/track-01/music-runtime.server.lua').read_text(encoding='utf-8')
+          import json, os, pathlib, re, time, urllib.request, urllib.error
+          src=pathlib.Path('maps/track-01/music-runtime.server.lua').read_text(encoding='utf-8')
           ids=[]
           for x in re.findall(r'\{id="(\d+)",source="(?:PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}',src):
               if x not in ids: ids.append(x)
@@ -60,7 +59,10 @@ jobs:
               return {'present':True,'http':code,'name':data.get('name') if isinstance(data,dict) else None,'enabled':data.get('enabled') if isinstance(data,dict) else None,'expired':data.get('expired') if isinstance(data,dict) else None,'scopes':scopes}
           def usable(i):
               return i.get('present') and i.get('http')==200 and i.get('enabled') is not False and i.get('expired') is not True and any(s.get('name')=='asset-permissions' and 'write' in (s.get('operations') or []) for s in i.get('scopes',[]))
-          granted=set();attempts=[]
+          def grant(key,batch):
+              payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(x)} for x in batch]}
+              return req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+          granted=set();attempts=[];diagnostics=[]
           keys=[('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),('ROBLOX_OPEN_CLOUD_MASTER_V2',os.environ.get('MASTER_V2_KEY','').strip())]
           for label,key in keys:
               ki=info(key);entry={'key':label,'keyInfo':ki,'batches':[]}
@@ -68,14 +70,24 @@ jobs:
               remaining=[x for x in ids if x not in granted]
               for pos in range(0,len(remaining),20):
                   batch=remaining[pos:pos+20]
-                  payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(x)} for x in batch]}
-                  code,data=req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+                  code,data=grant(key,batch)
+                  success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+                  granted.update(success);entry['batches'].append({'http':code,'requested':len(batch),'successCount':len(success)})
+              retry=[x for x in ids if x not in granted]
+              for asset in retry:
+                  time.sleep(.15)
+                  code,data=grant(key,[asset])
                   success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
                   granted.update(success)
-                  entry['batches'].append({'http':code,'requested':len(batch),'successCount':len(success)})
-              entry['result']='ATTEMPTED';attempts.append(entry)
+                  if asset not in granted:
+                      safe={}
+                      if isinstance(data,dict):
+                          for k in ('errors','error','message','code','failureAssetIds'):
+                              if k in data:safe[k]=data[k]
+                      diagnostics.append({'assetId':asset,'http':code,'response':safe})
+              entry['result']='ATTEMPTED';entry['individualRetryCount']=len(retry);attempts.append(entry)
               if len(granted)==len(ids):break
-          report={'status':'GRANTED_ALL' if len(granted)==len(ids) else 'PARTIAL_OR_FAILED','universeId':universe,'catalogCount':len(ids),'catalogAssetIds':ids,'grantedCount':len(granted),'grantedAssetIds':[x for x in ids if x in granted],'missingAssetIds':[x for x in ids if x not in granted],'attempts':attempts}
+          report={'status':'GRANTED_ALL' if len(granted)==len(ids) else 'PARTIAL_OR_FAILED','universeId':universe,'catalogCount':len(ids),'catalogAssetIds':ids,'grantedCount':len(granted),'grantedAssetIds':[x for x in ids if x in granted],'missingAssetIds':[x for x in ids if x not in granted],'diagnostics':diagnostics,'attempts':attempts}
           pathlib.Path('deploy-status').mkdir(exist_ok=True)
           pathlib.Path('deploy-status/track01-music-permissions.json').write_text(json.dumps(report,indent=2)+'\n')
           print(json.dumps({'status':report['status'],'catalog':len(ids),'granted':len(granted),'missing':len(report['missingAssetIds'])}))
@@ -103,5 +115,5 @@ jobs:
           const r=require('./deploy-status/track01-music-permissions.json');
           if(r.universeId!=='10745349805'||r.catalogCount!==67) throw new Error('TRACK 01 permission target/catalog mismatch');
           if(!Number.isInteger(r.grantedCount)||r.grantedCount<1) throw new Error('No TRACK 01 music asset permission was granted');
-          console.log('TRACK 01 music permissions',r.status,r.grantedCount+'/'+r.catalogCount);
+          console.log('TRACK 01 music permissions',r.status,r.grantedCount+'/'+r.catalogCount,'missing',r.missingAssetIds);
           NODE
