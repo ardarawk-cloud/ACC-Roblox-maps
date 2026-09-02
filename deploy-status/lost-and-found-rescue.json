@@ -6,14 +6,14 @@
   "sourceCommit": "a279fb66c9f5e657e5de2797e05fca4722505e73",
   "baseLiveCommit": "a1e5242b48f693db6c44f3eccbab331fd7568dbe",
   "publisherRepo": "ardarawk-cloud/ACC-Roblox-maps",
-  "publisherCommit": "5cf4d213be53fe45fff410e07fbe260bf9850c92",
+  "publisherCommit": "b6dd3ea20c12f91b0f6c15628496667e880b24cc",
   "universeId": "10745354451",
   "placeId": "93699016600671",
   "versionNumber": 61,
   "rojoVersion": "7.7.0",
   "placeBytes": 219374,
   "placeSha256": "9f7148906fc3d4f1ec28e55fada7549f7cb0f4306b2745f1f8ff292a5c0e2549",
-  "runId": "33663601689",
-  "publishedAt": "2026-09-02T17:51:09Z",
+  "runId": "33663698999",
+  "publishedAt": "2026-09-02T17:52:06Z",
   "note": "Temporary Ardarawk rescue route. M6-A adds Shift Level 1-10, server-derived progression attributes, milestone foundation, and compact Indonesia-first progression HUD using existing persistent XP. Existing Credits/XP reward values, collection/drop/rarity/serial/trading/station/case/canon locks remain unchanged."
 }
