@@ -1,70 +1,67 @@
 # MOUNT BBYA — PROJECT AUTHORITY
 
-Status: ACTIVE / PHASE 0 VERIFICATION
+Status: ACTIVE / PHASE 1 CANDIDATE BUILD
 Priority: Mount BBYA only
 
-## Target identity
+## Final target identity
 - Project: MOUNT BBYA / Gunung BBYA
 - Universe ID: `4187755690`
 - Place ID: `11832985967`
 - Registry key: `mount-bbya`
 - Source path: `maps/mount-bbya`
 
-## Mountain Social identity — PAUSED / DO NOT TOUCH
+## Forbidden target
+Mountain Social is a separate project and remains PAUSED / DO NOT TOUCH:
 - Universe ID: `10744139279`
 - Place ID: `82661754996018`
-- Do not publish Mount BBYA changes to this target.
-- Do not convert Mountain Social source into Mount BBYA.
 
-## Isolation locks
-- Do not use or modify Mountain Social as Mount BBYA.
-- Do not publish Mount BBYA to Place ID `82661754996018`.
-- Do not mix source from `maps/mountain-social` into this project.
-- Do not use Track 01.
-- Mountain Social remains paused.
+Do not publish Mount BBYA source to the Mountain Social target.
 
-## Current source state
-No verified Mount BBYA source has been found in the repository yet. The known runtime baseline exists outside the currently located repo source and must not be reconstructed from memory.
+## Donor continuation
+The latest relevant Mount BBYA runtime donor is:
+- branch: `agent/mountain-master-v3`
+- source commit: `08dc1c083289a6505808607546fbfb788ea21d36`
+- build marker: `v6.4-phase1-multiscript-runtime`
 
-Before runtime source creation or publishing:
-1. Obtain or establish the authoritative current Mount BBYA place source for Universe `4187755690` / Place `11832985967`.
-2. Fresh-read that source before editing.
-3. Preserve existing spawn/village/road/terrain baseline already working in runtime evidence.
-4. Keep Mountain Social `10744139279` / `82661754996018` isolated and untouched.
+The donor lived under the stale folder name `maps/mountain-social`, but its active injector hard-locked publishing to Mount BBYA `4187755690 / 11832985967`. The stale folder/config naming is retired as authority; the runtime package is transplanted coherently into `maps/mount-bbya`.
 
 ## Phase 1 scope
 Only:
 `Spawn → Village → Road → Trail Entrance → CP1`
 
-Build order after authoritative source is available:
-1. Terrain
+No CP2+ until Phase 1 is accepted.
+
+Build order:
+1. Terrain foundation
 2. Road corridor
 3. Terrain freeze
-4. Village foundations
-5. Houses
-6. Roadside details
-7. Vegetation
-8. Trail entrance
-9. CP1
-10. Visual QC
+4. Village foundations / houses
+5. Roadside / drainage
+6. Vegetation / depth
+7. Trail entrance
+8. CP1
+9. Lighting / ambience
+10. Mobile/static QC
+11. User runtime visual QC
 
-Do not build CP2+ before Phase 1 approval.
-
-## Visual direction
-Natural, grounded, believable Indonesian mountain foothill environment.
-Avoid obby design, floating slabs, dome/ball terrain, random houses in empty fields, simplistic ball trees, and arcade/cartoon treatment.
+## Current candidate
+- Baseline donor: v6.4 Phase 1
+- New pass: v6.5 visual depth / premium foothill pass
+- New pass is visual-only after terrain freeze; it does not call Terrain Fill APIs.
+- Adds road shoulder/drain detail, utility line, Indonesian village cues, denser non-spherical tropical vegetation, trail-edge detail, and clearer CP1 arrival.
+- Existing checkpoint datastore name is preserved for compatibility.
 
 ## Publishing gate
-The registry entry remains disabled until the authoritative Mount BBYA source and generated build target are verified.
+Publishing remains disabled for this candidate.
 
-Required publish sequence:
-1. Verify Universe ID `4187755690`.
-2. Verify Place ID `11832985967`.
-3. Verify publisher target.
-4. Verify generated RBXLX target.
-5. Verify source commit.
-6. Publish.
-7. Verify Roblox receipt/version.
-8. Only then claim LIVE.
+Required sequence:
+1. Exact target verification
+2. Static/build QC
+3. Generated RBXLX artifact verification
+4. User visual/runtime approval
+5. Publish to Universe `4187755690` / Place `11832985967`
+6. Verify Roblox receipt/version
+7. Runtime verify
+8. Only then claim LIVE
 
 Merge != LIVE.
