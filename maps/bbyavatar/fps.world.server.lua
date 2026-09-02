@@ -1,15 +1,10 @@
--- BBYAVATAR FPS prototype world v0.2
+-- BBYAVATAR FPS world v0.3.0 — MAP FIRST / fail-safe urban battlefield
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local Teams = game:GetService("Teams")
 
-local function clearWorld()
-    for _, child in ipairs(Workspace:GetChildren()) do
-        if not child:IsA("Terrain") and not child:IsA("Camera") then
-            child:Destroy()
-        end
-    end
-end
+local BUILD = "FPS-PROTOTYPE-0.3.0"
+local MAP_NAME = "FPS_URBAN_BLOCK"
 
 local function part(name, size, cf, color, material, parent, collide)
     local p = Instance.new("Part")
@@ -19,6 +14,7 @@ local function part(name, size, cf, color, material, parent, collide)
     p.Anchored = true
     p.CanCollide = collide ~= false
     p.CanTouch = collide ~= false
+    p.CanQuery = true
     p.TopSurface = Enum.SurfaceType.Smooth
     p.BottomSurface = Enum.SurfaceType.Smooth
     p.Color = color or Color3.fromRGB(90,94,100)
@@ -36,270 +32,200 @@ local function team(name, color)
     return t
 end
 
-local function spawn(name, cf, brickColor, teamColor)
+local function spawn(name, position, teamColor, parent)
     local s = Instance.new("SpawnLocation")
     s.Name = name
-    s.Size = Vector3.new(12,1,12)
-    s.CFrame = cf
+    s.Size = Vector3.new(14,1,14)
+    s.Position = position
     s.Anchored = true
     s.Neutral = false
     s.TeamColor = teamColor
-    s.BrickColor = brickColor
+    s.BrickColor = teamColor
     s.Material = Enum.Material.Metal
-    s.Transparency = 0.22
-    s.Parent = Workspace
+    s.Transparency = 0.1
+    s.CanCollide = true
+    s.Parent = parent or Workspace
     return s
 end
 
-local function sign(name, cf, label, color, parent)
-    local plate = part(name,Vector3.new(0.8,7,22),cf,Color3.fromRGB(28,31,36),Enum.Material.Metal,parent,true)
-    local gui = Instance.new("SurfaceGui")
-    gui.Face = Enum.NormalId.Right
-    gui.LightInfluence = 0
-    gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-    gui.PixelsPerStud = 28
-    gui.Parent = plate
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.fromScale(1,1)
-    text.BackgroundTransparency = 1
-    text.Text = label
-    text.TextColor3 = color
-    text.Font = Enum.Font.GothamBlack
-    text.TextScaled = true
-    text.Parent = gui
-    return plate
-end
-
-local function lightStrip(name, size, cf, color, parent)
-    local p = part(name,size,cf,color,Enum.Material.Neon,parent,false)
-    p.CastShadow = false
-    return p
-end
-
-clearWorld()
-Workspace.FallenPartsDestroyHeight = -120
-pcall(function() Workspace.StreamingEnabled = true end)
-pcall(function() Lighting.Technology = Enum.Technology.Future end)
-
-Lighting.Brightness = 2.15
-Lighting.ClockTime = 16.6
-Lighting.EnvironmentDiffuseScale = 0.58
-Lighting.EnvironmentSpecularScale = 0.78
-Lighting.GlobalShadows = true
-Lighting.OutdoorAmbient = Color3.fromRGB(108,114,124)
-Lighting.Ambient = Color3.fromRGB(53,58,67)
-
-for _, effect in ipairs(Lighting:GetChildren()) do
-    if effect:IsA("Atmosphere") or effect:IsA("ColorCorrectionEffect") or effect:IsA("BloomEffect") or effect:IsA("SunRaysEffect") then
-        effect:Destroy()
+local function safeSection(label, fn)
+    local ok, err = pcall(fn)
+    if not ok then
+        warn("[ZONA PERANG MAP] "..label.." failed: "..tostring(err))
     end
 end
 
-local atmosphere = Instance.new("Atmosphere")
-atmosphere.Density = 0.27
-atmosphere.Offset = 0.18
-atmosphere.Color = Color3.fromRGB(192,199,209)
-atmosphere.Decay = Color3.fromRGB(88,98,112)
-atmosphere.Glare = 0.11
-atmosphere.Haze = 1.15
-atmosphere.Parent = Lighting
+-- Never wipe the whole Workspace. Only replace our generated battlefield.
+local oldMap = Workspace:FindFirstChild(MAP_NAME)
+if oldMap then oldMap:Destroy() end
+for _, name in ipairs({"AlphaSpawn1","AlphaSpawn2","BravoSpawn1","BravoSpawn2","BBYAVATAR_FPS_BUILD"}) do
+    local old = Workspace:FindFirstChild(name)
+    if old then old:Destroy() end
+end
 
-local cc = Instance.new("ColorCorrectionEffect")
-cc.Brightness = -0.025
-cc.Contrast = 0.105
-cc.Saturation = -0.1
-cc.Parent = Lighting
+Workspace.FallenPartsDestroyHeight = -150
 
-local bloom = Instance.new("BloomEffect")
-bloom.Intensity = 0.22
-bloom.Size = 28
-bloom.Threshold = 1.1
-bloom.Parent = Lighting
-
-local rays = Instance.new("SunRaysEffect")
-rays.Intensity = 0.035
-rays.Spread = 0.65
-rays.Parent = Lighting
-
-local alpha = team("ALPHA",BrickColor.new("Bright blue"))
-local bravo = team("BRAVO",BrickColor.new("Bright red"))
+local alpha = team("ALPHA", BrickColor.new("Bright blue"))
+local bravo = team("BRAVO", BrickColor.new("Bright red"))
 
 local map = Instance.new("Folder")
-map.Name = "FPS_URBAN_BLOCK"
+map.Name = MAP_NAME
 map.Parent = Workspace
 
-local C_CONCRETE = Color3.fromRGB(72,76,82)
-local C_DARK = Color3.fromRGB(41,44,49)
-local C_METAL = Color3.fromRGB(78,83,90)
-local C_ASPHALT = Color3.fromRGB(47,49,52)
-local C_ALPHA = Color3.fromRGB(70,158,255)
-local C_BRAVO = Color3.fromRGB(245,85,76)
+local C_GROUND = Color3.fromRGB(60,62,66)
+local C_ROAD = Color3.fromRGB(42,44,48)
+local C_CONCRETE = Color3.fromRGB(93,96,102)
+local C_DARK = Color3.fromRGB(39,42,47)
+local C_METAL = Color3.fromRGB(73,78,86)
+local C_RUST = Color3.fromRGB(111,72,57)
+local C_BLUE = Color3.fromRGB(72,142,210)
+local C_RED = Color3.fromRGB(194,78,70)
+local C_GLASS = Color3.fromRGB(122,151,172)
+local C_YELLOW = Color3.fromRGB(202,178,92)
 
-part("Ground",Vector3.new(440,4,320),CFrame.new(0,-2,0),Color3.fromRGB(55,57,60),Enum.Material.Asphalt,map,true)
+-- CRITICAL FAIL-SAFE FOUNDATION: these are built before any decorative section.
+part("Ground", Vector3.new(520,8,420), CFrame.new(0,-4,0), C_GROUND, Enum.Material.Concrete, map, true)
+part("NorthWall", Vector3.new(520,34,6), CFrame.new(0,13,-210), C_DARK, Enum.Material.Concrete, map, true)
+part("SouthWall", Vector3.new(520,34,6), CFrame.new(0,13,210), C_DARK, Enum.Material.Concrete, map, true)
+part("WestWall", Vector3.new(6,34,420), CFrame.new(-260,13,0), C_DARK, Enum.Material.Concrete, map, true)
+part("EastWall", Vector3.new(6,34,420), CFrame.new(260,13,0), C_DARK, Enum.Material.Concrete, map, true)
 
--- perimeter and skyline shell
-part("NorthWall",Vector3.new(440,30,4),CFrame.new(0,13,-160),C_DARK,Enum.Material.Concrete,map,true)
-part("SouthWall",Vector3.new(440,30,4),CFrame.new(0,13,160),C_DARK,Enum.Material.Concrete,map,true)
-part("WestWall",Vector3.new(4,30,320),CFrame.new(-220,13,0),C_DARK,Enum.Material.Concrete,map,true)
-part("EastWall",Vector3.new(4,30,320),CFrame.new(220,13,0),C_DARK,Enum.Material.Concrete,map,true)
+spawn("AlphaSpawn1", Vector3.new(-220,0.6,-58), alpha.TeamColor, Workspace)
+spawn("AlphaSpawn2", Vector3.new(-220,0.6,58), alpha.TeamColor, Workspace)
+spawn("BravoSpawn1", Vector3.new(220,0.6,-58), bravo.TeamColor, Workspace)
+spawn("BravoSpawn2", Vector3.new(220,0.6,58), bravo.TeamColor, Workspace)
 
--- roads and lane network
-for _, z in ipairs({-92,0,92}) do
-    part("Road_"..z,Vector3.new(430,0.5,42),CFrame.new(0,0.05,z),C_ASPHALT,Enum.Material.Asphalt,map,true)
-    for x=-190,190,24 do
-        part("RoadMark",Vector3.new(10,0.05,0.65),CFrame.new(x,0.34,z),Color3.fromRGB(184,184,170),Enum.Material.SmoothPlastic,map,false)
+part("AlphaSpawnDeck", Vector3.new(54,1,150), CFrame.new(-220,0.15,0), Color3.fromRGB(49,67,84), Enum.Material.Metal, map, true)
+part("BravoSpawnDeck", Vector3.new(54,1,150), CFrame.new(220,0.15,0), Color3.fromRGB(82,52,52), Enum.Material.Metal, map, true)
+part("AlphaSpawnShield", Vector3.new(8,18,150), CFrame.new(-190,9,0), Color3.fromRGB(48,61,75), Enum.Material.Concrete, map, true)
+part("BravoSpawnShield", Vector3.new(8,18,150), CFrame.new(190,9,0), Color3.fromRGB(75,48,48), Enum.Material.Concrete, map, true)
+
+-- Main road grid: immediately gives the player a visible horizon and playable lanes.
+part("MainRoadEW", Vector3.new(460,0.5,56), CFrame.new(0,0.3,0), C_ROAD, Enum.Material.Concrete, map, true)
+part("MainRoadNS", Vector3.new(62,0.52,372), CFrame.new(0,0.32,0), C_ROAD, Enum.Material.Concrete, map, true)
+part("NorthRoad", Vector3.new(460,0.48,40), CFrame.new(0,0.31,-132), C_ROAD, Enum.Material.Concrete, map, true)
+part("SouthRoad", Vector3.new(460,0.48,40), CFrame.new(0,0.31,132), C_ROAD, Enum.Material.Concrete, map, true)
+part("WestLane", Vector3.new(44,0.5,360), CFrame.new(-128,0.32,0), C_ROAD, Enum.Material.Concrete, map, true)
+part("EastLane", Vector3.new(44,0.5,360), CFrame.new(128,0.32,0), C_ROAD, Enum.Material.Concrete, map, true)
+
+safeSection("road markings", function()
+    for x=-210,210,28 do
+        part("RoadMarkEW", Vector3.new(12,0.08,0.8), CFrame.new(x,0.62,0), C_YELLOW, Enum.Material.SmoothPlastic, map, false)
     end
-end
-for _, x in ipairs({-132,0,132}) do
-    part("Lane_"..x,Vector3.new(42,0.55,310),CFrame.new(x,0.08,0),Color3.fromRGB(48,50,53),Enum.Material.Asphalt,map,true)
-    for z=-136,136,24 do
-        part("LaneMark",Vector3.new(0.65,0.05,10),CFrame.new(x,0.37,z),Color3.fromRGB(184,184,170),Enum.Material.SmoothPlastic,map,false)
+    for z=-176,176,28 do
+        part("RoadMarkNS", Vector3.new(0.8,0.08,12), CFrame.new(0,0.64,z), C_YELLOW, Enum.Material.SmoothPlastic, map, false)
     end
-end
+end)
 
--- sidewalks around center
-for _, z in ipairs({-54,54}) do
-    part("WarehouseSidewalk",Vector3.new(128,0.7,7),CFrame.new(0,0.38,z),Color3.fromRGB(94,96,99),Enum.Material.Concrete,map,true)
-end
-for _, x in ipairs({-64,64}) do
-    part("WarehouseSidewalk",Vector3.new(7,0.7,108),CFrame.new(x,0.38,0),Color3.fromRGB(94,96,99),Enum.Material.Concrete,map,true)
-end
+-- Central warehouse compound with real openings on all four sides.
+part("WarehouseFloor", Vector3.new(124,1,104), CFrame.new(0,0.65,0), Color3.fromRGB(76,79,84), Enum.Material.Concrete, map, true)
+part("WarehouseWallN_L", Vector3.new(48,24,5), CFrame.new(-38,12,-52), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallN_R", Vector3.new(48,24,5), CFrame.new(38,12,-52), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallS_L", Vector3.new(48,24,5), CFrame.new(-38,12,52), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallS_R", Vector3.new(48,24,5), CFrame.new(38,12,52), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallW_N", Vector3.new(5,24,38), CFrame.new(-62,12,-33), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallW_S", Vector3.new(5,24,38), CFrame.new(-62,12,33), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallE_N", Vector3.new(5,24,38), CFrame.new(62,12,-33), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseWallE_S", Vector3.new(5,24,38), CFrame.new(62,12,33), C_METAL, Enum.Material.Metal, map, true)
+part("WarehouseRoofL", Vector3.new(62,1.2,104), CFrame.new(-31,24.6,0), C_DARK, Enum.Material.Metal, map, true)
+part("WarehouseRoofR", Vector3.new(62,1.2,104), CFrame.new(31,24.6,0), C_DARK, Enum.Material.Metal, map, true)
+part("WarehouseBridge", Vector3.new(26,1.2,18), CFrame.new(0,10,0), C_METAL, Enum.Material.Metal, map, true)
 
--- central warehouse: four attack lanes
-part("WarehouseFloor",Vector3.new(112,1,92),CFrame.new(0,0.5,0),Color3.fromRGB(69,72,77),Enum.Material.Concrete,map,true)
-local wallColor = Color3.fromRGB(80,85,92)
-for _, z in ipairs({-46,46}) do
-    part("WarehouseWall",Vector3.new(43,22,4),CFrame.new(-34.5,11,z),wallColor,Enum.Material.Metal,map,true)
-    part("WarehouseWall",Vector3.new(43,22,4),CFrame.new(34.5,11,z),wallColor,Enum.Material.Metal,map,true)
-    part("WarehouseHeader",Vector3.new(26,7,4),CFrame.new(0,18.5,z),wallColor,Enum.Material.Metal,map,true)
-end
-for _, x in ipairs({-56,56}) do
-    part("WarehouseWall",Vector3.new(4,22,34),CFrame.new(x,11,-29),wallColor,Enum.Material.Metal,map,true)
-    part("WarehouseWall",Vector3.new(4,22,34),CFrame.new(x,11,29),wallColor,Enum.Material.Metal,map,true)
-    part("WarehouseHeader",Vector3.new(4,7,24),CFrame.new(x,18.5,0),wallColor,Enum.Material.Metal,map,true)
-end
-part("WarehouseRoofA",Vector3.new(56,1,92),CFrame.new(-28,22.5,0),Color3.fromRGB(51,55,61),Enum.Material.Metal,map,true)
-part("WarehouseRoofB",Vector3.new(56,1,92),CFrame.new(28,22.5,0),Color3.fromRGB(51,55,61),Enum.Material.Metal,map,true)
-lightStrip("WarehouseRoofStrip",Vector3.new(1,0.2,80),CFrame.new(0,22.0,0),Color3.fromRGB(198,208,222),map)
+-- Interior cover makes the middle lane usable instead of a flat box.
+part("WarehouseCover_1", Vector3.new(18,6,6), CFrame.new(-28,3,-18), C_CONCRETE, Enum.Material.Concrete, map, true)
+part("WarehouseCover_2", Vector3.new(18,6,6), CFrame.new(28,3,18), C_CONCRETE, Enum.Material.Concrete, map, true)
+part("WarehouseCover_3", Vector3.new(7,6,18), CFrame.new(-16,3,24), C_CONCRETE, Enum.Material.Concrete, map, true)
+part("WarehouseCover_4", Vector3.new(7,6,18), CFrame.new(16,3,-24), C_CONCRETE, Enum.Material.Concrete, map, true)
 
--- warehouse interior pillars and cover
-for _, x in ipairs({-36,0,36}) do
-    for _, z in ipairs({-26,26}) do
-        part("WarehousePillar",Vector3.new(3,20,3),CFrame.new(x,10,z),C_METAL,Enum.Material.Metal,map,true)
-    end
-end
-for _, data in ipairs({
-    {-26,3,-12,18,6,5},{26,3,14,18,6,5},{-8,3,28,10,6,14},{10,3,-28,10,6,14}
-}) do
-    part("WarehouseCover",Vector3.new(data[4],data[5],data[6]),CFrame.new(data[1],data[2],data[3]),Color3.fromRGB(90,95,102),Enum.Material.Metal,map,true)
-end
-
--- exterior cover rows
-local coverPositions = {
-    Vector3.new(-170,3,-112),Vector3.new(-145,3,-72),Vector3.new(-172,3,42),Vector3.new(-150,3,108),
-    Vector3.new(170,3,-112),Vector3.new(145,3,-72),Vector3.new(172,3,42),Vector3.new(150,3,108),
-    Vector3.new(-82,3,-108),Vector3.new(82,3,-108),Vector3.new(-84,3,108),Vector3.new(84,3,108),
-    Vector3.new(-28,3,-16),Vector3.new(28,3,18),Vector3.new(-24,3,26),Vector3.new(26,3,-30),
+-- Four urban blocks around center.
+local blocks = {
+    {-118,-96,64,30,54}, {-118,96,58,24,58},
+    {118,-96,60,27,58}, {118,96,68,32,52},
+    {-198,-144,54,22,48}, {-198,144,62,29,44},
+    {198,-144,58,25,44}, {198,144,54,22,48},
 }
-for i,pos in ipairs(coverPositions) do
-    local long = i%3 == 0
-    part("Cover_"..i,long and Vector3.new(20,6,5) or Vector3.new(9,6,12),CFrame.new(pos),Color3.fromRGB(91,96,103),Enum.Material.Metal,map,true)
+for i,b in ipairs(blocks) do
+    local x,z,w,h,d = b[1],b[2],b[3],b[4],b[5]
+    part("Office_"..i, Vector3.new(w,h,d), CFrame.new(x,h/2,z), i%2==0 and Color3.fromRGB(74,79,87) or Color3.fromRGB(82,86,92), Enum.Material.Concrete, map, true)
+    part("OfficeRoof_"..i, Vector3.new(w+4,1,d+4), CFrame.new(x,h+0.5,z), C_DARK, Enum.Material.Metal, map, true)
+    local glassX = x + (x < 0 and w/2+0.06 or -w/2-0.06)
+    for dz=-d/3,d/3,d/3 do
+        local win = part("OfficeWindow_"..i, Vector3.new(0.12,5,8), CFrame.new(glassX,math.min(11,h/2),z+dz), C_GLASS, Enum.Material.Neon, map, false)
+        win.Transparency = 0.35
+    end
 end
 
--- modular barricades for spawn safety and lane breaks
-local function barricade(x,z,rot,color)
-    local cf = CFrame.new(x,2.2,z)*CFrame.Angles(0,math.rad(rot or 0),0)
-    part("Barricade",Vector3.new(12,4.4,1.4),cf,color or Color3.fromRGB(88,91,96),Enum.Material.Metal,map,true)
-    lightStrip("BarricadeTrim",Vector3.new(10,0.18,1.5),cf*CFrame.new(0,1.2,0),Color3.fromRGB(150,158,169),map)
-end
-for _, z in ipairs({-72,-18,36,92}) do barricade(-182,z,0,C_ALPHA) end
-for _, z in ipairs({-92,-36,18,72}) do barricade(182,z,0,C_BRAVO) end
-for _, x in ipairs({-112,-72,72,112}) do barricade(x,-132,90,nil) end
-for _, x in ipairs({-112,-72,72,112}) do barricade(x,132,90,nil) end
-
--- container stacks
-local function container(x,y,z,rot,color)
-    local c = part("Container",Vector3.new(28,8,10),CFrame.new(x,y,z)*CFrame.Angles(0,math.rad(rot or 0),0),color,Enum.Material.Metal,map,true)
+-- Container yards and hard cover.
+local function container(name, x,y,z,rot,color)
+    local cf = CFrame.new(x,y,z) * CFrame.Angles(0,math.rad(rot or 0),0)
+    local c = part(name, Vector3.new(30,8,11), cf, color, Enum.Material.Metal, map, true)
     for k=-1,1 do
-        part("ContainerRib",Vector3.new(0.35,7.2,9.5),c.CFrame*CFrame.new(k*8,0,0),Color3.fromRGB(48,52,58),Enum.Material.Metal,map,false)
+        part("ContainerRib", Vector3.new(0.35,7.4,10.2), cf*CFrame.new(k*9,0,0), C_DARK, Enum.Material.Metal, map, false)
     end
     return c
 end
-container(-105,4,-62,0,Color3.fromRGB(88,105,116))
-container(-105,12,-62,0,Color3.fromRGB(116,83,67))
-container(108,4,64,0,Color3.fromRGB(101,108,77))
-container(108,12,64,0,Color3.fromRGB(77,92,111))
-container(-92,4,72,90,Color3.fromRGB(105,79,77))
-container(92,4,-72,90,Color3.fromRGB(78,96,102))
+container("Container_A1",-92,4,-150,0,Color3.fromRGB(83,104,116))
+container("Container_A2",-92,12,-150,0,C_RUST)
+container("Container_A3",-148,4,70,90,Color3.fromRGB(88,98,75))
+container("Container_B1",92,4,150,0,Color3.fromRGB(99,87,72))
+container("Container_B2",92,12,150,0,Color3.fromRGB(74,90,108))
+container("Container_B3",148,4,-70,90,Color3.fromRGB(105,75,72))
 
--- elevated flank catwalks with rails
-for _, x in ipairs({-188,188}) do
-    part("Catwalk",Vector3.new(16,1,170),CFrame.new(x,14,0),Color3.fromRGB(70,74,80),Enum.Material.DiamondPlate,map,true)
-    for _, railX in ipairs({x-7.4,x+7.4}) do
-        part("CatwalkRail",Vector3.new(0.4,3,170),CFrame.new(railX,15.5,0),Color3.fromRGB(98,103,111),Enum.Material.Metal,map,false)
-    end
-    for _, z in ipairs({-76,76}) do
-        part("Ramp",Vector3.new(16,1,68),CFrame.new(x,7,z)*CFrame.Angles(math.rad(z>0 and -12 or 12),0,0),Color3.fromRGB(70,74,80),Enum.Material.Metal,map,true)
-    end
+local coverPositions = {
+    {-170,-90,0},{-165,-20,90},{-168,84,0},{-142,126,90},
+    {170,90,0},{165,20,90},{168,-84,0},{142,-126,90},
+    {-82,-78,0},{82,78,0},{-82,78,0},{82,-78,0},
+    {-36,104,90},{36,-104,90},{-36,-104,90},{36,104,90},
+}
+for i,v in ipairs(coverPositions) do
+    local cf = CFrame.new(v[1],2.5,v[2]) * CFrame.Angles(0,math.rad(v[3]),0)
+    part("Cover_"..i, Vector3.new(14,5,4), cf, C_CONCRETE, Enum.Material.Concrete, map, true)
 end
 
--- office blocks create occlusion and long-range lanes
-for _, x in ipairs({-102,102}) do
-    for _, z in ipairs({-118,118}) do
-        part("Office",Vector3.new(54,18,32),CFrame.new(x,9,z),Color3.fromRGB(73,77,84),Enum.Material.Concrete,map,true)
-        part("OfficeRoof",Vector3.new(58,1,36),CFrame.new(x,18.5,z),Color3.fromRGB(42,45,50),Enum.Material.Metal,map,true)
-        for _, dz in ipairs({-10,0,10}) do
-            lightStrip("OfficeWindow",Vector3.new(0.15,5,5),CFrame.new(x + (x<0 and 27.08 or -27.08),10,z+dz),Color3.fromRGB(125,156,177),map)
+-- Side catwalks add recognizable vertical landmarks.
+part("Catwalk_W", Vector3.new(14,1,118), CFrame.new(-172,12,0), C_METAL, Enum.Material.Metal, map, true)
+part("Catwalk_E", Vector3.new(14,1,118), CFrame.new(172,12,0), C_METAL, Enum.Material.Metal, map, true)
+part("CatwalkRamp_W1", Vector3.new(14,1,54), CFrame.new(-172,6,-82)*CFrame.Angles(math.rad(12),0,0), C_METAL, Enum.Material.Metal, map, true)
+part("CatwalkRamp_W2", Vector3.new(14,1,54), CFrame.new(-172,6,82)*CFrame.Angles(math.rad(-12),0,0), C_METAL, Enum.Material.Metal, map, true)
+part("CatwalkRamp_E1", Vector3.new(14,1,54), CFrame.new(172,6,-82)*CFrame.Angles(math.rad(12),0,0), C_METAL, Enum.Material.Metal, map, true)
+part("CatwalkRamp_E2", Vector3.new(14,1,54), CFrame.new(172,6,82)*CFrame.Angles(math.rad(-12),0,0), C_METAL, Enum.Material.Metal, map, true)
+
+-- Spawn-side landmarks and team color cues.
+part("AlphaTower", Vector3.new(20,34,20), CFrame.new(-226,17,-150), Color3.fromRGB(52,67,82), Enum.Material.Concrete, map, true)
+part("BravoTower", Vector3.new(20,34,20), CFrame.new(226,17,150), Color3.fromRGB(82,53,53), Enum.Material.Concrete, map, true)
+part("AlphaBeacon", Vector3.new(4,18,4), CFrame.new(-226,43,-150), C_BLUE, Enum.Material.Neon, map, false)
+part("BravoBeacon", Vector3.new(4,18,4), CFrame.new(226,43,150), C_RED, Enum.Material.Neon, map, false)
+
+safeSection("lighting", function()
+    Lighting.Brightness = 2.1
+    Lighting.ClockTime = 15.6
+    Lighting.GlobalShadows = true
+    Lighting.Ambient = Color3.fromRGB(75,80,88)
+    Lighting.OutdoorAmbient = Color3.fromRGB(118,126,138)
+    Lighting.EnvironmentDiffuseScale = 0.65
+    Lighting.EnvironmentSpecularScale = 0.72
+    for _, effect in ipairs(Lighting:GetChildren()) do
+        if effect:IsA("Atmosphere") or effect:IsA("ColorCorrectionEffect") or effect:IsA("BloomEffect") then
+            effect:Destroy()
         end
     end
-end
-
--- team spawn staging structures
-part("AlphaSpawnWall",Vector3.new(7,16,104),CFrame.new(-207,8,0),Color3.fromRGB(48,62,78),Enum.Material.Concrete,map,true)
-part("BravoSpawnWall",Vector3.new(7,16,104),CFrame.new(207,8,0),Color3.fromRGB(77,49,49),Enum.Material.Concrete,map,true)
-lightStrip("AlphaBaseLight",Vector3.new(0.3,8,84),CFrame.new(-203.3,9,0),C_ALPHA,map)
-lightStrip("BravoBaseLight",Vector3.new(0.3,8,84),CFrame.new(203.3,9,0),C_BRAVO,map)
-sign("AlphaSign",CFrame.new(-210,7,-60),"ALPHA",C_ALPHA,map)
-sign("BravoSign",CFrame.new(210,7,60)*CFrame.Angles(0,math.rad(180),0),"BRAVO",C_BRAVO,map)
-
--- utility props
-for _, data in ipairs({
-    {-120,-34},{-120,38},{120,-38},{120,34},{-64,-122},{64,122},{-64,122},{64,-122}
-}) do
-    local x,z = data[1],data[2]
-    part("UtilityCrate",Vector3.new(6,4,6),CFrame.new(x,2,z),Color3.fromRGB(79,84,91),Enum.Material.Metal,map,true)
-    part("UtilityCrate",Vector3.new(5.2,3.4,5.2),CFrame.new(x,5.7,z),Color3.fromRGB(88,94,102),Enum.Material.Metal,map,true)
-end
-
--- lamps
-for _, x in ipairs({-180,-60,60,180}) do
-    for _, z in ipairs({-135,135}) do
-        local pole = part("LampPole",Vector3.new(1,18,1),CFrame.new(x,9,z),Color3.fromRGB(38,40,45),Enum.Material.Metal,map,true)
-        local lamp = Instance.new("PointLight")
-        lamp.Brightness = 1.2
-        lamp.Range = 34
-        lamp.Shadows = true
-        lamp.Color = Color3.fromRGB(219,226,235)
-        lamp.Parent = pole
-    end
-end
-for _, x in ipairs({-40,0,40}) do
-    local fixture = lightStrip("WarehouseLight",Vector3.new(12,0.25,1),CFrame.new(x,20.5,0),Color3.fromRGB(215,223,235),map)
-    local lamp = Instance.new("PointLight")
-    lamp.Brightness = 0.9
-    lamp.Range = 28
-    lamp.Shadows = true
-    lamp.Parent = fixture
-end
-
-spawn("AlphaSpawn1",CFrame.new(-194,1.2,-45),BrickColor.new("Bright blue"),alpha.TeamColor)
-spawn("AlphaSpawn2",CFrame.new(-194,1.2,45),BrickColor.new("Bright blue"),alpha.TeamColor)
-spawn("BravoSpawn1",CFrame.new(194,1.2,-45),BrickColor.new("Bright red"),bravo.TeamColor)
-spawn("BravoSpawn2",CFrame.new(194,1.2,45),BrickColor.new("Bright red"),bravo.TeamColor)
+    local atmosphere = Instance.new("Atmosphere")
+    atmosphere.Density = 0.22
+    atmosphere.Offset = 0.12
+    atmosphere.Color = Color3.fromRGB(198,205,214)
+    atmosphere.Decay = Color3.fromRGB(105,115,128)
+    atmosphere.Haze = 0.8
+    atmosphere.Parent = Lighting
+    local cc = Instance.new("ColorCorrectionEffect")
+    cc.Contrast = 0.08
+    cc.Saturation = -0.08
+    cc.Brightness = -0.01
+    cc.Parent = Lighting
+end)
 
 local marker = Instance.new("StringValue")
 marker.Name = "BBYAVATAR_FPS_BUILD"
-marker.Value = "FPS-PROTOTYPE-0.2"
+marker.Value = BUILD
 marker.Parent = Workspace
 
-print("[BBYAVATAR FPS] Urban Block world v0.2 ready")
+print("[ZONA PERANG MAP] "..BUILD.." ready — ground + urban battlefield guaranteed")
