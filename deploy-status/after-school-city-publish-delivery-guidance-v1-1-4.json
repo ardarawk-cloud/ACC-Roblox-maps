@@ -13,7 +13,7 @@
   "rojoVersion": "7.7.0",
   "placeBytes": 185819,
   "placeSha256": "eab0830e528234950236b3c4b81a73f8b1d41817656877024335ca7d08e66cac",
-  "runId": "33670320711",
-  "publishedAt": "2026-09-02T18:57:01Z",
+  "runId": "33670492618",
+  "publishedAt": "2026-09-02T18:58:45Z",
   "note": "V1.1.4 exact QC-locked Delivery Guidance hotfix. City Delivery is presented as Package Delivery / Antar Paket with a local destination marker, mailbox label, and live distance guidance. Existing server delivery target/reward authority remains unchanged. Skate, Pool, persistence, music, map and primary UI remain unchanged."
 }
