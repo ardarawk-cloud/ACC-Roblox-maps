@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — ACTIVE REAR MALL v1
+-- BBYA SOCIAL HUB — ACTIVE REAR MALL v2
 -- Four-floor walkable mall behind Funkot Club: atrium, active tenants, food court, arcade,
 -- cinema, escalators, elevators, directories, seating, automatic entry and internal wayfinding.
+-- OWNER LOCK: every occupied Mall level has 15 studs of clear vertical space between 1-stud slabs.
 local Workspace=game:GetService("Workspace")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local TweenService=game:GetService("TweenService")
@@ -11,11 +12,13 @@ if not root then return end
 local old=root:FindFirstChild("BBYAMall")
 if old then old:Destroy() end
 local mall=Instance.new("Model");mall.Name="BBYAMall";mall.Parent=root
-mall:SetAttribute("Pass","ACTIVE_MALL_V1")
+mall:SetAttribute("Pass","ACTIVE_MALL_V2_15_CLEAR")
 mall:SetAttribute("TeleportKey","Mall")
 mall:SetAttribute("Location","BEHIND_FUNKOT")
 mall:SetAttribute("Floors",4)
 mall:SetAttribute("TenantCount",18)
+mall:SetAttribute("FloorClearHeightStuds",15)
+mall:SetAttribute("FloorCenterSpacingStuds",16)
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -78,10 +81,10 @@ end
 for _,z in ipairs({254,266,278}) do neon("ConnectorLight"..z,Vector3.new(20,.12,.18),CFrame.new(0,4.4,z),C.cyan,connector) end
 sign(connector,"ConnectorSign","BBYA MALL  →",Vector3.new(20,3,.4),CFrame.new(0,6,282)*CFrame.Angles(0,math.rad(180),0),C.white,C.black)
 
--- Overall footprint and floor heights.
+-- Overall footprint and floor heights. 1-stud slabs + 16-stud center spacing = 15 studs clear.
 local CX,CZ=0,365
 local W,D=190,156
-local LEVELS={1,15,29,43}
+local LEVELS={1,17,33,49}
 local slabThickness=1
 local atriumW,atriumD=60,54
 
@@ -108,22 +111,22 @@ local function floorBands(y,index)
 end
 for i,y in ipairs(LEVELS) do floorBands(y,i) end
 
--- Exterior shell: warm concrete side/rear walls, premium glass front, vertical fins and roof frame.
-part("WestExterior",Vector3.new(2,58,D),CFrame.new(-W/2,29,CZ),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
-part("EastExterior",Vector3.new(2,58,D),CFrame.new(W/2,29,CZ),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
-part("RearExterior",Vector3.new(W,58,2),CFrame.new(0,29,CZ+D/2),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
+-- Exterior shell follows the new 15-stud-clear stack through the L4 roof.
+part("WestExterior",Vector3.new(2,65,D),CFrame.new(-W/2,32.5,CZ),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
+part("EastExterior",Vector3.new(2,65,D),CFrame.new(W/2,32.5,CZ),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
+part("RearExterior",Vector3.new(W,65,2),CFrame.new(0,32.5,CZ+D/2),Color3.fromRGB(203,201,194),Enum.Material.Concrete,true)
 for _,x in ipairs({-82,-66,-50,-34,-18,18,34,50,66,82}) do
- part("FrontFin"..x,Vector3.new(1.2,58,2.2),CFrame.new(x,29,CZ-D/2),C.dark,Enum.Material.Metal,true)
+ part("FrontFin"..x,Vector3.new(1.2,65,2.2),CFrame.new(x,32.5,CZ-D/2),C.dark,Enum.Material.Metal,true)
 end
-glass("FrontGlassLeft",Vector3.new(82,54,1),CFrame.new(-54,29,CZ-D/2+.3),mall,.27)
-glass("FrontGlassRight",Vector3.new(82,54,1),CFrame.new(54,29,CZ-D/2+.3),mall,.27)
-part("RoofWest",Vector3.new(64,1.4,D),CFrame.new(-63,58,CZ),C.dark,Enum.Material.Metal,true)
-part("RoofEast",Vector3.new(64,1.4,D),CFrame.new(63,58,CZ),C.dark,Enum.Material.Metal,true)
-part("RoofSouth",Vector3.new(atriumW,1.4,51),CFrame.new(0,58,CZ-51.5),C.dark,Enum.Material.Metal,true)
-part("RoofNorth",Vector3.new(atriumW,1.4,51),CFrame.new(0,58,CZ+51.5),C.dark,Enum.Material.Metal,true)
+glass("FrontGlassLeft",Vector3.new(82,61,1),CFrame.new(-54,32.5,CZ-D/2+.3),mall,.27)
+glass("FrontGlassRight",Vector3.new(82,61,1),CFrame.new(54,32.5,CZ-D/2+.3),mall,.27)
+part("RoofWest",Vector3.new(64,1.4,D),CFrame.new(-63,65,CZ),C.dark,Enum.Material.Metal,true)
+part("RoofEast",Vector3.new(64,1.4,D),CFrame.new(63,65,CZ),C.dark,Enum.Material.Metal,true)
+part("RoofSouth",Vector3.new(atriumW,1.4,51),CFrame.new(0,65,CZ-51.5),C.dark,Enum.Material.Metal,true)
+part("RoofNorth",Vector3.new(atriumW,1.4,51),CFrame.new(0,65,CZ+51.5),C.dark,Enum.Material.Metal,true)
 -- Glass skylight over the atrium.
-glass("AtriumSkylight",Vector3.new(atriumW,1,atriumD),CFrame.new(0,58,CZ),mall,.4)
-for _,x in ipairs({-30,-15,0,15,30}) do neon("SkylightRib"..x,Vector3.new(.35,.25,atriumD),CFrame.new(x,57.5,CZ),C.white,mall) end
+glass("AtriumSkylight",Vector3.new(atriumW,1,atriumD),CFrame.new(0,65,CZ),mall,.4)
+for _,x in ipairs({-30,-15,0,15,30}) do neon("SkylightRib"..x,Vector3.new(.35,.25,atriumD),CFrame.new(x,64.5,CZ),C.white,mall) end
 
 -- Automatic sliding glass entrance.
 local doors=Instance.new("Model");doors.Name="AutomaticEntrance";doors.Parent=mall
@@ -145,9 +148,9 @@ trigger.Touched:Connect(function(hit)
  end)
 end)
 
-sign(mall,"MallHeroSign","BBYA MALL",Vector3.new(70,9,.8),CFrame.new(0,50,CZ-D/2-.4),C.white,C.black)
-neon("HeroUnderline",Vector3.new(66,.3,.5),CFrame.new(0,44.7,CZ-D/2-.8),C.gold,mall)
-sign(mall,"MallSubSign","SHOP • EAT • PLAY • CINEMA",Vector3.new(45,3.2,.6),CFrame.new(0,41,CZ-D/2-.5),C.gold,C.dark)
+sign(mall,"MallHeroSign","BBYA MALL",Vector3.new(70,9,.8),CFrame.new(0,58,CZ-D/2-.4),C.white,C.black)
+neon("HeroUnderline",Vector3.new(66,.3,.5),CFrame.new(0,52.7,CZ-D/2-.8),C.gold,mall)
+sign(mall,"MallSubSign","SHOP • EAT • PLAY • CINEMA",Vector3.new(45,3.2,.6),CFrame.new(0,49,CZ-D/2-.5),C.gold,C.dark)
 
 -- Atrium feature sculpture and furniture.
 local atr=Instance.new("Model");atr.Name="AtriumExperience";atr.Parent=mall
@@ -186,7 +189,7 @@ for _,t in ipairs(tenantData) do tenantById[t.id]=t end
 local function openDirectory(player,mode,data)
  mallEvent:FireClient(player,mode,data or tenantData)
 end
-for i,cf in ipairs({CFrame.new(-23,4,302),CFrame.new(23,4,302),CFrame.new(-39,18,365),CFrame.new(39,32,365)}) do
+for i,cf in ipairs({CFrame.new(-23,4,302),CFrame.new(23,4,302),CFrame.new(-39,20,365),CFrame.new(39,36,365)}) do
  local board=part("DirectoryBoard"..i,Vector3.new(11,7,.8),cf,C.dark,Enum.Material.Metal,true,mall)
  sign(mall,"DirectoryFace"..i,"DIRECTORY\nTOUCH TO EXPLORE",Vector3.new(10.2,6.2,.25),cf*CFrame.new(0,0,-.55),C.white,C.black)
  prompt(board,"OPEN","MALL DIRECTORY",0).Triggered:Connect(function(player)openDirectory(player,"directory",tenantData)end)
@@ -201,13 +204,13 @@ local function buildTenant(t)
  local depth=26
  local width=46
  part("Floor",Vector3.new(width,.35,depth),CFrame.new(cx,y+.7,t.z),Color3.fromRGB(202,199,191),Enum.Material.Concrete,true,unit)
- part("Back",Vector3.new(width,11,1),CFrame.new(cx,y+6,t.z+((t.z<CZ) and -depth/2 or depth/2)),Color3.fromRGB(235,233,226),Enum.Material.SmoothPlastic,true,unit)
- part("SideA",Vector3.new(1,11,depth),CFrame.new(cx-width/2,y+6,t.z),C.wall,Enum.Material.SmoothPlastic,true,unit)
- part("SideB",Vector3.new(1,11,depth),CFrame.new(cx+width/2,y+6,t.z),C.wall,Enum.Material.SmoothPlastic,true,unit)
+ part("Back",Vector3.new(width,13,1),CFrame.new(cx,y+7,t.z+((t.z<CZ) and -depth/2 or depth/2)),Color3.fromRGB(235,233,226),Enum.Material.SmoothPlastic,true,unit)
+ part("SideA",Vector3.new(1,13,depth),CFrame.new(cx-width/2,y+7,t.z),C.wall,Enum.Material.SmoothPlastic,true,unit)
+ part("SideB",Vector3.new(1,13,depth),CFrame.new(cx+width/2,y+7,t.z),C.wall,Enum.Material.SmoothPlastic,true,unit)
  local frontX=cx-side*width/2
- glass("StoreGlass",Vector3.new(.45,9,depth-7),CFrame.new(frontX,y+5.5,t.z),unit,.45)
- local door=glass("StoreDoor",Vector3.new(.4,8,6),CFrame.new(frontX,y+5,t.z),unit,.55);door.CanCollide=false
- local banner=sign(unit,"StoreSign",t.name,Vector3.new(.5,3.5,20),CFrame.new(frontX-side*.35,y+10.1,t.z)*CFrame.Angles(0,side>0 and math.rad(-90) or math.rad(90),0),C.white,t.color)
+ glass("StoreGlass",Vector3.new(.45,11,depth-7),CFrame.new(frontX,y+6.5,t.z),unit,.45)
+ local door=glass("StoreDoor",Vector3.new(.4,10,6),CFrame.new(frontX,y+6,t.z),unit,.55);door.CanCollide=false
+ local banner=sign(unit,"StoreSign",t.name,Vector3.new(.5,3.5,20),CFrame.new(frontX-side*.35,y+12.2,t.z)*CFrame.Angles(0,side>0 and math.rad(-90) or math.rad(90),0),C.white,t.color)
  -- fixtures
  part("Counter",Vector3.new(10,2.2,3),CFrame.new(cx-side*9,y+1.8,t.z),C.dark,Enum.Material.WoodPlanks,true,unit)
  for n,zoff in ipairs({-8,0,8}) do
@@ -225,10 +228,10 @@ for i=1,12 do buildTenant(tenantData[i]) end
 local food=Instance.new("Model");food.Name="FoodHall";food.Parent=mall
 local fy=LEVELS[3]
 part("FoodHallFloor",Vector3.new(72,.4,48),CFrame.new(-56,fy+.7,370),Color3.fromRGB(199,193,184),Enum.Material.CeramicTiles,true,food)
-sign(food,"FoodHallSign","BBYA FOOD HALL",Vector3.new(34,4,.5),CFrame.new(-56,fy+10.5,347),C.white,C.orange)
+sign(food,"FoodHallSign","BBYA FOOD HALL",Vector3.new(34,4,.5),CFrame.new(-56,fy+12,347),C.white,C.orange)
 for i,z in ipairs({352,364,376,388}) do
  local x=-82
- part("Kitchen"..i,Vector3.new(18,7,9),CFrame.new(x,fy+4.3,z),Color3.fromRGB(73,70,68),Enum.Material.Metal,true,food)
+ part("Kitchen"..i,Vector3.new(18,8,9),CFrame.new(x,fy+4.8,z),Color3.fromRGB(73,70,68),Enum.Material.Metal,true,food)
  local order=part("OrderPoint"..i,Vector3.new(2,2,2),CFrame.new(x+10,fy+2,z),({C.orange,C.green,C.red,C.cyan})[i],Enum.Material.Neon,false,food,.25)
  prompt(order,"ORDER","FOOD STALL "..i,0).Triggered:Connect(function(player)
   player:SetAttribute("BBYAFoodOrders",(player:GetAttribute("BBYAFoodOrders") or 0)+1);toast(player,"Order served • Food Hall counter "..i)
@@ -241,7 +244,7 @@ for _,x in ipairs({-65,-48,-31}) do for _,z in ipairs({360,378}) do
 local cafe=Instance.new("Model");cafe.Name="SkylineCafe";cafe.Parent=mall
 part("CafeDeck",Vector3.new(54,.4,48),CFrame.new(62,fy+.7,370),Color3.fromRGB(206,201,192),Enum.Material.WoodPlanks,true,cafe)
 part("CafeBar",Vector3.new(30,3,5),CFrame.new(70,fy+2.4,356),C.wood,Enum.Material.WoodPlanks,true,cafe)
-sign(cafe,"CafeSign","SKYLINE CAFE",Vector3.new(28,3.5,.45),CFrame.new(70,fy+9,347),C.white,C.gold)
+sign(cafe,"CafeSign","SKYLINE CAFE",Vector3.new(28,3.5,.45),CFrame.new(70,fy+11,347),C.white,C.gold)
 for _,x in ipairs({44,58,72,86}) do part("CafeTable",Vector3.new(4,.7,4),CFrame.new(x,fy+2.1,378),C.dark,Enum.Material.Metal,true,cafe);seat("CafeSeat",CFrame.new(x,fy+1.7,384)*CFrame.Angles(0,math.rad(180),0),cafe) end
 local cafeOrder=part("CafeOrder",Vector3.new(2,2,2),CFrame.new(54,fy+2,356),C.gold,Enum.Material.Neon,false,cafe,.2)
 prompt(cafeOrder,"ORDER","SKYLINE CAFE",0).Triggered:Connect(function(player)toast(player,"Coffee order accepted • Skyline Cafe")end)
@@ -255,14 +258,14 @@ for row,z in ipairs({398,410,422}) do for col,x in ipairs({-83,-70,-57,-44}) do
   local tickets=math.random(5,15);player:SetAttribute("BBYAArcadeTickets",(player:GetAttribute("BBYAArcadeTickets") or 0)+tickets);toast(player,"Pixel Arcade +"..tickets.." tickets")
  end)
 end end
-sign(arcade,"ArcadeSign","PIXEL ARCADE",Vector3.new(30,4,.45),CFrame.new(-64,fy+10,394),C.white,C.purple)
+sign(arcade,"ArcadeSign","PIXEL ARCADE",Vector3.new(30,4,.45),CFrame.new(-64,fy+12,394),C.white,C.purple)
 local kids=Instance.new("Model");kids.Name="LittleCity";kids.Parent=mall
 part("KidsFloor",Vector3.new(55,.4,42),CFrame.new(65,fy+.7,410),Color3.fromRGB(187,206,211),Enum.Material.SmoothPlastic,true,kids)
 for i,x in ipairs({45,56,67,78,89}) do
  local block=part("PlayBlock"..i,Vector3.new(8,3+i%3,8),CFrame.new(x,fy+2.2+i%3,410+((i%2==0) and 8 or -7)),({C.pink,C.cyan,C.gold,C.green,C.purple})[i],Enum.Material.SmoothPlastic,true,kids)
  block.Shape=Enum.PartType.Block
 end
-sign(kids,"KidsSign","LITTLE CITY",Vector3.new(26,4,.4),CFrame.new(65,fy+10,392),C.white,C.cyan)
+sign(kids,"KidsSign","LITTLE CITY",Vector3.new(26,4,.4),CFrame.new(65,fy+12,392),C.white,C.cyan)
 
 -- L4 cinema: lobby, concession, four theatre portals with showtime interaction.
 local cy=LEVELS[4]
@@ -270,10 +273,10 @@ local cinema=Instance.new("Model");cinema.Name="BBYACinema";cinema.Parent=mall
 part("CinemaLobby",Vector3.new(100,.4,48),CFrame.new(0,cy+.7,408),Color3.fromRGB(48,46,48),Enum.Material.Carpet,true,cinema)
 part("Concession",Vector3.new(40,4,7),CFrame.new(0,cy+2.8,392),C.dark,Enum.Material.Metal,true,cinema)
 neon("ConcessionTop",Vector3.new(38,.2,.25),CFrame.new(0,cy+5,388.4),C.red,cinema)
-sign(cinema,"CinemaHero","BBYA CINEMA",Vector3.new(48,6,.5),CFrame.new(0,cy+11,432),C.white,C.red)
+sign(cinema,"CinemaHero","BBYA CINEMA",Vector3.new(48,6,.5),CFrame.new(0,cy+12,432),C.white,C.red)
 for i,x in ipairs({-36,-12,12,36}) do
- local portal=part("Theatre"..i,Vector3.new(18,9,2),CFrame.new(x,cy+5.5,430),Color3.fromRGB(24,23,27),Enum.Material.Metal,true,cinema)
- sign(cinema,"TheatreSign"..i,"SCREEN "..i,Vector3.new(14,3,.3),CFrame.new(x,cy+8.5,428.9),C.white,C.red)
+ local portal=part("Theatre"..i,Vector3.new(18,10,2),CFrame.new(x,cy+6,430),Color3.fromRGB(24,23,27),Enum.Material.Metal,true,cinema)
+ sign(cinema,"TheatreSign"..i,"SCREEN "..i,Vector3.new(14,3,.3),CFrame.new(x,cy+10,428.9),C.white,C.red)
  prompt(portal,"SHOWTIMES","SCREEN "..i,0).Triggered:Connect(function(player)openDirectory(player,"cinema",{screen=i,title="BBYA CINEMA",shows={"NEON CITY • 19:00","MIDNIGHT RUN • 21:10","AFTER HOURS • 23:30"}})end)
 end
 
@@ -282,29 +285,29 @@ local lounge=Instance.new("Model");lounge.Name="SkyLounge";lounge.Parent=mall
 part("LoungeDeck",Vector3.new(100,.4,40),CFrame.new(0,cy+.7,322),Color3.fromRGB(65,66,71),Enum.Material.WoodPlanks,true,lounge)
 for _,x in ipairs({-38,-19,0,19,38}) do seat("LoungeSeat",CFrame.new(x,cy+1.8,322),lounge) end
 for _,x in ipairs({-45,45}) do planter("LoungePlanter"..x,CFrame.new(x,cy+1.6,310),lounge) end
-sign(lounge,"LoungeSign","SKY LOUNGE • EVENTS",Vector3.new(42,4,.4),CFrame.new(0,cy+10,302),C.white,C.blue)
+sign(lounge,"LoungeSign","SKY LOUNGE • EVENTS",Vector3.new(42,4,.4),CFrame.new(0,cy+12,302),C.white,C.blue)
 
--- Escalators: paired stair runs through all floors. One direction on each side.
+-- Escalators: paired stair runs through all floors. Upgrade 95 replaces these with the premium switchbacks.
 local escal=Instance.new("Model");escal.Name="Escalators";escal.Parent=mall
 local function stairRun(baseY,x,z,dir,name)
- for i=0,13 do
+ for i=0,15 do
   local y=baseY+1+i
-  local zz=z+dir*(i*1.35)
-  part(name.."Step"..i,Vector3.new(8,1,2.8),CFrame.new(x,y,zz),Color3.fromRGB(90,92,95),Enum.Material.Metal,true,escal)
-  neon(name.."Guide"..i,Vector3.new(.14,.12,2.4),CFrame.new(x-3.7,y+.56,zz),C.cyan,escal)
+  local zz=z+dir*(i*1.20)
+  part(name.."Step"..i,Vector3.new(8,1,2.6),CFrame.new(x,y,zz),Color3.fromRGB(90,92,95),Enum.Material.Metal,true,escal)
+  neon(name.."Guide"..i,Vector3.new(.14,.12,2.2),CFrame.new(x-3.7,y+.56,zz),C.cyan,escal)
  end
 end
 for level=1,3 do local y=LEVELS[level];stairRun(y,18,CZ-18,1,"Up"..level);stairRun(y,-18,CZ+18,-1,"Down"..level) end
 
 -- Elevator core: each floor has UP/DOWN prompts that actually move players.
 local elevator=Instance.new("Model");elevator.Name="ElevatorCore";elevator.Parent=mall
-part("ElevatorTower",Vector3.new(18,57,16),CFrame.new(78,29,CZ+55),Color3.fromRGB(48,50,54),Enum.Material.Metal,true,elevator)
+part("ElevatorTower",Vector3.new(18,65,16),CFrame.new(78,32.5,CZ+55),Color3.fromRGB(48,50,54),Enum.Material.Metal,true,elevator)
 local floorCF={}
 for i,y in ipairs(LEVELS) do
  local lobby=part("ElevatorLobby"..i,Vector3.new(16,.4,12),CFrame.new(68,y+.7,CZ+54),Color3.fromRGB(184,184,180),Enum.Material.CeramicTiles,true,elevator)
  local pad=part("ElevatorPad"..i,Vector3.new(5,.3,5),CFrame.new(68,y+1,CZ+54),C.gold,Enum.Material.Neon,false,elevator,.28)
  floorCF[i]=CFrame.new(68,y+3,CZ+50)
- sign(elevator,"ElevatorLabel"..i,"L"..i,Vector3.new(3,3,.3),CFrame.new(77.1,y+6,CZ+54)*CFrame.Angles(0,math.rad(-90),0),C.gold,C.dark)
+ sign(elevator,"ElevatorLabel"..i,"L"..i,Vector3.new(3,3,.3),CFrame.new(77.1,y+7,CZ+54)*CFrame.Angles(0,math.rad(-90),0),C.gold,C.dark)
  if i<4 then prompt(pad,"UP","ELEVATOR",0).Triggered:Connect(function(player)local c=player.Character;if c then c:PivotTo(floorCF[i+1])end end) end
  if i>1 then local down=prompt(pad,"DOWN","ELEVATOR",0);down.KeyboardKeyCode=Enum.KeyCode.F;down.Triggered:Connect(function(player)local c=player.Character;if c then c:PivotTo(floorCF[i-1])end end) end
 end
@@ -313,20 +316,20 @@ end
 for i,y in ipairs(LEVELS) do
  neon("WayfindWest"..i,Vector3.new(.16,.12,118),CFrame.new(-31,y+1.08,CZ),i%2==0 and C.cyan or C.gold,mall)
  neon("WayfindEast"..i,Vector3.new(.16,.12,118),CFrame.new(31,y+1.08,CZ),i%2==0 and C.pink or C.cyan,mall)
- sign(mall,"LevelSignW"..i,"LEVEL "..i,Vector3.new(10,2.5,.35),CFrame.new(-34,y+7,CZ-29),C.white,C.dark)
- sign(mall,"LevelSignE"..i,"LEVEL "..i,Vector3.new(10,2.5,.35),CFrame.new(34,y+7,CZ+29)*CFrame.Angles(0,math.rad(180),0),C.white,C.dark)
+ sign(mall,"LevelSignW"..i,"LEVEL "..i,Vector3.new(10,2.5,.35),CFrame.new(-34,y+8,CZ-29),C.white,C.dark)
+ sign(mall,"LevelSignE"..i,"LEVEL "..i,Vector3.new(10,2.5,.35),CFrame.new(34,y+8,CZ+29)*CFrame.Angles(0,math.rad(180),0),C.white,C.dark)
 end
 
 -- Warm mall lighting from atrium + corridors.
 for i,y in ipairs(LEVELS) do
  for _,x in ipairs({-62,-38,38,62}) do for _,z in ipairs({318,350,382,414}) do
-  local fixture=part("Light"..i..x..z,Vector3.new(1,.25,1),CFrame.new(x,y+12.5,z),C.white,Enum.Material.Neon,false,mall)
+  local fixture=part("Light"..i..x..z,Vector3.new(1,.25,1),CFrame.new(x,y+14.6,z),C.white,Enum.Material.Neon,false,mall)
   local l=Instance.new("PointLight");l.Color=Color3.fromRGB(255,239,214);l.Brightness=1.25;l.Range=22;l.Shadows=false;l.Parent=fixture
  end end
 end
 for _,x in ipairs({-20,0,20}) do
- local fixture=part("AtriumLight"..x,Vector3.new(1,.3,1),CFrame.new(x,53,CZ),C.white,Enum.Material.Neon,false,mall)
- local spot=Instance.new("SpotLight");spot.Face=Enum.NormalId.Bottom;spot.Angle=55;spot.Range=55;spot.Brightness=3;spot.Color=Color3.fromRGB(255,232,200);spot.Shadows=true;spot.Parent=fixture
+ local fixture=part("AtriumLight"..x,Vector3.new(1,.3,1),CFrame.new(x,61,CZ),C.white,Enum.Material.Neon,false,mall)
+ local spot=Instance.new("SpotLight");spot.Face=Enum.NormalId.Bottom;spot.Angle=55;spot.Range=62;spot.Brightness=3;spot.Color=Color3.fromRGB(255,232,200);spot.Shadows=true;spot.Parent=fixture
 end
 
 -- Internal wayfinding from the client directory. It is usable only while physically in the mall area.
@@ -341,4 +344,4 @@ mallAction.OnServerEvent:Connect(function(player,action,id)
  toast(player,t.name.." • Level "..t.floor)
 end)
 
-print("[BBYA] Active Mall v1 online: 4 floors / 18 destinations / retail + food + arcade + cinema + escalators + elevator")
+print("[BBYA] Active Mall v2 online: TRUE 15-stud clear floors / 4 levels / retail + food + arcade + cinema")
