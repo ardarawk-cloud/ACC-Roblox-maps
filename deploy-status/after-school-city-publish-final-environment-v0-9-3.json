@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "FINAL_ENVIRONMENT_POLISH_V0_9_3",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "ab82f4f011adc270a104bb02d6b70521a90914fc",
+  "baseLiveCommit": "0d930f955522d36f16b0d363f74d962105eefcdc",
+  "qcRunId": "33543968329",
+  "qcArtifactId": 9814718934,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 42,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 159954,
+  "placeSha256": "0b599b9d905bd21f9ac57e4cd15f18986d1c87e5e5702e2d51c1ea01cf62c6a7",
+  "runId": "33591571877",
+  "publishedAt": "2026-09-02T04:38:37Z",
+  "note": "V0.9.3 exact QC-locked final environment polish. Adds rear/side architectural and service depth, street-tree silhouette refinement, small recreation furniture, and restrained ambience. New visual geometry is non-collide/non-touch/non-query. Signage geometry/text, roads, swimmable pool authority, gameplay/economy/persistence/monetization, personal music player and dedication remain unchanged."
+}
