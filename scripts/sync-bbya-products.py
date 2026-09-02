@@ -50,11 +50,21 @@ def next_token(body):
 
 def pid(item):
  if not isinstance(item,dict): return 0
- for k in ('id','productId','developerProductId','ProductId'):
+ # Roblox retired the legacy developerProductId field for purchase identity.
+ # PromptProductPurchase must use the current productId when the API provides it.
+ for k in ('productId','ProductId','id','developerProductId','DeveloperProductId'):
   try:
    if item.get(k) is not None: return int(item[k])
   except Exception: pass
  return 0
+
+def raw_ids(item):
+ if not isinstance(item,dict): return {}
+ return {
+  'productId': item.get('productId',item.get('ProductId')),
+  'id': item.get('id'),
+  'developerProductId': item.get('developerProductId',item.get('DeveloperProductId')),
+ }
 
 def price(item):
  if not isinstance(item,dict): return 0
@@ -79,7 +89,7 @@ def verify_price(product_id,expected_price):
 
 result={'api_ok':False,'complete':False,'created':[],'verified_by_price':[],'duplicates':[],'errors':[],'pages':[],'snapshot':[],'products':[]}
 st,remote_items,pages,err=list_all(); result['list_http']=st; result['pages']=pages
-result['snapshot']=[{'name':x.get('name'),'id':pid(x),'price':price(x)} for x in remote_items if isinstance(x,dict)]
+result['snapshot']=[{'name':x.get('name'),'resolvedProductId':pid(x),'price':price(x),**raw_ids(x)} for x in remote_items if isinstance(x,dict)]
 if err or not st.startswith('2'):
  result['errors'].append({'stage':'list','http':st,**(err or {})})
 else:
@@ -91,17 +101,11 @@ else:
   item=by_name.get(name.lower()) or by_price.get(p)
   if item and pid(item): resolved[name]=pid(item)
 
- for name,p,hint in [('BBYA Support 500',500,3709047107),('BBYA Support 1000',1000,3709047109)]:
-  if not resolved.get(name):
-   b=verify_price(hint,p)
-   if b:
-    resolved[name]=hint; result['verified_by_price'].append({'name':name,'price':p,'id':hint})
-
  for name,p,desc in DESIRED:
   if resolved.get(name): continue
   h,b,er=req('POST',BASE,{'name':name,'price':p,'description':desc})
   if h.startswith('2') and pid(b):
-   resolved[name]=pid(b); result['created'].append({'name':name,'price':p,'id':pid(b)})
+   resolved[name]=pid(b); result['created'].append({'name':name,'price':p,'id':pid(b),**raw_ids(b)})
   elif isinstance(b,dict) and b.get('errorCode')=='DuplicateProductName':
    result['duplicates'].append(name)
   else:
