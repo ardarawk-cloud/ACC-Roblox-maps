@@ -236,7 +236,7 @@ if galleryAuthority and live then
   local p=Instance.new("Part")
   p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color or C.graphite;p.Material=material or Enum.Material.SmoothPlastic
   p.Anchored=true;p.CanCollide=collide==true;p.CanTouch=false;p.CanQuery=false;p.Transparency=transparency or 0
-  p.TopSurface=Enum.NormalId.Smooth;p.BottomSurface=Enum.NormalId.Smooth
+  p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
   p.CastShadow=p.Material~=Enum.Material.Neon and p.Transparency<.9
   p.Parent=parent or out
   return p
