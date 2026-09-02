@@ -9,12 +9,21 @@ on:
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
+  push:
+    branches:
+      - 'feat/bbya-mall-catalog-v8-reference-rebuild'
+    paths:
+      - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
+      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
+      - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
+      - 'maps/bbya-social-hub/95-mall-live.client.lua'
 
 permissions:
   contents: read
 
 env:
-  TARGET_SOURCE: ${{ github.event.pull_request.head.sha }}
+  TARGET_SOURCE: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   test:
