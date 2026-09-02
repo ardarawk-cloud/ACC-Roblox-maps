@@ -1,0 +1,198 @@
+name: After School City Publish V1.1.4 Delivery Guidance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/after-school-city-publish-v114-delivery-guidance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_REPO: ardarawk-cloud/ACC-Roblox-maps
+      SOURCE_SHA: 395f45a7d26688baf30f22188092471507f09dbe
+      BASE_LIVE_SHA: 35ad050a3561121bca1f97310c51c282e893fd11
+      QC_RUN_ID: '33668914592'
+      QC_ARTIFACT_ID: '9861695557'
+      QC_ARTIFACT_NAME: after-school-city-v114-qc-395f45a7d26688baf30f22188092471507f09dbe
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      EXPECTED_BYTES: '185819'
+      EXPECTED_SHA256: eab0830e528234950236b3c4b81a73f8b1d41817656877024335ca7d08e66cac
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout publisher repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify previous LIVE authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt='deploy-status/after-school-city-publish-skate-mission-completion-v1-1-3.json'
+          [[ -f "$receipt" ]] || { echo 'V1.1.3 LIVE receipt missing'; exit 7; }
+          [[ "$(jq -r '.status' "$receipt")" == 'LIVE_PUBLISHED' ]] || { echo 'Previous receipt is not LIVE_PUBLISHED'; exit 8; }
+          [[ "$(jq -r '.sourceCommit' "$receipt")" == "$BASE_LIVE_SHA" ]] || { echo 'Previous LIVE source mismatch'; exit 9; }
+          [[ "$(jq -r '.versionNumber' "$receipt")" == '49' ]] || { echo 'Previous LIVE version is not v49'; exit 10; }
+          [[ "$(jq -r '.placeId' "$receipt")" == "$PLACE_ID" ]] || { echo 'Previous LIVE Place ID mismatch'; exit 11; }
+          [[ "$(jq -r '.universeId' "$receipt")" == "$UNIVERSE_ID" ]] || { echo 'Previous LIVE Universe ID mismatch'; exit 12; }
+          echo 'PREVIOUS LIVE AUTHORITY PASS v49'
+
+      - name: Verify exact QC run and artifact authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'; exit 13; }
+          api='https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps'
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID" -o "$RUNNER_TEMP/qc-run.json"
+          [[ "$(jq -r '.status' "$RUNNER_TEMP/qc-run.json")" == 'completed' ]] || { echo 'QC run is not completed'; exit 14; }
+          [[ "$(jq -r '.conclusion' "$RUNNER_TEMP/qc-run.json")" == 'success' ]] || { echo 'QC run is not SUCCESS'; exit 15; }
+          [[ "$(jq -r '.head_sha' "$RUNNER_TEMP/qc-run.json")" == "$SOURCE_SHA" ]] || { echo 'QC source SHA mismatch'; exit 16; }
+          [[ "$(jq -r '.path' "$RUNNER_TEMP/qc-run.json")" == '.github/workflows/after-school-city-v114-delivery-guidance-qc.yml' ]] || { echo 'Unexpected QC workflow'; exit 17; }
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'X-GitHub-Api-Version: 2022-11-28' "$api/actions/runs/$QC_RUN_ID/artifacts" -o "$RUNNER_TEMP/qc-artifacts.json"
+          count=$(jq --argjson id "$QC_ARTIFACT_ID" --arg n "$QC_ARTIFACT_NAME" --arg s "$SOURCE_SHA" '[.artifacts[] | select(.id == $id and .name == $n and .expired == false and .workflow_run.head_sha == $s)] | length' "$RUNNER_TEMP/qc-artifacts.json")
+          [[ "$count" == '1' ]] || { cat "$RUNNER_TEMP/qc-artifacts.json"; echo 'Exact QC artifact authority not found'; exit 18; }
+          echo "QC AUTHORITY PASS run=$QC_RUN_ID artifact=$QC_ARTIFACT_ID source=$SOURCE_SHA"
+
+      - name: Checkout exact V1.1.4 source for lock verification
+        uses: actions/checkout@v4
+        with:
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          ref: 395f45a7d26688baf30f22188092471507f09dbe
+          path: asc-source
+          fetch-depth: 0
+
+      - name: Verify exact source and narrow V1.1.4 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual=$(git -C asc-source rev-parse HEAD)
+          [[ "$actual" == "$SOURCE_SHA" ]] || { echo "Source SHA mismatch: $actual"; exit 20; }
+          mapfile -t files < <(git -C asc-source diff --name-only "$BASE_LIVE_SHA" "$SOURCE_SHA")
+          [[ ${#files[@]} -eq 2 ]] || { printf '%s\n' "${files[@]}"; echo "Unexpected delta count ${#files[@]}"; exit 21; }
+          printf '%s\n' "${files[@]}" | grep -Fxq '.github/workflows/after-school-city-v114-delivery-guidance-qc.yml'
+          printf '%s\n' "${files[@]}" | grep -Fxq 'maps/after-school-city/after-school-city.activities.client.lua'
+          client='asc-source/maps/after-school-city/after-school-city.activities.client.lua'
+          grep -Fq '1.1.4-delivery-guidance-1' "$client"
+          grep -Fq 'ANTAR PAKET' "$client"
+          grep -Fq 'KOTAK SURAT' "$client"
+          grep -Fq 'IKUTI MARKER' "$client"
+          grep -Fq 'ASC_ActiveDeliveryTarget_Local' "$client"
+          grep -Fq 'showDeliveryMarker(data.Target)' "$client"
+          [[ -z "$(git -C asc-source diff --name-only "$BASE_LIVE_SHA" "$SOURCE_SHA" -- maps/after-school-city/after-school-city.activities.server.lua maps/after-school-city/after-school-city.activity-config.lua maps/after-school-city/default.project.json maps/after-school-city/after-school-city.gameplay-service.lua maps/after-school-city/after-school-city.gameplay-config.lua maps/after-school-city/after-school-city.gameplay-bootstrap.server.lua maps/after-school-city/after-school-city.gameplay-hud.client.lua maps/after-school-city/after-school-city.ui-glass-v102.client.lua maps/after-school-city/after-school-city.music-player.client.lua maps/after-school-city/after-school-city.music-config.lua maps/after-school-city/after-school-city.world.server.lua maps/after-school-city/after-school-city.skatepark-light-clearance-v112.server.lua maps/after-school-city/after-school-city.streetlight-geometry-hotfix-v111.server.lua maps/after-school-city/after-school-city.swimmable-pool.server.lua)" ]] || { echo 'Protected source changed'; exit 22; }
+          echo "SOURCE LOCK PASS source=$actual delta=2-files scope=delivery-guidance"
+
+      - name: Download exact QC-locked artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: after-school-city-v114-qc-395f45a7d26688baf30f22188092471507f09dbe
+          path: ${{ runner.temp }}/asc-v114-qc
+          github-token: ${{ github.token }}
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          run-id: 33668914592
+
+      - name: Verify QC receipt and exact RBXL bytes/SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt="$RUNNER_TEMP/asc-v114-qc/qc-receipt.txt"
+          normalized="$RUNNER_TEMP/asc-v114-qc/qc-receipt-normalized.txt"
+          tr -d '\r' < "$receipt" > "$normalized"
+          grep -Fxq 'STATUS=QC_PASSED' "$normalized"
+          grep -Fxq 'MODE=DELIVERY_GUIDANCE_V1_1_4' "$normalized"
+          grep -Fxq "BASE_LIVE_COMMIT=$BASE_LIVE_SHA" "$normalized"
+          grep -Fxq "SOURCE_COMMIT=$SOURCE_SHA" "$normalized"
+          grep -Fxq "RBXL_BYTES=$EXPECTED_BYTES" "$normalized"
+          grep -Fxq "SHA256=$EXPECTED_SHA256" "$normalized"
+          grep -Fxq 'DELIVERY_GUIDANCE=LOCAL_TARGET_MARKER' "$normalized"
+          grep -Fxq 'DELIVERY_TARGET=SERVER_EXISTING_COORDINATE' "$normalized"
+          grep -Fxq 'DELIVERY_DISTANCE=VISIBLE' "$normalized"
+          grep -Fxq 'SKATE=UNCHANGED' "$normalized"
+          grep -Fxq 'POOL=UNCHANGED' "$normalized"
+          grep -Fxq 'SERVER_GAMEPLAY=UNCHANGED' "$normalized"
+          grep -Fxq 'PERSISTENCE_MUSIC_MAP_UI=UNCHANGED' "$normalized"
+          mapfile -t places < <(find "$RUNNER_TEMP/asc-v114-qc" -type f -name '*.rbxl' -print)
+          [[ ${#places[@]} -eq 1 ]] || { echo "Expected exactly one RBXL, found ${#places[@]}"; exit 30; }
+          place="${places[0]}"
+          bytes=$(stat -c%s "$place")
+          sha=$(sha256sum "$place" | awk '{print $1}')
+          [[ "$bytes" == "$EXPECTED_BYTES" ]] || { echo "Byte mismatch: $bytes expected=$EXPECTED_BYTES"; exit 31; }
+          [[ "$sha" == "$EXPECTED_SHA256" ]] || { echo "SHA256 mismatch: $sha expected=$EXPECTED_SHA256"; exit 32; }
+          echo "PLACE_FILE=$place" >> "$GITHUB_ENV"
+          echo "PLACE_BYTES=$bytes" >> "$GITHUB_ENV"
+          echo "PLACE_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "EXACT QC ARTIFACT PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish V1.1.4 LIVE to Roblox
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://apis.roblox.com/universes/v1/${UNIVERSE_ID}/places/${PLACE_ID}/versions?versionType=Published"
+          success=0
+          for attempt in 1 2 3 4; do
+            response="$RUNNER_TEMP/asc-publish-response-$attempt.json"
+            http=$(curl -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o "$response" -w '%{http_code}' -X POST "$url" -H "x-api-key: $ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$PLACE_FILE" || true)
+            body=$(cat "$response" 2>/dev/null || true)
+            if [[ "$http" =~ ^2[0-9][0-9]$ ]]; then
+              cp "$response" "$RUNNER_TEMP/asc-publish-response.json"
+              success=1
+              break
+            fi
+            echo "ROBLOX UPLOAD attempt=$attempt HTTP $http: $body"
+            if [[ "$body" != *'Request upload was interrupted before completion.'* ]]; then exit 40; fi
+            sleep $((attempt * 3))
+          done
+          [[ "$success" == '1' ]] || exit 42
+          version=$(jq -r '.versionNumber // empty' "$RUNNER_TEMP/asc-publish-response.json")
+          [[ -n "$version" && "$version" =~ ^[0-9]+$ ]] || exit 41
+          echo "PUBLISHED_VERSION=$version" >> "$GITHUB_ENV"
+          echo "ROBLOX PUBLISH PASS version=$version"
+
+      - name: Persist V1.1.4 LIVE receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          receipt='deploy-status/after-school-city-publish-delivery-guidance-v1-1-4.json'
+          jq -n \
+            --arg status 'LIVE_PUBLISHED' \
+            --arg project 'AFTER SCHOOL CITY' \
+            --arg mode 'DELIVERY_GUIDANCE_V1_1_4' \
+            --arg sourceRepo "$SOURCE_REPO" \
+            --arg sourceCommit "$SOURCE_SHA" \
+            --arg baseLiveCommit "$BASE_LIVE_SHA" \
+            --arg qcRunId "$QC_RUN_ID" \
+            --arg qcArtifactId "$QC_ARTIFACT_ID" \
+            --arg universeId "$UNIVERSE_ID" \
+            --arg placeId "$PLACE_ID" \
+            --arg versionNumber "$PUBLISHED_VERSION" \
+            --arg rojoVersion '7.7.0' \
+            --arg placeBytes "$PLACE_BYTES" \
+            --arg placeSha256 "$PLACE_SHA256" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,qcRunId:$qcRunId,qcArtifactId:($qcArtifactId|tonumber),universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"V1.1.4 exact QC-locked Delivery Guidance hotfix. City Delivery is presented as Package Delivery / Antar Paket with a local destination marker, mailbox label, and live distance guidance. Existing server delivery target/reward authority remains unchanged. Skate, Pool, persistence, music, map and primary UI remain unchanged."}' > "$receipt"
+          cat "$receipt"
+          git config user.name 'After School City Publish Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- "$receipt"
+          git commit -m 'Record After School City V1.1.4 LIVE publish [skip ci]'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin main || { git rebase --abort || true; }
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 50
