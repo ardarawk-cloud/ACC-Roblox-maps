@@ -1,5 +1,5 @@
 local ActivityConfig = {
-    Version = "1.1.0-first-playable-loop-1",
+    Version = "1.1.3-skate-mission-completion-1",
     Activities = {
         SKATE_LINE = {
             Title = "Skate Line",
@@ -8,6 +8,7 @@ local ActivityConfig = {
             CooldownSeconds = 60,
             TimeLimitSeconds = 60,
             Radius = 11,
+            RequireSkateboard = true,
         },
         POOL_LAPS = {
             Title = "Pool Laps",
