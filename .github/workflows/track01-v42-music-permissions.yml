@@ -59,7 +59,7 @@ jobs:
               scopes=[{'name':s.get('name'),'operations':s.get('operations') or []} for s in (data.get('scopes') or [])] if isinstance(data,dict) else []
               return {'present':True,'http':code,'name':data.get('name') if isinstance(data,dict) else None,'enabled':data.get('enabled') if isinstance(data,dict) else None,'expired':data.get('expired') if isinstance(data,dict) else None,'scopes':scopes}
           def usable(i):
-              return i.get('present') and i.get('http')==200 and i.get('enabled') is not False and i.get('expired') is not True and any(s.get('name')=='asset-permissions:write' for s in i.get('scopes',[]))
+              return i.get('present') and i.get('http')==200 and i.get('enabled') is not False and i.get('expired') is not True and any(s.get('name')=='asset-permissions' and 'write' in (s.get('operations') or []) for s in i.get('scopes',[]))
           granted=set();attempts=[]
           keys=[('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),('ROBLOX_OPEN_CLOUD_MASTER_V2',os.environ.get('MASTER_V2_KEY','').strip())]
           for label,key in keys:
