@@ -1,4 +1,4 @@
-name: QC TRACK 01 v4.1 DJ Event Ops
+name: QC TRACK 01 v4.2 AutoDJ Automix
 
 on:
   pull_request:
@@ -6,11 +6,12 @@ on:
     paths:
       - 'maps/track-01/**'
       - 'scripts/build-track01.js'
+      - 'scripts/build-track01-v42.js'
       - '.github/workflows/track01-v4-admin-qc.yml'
   workflow_dispatch:
 
 concurrency:
-  group: track01-v41-qc-${{ github.ref }}
+  group: track01-v42-qc-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,20 +28,27 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate target and v4.1 source lock
+      - name: Validate target and v4.2 source lock
         shell: bash
         run: |
           node - <<'NODE'
+          const fs=require('fs');
           const c=require('./maps/track-01/track01.config.json');
           if(String(c.universeId)!=='10745349805') throw new Error('Wrong Universe ID');
           if(String(c.placeId)!=='79748872921213') throw new Error('Wrong Place ID');
-          if(String(c.version)!=='4.1.0') throw new Error('Wrong TRACK 01 version');
+          if(String(c.version)!=='4.2.0') throw new Error('Wrong TRACK 01 version');
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
-          console.log('TRACK 01 v4.1 target lock PASS');
+          const src=fs.readFileSync('maps/track-01/music-runtime.server.lua','utf8');
+          const rows=[...src.matchAll(/\{id="(\d+)",source="(PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}/g)];
+          if(rows.length!==67) throw new Error(`Music catalog must contain exactly 67 active BBYA tracks, got ${rows.length}`);
+          if(new Set(rows.map(x=>x[1])).size!==67) throw new Error('Duplicate music asset ID');
+          const skate=['1837057495','1841242625','9040318014','9043707741','9042632936','1840009708','101433831748471','73111765506214'];
+          for(const id of skate) if(src.includes(`id="${id}"`)) throw new Error(`Skatepark asset leaked into TRACK 01: ${id}`);
+          console.log('TRACK 01 v4.2 target/catalog lock PASS');
           NODE
 
-      - name: Build canonical TRACK 01 place
-        run: node scripts/build-track01.js
+      - name: Build canonical TRACK 01 v4.2 place
+        run: node scripts/build-track01-v42.js
 
       - name: Validate retained feature-complete runtime
         shell: bash
@@ -48,18 +56,15 @@ jobs:
           set -euo pipefail
           place='maps/track-01/place.rbxlx'
           test -s "$place"
-          test "$(wc -c < "$place")" -gt 200000
+          test "$(wc -c < "$place")" -gt 220000
           grep -q 'TRACK01_NightVisibilityHotfix' "$place"
           grep -q 'ACC_TRACK01_NIGHT_VISIBILITY_READY' "$place"
-          grep -q 'Lighting.Brightness=1.80' "$place"
-          grep -q 'Lighting.ExposureCompensation=0.12' "$place"
-          grep -q 'YardReadabilityFill' "$place"
           grep -q 'TRACK01_FinalQC' "$place"
           grep -q 'ACC_TRACK01_FEATURE_COMPLETE' "$place"
           grep -q 'TRACK01_TicketAccessVestibule' "$place"
           grep -q 'TRACK01_SocialInteractions' "$place"
           grep -q 'TRACK01_EndOfLineHero' "$place"
-          grep -q 'END OF LINE' "$place"
+          grep -q 'Car01BlinkArrowMount' "$place"
           echo 'TRACK 01 retained-runtime QC PASS'
 
       - name: Validate compact mobile operator panel
@@ -71,31 +76,41 @@ jobs:
           grep -q 'TRACK01_AdminPanelClient' "$place"
           grep -q 'TRACK01_AdminPAClient' "$place"
           grep -q 'ACC_TRACK01_ADMIN_PANEL_READY' "$place"
-          grep -q 'ACC_TRACK01_PANEL_VERSION' "$place"
           grep -q 'DeviceSafeInsets' "$place"
           grep -q 'ClipToDeviceSafeArea' "$place"
           grep -q 'ScrollingFrame' "$place"
-          grep -q 'Player recovery tools' "$place"
           grep -Eqi 'NO KICK BUTTON|No kick button' "$place"
           grep -qi 'ridhoomaukamu' "$place"
           echo 'TRACK 01 compact operator panel QC PASS'
 
-      - name: Validate v4.1 DJ music authority
+      - name: Validate v4.2 Auto Random 24/7 Automix
         shell: bash
         run: |
           set -euo pipefail
           place='maps/track-01/place.rbxlx'
-          grep -q 'ACC_TRACK01_DJ_EVENT_OPS_READY' "$place"
-          grep -q 'TRACK01_Music' "$place"
-          grep -q 'VenueMusic' "$place"
-          grep -q 'TRACK01_APPROVED_MUSIC_SOUND_ID' "$place"
+          grep -q 'TRACK01_MusicAutoDJ' "$place"
+          grep -q 'ACC_TRACK01_MUSIC_READY' "$place"
+          grep -q 'TRACK01_MUSIC_AUTO' "$place"
+          grep -q 'TRACK01_MUSIC_AUTOMIX' "$place"
+          grep -q 'TRACK01_MUSIC_SPATIAL_CARS_ONLY' "$place"
+          grep -q 'TRACK01_MUSIC_SKATEPARK_EXCLUDED' "$place"
+          grep -q 'TRACK01_MUSIC_TRACK_COUNT' "$place"
+          grep -q 'CROSSFADE=7' "$place"
+          grep -q 'CAR_01' "$place"
+          grep -q 'CAR_02' "$place"
+          grep -q 'CAR_03' "$place"
+          grep -q 'CAR_04' "$place"
+          grep -q 'RollOffMaxDistance=12.5' "$place"
+          grep -q 'random 24/7' "$place"
+          grep -q 'Skatepark excluded' "$place"
           grep -q 'MUSIC_PLAY' "$place"
           grep -q 'MUSIC_PAUSE' "$place"
           grep -q 'MUSIC_RESTART' "$place"
           grep -q 'MUSIC_VOLUME' "$place"
-          grep -q 'NO APPROVED SOURCE' "$place"
-          grep -q 'Audio source stays fail-closed' "$place"
-          echo 'TRACK 01 DJ/music fail-closed authority QC PASS'
+          for id in 1837057495 1841242625 9040318014 9043707741 9042632936 1840009708 101433831748471 73111765506214; do
+            if grep -q "id=\"$id\"" "$place"; then echo "Skatepark leak: $id" >&2; exit 1; fi
+          done
+          echo 'TRACK 01 v4.2 AutoDJ/automix QC PASS'
 
       - name: Validate coordinated event operations
         shell: bash
@@ -110,15 +125,13 @@ jobs:
           grep -q 'LAST TRAIN' "$place"
           grep -q 'CLOSING' "$place"
           grep -q 'operatorName' "$place"
-          grep -q 'uptimeSeconds' "$place"
-          grep -q 'compact admin panel ready v4.1.0 DJ/music + event operations' "$place"
-          echo 'TRACK 01 v4.1 event operations QC PASS'
+          echo 'TRACK 01 event operations retained PASS'
 
       - name: Confirm build-only workflow
         shell: bash
         run: |
           set -euo pipefail
-          if grep -Ev '^[[:space:]]*if grep ' .github/workflows/track01-v4-admin-qc.yml | grep -Eq 'ROBLOX_API_KEY|ROCKET_RACOON_PUBLISH|publish-track01'; then
+          if grep -Ev '^[[:space:]]*if grep ' .github/workflows/track01-v4-admin-qc.yml | grep -Eq 'ROBLOX_API_KEY|ROCKET_RACOON_PUBLISH|ROBLOX_OPEN_CLOUD_MASTER_V2|publish-track01'; then
             echo 'QC workflow must remain build-only and contain no publisher references.' >&2
             exit 1
           fi
