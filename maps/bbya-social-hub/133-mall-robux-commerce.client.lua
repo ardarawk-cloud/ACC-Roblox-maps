@@ -375,7 +375,7 @@ exit.Activated:Connect(closeCatalog)
 local function responsive()
  camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
  local touch=UserInputService.TouchEnabled;local topSafe=touch and 112 or 78;local left=math.max(72,math.floor(vp.X*.065));local rightSafe=touch and 150 or 70;local bottom=36
- local shiftX=touch and -36 or 0;local shiftY=touch and -28 or 0
+ local shiftX=touch and -91 or 0;local shiftY=touch and -63 or 0
  local totalW=math.min(1220,math.max(760,vp.X-left-rightSafe));local totalH=math.min(510,math.max(360,vp.Y-topSafe-bottom-48));local leftW=math.clamp(math.floor(totalW*.30),260,360);local gap=24;local rightW=totalW-leftW-gap
  top.Position=UDim2.fromOffset(left+leftW+gap+math.floor((rightW-440)/2)+shiftX,topSafe+shiftY)
  avatar.Position=UDim2.fromOffset(left+shiftX,topSafe+52+shiftY);avatar.Size=UDim2.fromOffset(leftW,totalH)
