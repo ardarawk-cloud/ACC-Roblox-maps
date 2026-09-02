@@ -1,4 +1,4 @@
--- BBYA MUSIC UI TEST — UI KERNEL v2.0
+-- BBYA MUSIC UI TEST — UI KERNEL v2.1
 -- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
 -- ONE UI shell authority. v69 geometry is locked.
 -- Support/Party are server-authoritative. Music is large. Developer DJ stays full-screen.
@@ -170,13 +170,16 @@ infoCard("DISCORD COMMUNITY","Event alerts • DJ nights • updates • feedbac
 infoCard("HOW TO JOIN","Open the BBYA game page → Social Links → Discord.",C.gold)
 infoCard("WHY JOIN?","Early announcements • polls • music updates • community hangout",C.pink)
 
--- PARTY STUFF: only asks server. Backpack is explicitly enabled so mobile tools remain usable.
+-- PARTY STUFF: gear stays equipped, but Roblox Backpack/hotbar stays hidden while Party gear is active.
 local partyPanel=register("PARTY",makePanel("PartyStuffPanel","PARTY STUFF",C.gold,gui))
 label(partyPanel,"Equip cosmetic gear",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local partyList=Instance.new("Frame"); partyList.Position=UDim2.fromOffset(12,72); partyList.Size=UDim2.new(1,-24,1,-84); partyList.BackgroundTransparency=1; partyList.ZIndex=402; partyList.Parent=partyPanel
 local pl=Instance.new("UIListLayout"); pl.Padding=UDim.new(0,8); pl.Parent=partyList
+local function setBackpackVisible(enabled)
+ pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled) end)
+end
 local function requestGear(name)
- pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,true) end)
+ setBackpackVisible(false)
  toast("EQUIPPING "..string.upper(name).."..."); gearRemote:FireServer("equip",name)
 end
 for i,g in ipairs({{"MONEY GUN","Money Gun",C.green},{"GLOWSTICK","Glowstick",C.cyan},{"PARTY SPARKLER","Party Sparkler",C.gold}}) do
@@ -207,7 +210,7 @@ menuEntry("CARRY",6,C.cyan,function()
  if cp then register("CARRY",cp); showNormal("CARRY",cp) else toast("CARRY LOADING...") end
 end)
 menuEntry("COMMUNITY",7,C.cyan,function() showNormal("COMMUNITY",communityPanel) end)
-menuEntry("PARTY STUFF",8,C.gold,function() showNormal("PARTY",partyPanel); pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,true) end) end)
+menuEntry("PARTY STUFF",8,C.gold,function() showNormal("PARTY",partyPanel); setBackpackVisible(false) end)
 menuEntry("DJ LIVE",9,C.gold,function()
  hideAll("DJ"); closeMenu()
  local dj=pg:FindFirstChild("BBYADeveloperDJUI"); local p=dj and dj:FindFirstChild("DeveloperDJMixerPanel",true)
@@ -233,10 +236,16 @@ end)
 gearRemote.OnClientEvent:Connect(function(action,data)
  data=type(data)=="table" and data or {}
  if action=="result" then
-  if data.ok then partyPanel.Visible=false; toast(data.message or ("EQUIPPED • "..tostring(data.name or "")))
-  else toast(data.message or "PARTY GEAR FAILED") end
+  local gearName=tostring(data.name or "")
+  if data.ok then
+   if gearName=="" then setBackpackVisible(true) else setBackpackVisible(false) end
+   partyPanel.Visible=false; toast(data.message or ("EQUIPPED • "..gearName))
+  else
+   setBackpackVisible(true); toast(data.message or "PARTY GEAR FAILED")
+  end
  end
 end)
+player.CharacterAdded:Connect(function() task.defer(function() setBackpackVisible(true) end) end)
 
 local function layoutAll()
  placeNormal(drawer); placeNormal(supportPanel); placeNormal(travelPanel); placeNormal(communityPanel); placeNormal(partyPanel)
@@ -246,4 +255,4 @@ end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() camera=workspace.CurrentCamera; task.defer(layoutAll) end)
 task.defer(layoutAll)
-print("[BBYA TEST] UI KERNEL v2 online: v69 geometry locked + server-authoritative Support/Party")
+print("[BBYA TEST] UI KERNEL v2.1 online: v69 geometry locked + Party hotbar hidden while equipped")
