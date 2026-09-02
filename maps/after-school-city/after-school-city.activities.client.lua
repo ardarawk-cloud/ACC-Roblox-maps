@@ -1,9 +1,12 @@
--- AFTER SCHOOL CITY — V1.1 activity presentation
+-- AFTER SCHOOL CITY — V1.1.3 activity presentation
+-- Keeps the compact V1.1 HUD and adds one local-only active checkpoint marker for Skate Line.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalizationService = game:GetService("LocalizationService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -23,9 +26,11 @@ local T = {
         destination = "DESTINATION",
         complete = "COMPLETE",
         failed = "TIME UP",
+        boardLost = "SKATEBOARD LOST",
         busy = "Finish your current activity first",
         cooldown = "Activity cooling down",
         profile = "Profile is still loading",
+        board = "SKATEBOARD",
     },
     id = {
         start = "MULAI",
@@ -36,9 +41,11 @@ local T = {
         destination = "TUJUAN",
         complete = "SELESAI",
         failed = "WAKTU HABIS",
+        boardLost = "SKATEBOARD LEPAS",
         busy = "Selesaikan aktivitas yang sedang berjalan",
         cooldown = "Aktivitas masih cooldown",
         profile = "Profil masih dimuat",
+        board = "SKATEBOARD",
     },
 }
 local L = T[lang]
@@ -97,6 +104,96 @@ detail.TextXAlignment = Enum.TextXAlignment.Left
 detail.TextColor3 = Color3.fromRGB(190, 205, 224)
 detail.Parent = card
 
+local markerModel
+local markerRing
+local markerBeam
+local markerLabel
+local pulseStarted = os.clock()
+
+local function clearCheckpointMarker()
+    if markerModel then
+        markerModel:Destroy()
+        markerModel = nil
+        markerRing = nil
+        markerBeam = nil
+        markerLabel = nil
+    end
+end
+
+local function ensureCheckpointMarker()
+    if markerModel and markerModel.Parent then return end
+
+    markerModel = Instance.new("Model")
+    markerModel.Name = "ASC_ActiveSkateCheckpoint_Local"
+    markerModel.Parent = Workspace
+
+    markerRing = Instance.new("Part")
+    markerRing.Name = "CheckpointRing"
+    markerRing.Shape = Enum.PartType.Cylinder
+    markerRing.Size = Vector3.new(0.28, 7, 7)
+    markerRing.Anchored = true
+    markerRing.CanCollide = false
+    markerRing.CanTouch = false
+    markerRing.CanQuery = false
+    markerRing.Material = Enum.Material.Neon
+    markerRing.Color = Color3.fromRGB(255, 196, 72)
+    markerRing.Transparency = 0.18
+    markerRing.Parent = markerModel
+
+    markerBeam = Instance.new("Part")
+    markerBeam.Name = "CheckpointBeam"
+    markerBeam.Size = Vector3.new(0.24, 10, 0.24)
+    markerBeam.Anchored = true
+    markerBeam.CanCollide = false
+    markerBeam.CanTouch = false
+    markerBeam.CanQuery = false
+    markerBeam.Material = Enum.Material.Neon
+    markerBeam.Color = Color3.fromRGB(255, 214, 108)
+    markerBeam.Transparency = 0.42
+    markerBeam.Parent = markerModel
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "CheckpointBillboard"
+    billboard.Size = UDim2.fromOffset(170, 34)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    billboard.MaxDistance = 220
+    billboard.Parent = markerBeam
+
+    markerLabel = Instance.new("TextLabel")
+    markerLabel.BackgroundColor3 = Color3.fromRGB(18, 24, 36)
+    markerLabel.BackgroundTransparency = 0.28
+    markerLabel.BorderSizePixel = 0
+    markerLabel.Size = UDim2.fromScale(1, 1)
+    markerLabel.Font = Enum.Font.GothamBold
+    markerLabel.TextSize = 12
+    markerLabel.TextColor3 = Color3.fromRGB(255, 226, 145)
+    markerLabel.Parent = billboard
+
+    local labelCorner = Instance.new("UICorner")
+    labelCorner.CornerRadius = UDim.new(0, 8)
+    labelCorner.Parent = markerLabel
+end
+
+local function showCheckpointMarker(target, step, total)
+    if typeof(target) ~= "Vector3" then
+        clearCheckpointMarker()
+        return
+    end
+    ensureCheckpointMarker()
+    markerRing.CFrame = CFrame.new(target + Vector3.new(0, 0.35, 0)) * CFrame.Angles(0, 0, math.rad(90))
+    markerBeam.CFrame = CFrame.new(target + Vector3.new(0, 5.2, 0))
+    markerLabel.Text = string.format("▼ %s %d/%d", L.checkpoint, tonumber(step) or 1, tonumber(total) or 1)
+end
+
+RunService.RenderStepped:Connect(function()
+    if markerRing and markerBeam then
+        local wave = (math.sin((os.clock() - pulseStarted) * 4) + 1) * 0.5
+        markerRing.Transparency = 0.12 + wave * 0.24
+        markerBeam.Transparency = 0.36 + wave * 0.22
+    end
+end)
+
 local hideToken = 0
 local function scheduleHide(seconds)
     hideToken += 1
@@ -111,18 +208,27 @@ local function showActivity(data)
     title.Text = titles[activityId] or tostring(activityId or "ACTIVITY")
     if data.State == "STARTED" or data.State == "PROGRESS" or data.State == "TICK" then
         local label = activityId == "CITY_DELIVERY" and L.destination or L.checkpoint
-        detail.Text = string.format("%s %d/%d  •  %ds", label, tonumber(data.Step) or 1, tonumber(data.Total) or 1, tonumber(data.Remaining) or 0)
+        if activityId == "SKATE_LINE" then
+            detail.Text = string.format("%s • %s %d/%d  •  %ds", L.board, label, tonumber(data.Step) or 1, tonumber(data.Total) or 1, tonumber(data.Remaining) or 0)
+            showCheckpointMarker(data.Target, data.Step, data.Total)
+        else
+            detail.Text = string.format("%s %d/%d  •  %ds", label, tonumber(data.Step) or 1, tonumber(data.Total) or 1, tonumber(data.Remaining) or 0)
+            clearCheckpointMarker()
+        end
         card.Visible = true
         hideToken += 1
     elseif data.State == "COMPLETE" then
+        clearCheckpointMarker()
         detail.Text = string.format("%s  •  +%d KOIN/COINS  +%d REP", L.complete, tonumber(data.RewardCoins) or 0, tonumber(data.RewardRep) or 0)
         card.Visible = true
         scheduleHide(3.5)
     elseif data.State == "FAILED" then
-        detail.Text = L.failed
+        clearCheckpointMarker()
+        detail.Text = data.Reason == "SKATEBOARD_LOST" and L.boardLost or L.failed
         card.Visible = true
         scheduleHide(3)
     elseif data.State == "BLOCKED" then
+        clearCheckpointMarker()
         local reason = data.Reason
         if reason == "BUSY" then detail.Text = L.busy
         elseif reason == "COOLDOWN" then detail.Text = L.cooldown .. " · " .. tostring(data.Remaining or 0) .. "s"
@@ -141,4 +247,8 @@ ProximityPromptService.PromptShown:Connect(function(prompt)
     prompt.ObjectText = titles[activityId] or prompt.ObjectText
 end)
 
-print("[AFTER SCHOOL CITY] V1.1 activity HUD ready locale=" .. localeId)
+player.CharacterAdded:Connect(function()
+    clearCheckpointMarker()
+end)
+
+print("[AFTER SCHOOL CITY] V1.1.3 activity HUD ready locale=" .. localeId)
