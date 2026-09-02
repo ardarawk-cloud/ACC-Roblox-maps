@@ -64,7 +64,6 @@ part("NorthWall",Vector3.new(112,30,2),CFrame.new(0,15.5,249),C.charcoal,Enum.Ma
 part("WestWall",Vector3.new(2,30,88),CFrame.new(-56,15.5,205),C.charcoal,Enum.Material.Concrete,true)
 part("EastWall",Vector3.new(2,30,88),CFrame.new(56,15.5,205),C.charcoal,Enum.Material.Concrete,true)
 part("SouthWallL",Vector3.new(44,30,2),CFrame.new(-34,15.5,161),C.charcoal,Enum.Material.Concrete,true)
-part("SouthWallR",Vector3.new(44,30,2),CFrame.new(34,15.5,161),C.charcoal,Enum.Material.Concrete,true)
 part("Ceiling",Vector3.new(112,1.2,88),CFrame.new(0,ceilingY,centerZ),C.black,Enum.Material.Metal,true)
 
 -- Architectural wall ribs and soft uplighting: breaks the boxy shell into club-scale bays.
