@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v4
+-- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v5
 -- One premium Music Suite, always bound to the player's actual venue.
--- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP
+-- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP/NIGHT_MARKET
 -- are bridged here so stale playlists never leak between venues and visible controls work.
 
 local Players=game:GetService("Players")
@@ -12,8 +12,8 @@ local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
 
-local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NONE="MUSIC"}
-local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82)}
+local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NIGHT_MARKET="PASAR MALAM",NONE="MUSIC"}
+local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82),NIGHT_MARKET=Color3.fromRGB(232,181,82)}
 local WHITE=Color3.fromRGB(247,247,250)
 local MUTED=Color3.fromRGB(146,150,164)
 local CARD=Color3.fromRGB(21,22,30)
@@ -68,8 +68,8 @@ local function updateMenuLabel()
  local text=LABELS[currentVenue()] or "MUSIC"
  if b.Text~=text then writing=true;b.Text=text;writing=false end
  b:SetAttribute("BBYAVenueAwareMusicLabel",text)
- if not b:GetAttribute("BBYAVenueAwareTextGuardV4") then
-  b:SetAttribute("BBYAVenueAwareTextGuardV4",true)
+ if not b:GetAttribute("BBYAVenueAwareTextGuardV5") then
+  b:SetAttribute("BBYAVenueAwareTextGuardV5",true)
   b:GetPropertyChangedSignal("Text"):Connect(function()if not writing then task.defer(updateMenuLabel) end end)
  end
 end
@@ -110,7 +110,7 @@ local function guardCard(card)
   playlist.Position=UDim2.fromOffset(pad,y);playlist.Size=UDim2.fromOffset(lw,h)
   mute.Position=UDim2.fromOffset(pad+lw+gap,y);mute.Size=UDim2.fromOffset(mw,h)
  end
- card:SetAttribute("BBYAMobileControlsGuard","V4")
+ card:SetAttribute("BBYAMobileControlsGuard","V5")
 end
 local function scanCompact()
  local club=pg:FindFirstChild("BBYAClubUI");local layer=club and club:FindFirstChild("BBYACompactMusicLayerV7")
@@ -124,7 +124,7 @@ local function scanCompact()
  if drawer then
   currentDrawer=drawer;local vp=viewport();local w=drawer.AbsoluteSize.X;local h=drawer.AbsoluteSize.Y
   if w>0 and h>0 and (w>vp.X-24 or h>vp.Y-24) then drawer.Size=UDim2.fromOffset(math.min(w,vp.X-24),math.min(h,vp.Y-24)) end
-  drawer.ClipsDescendants=true;drawer:SetAttribute("BBYAMobileDrawerGuard","V4")
+  drawer.ClipsDescendants=true;drawer:SetAttribute("BBYAMobileDrawerGuard","V5")
  end
 end
 
@@ -202,6 +202,7 @@ end
 local function tracksFor(v)
  if v=="SKATEPARK" then return folderTracks("BBYASkateparkPlaylistCatalog") end
  if v=="ROOFTOP" then return folderTracks("BBYARooftopPlaylistCatalog") end
+ if v=="NIGHT_MARKET" then return folderTracks("BBYANightMarketPlaylistCatalog") end
  if cache[v] then return cache[v].tracks end
  return {}
 end
@@ -233,6 +234,10 @@ local function venueState(v,tracks)
   s.queue=tonumber(ReplicatedStorage:GetAttribute("BBYARooftopQueueCount")) or 0
   s.nextRequest=tonumber(ReplicatedStorage:GetAttribute("BBYARooftopNextRequestIndex")) or 0
   s.sound=SoundService:FindFirstChild("BBYARooftopMasterSound")
+ elseif v=="NIGHT_MARKET" then
+  s.index=tonumber(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentIndex")) or 1
+  s.title=tostring(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentTitle") or "")
+  s.sound=SoundService:FindFirstChild("BBYANightMarketMasterSound")
  elseif v=="VIP" then
   local c=cache.VIP.state
   s.index=tonumber(c.index or ReplicatedStorage:GetAttribute("BBYAVIPCurrentIndex")) or 1
@@ -272,7 +277,8 @@ local function rebuildLibrary(suite,lib,v,tracks,state)
  local search=lib:FindFirstChildWhichIsA("TextBox",true);local q=string.lower(search and search.Text or "")
  local shown=0;local a=ACCENT[v] or WHITE
  for i,t in ipairs(tracks) do
-  local meta=(v=="SKATEPARK" and math.abs((t.playbackSpeed or 1)-1)>.001) and string.format("%s • %.2fx",v,t.playbackSpeed) or v
+  local venueMeta=LABELS[v] or v
+  local meta=(v=="SKATEPARK" and math.abs((t.playbackSpeed or 1)-1)>.001) and string.format("%s • %.2fx",venueMeta,t.playbackSpeed) or venueMeta
   if q=="" or string.find(string.lower(t.title.." "..meta),q,1,true) then
    shown+=1
    local r=Instance.new("Frame");r.Name="Track_"..i;r.LayoutOrder=i;r.Size=UDim2.new(1,-2,0,42);r.BackgroundColor3=CARD;r.BorderSizePixel=0;r.Parent=list;corner(r,8)
@@ -281,8 +287,9 @@ local function rebuildLibrary(suite,lib,v,tracks,state)
    label(r,"Title",t.title,UDim2.fromOffset(45,3),UDim2.new(1,-180,0,21),9,WHITE)
    label(r,"Meta",meta,UDim2.fromOffset(45,22),UDim2.new(1,-180,0,15),6,MUTED)
    if playing then label(r,"Playing","PLAYING",UDim2.new(1,-204,0,0),UDim2.fromOffset(70,42),6,a,Enum.TextXAlignment.Center) end
-   local b=Instance.new("TextButton");b.Name="Req";b.Text=(v=="VIP") and "PLAY" or "REQUEST";b.Position=UDim2.new(1,-118,0,6);b.Size=UDim2.fromOffset(104,30);b.BackgroundColor3=REQUEST_BG;b.BorderSizePixel=0;b.TextColor3=WHITE;b.Font=Enum.Font.GothamBold;b.TextSize=7;b.Parent=r;corner(b,8)
-   local allowed=not playing and (v~="VIP" or isAdmin())
+   local autoOnly=v=="NIGHT_MARKET"
+   local b=Instance.new("TextButton");b.Name="Req";b.Text=autoOnly and "AUTO DJ" or ((v=="VIP") and "PLAY" or "REQUEST");b.Position=UDim2.new(1,-118,0,6);b.Size=UDim2.fromOffset(104,30);b.BackgroundColor3=REQUEST_BG;b.BorderSizePixel=0;b.TextColor3=WHITE;b.Font=Enum.Font.GothamBold;b.TextSize=7;b.Parent=r;corner(b,8)
+   local allowed=(not autoOnly) and not playing and (v~="VIP" or isAdmin())
    b.Active=allowed;b.AutoButtonColor=allowed;if not allowed then b.TextColor3=MUTED end
    if allowed then b.Activated:Connect(function()sendRequest(v,i)end) end
   end
@@ -316,7 +323,10 @@ local function rebuildQueue(queuePage,v,tracks,state)
  local list=anyScroll(queuePage);if not list then return end
  clearRows(list,"Queue_")
  local meta=queuePage:FindFirstChild("Meta");if meta and meta:IsA("TextLabel") then meta.Text=tostring(state.queue or 0).." REQUESTS" end
- if (state.queue or 0)<=0 then mini(list,"Queue_Empty","--","REQUEST QUEUE KOSONG","Pilih lagu di Library lalu tekan REQUEST",MUTED)
+ if v=="NIGHT_MARKET" then
+  if meta and meta:IsA("TextLabel") then meta.Text="AUTO DJ" end
+  mini(list,"Queue_Auto","♪","AUTO DJ AKTIF","Playlist Pasar Malam berjalan otomatis",ACCENT[v] or WHITE)
+ elseif (state.queue or 0)<=0 then mini(list,"Queue_Empty","--","REQUEST QUEUE KOSONG","Pilih lagu di Library lalu tekan REQUEST",MUTED)
  elseif state.nextRequest and state.nextRequest>0 and tracks[state.nextRequest] then mini(list,"Queue_1","01",tracks[state.nextRequest].title,"NEXT REQUEST",Color3.fromRGB(232,181,82))
  else mini(list,"Queue_Info","+",tostring(state.queue).." REQUEST","Antrean aktif di server",ACCENT[v] or WHITE) end
 end
@@ -340,6 +350,9 @@ local function bindTransport(nowPage,v)
  elseif v=="FUNKOT" then
   if nextB then nextB.Visible=isAdmin();nextB.Active=isAdmin() end
   if prev then prev.Visible=false;prev.Active=false end
+ elseif v=="NIGHT_MARKET" then
+  if nextB then nextB.Visible=false;nextB.Active=false end
+  if prev then prev.Visible=false;prev.Active=false end
  end
 end
 
@@ -353,6 +366,10 @@ local function refreshPeripheral(force)
  local search=lib:FindFirstChildWhichIsA("TextBox",true)
  local signature=table.concat({v,#tracks,state.index,state.title,tostring(state.playing),state.queue,state.nextRequest,search and search.Text or ""},"|")
  if force or signature~=lastSignature then rebuildLibrary(suite,lib,v,tracks,state);lastSignature=signature end
+ local a=ACCENT[v] or WHITE
+ for _,d in ipairs(suite:GetDescendants()) do
+  if d:IsA("TextLabel") and d.Name=="Venue" then d.Text=LABELS[v] or v;d.TextColor3=a end
+ end
  local trackLabel=nowPage:FindFirstChild("Track",true)
  if trackLabel and trackLabel:IsA("TextLabel") then trackLabel.Text=state.title~="" and state.title or "BELUM ADA LAGU" end
  local info=trackLabel and trackLabel.Parent;local meta=info and info:FindFirstChild("Meta");local st=info and info:FindFirstChild("State")
@@ -362,7 +379,7 @@ local function refreshPeripheral(force)
  if elapsed and elapsed:IsA("TextLabel") then elapsed.Text=fmt(state.sound and state.sound.TimePosition or 0) end
  if duration and duration:IsA("TextLabel") then duration.Text=fmt(state.sound and state.sound.TimeLength or 0) end
  bindTransport(nowPage,v);rebuildUpNext(nowPage,v,tracks,state);rebuildQueue(queuePage,v,tracks,state)
- suite:SetAttribute("BBYAAllVenueMusicSuiteBridge","V4")
+ suite:SetAttribute("BBYAAllVenueMusicSuiteBridge","V5")
 end
 
 local function onVenueChanged()
@@ -380,4 +397,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 for i=0,12 do task.delay(i*.25,function()onVenueChanged()end) end
-print("[BBYA] Venue-aware menu music v4 online: MAIN + UNDERGROUND native; VIP + FUNKOT + SKATEPARK + ROOFTOP bound to their own playlists")
+print("[BBYA] Venue-aware menu music v5 online: MAIN + UNDERGROUND native; VIP + FUNKOT + SKATEPARK + ROOFTOP + PASAR MALAM bound to their own playlists")
