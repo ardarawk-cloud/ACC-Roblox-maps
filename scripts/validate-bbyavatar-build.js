@@ -4,7 +4,7 @@ const path = require('path');
 const ROOT = process.cwd();
 const TARGET_UNIVERSE = '10744157359';
 const TARGET_PLACE = '85866320744490';
-const BUILD = 'FPS-PROTOTYPE-0.2.2';
+const BUILD = 'FPS-PROTOTYPE-0.3.0';
 
 function read(rel) { return fs.readFileSync(path.join(ROOT, rel), 'utf8'); }
 function fail(message) { console.error(`[BBYAVATAR FPS QC] FAIL: ${message}`); process.exit(1); }
@@ -47,10 +47,21 @@ requireAll(cfg, [
 ], 'fps.config.lua');
 
 requireAll(world, [
+  'MAP FIRST',
   'FPS_URBAN_BLOCK',
+  'CRITICAL FAIL-SAFE FOUNDATION',
+  'Ground',
+  'NorthWall','SouthWall','WestWall','EastWall',
   'AlphaSpawn1','AlphaSpawn2','BravoSpawn1','BravoSpawn2',
-  'Warehouse','Container','Catwalk','Cover_',
-  'BBYAVATAR_FPS_BUILD'
+  'AlphaSpawnDeck','BravoSpawnDeck',
+  'MainRoadEW','MainRoadNS','NorthRoad','SouthRoad',
+  'WarehouseFloor','WarehouseCover_1',
+  'Office_',
+  'Container_A1','Container_B1',
+  'Catwalk_W','Catwalk_E',
+  'Cover_',
+  'BBYAVATAR_FPS_BUILD',
+  BUILD
 ], 'fps.world.server.lua');
 
 requireAll(server, [
@@ -99,6 +110,10 @@ requireAll(place, [
   'FPSConfig','FPS_World','FPS_GameServer','FPS_Client',
   BUILD,
   'FPS_URBAN_BLOCK',
+  'CRITICAL FAIL-SAFE FOUNDATION',
+  'MainRoadEW',
+  'WarehouseFloor',
+  'Container_A1',
   'MOBILE_SAFE_LAYOUT_V1',
   'MATCH SCOREBOARD',
   'SELECT LOADOUT',
@@ -110,7 +125,7 @@ if (weaponCount !== 4) fail(`expected 4 weapon configs, found ${weaponCount}`);
 const remoteCount = (server.match(/remote\("/g) || []).length;
 if (remoteCount < 5) fail(`expected at least 5 remote channels, found ${remoteCount}`);
 const worldParts = (world.match(/part\("/g) || []).length;
-if (worldParts < 20) fail(`world geometry bootstrap too small: ${worldParts} direct part calls`);
+if (worldParts < 30) fail(`world geometry bootstrap too small: ${worldParts} direct part calls`);
 const mobileButtons = (client.match(/roundButton\("/g) || []).length;
 if (mobileButtons < 6) fail(`expected at least 6 mobile controls, found ${mobileButtons}`);
 
@@ -122,6 +137,13 @@ console.log(JSON.stringify({
   weapons: weaponCount,
   mobileButtons,
   systems: [
+    'fail-safe visible ground before decoration',
+    'three-lane urban battlefield',
+    'central warehouse compound',
+    'urban office blocks',
+    'container yards + hard cover',
+    'side catwalk landmarks',
+    'team spawn decks + shields',
     'TDM timed rounds',
     'server-authoritative hitscan',
     '5s spawn protection',
@@ -130,15 +152,7 @@ console.log(JSON.stringify({
     'mobile safe-area HUD',
     'responsive mobile loadout',
     'mobile controls hidden during menus',
-    'spawn-safe client feedback',
-    'killstreaks',
-    'ADS + recoil recovery',
-    'dynamic crosshair',
-    'loadout selector',
-    'scoreboard',
-    'HUD + damage feedback',
-    'mobile controls',
-    'killfeed'
+    'spawn-safe client feedback'
   ],
   world: 'FPS_URBAN_BLOCK',
   qualityGate: 'PASS'
