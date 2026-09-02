@@ -1,6 +1,7 @@
 -- BBYA SOCIAL HUB — SHARED RESTROOM + MAIN CLUB SOFT LIGHTING v2
 -- Extends the shared restroom into the unused rear-right footprint and slightly lifts Main Club soft fill.
 -- Keeps one free Travel restroom for all venues and does not change global Lighting.
+-- Tall-avatar follow-up: restroom headroom +8 studs and late Main Club entrance residual cleanup.
 
 local Workspace=game:GetService("Workspace")
 
@@ -53,6 +54,8 @@ restroom:SetAttribute("LayoutVersion","V2_EXTENDED_REAR")
 restroom:SetAttribute("RearSpaceUsed",true)
 restroom:SetAttribute("RoomDepthStuds",21.6)
 restroom:SetAttribute("PrivacyDivider",true)
+restroom:SetAttribute("TallAvatarHeadroom",true)
+restroom:SetAttribute("HeadroomDeltaY",8)
 restroom.Parent=root
 
 local shell=Instance.new("Folder");shell.Name="Architecture";shell.Parent=restroom
@@ -64,23 +67,27 @@ local frontZ=-9.2
 local backZ=-30.8
 local cz=(frontZ+backZ)/2
 local depth=math.abs(backZ-frontZ)
+local RESTROOM_HEADROOM_DELTA=8
+local RESTROOM_CEILING_Y=10.65+RESTROOM_HEADROOM_DELTA
+local RESTROOM_WALL_HEIGHT=9.5+RESTROOM_HEADROOM_DELTA
+local RESTROOM_WALL_CENTER_Y=5.8+(RESTROOM_HEADROOM_DELTA/2)
 
 part(shell,"Floor",Vector3.new(16,.24,depth),CFrame.new(cx,1.02,cz),C.floor,Enum.Material.Slate,0,true)
-part(shell,"Ceiling",Vector3.new(16,.35,depth),CFrame.new(cx,10.65,cz),C.dark,Enum.Material.Slate,0,false)
-part(shell,"LeftWall",Vector3.new(.45,9.5,depth),CFrame.new(35.2,5.8,cz),C.wall,Enum.Material.Slate,0,true)
-part(shell,"RightWall",Vector3.new(.45,9.5,depth),CFrame.new(50.8,5.8,cz),C.wall,Enum.Material.Slate,0,true)
-part(shell,"BackWall",Vector3.new(16,9.5,.45),CFrame.new(cx,5.8,backZ),C.wall,Enum.Material.Slate,0,true)
--- Front wall keeps the original centered 4-stud doorway toward Main Bar.
-part(shell,"FrontWallL",Vector3.new(5.8,9.5,.45),CFrame.new(38.1,5.8,frontZ),C.wall,Enum.Material.Slate,0,true)
-part(shell,"FrontWallR",Vector3.new(5.8,9.5,.45),CFrame.new(47.9,5.8,frontZ),C.wall,Enum.Material.Slate,0,true)
-part(shell,"DoorHeader",Vector3.new(4.2,2.1,.45),CFrame.new(cx,9.5,frontZ),C.wall,Enum.Material.Slate,0,true)
+part(shell,"Ceiling",Vector3.new(16,.35,depth),CFrame.new(cx,RESTROOM_CEILING_Y,cz),C.dark,Enum.Material.Slate,0,false)
+part(shell,"LeftWall",Vector3.new(.45,RESTROOM_WALL_HEIGHT,depth),CFrame.new(35.2,RESTROOM_WALL_CENTER_Y,cz),C.wall,Enum.Material.Slate,0,true)
+part(shell,"RightWall",Vector3.new(.45,RESTROOM_WALL_HEIGHT,depth),CFrame.new(50.8,RESTROOM_WALL_CENTER_Y,cz),C.wall,Enum.Material.Slate,0,true)
+part(shell,"BackWall",Vector3.new(16,RESTROOM_WALL_HEIGHT,.45),CFrame.new(cx,RESTROOM_WALL_CENTER_Y,backZ),C.wall,Enum.Material.Slate,0,true)
+-- Front wall keeps the original centered 4-stud doorway toward Main Bar, now with tall-avatar clearance.
+part(shell,"FrontWallL",Vector3.new(5.8,RESTROOM_WALL_HEIGHT,.45),CFrame.new(38.1,RESTROOM_WALL_CENTER_Y,frontZ),C.wall,Enum.Material.Slate,0,true)
+part(shell,"FrontWallR",Vector3.new(5.8,RESTROOM_WALL_HEIGHT,.45),CFrame.new(47.9,RESTROOM_WALL_CENTER_Y,frontZ),C.wall,Enum.Material.Slate,0,true)
+part(shell,"DoorHeader",Vector3.new(4.2,2.1,.45),CFrame.new(cx,9.5+RESTROOM_HEADROOM_DELTA,frontZ),C.wall,Enum.Material.Slate,0,true)
 
 -- Entry frame + amenity signage; still no duplicate world prompt.
-part(detail,"EntryFrameL",Vector3.new(.22,7.0,.22),CFrame.new(40.92,4.65,-8.92),C.metal,Enum.Material.Metal,0,false)
-part(detail,"EntryFrameR",Vector3.new(.22,7.0,.22),CFrame.new(45.08,4.65,-8.92),C.metal,Enum.Material.Metal,0,false)
-local sign=part(detail,"RestroomSign",Vector3.new(4.4,1.15,.16),CFrame.new(cx,8.65,-8.94),C.dark,Enum.Material.Metal,0,false)
+part(detail,"EntryFrameL",Vector3.new(.22,15.0,.22),CFrame.new(40.92,8.65,-8.92),C.metal,Enum.Material.Metal,0,false)
+part(detail,"EntryFrameR",Vector3.new(.22,15.0,.22),CFrame.new(45.08,8.65,-8.92),C.metal,Enum.Material.Metal,0,false)
+local sign=part(detail,"RestroomSign",Vector3.new(4.4,1.15,.16),CFrame.new(cx,16.65,-8.94),C.dark,Enum.Material.Metal,0,false)
 cornerSurfaceText(sign,Enum.NormalId.Back,"RESTROOM",C.white)
-local signLine=part(detail,"RestroomSignAccent",Vector3.new(3.4,.07,.08),CFrame.new(cx,8.08,-8.84),C.cyan,Enum.Material.Neon,.18,false)
+local signLine=part(detail,"RestroomSignAccent",Vector3.new(3.4,.07,.08),CFrame.new(cx,16.08,-8.84),C.cyan,Enum.Material.Neon,.18,false)
 signLine.CastShadow=false
 
 -- Front foyer: vanity stays near the entrance while the Travel landing remains clear around X=43/Z=-13.
@@ -122,7 +129,7 @@ local restroomLights={
  {38.2,-25.7},{43.0,-25.7},{47.8,-25.7},
 }
 for i,v in ipairs(restroomLights) do
- local diffuser=part(detail,"RestroomCeilingLight_"..i,Vector3.new(2.45,.12,1.0),CFrame.new(v[1],10.38,v[2]),C.warm,Enum.Material.Glass,.28,false)
+ local diffuser=part(detail,"RestroomCeilingLight_"..i,Vector3.new(2.45,.12,1.0),CFrame.new(v[1],18.38,v[2]),C.warm,Enum.Material.Glass,.28,false)
  surfaceLight(diffuser,.72,11,C.warm)
 end
 
@@ -133,9 +140,10 @@ clubLights:SetAttribute("LightingIntent","SOFT_WARM_NEUTRAL")
 clubLights:SetAttribute("LightingVersion","V2_SLIGHTLY_BRIGHTER")
 clubLights:SetAttribute("NormalBrightness",.56)
 clubLights:SetAttribute("BarBrightness",.70)
+clubLights:SetAttribute("RaisedToTallAvatarCeiling",true)
 clubLights.Parent=root
 
--- Same fixture positions as V1; only a modest fill lift so the nightclub contrast remains intact.
+-- Same fixture positions as V1; brightness is preserved, but fixtures now follow the +8-stud ceiling datum.
 local clubFixturePositions={
  {-18,3},{-5,3},{8,3},{21,3},{34,3},
  {-18,21},{-5,21},{8,21},{21,21},{34,21},
@@ -143,9 +151,74 @@ local clubFixturePositions={
 }
 for i,v in ipairs(clubFixturePositions) do
  local isBar=v[1]>=40
- local fixture=part(clubLights,"SoftCeilingFixture_"..i,Vector3.new(isBar and 2.8 or 3.2,.13,1.0),CFrame.new(v[1],17.35,v[2]),C.warm,Enum.Material.Glass,.32,false)
+ local fixture=part(clubLights,"SoftCeilingFixture_"..i,Vector3.new(isBar and 2.8 or 3.2,.13,1.0),CFrame.new(v[1],25.35,v[2]),C.warm,Enum.Material.Glass,.32,false)
  fixture.CastShadow=false
  surfaceLight(fixture,isBar and .70 or .56,isBar and 16 or 14,C.warm)
 end
 
-print("[BBYA] Shared Restroom v2 extended rear mapping + Main Club soft lighting v2 online")
+-- MAIN CLUB ENTRANCE RESIDUAL CLEANUP -----------------------------------------
+-- Remove only the duplicated low portal/soffit layers, floating entrance neon, raised moving-head boxes,
+-- and central decorative truss that remain in the mobile sightline after the tall-avatar headroom pass.
+-- Stage, DJ booth, bar, lounge, audio, global Lighting, VIP, Mall and Underground are untouched.
+local function destroyChild(container,name,recursive)
+ if not container then return false end
+ local obj=container:FindFirstChild(name,recursive==true)
+ if obj then obj:Destroy();return true end
+ return false
+end
+
+local function applyMainClubEntranceResidualCleanup()
+ local premium=root:FindFirstChild("MainClubPremiumV4")
+ local beauty=root:FindFirstChild("MainClubBeautyV5")
+ local realism=root:FindFirstChild("MainClubRealism")
+ local front=root:FindFirstChild("Floor1FrontPremium")
+
+ if premium then
+  destroyChild(premium,"DanceFloorMovingHeads",true)
+  destroyChild(premium,"MainClubEntranceReveal",true)
+  premium:SetAttribute("MovingHeadFixtures",0)
+  premium:SetAttribute("BBYAEntranceRevealResidualRemoved",true)
+  premium:SetAttribute("BBYAMovingHeadResidualRemoved",true)
+ end
+
+ if beauty then
+  destroyChild(beauty,"MobilePremiumFacadeV7",true)
+  destroyChild(beauty,"SlimPillarFinishingV6",true)
+  beauty:SetAttribute("BBYAFloatingSoffitRemoved",true)
+  beauty:SetAttribute("BBYAEntranceAccentResidualRemoved",true)
+ end
+
+ if realism then
+  destroyChild(realism,"MainTruss",true)
+  realism:SetAttribute("BBYAMainTrussSightlineResidualRemoved",true)
+ end
+
+ if front then
+  local transition=front:FindFirstChild("EntranceToClubTransition",true)
+  if transition then
+   destroyChild(transition,"PortalAccentL",false)
+   destroyChild(transition,"PortalAccentR",false)
+   transition:SetAttribute("BBYAFloatingPortalNeonRemoved",true)
+  end
+ end
+
+ root:SetAttribute("BBYAMainEntranceResidualCleanup","V1_CLEAR_SIGHTLINE")
+ root:SetAttribute("BBYAMainEntranceResidualCleanupLastApplied",os.time())
+end
+
+task.spawn(function()
+ root:WaitForChild("MainClubPremiumV4",45)
+ root:WaitForChild("MainClubBeautyV5",45)
+ root:WaitForChild("MainClubRealism",45)
+
+ -- Owner geometry v6 rebuilds moving heads once at the raised datum; wait for that pass when available,
+ -- then remove the rig and reassert a few times so startup ordering cannot recreate the marked residuals.
+ local deadline=os.clock()+25
+ repeat task.wait(.2) until root:GetAttribute("BBYAMainOverheadLightsRaised")=="V1_PLUS8" or os.clock()>=deadline
+ applyMainClubEntranceResidualCleanup()
+ for _,delaySeconds in ipairs({3,10,25,40}) do
+  task.delay(delaySeconds,applyMainClubEntranceResidualCleanup)
+ end
+end)
+
+print("[BBYA] Shared Restroom v2 extended rear mapping + Main Club soft lighting v2 online; restroom +8 headroom and entrance residual cleanup armed")
