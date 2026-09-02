@@ -80,7 +80,7 @@ task.spawn(function()
  out:SetAttribute("AudioUntouched",true)
  out:SetAttribute("GlobalLightingUntouched",true)
  out:SetAttribute("Profile","INDONESIAN_DISKOTIK_PREMIUM_V2")
- out:SetAttribute("DaylightShieldedEntrance",true)
+ out:SetAttribute("DaylightShieldedEntrance",false)
  out:SetAttribute("NativeSeating",true)
 
  local C={
@@ -141,15 +141,9 @@ task.spawn(function()
   return s
  end
 
- -- 1) DARK ARRIVAL VESTIBULE ---------------------------------------------------
- -- The original 24-stud opening let daytime spill straight into the hall. A short
- -- black vestibule keeps the real-WITA exterior while the Funkot interior stays club-dark.
+ -- 1) OPEN ARRIVAL IDENTITY ----------------------------------------------------
+ -- Keep the portal readable without any opaque vestibule walls, curtains or ceiling.
  local entry=Instance.new("Model");entry.Name="DiskotikArrivalV2";entry.Parent=out
- part("EntryCeiling",Vector3.new(20,.55,15),CFrame.new(0,9.4,169),C.black,Enum.Material.Metal,true,entry)
- part("EntryWallL",Vector3.new(1.2,8.5,15),CFrame.new(-9.4,5.2,169),C.ink,Enum.Material.Concrete,true,entry)
- part("EntryWallR",Vector3.new(1.2,8.5,15),CFrame.new(9.4,5.2,169),C.ink,Enum.Material.Concrete,true,entry)
- part("EntryCurtainL",Vector3.new(5.0,8.2,.26),CFrame.new(-6.7,5.1,175.7),C.black,Enum.Material.Fabric,false,entry)
- part("EntryCurtainR",Vector3.new(5.0,8.2,.26),CFrame.new(6.7,5.1,175.7),C.black,Enum.Material.Fabric,false,entry)
  for _,x in ipairs({-8.4,8.4}) do
   local lamp=part("EntrySconce"..x,Vector3.new(.22,3.6,.32),CFrame.new(x,5.5,168),C.amber,Enum.Material.Glass,false,entry,.12)
   localLight(lamp,C.warm,.28,8)
@@ -282,15 +276,14 @@ task.spawn(function()
  club:SetAttribute("DiskotikBar",true)
  club:SetAttribute("BottleService",true)
  club:SetAttribute("PremiumDanceFloor",true)
- club:SetAttribute("DaylightVestibule",true)
- print("[BBYA] Funkot Diskotik Premium v2 online: dark arrival / premium dance floor / line arrays / bar / bottle service / mirror ball")
+ club:SetAttribute("DaylightVestibule",false)
+ print("[BBYA] Funkot Diskotik Premium v2 online: open arrival / premium dance floor / line arrays / bar / bottle service / mirror ball")
 end)
 
 -- -----------------------------------------------------------------------------
--- FUNKOT DISKOTIK IDENTITY + BLACKOUT v2.1
--- Live mobile QC after v444: visible branding still said CLUB and the straight
--- entrance sightline exposed bright daytime sky. Keep real WITA outside while
--- making Funkot read as a dedicated indoor Indonesian diskotik at all hours.
+-- FUNKOT DISKOTIK IDENTITY v2.1
+-- Keep Funkot naming/identity while retiring the opaque blackout baffles that
+-- created the large black box at the entrance in live runtime.
 -- -----------------------------------------------------------------------------
 task.spawn(function()
  local club=root:WaitForChild("FunkotClub",60)
@@ -304,7 +297,7 @@ task.spawn(function()
  if not v2 then warn("[BBYA] Funkot Diskotik v2.1 skipped: v2 not ready");return end
  task.wait(.5)
  club:SetAttribute("DisplayName","FUNKOT DISKOTIK")
- club:SetAttribute("VisualPass","FUNKOT_DISKOTIK_V21_BLACKOUT")
+ club:SetAttribute("VisualPass","FUNKOT_DISKOTIK_V21_OPEN_ENTRY")
  for _,name in ipairs({"FunkotSign","EntrySign"}) do
   local sign=club:FindFirstChild(name,true)
   if sign then
@@ -323,7 +316,7 @@ task.spawn(function()
  out:SetAttribute("GlobalLightingUntouched",true)
  out:SetAttribute("AudioUntouched",true)
  out:SetAttribute("RealWitaOutsidePreserved",true)
- out:SetAttribute("DirectDaylightSightlineBlocked",true)
+ out:SetAttribute("DirectDaylightSightlineBlocked",false)
  local BLACK=Color3.fromRGB(7,8,10)
  local INK=Color3.fromRGB(14,15,19)
  local METAL=Color3.fromRGB(45,47,53)
@@ -341,13 +334,7 @@ task.spawn(function()
  local function point(parent,color,brightness,range)
   local l=Instance.new("PointLight");l.Color=color;l.Brightness=brightness;l.Range=range;l.Shadows=false;l.Parent=parent;return l
  end
- local gate=Instance.new("Model");gate.Name="BlackoutEntryV21";gate.Parent=out
- part("BaffleInner",Vector3.new(13.0,8.4,.62),CFrame.new(-2.5,5.15,174.4),BLACK,Enum.Material.Metal,true,gate)
- part("BaffleOuter",Vector3.new(13.0,8.4,.62),CFrame.new(2.5,5.15,168.3),BLACK,Enum.Material.Metal,true,gate)
- part("BaffleInnerCap",Vector3.new(13.6,.25,.92),CFrame.new(-2.5,9.25,174.4),METAL,Enum.Material.Metal,false,gate)
- part("BaffleOuterCap",Vector3.new(13.6,.25,.92),CFrame.new(2.5,9.25,168.3),METAL,Enum.Material.Metal,false,gate)
- part("BlackoutCeiling",Vector3.new(19.0,.45,14.8),CFrame.new(0,9.55,171.3),BLACK,Enum.Material.Metal,true,gate)
- part("BlackoutFloor",Vector3.new(18.0,.10,13.4),CFrame.new(0,1.12,171.3),Color3.fromRGB(20,20,23),Enum.Material.Slate,true,gate)
+ local gate=Instance.new("Model");gate.Name="OpenEntryIdentityV21";gate.Parent=out
  for i,data in ipairs({{-7.7,172.2,PINK},{7.7,170.2,CYAN},{-7.7,166.2,WARM},{7.7,176.0,WARM}}) do
   local lens=part("GuideLens"..i,Vector3.new(.24,1.6,.24),CFrame.new(data[1],3.1,data[2]),data[3],Enum.Material.Glass,false,gate,.08)
   point(lens,data[3],.22,6.5)
@@ -359,5 +346,5 @@ task.spawn(function()
  local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.PixelsPerStud=60;gui.Parent=plaque
  local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="FUNKOT  DISKOTIK";text.TextColor3=Color3.fromRGB(238,236,232);text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=gui
  local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new(PINK,CYAN);grad.Parent=text
- print("[BBYA] Funkot Diskotik v2.1 online: venue identity locked / direct daylight sightline blocked / WITA exterior preserved")
+ print("[BBYA] Funkot Diskotik v2.1 online: venue identity locked / opaque blackout baffles retired / WITA exterior preserved")
 end)
