@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v5
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v6
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
 -- Runtime EDIT stays hidden by default for all admins; /bbyaedit can still show it when needed.
 
@@ -59,19 +59,24 @@ end
 for _,p in ipairs(Players:GetPlayers()) do bindStaticAdmin(p) end
 Players.PlayerAdded:Connect(bindStaticAdmin)
 
--- Entrance community-wall bottom neon visibility fix.
--- The original BottomTrim sits almost flush with the floor and gets visually buried.
--- Lift only the existing bottom trim on both boards; board size/position/content stay unchanged.
+-- Entrance community-wall bottom neon visibility/final-fit fix.
+-- Lift the existing bottom trim clear of the floor. On Live Community only,
+-- trim the left edge inward slightly while preserving the right edge alignment.
 local function liftCommunityBottomNeon(holder)
  if not holder or not holder:IsA("Model") then return false end
  local trim=holder:FindFirstChild("BottomTrim")
  if not trim or not trim:IsA("BasePart") then return false end
- if trim:GetAttribute("BBYABottomNeonVisibleV2")~=true then
-  trim.Size=Vector3.new(trim.Size.X,0.18,0.18)
-  trim.CFrame=trim.CFrame*CFrame.new(0,0.30,-0.10)
+ if trim:GetAttribute("BBYABottomNeonVisibleV3")~=true then
+  if holder.Name=="LiveCommunityWall" then
+   trim.Size=Vector3.new(math.max(0.1,trim.Size.X-0.60),0.18,0.18)
+   trim.CFrame=trim.CFrame*CFrame.new(0.30,0.30,-0.10)
+  else
+   trim.Size=Vector3.new(trim.Size.X,0.18,0.18)
+   trim.CFrame=trim.CFrame*CFrame.new(0,0.30,-0.10)
+  end
   trim.Material=Enum.Material.Neon
   trim.Transparency=0
-  trim:SetAttribute("BBYABottomNeonVisibleV2",true)
+  trim:SetAttribute("BBYABottomNeonVisibleV3",true)
  end
  return true
 end
@@ -188,4 +193,4 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v5 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved; community bottom neon v2 active")
+print("[BBYA] Admin NEXT + editor hotfix v6 online: arda_moron123 static ADMIN + full bypass; EDIT hidden by default; /bbyaedit preserved; community bottom neon v3 final-fit active")
