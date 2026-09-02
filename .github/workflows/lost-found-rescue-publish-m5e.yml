@@ -1,0 +1,150 @@
+name: Lost Found Rescue Publish M5-E
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/lost-found-rescue-publish-m5e.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lost-found-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      UPSTREAM_REPO: balinightlife666-web/ACC-Android-Builder
+      UPSTREAM_SHA: a1e5242b48f693db6c44f3eccbab331fd7568dbe
+      BASE_LIVE_SHA: 98d9c1a74e9beff24ee5ae4cd6b3143b56a02dae
+      UNIVERSE_ID: '10745354451'
+      PLACE_ID: '93699016600671'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+    steps:
+      - name: Checkout publisher repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify publish secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${ROBLOX_API_KEY:-}" ]] || { echo 'ROBLOX_OPEN_CLOUD_MASTER_V2 is unavailable'; exit 10; }
+          echo 'Publisher secret present.'
+
+      - name: Checkout exact Lost Found source
+        uses: actions/checkout@v4
+        with:
+          repository: balinightlife666-web/ACC-Android-Builder
+          ref: a1e5242b48f693db6c44f3eccbab331fd7568dbe
+          path: upstream
+          fetch-depth: 0
+
+      - name: Verify exact source and locked Lost Found delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual=$(git -C upstream rev-parse HEAD)
+          [[ "$actual" == "$UPSTREAM_SHA" ]] || { echo "Source mismatch: $actual"; exit 20; }
+          git -C upstream cat-file -e "${BASE_LIVE_SHA}^{commit}"
+          git -C upstream diff --name-only "$BASE_LIVE_SHA" "$UPSTREAM_SHA" -- lost-and-found-night-shift | sort > "$RUNNER_TEMP/actual.txt"
+          cat > "$RUNNER_TEMP/expected.txt" <<'EOF'
+          lost-and-found-night-shift/brain/M5C4_RARITY_DISPLAY_LANGUAGE_LOCK.md
+          lost-and-found-night-shift/brain/M5D_PREMIUM_STATION_STRUCTURE_LOCK.md
+          lost-and-found-night-shift/brain/M5E_COLLECTION_PRESTIGE_LOCK.md
+          lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua
+          lost-and-found-night-shift/src/client/M4E21GeneratedEvidenceLocalization.client.lua
+          lost-and-found-night-shift/src/server/M5C41RarityDisplayEmptySlotCleanup.server.lua
+          lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua
+          lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua
+          lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua
+          EOF
+          sed -i 's/^          //' "$RUNNER_TEMP/expected.txt"
+          sort -o "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/expected.txt"
+          if ! diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/actual.txt"; then
+            echo 'Unexpected Lost Found delta; refusing publish.'
+            exit 21
+          fi
+          grep -Fq 'M5C4_RARITY_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua
+          grep -Fq 'M5D_STRUCTURAL_THEME_V1' upstream/lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua
+          grep -Fq 'M5E_COLLECTION_PRESTIGE_V1' upstream/lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua
+          grep -Fq 'REPEATED TEMPERATURE RISE DETECTED' upstream/lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua
+          echo "SOURCE LOCK PASS upstream=$actual project_delta=9-files"
+
+      - name: Prepare Rojo 7.7.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rojo"
+          curl -fsSL 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip' -o "$RUNNER_TEMP/rojo.zip"
+          unzip -q -o "$RUNNER_TEMP/rojo.zip" -d "$RUNNER_TEMP/rojo"
+          rojo=$(find "$RUNNER_TEMP/rojo" -type f -name rojo | head -n1)
+          [[ -n "$rojo" ]] || exit 30
+          chmod +x "$rojo"
+          version=$("$rojo" --version)
+          [[ "$version" == *'7.7.0'* ]] || { echo "Wrong Rojo: $version"; exit 31; }
+          echo "ROJO_EXE=$rojo" >> "$GITHUB_ENV"
+
+      - name: Build exact Lost Found place
+        shell: bash
+        run: |
+          set -euo pipefail
+          place="$RUNNER_TEMP/lost-found-m5e.rbxl"
+          "$ROJO_EXE" build 'upstream/lost-and-found-night-shift/default.project.json' -o "$place"
+          test -s "$place"
+          bytes=$(stat -c%s "$place")
+          sha=$(sha256sum "$place" | awk '{print $1}')
+          echo "PLACE_FILE=$place" >> "$GITHUB_ENV"
+          echo "PLACE_BYTES=$bytes" >> "$GITHUB_ENV"
+          echo "PLACE_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "BUILD PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish Lost Found LIVE to Roblox
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://apis.roblox.com/universes/v1/${UNIVERSE_ID}/places/${PLACE_ID}/versions?versionType=Published"
+          http=$(curl -sS --location -o "$RUNNER_TEMP/publish-response.json" -w '%{http_code}' -X POST "$url" -H "x-api-key: $ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$PLACE_FILE")
+          body=$(cat "$RUNNER_TEMP/publish-response.json")
+          [[ "$http" =~ ^2[0-9][0-9]$ ]] || { echo "HTTP $http: $body"; exit 40; }
+          version=$(jq -r '.versionNumber // empty' "$RUNNER_TEMP/publish-response.json")
+          [[ -n "$version" ]] || { echo "Missing versionNumber: $body"; exit 41; }
+          echo "PUBLISHED_VERSION=$version" >> "$GITHUB_ENV"
+          echo "ROBLOX PUBLISH PASS version=$version"
+
+      - name: Persist rescue LIVE receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          publisher_commit=$(git rev-parse HEAD)
+          mkdir -p deploy-status
+          jq -n \
+            --arg status 'LIVE_PUBLISHED' \
+            --arg project 'LOST & FOUND: NIGHT SHIFT' \
+            --arg mode 'M5E_COLLECTION_PRESTIGE_RESCUE' \
+            --arg sourceRepo "$UPSTREAM_REPO" \
+            --arg sourceCommit "$UPSTREAM_SHA" \
+            --arg baseLiveCommit "$BASE_LIVE_SHA" \
+            --arg publisherRepo 'ardarawk-cloud/ACC-Roblox-maps' \
+            --arg publisherCommit "$publisher_commit" \
+            --arg universeId "$UNIVERSE_ID" \
+            --arg placeId "$PLACE_ID" \
+            --arg versionNumber "$PUBLISHED_VERSION" \
+            --arg rojoVersion '7.7.0' \
+            --arg placeBytes "$PLACE_BYTES" \
+            --arg placeSha256 "$PLACE_SHA256" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,publisherRepo:$publisherRepo,publisherCommit:$publisherCommit,universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"Temporary Ardarawk rescue route. Includes M5-C.4 rarity display, M5-D structural themes, Indonesian evidence localization coverage, and M5-E collection prestige polish. Gameplay/economy/drop/trading locks preserved."}' > deploy-status/lost-and-found-rescue.json
+          cat deploy-status/lost-and-found-rescue.json
+          git config user.name 'Lost Found Rescue Publish Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- deploy-status/lost-and-found-rescue.json
+          git commit -m 'Record Lost Found rescue LIVE publish [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
