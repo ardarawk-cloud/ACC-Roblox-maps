@@ -61,6 +61,7 @@
       "ASC_SignageTypographyBoostV0923": {"$path": "after-school-city.signage-typography-v0923.server.lua"},
       "ASC_FinalEnvironmentPolishV093": {"$path": "after-school-city.final-environment-v093.server.lua"},
       "ASC_StreetlightGeometryHotfixV111": {"$path": "after-school-city.streetlight-geometry-hotfix-v111.server.lua"},
+      "ASC_SkateparkLightClearanceV112": {"$path": "after-school-city.skatepark-light-clearance-v112.server.lua"},
       "ASC_GameplayService": {"$path": "after-school-city.gameplay-service.lua"},
       "ASC_GameplayBootstrap": {"$path": "after-school-city.gameplay-bootstrap.server.lua"},
       "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"}
