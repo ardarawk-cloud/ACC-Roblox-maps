@@ -1,4 +1,4 @@
-name: Lost Found Rescue Publish M5-E
+name: Lost Found Rescue Publish M6-A
 
 on:
   push:
@@ -19,8 +19,8 @@ jobs:
     timeout-minutes: 20
     env:
       UPSTREAM_REPO: balinightlife666-web/ACC-Android-Builder
-      UPSTREAM_SHA: a1e5242b48f693db6c44f3eccbab331fd7568dbe
-      BASE_LIVE_SHA: 98d9c1a74e9beff24ee5ae4cd6b3143b56a02dae
+      UPSTREAM_SHA: a279fb66c9f5e657e5de2797e05fca4722505e73
+      BASE_LIVE_SHA: a1e5242b48f693db6c44f3eccbab331fd7568dbe
       UNIVERSE_ID: '10745354451'
       PLACE_ID: '93699016600671'
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -41,11 +41,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: balinightlife666-web/ACC-Android-Builder
-          ref: a1e5242b48f693db6c44f3eccbab331fd7568dbe
+          ref: a279fb66c9f5e657e5de2797e05fca4722505e73
           path: upstream
           fetch-depth: 0
 
-      - name: Verify exact source and locked Lost Found delta
+      - name: Verify exact M6-A source delta
         shell: bash
         run: |
           set -euo pipefail
@@ -54,15 +54,10 @@ jobs:
           git -C upstream cat-file -e "${BASE_LIVE_SHA}^{commit}"
           git -C upstream diff --name-only "$BASE_LIVE_SHA" "$UPSTREAM_SHA" -- lost-and-found-night-shift | sort > "$RUNNER_TEMP/actual.txt"
           cat > "$RUNNER_TEMP/expected.txt" <<'EOF'
-          lost-and-found-night-shift/brain/M5C4_RARITY_DISPLAY_LANGUAGE_LOCK.md
-          lost-and-found-night-shift/brain/M5D_PREMIUM_STATION_STRUCTURE_LOCK.md
-          lost-and-found-night-shift/brain/M5E_COLLECTION_PRESTIGE_LOCK.md
-          lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua
-          lost-and-found-night-shift/src/client/M4E21GeneratedEvidenceLocalization.client.lua
-          lost-and-found-night-shift/src/server/M5C41RarityDisplayEmptySlotCleanup.server.lua
-          lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua
-          lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua
-          lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua
+          lost-and-found-night-shift/brain/M6A_SHIFT_PROGRESSION_FOUNDATION_LOCK.md
+          lost-and-found-night-shift/src/client/M6AShiftProgression.client.lua
+          lost-and-found-night-shift/src/server/M6AShiftProgression.server.lua
+          lost-and-found-night-shift/src/shared/ShiftProgressionConfig.lua
           EOF
           sed -i 's/^          //' "$RUNNER_TEMP/expected.txt"
           sort -o "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/expected.txt"
@@ -70,11 +65,10 @@ jobs:
             echo 'Unexpected Lost Found delta; refusing publish.'
             exit 21
           fi
-          grep -Fq 'M5C4_RARITY_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5C4RarityDisplayLanguage.server.lua || { echo 'M5-C.4 version guard failed'; exit 22; }
-          grep -Fq 'M5D_PREMIUM_STRUCTURE_V1' upstream/lost-and-found-night-shift/src/server/M5DStructuralThemePass.server.lua || { echo 'M5-D version guard failed'; exit 23; }
-          grep -Fq 'M5E_PRESTIGE_DISPLAY_V1' upstream/lost-and-found-night-shift/src/server/M5ECollectionPrestigePolish.server.lua || { echo 'M5-E version guard failed'; exit 24; }
-          grep -Fq 'REPEATED TEMPERATURE RISE DETECTED' upstream/lost-and-found-night-shift/src/client/M4E21EvidenceLocalizationCoverage.client.lua || { echo 'Localization coverage guard failed'; exit 25; }
-          echo "SOURCE LOCK PASS upstream=$actual project_delta=9-files"
+          grep -Fq 'M6A_SHIFT_PROGRESSION_V1' upstream/lost-and-found-night-shift/src/shared/ShiftProgressionConfig.lua || { echo 'M6-A config guard failed'; exit 22; }
+          grep -Fq 'LostFoundProgressionRevision' upstream/lost-and-found-night-shift/src/server/M6AShiftProgression.server.lua || { echo 'M6-A atomic revision guard failed'; exit 23; }
+          grep -Fq 'LostFoundProgressionRevision' upstream/lost-and-found-night-shift/src/client/M6AShiftProgression.client.lua || { echo 'M6-A HUD revision guard failed'; exit 24; }
+          echo "SOURCE LOCK PASS upstream=$actual lost_found_delta=4-files"
 
       - name: Prepare Rojo 7.7.0
         shell: bash
@@ -90,11 +84,11 @@ jobs:
           [[ "$version" == *'7.7.0'* ]] || { echo "Wrong Rojo: $version"; exit 31; }
           echo "ROJO_EXE=$rojo" >> "$GITHUB_ENV"
 
-      - name: Build exact Lost Found place
+      - name: Build exact Lost Found M6-A place
         shell: bash
         run: |
           set -euo pipefail
-          place="$RUNNER_TEMP/lost-found-m5e.rbxl"
+          place="$RUNNER_TEMP/lost-found-m6a.rbxl"
           "$ROJO_EXE" build 'upstream/lost-and-found-night-shift/default.project.json' -o "$place"
           test -s "$place"
           bytes=$(stat -c%s "$place")
@@ -117,7 +111,7 @@ jobs:
           echo "PUBLISHED_VERSION=$version" >> "$GITHUB_ENV"
           echo "ROBLOX PUBLISH PASS version=$version"
 
-      - name: Persist rescue LIVE receipt
+      - name: Persist M6-A rescue LIVE receipt
         shell: bash
         run: |
           set -euo pipefail
@@ -126,7 +120,7 @@ jobs:
           jq -n \
             --arg status 'LIVE_PUBLISHED' \
             --arg project 'LOST & FOUND: NIGHT SHIFT' \
-            --arg mode 'M5E_COLLECTION_PRESTIGE_RESCUE' \
+            --arg mode 'M6A_SHIFT_PROGRESSION_RESCUE' \
             --arg sourceRepo "$UPSTREAM_REPO" \
             --arg sourceCommit "$UPSTREAM_SHA" \
             --arg baseLiveCommit "$BASE_LIVE_SHA" \
@@ -140,11 +134,11 @@ jobs:
             --arg placeSha256 "$PLACE_SHA256" \
             --arg runId "$GITHUB_RUN_ID" \
             --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,publisherRepo:$publisherRepo,publisherCommit:$publisherCommit,universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"Temporary Ardarawk rescue route. Includes M5-C.4 rarity display, M5-D structural themes, Indonesian evidence localization coverage, and M5-E collection prestige polish. Gameplay/economy/drop/trading locks preserved."}' > deploy-status/lost-and-found-rescue.json
+            '{status:$status,project:$project,mode:$mode,sourceRepo:$sourceRepo,sourceCommit:$sourceCommit,baseLiveCommit:$baseLiveCommit,publisherRepo:$publisherRepo,publisherCommit:$publisherCommit,universeId:$universeId,placeId:$placeId,versionNumber:($versionNumber|tonumber),rojoVersion:$rojoVersion,placeBytes:($placeBytes|tonumber),placeSha256:$placeSha256,runId:$runId,publishedAt:$publishedAt,note:"Temporary Ardarawk rescue route. M6-A adds Shift Level 1-10, server-derived progression attributes, milestone foundation, and compact Indonesia-first progression HUD using existing persistent XP. Existing Credits/XP reward values, collection/drop/rarity/serial/trading/station/case/canon locks remain unchanged."}' > deploy-status/lost-and-found-rescue.json
           cat deploy-status/lost-and-found-rescue.json
           git config user.name 'Lost Found Rescue Publish Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add -- deploy-status/lost-and-found-rescue.json
-          git commit -m 'Record Lost Found rescue LIVE publish [skip ci]'
+          git commit -m 'Record Lost Found M6-A rescue LIVE publish [skip ci]'
           git pull --rebase origin main
           git push origin HEAD:main
