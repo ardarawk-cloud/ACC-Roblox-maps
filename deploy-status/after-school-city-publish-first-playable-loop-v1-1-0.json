@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "project": "AFTER SCHOOL CITY",
+  "mode": "FIRST_PLAYABLE_LOOP_V1_1_0",
+  "sourceRepo": "ardarawk-cloud/ACC-Roblox-maps",
+  "sourceCommit": "582f2ba0bd710aa3e6293240f14da6a8db0e70ae",
+  "baseLiveCommit": "02d569b7ca6adf990355f4e6b1fe6fd13ceac738",
+  "qcRunId": "33624598458",
+  "qcArtifactId": 9844274788,
+  "universeId": "10745359869",
+  "placeId": "121603385909425",
+  "versionNumber": 46,
+  "rojoVersion": "7.7.0",
+  "placeBytes": 178750,
+  "placeSha256": "deebba008593db98eb5c5b2986c3778aad53b94f9fdab6e91fc1b112e6e46130",
+  "runId": "33624973135",
+  "publishedAt": "2026-09-02T11:30:53Z",
+  "note": "V1.1 exact QC-locked First Playable Loop. Adds Skate Line Challenge, Pool Laps with native Swimming requirement, and City Delivery. Activity progression, rewards and cooldowns are server-authoritative; localization follows Roblox locale with Indonesian/English fallback. Existing persistence, environment, roads, pool source, music and dedication remain unchanged. V1.0.3 Music Toggle Glass is not included."
+}
