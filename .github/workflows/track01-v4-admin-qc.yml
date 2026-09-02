@@ -40,11 +40,12 @@ jobs:
           if(!c.enabled) throw new Error('TRACK 01 target disabled');
           const src=fs.readFileSync('maps/track-01/music-runtime.server.lua','utf8');
           const rows=[...src.matchAll(/\{id="(\d+)",source="(PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}/g)];
-          if(rows.length!==67) throw new Error(`Music catalog must contain exactly 67 active BBYA tracks, got ${rows.length}`);
-          if(new Set(rows.map(x=>x[1])).size!==67) throw new Error('Duplicate music asset ID');
+          if(rows.length!==62) throw new Error(`Music catalog must contain exactly 62 permissioned BBYA tracks, got ${rows.length}`);
+          if(new Set(rows.map(x=>x[1])).size!==62) throw new Error('Duplicate music asset ID');
           const skate=['1837057495','1841242625','9040318014','9043707741','9042632936','1840009708','101433831748471','73111765506214'];
-          for(const id of skate) if(src.includes(`id="${id}"`)) throw new Error(`Skatepark asset leaked into TRACK 01: ${id}`);
-          console.log('TRACK 01 v4.2 target/catalog lock PASS');
+          const unmanageable=['117476404561871','139454814636865','94631926635772','103410156771684','97696234195316'];
+          for(const id of [...skate,...unmanageable]) if(src.includes(`id="${id}"`)) throw new Error(`Excluded asset leaked into TRACK 01: ${id}`);
+          console.log('TRACK 01 v4.2 final 62-track target/catalog lock PASS');
           NODE
 
       - name: Build canonical TRACK 01 v4.2 place
@@ -95,6 +96,7 @@ jobs:
           grep -q 'TRACK01_MUSIC_SPATIAL_CARS_ONLY' "$place"
           grep -q 'TRACK01_MUSIC_SKATEPARK_EXCLUDED' "$place"
           grep -q 'TRACK01_MUSIC_TRACK_COUNT' "$place"
+          grep -q '62-track permissioned BBYA pool' "$place"
           grep -q 'CROSSFADE=7' "$place"
           grep -q 'CAR_01' "$place"
           grep -q 'CAR_02' "$place"
@@ -107,10 +109,10 @@ jobs:
           grep -q 'MUSIC_PAUSE' "$place"
           grep -q 'MUSIC_RESTART' "$place"
           grep -q 'MUSIC_VOLUME' "$place"
-          for id in 1837057495 1841242625 9040318014 9043707741 9042632936 1840009708 101433831748471 73111765506214; do
-            if grep -q "id=\"$id\"" "$place"; then echo "Skatepark leak: $id" >&2; exit 1; fi
+          for id in 1837057495 1841242625 9040318014 9043707741 9042632936 1840009708 101433831748471 73111765506214 117476404561871 139454814636865 94631926635772 103410156771684 97696234195316; do
+            if grep -q "id=\"$id\"" "$place"; then echo "Excluded asset leak: $id" >&2; exit 1; fi
           done
-          echo 'TRACK 01 v4.2 AutoDJ/automix QC PASS'
+          echo 'TRACK 01 v4.2 final 62-track AutoDJ/automix QC PASS'
 
       - name: Validate coordinated event operations
         shell: bash
