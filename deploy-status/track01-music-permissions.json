@@ -143,6 +143,68 @@
     "103410156771684",
     "97696234195316"
   ],
+  "diagnostics": [
+    {
+      "assetId": "117476404561871",
+      "http": 200,
+      "response": {
+        "errors": [
+          {
+            "assetId": 117476404561871,
+            "code": "CannotManageAsset"
+          }
+        ]
+      }
+    },
+    {
+      "assetId": "139454814636865",
+      "http": 200,
+      "response": {
+        "errors": [
+          {
+            "assetId": 139454814636865,
+            "code": "CannotManageAsset"
+          }
+        ]
+      }
+    },
+    {
+      "assetId": "94631926635772",
+      "http": 200,
+      "response": {
+        "errors": [
+          {
+            "assetId": 94631926635772,
+            "code": "CannotManageAsset"
+          }
+        ]
+      }
+    },
+    {
+      "assetId": "103410156771684",
+      "http": 200,
+      "response": {
+        "errors": [
+          {
+            "assetId": 103410156771684,
+            "code": "CannotManageAsset"
+          }
+        ]
+      }
+    },
+    {
+      "assetId": "97696234195316",
+      "http": 200,
+      "response": {
+        "errors": [
+          {
+            "assetId": 97696234195316,
+            "code": "CannotManageAsset"
+          }
+        ]
+      }
+    }
+  ],
   "attempts": [
     {
       "key": "ROBLOX_AUDIO_API_KEY",
@@ -348,7 +410,8 @@
           "successCount": 7
         }
       ],
-      "result": "ATTEMPTED"
+      "result": "ATTEMPTED",
+      "individualRetryCount": 5
     }
   ]
 }
