@@ -40,7 +40,7 @@ local function ensureGate(key,g)
  gate.Name="BBYAVenueGateV9"
  gate.Enabled=true
  gates[key]=gate
- g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_2_EQ_ONLY")
+ g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_EQ_ONLY")
  return gate
 end
 
@@ -148,7 +148,7 @@ local function enforce()
    g:SetAttribute("BBYALocalAudible",open)
    g:SetAttribute("BBYAAudioRouterVenue",currentVenue)
    g:SetAttribute("BBYAActiveTrimDb",open and trim or -80)
-   g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_2_EQ_ONLY")
+   g:SetAttribute("BBYAAudioIsolationAuthority","ROUTER_V9_EQ_ONLY")
   end
  end
  enforceDirectFunkot(not muted and currentVenue=="FUNKOT")
@@ -156,7 +156,7 @@ local function enforce()
  player:SetAttribute("BBYAAudioRoom",currentRoom or "NONE")
  player:SetAttribute("BBYAMainTrimDb",currentVenue=="MAIN" and mainTrim or -80)
  player:SetAttribute("BBYAAudioFailClosed",currentVenue=="NONE")
- player:SetAttribute("BBYAAudioRouterAuthority","ROUTER_V9_2_EQ_ONLY")
+ player:SetAttribute("BBYAAudioRouterAuthority","ROUTER_V9_EQ_ONLY")
 end
 
 local function bindMute()
