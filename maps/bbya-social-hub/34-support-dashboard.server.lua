@@ -1,9 +1,10 @@
--- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v9
+-- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v10
 -- Full-wall dual entrance displays fitted to the usable facade fields.
 -- Left: Top Supporters / Hall of Fame.
 -- Right: Live Community / dynamic welcome + recent arrivals.
--- v9: mirror the proven Hall of Fame trim geometry on Live Community.
---     No manual per-edge offset/resize hacks: both boards now use the same precise frame recipe.
+-- v10: mirror the entire Live Community assembly to the proven Hall of Fame facade coordinate.
+--      Hall of Fame is centered at -34.5, so Live Community is centered at +34.5.
+--      No per-edge trim hacks: board, recess, UI and all four trims move together as one assembly.
 
 local W = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -18,7 +19,7 @@ if old then old:Destroy() end
 
 local model = Instance.new("Model")
 model.Name = "SupportDashboard"
-model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V9")
+model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V10")
 model.Parent = root
 
 local PINK = Color3.fromRGB(255,38,155)
@@ -103,9 +104,9 @@ local footL=frame(left,UDim2.fromScale(.045,.915),UDim2.fromScale(.91,.045),Colo
 label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromScale(.03,.08),UDim2.fromScale(.94,.84),Color3.fromRGB(206,197,211),Enum.Font.GothamBold,Enum.TextXAlignment.Center)
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
--- Use the same exact trim recipe as Hall of Fame; no manual edge offset/resize.
--- The board remains at the established inward position so the frame clears the portal architecture.
-local _,rightFace,right=makeBoard("LiveCommunityWall",33.5,PINK,CYAN)
+-- Exact architectural mirror of Hall of Fame: -34.5 <-> +34.5.
+-- Moving the whole assembly keeps the board/recess/UI/trims internally aligned.
+local _,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
 label(right,"You are part of the room the moment you arrive",UDim2.fromScale(.045,.190),UDim2.fromScale(.80,.040),MUTED,Enum.Font.GothamMedium)
@@ -175,4 +176,4 @@ for _,face in ipairs({leftFace,rightFace}) do
     prompt.Triggered:Connect(function(player)if state then state:FireClient(player,"openSupport",true) end end)
 end
 
-print("[BBYA] Entrance community honor walls v9 online: mirrored precise trim geometry on both boards")
+print("[BBYA] Entrance community honor walls v10 online: exact whole-board facade mirror")
