@@ -1,6 +1,6 @@
 -- BBYAVATAR FPS vertical slice configuration
 return {
-    Version = "FPS-PROTOTYPE-0.2.1",
+    Version = "FPS-PROTOTYPE-0.2.2",
     Mode = "TEAM DEATHMATCH",
     ScoreLimit = 50,
     RoundTime = 480,

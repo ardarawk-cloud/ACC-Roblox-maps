@@ -1,4 +1,5 @@
--- BBYAVATAR FPS client v0.2: gunfeel, HUD, loadout, scoreboard and mobile controls
+-- BBYAVATAR FPS client v0.2.2: P0 mobile-safe HUD/loadout pass
+-- MOBILE_SAFE_LAYOUT_V1
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -16,6 +17,7 @@ local Reload = Remotes:WaitForChild("Reload")
 local Equip = Remotes:WaitForChild("Equip")
 local State = Remotes:WaitForChild("State")
 local FX = Remotes:WaitForChild("FX")
+local mobile = UserInputService.TouchEnabled
 
 local oldGui = playerGui:FindFirstChild("FPS_HUD")
 if oldGui then oldGui:Destroy() end
@@ -43,12 +45,14 @@ local swayTime = 0
 local hitSerial = 0
 local killfeedLines = {}
 local lastHealth = Config.MaxHealth
+local mobileFrame
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "FPS_HUD"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
+gui.IgnoreGuiInset = not mobile
 gui.DisplayOrder = 20
+gui:SetAttribute("LayoutAuthority","MOBILE_SAFE_LAYOUT_V1")
 gui.Parent = playerGui
 
 local function addCorner(parent, radius)
@@ -99,33 +103,52 @@ local function panel(parent, name, size, pos, anchor, transparency)
     return f
 end
 
--- top match bar
-local scoreBar = panel(gui,"ScoreBar",UDim2.fromOffset(410,54),UDim2.new(0.5,0,0,20),Vector2.new(0.5,0),0.12)
-local alphaScore = text(scoreBar,"Alpha",UDim2.fromScale(0.32,1),UDim2.fromScale(0.025,0),nil,"ALPHA  0",17,Enum.TextXAlignment.Left)
+-- Top match bar. Desktop baseline is preserved; mobile uses safe-area sizing.
+local scoreBarSize = mobile and UDim2.new(0.58,0,0,48) or UDim2.fromOffset(410,54)
+local scoreBarPos = mobile and UDim2.new(0.5,0,0,8) or UDim2.new(0.5,0,0,20)
+local scoreBar = panel(gui,"ScoreBar",scoreBarSize,scoreBarPos,Vector2.new(0.5,0),0.12)
+local alphaScore = text(scoreBar,"Alpha",UDim2.fromScale(0.32,1),UDim2.fromScale(0.025,0),nil,"ALPHA  0",mobile and 14 or 17,Enum.TextXAlignment.Left)
 alphaScore.TextColor3 = Color3.fromRGB(109,181,255)
-local timerLabel = text(scoreBar,"Timer",UDim2.fromScale(0.36,0.58),UDim2.fromScale(0.32,0.05),nil,"08:00",18,Enum.TextXAlignment.Center)
-local modeLabel = text(scoreBar,"Mode",UDim2.fromScale(0.36,0.35),UDim2.fromScale(0.32,0.58),nil,"TEAM DEATHMATCH",10,Enum.TextXAlignment.Center)
+local timerLabel = text(scoreBar,"Timer",UDim2.fromScale(0.36,0.58),UDim2.fromScale(0.32,0.05),nil,"08:00",mobile and 16 or 18,Enum.TextXAlignment.Center)
+local modeLabel = text(scoreBar,"Mode",UDim2.fromScale(0.36,0.35),UDim2.fromScale(0.32,0.58),nil,"TEAM DEATHMATCH",mobile and 9 or 10,Enum.TextXAlignment.Center)
 modeLabel.TextColor3 = Color3.fromRGB(176,184,195)
-local bravoScore = text(scoreBar,"Bravo",UDim2.fromScale(0.32,1),UDim2.fromScale(0.655,0),nil,"0  BRAVO",17,Enum.TextXAlignment.Right)
+local bravoScore = text(scoreBar,"Bravo",UDim2.fromScale(0.32,1),UDim2.fromScale(0.655,0),nil,"0  BRAVO",mobile and 14 or 17,Enum.TextXAlignment.Right)
 bravoScore.TextColor3 = Color3.fromRGB(255,123,113)
 
--- weapon and health HUD
-local weaponLabel = text(gui,"Weapon",UDim2.fromOffset(360,30),UDim2.new(1,-32,1,-124),Vector2.new(1,1),"AR-4 RIFLE",19,Enum.TextXAlignment.Right)
-local weaponClass = text(gui,"WeaponClass",UDim2.fromOffset(360,20),UDim2.new(1,-32,1,-99),Vector2.new(1,1),"ASSAULT",11,Enum.TextXAlignment.Right)
+-- Weapon and health HUD. On mobile these live above the thumb-control zones.
+local weaponSize = mobile and UDim2.fromOffset(220,24) or UDim2.fromOffset(360,30)
+local weaponPos = mobile and UDim2.new(1,-18,0,72) or UDim2.new(1,-32,1,-124)
+local weaponAnchor = mobile and Vector2.new(1,0) or Vector2.new(1,1)
+local weaponLabel = text(gui,"Weapon",weaponSize,weaponPos,weaponAnchor,"AR-4 RIFLE",mobile and 15 or 19,Enum.TextXAlignment.Right)
+
+local classSize = mobile and UDim2.fromOffset(220,18) or UDim2.fromOffset(360,20)
+local classPos = mobile and UDim2.new(1,-18,0,94) or UDim2.new(1,-32,1,-99)
+local classAnchor = mobile and Vector2.new(1,0) or Vector2.new(1,1)
+local weaponClass = text(gui,"WeaponClass",classSize,classPos,classAnchor,"ASSAULT",mobile and 10 or 11,Enum.TextXAlignment.Right)
 weaponClass.TextColor3 = Color3.fromRGB(166,176,190)
-local ammoLabel = text(gui,"Ammo",UDim2.fromOffset(360,58),UDim2.new(1,-32,1,-45),Vector2.new(1,1),"30 / 120",34,Enum.TextXAlignment.Right)
-local statusLabel = text(gui,"Status",UDim2.fromOffset(460,38),UDim2.new(0.5,0,0.77,0),Vector2.new(0.5,0.5),"",20,Enum.TextXAlignment.Center)
-local protectLabel = text(gui,"Protection",UDim2.fromOffset(300,24),UDim2.new(0.5,0,0.83,0),Vector2.new(0.5,0.5),"",13,Enum.TextXAlignment.Center)
+
+local ammoSize = mobile and UDim2.fromOffset(220,36) or UDim2.fromOffset(360,58)
+local ammoPos = mobile and UDim2.new(1,-18,0,112) or UDim2.new(1,-32,1,-45)
+local ammoAnchor = mobile and Vector2.new(1,0) or Vector2.new(1,1)
+local ammoLabel = text(gui,"Ammo",ammoSize,ammoPos,ammoAnchor,"30 / 120",mobile and 25 or 34,Enum.TextXAlignment.Right)
+
+local statusLabel = text(gui,"Status",mobile and UDim2.new(0.5,0,0,34) or UDim2.fromOffset(460,38),mobile and UDim2.new(0.5,0,0.70,0) or UDim2.new(0.5,0,0.77,0),Vector2.new(0.5,0.5),"",mobile and 16 or 20,Enum.TextXAlignment.Center)
+local protectLabel = text(gui,"Protection",UDim2.fromOffset(300,24),mobile and UDim2.new(0.5,0,0.77,0) or UDim2.new(0.5,0,0.83,0),Vector2.new(0.5,0.5),"",mobile and 11 or 13,Enum.TextXAlignment.Center)
 protectLabel.TextColor3 = Color3.fromRGB(126,204,255)
 
-local healthFrame = panel(gui,"HealthFrame",UDim2.fromOffset(230,18),UDim2.new(0,28,1,-42),Vector2.new(0,1),0.42)
+local healthFrameSize = mobile and UDim2.fromOffset(170,14) or UDim2.fromOffset(230,18)
+local healthFramePos = mobile and UDim2.new(0,18,0,108) or UDim2.new(0,28,1,-42)
+local healthFrameAnchor = mobile and Vector2.new(0,0) or Vector2.new(0,1)
+local healthFrame = panel(gui,"HealthFrame",healthFrameSize,healthFramePos,healthFrameAnchor,0.42)
 local healthFill = Instance.new("Frame")
 healthFill.Size = UDim2.fromScale(1,1)
 healthFill.BackgroundColor3 = Color3.fromRGB(231,237,241)
 healthFill.BorderSizePixel = 0
 healthFill.Parent = healthFrame
 addCorner(healthFill,7)
-local healthText = text(gui,"Health",UDim2.fromOffset(230,28),UDim2.new(0,28,1,-48),Vector2.new(0,1),"100 HP",17,Enum.TextXAlignment.Left)
+local healthTextPos = mobile and UDim2.new(0,18,0,82) or UDim2.new(0,28,1,-48)
+local healthTextAnchor = mobile and Vector2.new(0,0) or Vector2.new(0,1)
+local healthText = text(gui,"Health",mobile and UDim2.fromOffset(170,24) or UDim2.fromOffset(230,28),healthTextPos,healthTextAnchor,"100 HP",mobile and 14 or 17,Enum.TextXAlignment.Left)
 
 -- damage flash
 local damageFlash = Instance.new("Frame")
@@ -138,7 +161,7 @@ damageFlash.ZIndex = -1
 damageFlash.Parent = gui
 
 -- killfeed
-local killfeed = text(gui,"Killfeed",UDim2.fromOffset(460,130),UDim2.new(1,-24,0,88),Vector2.new(1,0),"",15,Enum.TextXAlignment.Right)
+local killfeed = text(gui,"Killfeed",mobile and UDim2.fromOffset(300,88) or UDim2.fromOffset(460,130),mobile and UDim2.new(1,-18,0,154) or UDim2.new(1,-24,0,88),Vector2.new(1,0),"",mobile and 12 or 15,Enum.TextXAlignment.Right)
 killfeed.TextYAlignment = Enum.TextYAlignment.Top
 
 -- crosshair
@@ -181,10 +204,11 @@ hitmarker.TextTransparency = 1
 hitmarker.Parent = gui
 
 -- scoreboard
-local scoreboard = panel(gui,"Scoreboard",UDim2.fromOffset(580,430),UDim2.fromScale(0.5,0.5),Vector2.new(0.5,0.5),0.07)
+local scoreboardSize = mobile and UDim2.new(0.90,0,0.76,0) or UDim2.fromOffset(580,430)
+local scoreboard = panel(gui,"Scoreboard",scoreboardSize,UDim2.fromScale(0.5,0.5),Vector2.new(0.5,0.5),0.07)
 scoreboard.Visible = false
-local sbTitle = text(scoreboard,"Title",UDim2.new(1,-36,0,52),UDim2.fromOffset(18,10),nil,"MATCH SCOREBOARD",22,Enum.TextXAlignment.Left)
-local sbHint = text(scoreboard,"Hint",UDim2.new(1,-36,0,26),UDim2.fromOffset(18,48),nil,"PLAYER                              K        D        TEAM",12,Enum.TextXAlignment.Left)
+local sbTitle = text(scoreboard,"Title",UDim2.new(1,-36,0,52),UDim2.fromOffset(18,10),nil,"MATCH SCOREBOARD",mobile and 18 or 22,Enum.TextXAlignment.Left)
+local sbHint = text(scoreboard,"Hint",UDim2.new(1,-36,0,26),UDim2.fromOffset(18,48),nil,mobile and "PLAYER                 K   D   TEAM" or "PLAYER                              K        D        TEAM",mobile and 10 or 12,Enum.TextXAlignment.Left)
 sbHint.TextColor3 = Color3.fromRGB(164,174,186)
 local sbRows = Instance.new("ScrollingFrame")
 sbRows.Name = "Rows"
@@ -214,27 +238,60 @@ local function rebuildScoreboard()
         local k = stats and stats:FindFirstChild("Kills") and stats.Kills.Value or 0
         local d = stats and stats:FindFirstChild("Deaths") and stats.Deaths.Value or 0
         local team = p.Team and p.Team.Name or "-"
-        local row = text(sbRows,"Row_"..p.UserId,UDim2.new(1,-6,0,32),UDim2.new(),nil,string.format("%-30s   %3d     %3d      %s",p.DisplayName,k,d,team),14,Enum.TextXAlignment.Left)
+        local rowText
+        if mobile then
+            rowText = string.format("%-18s  %2d  %2d  %s",string.sub(p.DisplayName,1,18),k,d,team)
+        else
+            rowText = string.format("%-30s   %3d     %3d      %s",p.DisplayName,k,d,team)
+        end
+        local row = text(sbRows,"Row_"..p.UserId,UDim2.new(1,-6,0,32),UDim2.new(),nil,rowText,mobile and 11 or 14,Enum.TextXAlignment.Left)
         if team == "ALPHA" then row.TextColor3 = Color3.fromRGB(146,199,255) end
         if team == "BRAVO" then row.TextColor3 = Color3.fromRGB(255,158,149) end
     end
     sbRows.CanvasSize = UDim2.fromOffset(0, math.max(0,#list*36))
 end
 
--- loadout panel
-local loadout = panel(gui,"Loadout",UDim2.fromOffset(620,390),UDim2.fromScale(0.5,0.52),Vector2.new(0.5,0.5),0.06)
+-- loadout panel: responsive on touch devices, fixed desktop baseline otherwise.
+local loadoutSize = mobile and UDim2.new(0.90,0,0.74,0) or UDim2.fromOffset(620,390)
+local loadout = panel(gui,"Loadout",loadoutSize,UDim2.fromScale(0.5,0.52),Vector2.new(0.5,0.5),0.06)
 loadout.Visible = false
-local loadoutTitle = text(loadout,"Title",UDim2.new(1,-40,0,48),UDim2.fromOffset(20,12),nil,"SELECT LOADOUT",24,Enum.TextXAlignment.Left)
-local loadoutSub = text(loadout,"Sub",UDim2.new(1,-40,0,28),UDim2.fromOffset(20,54),nil,"Choose a weapon. Press L to close.",12,Enum.TextXAlignment.Left)
+loadout.ClipsDescendants = true
+local loadoutTitle = text(loadout,"Title",UDim2.new(1,-76,0,42),UDim2.fromOffset(18,10),nil,"SELECT LOADOUT",mobile and 19 or 24,Enum.TextXAlignment.Left)
+local loadoutSub = text(loadout,"Sub",UDim2.new(1,-76,0,24),UDim2.fromOffset(18,48),nil,mobile and "Tap weapon untuk equip." or "Choose a weapon. Press L to close.",mobile and 10 or 12,Enum.TextXAlignment.Left)
 loadoutSub.TextColor3 = Color3.fromRGB(166,176,190)
 local loadoutButtons = {}
+
+local loadoutClose = Instance.new("TextButton")
+loadoutClose.Name = "CloseLoadout"
+loadoutClose.Size = UDim2.fromOffset(mobile and 38 or 42,mobile and 38 or 42)
+loadoutClose.Position = UDim2.new(1,-12,0,10)
+loadoutClose.AnchorPoint = Vector2.new(1,0)
+loadoutClose.BackgroundColor3 = Color3.fromRGB(31,37,46)
+loadoutClose.BackgroundTransparency = 0.08
+loadoutClose.BorderSizePixel = 0
+loadoutClose.Text = "×"
+loadoutClose.TextColor3 = Color3.fromRGB(240,244,248)
+loadoutClose.TextSize = mobile and 24 or 26
+loadoutClose.Font = Enum.Font.GothamBold
+loadoutClose.Parent = loadout
+addCorner(loadoutClose,8)
+addStroke(loadoutClose,0.55,1)
+
+local function syncMobileControls()
+    if mobileFrame then
+        mobileFrame.Visible = mobile and not loadoutOpen and not scoreboardOpen
+    end
+end
 
 local function closeMenus()
     loadoutOpen = false
     scoreboardOpen = false
     loadout.Visible = false
     scoreboard.Visible = false
+    syncMobileControls()
 end
+
+loadoutClose.Activated:Connect(closeMenus)
 
 local function setStatus(value,duration)
     statusLabel.Text = value or ""
@@ -284,21 +341,31 @@ for i,key in ipairs(Config.Loadout) do
     local cfg = Config.Weapons[key]
     local b = Instance.new("TextButton")
     b.Name = key
-    b.Size = UDim2.fromOffset(280,112)
-    b.Position = UDim2.fromOffset(20 + ((i-1)%2)*300, 94 + math.floor((i-1)/2)*128)
+    if mobile then
+        local col = (i-1)%2
+        local row = math.floor((i-1)/2)
+        b.Size = UDim2.new(0.44,0,0.28,0)
+        b.Position = UDim2.new(col == 0 and 0.04 or 0.52,0,row == 0 and 0.23 or 0.56,0)
+    else
+        b.Size = UDim2.fromOffset(280,112)
+        b.Position = UDim2.fromOffset(20 + ((i-1)%2)*300, 94 + math.floor((i-1)/2)*128)
+    end
     b.BackgroundColor3 = Color3.fromRGB(25,31,39)
     b.BackgroundTransparency = 0.08
     b.BorderSizePixel = 0
     b.Text = string.format("%s\n%s  •  %d DMG  •  %d RPM",cfg.DisplayName,cfg.Class or "WEAPON",cfg.Damage,cfg.RPM)
     b.TextColor3 = Color3.fromRGB(238,242,248)
     b.TextXAlignment = Enum.TextXAlignment.Left
+    b.TextYAlignment = Enum.TextYAlignment.Center
+    b.TextWrapped = true
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 15
+    b.TextSize = mobile and 13 or 15
     b.Parent = loadout
     addCorner(b,8)
     addStroke(b,0.58,1)
     local pad = Instance.new("UIPadding")
-    pad.PaddingLeft = UDim.new(0,14)
+    pad.PaddingLeft = UDim.new(0,mobile and 10 or 14)
+    pad.PaddingRight = UDim.new(0,mobile and 8 or 0)
     pad.Parent = b
     b.Activated:Connect(function()
         setWeapon(key)
@@ -315,7 +382,9 @@ local function toggleLoadout()
     if loadoutOpen then
         triggerHeld = false
         adsHeld = false
+        sprintHeld = false
     end
+    syncMobileControls()
 end
 
 local function toggleScoreboard(on)
@@ -325,16 +394,18 @@ local function toggleScoreboard(on)
         loadoutOpen = false
         loadout.Visible = false
         rebuildScoreboard()
+        triggerHeld = false
+        adsHeld = false
     end
+    syncMobileControls()
 end
 
--- mobile controls
-local mobile = UserInputService.TouchEnabled
-local mobileFrame = Instance.new("Frame")
+-- mobile controls: compact thumb zones; hidden while menus are open.
+mobileFrame = Instance.new("Frame")
 mobileFrame.Name = "MobileControls"
 mobileFrame.Size = UDim2.fromScale(1,1)
 mobileFrame.BackgroundTransparency = 1
-mobileFrame.Visible = mobile
+mobileFrame.Visible = mobile and not loadoutOpen and not scoreboardOpen
 mobileFrame.Parent = gui
 
 local function roundButton(name,label,size,pos)
@@ -344,11 +415,11 @@ local function roundButton(name,label,size,pos)
     b.Position = pos
     b.AnchorPoint = Vector2.new(0.5,0.5)
     b.BackgroundColor3 = Color3.fromRGB(22,27,34)
-    b.BackgroundTransparency = 0.2
+    b.BackgroundTransparency = 0.24
     b.Text = label
     b.TextColor3 = Color3.fromRGB(245,247,250)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = math.floor(size*0.22)
+    b.TextSize = math.floor(size*0.21)
     b.AutoButtonColor = true
     b.Parent = mobileFrame
     local c = Instance.new("UICorner") c.CornerRadius = UDim.new(1,0) c.Parent = b
@@ -356,12 +427,13 @@ local function roundButton(name,label,size,pos)
     return b
 end
 
-local fireButton = roundButton("Fire","FIRE",104,UDim2.new(1,-86,1,-150))
-local adsButton = roundButton("ADS","ADS",78,UDim2.new(1,-180,1,-238))
-local reloadButton = roundButton("Reload","R",68,UDim2.new(1,-210,1,-132))
-local swapButton = roundButton("Swap","SWAP",68,UDim2.new(1,-290,1,-195))
-local sprintButton = roundButton("Sprint","RUN",72,UDim2.new(0,86,1,-160))
-local loadoutButton = roundButton("Loadout","GUNS",72,UDim2.new(0,170,1,-225))
+local fireButton = roundButton("Fire","FIRE",84,UDim2.fromScale(0.93,0.79))
+local adsButton = roundButton("ADS","ADS",60,UDim2.fromScale(0.84,0.63))
+local reloadButton = roundButton("Reload","R",52,UDim2.fromScale(0.84,0.84))
+local swapButton = roundButton("Swap","SWAP",52,UDim2.fromScale(0.75,0.76))
+local sprintButton = roundButton("Sprint","RUN",58,UDim2.fromScale(0.09,0.79))
+local loadoutButton = roundButton("Loadout","GUNS",56,UDim2.fromScale(0.18,0.68))
+syncMobileControls()
 
 -- local viewmodel
 local oldVm = Workspace.CurrentCamera and Workspace.CurrentCamera:FindFirstChild("FPS_ViewModel")
@@ -444,10 +516,10 @@ local function spreadDirection()
     local spread = adsHeld and cfg.SpreadADS or cfg.SpreadHip
     spread += (cfg.SpreadMove or 0) * move
     if sprintHeld then spread += cfg.SpreadSprint or 1 end
-    local yaw = math.rad((math.random()-0.5)*2*spread)
-    local pitch = math.rad((math.random()-0.5)*2*spread)
+    local yaw=math.rad((math.random()-0.5)*2*spread)
+    local pitch=math.rad((math.random()-0.5)*2*spread)
     local camera = Workspace.CurrentCamera
-    return (camera.CFrame * CFrame.Angles(pitch,yaw,0)).LookVector
+    return (camera.CFrame*CFrame.Angles(pitch,yaw,0)).LookVector
 end
 
 local function shootOnce()
@@ -474,9 +546,9 @@ local function shootOnce()
     Fire:FireServer({origin=head.Position,direction=spreadDirection()})
 
     local recoil = cfg.Recoil * (adsHeld and 0.68 or 1)
-    recoilPitch += recoil * (0.82 + math.random()*0.32)
-    recoilYaw += (math.random()-0.5) * recoil * 0.55
-    crossKick = math.min(18,crossKick + (cfg.CrosshairKick or 3))
+    recoilPitch += recoil * (0.82+math.random()*0.32)
+    recoilYaw += (math.random()-0.5)*recoil*0.55
+    crossKick = math.min(18,crossKick+(cfg.CrosshairKick or 3))
     flashMuzzle()
 end
 
@@ -502,7 +574,7 @@ end
 local function showKillfeed(data)
     local line = string.format("%s   ▸   %s",tostring(data.killer or "?"),tostring(data.victim or "?"))
     table.insert(killfeedLines,1,line)
-    while #killfeedLines > 5 do table.remove(killfeedLines) end
+    while #killfeedLines > (mobile and 3 or 5) do table.remove(killfeedLines) end
     killfeed.Text = table.concat(killfeedLines,"\n")
     local snapshot = line
     task.delay(5,function()
@@ -601,6 +673,11 @@ State.OnClientEvent:Connect(function(kind,data)
         setADS(false)
         setSprint(false)
         setStatus("ELIMINATED BY "..tostring(data.killer or "ENEMY"),1.4)
+    elseif kind == "spawnSafe" then
+        triggerHeld = false
+        setADS(false)
+        setSprint(false)
+        setStatus("DEPLOYED  •  SPAWN PROTECTION",0.9)
     elseif kind == "score" then
         scores = data.scores or scores
         roundEndsAt = data.roundEndsAt or roundEndsAt
@@ -753,5 +830,5 @@ end)
 setWeapon(weaponKey)
 updateScore()
 positionCrosshair(10)
-setStatus("TDM PROTOTYPE v0.2",1.5)
-print("[BBYAVATAR FPS] Client v0.2 ready")
+setStatus("TDM PROTOTYPE v0.2.2",1.5)
+print("[BBYAVATAR FPS] Client v0.2.2 mobile-safe UI ready")
