@@ -1,0 +1,71 @@
+name: Mount BBYA Publish v6.5
+
+on:
+  push:
+    branches:
+      - 'mount-bbya/phase1-spawn-cp1'
+    paths:
+      - '.github/workflows/mount-bbya-publish.yml'
+      - 'scripts/publish-mount-bbya.js'
+      - 'maps/mount-bbya/.publish-v65'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify exact Mount BBYA target
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const registry=JSON.parse(fs.readFileSync('maps/registry.json','utf8'));
+          const t=registry.maps?.['mount-bbya'];
+          const id=JSON.parse(fs.readFileSync('maps/mount-bbya/IDENTITY.json','utf8'));
+          if(!t) throw new Error('mount-bbya registry missing');
+          if(String(t.universeId)!=='4187755690'||String(t.placeId)!=='11832985967') throw new Error('registry target mismatch');
+          if(String(id.universeId)!=='4187755690'||String(id.placeId)!=='11832985967') throw new Error('identity target mismatch');
+          if(String(t.file)!=='maps/mount-bbya/place.rbxlx') throw new Error('place path mismatch');
+          console.log('[TARGET VERIFIED] MOUNT BBYA 4187755690 / 11832985967');
+          NODE
+
+      - name: Rebuild exact Phase 1 candidate
+        run: node scripts/inject-mount-bbya.js
+
+      - name: Run Phase 1 QC
+        run: node scripts/qc-mount-bbya-phase1.js
+
+      - name: Verify QC-locked RBXLX digest
+        shell: bash
+        run: |
+          ACTUAL="$(sha256sum maps/mount-bbya/place.rbxlx | awk '{print $1}')"
+          BYTES="$(wc -c < maps/mount-bbya/place.rbxlx | tr -d ' ')"
+          test "$ACTUAL" = 'fb64dbc8994813537e8018a246e0b252d192c13480ad974eedef95eaba79678d'
+          test "$BYTES" = '61157'
+          echo "RBXLX_SHA256=$ACTUAL"
+          echo "RBXLX_BYTES=$BYTES"
+
+      - name: Publish to verified Mount BBYA target
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          EXPECTED_RBXLX_SHA256: fb64dbc8994813537e8018a246e0b252d192c13480ad974eedef95eaba79678d
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: node scripts/publish-mount-bbya.js
+
+      - name: Upload publish receipt and exact RBXLX
+        uses: actions/upload-artifact@v4
+        with:
+          name: mount-bbya-publish-${{ github.sha }}
+          path: |
+            deploy-status/mount-bbya-publish-receipt.json
+            maps/mount-bbya/place.rbxlx
+          if-no-files-found: error
