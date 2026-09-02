@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE v1
--- Turns selected Mall tenants into native Roblox catalog storefronts.
--- Checkout is ALWAYS handled by Roblox MarketplaceService on the client.
--- No BBYA coins, fake currency, manual Robux transfer or off-platform payment.
+-- BBYA SOCIAL HUB — MALL NATIVE ROBUX COMMERCE v2 / INDOOR KIOSKS
+-- TEST candidate. Physical catalog displays are server-authoritative and live INSIDE each retail tenant.
+-- Front-door shopping prompts are retired. Roblox checkout remains client-side MarketplaceService.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local Workspace=game:GetService("Workspace")
@@ -11,7 +10,6 @@ if not root then return end
 local mall=root:WaitForChild("BBYAMall",120)
 if not mall then return end
 
--- Wait until base tenant shells are created.
 mall:WaitForChild("Tenant_luma",60)
 mall:WaitForChild("Tenant_stride",60)
 task.wait(1)
@@ -20,11 +18,13 @@ local old=mall:FindFirstChild("MallRobuxCommerceV1")
 if old then old:Destroy() end
 local runtime=Instance.new("Model")
 runtime.Name="MallRobuxCommerceV1"
-runtime:SetAttribute("Pass","MALL_NATIVE_ROBUX_COMMERCE_V1")
+runtime:SetAttribute("Pass","MALL_NATIVE_ROBUX_COMMERCE_V2_INDOOR_KIOSKS")
 runtime:SetAttribute("NativeRobloxCheckout",true)
 runtime:SetAttribute("CustomCurrency",false)
 runtime:SetAttribute("CatalogMarketplace",true)
 runtime:SetAttribute("OffPlatformPayment",false)
+runtime:SetAttribute("FrontDoorPromptsRetired",true)
+runtime:SetAttribute("IndoorKioskAuthority",true)
 runtime.Parent=mall
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
@@ -35,39 +35,150 @@ remote.Name="MallRobuxCommerce"
 remote.Parent=remotes
 
 local STORES={
- {tenant="Tenant_luma",key="FASHION",title="LUMA FASHION",subtitle="ROBUX FASHION MARKET",accent=Color3.fromRGB(235,56,147)},
- {tenant="Tenant_stride",key="SHOES",title="STRIDE SNEAKERS",subtitle="ROBUX SHOE MARKET",accent=Color3.fromRGB(229,125,62)},
- {tenant="Tenant_muse",key="BEAUTY",title="MUSE BEAUTY",subtitle="ROBUX BEAUTY MARKET",accent=Color3.fromRGB(137,82,220)},
- {tenant="Tenant_north",key="STREET",title="NORTH LABEL",subtitle="ROBUX STREET MARKET",accent=Color3.fromRGB(62,116,217)},
+ {tenant="Tenant_luma",key="FASHION",title="LUMA FASHION",catalog="PAKAIAN",subtitle="Fashion & layered clothing",accent=Color3.fromRGB(235,56,147)},
+ {tenant="Tenant_stride",key="SHOES",title="STRIDE SNEAKERS",catalog="SEPATU",subtitle="Shoes & sneaker catalog",accent=Color3.fromRGB(229,125,62)},
+ {tenant="Tenant_byte",key="BYTE",title="BYTE TECH",catalog="TECH ACCESSORIES",subtitle="Tech & cyber accessories",accent=Color3.fromRGB(38,192,214)},
+ {tenant="Tenant_daily",key="DAILY",title="DAILY MARKET",catalog="FOOD & FUN",subtitle="Food & fun accessories",accent=Color3.fromRGB(67,173,116)},
+ {tenant="Tenant_mono",key="MONO",title="MONO HOME",catalog="LIFESTYLE",subtitle="Lifestyle accessories",accent=Color3.fromRGB(211,166,86)},
+ {tenant="Tenant_muse",key="BEAUTY",title="MUSE BEAUTY",catalog="HAIR • FACE • BEAUTY",subtitle="Hair, face & beauty",accent=Color3.fromRGB(137,82,220)},
+ {tenant="Tenant_north",key="NORTH",title="NORTH LABEL",catalog="AKSESORI",subtitle="Accessories & street style",accent=Color3.fromRGB(62,116,217)},
+ {tenant="Tenant_street",key="STREETWEAR",title="STREET UNIT",catalog="STREETWEAR",subtitle="Streetwear & layered clothing",accent=Color3.fromRGB(192,62,67)},
+ {tenant="Tenant_page",key="BOOKS",title="PAGE & CO",catalog="BOOK ACCESSORIES",subtitle="Books & reading accessories",accent=Color3.fromRGB(211,166,86)},
+ {tenant="Tenant_glow",key="GLOW",title="GLOW LAB",catalog="GLOW & BEAUTY",subtitle="Glow, makeup & beauty",accent=Color3.fromRGB(235,56,147)},
+ {tenant="Tenant_sound",key="SOUND",title="SOUND ROOM",catalog="MUSIC ACCESSORIES",subtitle="Headphones & music accessories",accent=Color3.fromRGB(38,192,214)},
+ {tenant="Tenant_fit",key="FIT",title="FIT DISTRICT",catalog="SPORTSWEAR",subtitle="Sportswear & active style",accent=Color3.fromRGB(67,173,116)},
 }
 
-local function addBadge(parent,textValue,accent)
- local badge=Instance.new("BillboardGui")
- badge.Name="NativeRobuxBadge"
- badge.Size=UDim2.fromOffset(210,44)
- badge.StudsOffset=Vector3.new(0,5.7,0)
- badge.AlwaysOnTop=false
- badge.MaxDistance=65
- badge.LightInfluence=.15
- badge.Parent=parent
+local function retireFrontDoorUI(unit)
+ for _,obj in ipairs(unit:GetDescendants()) do
+  if obj:IsA("ProximityPrompt") then
+   local parentName=obj.Parent and obj.Parent.Name or ""
+   if obj.Name=="NativeRobuxShopPrompt" or parentName=="Interact" or parentName=="StoreDoor" then
+    obj:Destroy()
+   end
+  elseif obj:IsA("BillboardGui") and obj.Name=="NativeRobuxBadge" then
+   obj:Destroy()
+  end
+ end
+end
 
- local frame=Instance.new("Frame")
- frame.Size=UDim2.fromScale(1,1)
- frame.BackgroundColor3=Color3.fromRGB(12,13,16)
- frame.BackgroundTransparency=.08
- frame.BorderSizePixel=0
- frame.Parent=badge
- local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,10);corner.Parent=frame
- local stroke=Instance.new("UIStroke");stroke.Color=accent;stroke.Thickness=1;stroke.Transparency=.25;stroke.Parent=frame
+local function makeKiosk(unit,store)
+ local prior=unit:FindFirstChild("BBYACatalogDisplayServer")
+ if prior then prior:Destroy() end
+ local priorTrim=unit:FindFirstChild("BBYACatalogDisplayTrim")
+ if priorTrim then priorTrim:Destroy() end
 
- local label=Instance.new("TextLabel")
- label.Size=UDim2.fromScale(1,1)
- label.BackgroundTransparency=1
- label.Text="R$  "..textValue
- label.TextColor3=Color3.fromRGB(245,243,239)
- label.Font=Enum.Font.GothamBold
- label.TextSize=15
- label.Parent=frame
+ local anchor=unit:FindFirstChild("Display2") or unit:FindFirstChild("Counter") or unit:FindFirstChild("Floor")
+ if not anchor or not anchor:IsA("BasePart") then return false end
+
+ local side=anchor.Position.X<0 and -1 or 1
+ local look=Vector3.new(-side,0,0)
+ local pos=anchor.Position+Vector3.new(0,3.15,0)
+ local screen=Instance.new("Part")
+ screen.Name="BBYACatalogDisplayServer"
+ screen.Size=Vector3.new(6.8,4.2,.32)
+ screen.CFrame=CFrame.lookAt(pos,pos+look)
+ screen.Color=Color3.fromRGB(14,15,18)
+ screen.Material=Enum.Material.SmoothPlastic
+ screen.Anchored=true
+ screen.CanCollide=false
+ screen.CanTouch=false
+ screen.CanQuery=true
+ screen.CastShadow=false
+ screen.Parent=unit
+ screen:SetAttribute("CatalogKey",store.key)
+ screen:SetAttribute("CatalogTitle",store.catalog)
+
+ local trim=Instance.new("Part")
+ trim.Name="BBYACatalogDisplayTrim"
+ trim.Size=Vector3.new(6.95,4.35,.12)
+ trim.CFrame=screen.CFrame*CFrame.new(0,0,.18)
+ trim.Color=store.accent
+ trim.Material=Enum.Material.Neon
+ trim.Anchored=true
+ trim.CanCollide=false
+ trim.CanTouch=false
+ trim.CanQuery=false
+ trim.CastShadow=false
+ trim.Parent=unit
+
+ local face=Instance.new("SurfaceGui")
+ face.Name="CatalogDisplayUI"
+ face.Face=Enum.NormalId.Front
+ face.PixelsPerStud=70
+ face.LightInfluence=0
+ face.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+ face.Parent=screen
+
+ local bg=Instance.new("Frame")
+ bg.Size=UDim2.fromScale(1,1)
+ bg.BackgroundColor3=Color3.fromRGB(17,18,22)
+ bg.BorderSizePixel=0
+ bg.Parent=face
+ local stroke=Instance.new("UIStroke")
+ stroke.Color=store.accent
+ stroke.Thickness=4
+ stroke.Transparency=.05
+ stroke.Parent=bg
+
+ local brand=Instance.new("TextLabel")
+ brand.Position=UDim2.fromScale(.07,.07)
+ brand.Size=UDim2.fromScale(.86,.23)
+ brand.BackgroundTransparency=1
+ brand.Text=store.title
+ brand.TextColor3=Color3.fromRGB(248,248,248)
+ brand.Font=Enum.Font.GothamBlack
+ brand.TextScaled=true
+ brand.Parent=bg
+
+ local cat=Instance.new("TextLabel")
+ cat.Position=UDim2.fromScale(.07,.33)
+ cat.Size=UDim2.fromScale(.86,.19)
+ cat.BackgroundTransparency=1
+ cat.Text=store.catalog
+ cat.TextColor3=store.accent
+ cat.Font=Enum.Font.GothamBold
+ cat.TextScaled=true
+ cat.Parent=bg
+
+ local hint=Instance.new("TextLabel")
+ hint.Position=UDim2.fromScale(.07,.60)
+ hint.Size=UDim2.fromScale(.86,.25)
+ hint.BackgroundColor3=Color3.fromRGB(35,36,42)
+ hint.BorderSizePixel=0
+ hint.Text="BROWSE CATALOG"
+ hint.TextColor3=Color3.fromRGB(248,248,248)
+ hint.Font=Enum.Font.GothamBold
+ hint.TextScaled=true
+ hint.Parent=bg
+ local hc=Instance.new("UICorner");hc.CornerRadius=UDim.new(0,10);hc.Parent=hint
+
+ local light=Instance.new("PointLight")
+ light.Name="CatalogGlow"
+ light.Color=store.accent
+ light.Brightness=.75
+ light.Range=9
+ light.Shadows=false
+ light.Parent=screen
+
+ local prompt=Instance.new("ProximityPrompt")
+ prompt.Name="BBYAServerCatalogPrompt"
+ prompt.ActionText="BROWSE"
+ prompt.ObjectText=store.title
+ prompt.KeyboardKeyCode=Enum.KeyCode.E
+ prompt.GamepadKeyCode=Enum.KeyCode.ButtonX
+ prompt.MaxActivationDistance=9
+ prompt.HoldDuration=0
+ prompt.RequiresLineOfSight=false
+ prompt.Parent=screen
+ prompt.Triggered:Connect(function(player)
+  remote:FireClient(player,"open",{
+   key=store.key,
+   title=store.title,
+   subtitle=store.subtitle,
+  })
+ end)
+ return true
 end
 
 local activated=0
@@ -77,40 +188,14 @@ for _,store in ipairs(STORES) do
   unit:SetAttribute("NativeRobuxShop",true)
   unit:SetAttribute("CommerceCategory",store.key)
   unit:SetAttribute("Checkout","ROBLOX_MARKETPLACE")
-
-  local door=unit:FindFirstChild("StoreDoor") or unit:FindFirstChild("Interact") or unit:FindFirstChildWhichIsA("BasePart")
-  if door and door:IsA("BasePart") then
-   -- Remove only a prior instance created by this system.
-   local prior=door:FindFirstChild("NativeRobuxShopPrompt")
-   if prior then prior:Destroy() end
-
-   local prompt=Instance.new("ProximityPrompt")
-   prompt.Name="NativeRobuxShopPrompt"
-   prompt.ActionText="SHOP WITH ROBUX"
-   prompt.ObjectText=store.title
-   prompt.KeyboardKeyCode=Enum.KeyCode.E
-   prompt.GamepadKeyCode=Enum.KeyCode.ButtonX
-   prompt.MaxActivationDistance=12
-   prompt.HoldDuration=.05
-   prompt.RequiresLineOfSight=false
-   prompt.Parent=door
-
-   addBadge(door,store.subtitle,store.accent)
-
-   prompt.Triggered:Connect(function(player)
-    remote:FireClient(player,"open",{
-     key=store.key,
-     title=store.title,
-     subtitle=store.subtitle,
-    })
-   end)
-   activated+=1
-  end
+  unit:SetAttribute("CatalogInteraction","INDOOR_KIOSK")
+  retireFrontDoorUI(unit)
+  if makeKiosk(unit,store) then activated+=1 end
  end
 end
 
 runtime:SetAttribute("ActiveStores",activated)
-print(string.format("[BBYA] Mall Native Robux Commerce v1 online: %d catalog shops use Roblox-native checkout; no custom currency",activated))
+print(string.format("[BBYA] Mall Native Robux Commerce v2 online: %d server kiosks inside tenants; front-door shopping prompts retired",activated))
 
 -- =============================================================================
 -- MALL PREMIUM ATMOSPHERE v9

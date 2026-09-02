@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MALL CINEMA + REAR LIFT v12 / L4 ACCESS v14
--- Screenshot-driven Mall-only refinement.
--- Keeps the v12 cinema and rear lift in place, preserves v13 fall protection, and opens the intended Cinema access.
+-- BBYA SOCIAL HUB — MALL CINEMA + REAR LIFT v15
+-- L4 orientation correction: rear lift exits into a clear central corridor.
+-- Screen A is on the left, Screen B on the right, both entrances face the lift/corridor.
+-- The middle spine stays open for Mall / Sky Lounge circulation.
 -- No audio / Fishing / global Lighting / VIP / Night Market / economy changes.
 
 local Workspace=game:GetService("Workspace")
@@ -15,6 +16,7 @@ local old=mall:FindFirstChild("MallCinemaLiftV12")
 if old then old:Destroy() end
 local pass=Instance.new("Model")
 pass.Name="MallCinemaLiftV12"
+pass:SetAttribute("Pass","CINEMA_LIFT_ORIENTATION_V15")
 pass.Parent=mall
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")
@@ -98,20 +100,21 @@ local function cinemaSeat(name,cf,parent)
  return s
 end
 
--- Wait until v11 has replaced the original elevator. This keeps execution deterministic.
+-- Wait until the earlier Mall circulation pass has built the central lift authority.
 local deadline=os.clock()+120
 while mall:GetAttribute("MallCentralLift")~="V11" and os.clock()<deadline do task.wait(.25) end
 
 -- -----------------------------------------------------------------------------
--- 1) REAR-WALL LIFT
+-- 1) REAR-WALL LIFT — preserved location
 -- -----------------------------------------------------------------------------
 local oldLift=mall:FindFirstChild("ElevatorCore")
 if oldLift then oldLift:Destroy() end
 
 local elevator=Instance.new("Model")
 elevator.Name="ElevatorCore"
-elevator:SetAttribute("Pass","REAR_WALL_LIFT_V12")
+elevator:SetAttribute("Pass","REAR_WALL_LIFT_V15")
 elevator:SetAttribute("RearWallFlush",true)
+elevator:SetAttribute("CinemaArrivalAxis","CENTER_SPINE")
 elevator.Parent=mall
 
 local levels={1,15,29,43}
@@ -139,7 +142,7 @@ for i,y in ipairs(levels) do
  part("LiftDoorL"..i,Vector3.new(6.2,8.5,.35),CFrame.new(-3.15,y+5.1,doorZ),C.dark,Enum.Material.Metal,true,elevator,0)
  part("LiftDoorR"..i,Vector3.new(6.2,8.5,.35),CFrame.new(3.15,y+5.1,doorZ),C.dark,Enum.Material.Metal,true,elevator,0)
  local header=part("LiftHeader"..i,Vector3.new(15,2.25,.28),CFrame.new(0,y+10.15,doorZ-.1),C.graphite,Enum.Material.Metal,false,elevator,0)
- if i==4 then textOn(header,"L4 • CINEMA\nREAR LIFT",C.gold) else textOn(header,"REAR LIFT • L"..i,C.white) end
+ if i==4 then textOn(header,"L4 • CINEMA\nA  ←   LIFT   →  B",C.gold) else textOn(header,"REAR LIFT • L"..i,C.white) end
  if i<4 then
   local up=part("LiftUpPad"..i,Vector3.new(3.2,.2,3.2),CFrame.new(-4,y+1.02,423.2),C.gold,Enum.Material.Neon,false,elevator,.20)
   up.CanQuery=true
@@ -152,12 +155,11 @@ for i,y in ipairs(levels) do
  end
 end
 
-mall:SetAttribute("MallCentralLift","V12_REAR_WALL")
+mall:SetAttribute("MallCentralLift","V15_REAR_WALL")
 mall:SetAttribute("MallLiftRearWallFlush",true)
 
 -- -----------------------------------------------------------------------------
--- 2) REAL L4 CINEMA
--- Keep v12 in its current location. v14 opens direct atrium access to the existing lobby.
+-- 2) L4 CINEMA — entrances face each other across the lift corridor
 -- -----------------------------------------------------------------------------
 local cinema=mall:WaitForChild("BBYACinema",60)
 if cinema then
@@ -176,82 +178,103 @@ if cinema then
 
  local cxModel=Instance.new("Model")
  cxModel.Name="CinemaExperienceV12"
+ cxModel:SetAttribute("Orientation","V15_LIFT_FACING")
+ cxModel:SetAttribute("CenterSpineClear",true)
  cxModel.Parent=cinema
 
  local y=43
- part("CinemaLobbyV12",Vector3.new(172,.42,43),CFrame.new(0,y+.72,413.5),C.carpet,Enum.Material.Carpet,true,cxModel,0)
- part("CenterAisle",Vector3.new(15,.08,38),CFrame.new(0,y+1.0,414),C.gold,Enum.Material.Neon,false,cxModel,.55)
+ local centerZ=414
+ local innerX=16
+ local outerX=84
+ local roomCenter=50
+ local roomLength=68
+ local roomDepth=38
+ local southZ=centerZ-roomDepth/2
+ local northZ=centerZ+roomDepth/2
 
- local hero=part("CinemaHeroV12",Vector3.new(42,4,.35),CFrame.new(0,y+11.6,392.2),C.dark,Enum.Material.Metal,false,cxModel,0)
- textOn(hero,"BBYA CINEMA • SCREEN A + B",C.white)
+ -- Shared arrival floor and a readable center spine. Nothing solid is placed on x +/- 9.
+ part("CinemaArrivalFloor",Vector3.new(172,.42,43),CFrame.new(0,y+.72,413.5),C.carpet,Enum.Material.Carpet,true,cxModel,0)
+ local spine=part("CenterSpine",Vector3.new(17,.08,40),CFrame.new(0,y+1.0,413.5),C.gold,Enum.Material.Neon,false,cxModel,.64)
+ spine.CastShadow=false
 
- local snack=part("CinemaConcessionV12",Vector3.new(12,2.8,4.5),CFrame.new(0,y+2.4,400),C.graphite,Enum.Material.Metal,true,cxModel,0)
- local snackTop=part("CinemaConcessionGlow",Vector3.new(12.5,.16,4.8),CFrame.new(0,y+3.9,400),C.red,Enum.Material.Neon,false,cxModel,.10)
+ local wayfinding=part("CinemaWayfinding",Vector3.new(28,3.2,.30),CFrame.new(0,y+10.8,425.2),C.graphite,Enum.Material.Metal,false,cxModel,0)
+ textOn(wayfinding,"SCREEN A  ←     →  SCREEN B\nMALL / SKY LOUNGE  ↓",C.white)
+
+ -- Concession stays off the walking axis.
+ local snack=part("CinemaConcessionV15",Vector3.new(7,2.8,4.5),CFrame.new(-10.8,y+2.4,397.5),C.graphite,Enum.Material.Metal,true,cxModel,0)
+ local snackTop=part("CinemaConcessionGlowV15",Vector3.new(7.4,.16,4.8),CFrame.new(-10.8,y+3.9,397.5),C.red,Enum.Material.Neon,false,cxModel,.10)
  snackTop.CastShadow=false
- local snackSign=part("CinemaSnackSign",Vector3.new(11,2,.25),CFrame.new(0,y+6.1,397.65),C.dark,Enum.Material.Metal,false,cxModel,0)
+ local snackSign=part("CinemaSnackSignV15",Vector3.new(6.8,1.8,.25),CFrame.new(-10.8,y+6.0,395.15),C.dark,Enum.Material.Metal,false,cxModel,0)
  textOn(snackSign,"SNACKS • DRINKS",C.gold)
  prompt(snack,"ORDER","CINEMA BAR",function(player)toast(player,"Cinema bar • order received")end)
 
- local function buildScreenRoom(label,cx)
+ local function buildSideRoom(label,side)
   local room=Instance.new("Model")
   room.Name="Screen"..label
+  room:SetAttribute("EntranceFacesCenter",true)
   room.Parent=cxModel
-  local width=68
-  local depth=42
-  local centerZ=413
-  local frontZ=centerZ-depth/2
-  local rearWallZ=centerZ+depth/2
-  local half=width/2
 
-  part("Floor",Vector3.new(width,.4,depth),CFrame.new(cx,y+.92,centerZ),Color3.fromRGB(43,36,40),Enum.Material.Carpet,true,room,0)
-  part("LeftWall",Vector3.new(1,12,depth),CFrame.new(cx-half,y+6.8,centerZ),C.dark,Enum.Material.Slate,true,room,0)
-  part("RightWall",Vector3.new(1,12,depth),CFrame.new(cx+half,y+6.8,centerZ),C.dark,Enum.Material.Slate,true,room,0)
-  part("RearWall",Vector3.new(width,12,1),CFrame.new(cx,y+6.8,rearWallZ),C.dark,Enum.Material.Slate,true,room,0)
-  part("Ceiling",Vector3.new(width,.45,depth),CFrame.new(cx,y+12.5,centerZ),Color3.fromRGB(33,34,38),Enum.Material.Metal,true,room,0)
+  local cx=side*roomCenter
+  local inner=side*innerX
+  local outer=side*outerX
+  local signYaw=(side<0) and math.rad(-90) or math.rad(90)
+  local seatYaw=(side<0) and math.rad(90) or math.rad(-90)
 
-  local entryHead=part("EntryHeader",Vector3.new(15,2.4,.32),CFrame.new(cx,y+10.5,frontZ-.55),C.graphite,Enum.Material.Metal,false,room,0)
+  part("Floor",Vector3.new(roomLength,.4,roomDepth),CFrame.new(cx,y+.92,centerZ),Color3.fromRGB(43,36,40),Enum.Material.Carpet,true,room,0)
+  part("Ceiling",Vector3.new(roomLength,.45,roomDepth),CFrame.new(cx,y+12.5,centerZ),Color3.fromRGB(33,34,38),Enum.Material.Metal,true,room,0)
+  part("OuterWall",Vector3.new(1,12,roomDepth),CFrame.new(outer,y+6.8,centerZ),C.dark,Enum.Material.Slate,true,room,0)
+  part("SouthWall",Vector3.new(roomLength,12,1),CFrame.new(cx,y+6.8,southZ),C.dark,Enum.Material.Slate,true,room,0)
+  part("NorthWall",Vector3.new(roomLength,12,1),CFrame.new(cx,y+6.8,northZ),C.dark,Enum.Material.Slate,true,room,0)
+
+  -- Inner wall is split, leaving a large doorway directly facing the lift corridor.
+  local doorwayHalf=6.0
+  local segmentDepth=(roomDepth-(doorwayHalf*2))/2
+  local southSegZ=southZ+segmentDepth/2
+  local northSegZ=northZ-segmentDepth/2
+  part("InnerWallSouth",Vector3.new(1,12,segmentDepth),CFrame.new(inner,y+6.8,southSegZ),C.dark,Enum.Material.Slate,true,room,0)
+  part("InnerWallNorth",Vector3.new(1,12,segmentDepth),CFrame.new(inner,y+6.8,northSegZ),C.dark,Enum.Material.Slate,true,room,0)
+
+  local entryHead=part("EntryHeader",Vector3.new(12,2.5,.34),CFrame.new(inner,y+10.2,centerZ)*CFrame.Angles(0,signYaw,0),C.graphite,Enum.Material.Metal,false,room,0)
   textOn(entryHead,"SCREEN "..label,C.gold)
+  local threshold=part("EntryGlow",Vector3.new(4.5,.08,11),CFrame.new(inner-side*2.2,y+1.04,centerZ),C.red,Enum.Material.Neon,false,room,.38)
+  threshold.CastShadow=false
 
-  local frame=part("ScreenFrame",Vector3.new(54,8.8,.55),CFrame.new(cx,y+7.2,rearWallZ-.65),Color3.fromRGB(9,10,12),Enum.Material.Metal,false,room,0)
-  local screen=part("MovieScreen",Vector3.new(50,6.8,.18),CFrame.new(cx,y+7.2,rearWallZ-1.0),Color3.fromRGB(220,220,216),Enum.Material.SmoothPlastic,false,room,0)
+  -- Screen sits on the outside wall; seats face outward from the corridor.
+  local screenX=outer-side*.72
+  local frame=part("ScreenFrame",Vector3.new(30,8.8,.55),CFrame.new(screenX,y+7.2,centerZ)*CFrame.Angles(0,signYaw,0),Color3.fromRGB(9,10,12),Enum.Material.Metal,false,room,0)
+  local screen=part("MovieScreen",Vector3.new(27,6.8,.18),CFrame.new(screenX-side*.20,y+7.2,centerZ)*CFrame.Angles(0,signYaw,0),Color3.fromRGB(220,220,216),Enum.Material.SmoothPlastic,false,room,0)
+  frame.CastShadow=false
   screen.CastShadow=false
   textOn(screen,"BBYA CINEMA\nSCREEN "..label,Color3.fromRGB(40,41,45))
 
-  for row=1,4 do
-   local rz=400+(row-1)*6.2
-   local rise=(row-1)*.35
-   part("Riser"..row,Vector3.new(60,.28,5.2),CFrame.new(cx,y+1.05+rise/2,rz),Color3.fromRGB(48,39,43),Enum.Material.Carpet,true,room,0)
-   for _,xo in ipairs({-24,-18,-12,-6,6,12,18,24}) do
-    cinemaSeat("Seat"..row.."_"..xo,CFrame.new(cx+xo,y+1.55+rise,rz)*CFrame.Angles(0,math.rad(180),0),room)
+  for row=1,5 do
+   local rowX=inner+side*(10+(row-1)*10)
+   local rise=(row-1)*.30
+   part("Riser"..row,Vector3.new(7.8,.26,32),CFrame.new(rowX,y+1.05+rise/2,centerZ),Color3.fromRGB(48,39,43),Enum.Material.Carpet,true,room,0)
+   for _,zo in ipairs({-12,-8,-4,4,8,12}) do
+    cinemaSeat("Seat"..row.."_"..zo,CFrame.new(rowX,y+1.55+rise,centerZ+zo)*CFrame.Angles(0,seatYaw,0),room)
    end
   end
 
-  for _,xoff in ipairs({-32,32}) do
-   for _,zoff in ipairs({400,412,424}) do
-    local glow=part("AisleGlow",Vector3.new(.14,.16,4.2),CFrame.new(cx+xoff,y+1.15,zoff),C.red,Enum.Material.Neon,false,room,.12)
-    glow.CastShadow=false
-   end
-  end
-
-  local showPad=part("ShowtimePad",Vector3.new(3,2.2,3),CFrame.new(cx,y+2.0,frontZ+4.0),C.red,Enum.Material.Neon,false,room,.30)
+  local showPad=part("ShowtimePad",Vector3.new(3,2.2,3),CFrame.new(inner-side*3.3,y+2.0,centerZ+7.8),C.red,Enum.Material.Neon,false,room,.30)
   showPad.CanQuery=true
   prompt(showPad,"SHOWTIMES","SCREEN "..label,function(player)
    toast(player,"Screen "..label.." • Neon City 19:00 • Midnight Run 21:10 • After Hours 23:30")
   end)
  end
 
- buildScreenRoom("A",-48)
- buildScreenRoom("B",48)
- cinema:SetAttribute("Experience","REAL_SCREENING_ROOMS_V12")
- cinema:SetAttribute("PortalOnlyTheatresRemoved",true)
- cinema:SetAttribute("L4Circulation","V14_ATRIUM_ACCESS")
- mall:SetAttribute("MallCinemaExperience","V12_V14_ACCESS")
+ buildSideRoom("A",-1)
+ buildSideRoom("B",1)
+ cinema:SetAttribute("Experience","REAL_SCREENING_ROOMS_V15")
+ cinema:SetAttribute("LiftFacingEntrances",true)
+ cinema:SetAttribute("CenterSpineClear",true)
+ cinema:SetAttribute("L4Circulation","V15_CINEMA_SIDE_ROOMS")
+ mall:SetAttribute("MallCinemaExperience","V15_LIFT_FACING")
 end
 
 -- -----------------------------------------------------------------------------
 -- 3) L4 ATRIUM SAFETY + CINEMA ACCESS
--- Keep fall protection on all edges, with two intentional openings only:
--- south = L3->L4 stair landing; north = direct walk-in Cinema lobby access.
+-- Preserve the existing intentional north Cinema corridor and south stair opening.
 -- -----------------------------------------------------------------------------
 local floor4=mall:FindFirstChild("Level4")
 if floor4 then
@@ -285,33 +308,30 @@ if floor4 then
   return r
  end
 
- glassRail("AtriumRailX4_V14_W",Vector3.new(.35,4.2,atriumDepth),CFrame.new(-edgeX,railY,centerZ))
- glassRail("AtriumRailX4_V14_E",Vector3.new(.35,4.2,atriumDepth),CFrame.new(edgeX,railY,centerZ))
+ glassRail("AtriumRailX4_V15_W",Vector3.new(.35,4.2,atriumDepth),CFrame.new(-edgeX,railY,centerZ))
+ glassRail("AtriumRailX4_V15_E",Vector3.new(.35,4.2,atriumDepth),CFrame.new(edgeX,railY,centerZ))
 
  local leftEdge=-atriumWidth/2
  local rightEdge=atriumWidth/2
 
- -- North: split around the intended Cinema walk-in corridor.
  local northLeftWidth=cinemaGapLeft-leftEdge
  local northRightWidth=rightEdge-cinemaGapRight
  if northLeftWidth>0 then
-  glassRail("AtriumRailZ4_V14_NL",Vector3.new(northLeftWidth,4.2,.35),CFrame.new(leftEdge+northLeftWidth/2,railY,northZ))
+  glassRail("AtriumRailZ4_V15_NL",Vector3.new(northLeftWidth,4.2,.35),CFrame.new(leftEdge+northLeftWidth/2,railY,northZ))
  end
  if northRightWidth>0 then
-  glassRail("AtriumRailZ4_V14_NR",Vector3.new(northRightWidth,4.2,.35),CFrame.new(cinemaGapRight+northRightWidth/2,railY,northZ))
+  glassRail("AtriumRailZ4_V15_NR",Vector3.new(northRightWidth,4.2,.35),CFrame.new(cinemaGapRight+northRightWidth/2,railY,northZ))
  end
 
- -- South: preserve only the real upper stair landing opening.
  local southLeftWidth=stairGapLeft-leftEdge
  local southRightWidth=rightEdge-stairGapRight
  if southLeftWidth>0 then
-  glassRail("AtriumRailZ4_V14_SL",Vector3.new(southLeftWidth,4.2,.35),CFrame.new(leftEdge+southLeftWidth/2,railY,southZ))
+  glassRail("AtriumRailZ4_V15_SL",Vector3.new(southLeftWidth,4.2,.35),CFrame.new(leftEdge+southLeftWidth/2,railY,southZ))
  end
  if southRightWidth>0 then
-  glassRail("AtriumRailZ4_V14_SR",Vector3.new(southRightWidth,4.2,.35),CFrame.new(stairGapRight+southRightWidth/2,railY,southZ))
+  glassRail("AtriumRailZ4_V15_SR",Vector3.new(southRightWidth,4.2,.35),CFrame.new(stairGapRight+southRightWidth/2,railY,southZ))
  end
 
- -- Match the decorative brass cap to the new Cinema access so the opening also reads visually.
  local v9=mall:FindFirstChild("MallPremiumAtmosphereV9")
  local caps=v9 and v9:FindFirstChild("AtriumRailCapsV9",true)
  if caps then
@@ -329,23 +349,26 @@ if floor4 then
    local color,mat,tr=cap.Color,cap.Material,cap.Transparency
    cap:Destroy()
    local lw=cinemaGapLeft-capLeft
-   if lw>.2 then part("RailCapZ_L4_V14_NL",Vector3.new(lw,h,depth),CFrame.new(capLeft+lw/2,capY,capZ),color,mat,false,caps,tr) end
+   if lw>.2 then part("RailCapZ_L4_V15_NL",Vector3.new(lw,h,depth),CFrame.new(capLeft+lw/2,capY,capZ),color,mat,false,caps,tr) end
    local rw=capRight-cinemaGapRight
-   if rw>.2 then part("RailCapZ_L4_V14_NR",Vector3.new(rw,h,depth),CFrame.new(cinemaGapRight+rw/2,capY,capZ),color,mat,false,caps,tr) end
+   if rw>.2 then part("RailCapZ_L4_V15_NR",Vector3.new(rw,h,depth),CFrame.new(cinemaGapRight+rw/2,capY,capZ),color,mat,false,caps,tr) end
   end
  end
 
- floor4:SetAttribute("AtriumSafety","V14_CINEMA_ACCESS")
+ floor4:SetAttribute("AtriumSafety","V15_CINEMA_SIDE_ROOMS")
  floor4:SetAttribute("SouthStairGapWidth",stairGapWidth)
  floor4:SetAttribute("SouthStairGapCenterX",stairGapCenter)
  floor4:SetAttribute("NorthCinemaGapWidth",cinemaGapWidth)
  floor4:SetAttribute("NorthCinemaGapCenterX",cinemaGapCenter)
- mall:SetAttribute("MallL4AtriumSafety","V14_CINEMA_ACCESS")
+ mall:SetAttribute("MallL4AtriumSafety","V15_CINEMA_SIDE_ROOMS")
 end
 
 pass:SetAttribute("CinemaBuilt",cinema~=nil)
 pass:SetAttribute("LiftRearWall",true)
-pass:SetAttribute("L4Safety","V14")
+pass:SetAttribute("L4Safety","V15")
 pass:SetAttribute("CinemaAtriumAccess",true)
-mall:SetAttribute("MallScreenshotQC","V14")
-print("[BBYA] Mall v14 online: Cinema kept in place; north atrium glass opened to walk-in lobby; stair opening preserved")
+pass:SetAttribute("CenterSpineClear",true)
+pass:SetAttribute("ScreenA_Left",true)
+pass:SetAttribute("ScreenB_Right",true)
+mall:SetAttribute("MallScreenshotQC","V15")
+print("[BBYA] Mall v15 online: lift-facing Cinema A/B entrances; center spine preserved for Mall / Sky Lounge circulation")
