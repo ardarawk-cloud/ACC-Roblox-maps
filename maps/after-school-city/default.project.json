@@ -160,6 +160,9 @@
         },
         "ASC_GameplayHUD": {
           "$path": "after-school-city.gameplay-hud.client.lua"
+        },
+        "ASC_UIGlassV102": {
+          "$path": "after-school-city.ui-glass-v102.client.lua"
         }
       }
     },
