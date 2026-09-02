@@ -24,9 +24,8 @@ local function isAdmin(player)
 end
 
 local function bindEditorToggle(player)
- -- Admins get the runtime EDIT button visible by default.
- -- /bbyaedit and !bbyaedit still toggle it on/off manually.
- player:SetAttribute("BBYAEditorVisible",isAdmin(player))
+ -- Keep EDIT hidden on join. Authorized admins can still toggle it with /bbyaedit or !bbyaedit.
+ player:SetAttribute("BBYAEditorVisible",false)
  player.Chatted:Connect(function(message)
   if not isAdmin(player) then return end
   local text=string.lower((message or ""):gsub("%s+",""))
@@ -149,4 +148,4 @@ remote.OnServerEvent:Connect(function(player,action,target,arg)
  end
 end)
 
-print("[BBYA] Runtime editor visible by default for admins; admin chat toggle /bbyaedit")
+print("[BBYA] Runtime editor hidden by default; admin chat toggle /bbyaedit")
