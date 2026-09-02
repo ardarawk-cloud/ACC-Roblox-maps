@@ -1,12 +1,12 @@
 -- BBYA SOCIAL HUB — PREMIUM FISHING UI v1
 -- Deliberately compact: one primary CAST/STRIKE/HOLD REEL action, thin fight bars,
 -- small BAG / ROD / SHOP buttons, and one centered sheet at a time.
+-- Visibility is owned exclusively by FishingGateSatisfactionV6.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -162,10 +162,16 @@ local function skinRow(parent,s,mode)
  local r=text(row,s.rarity,10,Enum.Font.GothamBold,rarityColors[s.rarity] or C.muted);r.Position=UDim2.fromOffset(30,29);r.Size=UDim2.new(.58,-30,0,18);r.ZIndex=55;r.TextXAlignment=Enum.TextXAlignment.Left
  local b=button(row,"");b.AnchorPoint=Vector2.new(1,.5);b.Position=UDim2.new(1,-9,.5,0);b.Size=UDim2.fromOffset(125,38);b.ZIndex=55
  if mode=="ROD" then
-  if s.equipped then b.Text="EQUIPPED";b.BackgroundColor3=C.green;b.TextColor3=C.bg;b.Active=false
-  elseif s.unlocked then b.Text="EQUIP";b.BackgroundColor3=C.gold;b.TextColor3=C.bg
-  else b.Text="LOCKED";b.TextColor3=C.muted;b.Active=false end
-  if s.unlocked and not s.equipped then b.Activated:Connect(function() actionRemote:FireServer("EquipSkin",s.name) end) end
+  if not s.unlocked then
+   b.Text="LOCKED";b.TextColor3=C.muted;b.Active=false
+  elseif s.equipped and s.held then
+   b.Text="STOW";b.BackgroundColor3=C.green;b.TextColor3=C.bg
+  else
+   b.Text="HOLD";b.BackgroundColor3=C.gold;b.TextColor3=C.bg
+  end
+  if s.unlocked then
+   b.Activated:Connect(function() actionRemote:FireServer("ToggleRod",s.name) end)
+  end
  else
   if s.unlocked then b.Text=s.equipped and "OWNED ✓" or "OWNED";b.BackgroundColor3=C.panel2;b.TextColor3=C.green
   else b.Text=(s.price==0 and "FREE" or tostring(s.price).." TOKENS");b.TextSize=11;b.BackgroundColor3=C.gold;b.TextColor3=C.bg
@@ -264,20 +270,9 @@ stateRemote.OnClientEvent:Connect(function(kind,payload)
  elseif kind=="Toast" then showToast(payload.text or "") end
 end)
 
--- Enable only around the lakeside district; no permanent club-screen clutter.
-local LAKE_CENTER=Vector3.new(0,0,790)
-local ENABLE_RADIUS=232
-local accum=0
-RunService.RenderStepped:Connect(function(dt)
- accum+=dt;if accum<.25 then return end;accum=0
- local hrp=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
- local near=false
- if hrp then
-  local dx=hrp.Position.X-LAKE_CENTER.X;local dz=hrp.Position.Z-LAKE_CENTER.Z
-  near=(dx*dx+dz*dz)<=ENABLE_RADIUS*ENABLE_RADIUS
- end
- if gui.Enabled~=near then gui.Enabled=near;if not near then closeSheet() end end
-end)
+-- IMPORTANT: never write gui.Enabled here.
+-- FishingGateSatisfactionV6 is the single visibility authority and applies the physical lake gate.
+gui:SetAttribute("VisibilityOwnedByGateV6", true)
 
 -- Mobile-safe scale: keep controls compact on small screens, never giant.
 local camera=workspace.CurrentCamera
@@ -293,4 +288,4 @@ applyScale()
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyScale) end
 
 actionRemote:FireServer("Snapshot")
-print("[BBYA] Fishing UI v1 online: compact CAST/REEL + BAG/ROD/SHOP")
+print("[BBYA] Fishing UI v1 online: compact CAST/REEL + BAG/ROD/SHOP; gate visibility delegated to v6")
