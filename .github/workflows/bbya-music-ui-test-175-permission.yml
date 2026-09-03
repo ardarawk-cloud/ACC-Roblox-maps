@@ -1,0 +1,62 @@
+name: BBYA Music UI Test 175 Permission
+
+on:
+  push:
+    branches:
+      - test/bbya-music-normalization-v1
+    paths:
+      - .github/workflows/bbya-music-ui-test-175-permission.yml
+
+permissions:
+  contents: read
+
+jobs:
+  grant-use:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      ASSET_ID: '132374505628905'
+      TEST_UNIVERSE_ID: '10762005984'
+      PRODUCTION_UNIVERSE_ID: '8116636513'
+    steps:
+      - name: Grant approved 1.75x control to Music UI TEST
+        env:
+          MASTER_V2_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$TEST_UNIVERSE_ID" = "10762005984"
+          test "$TEST_UNIVERSE_ID" != "$PRODUCTION_UNIVERSE_ID"
+          test "$ASSET_ID" = "132374505628905"
+          test -n "${MASTER_V2_KEY:-}"
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key=os.environ['MASTER_V2_KEY'].strip()
+          asset=os.environ['ASSET_ID']
+          universe=os.environ['TEST_UNIVERSE_ID']
+          def req(url,method='GET',payload=None,headers=None):
+              body=None if payload is None else json.dumps(payload).encode()
+              h=dict(headers or {})
+              r=urllib.request.Request(url,data=body,headers=h,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=30) as q:
+                      raw=q.read().decode('utf-8','replace')
+                      return q.status,json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try:data=json.loads(raw) if raw.strip() else {}
+                  except Exception:data={'raw':raw[-1000:]}
+                  return e.code,data
+          code,info=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key},{'Content-Type':'application/json'})
+          scopes=[{'name':s.get('name'),'operations':s.get('operations') or []} for s in (info.get('scopes') or [])] if isinstance(info,dict) else []
+          print(json.dumps({'keyHttp':code,'keyName':info.get('name') if isinstance(info,dict) else None,'enabled':info.get('enabled') if isinstance(info,dict) else None,'expired':info.get('expired') if isinstance(info,dict) else None,'scopes':scopes}))
+          usable=code==200 and any(s.get('name')=='asset-permissions' and 'write' in (s.get('operations') or []) for s in scopes)
+          if not usable: raise SystemExit('MASTER_V2 lacks usable asset-permissions write')
+          payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(asset)}]}
+          pcode,data=req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+          success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+          print(json.dumps({'permissionHttp':pcode,'assetId':asset,'universeId':universe,'successAssetIds':success,'response':data}))
+          if asset not in success:
+              raise SystemExit('PERMISSION_NOT_GRANTED')
+          print('PERMISSION_GRANT_OK')
+          PY
