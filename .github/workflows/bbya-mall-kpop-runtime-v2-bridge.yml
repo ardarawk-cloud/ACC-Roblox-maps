@@ -19,84 +19,26 @@ jobs:
           ref: bbya/mall-kpop-runtime-v2
           fetch-depth: 0
 
-      - name: Patch core Music Suite with native Mall authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('maps/bbya-social-hub/103-music-ui-final.client.lua')
-          s=p.read_text()
+      - name: Patch core Music Suite
+        run: python3 scripts/bbya-mall-kpop-runtime-v2-patch.py
 
-          def once(old,new,label):
-              global s
-              if old not in s:
-                  raise SystemExit('TOKEN_NOT_FOUND:'+label)
-              if s.count(old)!=1:
-                  raise SystemExit('TOKEN_COUNT_'+label+':'+str(s.count(old)))
-              s=s.replace(old,new,1)
-
-          once('    ROOFTOP = {label = "ROOFTOP", accent = C.gold, group = "BBYARooftopMaster"},\n    NONE = {label = "BBYA MUSIC", accent = C.purple},',
-               '    ROOFTOP = {label = "ROOFTOP", accent = C.gold, group = "BBYARooftopMaster"},\n    MALL = {label = "MALL", accent = C.gold, group = "BBYAMallMaster"},\n    NONE = {label = "BBYA MUSIC", accent = C.purple},','V_MALL')
-
-          once('local stateRemote = remotes:WaitForChild("State", 30)\n',
-               'local stateRemote = remotes:WaitForChild("State", 30)\nlocal mallControl = RS:WaitForChild("BBYAMallMusicControl", 30)\n','MALL_REMOTE')
-
-          once('    if p.Y > -4 and p.Y < 20 and math.abs(p.X) <= 61 and p.Z >= 72 and p.Z <= 152 then return "SKATEPARK" end\n    if p.Y > -4 and p.Y < 18 and math.abs(p.X) <= 61 and p.Z >= 0 and p.Z < 70 then return "MAIN" end',
-               '    if p.Y > -4 and p.Y < 20 and math.abs(p.X) <= 61 and p.Z >= 72 and p.Z <= 152 then return "SKATEPARK" end\n    if p.Y >= -4 and p.Y <= 70 and p.X >= -96 and p.X <= 96 and p.Z >= 287 and p.Z <= 443 then return "MALL" end\n    if p.Y > -4 and p.Y < 18 and math.abs(p.X) <= 61 and p.Z >= 0 and p.Z < 70 then return "MAIN" end','VENUE_AT')
-
-          once('local S = {tracks = {}, title = "", index = 0, playing = false, queue = 0, nextRequest = 0}\n',
-'''local S = {tracks = {}, title = "", index = 0, playing = false, queue = 0, nextRequest = 0, autoNext = 0}\n\nlocal function mallTracks()\n    local folder = RS:FindFirstChild("BBYAMallPlaylistCatalog")\n    if not folder then return {} end\n    local indexed = {}\n    for _, row in ipairs(folder:GetChildren()) do\n        if row:IsA("StringValue") then\n            local i = tonumber(row:GetAttribute("Index"))\n            if i then\n                indexed[i] = {\n                    title = row.Value,\n                    assetId = tostring(row:GetAttribute("AssetId") or ""),\n                    playbackSpeed = tonumber(row:GetAttribute("PlaybackSpeed")) or 1,\n                    style = "KPOP • RANDOM MIX",\n                }\n            end\n        end\n    end\n    local out = {}\n    for i=1,#indexed do if indexed[i] then table.insert(out,indexed[i]) end end\n    return out\nend\n\nlocal function syncMall()\n    if venue() ~= "MALL" then return false end\n    local tracks = mallTracks()\n    if #tracks > 0 then S.tracks = tracks end\n    S.index = tonumber(RS:GetAttribute("BBYAMallCurrentIndex")) or 1\n    S.title = tostring(RS:GetAttribute("BBYAMallCurrentTitle") or "")\n    S.queue = tonumber(RS:GetAttribute("BBYAMallQueueCount")) or 0\n    S.nextRequest = tonumber(RS:GetAttribute("BBYAMallNextRequestIndex")) or 0\n    S.autoNext = tonumber(RS:GetAttribute("BBYAMallAutoNextIndex")) or 0\n    local sound = SS:FindFirstChild("BBYAMallMasterSound")\n    S.playing = sound and sound:IsA("Sound") and sound.IsPlaying or false\n    return true\nend\n''','MALL_SYNC')
-
-          once('local function requestList()\n    local v = venue()\n    if v == "MAIN" or v == "UNDERGROUND" then music:FireServer("list") end\nend',
-'''local function requestList()\n    local v = venue()\n    if v == "MAIN" or v == "UNDERGROUND" then\n        music:FireServer("list")\n    elseif v == "MALL" then\n        syncMall()\n    end\nend''','REQUEST_LIST')
-
-          once('local function request(i)\n    local v = venue()\n    if v == "MAIN" or v == "UNDERGROUND" then music:FireServer("request",i) end\nend',
-'''local function request(i)\n    local v = venue()\n    if v == "MAIN" or v == "UNDERGROUND" then\n        music:FireServer("request",i)\n    elseif v == "MALL" and mallControl then\n        mallControl:FireServer("request",i)\n    end\nend''','REQUEST_MALL')
-
-          once('        FUNKOT = {"BBYAFunkotDeck"},\n    }',
-               '        FUNKOT = {"BBYAFunkotDeck"},\n        MALL = {"BBYAMallMasterSound"},\n    }','FIND_SOUND')
-
-          once('prev.Activated:Connect(function()\n    if isAdmin() and (venue() == "MAIN" or venue() == "UNDERGROUND") and #S.tracks > 0 then\n        local i = ((math.max(S.index, 1) - 2) % #S.tracks) + 1\n        music:FireServer("play", i)\n    end\nend)',
-'''prev.Activated:Connect(function()\n    local v = venue()\n    if not isAdmin() then return end\n    if v == "MALL" and mallControl then\n        mallControl:FireServer("prev")\n    elseif (v == "MAIN" or v == "UNDERGROUND") and #S.tracks > 0 then\n        local i = ((math.max(S.index, 1) - 2) % #S.tracks) + 1\n        music:FireServer("play", i)\n    end\nend)''','PREV_MALL')
-
-          once('nextB.Activated:Connect(function()\n    if isAdmin() and (venue() == "MAIN" or venue() == "UNDERGROUND") then\n        music:FireServer("next")\n    end\nend)',
-'''nextB.Activated:Connect(function()\n    local v = venue()\n    if not isAdmin() then return end\n    if v == "MALL" and mallControl then\n        mallControl:FireServer("next")\n    elseif v == "MAIN" or v == "UNDERGROUND" then\n        music:FireServer("next")\n    end\nend)''','NEXT_MALL')
-
-          once('    if kind == "playlist" and type(data) == "table" then\n        S.tracks = data\n        if gui.Enabled then refresh() end',
-               '    if kind == "playlist" and type(data) == "table" then\n        if venue() ~= "MALL" then S.tracks = data end\n        if gui.Enabled then refresh() end','IGNORE_CLUB_PLAYLIST_IN_MALL')
-
-          once('local bound = {}\n',
-'''for _, attr in ipairs({\n    "BBYAMallPlaylistCount", "BBYAMallCurrentIndex", "BBYAMallCurrentTitle",\n    "BBYAMallCurrentAssetId", "BBYAMallQueueCount", "BBYAMallNextRequestIndex",\n    "BBYAMallAutoNextIndex", "BBYAMallShuffleRemaining",\n}) do\n    RS:GetAttributeChangedSignal(attr):Connect(function()\n        if venue() == "MALL" then\n            syncMall()\n            if gui.Enabled then refresh() end\n        end\n    end)\nend\n\nRS.ChildAdded:Connect(function(child)\n    if child.Name == "BBYAMallPlaylistCatalog" and venue() == "MALL" then\n        task.defer(function()\n            syncMall()\n            if gui.Enabled then refresh() end\n        end)\n    end\nend)\n\nlocal bound = {}\n''','MALL_ATTRIBUTE_BIND')
-
-          once('    local s = findSound()\n',
-               '    if venue() == "MALL" then syncMall() end\n    local s = findSound()\n','RENDER_SYNC')
-
-          s=s.replace('-- BBYA MUSIC SUITE v1 — PREMIUM UI PHASE 2','-- BBYA MUSIC SUITE v1.1 — PREMIUM UI PHASE 2 + NATIVE MALL KPOP',1)
-          s=s.replace('print("[BBYA] MUSIC SUITE v1 online — premium mobile Phase 2 Library / Now Playing / Queue")','print("[BBYA] MUSIC SUITE v1.1 online — native MALL KPOP + premium mobile Library / Now Playing / Queue")',1)
-          p.write_text(s)
-          PY
-
-      - name: QC Mall native binding
-        shell: bash
+      - name: QC
         run: |
           set -euo pipefail
           grep -q 'MALL = {label = "MALL"' maps/bbya-social-hub/103-music-ui-final.client.lua
           grep -q 'BBYAMallMasterSound' maps/bbya-social-hub/103-music-ui-final.client.lua
           grep -q 'BBYAMallPlaylistCatalog' maps/bbya-social-hub/103-music-ui-final.client.lua
-          grep -q 'BBYAMallAutoNextIndex' maps/bbya-social-hub/103-music-ui-final.client.lua
           grep -q 'MALL KPOP PLAYLIST AUTHORITY v2' maps/bbya-social-hub/121-funkot-playlist.server.lua
           grep -q 'RANDOM_NO_REPEAT_CYCLE' maps/bbya-social-hub/121-funkot-playlist.server.lua
           grep -q 'ContentProvider:PreloadAsync' maps/bbya-social-hub/121-funkot-playlist.server.lua
 
-      - name: Commit patched core
-        shell: bash
+      - name: Commit
         run: |
           set -euo pipefail
           git config user.name 'BBYA Mall KPOP Runtime V2'
           git config user.email 'actions@users.noreply.github.com'
           git add maps/bbya-social-hub/103-music-ui-final.client.lua
-          if git diff --cached --quiet; then echo 'No core diff'; exit 0; fi
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Fix Mall Music Suite native KPOP binding'
           git push origin HEAD:bbya/mall-kpop-runtime-v2
 
@@ -105,5 +47,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const ok='${{ job.status }}'==='success';
-            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body: ok ? 'BBYA_MALL_KPOP_RUNTIME_V2_PATCHED | branch=bbya/mall-kpop-runtime-v2 | publish=false' : 'BBYA_MALL_KPOP_RUNTIME_V2_PATCH_FAILED | publish=false'});
+            const ok = '${{ job.status }}' === 'success';
+            const body = ok ? 'BBYA_MALL_KPOP_RUNTIME_V2_PATCHED | branch=bbya/mall-kpop-runtime-v2 | publish=false' : 'BBYA_MALL_KPOP_RUNTIME_V2_PATCH_FAILED | publish=false';
+            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body});
