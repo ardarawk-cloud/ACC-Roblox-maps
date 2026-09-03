@@ -76,10 +76,19 @@ local function hidePart(p)
     end
 end
 
+local function hideDriverSeat(p)
+    if p and p:IsA('VehicleSeat') then
+        -- Keep seat touch/query behaviour intact so entering and driving cannot regress from a visual pass.
+        p.Transparency=1
+        p.CanCollide=false
+        p.CastShadow=false
+    end
+end
+
 local function hideLegacy(model,chassis)
     -- The runtime physics body remains present but is not part of the V3.2 visual silhouette.
     hidePart(chassis)
-    hidePart(model:FindFirstChild('DriverSeat',true))
+    hideDriverSeat(model:FindFirstChild('DriverSeat',true))
     for _,name in ipairs({
         'PassengerCabin','Canopy','Battery',
         'FrontWheelL','FrontWheelR','RearWheel',
