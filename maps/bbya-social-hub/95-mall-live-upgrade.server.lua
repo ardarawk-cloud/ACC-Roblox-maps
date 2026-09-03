@@ -1,9 +1,8 @@
--- BBYA SOCIAL HUB — MALL LIVE UPGRADE v5 / VISUAL CLEANUP v12
+-- BBYA SOCIAL HUB — MALL LIVE UPGRADE v4 / VISUAL CLEANUP v8
 -- Screenshot-driven premium refinement for the live Mall.
 -- Keeps passport/presence gameplay, replaces the stacked atrium stair mass with compact
 -- switchback circulation, removes harsh black retail surfaces, and balances Mall-local lights.
 -- Global Lighting / audio / fishing / VIP / Night Market are not changed here.
--- OWNER LOCK: this overlay follows the Mall source datums 1/17/33/49 and never restores legacy 14-stud spacing.
 
 local Workspace=game:GetService("Workspace")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -19,8 +18,8 @@ if old then old:Destroy() end
 
 local up=Instance.new("Model")
 up.Name="MallLiveUpgradeV2"
-up:SetAttribute("Pass","MALL_LIVE_CLEAN_V5_15_CLEAR")
-up:SetAttribute("VisualCleanup","SCREENSHOT_DRIVEN_V12")
+up:SetAttribute("Pass","MALL_LIVE_CLEAN_V4")
+up:SetAttribute("VisualCleanup","SCREENSHOT_DRIVEN_V8")
 up:SetAttribute("DigitalBillboardsRemoved",true)
 up:SetAttribute("AtriumClutterRemoved",true)
 up:SetAttribute("EscalatorMassReduced",true)
@@ -28,14 +27,12 @@ up:SetAttribute("CompactSwitchbackCirculation",true)
 up:SetAttribute("RetailBlackPanelsSoftened",true)
 up:SetAttribute("LocalLightingOnly",true)
 up:SetAttribute("GlobalLightingUntouched",true)
-up:SetAttribute("FloorClearHeightStuds",15)
 up.Parent=mall
 
-mall:SetAttribute("Pass","ACTIVE_MALL_V5_15_CLEAR")
+mall:SetAttribute("Pass","ACTIVE_MALL_V4")
 mall:SetAttribute("Operational",true)
 mall:SetAttribute("PassportZones",5)
-mall:SetAttribute("MobileAtriumCleanup","V12")
-mall:SetAttribute("FloorClearHeightStuds",15)
+mall:SetAttribute("MobileAtriumCleanup","V8")
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes"
@@ -146,7 +143,7 @@ local oldEscal=mall:FindFirstChild("Escalators")
 if oldEscal then oldEscal:Destroy() end
 local escal=Instance.new("Model")
 escal.Name="Escalators"
-escal:SetAttribute("VisualRefinement","V12_15_CLEAR")
+escal:SetAttribute("VisualRefinement","V11_SCREENSHOT_QC")
 escal:SetAttribute("LongStackedRunsRemoved",true)
 escal.Parent=mall
 
@@ -157,31 +154,30 @@ local function buildSwitchback(name,baseY,edgeZ,dir,xBase)
  local xA=xBase-3.55
  local xB=xBase+3.55
  local depth=1.62
- local run=1.16
+ local run=1.34
  local stepH=.50
  local firstStart=edgeZ+dir*1.18
  local midZ=edgeZ+dir*10.45
 
- -- Two 8-step flights span the true 16-stud slab-center interval.
- for i=0,7 do
+ for i=0,6 do
   local z=firstStart+dir*(i*run)
   local y=baseY+.75+i
   part("FlightA_Step"..i,Vector3.new(5.9,stepH,depth),CFrame.new(xA,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
  end
- part("MidLanding",Vector3.new(14.5,.48,3.6),CFrame.new(xBase,baseY+8.0,midZ),C.warmStone,Enum.Material.Slate,true,stair,0)
- for i=0,7 do
+ part("MidLanding",Vector3.new(14.5,.48,3.6),CFrame.new(xBase,baseY+7.0,midZ),C.warmStone,Enum.Material.Slate,true,stair,0)
+ for i=0,6 do
   local z=midZ-dir*(1.18+i*run)
-  local y=baseY+8.75+i
+  local y=baseY+7.75+i
   part("FlightB_Step"..i,Vector3.new(5.9,stepH,depth),CFrame.new(xB,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
  end
  part("LowerLanding",Vector3.new(8.6,.42,3.1),CFrame.new(xA,baseY+.22,edgeZ+dir*.72),C.warmStone,Enum.Material.Slate,true,stair,0)
- part("UpperLanding",Vector3.new(8.6,.42,3.1),CFrame.new(xB,baseY+16.22,edgeZ+dir*.72),C.warmStone,Enum.Material.Slate,true,stair,0)
+ part("UpperLanding",Vector3.new(8.6,.42,3.1),CFrame.new(xB,baseY+14.22,edgeZ+dir*.72),C.warmStone,Enum.Material.Slate,true,stair,0)
 
  local railColor=C.gold
  local firstA=Vector3.new(xA-3.0,baseY+2.1,firstStart)
- local firstB=Vector3.new(xA-3.0,baseY+9.0,midZ-dir*.3)
- local secondA=Vector3.new(xB+3.0,baseY+10.1,midZ-dir*.3)
- local secondB=Vector3.new(xB+3.0,baseY+17.0,edgeZ+dir*1.0)
+ local firstB=Vector3.new(xA-3.0,baseY+8.0,midZ-dir*.3)
+ local secondA=Vector3.new(xB+3.0,baseY+9.1,midZ-dir*.3)
+ local secondB=Vector3.new(xB+3.0,baseY+15.0,edgeZ+dir*1.0)
  beamBetween("OuterRailA",firstA,firstB,railColor,stair,.14)
  beamBetween("OuterRailB",secondA,secondB,railColor,stair,.14)
  beamBetween("InnerRailA",Vector3.new(xA+3.0,firstA.Y,firstA.Z),Vector3.new(xA+3.0,firstB.Y,firstB.Z),railColor,stair,.11)
@@ -189,8 +185,8 @@ local function buildSwitchback(name,baseY,edgeZ,dir,xBase)
 end
 
 buildSwitchback("L1_L2_SouthWest",1,338,1,-18)
-buildSwitchback("L2_L3_NorthEast",17,392,-1,18)
-buildSwitchback("L3_L4_SouthWest",33,338,1,-18)
+buildSwitchback("L2_L3_NorthEast",15,392,-1,18)
+buildSwitchback("L3_L4_SouthWest",29,338,1,-18)
 
 local stairGlassOpenings={
  {level=2,z=338,x=-14.45},
@@ -224,12 +220,12 @@ local function rebuildAtriumRailZ(level,edgeZ,gapCenterX,gapWidth)
  local gapRight=math.min(rightEdge,gapCenterX+gapHalf)
  local leftWidth=gapLeft-leftEdge
  if leftWidth>.25 then
-  local seg=part("AtriumRailZ"..level.."_V12L_"..math.floor(edgeZ),Vector3.new(leftWidth,railHeight,railDepth),CFrame.new(leftEdge+leftWidth/2,railY,railZ),railColor,railMaterial,true,floorModel,railTransparency)
+  local seg=part("AtriumRailZ"..level.."_V11L_"..math.floor(edgeZ),Vector3.new(leftWidth,railHeight,railDepth),CFrame.new(leftEdge+leftWidth/2,railY,railZ),railColor,railMaterial,true,floorModel,railTransparency)
   seg.CastShadow=false
  end
  local rightWidth=rightEdge-gapRight
  if rightWidth>.25 then
-  local seg=part("AtriumRailZ"..level.."_V12R_"..math.floor(edgeZ),Vector3.new(rightWidth,railHeight,railDepth),CFrame.new(gapRight+rightWidth/2,railY,railZ),railColor,railMaterial,true,floorModel,railTransparency)
+  local seg=part("AtriumRailZ"..level.."_V11R_"..math.floor(edgeZ),Vector3.new(rightWidth,railHeight,railDepth),CFrame.new(gapRight+rightWidth/2,railY,railZ),railColor,railMaterial,true,floorModel,railTransparency)
   seg.CastShadow=false
  end
  return true
@@ -239,9 +235,9 @@ local openingCount=0
 for _,spec in ipairs(stairGlassOpenings) do
  if rebuildAtriumRailZ(spec.level,spec.z,spec.x,12.5) then openingCount+=1 end
 end
-escal:SetAttribute("GlassLandingClearance","V12_15_CLEAR")
+escal:SetAttribute("GlassLandingClearance","V11_WIDE")
 escal:SetAttribute("GlassOpenings",openingCount)
-mall:SetAttribute("MallStairGlassClearance","V12_15_CLEAR")
+mall:SetAttribute("MallStairGlassClearance","V11_WIDE")
 mall:SetAttribute("MallStairGlassOpenings",openingCount)
 
 task.spawn(function()
@@ -265,15 +261,15 @@ task.spawn(function()
    local color,mat,tr=cap.Color,cap.Material,cap.Transparency
    cap:Destroy()
    local lw=gapLeft-leftEdge
-   if lw>.20 then part("RailCapZ_L"..spec.level.."_V12L_"..math.floor(spec.z),Vector3.new(lw,h,d),CFrame.new(leftEdge+lw/2,capY,capZ),color,mat,false,caps,tr) end
+   if lw>.20 then part("RailCapZ_L"..spec.level.."_V11L_"..math.floor(spec.z),Vector3.new(lw,h,d),CFrame.new(leftEdge+lw/2,capY,capZ),color,mat,false,caps,tr) end
    local rw=rightEdge-gapRight
-   if rw>.20 then part("RailCapZ_L"..spec.level.."_V12R_"..math.floor(spec.z),Vector3.new(rw,h,d),CFrame.new(gapRight+rw/2,capY,capZ),color,mat,false,caps,tr) end
+   if rw>.20 then part("RailCapZ_L"..spec.level.."_V11R_"..math.floor(spec.z),Vector3.new(rw,h,d),CFrame.new(gapRight+rw/2,capY,capZ),color,mat,false,caps,tr) end
    capOpenings+=1
   end
  end
- caps:SetAttribute("StairOpenings","V12")
+ caps:SetAttribute("StairOpenings","V11")
  caps:SetAttribute("OpeningCount",capOpenings)
- mall:SetAttribute("MallGoldRailClearance","V12")
+ mall:SetAttribute("MallGoldRailClearance","V11")
 end)
 
 task.spawn(function()
@@ -282,13 +278,13 @@ task.spawn(function()
  baseLift:Destroy()
  local elevator=Instance.new("Model")
  elevator.Name="ElevatorCore"
- elevator:SetAttribute("Pass","CENTRAL_LIFT_V12_15_CLEAR")
+ elevator:SetAttribute("Pass","CENTRAL_LIFT_V11")
  elevator:SetAttribute("FormerRearCornerRemoved",true)
  elevator:SetAttribute("VisibleFromAtrium",true)
  elevator.Parent=mall
- local levels={1,17,33,49}
- part("LiftRearGlass",Vector3.new(17,65,.55),CFrame.new(0,32.5,414),Color3.fromRGB(112,137,148),Enum.Material.Glass,true,elevator,.42)
- for _,x in ipairs({-8.4,8.4}) do part("LiftPier"..x,Vector3.new(1.15,65,11),CFrame.new(x,32.5,409),C.graphite,Enum.Material.Metal,true,elevator,0) end
+ local levels={1,15,29,43}
+ part("LiftRearGlass",Vector3.new(17,57,.55),CFrame.new(0,29,414),Color3.fromRGB(112,137,148),Enum.Material.Glass,true,elevator,.42)
+ for _,x in ipairs({-8.4,8.4}) do part("LiftPier"..x,Vector3.new(1.15,57,11),CFrame.new(x,29,409),C.graphite,Enum.Material.Metal,true,elevator,0) end
  local function liftPrompt(parent,action,targetFloor,targetY)
   local q=Instance.new("ProximityPrompt")
   q.ActionText=action
@@ -304,9 +300,9 @@ task.spawn(function()
  end
  for i,y in ipairs(levels) do
   part("LiftLobby"..i,Vector3.new(23,.42,14),CFrame.new(0,y+.72,398.5),C.warmStone,Enum.Material.Slate,true,elevator,0)
-  part("LiftDoorL"..i,Vector3.new(6.2,10.5,.35),CFrame.new(-3.15,y+6.1,403.65),C.dark,Enum.Material.Metal,true,elevator,0)
-  part("LiftDoorR"..i,Vector3.new(6.2,10.5,.35),CFrame.new(3.15,y+6.1,403.65),C.dark,Enum.Material.Metal,true,elevator,0)
-  local header=part("LiftHeader"..i,Vector3.new(15,2.2,.28),CFrame.new(0,y+12.15,403.55),C.graphite,Enum.Material.Metal,false,elevator,0)
+  part("LiftDoorL"..i,Vector3.new(6.2,8.5,.35),CFrame.new(-3.15,y+5.1,403.65),C.dark,Enum.Material.Metal,true,elevator,0)
+  part("LiftDoorR"..i,Vector3.new(6.2,8.5,.35),CFrame.new(3.15,y+5.1,403.65),C.dark,Enum.Material.Metal,true,elevator,0)
+  local header=part("LiftHeader"..i,Vector3.new(15,2.2,.28),CFrame.new(0,y+10.15,403.55),C.graphite,Enum.Material.Metal,false,elevator,0)
   if i==4 then addSurfaceText(header,"L4 • CINEMA\nPASSPORT FINAL",C.gold) else addSurfaceText(header,"CENTRAL LIFT • L"..i,C.white) end
   if i<4 then
    local upPad=part("LiftUpPad"..i,Vector3.new(3.2,.22,3.2),CFrame.new(-4,y+1.03,394.5),C.gold,Enum.Material.Neon,false,elevator,.22)
@@ -319,7 +315,7 @@ task.spawn(function()
    liftPrompt(downPad,"DOWN",i-1,levels[i-1])
   end
  end
- mall:SetAttribute("MallCentralLift","V12_15_CLEAR")
+ mall:SetAttribute("MallCentralLift","V11")
 end)
 
 for _,d in ipairs(mall:GetDescendants()) do
@@ -329,7 +325,7 @@ for _,d in ipairs(mall:GetDescendants()) do
   d.Shadows=false
  elseif d:IsA("SpotLight") and d.Parent and d.Parent.Name:match("^AtriumLight") then
   d.Brightness=math.min(d.Brightness,.92)
-  d.Range=math.min(d.Range,40)
+  d.Range=math.min(d.Range,34)
   d.Shadows=false
  end
 end
@@ -372,11 +368,11 @@ task.spawn(function()
    if label and levelCopy[level] then label.Text=levelCopy[level];label.TextColor3=(level==4) and C.gold or C.white;label.Font=Enum.Font.GothamBold end
   end
  end
- authority:SetAttribute("PostVisualRefinement","V12_15_CLEAR")
+ authority:SetAttribute("PostVisualRefinement","V11")
  authority:SetAttribute("BlackPlaceholderSurfacesSoftened",true)
  authority:SetAttribute("CorridorHotspotsReduced",true)
  authority:SetAttribute("LevelPanelsRepurposed",true)
- mall:SetAttribute("MallPremiumVisualRefinement","V12_15_CLEAR")
+ mall:SetAttribute("MallPremiumVisualRefinement","V11")
 end)
 
 local passport=Instance.new("Folder")
@@ -385,9 +381,9 @@ passport.Parent=up
 local zoneDefs={
  {key="ARRIVAL",label="Mall Arrival",pos=Vector3.new(0,3,300),size=Vector3.new(36,8,22)},
  {key="ATRIUM",label="Central Atrium",pos=Vector3.new(0,5,365),size=Vector3.new(50,10,44)},
- {key="LEVEL2",label="Level 2 Retail",pos=Vector3.new(62,20,365),size=Vector3.new(32,10,40)},
- {key="FOOD",label="Food Hall",pos=Vector3.new(-56,36,370),size=Vector3.new(72,12,48)},
- {key="CINEMA",label="Cinema Level",pos=Vector3.new(0,52,408),size=Vector3.new(100,12,48)},
+ {key="LEVEL2",label="Level 2 Retail",pos=Vector3.new(62,18,365),size=Vector3.new(32,8,40)},
+ {key="FOOD",label="Food Hall",pos=Vector3.new(-56,33,370),size=Vector3.new(72,10,48)},
+ {key="CINEMA",label="Cinema Level",pos=Vector3.new(0,47,408),size=Vector3.new(100,10,48)},
 }
 local visited={}
 local touchCooldown={}
@@ -435,7 +431,7 @@ end
 Players.PlayerAdded:Connect(initPlayer)
 for _,player in ipairs(Players:GetPlayers()) do initPlayer(player) end
 Players.PlayerRemoving:Connect(function(player)visited[player.UserId]=nil end)
-local presence=part("MallPresenceVolume",Vector3.new(196,70,166),CFrame.new(0,32.5,365),C.white,Enum.Material.SmoothPlastic,false,up,1)
+local presence=part("MallPresenceVolume",Vector3.new(196,66,166),CFrame.new(0,31,365),C.white,Enum.Material.SmoothPlastic,false,up,1)
 presence.CanTouch=true
 local inside={}
 presence.Touched:Connect(function(hit)
@@ -452,7 +448,7 @@ task.spawn(function()
    local hrp=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
    if hrp then
     local p=hrp.Position
-    local inMall=math.abs(p.X)<=100 and p.Z>=282 and p.Z<=448 and p.Y>=-2 and p.Y<=67
+    local inMall=math.abs(p.X)<=100 and p.Z>=282 and p.Z<=448 and p.Y>=-2 and p.Y<=66
     if inMall~=inside[player] then inside[player]=inMall;player:SetAttribute("BBYAInsideMall",inMall);v2:FireClient(player,"presence",{inside=inMall}) end
    end
   end
@@ -460,6 +456,6 @@ task.spawn(function()
  end
 end)
 
-mall:SetAttribute("MallScreenshotQC","V12_15_CLEAR")
-mall:SetAttribute("MallPassportDestinationAlignment","V12_15_CLEAR")
-print(string.format("[BBYA] Mall v12 online: TRUE 15-stud clear floors, %d stair openings, central lift aligned",openingCount))
+mall:SetAttribute("MallScreenshotQC","V11")
+mall:SetAttribute("MallPassportDestinationAlignment","V11")
+print(string.format("[BBYA] Mall v11 screenshot QC online: %d wide stair openings, gold caps cleared, central lift active, level panels repurposed, passport zones aligned",openingCount))
