@@ -1,16 +1,11 @@
-name: After School City V1.2 School Life Foundation QC
+name: After School City V1.2 Dedication No Backdrop QC
 
 on:
   push:
-    branches: [after-school-city/v120-school-life-foundation]
+    branches: [after-school-city/v120-dedication-no-backdrop]
     paths:
       - '.github/workflows/after-school-city-v120-school-life-foundation-qc.yml'
-      - 'maps/after-school-city/after-school-city.config.lua'
-      - 'maps/after-school-city/after-school-city.gameplay-config.lua'
-      - 'maps/after-school-city/after-school-city.school-life-config.lua'
-      - 'maps/after-school-city/after-school-city.school-life-gameplay-v120.server.lua'
-      - 'maps/after-school-city/after-school-city.school-life-v120.client.lua'
-      - 'maps/after-school-city/default.project.json'
+      - 'maps/after-school-city/after-school-city.intro.client.lua'
   workflow_dispatch:
 
 permissions:
@@ -21,162 +16,66 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout exact V1.2 candidate
+      - name: Checkout exact dedication patch candidate
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Exact v50 LIVE base and narrow diff gate
+      - name: Exact v51 LIVE base and narrow diff gate
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $base = '395f45a7d26688baf30f22188092471507f09dbe'
+          $base = '91bf24724b017361f2ca23d1f17d057c21b2e76c'
           git cat-file -e "$base^{commit}"
-          if($LASTEXITCODE -ne 0){ throw 'V1.1.4 v50 LIVE source unavailable' }
+          if($LASTEXITCODE -ne 0){ throw 'V1.2 v51 LIVE source unavailable' }
           $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
-          if($mergeBase -ne $base){ throw "Candidate is not based on exact v50 LIVE source: $mergeBase" }
+          if($mergeBase -ne $base){ throw "Candidate is not based on exact v51 LIVE source: $mergeBase" }
           $allowed = @(
             '.github/workflows/after-school-city-v120-school-life-foundation-qc.yml',
-            'maps/after-school-city/after-school-city.config.lua',
-            'maps/after-school-city/after-school-city.gameplay-config.lua',
-            'maps/after-school-city/after-school-city.school-life-config.lua',
-            'maps/after-school-city/after-school-city.school-life-gameplay-v120.server.lua',
-            'maps/after-school-city/after-school-city.school-life-v120.client.lua',
-            'maps/after-school-city/default.project.json'
+            'maps/after-school-city/after-school-city.intro.client.lua'
           )
           $changed = @(git diff --name-only $base $env:GITHUB_SHA)
-          if($changed.Count -ne 7){ throw "Expected exactly 7 files, got $($changed.Count): $($changed -join ', ')" }
+          if($changed.Count -ne 2){ throw "Expected exactly 2 files, got $($changed.Count): $($changed -join ', ')" }
           foreach($path in $changed){ if($allowed -notcontains $path){ throw "Scope violation: $path" } }
           foreach($path in $allowed){ if($changed -notcontains $path){ throw "Missing required change: $path" } }
-          Write-Host "V1.2 NARROW DIFF PASS source=$env:GITHUB_SHA"
+          Write-Host "DEDICATION PATCH NARROW DIFF PASS source=$env:GITHUB_SHA"
 
-      - name: Verify persistent school quest extension
+      - name: Verify dedication copy and backdrop removal
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $cfg = Get-Content 'maps/after-school-city/after-school-city.gameplay-config.lua' -Raw
+          $introPath = 'maps/after-school-city/after-school-city.intro.client.lua'
+          $intro = Get-Content $introPath -Raw
           foreach($token in @(
-            'Version = "1.2.0-school-life-foundation-1"',
-            'DataStoreName = "ASC_PlayerProfile_v1"',
-            'SchemaVersion = 1',
-            '"FIRST_STEPS_DOWNTOWN"',
-            '"VISIT_SKATEPARK"',
-            '"VISIT_CITY_PARK"',
-            '"SCHOOL_MEET_TEACHER"',
-            '"SCHOOL_HELP_CANTEEN"',
-            '"SCHOOL_JOIN_CLUB"',
-            'Meet Ms. Maya in Classroom A',
-            'Help Mr. Budi at the school canteen',
-            'Talk to Naya in the club room'
+            'AFTER SCHOOL CITY',
+            'A GAME MADE FOR',
+            'PUTU AZYA PUTRI\nBINTANG HARDAJAYA',
+            'This game was made especially for you.',
+            'WITH LOVE, DAD',
+            'ENTER THE CITY'
           )){
-            if($cfg -notmatch [regex]::Escape($token)){ throw "Missing gameplay config token: $token" }
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication lock missing: $token" }
           }
-          Write-Host 'V1.2 PERSISTENT QUEST EXTENSION PASS'
+          if($intro -match 'local\s+backdrop\s*=|backdrop\.Name\s*=\s*"Backdrop"|TweenService:Create\(backdrop'){
+            throw 'Backdrop implementation still present'
+          }
+          foreach($token in @(
+            'card.Name = "Card"',
+            'enterButton.Name = "EnterButton"',
+            'gui.DisplayOrder = 1000'
+          )){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Intro card authority missing: $token" }
+          }
+          Write-Host 'DEDICATION COPY LOCK PASS; FULL-SCREEN BACKDROP REMOVED'
 
-      - name: Verify school config and server authority
+      - name: Verify all non-intro production source unchanged from v51
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $schoolCfg = Get-Content 'maps/after-school-city/after-school-city.school-life-config.lua' -Raw
-          $server = Get-Content 'maps/after-school-city/after-school-city.school-life-gameplay-v120.server.lua' -Raw
-          foreach($token in @(
-            '1.2.0-school-life-foundation-1',
-            'CANTEEN_SHIFT',
-            'CLUB_PRACTICE',
-            'MS. MAYA',
-            'MR. BUDI',
-            'NAYA'
-          )){
-            if($schoolCfg -notmatch [regex]::Escape($token)){ throw "Missing School Life config token: $token" }
-          }
-          foreach($token in @(
-            'V120_SchoolLifeGameplay',
-            'ASC_SchoolInteriorPass',
-            'GameplayService.CompleteQuest',
-            'GameplayService.Award',
-            'GameplayService.CanUseCooldown',
-            'V120_CANTEEN_SHIFT',
-            'V120_CLUB_PRACTICE',
-            'ASC_SchoolLifeGameplayReady'
-          )){
-            if($server -notmatch [regex]::Escape($token)){ throw "Missing server authority token: $token" }
-          }
-          if($server -match 'DataStoreService|MarketplaceService|OnServerEvent|OnServerInvoke'){
-            throw 'V1.2 server scope violation: direct datastore/marketplace/client-command authority detected'
-          }
-          Write-Host 'V1.2 SCHOOL SERVER AUTHORITY PASS'
-
-      - name: Verify localized client is presentation-only
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $client = Get-Content 'maps/after-school-city/after-school-city.school-life-v120.client.lua' -Raw
-          foreach($token in @(
-            'LocalizationService.RobloxLocaleId',
-            'INTERACT',
-            'INTERAKSI',
-            'KANTIN',
-            'RUANG KLUB',
-            'ASCSchoolPromptId'
-          )){
-            if($client -notmatch [regex]::Escape($token)){ throw "Missing client localization token: $token" }
-          }
-          if($client -match 'FireServer|InvokeServer|DataStoreService|MarketplaceService|RemoteEvent|RemoteFunction'){
-            throw 'V1.2 client authority violation'
-          }
-          Write-Host 'V1.2 LOCALIZED PRESENTATION PASS'
-
-      - name: Verify project mapping and V1.2 enable flag
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $project = Get-Content 'maps/after-school-city/default.project.json' -Raw
-          $asc = Get-Content 'maps/after-school-city/after-school-city.config.lua' -Raw
-          foreach($token in @(
-            'ASCSchoolLifeConfig',
-            'ASC_SchoolLifeGameplayV120',
-            'ASC_SchoolLifeClientV120'
-          )){
-            if($project -notmatch [regex]::Escape($token)){ throw "Missing project mapping: $token" }
-          }
-          foreach($token in @(
-            'Version = "1.2.0-school-life-foundation-1"',
-            'SchoolLifeGameplayVersion = "1.2.0-school-life-foundation-1"',
-            'EnableClubs = true'
-          )){
-            if($asc -notmatch [regex]::Escape($token)){ throw "Missing ASC config token: $token" }
-          }
-          Write-Host 'V1.2 PROJECT MAPPING PASS'
-
-      - name: Verify protected v50 authorities unchanged
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $base = '395f45a7d26688baf30f22188092471507f09dbe'
-          foreach($lockedPath in @(
-            'maps/after-school-city/after-school-city.activities.server.lua',
-            'maps/after-school-city/after-school-city.activities.client.lua',
-            'maps/after-school-city/after-school-city.activity-config.lua',
-            'maps/after-school-city/after-school-city.gameplay-service.lua',
-            'maps/after-school-city/after-school-city.gameplay-bootstrap.server.lua',
-            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
-            'maps/after-school-city/after-school-city.ui-glass-v102.client.lua',
-            'maps/after-school-city/after-school-city.music-player.client.lua',
-            'maps/after-school-city/after-school-city.music-config.lua',
-            'maps/after-school-city/after-school-city.intro.client.lua',
-            'maps/after-school-city/after-school-city.world.server.lua',
-            'maps/after-school-city/after-school-city.school-life.server.lua',
-            'maps/after-school-city/after-school-city.school-interior.server.lua',
-            'maps/after-school-city/after-school-city.school-interior-polish.server.lua',
-            'maps/after-school-city/after-school-city.school-visual-depth.server.lua',
-            'maps/after-school-city/after-school-city.streetlight-geometry-hotfix-v111.server.lua',
-            'maps/after-school-city/after-school-city.skatepark-light-clearance-v112.server.lua',
-            'maps/after-school-city/after-school-city.swimmable-pool.server.lua'
-          )){
-            $pathDiff = git diff --name-only $base $env:GITHUB_SHA -- $lockedPath
-            if($pathDiff){ throw "Protected source changed: $lockedPath" }
-          }
-          Write-Host 'V1.2 PROTECTED V50 AUTHORITY PASS'
+          $base = '91bf24724b017361f2ca23d1f17d057c21b2e76c'
+          $unexpected = @(git diff --name-only $base $env:GITHUB_SHA -- 'maps/after-school-city' | Where-Object { $_ -ne 'maps/after-school-city/after-school-city.intro.client.lua' })
+          if($unexpected.Count -gt 0){ throw "Unexpected production source change: $($unexpected -join ', ')" }
+          Write-Host 'NON-INTRO V51 PRODUCTION SOURCE UNCHANGED'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -194,13 +93,13 @@ jobs:
           "ROJO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "ROJO_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build exact V1.2 candidate and hash
+      - name: Build exact dedication patch candidate and hash
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $out = Join-Path $env:RUNNER_TEMP 'asc-v120-qc'
+          $out = Join-Path $env:RUNNER_TEMP 'asc-v120-dedication-no-backdrop-qc'
           New-Item -ItemType Directory -Path $out -Force | Out-Null
-          $place = Join-Path $out 'after-school-city-v120.rbxl'
+          $place = Join-Path $out 'after-school-city-v120-dedication-no-backdrop.rbxl'
           & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
           if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
           $bytes = (Get-Item $place).Length
@@ -208,31 +107,24 @@ jobs:
           $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
           $receipt = @(
             'STATUS=QC_PASSED',
-            'MODE=SCHOOL_LIFE_FOUNDATION_V1_2_0',
-            'BASE_LIVE_COMMIT=395f45a7d26688baf30f22188092471507f09dbe',
+            'MODE=DEDICATION_NO_BACKDROP_V1_2_PATCH',
+            'BASE_LIVE_COMMIT=91bf24724b017361f2ca23d1f17d057c21b2e76c',
             "SOURCE_COMMIT=$env:GITHUB_SHA",
             "ROJO=$env:ROJO_VERSION",
             "RBXL_BYTES=$bytes",
             "SHA256=$hash",
-            'SCHOOL_QUESTS=3_PERSISTENT_EXISTING_SCHEMA',
-            'SCHOOL_NPCS=3_RUNTIME',
-            'REPEATABLES=CANTEEN_SHIFT_CLUB_PRACTICE',
-            'REWARDS=SERVER_AUTHORITATIVE',
-            'COOLDOWNS=SERVER_AUTHORITATIVE_SESSION',
-            'PERSISTENCE=EXISTING_DATASTORE_SCHEMA_1',
-            'CLUBS=ENABLED_V120',
-            'LOCALIZATION=SCHOOL_PROMPTS_ID_EN',
-            'V114_ACTIVITIES=UNCHANGED',
-            'MUSIC_MAP_ROADS_DEDICATION=UNCHANGED'
+            'SCOPE=INTRO_BACKDROP_ONLY',
+            'DEDICATION_COPY=UNCHANGED',
+            'DATASTORE_SCHEMA_GAMEPLAY_MUSIC_MAP=UNCHANGED'
           )
           $receipt | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding ascii
           $receipt | ForEach-Object { Write-Host $_ }
           "QC_OUT_DIR=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Upload exact V1.2 QC artifact
+      - name: Upload exact dedication patch QC artifact
         uses: actions/upload-artifact@v4
         with:
-          name: after-school-city-v120-qc-${{ github.sha }}
+          name: after-school-city-v120-dedication-no-backdrop-qc-${{ github.sha }}
           path: ${{ env.QC_OUT_DIR }}
           if-no-files-found: error
           retention-days: 7
