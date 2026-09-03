@@ -241,8 +241,8 @@ local function safeInsets()local ok,a,b=pcall(function()return GuiService:GetGui
 local function responsive()
  camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local insetTL,insetBR=safeInsets();local outer=math.clamp(math.floor(math.min(vp.X,vp.Y)*.018),8,16)
  local rawX=outer+insetTL.X;local rawY=outer+insetTL.Y;local rawW=math.max(560,vp.X-rawX-outer-insetBR.X);local rawH=math.max(300,vp.Y-rawY-outer-insetBR.Y)
- local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.82));local availW=math.min(rawW,targetW);local availH=math.min(rawH,targetH)
- local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-availH)/2))+10;shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)
+ local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.78));local availW=math.min(rawW,targetW);local availH=math.min(rawH,targetH)
+ local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-availH)/2));shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)
  local topH=40;top.Position=UDim2.fromOffset(0,0);top.Size=UDim2.fromOffset(availW,topH)
  if dressingMode then
   roomBack.Position=UDim2.fromOffset(0,0);roomBack.Size=UDim2.fromOffset(104,38);closeBtn.Position=UDim2.fromOffset(availW-38,0);closeBtn.Size=UDim2.fromOffset(38,38);roomTitle.Position=UDim2.fromOffset(112,0);roomTitle.Size=UDim2.fromOffset(math.max(110,availW-158),38)
