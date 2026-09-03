@@ -1,0 +1,53 @@
+name: After School City KPOP Permission Scope Fix
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  fix-and-dispatch:
+    if: startsWith(github.event.issue.title, 'ASC KPOP PERMISSION SCOPE FIX')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Patch target permission checker and dispatch
+        shell: bash
+        env:
+          BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          API='https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/contents/.github/workflows/asc-kpop-permission.yml'
+          curl -sS -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' "$API?ref=main" > /tmp/current.json
+          SHA="$(jq -r '.sha' /tmp/current.json)"
+          jq -r '.content' /tmp/current.json | tr -d '\n' | base64 -d > /tmp/workflow.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('/tmp/workflow.yml')
+          s=p.read_text()
+          old="can_write=any(s.get('name')=='asset-permissions:write' for s in report['scopes'])"
+          new="can_write=any((s.get('name')=='asset-permissions' and 'write' in (s.get('operations') or [])) or s.get('name')=='asset-permissions:write' for s in report['scopes'])"
+          if old not in s and new not in s:
+              raise SystemExit('SCOPE_CHECK_BLOCK_NOT_FOUND')
+          s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          CONTENT="$(base64 -w0 /tmp/workflow.yml)"
+          PAYLOAD="$(jq -nc --arg msg 'Recognize asset-permissions write scope' --arg content "$CONTENT" --arg branch 'main' --arg sha "$SHA" '{message:$msg,content:$content,branch:$branch,sha:$sha}')"
+          HTTP="$(curl -sS -o /tmp/update.json -w '%{http_code}' -X PUT -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$API" -d "$PAYLOAD")"
+          [ "$HTTP" = '200' ] || { cat /tmp/update.json; exit 21; }
+          sleep 2
+          HTTP2="$(curl -sS -o /tmp/dispatch.json -w '%{http_code}' -X POST -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/actions/workflows/asc-kpop-permission.yml/dispatches' -d '{"ref":"main"}')"
+          [ "$HTTP2" = '204' ] || { cat /tmp/dispatch.json; exit 22; }
+          echo 'Fixed scope detection and dispatched permission run.'
+
+      - name: Report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ok = '${{ job.status }}' === 'success';
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body: ok ? 'ASC_KPOP_PERMISSION_SCOPE_FIXED_AND_DISPATCHED | publish=false' : 'ASC_KPOP_PERMISSION_SCOPE_FIX_FAILED | publish=false'});
