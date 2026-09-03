@@ -212,7 +212,7 @@ local function applyItem(it)
  local id=idOf(it);if not id or itemTypeOf(it)=="Bundle"then return false end;local changed=applyAssetToDescription(d,id,resolveAssetType(it.AssetType,id));if not changed or not render(d,dressingMode)then return false end
  previewDescription=d;selectedLabel.Text="TRY • "..nameOf(it);selectedPrice.Text=priceText(it);return true
 end
-local function selectItem(it)selected=it;selectedLabel.Text=nameOf(it);selectedPrice.Text=priceText(it)end
+local function selectItem(it)selected=it;selectedLabel.Text=nameOf(it);selectedPrice.Text=priceText(it);action.Visible=root.Visible and products.Visible end
 
 local function clearGui(container,keep)for _,x in ipairs(container:GetChildren())do if not keep[x]and not x:IsA("UIGridLayout")and not x:IsA("UIListLayout")and not x:IsA("UIPadding")then x:Destroy()end end end
 local function productCard(parent,it)
