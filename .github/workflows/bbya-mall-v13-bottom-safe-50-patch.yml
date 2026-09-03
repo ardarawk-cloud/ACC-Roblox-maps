@@ -1,0 +1,44 @@
+name: BBYA Mall V13 Bottom Safe 50 Patch
+
+on:
+  push:
+    branches:
+      - feat/bbya-mall-catalog-v8-reference-rebuild
+    paths:
+      - .github/workflows/bbya-mall-v13-bottom-safe-50-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/bbya-mall-catalog-v8-reference-rebuild
+          fetch-depth: 0
+
+      - name: Raise Mall lower edge by exactly 50 px
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('maps/bbya-social-hub/133-mall-robux-commerce.client.lua')
+          s=p.read_text(encoding='utf-8')
+          old=''' local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.78));local availW=math.min(rawW,targetW);local availH=math.min(rawH,targetH)\n local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-availH)/2));shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)'''
+          new=''' local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.78));local baseH=math.min(rawH,targetH);local availW=math.min(rawW,targetW);local availH=math.max(300,baseH-50)\n local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-baseH)/2));shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)'''
+          if old not in s:
+              raise SystemExit('Expected V12 responsive block not found; refusing to patch')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+
+      - name: Commit Mall-only patch
+        shell: bash
+        run: |
+          git config user.name "ardarawk-cloud"
+          git config user.email "ardarawk@gmail.com"
+          git add maps/bbya-social-hub/133-mall-robux-commerce.client.lua
+          git diff --cached --check
+          git commit -m "test(bbya): raise Mall lower edge 50px"
+          git push origin HEAD:feat/bbya-mall-catalog-v8-reference-rebuild
