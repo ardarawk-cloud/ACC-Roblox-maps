@@ -9,6 +9,7 @@ on:
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
   push:
     branches:
       - 'feat/bbya-mall-catalog-v8-reference-rebuild'
@@ -18,6 +19,7 @@ on:
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
 
 permissions:
   contents: read
@@ -59,7 +61,11 @@ jobs:
           foreach($m in @('MALL VERTICAL SPACING 20 + CINEMA v16','local LEVELS={1,21,41,61}','FloorSpacingStuds",20','VerticalAuthority","V16_20_STUD')){
             if(-not $v.Contains($m)){throw "Missing 20-stud vertical marker: $m"}
           }
-          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20'
+          $g=Get-Content 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua' -Raw
+          foreach($m in @('FloorSpacing20DecorAligned','MallDecor20StudAligned','MallStairMobileWidth','V18_WIDE','19.35,39.35,59.35,79.35')){
+            if(-not $g.Contains($m)){throw "Missing decor/stair alignment marker: $m"}
+          }
+          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20 decor=aligned stairs=wide'
 
       - name: Enable third party sales in test build only
         shell: powershell
