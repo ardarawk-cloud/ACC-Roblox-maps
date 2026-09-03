@@ -1,8 +1,8 @@
--- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v11
+-- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v12
 -- Full-wall dual entrance displays fitted to the usable facade fields.
 -- Left: Top Supporters / Hall of Fame.
 -- Right: Live Community / dynamic welcome + recent arrivals.
--- v11: keep the Live Community board fixed, but inset only its clipped left/top neon edge.
+-- v12: keep the Live Community board fixed; inset only its clipped left/top neon edges coherently.
 
 local W = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -17,7 +17,7 @@ if old then old:Destroy() end
 
 local model = Instance.new("Model")
 model.Name = "SupportDashboard"
-model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V11")
+model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V12")
 model.Parent = root
 
 local PINK = Color3.fromRGB(255,38,155)
@@ -100,21 +100,24 @@ label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromS
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
 local rightHolder,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
--- Runtime mobile QC: the facade clips the outer-left neon edge. Keep the wall itself
--- exactly where it is and move only the affected neon inward. Match the existing
--- bottom-neon final-fit by shortening the top from the left side while keeping right alignment.
+-- Runtime facade clips the outer-left/top neon on the Live Community field.
+-- Keep the board, right edge and bottom edge untouched. The left edge gets a true
+-- 0.60-stud inward inset and loses only 0.60 from its top end; the top edge moves
+-- 0.60 down and loses only 0.60 from its left end. This preserves the accepted
+-- right/bottom alignment while creating one coherent safe L-corner inside the facade.
 local liveLeft=rightHolder:FindFirstChild("LeftTrim")
 if liveLeft and liveLeft:IsA("BasePart") then
-    liveLeft.CFrame=liveLeft.CFrame*CFrame.new(.60,0,-.06)
-    liveLeft:SetAttribute("BBYALiveCommunityNeonInsetV1",true)
+    liveLeft.Size=Vector3.new(liveLeft.Size.X,math.max(.1,liveLeft.Size.Y-.60),liveLeft.Size.Z)
+    liveLeft.CFrame=liveLeft.CFrame*CFrame.new(.60,-.30,-.08)
+    liveLeft:SetAttribute("BBYALiveCommunityNeonInsetV2",true)
 end
 local liveTop=rightHolder:FindFirstChild("TopTrim")
 if liveTop and liveTop:IsA("BasePart") then
     liveTop.Size=Vector3.new(math.max(.1,liveTop.Size.X-.60),liveTop.Size.Y,liveTop.Size.Z)
-    liveTop.CFrame=liveTop.CFrame*CFrame.new(.30,-.05,-.06)
-    liveTop:SetAttribute("BBYALiveCommunityNeonInsetV1",true)
+    liveTop.CFrame=liveTop.CFrame*CFrame.new(.30,-.60,-.08)
+    liveTop:SetAttribute("BBYALiveCommunityNeonInsetV2",true)
 end
-rightHolder:SetAttribute("NeonFit","LEFT_EDGE_INSET_V1")
+rightHolder:SetAttribute("NeonFit","LEFT_TOP_SAFE_INSET_V2")
 
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
@@ -185,4 +188,4 @@ for _,face in ipairs({leftFace,rightFace}) do
     prompt.Triggered:Connect(function(player)if state then state:FireClient(player,"openSupport",true) end end)
 end
 
-print("[BBYA] Entrance community honor walls v11 online: Live Community clipped neon inset only")
+print("[BBYA] Entrance community honor walls v12 online: Live Community left/top neon safe inset v2")
