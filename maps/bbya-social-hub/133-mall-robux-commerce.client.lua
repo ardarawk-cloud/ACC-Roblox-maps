@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V11 DRESSING ROOM
+-- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V12 COMPACT DRESSING ROOM
 -- TEST CANDIDATE ONLY. One Mall catalog authority: tenant kiosk + live Marketplace + preview + cart/save/buy.
 -- Static workflow markers retained: CatalogLauncher / CATEGORIES / STORES / PRODUCTS / Keranjang Belanja.
 -- GAMEPLAY LOCK: physical tenant determines catalog scope. Directory teleports only; shopping starts from an indoor display.
@@ -78,37 +78,37 @@ local TENANTS={
 }
 
 local gui=Instance.new("ScreenGui");gui.Name="BBYAMallRobuxCommerceUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAMallCatalogAuthority","V11_DRESSING_ROOM")
+gui:SetAttribute("BBYAMallCatalogAuthority","V12_COMPACT_DRESSING_ROOM")
 local root=Instance.new("Frame");root.Name="CatalogRoot";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=C.dark;root.BackgroundTransparency=.03;root.BorderSizePixel=0;root.Visible=false;root.Parent=gui
 local shell=Instance.new("Frame");shell.Name="PreciseShell";shell.BackgroundTransparency=1;shell.Parent=root
 
 local top=Instance.new("Frame");top.Name="CatalogLauncher";top.BackgroundTransparency=1;top.Parent=shell
-local catBtn=btn(top,"Katalog",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));catBtn.TextSize=18
-local storeBtn=btn(top,"Toko",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));storeBtn.TextSize=18
-local closeBtn=btn(top,"×",UDim2.new(),UDim2.new(),C.panel2);closeBtn.TextSize=23
-local roomTitle=txt(top,"RUANG GANTI • drag avatar untuk rotasi 360°",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,13,C.white,Enum.TextXAlignment.Center);roomTitle.Visible=false
+local catBtn=btn(top,"Katalog",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));catBtn.TextSize=15
+local storeBtn=btn(top,"Toko",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));storeBtn.TextSize=15
+local closeBtn=btn(top,"×",UDim2.new(),UDim2.new(),C.panel2);closeBtn.TextSize=19
+local roomTitle=txt(top,"RUANG GANTI • drag avatar untuk rotasi 360°",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,11,C.white,Enum.TextXAlignment.Center);roomTitle.Visible=false
 local roomBack=btn(top,"‹ KATALOG",UDim2.new(),UDim2.new(),C.panel2);roomBack.TextColor3=C.cyan;roomBack.Visible=false
 
 local avatar=Instance.new("Frame");avatar.Name="AvatarCard";avatar.BackgroundColor3=C.panel;avatar.BorderSizePixel=0;avatar.Parent=shell;corner(avatar,12);stroke(avatar,C.line,.18)
 local viewport=Instance.new("ViewportFrame");viewport.Name="AvatarViewport";viewport.BackgroundColor3=Color3.fromRGB(24,25,30);viewport.BorderSizePixel=0;viewport.Ambient=Color3.fromRGB(235,235,235);viewport.LightColor=Color3.fromRGB(255,252,245);viewport.LightDirection=Vector3.new(-1,-1,-1);viewport.Active=true;viewport.Parent=avatar;corner(viewport,9)
 local world=Instance.new("WorldModel");world.Parent=viewport
 local vcam=Instance.new("Camera");vcam.Parent=viewport;viewport.CurrentCamera=vcam
-local selectedLabel=txt(avatar,"Avatar saat ini",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,12,C.white,Enum.TextXAlignment.Center)
-local selectedPrice=txt(avatar,"",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,10,C.yellow,Enum.TextXAlignment.Center)
-local orbitHint=txt(avatar,"DRAG = ROTATE • PINCH/WHEEL = ZOOM",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,9,C.muted,Enum.TextXAlignment.Center);orbitHint.Visible=false
+local selectedLabel=txt(avatar,"Avatar saat ini",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,11,C.white,Enum.TextXAlignment.Center)
+local selectedPrice=txt(avatar,"",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.yellow,Enum.TextXAlignment.Center)
+local orbitHint=txt(avatar,"DRAG = ROTATE • WHEEL / + − = ZOOM",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,8,C.muted,Enum.TextXAlignment.Center);orbitHint.Visible=false
 local avatarTools=Instance.new("Frame");avatarTools.BackgroundTransparency=1;avatarTools.Parent=avatar
-local toolLayout=Instance.new("UIListLayout");toolLayout.FillDirection=Enum.FillDirection.Horizontal;toolLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center;toolLayout.Padding=UDim.new(0,5);toolLayout.Parent=avatarTools
+local toolLayout=Instance.new("UIListLayout");toolLayout.FillDirection=Enum.FillDirection.Horizontal;toolLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center;toolLayout.Padding=UDim.new(0,4);toolLayout.Parent=avatarTools
 local homeTool=btn(avatarTools,"HOME",UDim2.new(),UDim2.new(),C.panel2);homeTool.TextSize=8
 local cartTool=btn(avatarTools,"CART",UDim2.new(),UDim2.new(),C.panel2);cartTool.TextSize=8
 local saveTool=btn(avatarTools,"SAVE",UDim2.new(),UDim2.new(),C.panel2);saveTool.TextSize=8
 local resetTool=btn(avatarTools,"RESET",UDim2.new(),UDim2.new(),C.panel2);resetTool.TextSize=8
-local rotateLeft=btn(avatarTools,"↶",UDim2.new(),UDim2.new(),C.panel2);rotateLeft.TextSize=15;rotateLeft.Visible=false
-local rotateRight=btn(avatarTools,"↷",UDim2.new(),UDim2.new(),C.panel2);rotateRight.TextSize=15;rotateRight.Visible=false
-local zoomOut=btn(avatarTools,"−",UDim2.new(),UDim2.new(),C.panel2);zoomOut.TextSize=15;zoomOut.Visible=false
-local zoomIn=btn(avatarTools,"+",UDim2.new(),UDim2.new(),C.panel2);zoomIn.TextSize=15;zoomIn.Visible=false
+local rotateLeft=btn(avatarTools,"↶",UDim2.new(),UDim2.new(),C.panel2);rotateLeft.TextSize=14;rotateLeft.Visible=false
+local rotateRight=btn(avatarTools,"↷",UDim2.new(),UDim2.new(),C.panel2);rotateRight.TextSize=14;rotateRight.Visible=false
+local zoomOut=btn(avatarTools,"−",UDim2.new(),UDim2.new(),C.panel2);zoomOut.TextSize=14;zoomOut.Visible=false
+local zoomIn=btn(avatarTools,"+",UDim2.new(),UDim2.new(),C.panel2);zoomIn.TextSize=14;zoomIn.Visible=false
 
 local host=Instance.new("Frame");host.Name="ModuleHost";host.BackgroundColor3=C.panel;host.BorderSizePixel=0;host.Parent=shell;corner(host,12);stroke(host,C.line,.18)
-local hostPad=Instance.new("UIPadding");hostPad.PaddingLeft=UDim.new(0,12);hostPad.PaddingRight=UDim.new(0,12);hostPad.PaddingTop=UDim.new(0,12);hostPad.PaddingBottom=UDim.new(0,12);hostPad.Parent=host
+local hostPad=Instance.new("UIPadding");hostPad.PaddingLeft=UDim.new(0,8);hostPad.PaddingRight=UDim.new(0,8);hostPad.PaddingTop=UDim.new(0,8);hostPad.PaddingBottom=UDim.new(0,8);hostPad.Parent=host
 local modules={}
 local function module(name)local f=Instance.new("Frame");f.Name=name;f.Size=UDim2.fromScale(1,1);f.BackgroundTransparency=1;f.Visible=false;f.Parent=host;modules[name]=f;return f end
 local categories=module("CATEGORIES")
@@ -119,36 +119,36 @@ local savedView=module("SAVED")
 local function showModule(name)for n,f in pairs(modules)do f.Visible=n==name end end
 
 local backProducts=btn(products,"‹ KEMBALI",UDim2.new(),UDim2.new(),C.panel2);backProducts.TextColor3=C.cyan
-local productTitle=txt(products,"Katalog",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,18,C.white)
-local search=Instance.new("TextBox");search.PlaceholderText="Cari di toko..";search.Text="";search.ClearTextOnFocus=false;search.BackgroundColor3=C.panel2;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=11;search.BorderSizePixel=0;search.Parent=products;corner(search,8)
-local go=btn(products,"GO",UDim2.new(),UDim2.new(),C.panel2)
-local status=txt(products,"",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,10,C.muted)
-local retry=btn(products,"RETRY",UDim2.new(),UDim2.new(),C.red);retry.Visible=false;retry.TextSize=9
+local productTitle=txt(products,"Katalog",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,16,C.white)
+local search=Instance.new("TextBox");search.PlaceholderText="Cari di toko..";search.Text="";search.ClearTextOnFocus=false;search.BackgroundColor3=C.panel2;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=10;search.BorderSizePixel=0;search.Parent=products;corner(search,8)
+local go=btn(products,"GO",UDim2.new(),UDim2.new(),C.panel2);go.TextSize=10
+local status=txt(products,"",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,9,C.muted)
+local retry=btn(products,"RETRY",UDim2.new(),UDim2.new(),C.red);retry.Visible=false;retry.TextSize=8
 local productList=Instance.new("ScrollingFrame");productList.BackgroundTransparency=1;productList.BorderSizePixel=0;productList.ScrollBarThickness=3;productList.AutomaticCanvasSize=Enum.AutomaticSize.Y;productList.CanvasSize=UDim2.new();productList.ScrollingDirection=Enum.ScrollingDirection.Y;productList.Parent=products
-local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(10,10);grid.SortOrder=Enum.SortOrder.LayoutOrder;grid.Parent=productList
+local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(8,8);grid.SortOrder=Enum.SortOrder.LayoutOrder;grid.Parent=productList
 
-local storeTitle=txt(stores,"MALL DIRECTORY • 18 DESTINATIONS",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,13,C.white,Enum.TextXAlignment.Center);storeTitle.BackgroundTransparency=.08;storeTitle.BackgroundColor3=C.dark;corner(storeTitle,9);stroke(storeTitle,C.line,.45)
+local storeTitle=txt(stores,"MALL DIRECTORY • 18 DESTINATIONS",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,12,C.white,Enum.TextXAlignment.Center);storeTitle.BackgroundTransparency=.08;storeTitle.BackgroundColor3=C.dark;corner(storeTitle,9);stroke(storeTitle,C.line,.45)
 local storeGrid=Instance.new("ScrollingFrame");storeGrid.Name="TenantDirectory";storeGrid.BackgroundTransparency=1;storeGrid.BorderSizePixel=0;storeGrid.AutomaticCanvasSize=Enum.AutomaticSize.Y;storeGrid.CanvasSize=UDim2.new();storeGrid.ScrollBarThickness=3;storeGrid.Parent=stores
-local sg=Instance.new("UIGridLayout");sg.CellPadding=UDim2.fromOffset(10,10);sg.SortOrder=Enum.SortOrder.LayoutOrder;sg.Parent=storeGrid
+local sg=Instance.new("UIGridLayout");sg.CellPadding=UDim2.fromOffset(8,8);sg.SortOrder=Enum.SortOrder.LayoutOrder;sg.Parent=storeGrid
 
-local cartTitle=txt(cartView,"Keranjang Belanja",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,24,C.white)
-local cartClose=btn(cartView,"×",UDim2.new(),UDim2.new(),C.panel2);cartClose.TextSize=22
+local cartTitle=txt(cartView,"Keranjang Belanja",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,20,C.white)
+local cartClose=btn(cartView,"×",UDim2.new(),UDim2.new(),C.panel2);cartClose.TextSize=19
 local cartList=Instance.new("ScrollingFrame");cartList.BackgroundTransparency=1;cartList.BorderSizePixel=0;cartList.AutomaticCanvasSize=Enum.AutomaticSize.Y;cartList.CanvasSize=UDim2.new();cartList.ScrollBarThickness=3;cartList.Parent=cartView
-local cl=Instance.new("UIListLayout");cl.Padding=UDim.new(0,8);cl.Parent=cartList
-local cartStatus=txt(cartView,"Keranjang kosong.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,13,C.muted)
+local cl=Instance.new("UIListLayout");cl.Padding=UDim.new(0,7);cl.Parent=cartList
+local cartStatus=txt(cartView,"Keranjang kosong.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,11,C.muted)
 local checkout=btn(cartView,"PEMBAYARAN",UDim2.new(),UDim2.new(),C.green);checkout.TextColor3=Color3.new(0,0,0)
-local savedTitle=txt(savedView,"Pakaian Tersimpan",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,24,C.white)
-local savedClose=btn(savedView,"×",UDim2.new(),UDim2.new(),C.panel2);savedClose.TextSize=22
+local savedTitle=txt(savedView,"Pakaian Tersimpan",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,20,C.white)
+local savedClose=btn(savedView,"×",UDim2.new(),UDim2.new(),C.panel2);savedClose.TextSize=19
 local saveCurrent=btn(savedView,"SIMPAN LOOK SAAT INI",UDim2.new(),UDim2.new(),C.green);saveCurrent.TextColor3=Color3.new(0,0,0)
-local savedNote=txt(savedView,"Belum ada item tersimpan.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,11,C.muted)
+local savedNote=txt(savedView,"Belum ada item tersimpan.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,10,C.muted)
 local savedList=Instance.new("ScrollingFrame");savedList.BackgroundTransparency=1;savedList.BorderSizePixel=0;savedList.AutomaticCanvasSize=Enum.AutomaticSize.Y;savedList.CanvasSize=UDim2.new();savedList.ScrollBarThickness=3;savedList.Parent=savedView
-local sl=Instance.new("UIGridLayout");sl.CellPadding=UDim2.fromOffset(10,10);sl.Parent=savedList
+local sl=Instance.new("UIGridLayout");sl.CellPadding=UDim2.fromOffset(8,8);sl.Parent=savedList
 
 local action=Instance.new("Frame");action.Name="SelectedActions";action.AnchorPoint=Vector2.new(.5,1);action.BackgroundColor3=C.dark;action.BackgroundTransparency=.02;action.BorderSizePixel=0;action.Visible=false;action.Parent=shell;corner(action,12);stroke(action,C.line,.25)
-local tryB=btn(action,"TRY",UDim2.fromOffset(8,7),UDim2.fromOffset(78,36),C.panel2)
-local cartB=btn(action,"+ CART",UDim2.fromOffset(92,7),UDim2.fromOffset(90,36),C.panel2)
-local favB=btn(action,"♡ SAVE",UDim2.fromOffset(188,7),UDim2.fromOffset(92,36),C.panel2)
-local buyB=btn(action,"BUY",UDim2.fromOffset(286,7),UDim2.fromOffset(88,36),C.green);buyB.TextColor3=Color3.new(0,0,0)
+local tryB=btn(action,"TRY",UDim2.fromOffset(8,5),UDim2.fromOffset(70,32),C.panel2)
+local cartB=btn(action,"+ CART",UDim2.fromOffset(84,5),UDim2.fromOffset(82,32),C.panel2)
+local favB=btn(action,"♡ SAVE",UDim2.fromOffset(172,5),UDim2.fromOffset(84,32),C.panel2)
+local buyB=btn(action,"BUY",UDim2.fromOffset(262,5),UDim2.fromOffset(78,32),C.green);buyB.TextColor3=Color3.new(0,0,0)
 
 local selected=nil;local baseDescription=nil;local previewDescription=nil
 local cart={};local saved={};local activeStore="FASHION";local searchToken=0;local catalogPages=nil;local loadingPage=false;local exhausted=false;local loadedCount=0
@@ -217,9 +217,9 @@ local function selectItem(it)selected=it;selectedLabel.Text=nameOf(it);selectedP
 local function clearGui(container,keep)for _,x in ipairs(container:GetChildren())do if not keep[x]and not x:IsA("UIGridLayout")and not x:IsA("UIListLayout")and not x:IsA("UIPadding")then x:Destroy()end end end
 local function productCard(parent,it)
  local id=idOf(it);if not id then return end;local card=btn(parent,"",UDim2.new(),UDim2.new(),C.panel2);card.Name="Item_"..itemKey(it):gsub(":","_");stroke(card,C.line,.48)
- local im=img(card,UDim2.fromOffset(6,6),UDim2.new(1,-12,0,112));im.Image=thumb(it);txt(card,nameOf(it),UDim2.fromOffset(7,121),UDim2.new(1,-14,0,30),Enum.Font.GothamMedium,9,C.white,Enum.TextXAlignment.Center);txt(card,priceText(it),UDim2.fromOffset(7,151),UDim2.new(1,-14,0,18),Enum.Font.GothamBold,9,C.yellow,Enum.TextXAlignment.Center);card.Activated:Connect(function()selectItem(it)end)
+ local im=img(card,UDim2.fromOffset(5,5),UDim2.new(1,-10,0,92));im.Image=thumb(it);txt(card,nameOf(it),UDim2.fromOffset(6,101),UDim2.new(1,-12,0,24),Enum.Font.GothamMedium,8,C.white,Enum.TextXAlignment.Center);txt(card,priceText(it),UDim2.fromOffset(6,126),UDim2.new(1,-12,0,16),Enum.Font.GothamBold,8,C.yellow,Enum.TextXAlignment.Center);card.Activated:Connect(function()selectItem(it)end)
 end
-local function renderCart()clearGui(cartList,{[cl]=true});local total=0;for _,it in ipairs(cart)do total+=priceOf(it)or 0;local row=Instance.new("Frame");row.Size=UDim2.new(1,-4,0,66);row.BackgroundColor3=C.panel2;row.BorderSizePixel=0;row.Parent=cartList;corner(row,9);local im=img(row,UDim2.fromOffset(6,6),UDim2.fromOffset(54,54));im.Image=thumb(it);txt(row,nameOf(it),UDim2.fromOffset(70,7),UDim2.new(1,-160,0,28),Enum.Font.GothamBold,10,C.white);txt(row,priceText(it),UDim2.fromOffset(70,35),UDim2.new(1,-160,0,20),Enum.Font.GothamBold,9,C.yellow);local rm=btn(row,"HAPUS",UDim2.new(1,-82,.5,-15),UDim2.fromOffset(72,30),C.red);rm.TextSize=9;rm.Activated:Connect(function()local k=itemKey(it);for i=#cart,1,-1 do if itemKey(cart[i])==k then table.remove(cart,i)break end end;renderCart()end)end;cartStatus.Text=#cart==0 and"Keranjang kosong."or string.format("%d item • R$ %d",#cart,total)end
+local function renderCart()clearGui(cartList,{[cl]=true});local total=0;for _,it in ipairs(cart)do total+=priceOf(it)or 0;local row=Instance.new("Frame");row.Size=UDim2.new(1,-4,0,60);row.BackgroundColor3=C.panel2;row.BorderSizePixel=0;row.Parent=cartList;corner(row,9);local im=img(row,UDim2.fromOffset(5,5),UDim2.fromOffset(50,50));im.Image=thumb(it);txt(row,nameOf(it),UDim2.fromOffset(64,6),UDim2.new(1,-150,0,25),Enum.Font.GothamBold,9,C.white);txt(row,priceText(it),UDim2.fromOffset(64,32),UDim2.new(1,-150,0,18),Enum.Font.GothamBold,8,C.yellow);local rm=btn(row,"HAPUS",UDim2.new(1,-76,.5,-14),UDim2.fromOffset(68,28),C.red);rm.TextSize=8;rm.Activated:Connect(function()local k=itemKey(it);for i=#cart,1,-1 do if itemKey(cart[i])==k then table.remove(cart,i)break end end;renderCart()end)end;cartStatus.Text=#cart==0 and"Keranjang kosong."or string.format("%d item • R$ %d",#cart,total)end
 local function renderSaved()clearGui(savedList,{[sl]=true});for _,it in ipairs(saved)do productCard(savedList,it)end;savedNote.Text=#saved==0 and"Belum ada item tersimpan."or(tostring(#saved).." item tersimpan")end
 local function querySpec()local d=STORE[activeStore]or STORE.FASHION;return{assetTypes=d.assetTypes,keyword=d.keyword or"",title=d.catalog}end
 local function appendCurrentPage(token)if token~=searchToken or not catalogPages then return false end;local ok,items=pcall(function()return catalogPages:GetCurrentPage()end);if not ok or not items then return false end;for _,it in ipairs(items)do productCard(productList,it);loadedCount+=1 end;exhausted=catalogPages.IsFinished;status.Text=string.format("%d produk live%s",loadedCount,exhausted and""or" • scroll untuk lainnya");status.TextColor3=C.green;return true end
@@ -239,31 +239,32 @@ local function setToolMode(room)
 end
 local function safeInsets()local ok,a,b=pcall(function()return GuiService:GetGuiInset()end);if ok and a then return a,b or Vector2.zero end;return Vector2.zero,Vector2.zero end
 local function responsive()
- camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local insetTL,insetBR=safeInsets();local outer=math.clamp(math.floor(math.min(vp.X,vp.Y)*.025),14,28)
- local x0=outer+insetTL.X;local y0=outer+insetTL.Y;local availW=math.max(640,vp.X-x0-outer-insetBR.X);local availH=math.max(360,vp.Y-y0-outer-insetBR.Y)
- shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)
- local topH=46;top.Position=UDim2.fromOffset(0,0);top.Size=UDim2.fromOffset(availW,topH)
+ camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local insetTL,insetBR=safeInsets();local outer=math.clamp(math.floor(math.min(vp.X,vp.Y)*.018),8,16)
+ local rawX=outer+insetTL.X;local rawY=outer+insetTL.Y;local rawW=math.max(560,vp.X-rawX-outer-insetBR.X);local rawH=math.max(300,vp.Y-rawY-outer-insetBR.Y)
+ local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.82));local availW=math.min(rawW,targetW);local availH=math.min(rawH,targetH)
+ local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-availH)/2));shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)
+ local topH=40;top.Position=UDim2.fromOffset(0,0);top.Size=UDim2.fromOffset(availW,topH)
  if dressingMode then
-  roomBack.Position=UDim2.fromOffset(0,0);roomBack.Size=UDim2.fromOffset(118,44);closeBtn.Position=UDim2.fromOffset(availW-44,0);closeBtn.Size=UDim2.fromOffset(44,44);roomTitle.Position=UDim2.fromOffset(128,0);roomTitle.Size=UDim2.fromOffset(math.max(120,availW-182),44)
-  local gap=16;local bodyY=topH+10;local bodyH=availH-bodyY;local avatarW=math.floor((availW-gap)*.62);local hostW=availW-avatarW-gap
+  roomBack.Position=UDim2.fromOffset(0,0);roomBack.Size=UDim2.fromOffset(104,38);closeBtn.Position=UDim2.fromOffset(availW-38,0);closeBtn.Size=UDim2.fromOffset(38,38);roomTitle.Position=UDim2.fromOffset(112,0);roomTitle.Size=UDim2.fromOffset(math.max(110,availW-158),38)
+  local gap=12;local bodyY=topH+6;local bodyH=availH-bodyY;local avatarW=math.floor((availW-gap)*.55);local hostW=availW-avatarW-gap
   avatar.Position=UDim2.fromOffset(0,bodyY);avatar.Size=UDim2.fromOffset(avatarW,bodyH);host.Position=UDim2.fromOffset(avatarW+gap,bodyY);host.Size=UDim2.fromOffset(hostW,bodyH)
-  viewport.Position=UDim2.fromOffset(8,8);viewport.Size=UDim2.new(1,-16,1,-86);selectedLabel.Position=UDim2.new(0,12,1,-76);selectedLabel.Size=UDim2.new(1,-24,0,22);selectedPrice.Position=UDim2.new(0,12,1,-54);selectedPrice.Size=UDim2.new(1,-24,0,18);orbitHint.Position=UDim2.new(0,12,1,-35);orbitHint.Size=UDim2.new(1,-24,0,16);avatarTools.Position=UDim2.new(.5,-110,1,-31);avatarTools.Size=UDim2.fromOffset(220,25)
-  for _,b in ipairs({rotateLeft,rotateRight,zoomOut,zoomIn})do b.Size=UDim2.fromOffset(50,25)end
-  action.Position=UDim2.fromOffset(avatarW+gap+math.floor(hostW/2),availH);action.Size=UDim2.fromOffset(math.min(382,hostW),50)
+  viewport.Position=UDim2.fromOffset(6,6);viewport.Size=UDim2.new(1,-12,1,-76);selectedLabel.Position=UDim2.new(0,10,1,-68);selectedLabel.Size=UDim2.new(1,-20,0,19);selectedPrice.Position=UDim2.new(0,10,1,-49);selectedPrice.Size=UDim2.new(1,-20,0,16);orbitHint.Position=UDim2.new(0,10,1,-32);orbitHint.Size=UDim2.new(1,-20,0,14);avatarTools.Position=UDim2.new(.5,-94,1,-27);avatarTools.Size=UDim2.fromOffset(188,24)
+  for _,b in ipairs({rotateLeft,rotateRight,zoomOut,zoomIn})do b.Size=UDim2.fromOffset(44,24)end
+  action.Position=UDim2.fromOffset(avatarW+gap+math.floor(hostW/2),availH);action.Size=UDim2.fromOffset(math.min(348,hostW),42)
  else
-  local navW=math.min(440,availW-60);local navGap=12;local each=math.floor((navW-navGap)/2);top.Position=UDim2.fromOffset(0,0);catBtn.Position=UDim2.fromOffset(0,0);catBtn.Size=UDim2.fromOffset(each,44);storeBtn.Position=UDim2.fromOffset(each+navGap,0);storeBtn.Size=UDim2.fromOffset(each,44);closeBtn.Position=UDim2.fromOffset(availW-44,0);closeBtn.Size=UDim2.fromOffset(44,44)
-  local gap=18;local bodyY=topH+10;local bodyH=availH-bodyY;local avatarW=math.clamp(math.floor((availW-gap)*.30),250,360);local hostW=availW-avatarW-gap
+  local navW=math.min(360,availW-48);local navGap=8;local each=math.floor((navW-navGap)/2);catBtn.Position=UDim2.fromOffset(0,0);catBtn.Size=UDim2.fromOffset(each,38);storeBtn.Position=UDim2.fromOffset(each+navGap,0);storeBtn.Size=UDim2.fromOffset(each,38);closeBtn.Position=UDim2.fromOffset(availW-38,0);closeBtn.Size=UDim2.fromOffset(38,38)
+  local gap=12;local bodyY=topH+6;local bodyH=availH-bodyY;local avatarW=math.clamp(math.floor((availW-gap)*.26),200,290);local hostW=availW-avatarW-gap
   avatar.Position=UDim2.fromOffset(0,bodyY);avatar.Size=UDim2.fromOffset(avatarW,bodyH);host.Position=UDim2.fromOffset(avatarW+gap,bodyY);host.Size=UDim2.fromOffset(hostW,bodyH)
-  viewport.Position=UDim2.fromOffset(8,8);viewport.Size=UDim2.new(1,-16,1,-84);selectedLabel.Position=UDim2.new(0,10,1,-74);selectedLabel.Size=UDim2.new(1,-20,0,22);selectedPrice.Position=UDim2.new(0,10,1,-52);selectedPrice.Size=UDim2.new(1,-20,0,18);avatarTools.Position=UDim2.new(0,7,1,-31);avatarTools.Size=UDim2.new(1,-14,0,25)
-  for _,b in ipairs({homeTool,cartTool,saveTool,resetTool})do b.Size=UDim2.new(.24,-4,1,0)end
-  action.Position=UDim2.fromOffset(avatarW+gap+math.floor(hostW/2),availH);action.Size=UDim2.fromOffset(math.min(382,hostW),50)
+  viewport.Position=UDim2.fromOffset(6,6);viewport.Size=UDim2.new(1,-12,1,-72);selectedLabel.Position=UDim2.new(0,8,1,-64);selectedLabel.Size=UDim2.new(1,-16,0,18);selectedPrice.Position=UDim2.new(0,8,1,-46);selectedPrice.Size=UDim2.new(1,-16,0,15);avatarTools.Position=UDim2.new(0,6,1,-27);avatarTools.Size=UDim2.new(1,-12,0,23)
+  for _,b in ipairs({homeTool,cartTool,saveTool,resetTool})do b.Size=UDim2.new(.24,-3,1,0)end
+  action.Position=UDim2.fromOffset(avatarW+gap+math.floor(hostW/2),availH);action.Size=UDim2.fromOffset(math.min(348,hostW),42)
  end
- local hostW=math.max(260,host.Size.X.Offset-24);local searchW=math.clamp(math.floor(hostW*.30),130,220);local goW=52;local searchX=hostW-searchW-goW-10
- backProducts.Position=UDim2.fromOffset(0,0);backProducts.Size=UDim2.fromOffset(dressingMode and 0 or 112,34);backProducts.Visible=not dressingMode;productTitle.Position=UDim2.fromOffset(dressingMode and 0 or 122,0);productTitle.Size=UDim2.fromOffset(math.max(90,searchX-(dressingMode and 8 or 130)),34);productTitle.TextSize=hostW<520 and 14 or 17
- search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,34);go.Position=UDim2.fromOffset(hostW-goW,0);go.Size=UDim2.fromOffset(goW,34);status.Position=UDim2.fromOffset(0,44);status.Size=UDim2.new(1,-90,0,22);retry.Position=UDim2.fromOffset(hostW-78,42);retry.Size=UDim2.fromOffset(78,26);productList.Position=UDim2.fromOffset(0,76);productList.Size=UDim2.new(1,0,1,-76)
- local columns=hostW<430 and 2 or(hostW<690 and 3 or 4);grid.CellSize=UDim2.new(1/columns,-8,0,178);sl.CellSize=UDim2.new(1/columns,-8,0,160);storeTitle.Position=UDim2.fromOffset(0,0);storeTitle.Size=UDim2.new(1,0,0,36);storeGrid.Position=UDim2.fromOffset(0,44);storeGrid.Size=UDim2.new(1,0,1,-44);sg.CellSize=UDim2.new(hostW<500 and 1 or .49,-6,0,72)
- cartTitle.Position=UDim2.fromOffset(0,0);cartTitle.Size=UDim2.new(1,-50,0,36);cartClose.Position=UDim2.new(1,-40,0,0);cartClose.Size=UDim2.fromOffset(40,36);cartList.Position=UDim2.fromOffset(0,48);cartList.Size=UDim2.new(1,0,1,-105);cartStatus.Position=UDim2.new(0,0,1,-48);cartStatus.Size=UDim2.new(.55,0,0,40);checkout.Position=UDim2.new(1,-184,1,-48);checkout.Size=UDim2.fromOffset(184,40)
- savedTitle.Position=UDim2.fromOffset(0,0);savedTitle.Size=UDim2.new(1,-50,0,36);savedClose.Position=UDim2.new(1,-40,0,0);savedClose.Size=UDim2.fromOffset(40,36);saveCurrent.Position=UDim2.fromOffset(0,48);saveCurrent.Size=UDim2.fromOffset(190,36);savedNote.Position=UDim2.fromOffset(0,92);savedNote.Size=UDim2.new(1,0,0,26);savedList.Position=UDim2.fromOffset(0,124);savedList.Size=UDim2.new(1,0,1,-124)
+ local hostW=math.max(240,host.Size.X.Offset-16);local searchW=math.clamp(math.floor(hostW*.26),118,180);local goW=46;local searchX=hostW-searchW-goW-8
+ backProducts.Position=UDim2.fromOffset(0,0);backProducts.Size=UDim2.fromOffset(dressingMode and 0 or 100,30);backProducts.Visible=not dressingMode;productTitle.Position=UDim2.fromOffset(dressingMode and 0 or 108,0);productTitle.Size=UDim2.fromOffset(math.max(78,searchX-(dressingMode and 6 or 116)),30);productTitle.TextSize=hostW<480 and 12 or 14
+ search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,30);go.Position=UDim2.fromOffset(hostW-goW,0);go.Size=UDim2.fromOffset(goW,30);status.Position=UDim2.fromOffset(0,36);status.Size=UDim2.new(1,-78,0,18);retry.Position=UDim2.fromOffset(hostW-68,34);retry.Size=UDim2.fromOffset(68,22);productList.Position=UDim2.fromOffset(0,60);productList.Size=UDim2.new(1,0,1,-60)
+ local columns=hostW<360 and 2 or(hostW<560 and 3 or 4);grid.CellSize=UDim2.new(1/columns,-6,0,148);sl.CellSize=UDim2.new(1/columns,-6,0,148);storeTitle.Position=UDim2.fromOffset(0,0);storeTitle.Size=UDim2.new(1,0,0,32);storeGrid.Position=UDim2.fromOffset(0,38);storeGrid.Size=UDim2.new(1,0,1,-38);sg.CellSize=UDim2.new(hostW<460 and 1 or .49,-5,0,64)
+ cartTitle.Position=UDim2.fromOffset(0,0);cartTitle.Size=UDim2.new(1,-42,0,32);cartClose.Position=UDim2.new(1,-36,0,0);cartClose.Size=UDim2.fromOffset(36,32);cartList.Position=UDim2.fromOffset(0,40);cartList.Size=UDim2.new(1,0,1,-90);cartStatus.Position=UDim2.new(0,0,1,-42);cartStatus.Size=UDim2.new(.55,0,0,34);checkout.Position=UDim2.new(1,-164,1,-42);checkout.Size=UDim2.fromOffset(164,34)
+ savedTitle.Position=UDim2.fromOffset(0,0);savedTitle.Size=UDim2.new(1,-42,0,32);savedClose.Position=UDim2.new(1,-36,0,0);savedClose.Size=UDim2.fromOffset(36,32);saveCurrent.Position=UDim2.fromOffset(0,40);saveCurrent.Size=UDim2.fromOffset(172,32);savedNote.Position=UDim2.fromOffset(0,78);savedNote.Size=UDim2.new(1,0,0,22);savedList.Position=UDim2.fromOffset(0,104);savedList.Size=UDim2.new(1,0,1,-104)
  task.defer(function()local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m,true)end end)
 end
 local function setDressing(on)
@@ -272,7 +273,7 @@ end
 local function closeCatalog()setDressing(false);root.Visible=false;restoreUI();player:SetAttribute("BBYAMallCatalogFocusMode",false)end
 local function openStore(key)if not STORE[key]then return end;activeStore=key;local d=STORE[key];storeBtn.Text=d.title;selected=nil;setDressing(false);resetPreview();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);openProducts();responsive();syncAction()end
 
-for index,t in ipairs(TENANTS)do local accent=t.key and (STORE[t.key]and STORE[t.key].accent or C.blue)or C.panel2;local b=btn(storeGrid,string.format("L%d • %s\n%s\nTELEPORT →",t.floor,t.name,t.cat),UDim2.new(),UDim2.new(),accent);b.LayoutOrder=index;b.TextWrapped=true;b.TextSize=11;b.Activated:Connect(function()mallAction:FireServer("guide",t.id);closeCatalog()end)end
+for index,t in ipairs(TENANTS)do local accent=t.key and (STORE[t.key]and STORE[t.key].accent or C.blue)or C.panel2;local b=btn(storeGrid,string.format("L%d • %s\n%s\nTELEPORT →",t.floor,t.name,t.cat),UDim2.new(),UDim2.new(),accent);b.LayoutOrder=index;b.TextWrapped=true;b.TextSize=10;b.Activated:Connect(function()mallAction:FireServer("guide",t.id);closeCatalog()end)end
 
 go.Activated:Connect(doSearch);retry.Activated:Connect(doSearch);search.FocusLost:Connect(function(enter)if enter then doSearch()end end)
 productList:GetPropertyChangedSignal("CanvasPosition"):Connect(function()if not products.Visible or loadingPage or exhausted or not catalogPages then return end;if productList.CanvasPosition.Y+productList.AbsoluteWindowSize.Y>=productList.AbsoluteCanvasSize.Y-240 then loadNextPage()end end)
@@ -311,4 +312,4 @@ task.defer(installTenantKiosks)
 remote.OnClientEvent:Connect(function(kind,data)if kind~="open"or typeof(data)~="table"then return end;local key=tostring(data.key or"FASHION");key=REMOTE_ALIAS[key]or key;if STORE[key]then openStore(key)end end)
 player.CharacterAdded:Connect(function()task.delay(.8,function()if root.Visible then resetPreview()end end)end)
 task.defer(responsive)
-print("[BBYA] Mall Catalog V11 online: precise safe-area shell + full dressing room 360 orbit + live Marketplace")
+print("[BBYA] Mall Catalog V12 online: compact safe-area shell + dressing room 360 orbit + live Marketplace")
