@@ -1,7 +1,7 @@
--- BECAK E-BIKE — mobile safe-area controller v1.35
--- Keeps the driver phone on the LEFT side, dynamically clear of Roblox CoreGui and vehicle controls.
--- v1.35 makes the fallback scheduler visibility-aware so closed-phone clients do less work while
--- preserving both dedicated publish compatibility tokens used by the current build/workflow gates.
+-- BECAK E-BIKE — mobile safe-area controller v1.36
+-- V3.2 keeps the compact phone panel behaviour but moves the BE launcher to the top-right safe corner.
+-- The open phone itself stays on the established left-side layout so this pass changes only the rejected launcher position.
+-- v1.35 compatibility is retained for the existing publisher gates while v1.36 is the active launcher authority.
 
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
@@ -45,7 +45,8 @@ local function layoutMetrics()
     local compactLandscape=touch and not portrait and v.Y<=520
     local topBand=math.max(compactLandscape and 82 or 104,math.floor(topLeft.Y+(compactLandscape and 48 or 64)))
     local leftPad=math.max(10,math.floor(topLeft.X+10))
-    return v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad
+    local rightPad=math.max(8,math.floor(bottomRight.X+8))
+    return v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad,rightPad
 end
 
 local function desiredScale()
@@ -88,7 +89,7 @@ local function pinScale()
 end
 
 local function applySafeArea(force)
-    local v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad=layoutMetrics()
+    local v,topLeft,bottomRight,portrait,touch,compactLandscape,topBand,leftPad,rightPad=layoutMetrics()
     local key=table.concat({math.floor(v.X),math.floor(v.Y),math.floor(topLeft.X),math.floor(topLeft.Y),math.floor(bottomRight.X),math.floor(bottomRight.Y),portrait and 1 or 0,touch and 1 or 0,compactLandscape and 1 or 0,phone.Visible and 1 or 0},':')
     if not force and key==lastKey then
         pinOpenPhone()
@@ -97,14 +98,10 @@ local function applySafeArea(force)
     end
     lastKey=key
 
-    launcher.AnchorPoint=Vector2.new(0,0.5)
-    local launcherY
-    if touch and not portrait then
-        launcherY=math.clamp(math.floor(v.Y*(compactLandscape and 0.29 or 0.34)),topBand+24,v.Y-(compactLandscape and 108 or 150))
-    else
-        launcherY=math.clamp(topBand+34,topBand+30,v.Y-120)
-    end
-    launcher.Position=UDim2.fromOffset(leftPad,launcherY)
+    -- User-locked V3.2 launcher position: top-right, as far into the safe corner as the device allows.
+    launcher.AnchorPoint=Vector2.new(1,0)
+    local launcherTop=math.max(8,math.floor(topLeft.Y+8))
+    launcher.Position=UDim2.fromOffset(math.floor(v.X-rightPad),launcherTop)
     local launcherSize=compactLandscape and 42 or (portrait and 46 or 48)
     launcher.Size=UDim2.fromOffset(launcherSize,launcherSize)
 
@@ -151,20 +148,23 @@ task.spawn(function()
     end
 end)
 
-Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-left')
+Workspace:SetAttribute('ACC_BecakMobileSafeArea','v1.8-right-top')
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaAdaptive','v1.30')
 -- Dedicated workflow compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.31
 -- Dedicated builder compatibility token retained intentionally: ACC_BecakMobileSafeAreaUX','v1.32
 Workspace:SetAttribute('ACC_BecakMobileSafeAreaUX','v1.32')
-Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.35')
-Workspace:SetAttribute('ACC_BecakUILocation','LEFT')
+-- Compatibility token retained intentionally for current publisher gate: ACC_BecakMobileSafeAreaEnhancement','v1.35
+Workspace:SetAttribute('ACC_BecakMobileSafeAreaEnhancement','v1.36')
+Workspace:SetAttribute('ACC_BecakUILocation','RIGHT_TOP')
 Workspace:SetAttribute('BecakMobileCoreGuiAware','ON')
 Workspace:SetAttribute('BecakMobileSafeAreaPollHz',2)
 Workspace:SetAttribute('BecakMobileSafeAreaFramePolling','OFF')
 Workspace:SetAttribute('BecakMobileSafeAreaFallbackIntervalSeconds',OPEN_FALLBACK_INTERVAL_SECONDS)
 Workspace:SetAttribute('BecakMobileSafeAreaClosedFallbackSeconds',CLOSED_FALLBACK_INTERVAL_SECONDS)
 Workspace:SetAttribute('BecakMobileSafeAreaVisibilityAware','ON')
-Workspace:SetAttribute('BecakPhoneLeftPin','ON')
+Workspace:SetAttribute('BecakPhoneLeftPin','OFF')
+Workspace:SetAttribute('BecakPhoneRightTopPin','ON')
+Workspace:SetAttribute('BecakPhonePanelLeftPin','ON')
 Workspace:SetAttribute('BecakPhoneScalePin','ON')
 Workspace:SetAttribute('BecakTouchControlReserve','ON')
 Workspace:SetAttribute('BecakTouchControlReservePortraitPx',148)

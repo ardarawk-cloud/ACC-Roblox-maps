@@ -1,7 +1,6 @@
--- BECAK E-BIKE — lightweight traffic + pedestrian life v1.19
--- Dedicated to maps/becak-e-bike. Mobile-first ambient AI with player/vehicle/pedestrian-aware yielding,
--- traffic headway, corrected intersection pacing, bounded counts, deterministic routes, distance culling,
--- proximity-aware adaptive cadence, per-tick snapshots, and logic-only model LOD for off-screen actors.
+-- BECAK E-BIKE — lightweight traffic + pedestrian life v1.20
+-- V3.2 keeps the proven ambient AI/yield/LOD logic and remeshes only the traffic-car visual authority.
+-- Cars now use real-world-relative proportions, grounded vertical wheels, cabin glazing and road-car detailing.
 local Players=game:GetService('Players')
 local RunService=game:GetService('RunService')
 local Workspace=game:GetService('Workspace')
@@ -26,14 +25,33 @@ end
 
 local function makeVehicle(name,color)
  local m=Instance.new('Model');m.Name=name;m.Parent=trafficFolder
- local body=p(m,'Body',Vector3.new(5.5,1.6,9),color);body.CFrame=CFrame.new(0,-100,0);m.PrimaryPart=body
- local roof=p(m,'Roof',Vector3.new(4.5,1.3,4.5),color:Lerp(Color3.new(1,1,1),.12));roof.CFrame=body.CFrame*CFrame.new(0,1.35,.3)
- local glass=p(m,'Glass',Vector3.new(4.2,.85,2.2),Color3.fromRGB(55,70,78));glass.Material=Enum.Material.Glass;glass.Transparency=.2;glass.CFrame=body.CFrame*CFrame.new(0,1.35,-1.1)
- for _,o in ipairs({Vector3.new(-2.4,-.75,-2.7),Vector3.new(2.4,-.75,-2.7),Vector3.new(-2.4,-.75,2.7),Vector3.new(2.4,-.75,2.7)}) do
-  local w=p(m,'Wheel',Vector3.new(1.1,1.1,.7),Color3.fromRGB(24,24,24));w.Shape=Enum.PartType.Cylinder;w.CFrame=body.CFrame*CFrame.new(o)*CFrame.Angles(0,0,math.rad(90))
+ -- Primary body is deliberately wider than the V3.2 becak cabin and close to a normal sedan footprint.
+ local body=p(m,'Body',Vector3.new(5.9,1.45,9.8),color);body.CFrame=CFrame.new(0,-100,0);m.PrimaryPart=body
+ local hood=p(m,'Hood',Vector3.new(5.35,.58,2.35),color:Lerp(Color3.new(1,1,1),.05));hood.CFrame=body.CFrame*CFrame.new(0,.88,-3.55)
+ local trunk=p(m,'Trunk',Vector3.new(5.3,.58,1.75),color:Lerp(Color3.new(0,0,0),.04));trunk.CFrame=body.CFrame*CFrame.new(0,.88,4.0)
+ local cabin=p(m,'Cabin',Vector3.new(4.75,1.35,4.65),color:Lerp(Color3.new(1,1,1),.10));cabin.CFrame=body.CFrame*CFrame.new(0,1.35,.15)
+ local roof=p(m,'Roof',Vector3.new(4.55,.24,4.25),color:Lerp(Color3.new(1,1,1),.06));roof.CFrame=body.CFrame*CFrame.new(0,2.10,.18)
+
+ local windshield=p(m,'Glass',Vector3.new(4.35,.95,.12),Color3.fromRGB(58,76,84));windshield.Material=Enum.Material.Glass;windshield.Transparency=.2;windshield.CFrame=body.CFrame*CFrame.new(0,1.48,-2.18)*CFrame.Angles(math.rad(-11),0,0)
+ local rearGlass=p(m,'Glass',Vector3.new(4.25,.88,.12),Color3.fromRGB(58,76,84));rearGlass.Material=Enum.Material.Glass;rearGlass.Transparency=.2;rearGlass.CFrame=body.CFrame*CFrame.new(0,1.48,2.35)*CFrame.Angles(math.rad(11),0,0)
+ for _,x in ipairs({-2.40,2.40}) do
+  local sideGlass=p(m,'Glass',Vector3.new(.10,.82,3.45),Color3.fromRGB(58,76,84));sideGlass.Material=Enum.Material.Glass;sideGlass.Transparency=.2;sideGlass.CFrame=body.CFrame*CFrame.new(x,1.48,.10)
  end
- local brakeL=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeL.CFrame=body.CFrame*CFrame.new(-1.65,.1,4.55)
- local brakeR=p(m,'BrakeLight',Vector3.new(.8,.45,.2),Color3.fromRGB(90,15,15));brakeR.CFrame=body.CFrame*CFrame.new(1.65,.1,4.55)
+
+ -- Cylinder length stays on X (axle axis). Removing the old 90-degree Z rotation keeps tyres vertical.
+ for _,o in ipairs({Vector3.new(-2.72,-.15,-3.18),Vector3.new(2.72,-.15,-3.18),Vector3.new(-2.72,-.15,3.15),Vector3.new(2.72,-.15,3.15)}) do
+  local w=p(m,'Wheel',Vector3.new(.76,1.65,1.65),Color3.fromRGB(24,24,24));w.Shape=Enum.PartType.Cylinder;w.CFrame=body.CFrame*CFrame.new(o)
+  local hub=p(m,'WheelHub',Vector3.new(.82,.62,.62),Color3.fromRGB(145,148,150));hub.Shape=Enum.PartType.Cylinder;hub.CFrame=w.CFrame
+ end
+
+ local frontBumper=p(m,'FrontBumper',Vector3.new(5.45,.28,.22),Color3.fromRGB(45,47,48));frontBumper.CFrame=body.CFrame*CFrame.new(0,-.05,-5.0)
+ local rearBumper=p(m,'RearBumper',Vector3.new(5.45,.28,.22),Color3.fromRGB(45,47,48));rearBumper.CFrame=body.CFrame*CFrame.new(0,-.05,5.0)
+ for _,x in ipairs({-1.72,1.72}) do
+  local head=p(m,'HeadLight',Vector3.new(.82,.42,.16),Color3.fromRGB(244,238,205));head.Material=Enum.Material.Neon;head.CFrame=body.CFrame*CFrame.new(x,.38,-4.98)
+  local brake=p(m,'BrakeLight',Vector3.new(.82,.44,.16),Color3.fromRGB(90,15,15));brake.Material=Enum.Material.Neon;brake.CFrame=body.CFrame*CFrame.new(x,.38,4.98)
+ end
+ m:SetAttribute('TrafficVehicleScale','REAL_WORLD_RELATIVE_V3_2')
+ m:SetAttribute('TrafficVehicleRemesh','SEDAN_V3_2')
  return m
 end
 
@@ -283,7 +301,7 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 Workspace:SetAttribute('ACC_BecakTrafficNPC','v1.17')
-Workspace:SetAttribute('ACC_BecakTrafficNPCEnhancement','v1.19')
+Workspace:SetAttribute('ACC_BecakTrafficNPCEnhancement','v1.20')
 Workspace:SetAttribute('BecakTrafficVehicleCount',#actors)
 Workspace:SetAttribute('BecakPedestrianCount',#walkers)
 Workspace:SetAttribute('BecakTrafficPlayerYield','ON')
@@ -303,4 +321,6 @@ Workspace:SetAttribute('BecakTrafficNearHz',20)
 Workspace:SetAttribute('BecakTrafficFarHz',10)
 Workspace:SetAttribute('BecakTrafficEmptyHz',4)
 Workspace:SetAttribute('BecakTrafficLogicOnlyLOD','ON')
-print('[BECAK E-BIKE] traffic + pedestrian AI v1.19 ready: true 20 Hz near cadence + pedestrian yielding + model LOD')
+Workspace:SetAttribute('BecakTrafficRealScaleRemesh','v3.2')
+Workspace:SetAttribute('BecakTrafficWheelCylinderAxis','X')
+print('[BECAK E-BIKE] traffic + pedestrian AI v1.20 ready: V3.2 sedan remesh + grounded wheels + existing AI/LOD preserved')
