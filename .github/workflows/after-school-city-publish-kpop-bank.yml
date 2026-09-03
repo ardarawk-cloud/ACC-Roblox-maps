@@ -141,7 +141,7 @@ jobs:
               $success = $true
               break
             }
-            Write-Host "ROBLOX UPLOAD attempt=$attempt HTTP $http: $body"
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
             if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
             Start-Sleep -Seconds ($attempt * 3)
           }
