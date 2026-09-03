@@ -1,4 +1,4 @@
--- AFTER SCHOOL CITY — dedication intro popup v1.1 compact
+-- AFTER SCHOOL CITY — dedication intro popup v1.2 no backdrop
 -- Mobile-first client-only welcome card shown when a player joins.
 
 local Players = game:GetService("Players")
@@ -18,15 +18,6 @@ gui.IgnoreGuiInset = false
 gui.DisplayOrder = 1000
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
-
-local backdrop = Instance.new("Frame")
-backdrop.Name = "Backdrop"
-backdrop.Size = UDim2.fromScale(1, 1)
-backdrop.BackgroundColor3 = Color3.fromRGB(8, 12, 20)
-backdrop.BackgroundTransparency = 1
-backdrop.BorderSizePixel = 0
-backdrop.ZIndex = 1
-backdrop.Parent = gui
 
 local card = Instance.new("Frame")
 card.Name = "Card"
@@ -191,7 +182,6 @@ scale.Scale = 0.94
 scale.Parent = card
 
 local tweenIn = TweenInfo.new(0.42, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-TweenService:Create(backdrop, tweenIn, {BackgroundTransparency = 0.36}):Play()
 TweenService:Create(card, tweenIn, {BackgroundTransparency = 0.04}):Play()
 TweenService:Create(scale, tweenIn, {Scale = 1}):Play()
 TweenService:Create(stroke, tweenIn, {Transparency = 0.15}):Play()
@@ -211,7 +201,6 @@ enterButton.Activated:Connect(function()
     enterButton.Active = false
 
     local tweenOut = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-    TweenService:Create(backdrop, tweenOut, {BackgroundTransparency = 1}):Play()
     TweenService:Create(card, tweenOut, {BackgroundTransparency = 1}):Play()
     TweenService:Create(scale, tweenOut, {Scale = 0.97}):Play()
     TweenService:Create(stroke, tweenOut, {Transparency = 1}):Play()
