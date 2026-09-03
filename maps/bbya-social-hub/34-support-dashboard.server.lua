@@ -1,10 +1,8 @@
--- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v10
+-- BBYA SOCIAL HUB — ENTRANCE COMMUNITY HONOR WALLS v11
 -- Full-wall dual entrance displays fitted to the usable facade fields.
 -- Left: Top Supporters / Hall of Fame.
 -- Right: Live Community / dynamic welcome + recent arrivals.
--- v10: mirror the entire Live Community assembly to the proven Hall of Fame facade coordinate.
---      Hall of Fame is centered at -34.5, so Live Community is centered at +34.5.
---      No per-edge trim hacks: board, recess, UI and all four trims move together as one assembly.
+-- v11: keep the Live Community board fixed, but inset only its clipped left/top neon edge.
 
 local W = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -19,7 +17,7 @@ if old then old:Destroy() end
 
 local model = Instance.new("Model")
 model.Name = "SupportDashboard"
-model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V10")
+model:SetAttribute("Pass", "ENTRANCE_COMMUNITY_HONOR_V11")
 model.Parent = root
 
 local PINK = Color3.fromRGB(255,38,155)
@@ -65,8 +63,6 @@ local BOARD_Y=12.00
 local function makeBoard(name,x,accentTop,accentBottom)
     local holder=Instance.new("Model");holder.Name=name;holder.Parent=model
     local cf=CFrame.new(x,BOARD_Y,-44.50)
-    -- Facade is 24x24. The usable display field is the facade minus the inner
-    -- portal-column strip. A 0.1-0.3 stud reveal keeps the board architecturally clean.
     part("Recess",Vector3.new(RECESS_W,RECESS_H,.34),cf*CFrame.new(0,0,.10),Color3.fromRGB(4,4,6),Enum.Material.Metal,0,holder)
     local face=part("DisplayGlass",Vector3.new(BOARD_W,BOARD_H,.10),cf*CFrame.new(0,0,-.15),Color3.fromRGB(10,9,13),Enum.Material.Glass,.04,holder)
     face.Reflectance=.07
@@ -84,7 +80,6 @@ local function makeBoard(name,x,accentTop,accentBottom)
 end
 
 -- LEFT — HALL OF FAME ----------------------------------------------------------
--- Shift outward so the board fills the facade without covering PortalLeft.
 local _,leftFace,left=makeBoard("TopSupportersWall",-34.5,GOLD,PINK)
 label(left,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(left,"COMMUNITY HALL OF FAME",UDim2.fromScale(.045,.105),UDim2.fromScale(.83,.085),GOLD,Enum.Font.GothamBlack)
@@ -104,9 +99,23 @@ local footL=frame(left,UDim2.fromScale(.045,.915),UDim2.fromScale(.91,.045),Colo
 label(footL,"EVERY GUEST COUNTS  •  EVERY SUPPORTER IS REMEMBERED",UDim2.fromScale(.03,.08),UDim2.fromScale(.94,.84),Color3.fromRGB(206,197,211),Enum.Font.GothamBold,Enum.TextXAlignment.Center)
 
 -- RIGHT — LIVE COMMUNITY / WELCOME --------------------------------------------
--- Exact architectural mirror of Hall of Fame: -34.5 <-> +34.5.
--- Moving the whole assembly keeps the board/recess/UI/trims internally aligned.
-local _,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
+local rightHolder,rightFace,right=makeBoard("LiveCommunityWall",34.5,PINK,CYAN)
+-- Runtime mobile QC: the facade clips the outer-left neon edge. Keep the wall itself
+-- exactly where it is and move only the affected neon inward. Match the existing
+-- bottom-neon final-fit by shortening the top from the left side while keeping right alignment.
+local liveLeft=rightHolder:FindFirstChild("LeftTrim")
+if liveLeft and liveLeft:IsA("BasePart") then
+    liveLeft.CFrame=liveLeft.CFrame*CFrame.new(.60,0,-.06)
+    liveLeft:SetAttribute("BBYALiveCommunityNeonInsetV1",true)
+end
+local liveTop=rightHolder:FindFirstChild("TopTrim")
+if liveTop and liveTop:IsA("BasePart") then
+    liveTop.Size=Vector3.new(math.max(.1,liveTop.Size.X-.60),liveTop.Size.Y,liveTop.Size.Z)
+    liveTop.CFrame=liveTop.CFrame*CFrame.new(.30,-.05,-.06)
+    liveTop:SetAttribute("BBYALiveCommunityNeonInsetV1",true)
+end
+rightHolder:SetAttribute("NeonFit","LEFT_EDGE_INSET_V1")
+
 label(right,"BBYA",UDim2.fromScale(.045,.040),UDim2.fromScale(.17,.055),WHITE,Enum.Font.GothamBlack)
 label(right,"LIVE COMMUNITY",UDim2.fromScale(.045,.105),UDim2.fromScale(.62,.085),PINK,Enum.Font.GothamBlack)
 label(right,"You are part of the room the moment you arrive",UDim2.fromScale(.045,.190),UDim2.fromScale(.80,.040),MUTED,Enum.Font.GothamMedium)
@@ -176,4 +185,4 @@ for _,face in ipairs({leftFace,rightFace}) do
     prompt.Triggered:Connect(function(player)if state then state:FireClient(player,"openSupport",true) end end)
 end
 
-print("[BBYA] Entrance community honor walls v10 online: exact whole-board facade mirror")
+print("[BBYA] Entrance community honor walls v11 online: Live Community clipped neon inset only")
