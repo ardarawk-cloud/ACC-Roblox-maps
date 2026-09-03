@@ -1,0 +1,20 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "KPOP_BANK_V1",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "12882a30a5c3b585f4a4eb0e19109442df4dc374",
+    "baseLiveCommit":  "91bf24724b017361f2ca23d1f17d057c21b2e76c",
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  52,
+    "rojoVersion":  "Rojo 7.7.0",
+    "placeBytes":  191394,
+    "placeSha256":  "64901f47a1b8504e103e33582851b62e6bb71c57ac105337cd7df08ee72cc2ad",
+    "bankName":  "KPOP",
+    "trackCount":  18,
+    "playbackSpeed":  0.5714285714,
+    "runId":  "33748757800",
+    "publishedAt":  "2026-09-03T11:16:52Z",
+    "note":  "KPOP bank live publish. Exact delta from v51 is limited to music config and personal music player. 18 approved audio assets; playback speed restores 1.75x-prepared files."
+}
