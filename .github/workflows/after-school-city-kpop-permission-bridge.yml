@@ -35,7 +35,7 @@ jobs:
               runs-on: ubuntu-latest
               timeout-minutes: 5
               env:
-                AUDIO_KEY: ${{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}
+                AUDIO_KEY: __TALON_AUDIO_SECRET__
                 UNIVERSE_ID: '10745359869'
               steps:
                 - name: Grant KPOP bank audio use to After School City
@@ -85,16 +85,20 @@ jobs:
                   if: always()
                   uses: actions/upload-artifact@v4
                   with:
-                    name: asc-kpop-permission-${{ github.run_id }}
+                    name: asc-kpop-permission-result
                     path: asc-kpop-permission-result.json
                     if-no-files-found: error
                     retention-days: 30
           YAML
 
+          DOLLAR='$'
+          TALON_EXPR="${DOLLAR}{{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}"
+          sed -i "s|__TALON_AUDIO_SECRET__|${TALON_EXPR}|" /tmp/asc-kpop-permission.yml
+
           CONTENT="$(base64 -w0 /tmp/asc-kpop-permission.yml)"
           API='https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/contents/.github/workflows/asc-kpop-permission.yml'
           SHA="$(curl -sS -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' "$API?ref=main" | jq -r '.sha // empty')"
-          PAYLOAD="$(jq -nc --arg msg 'Add ASC KPOP audio permission workflow' --arg content "$CONTENT" --arg branch 'main' --arg sha "$SHA" 'if $sha=="" then {message:$msg,content:$content,branch:$branch} else {message:$msg,content:$content,branch:$branch,sha:$sha} end')"
+          PAYLOAD="$(jq -nc --arg msg 'Fix ASC KPOP audio permission workflow' --arg content "$CONTENT" --arg branch 'main' --arg sha "$SHA" 'if $sha=="" then {message:$msg,content:$content,branch:$branch} else {message:$msg,content:$content,branch:$branch,sha:$sha} end')"
           HTTP="$(curl -sS -o /tmp/write.json -w '%{http_code}' -X PUT -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$API" -d "$PAYLOAD")"
           if [ "$HTTP" != '200' ] && [ "$HTTP" != '201' ]; then cat /tmp/write.json; exit 21; fi
           sleep 2
