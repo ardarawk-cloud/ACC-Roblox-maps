@@ -1,0 +1,386 @@
+name: BBYA Mall KPOP Playlist Injection V1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-mall-kpop-inject-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      SOURCE_SHA: '5fc75b6fcdf686d20a814b58288a2c623dcd671d'
+      TARGET_BRANCH: 'feat/bbya-mall-kpop-playlist-v1'
+    steps:
+      - name: Checkout exact BBYA source
+        uses: actions/checkout@v4
+        with:
+          ref: 5fc75b6fcdf686d20a814b58288a2c623dcd671d
+          fetch-depth: 0
+
+      - name: Inject isolated Mall KPOP venue
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ "$(git rev-parse HEAD)" = "$SOURCE_SHA" ] || { echo 'SOURCE SHA mismatch'; exit 20; }
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root=Path('maps/bbya-social-hub')
+          server=root/'104-venue-audio-groups.server.lua'
+          router=root/'104-venue-audio-router.client.lua'
+          menu=root/'114-venue-aware-menu-music.client.lua'
+
+          def replace_once(text, old, new, tag):
+              if new in text:
+                  return text
+              if old not in text:
+                  raise SystemExit(f'{tag}_ANCHOR_NOT_FOUND')
+              return text.replace(old,new,1)
+
+          s=server.read_text(encoding='utf-8')
+          s=replace_once(s,'-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.7','-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.8','SERVER_VERSION')
+          s=replace_once(s,'-- Rooftop + Skatepark + Pasar Malam are active; VIP remains isolated/reset.','-- Rooftop + Skatepark + Pasar Malam + Mall KPOP are active; VIP remains isolated/reset.','SERVER_HEADER')
+          mall_table='''local MALL_KPOP_PLAYLIST={
+ {title="HANTU",assetId="130787669922537",playbackSpeed=0.5714285714},
+ {title="MALU BANGET",assetId="128649936033154",playbackSpeed=0.5714285714},
+ {title="STRATEGI KU",assetId="87125114946473",playbackSpeed=0.5714285714},
+ {title="DI JATUHKAN",assetId="138472779676021",playbackSpeed=0.5714285714},
+ {title="MEMULAI SEBELAHMU",assetId="115164716109234",playbackSpeed=0.5714285714},
+ {title="TOPIK",assetId="106731979070100",playbackSpeed=0.5714285714},
+ {title="MERAH MUDA",assetId="82573111697282",playbackSpeed=0.5714285714},
+ {title="YA TUHAN",assetId="84541295288456",playbackSpeed=0.5714285714},
+ {title="MALAM YANG SEMPURNA",assetId="112025968048348",playbackSpeed=0.5714285714},
+ {title="KEREN",assetId="102724403050017",playbackSpeed=0.5714285714},
+ {title="SEPERTI GILA",assetId="101221026959656",playbackSpeed=0.5714285714},
+ {title="TERKENAL",assetId="102729376941557",playbackSpeed=0.5714285714},
+ {title="AKU",assetId="130045741934771",playbackSpeed=0.5714285714},
+ {title="EMAS",assetId="94909694876329",playbackSpeed=0.5714285714},
+ {title="DITOK",assetId="128638509475237",playbackSpeed=0.5714285714},
+ {title="AKU DAN KAMU",assetId="115814496839320",playbackSpeed=0.5714285714},
+ {title="BUNGA",assetId="134192777315026",playbackSpeed=0.5714285714},
+ {title="SATU ATAU DELAPAN",assetId="85568242991971",playbackSpeed=0.5714285714},
+}
+
+'''
+          if 'local MALL_KPOP_PLAYLIST={' not in s:
+              anchor='local function ensure(name,venue,active,state)'
+              if anchor not in s: raise SystemExit('SERVER_ENSURE_ANCHOR_NOT_FOUND')
+              s=s.replace(anchor,mall_table+anchor,1)
+
+          mall_runtime=r'''
+
+-- MALL KPOP ------------------------------------------------------------------
+local mallGroup=ensure("BBYAMallMaster","MALL",true,"MALL_KPOP_APPROVED_V1")
+mallGroup.Volume=1.0
+mallGroup:SetAttribute("PlaylistId","mall-kpop")
+mallGroup:SetAttribute("BankName","KPOP")
+mallGroup:SetAttribute("GenrePolicy","KPOP")
+mallGroup:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+mallGroup:SetAttribute("PlaylistCount",#MALL_KPOP_PLAYLIST)
+mallGroup:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+
+local mallControl=ReplicatedStorage:FindFirstChild("BBYAMallMusicControl")
+if mallControl and not mallControl:IsA("RemoteEvent") then mallControl:Destroy();mallControl=nil end
+if not mallControl then
+ mallControl=Instance.new("RemoteEvent")
+ mallControl.Name="BBYAMallMusicControl"
+ mallControl.Parent=ReplicatedStorage
+end
+
+local function publishMallCatalog()
+ local folder=ReplicatedStorage:FindFirstChild("BBYAMallPlaylistCatalog")
+ if folder and not folder:IsA("Folder") then folder:Destroy();folder=nil end
+ if not folder then folder=Instance.new("Folder");folder.Name="BBYAMallPlaylistCatalog";folder.Parent=ReplicatedStorage end
+ folder:ClearAllChildren()
+ folder:SetAttribute("PlaylistId","mall-kpop")
+ folder:SetAttribute("Venue","MALL")
+ folder:SetAttribute("BankName","KPOP")
+ folder:SetAttribute("GenrePolicy","KPOP")
+ folder:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+ folder:SetAttribute("Count",#MALL_KPOP_PLAYLIST)
+ folder:SetAttribute("PlaybackSpeed",0.5714285714)
+ folder:SetAttribute("ApprovalState","18_APPROVED")
+ folder:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+ folder:SetAttribute("ControlRemote","BBYAMallMusicControl")
+ folder:SetAttribute("OutputSound","BBYAMallMasterSound")
+ folder:SetAttribute("SoundGroup","BBYAMallMaster")
+ folder:SetAttribute("InjectionState","ACTIVE_APPROVED_KPOP_BANK_V1")
+ for i,t in ipairs(MALL_KPOP_PLAYLIST) do
+  local row=Instance.new("StringValue")
+  row.Name=string.format("Track%02d",i)
+  row.Value=t.title
+  row:SetAttribute("AssetId",t.assetId)
+  row:SetAttribute("Index",i)
+  row:SetAttribute("PlaybackSpeed",tonumber(t.playbackSpeed) or 0.5714285714)
+  row:SetAttribute("ApprovalState","APPROVED")
+  row:SetAttribute("Venue","MALL")
+  row:SetAttribute("BankName","KPOP")
+  row.Parent=folder
+ end
+end
+
+local mallSound=SoundService:FindFirstChild("BBYAMallMasterSound")
+if mallSound and not mallSound:IsA("Sound") then mallSound:Destroy();mallSound=nil end
+if not mallSound then mallSound=Instance.new("Sound");mallSound.Name="BBYAMallMasterSound";mallSound.Parent=SoundService end
+mallSound.SoundGroup=mallGroup
+mallSound.Volume=1.0
+mallSound.Looped=false
+mallSound.PlaybackSpeed=0.5714285714
+mallSound:SetAttribute("Venue","MALL")
+mallSound:SetAttribute("PlaylistId","mall-kpop")
+mallSound:SetAttribute("BankName","KPOP")
+mallSound:SetAttribute("GenrePolicy","KPOP")
+mallSound:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+mallSound:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
+
+local mallIndex=tonumber(ReplicatedStorage:GetAttribute("BBYAMallCurrentIndex")) or 1
+if mallIndex<1 or mallIndex>#MALL_KPOP_PLAYLIST then mallIndex=1 end
+local mallSwitching=false
+local mallQueue={}
+
+local function publishMallQueue()
+ local count=#mallQueue
+ local nextIndex=tonumber(mallQueue[1]) or 0
+ ReplicatedStorage:SetAttribute("BBYAMallQueueCount",count)
+ ReplicatedStorage:SetAttribute("BBYAMallNextRequestIndex",nextIndex)
+ mallGroup:SetAttribute("QueueCount",count)
+ mallGroup:SetAttribute("NextRequestIndex",nextIndex)
+end
+
+local function publishMallState(track)
+ local speed=tonumber(track.playbackSpeed) or 0.5714285714
+ ReplicatedStorage:SetAttribute("BBYAMallPlaylistEnabled",true)
+ ReplicatedStorage:SetAttribute("BBYAMallPlaylistId","mall-kpop")
+ ReplicatedStorage:SetAttribute("BBYAMallPlaylistBank","KPOP")
+ ReplicatedStorage:SetAttribute("BBYAMallPlaylistCount",#MALL_KPOP_PLAYLIST)
+ ReplicatedStorage:SetAttribute("BBYAMallCurrentIndex",mallIndex)
+ ReplicatedStorage:SetAttribute("BBYAMallCurrentTitle",track.title)
+ ReplicatedStorage:SetAttribute("BBYAMallCurrentAssetId",track.assetId)
+ ReplicatedStorage:SetAttribute("BBYAMallCurrentPlaybackSpeed",speed)
+ ReplicatedStorage:SetAttribute("BBYAMallPlaylistOutputReady",true)
+ mallGroup:SetAttribute("CurrentIndex",mallIndex)
+ mallGroup:SetAttribute("CurrentTitle",track.title)
+ mallGroup:SetAttribute("CurrentAssetId",track.assetId)
+ mallGroup:SetAttribute("CurrentPlaybackSpeed",speed)
+ mallGroup:SetAttribute("PlaylistReady",true)
+ mallSound:SetAttribute("Title",track.title)
+ mallSound:SetAttribute("PlaylistIndex",mallIndex)
+ mallSound:SetAttribute("PlaybackSpeed",speed)
+ publishMallQueue()
+end
+
+local function waitMallLoaded(timeout)
+ local deadline=os.clock()+(timeout or 6)
+ while os.clock()<deadline do
+  if mallSound.IsLoaded and (mallSound.TimeLength or 0)>.2 then return true end
+  task.wait(.12)
+ end
+ return mallSound.IsLoaded
+end
+
+local function playMallIndex(wanted)
+ if mallSwitching then return end
+ mallSwitching=true
+ mallIndex=((tonumber(wanted) or 1)-1)%#MALL_KPOP_PLAYLIST+1
+ local tried=0
+ while tried<#MALL_KPOP_PLAYLIST do
+  local track=MALL_KPOP_PLAYLIST[mallIndex]
+  mallSound:Stop()
+  mallSound.SoundId="rbxassetid://"..track.assetId
+  mallSound.PlaybackSpeed=tonumber(track.playbackSpeed) or 0.5714285714
+  mallSound.TimePosition=0
+  publishMallState(track)
+  local preloadOk=pcall(function()ContentProvider:PreloadAsync({mallSound})end)
+  if preloadOk and waitMallLoaded(6) then
+   local ok=pcall(function()mallSound:Play()end)
+   if ok then
+    mallSwitching=false
+    print("[BBYA] Mall KPOP playing",mallIndex,track.title,track.assetId,"speed",mallSound.PlaybackSpeed)
+    return
+   end
+  end
+  mallGroup:SetAttribute("LastUnavailableTitle",track.title)
+  mallGroup:SetAttribute("LastUnavailableAssetId",track.assetId)
+  mallIndex=mallIndex%#MALL_KPOP_PLAYLIST+1
+  tried+=1
+ end
+ mallSwitching=false
+ warn("[BBYA] Mall KPOP playlist: no track could start")
+end
+
+local function popMallNext()
+ if #mallQueue>0 then
+  local wanted=table.remove(mallQueue,1)
+  publishMallQueue()
+  return wanted
+ end
+ return mallIndex%#MALL_KPOP_PLAYLIST+1
+end
+
+mallControl.OnServerEvent:Connect(function(player,action,wanted)
+ action=tostring(action or "")
+ if action=="request" then
+  local n=tonumber(wanted)
+  if not n or n<1 or n>#MALL_KPOP_PLAYLIST then return end
+  table.insert(mallQueue,math.floor(n))
+  publishMallQueue()
+  if not mallSound.IsPlaying and not mallSwitching then task.defer(function()playMallIndex(popMallNext())end) end
+  return
+ end
+ if not isAdmin(player) then return end
+ if action=="play" then
+  local n=tonumber(wanted)
+  if n and n>=1 and n<=#MALL_KPOP_PLAYLIST then task.defer(function()playMallIndex(n)end) end
+ elseif action=="next" then
+  task.defer(function()playMallIndex(popMallNext())end)
+ elseif action=="prev" then
+  local n=((math.max(mallIndex,1)-2)%#MALL_KPOP_PLAYLIST)+1
+  task.defer(function()playMallIndex(n)end)
+ elseif action=="clearqueue" then
+  table.clear(mallQueue)
+  publishMallQueue()
+ end
+end)
+
+mallSound.Ended:Connect(function()
+ task.defer(function()playMallIndex(popMallNext())end)
+end)
+
+publishMallCatalog()
+publishMallQueue()
+playMallIndex(mallIndex)
+
+task.spawn(function()
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD") or Workspace:WaitForChild("BBYA_ZERO_BUILD",30)
+ local mall=root and (root:FindFirstChild("BBYAMall") or root:FindFirstChild("Mall"))
+ if mall then
+  mall:SetAttribute("PlaylistKey","mall-kpop")
+  mall:SetAttribute("PlaylistVenue","MALL")
+  mall:SetAttribute("PlaylistBank","KPOP")
+  mall:SetAttribute("PlaylistGenrePolicy","KPOP")
+  mall:SetAttribute("PlaylistSyncAuthority","BBYA_MUSIC_MANAGER")
+  mall:SetAttribute("PlaylistOutputReady",true)
+  mall:SetAttribute("PlaylistCount",#MALL_KPOP_PLAYLIST)
+  mall:SetAttribute("BackgroundMusicInjected",true)
+  mall:SetAttribute("AudioPolicy","APPROVED_KPOP_BANK_ACTIVE_V1")
+ end
+end)
+
+task.spawn(function()
+ while task.wait(1.25) do
+  mallGroup.Volume=1.0
+  mallSound.Volume=1.0
+  mallGroup:SetAttribute("PlaylistReady",true)
+  mallGroup:SetAttribute("PlaylistCount",#MALL_KPOP_PLAYLIST)
+  if not mallSound.IsPlaying and not mallSwitching then playMallIndex(popMallNext()) end
+ end
+end)
+
+print("[BBYA] Mall KPOP isolated playlist ready: 18 approved tracks, venue=MALL, bank=KPOP")
+'''
+          if '-- MALL KPOP ------------------------------------------------------------------' not in s:
+              s=s.rstrip()+mall_runtime+'\n'
+          server.write_text(s,encoding='utf-8')
+
+          r=router.read_text(encoding='utf-8')
+          r=replace_once(r,'-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9.2','-- BBYA SOCIAL HUB — STRICT VENUE AUDIO ROUTER v9.3','ROUTER_VERSION')
+          r=replace_once(r,' NIGHT_MARKET={name="BBYANightMarketMaster"},',' NIGHT_MARKET={name="BBYANightMarketMaster"},\n MALL={name="BBYAMallMaster"},','ROUTER_GROUP')
+          mall_zone=' if p.Y>-4 and p.Y<68 and math.abs(p.X)<=98 and p.Z>=285 and p.Z<=445 then return "MALL",nil end\n'
+          anchor=' if p.Y>-4 and p.Y<34 and p.X>=-118 and p.X<=118 and p.Z>=465 and p.Z<=685 then return "NIGHT_MARKET",nil end\n'
+          if mall_zone not in r:
+              if anchor not in r: raise SystemExit('ROUTER_NIGHT_MARKET_ANCHOR_NOT_FOUND')
+              r=r.replace(anchor,mall_zone+anchor,1)
+          router.write_text(r,encoding='utf-8')
+
+          m=menu.read_text(encoding='utf-8')
+          m=replace_once(m,'-- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v5','-- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v6','MENU_VERSION')
+          m=replace_once(m,'-- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP/NIGHT_MARKET\n-- are bridged here so stale playlists never leak between venues and visible controls work.','-- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP/NIGHT_MARKET/MALL\n-- are bridged here so stale playlists never leak between venues and visible controls work.','MENU_HEADER')
+          m=replace_once(m,'local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NIGHT_MARKET="PASAR MALAM",NONE="MUSIC"}','local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NIGHT_MARKET="PASAR MALAM",MALL="MALL · KPOP",NONE="MUSIC"}','MENU_LABELS')
+          m=replace_once(m,'local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82),NIGHT_MARKET=Color3.fromRGB(232,181,82)}','local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82),NIGHT_MARKET=Color3.fromRGB(232,181,82),MALL=Color3.fromRGB(255,126,190)}','MENU_ACCENT')
+          m=replace_once(m,'local rooftopControl=ReplicatedStorage:FindFirstChild("BBYARooftopMusicControl") or ReplicatedStorage:WaitForChild("BBYARooftopMusicControl",30)','local rooftopControl=ReplicatedStorage:FindFirstChild("BBYARooftopMusicControl") or ReplicatedStorage:WaitForChild("BBYARooftopMusicControl",30)\nlocal mallControl=ReplicatedStorage:FindFirstChild("BBYAMallMusicControl") or ReplicatedStorage:WaitForChild("BBYAMallMusicControl",30)','MENU_CONTROL')
+          m=replace_once(m,' if v=="NIGHT_MARKET" then return folderTracks("BBYANightMarketPlaylistCatalog") end',' if v=="NIGHT_MARKET" then return folderTracks("BBYANightMarketPlaylistCatalog") end\n if v=="MALL" then return folderTracks("BBYAMallPlaylistCatalog") end','MENU_TRACKS')
+          old_state=''' elseif v=="NIGHT_MARKET" then
+  s.index=tonumber(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentIndex")) or 1
+  s.title=tostring(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentTitle") or "")
+  s.sound=SoundService:FindFirstChild("BBYANightMarketMasterSound")'''
+          new_state=''' elseif v=="NIGHT_MARKET" then
+  s.index=tonumber(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentIndex")) or 1
+  s.title=tostring(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentTitle") or "")
+  s.sound=SoundService:FindFirstChild("BBYANightMarketMasterSound")
+ elseif v=="MALL" then
+  s.index=tonumber(ReplicatedStorage:GetAttribute("BBYAMallCurrentIndex")) or 1
+  s.title=tostring(ReplicatedStorage:GetAttribute("BBYAMallCurrentTitle") or "")
+  s.queue=tonumber(ReplicatedStorage:GetAttribute("BBYAMallQueueCount")) or 0
+  s.nextRequest=tonumber(ReplicatedStorage:GetAttribute("BBYAMallNextRequestIndex")) or 0
+  s.sound=SoundService:FindFirstChild("BBYAMallMasterSound")'''
+          m=replace_once(m,old_state,new_state,'MENU_STATE')
+          m=replace_once(m,' elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer("request",i)\n elseif v=="VIP"',' elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer("request",i)\n elseif v=="MALL" and mallControl then mallControl:FireServer("request",i)\n elseif v=="VIP"','MENU_REQUEST')
+          m=replace_once(m,' elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer(action)\n elseif v=="VIP"',' elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer(action)\n elseif v=="MALL" and mallControl then mallControl:FireServer(action)\n elseif v=="VIP"','MENU_TRANSPORT')
+          menu.write_text(m,encoding='utf-8')
+          PY
+
+      - name: Static QC Mall isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          root=Path('maps/bbya-social-hub')
+          s=(root/'104-venue-audio-groups.server.lua').read_text()
+          r=(root/'104-venue-audio-router.client.lua').read_text()
+          m=(root/'114-venue-aware-menu-music.client.lua').read_text()
+          block=s.split('local MALL_KPOP_PLAYLIST={',1)[1].split('\n}',1)[0]
+          ids=re.findall(r'assetId="(\d+)"',block)
+          expected=['130787669922537','128649936033154','87125114946473','138472779676021','115164716109234','106731979070100','82573111697282','84541295288456','112025968048348','102724403050017','101221026959656','102729376941557','130045741934771','94909694876329','128638509475237','115814496839320','134192777315026','85568242991971']
+          assert ids==expected, (len(ids),ids)
+          for token in ['BBYAMallPlaylistCatalog','BBYAMallMaster','BBYAMallMasterSound','BBYAMallMusicControl','PlaylistId","mall-kpop','BankName","KPOP','Venue","MALL','0.5714285714','18_APPROVED']:
+              assert token in s, token
+          assert 'MALL={name="BBYAMallMaster"}' in r
+          assert 'return "MALL",nil' in r and 'p.Z>=285 and p.Z<=445' in r
+          assert 'MALL="MALL · KPOP"' in m
+          assert 'folderTracks("BBYAMallPlaylistCatalog")' in m
+          assert 'BBYAMallMasterSound' in m and 'BBYAMallMusicControl' in m
+          assert 'MALL="CLUB"' not in m
+          assert 'v=="MALL" and mallControl' in m
+          print('BBYA_MALL_KPOP_STATIC_QC_PASS tracks=18 venue=MALL label=MALL_KPOP no_club_alias=true')
+          PY
+
+      - name: Build map with Rojo 7.7.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+          unzip -q /tmp/rojo.zip -d /tmp/rojo
+          ROJO="$(find /tmp/rojo -type f -name rojo | head -1)"
+          chmod +x "$ROJO"
+          "$ROJO" --version
+          "$ROJO" build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mall-kpop.rbxl
+          test -s /tmp/bbya-mall-kpop.rbxl
+          echo "BUILD_BYTES=$(stat -c%s /tmp/bbya-mall-kpop.rbxl)" >> "$GITHUB_ENV"
+          echo "BUILD_SHA256=$(sha256sum /tmp/bbya-mall-kpop.rbxl | awk '{print $1}')" >> "$GITHUB_ENV"
+
+      - name: Commit isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'BBYA Mall KPOP Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add maps/bbya-social-hub/104-venue-audio-groups.server.lua maps/bbya-social-hub/104-venue-audio-router.client.lua maps/bbya-social-hub/114-venue-aware-menu-music.client.lua
+          mapfile -t changed < <(git diff --cached --name-only)
+          [ "${#changed[@]}" -eq 3 ] || { printf '%s\n' "${changed[@]}"; echo 'Unexpected scope'; exit 40; }
+          git commit -m 'Add isolated Mall KPOP playlist with 18 approved tracks [skip ci]'
+          git push origin HEAD:refs/heads/$TARGET_BRANCH --force
+          echo "BRANCH_SOURCE=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Summary
+        shell: bash
+        run: |
+          echo "BBYA_MALL_KPOP_INJECTED branch=$TARGET_BRANCH source=$BRANCH_SOURCE tracks=18 venue=MALL bank=KPOP playbackSpeed=0.5714285714 bytes=$BUILD_BYTES sha256=$BUILD_SHA256 NOT_PUBLISHED"
