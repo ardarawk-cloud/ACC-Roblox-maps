@@ -1,0 +1,41 @@
+name: BBYA Audio Status — +44 When Your Heart Stops Beating
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  status_only:
+    if: github.head_ref == 'bbya/audio-single-probe-20260826'
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 5
+    env:
+      AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+      GRANT_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      ASSET_ID: '139151800899060'
+      BBYA_UNIVERSE: '8116636513'
+    steps:
+      - name: Check existing asset only
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $meta=Invoke-RestMethod -Method Get -Uri "https://apis.roblox.com/assets/v1/assets/$env:ASSET_ID" -Headers @{'x-api-key'=$env:AUDIO_KEY}
+          $final=[string]$meta.moderationResult.moderationState
+          Write-Host "ASSET_ID=$env:ASSET_ID STATE=$($meta.state) MODERATION=$final"
+          "MODERATION=$final"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          if($final-eq'Rejected'){throw 'AUDIO_REJECTED'}
+          if($final-ne'Approved'){Write-Host 'MODERATION_STILL_REVIEWING';exit 0}
+
+      - name: Grant approved asset to BBYA Universe
+        if: env.MODERATION == 'Approved'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $payload=[ordered]@{subjectType='Universe';subjectId=[string]$env:BBYA_UNIVERSE;action='Use';requests=@([ordered]@{assetId=[Int64]$env:ASSET_ID})}|ConvertTo-Json -Compress -Depth 8
+          $r=Invoke-WebRequest -UseBasicParsing -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:GRANT_KEY} -ContentType 'application/json-patch+json' -Body $payload
+          Write-Host "GRANT_HTTP=$($r.StatusCode)"
+          if([int]$r.StatusCode-lt200-or[int]$r.StatusCode-ge300){throw 'GRANT_FAILED'}
+          Write-Host "READY_FOR_SKATEPARK ASSET_ID=$env:ASSET_ID"
