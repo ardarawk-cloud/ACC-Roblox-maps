@@ -63,3 +63,5 @@ jobs:
           "$ROJO" build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mall-kpop.rbxl
           test -s /tmp/bbya-mall-kpop.rbxl
           echo "MALL_KPOP_BUILD_PASS bytes=$(stat -c%s /tmp/bbya-mall-kpop.rbxl) sha256=$(sha256sum /tmp/bbya-mall-kpop.rbxl | awk '{print $1}')"
+
+# trigger: mall-kpop-qc-v1
