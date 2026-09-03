@@ -1,7 +1,6 @@
--- BBYA MUSIC UI TEST — MUSIC + DJ LAUNCHER ADAPTER v2
--- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- One-time launcher adapter only. It does NOT resize panels or own shell geometry.
--- MUSIC bridges the kernel button back into the existing Music Suite open path.
+-- BBYA SOCIAL HUB — MUSIC + DJ LAUNCHER ADAPTER v3
+-- UI/NAVIGATION ONLY. Does not resize panels, change playlists, route audio, or own playback.
+-- MUSIC bridges UI Kernel Slot_MUSIC into the existing premium Music Suite open path.
 -- DJ adopts the native Developer DJ launcher and removes the kernel duplicate.
 
 local Players=game:GetService("Players")
@@ -19,20 +18,28 @@ local function findMenu()
  return menu,list,drawer,menuButton
 end
 
-local function bindMusic()
- if boundMusic then return true end
- local menu,list= findMenu()
- if not menu or not list then return false end
- local musicButton=nil
- for _,o in ipairs(list:GetChildren()) do
+local function findMusicButton(list)
+ if not list then return nil end
+ -- UI Kernel v2 wraps MUSIC inside Slot_MUSIC. The old adapter searched only
+ -- direct FeatureList children, so it never saw the actual TextButton.
+ local slot=list:FindFirstChild("Slot_MUSIC")
+ local root=slot or list
+ for _,o in ipairs(root:GetDescendants()) do
   if o:IsA("TextButton") and string.upper(tostring(o.Text or ""))=="MUSIC" then
-   musicButton=o
-   break
+   return o
   end
  end
+ return nil
+end
+
+local function bindMusic()
+ if boundMusic then return true end
+ local menu,list=findMenu()
+ if not menu or not list then return false end
+ local musicButton=findMusicButton(list)
  if not musicButton then return false end
  boundMusic=true
- musicButton:SetAttribute("BBYAMusicSuiteAdapterV2",true)
+ musicButton:SetAttribute("BBYAMusicSuiteAdapterV3",true)
  musicButton.Activated:Connect(function()
   task.defer(function()
    local suite=pg:FindFirstChild("BBYAMusicSuiteV1")
@@ -40,20 +47,20 @@ local function bindMusic()
    local hub=club and club:FindFirstChild("HubPanel",true)
    local playerCard=hub and hub:FindFirstChild("PlayerCard",true)
    local legacy=playerCard and playerCard.Parent
-   -- 103-music-ui-final.client.lua already owns the real open() path and listens
-   -- for this legacy container becoming visible. Toggle it to invoke that path,
-   -- which enables BBYAMusicSuiteV1, requests the list, refreshes and selects LIBRARY.
+   -- 103-music-ui-final.client.lua owns the real open() path and listens for
+   -- this legacy container becoming visible. Trigger that established UI-only
+   -- contract so request/refresh/switch logic remains owned by Music Suite.
    if legacy and legacy:IsA("GuiObject") then
     if legacy.Visible then legacy.Visible=false end
     legacy.Visible=true
    elseif suite and suite:IsA("ScreenGui") then
-    -- Fail-soft only. Normal path above is expected in BBYA.
+    -- Fail-soft visual fallback only. Normal path above is expected in BBYA.
     suite.Enabled=true
     if hub then hub.Visible=false end
    end
   end)
  end)
- print("[BBYA TEST] Music launcher bridged to BBYAMusicSuiteV1 open path")
+ print("[BBYA] Music launcher adapter v3 bound through Slot_MUSIC")
  return true
 end
 
@@ -99,7 +106,7 @@ local function bindDJ()
   if panel.Visible and drawer then drawer.Visible=false end
  end)
  if menuButton then menuButton.Visible=not panel.Visible end
- print("[BBYA TEST] Single native DJ launcher adopted; duplicate removed")
+ print("[BBYA] Single native DJ launcher adopted; duplicate removed")
  return true
 end
 
