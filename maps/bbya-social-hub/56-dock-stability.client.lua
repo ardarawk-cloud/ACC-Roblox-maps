@@ -142,7 +142,14 @@ local function toast(msg)
  task.delay(3,function() if t.Parent then t:Destroy() end end)
 end
 local function menuEntry(textValue,order,accent,callback)
- local b=button(list,textValue,nil,UDim2.new(1,-4,0,44),C.card); b.LayoutOrder=order; b.ZIndex=204; stroke(b,accent,.58); b.Activated:Connect(callback); return b
+ local parent=list
+ if textValue=="MUSIC" then
+  local slot=Instance.new("Frame")
+  slot.Name="Slot_MUSIC"; slot.LayoutOrder=order; slot.Size=UDim2.new(1,-4,0,44); slot.BackgroundTransparency=1; slot.BorderSizePixel=0; slot.ZIndex=203; slot.Parent=list
+  parent=slot
+ end
+ local size=textValue=="MUSIC" and UDim2.fromScale(1,1) or UDim2.new(1,-4,0,44)
+ local b=button(parent,textValue,nil,size,C.card); b.LayoutOrder=order; b.ZIndex=204; stroke(b,accent,.58); b.Activated:Connect(callback); return b
 end
 
 -- SUPPORT: same ScreenGui/coordinate system as Party Stuff.
@@ -223,8 +230,7 @@ away.Activated:Connect(function() gearRemote:FireServer("putAway") end)
 
 -- Menu entries.
 menuEntry("MUSIC",1,C.pink,function()
- hideAll("MUSIC"); closeMenu(); menuButton.Visible=false; local hub=clubUI:FindFirstChild("HubPanel",true)
- if hub then placeMusic(hub); hub.Visible=true; current="MUSIC" end
+ hideAll("MUSIC"); closeMenu(); menuButton.Visible=false; current="MUSIC"
 end)
 menuEntry("SUPPORT",2,C.cyan,function() showNormal("SUPPORT",supportPanel) end)
 menuEntry("TRAVEL",3,C.gold,function() travelStatus.Text="Tap destination"; showNormal("TRAVEL",travelPanel) end)
