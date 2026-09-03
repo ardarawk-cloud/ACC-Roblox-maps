@@ -1,124 +1,90 @@
-name: BBYA Mall Catalog V8 Test
+name: BBYA QA Music Navigation TEST
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
-      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
-      - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
-      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
-      - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
-      - 'maps/bbya-social-hub/95-mall-live.client.lua'
-      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
   push:
     branches:
       - 'feat/bbya-mall-catalog-v8-reference-rebuild'
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
-      - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
-      - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
-      - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
-      - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
-      - 'maps/bbya-social-hub/95-mall-live.client.lua'
-      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
 
 permissions:
   contents: read
 
 env:
-  TARGET_SOURCE: ${{ github.event.pull_request.head.sha || github.sha }}
+  TARGET_SOURCE: 650a622c9a6b317e2432eb0d707f4d34566dfad3
+  TEST_UNIVERSE: '10762005984'
+  TEST_PLACE: '124607344716828'
 
 jobs:
-  test:
+  qa-test-publish:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 15
     steps:
-      - name: Fetch exact source
+      - name: Fetch exact candidate source
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $zip=Join-Path $env:RUNNER_TEMP 'mall-v8-source.zip'
-          $dir=Join-Path $env:RUNNER_TEMP 'mall-v8-source'
+          $zip=Join-Path $env:RUNNER_TEMP 'bbya-qa-music-source.zip'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-qa-music-source'
           Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
           Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:TARGET_SOURCE" -OutFile $zip
           Expand-Archive $zip -DestinationPath $dir -Force
           $repo=Get-ChildItem $dir -Directory | Select-Object -First 1
-          if(-not $repo){throw 'Exact source missing'}
+          if(-not $repo){throw 'Exact candidate source missing'}
+          Get-ChildItem $env:GITHUB_WORKSPACE -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
           Get-ChildItem $repo.FullName -Force | ForEach-Object { Copy-Item $_.FullName $env:GITHUB_WORKSPACE -Recurse -Force }
-          Write-Host "EXACT_SOURCE=$env:TARGET_SOURCE"
+          Write-Host "EXACT_CANDIDATE_SOURCE=$env:TARGET_SOURCE"
 
-      - name: Static V8 QC
-        shell: powershell
-        run: |
-          $a=Get-Content 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua' -Raw
-          foreach($m in @('MALL CATALOG UI v8','CatalogLauncher','CATEGORIES','STORES','PRODUCTS','Keranjang Belanja','BBYAMallCatalogFocusMode')){
-            if(-not $a.Contains($m)){throw "Missing V8 marker: $m"}
-          }
-          if($a.Contains('MALL COMMERCE UI v7')){throw 'Old V7 giant panel source still present'}
-          foreach($bad in @('GetService("Lighting")','SoundId','.Volume =')){
-            if($a.Contains($bad)){throw "Forbidden Mall UI marker: $bad"}
-          }
-          $v=Get-Content 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua' -Raw
-          foreach($m in @('MALL VERTICAL SPACING 20 + CINEMA v16','local LEVELS={1,21,41,61}','FloorSpacingStuds",20','VerticalAuthority","V16_20_STUD')){
-            if(-not $v.Contains($m)){throw "Missing 20-stud vertical marker: $m"}
-          }
-          foreach($m in @('MallStairMobileWidth','V20_DEEP_MID_CONNECTION_ONLY','MidLandingDepthStuds",7.2','MidLandingOneSidedExtension','ExitLandingsKeptClear','local flightWidth=7.4','local midLandingDepth=7.2','part("LowerLanding",Vector3.new(8.6,.42,3.1)','part("UpperLanding",Vector3.new(8.6,.42,3.1)')){
-            if(-not $v.Contains($m)){throw "Missing stair builder marker: $m"}
-          }
-          $g=Get-Content 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua' -Raw
-          foreach($m in @('FloorSpacing20DecorAligned','MallDecor20StudAligned','19.35,39.35,59.35,79.35')){
-            if(-not $g.Contains($m)){throw "Missing decor alignment marker: $m"}
-          }
-          if($g.Contains('d.Name=="LowerLanding" or d.Name=="UpperLanding"')){throw 'Late stair exit-landing patch still present'}
-          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20 decor=aligned stairs=deep-mid-connection-only'
-
-      - name: Enable third party sales in test build only
+      - name: Static QA candidate checks
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $p='maps/bbya-social-hub/default.project.json'
-          $obj=(Get-Content $p -Raw | ConvertFrom-Json)
-          if(-not ($obj.tree.Workspace.PSObject.Properties.Name -contains '$properties')){
-            $obj.tree.Workspace | Add-Member -NotePropertyName '$properties' -NotePropertyValue ([pscustomobject]@{})
+          $p='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
+          $a=Get-Content $p -Raw
+          foreach($m in @('BBYAMusicSuiteAdapterV3','Slot_MUSIC','GetDescendants','BBYAMusicSuiteV1')){
+            if(-not $a.Contains($m)){throw "Missing MUSIC navigation marker: $m"}
           }
-          $props=$obj.tree.Workspace.'$properties'
-          if($props.PSObject.Properties.Name -contains 'AllowThirdPartySales'){
-            $props.AllowThirdPartySales=$true
-          } else {
-            $props | Add-Member -NotePropertyName 'AllowThirdPartySales' -NotePropertyValue $true
+          foreach($bad in @('SoundId','.Volume =','SoundGroup','PlaybackSpeed')){
+            if($a.Contains($bad)){throw "Forbidden audio mutation marker in UI candidate: $bad"}
           }
-          $json=$obj | ConvertTo-Json -Depth 100
-          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
-          [System.IO.File]::WriteAllText((Resolve-Path $p),$json,$utf8NoBom)
-          $check=Get-Content $p -Raw
-          if(-not $check.Contains('AllowThirdPartySales')){throw 'Third-party sales test property missing'}
-          Write-Host 'BBYA_TEST_THIRD_PARTY_SALES_ENABLED'
+          $project=Get-Content 'maps/bbya-social-hub/default.project.json' -Raw
+          if(-not $project.Contains('111-compact-secondary-panels.client.lua')){throw 'Candidate UI file is not Rojo-mapped'}
+          Write-Host 'BBYA_QA_MUSIC_NAV_STATIC_PASS'
 
-      - name: Build and publish V8 test
+      - name: Build exact candidate
         shell: powershell
-        env:
-          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: |
           $ErrorActionPreference='Stop'
           $toolDir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
           New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
           $rojo=Join-Path $toolDir 'rojo.exe'
           if(-not (Test-Path $rojo)){
-            $z=Join-Path $env:RUNNER_TEMP 'rojo.zip'
+            $z=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
             Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
             Expand-Archive $z -DestinationPath $toolDir -Force
           }
           $version=& $rojo --version
           if($version -notmatch '7\.7\.0'){throw 'Rojo 7.7.0 required'}
-          $out=Join-Path $env:RUNNER_TEMP 'bbya-mall-catalog-v8-test.rbxl'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-qa-music-navigation-test.rbxl'
           & $rojo build 'maps/bbya-social-hub/default.project.json' -o $out
           if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){throw 'Build failed'}
           $bytes=(Get-Item $out).Length
           $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
-          $url='https://apis.roblox.com/universes/v1/10762005984/places/124607344716828/versions?versionType=Published'
-          $resp=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/octet-stream' --header 'Expect:' --data-binary "@$out" $url
-          if($LASTEXITCODE -ne 0){throw 'Publish failed'}
+          "BBYA_QA_BUILD=$out" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_BYTES=$bytes" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "BBYA_QA_BUILD_PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish TEST place only
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not $env:ROBLOX_API_KEY){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'}
+          $url="https://apis.roblox.com/universes/v1/$env:TEST_UNIVERSE/places/$env:TEST_PLACE/versions?versionType=Published"
+          $resp=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/octet-stream' --header 'Expect:' --data-binary "@$env:BBYA_QA_BUILD" $url
+          if($LASTEXITCODE -ne 0){throw 'TEST publish failed'}
           $r=$resp|ConvertFrom-Json
-          if(-not $r.versionNumber){throw 'versionNumber missing'}
-          Write-Host "BBYA_MALL_V8_TEST_PUBLISHED version=$($r.versionNumber) bytes=$bytes sha256=$sha source=$env:TARGET_SOURCE universe=10762005984 place=124607344716828"
+          if(-not $r.versionNumber){throw 'TEST versionNumber missing'}
+          Write-Host "BBYA_QA_MUSIC_TEST_PUBLISHED version=$($r.versionNumber) bytes=$env:BBYA_QA_BYTES sha256=$env:BBYA_QA_SHA256 candidate=$env:TARGET_SOURCE universe=$env:TEST_UNIVERSE place=$env:TEST_PLACE"
