@@ -312,6 +312,8 @@ local function buildSwitchback20(name,baseY,edgeZ,dir,xBase)
  local stair=Instance.new("Model")
  stair.Name=name
  stair:SetAttribute("MobileWalkWidthStuds",7.4)
+ stair:SetAttribute("MidLandingDepthStuds",7.2)
+ stair:SetAttribute("MidLandingOneSidedExtension",true)
  stair:SetAttribute("ExitLandingsKeptClear",true)
  stair.Parent=escal
  local xA=xBase-3.55
@@ -323,15 +325,19 @@ local function buildSwitchback20(name,baseY,edgeZ,dir,xBase)
  local stepH=.46
  local firstStart=edgeZ+dir*1.15
  local midZ=edgeZ+dir*10.35
+ local originalMidLandingDepth=3.6
+ local midLandingDepth=7.2
+ local midLandingZ=midZ+dir*((midLandingDepth-originalMidLandingDepth)/2)
 
  for i=0,9 do
   local z=firstStart+dir*(i*run)
   local y=baseY+.72+i
   part("FlightA_Step"..i,Vector3.new(flightWidth,stepH,depth),CFrame.new(xA,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
  end
- -- The widened surface belongs at the switchback connection only. Keep the
- -- lower/upper exit landings compact so they do not cover the floor route.
- part("MidLanding",Vector3.new(17.6,.48,4.5),CFrame.new(xBase,baseY+10.0,midZ),C.warmStone,Enum.Material.Slate,true,stair,0)
+ -- Deepen the switchback connection only toward its free side. The edge that
+ -- meets both flights stays fixed, avoiding an overhead slab above the steps.
+ -- Lower/upper exit landings remain compact so the floor route stays clear.
+ part("MidLanding",Vector3.new(17.6,.48,midLandingDepth),CFrame.new(xBase,baseY+10.0,midLandingZ),C.warmStone,Enum.Material.Slate,true,stair,0)
  for i=0,9 do
   local z=midZ-dir*(1.15+i*run)
   local y=baseY+10.72+i
@@ -353,8 +359,8 @@ end
 buildSwitchback20("L1_L2_SouthWest",LEVELS[1],338,1,-18)
 buildSwitchback20("L2_L3_NorthEast",LEVELS[2],392,-1,18)
 buildSwitchback20("L3_L4_SouthWest",LEVELS[3],338,1,-18)
-escal:SetAttribute("MobileWidthPass","V19_MID_CONNECTION_ONLY")
-mall:SetAttribute("MallStairMobileWidth","V19_MID_CONNECTION_ONLY")
+escal:SetAttribute("MobileWidthPass","V20_DEEP_MID_CONNECTION_ONLY")
+mall:SetAttribute("MallStairMobileWidth","V20_DEEP_MID_CONNECTION_ONLY")
 
 -- -----------------------------------------------------------------------------
 -- 3) REAR-WALL LIFT AT 20-STUD LEVELS
