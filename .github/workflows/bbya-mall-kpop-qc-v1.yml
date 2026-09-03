@@ -1,0 +1,65 @@
+name: BBYA Mall KPOP Source QC V1
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bbya-mall-kpop-qc-v1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact Mall KPOP source
+        uses: actions/checkout@v4
+        with:
+          ref: c27c7b10733e5c6d4e7de4b0eae359172ff6733a
+          fetch-depth: 0
+
+      - name: Verify narrow source scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "c27c7b10733e5c6d4e7de4b0eae359172ff6733a"
+          mapfile -t files < <(git diff --name-only 7efebbec3b79a718b39972ed4a9850484f790213 HEAD)
+          test "${#files[@]}" -eq 2
+          printf '%s\n' "${files[@]}" | grep -Fxq 'maps/bbya-social-hub/109-music-catalog-reset.server.lua'
+          printf '%s\n' "${files[@]}" | grep -Fxq 'maps/bbya-social-hub/94-mall-ui.client.lua'
+
+      - name: Verify Mall KPOP identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          s='maps/bbya-social-hub/109-music-catalog-reset.server.lua'
+          c='maps/bbya-social-hub/94-mall-ui.client.lua'
+          test "$(grep -c 'assetId="[0-9].*playbackSpeed=0.5714285714' "$s")" -eq 18
+          grep -Fq 'BBYAMallPlaylistCatalog' "$s"
+          grep -Fq 'BBYAMallMasterSound' "$s"
+          grep -Fq 'BBYAMallMusicControl' "$s"
+          grep -Fq 'PlaylistId","mall-kpop' "$s"
+          grep -Fq 'BankName","KPOP' "$s"
+          grep -Fq 'Venue","MALL' "$s"
+          grep -Fq 'MALL · KPOP' "$c"
+          grep -Fq 'PLAYLIST: MALL / KPOP' "$c"
+          grep -Fq 'BBYAMallMusicSuppressed' "$c"
+          if grep -Fq 'MALL="CLUB"' "$c"; then exit 31; fi
+          echo 'MALL_KPOP_IDENTITY_QC_PASS tracks=18 label=MALL_KPOP club_alias=false'
+
+      - name: Build exact map with Rojo 7.7.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip
+          unzip -q /tmp/rojo.zip -d /tmp/rojo
+          ROJO="$(find /tmp/rojo -type f -name rojo | head -1)"
+          chmod +x "$ROJO"
+          "$ROJO" --version
+          "$ROJO" build maps/bbya-social-hub/default.project.json -o /tmp/bbya-mall-kpop.rbxl
+          test -s /tmp/bbya-mall-kpop.rbxl
+          echo "MALL_KPOP_BUILD_PASS bytes=$(stat -c%s /tmp/bbya-mall-kpop.rbxl) sha256=$(sha256sum /tmp/bbya-mall-kpop.rbxl | awk '{print $1}')"
