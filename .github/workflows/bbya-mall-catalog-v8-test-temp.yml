@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
+      - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
@@ -16,6 +17,7 @@ on:
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
+      - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
