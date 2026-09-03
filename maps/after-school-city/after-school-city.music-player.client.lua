@@ -36,18 +36,13 @@ for _, entry in ipairs(type(Config.Tracks) == "table" and Config.Tracks or {}) d
 end
 
 local defaultVolume = math.clamp(tonumber(Config.DefaultVolume) or 0.45, 0, 1)
-local playbackSpeed = tonumber(Config.PlaybackSpeed) or 1.0
--- Panel playback is intentionally normalized even if source preparation used another speed.
-playbackSpeed = math.clamp(playbackSpeed, 0.5, 2.0)
-if math.abs(playbackSpeed - 1.0) > 0.001 then
-    warn("[ASC Music] config PlaybackSpeed overridden to normal 1.0")
-    playbackSpeed = 1.0
-end
+local playbackSpeed = math.clamp(tonumber(Config.PlaybackSpeed) or 1.0, 0.5, 2.0)
+local bankName = tostring(Config.BankName or "MUSIC")
 
 local sound = Instance.new("Sound")
 sound.Name = "ASC_PersonalMusicSound"
 sound.Volume = defaultVolume
-sound.PlaybackSpeed = 1.0
+sound.PlaybackSpeed = playbackSpeed
 sound.Looped = false
 sound.Parent = SoundService
 
@@ -164,7 +159,7 @@ headerMask.Position = UDim2.new(0, 0, 1, -14)
 headerMask.Size = UDim2.new(1, 0, 0, 14)
 headerMask.Parent = header
 
-local titleHeader = label(header, "HeaderTitle", "AFTER SCHOOL CITY  ·  MUSIC", UDim2.new(1, -48, 1, 0), UDim2.fromOffset(14, 0), 12, palette.gold)
+local titleHeader = label(header, "HeaderTitle", "AFTER SCHOOL CITY  ·  " .. bankName, UDim2.new(1, -48, 1, 0), UDim2.fromOffset(14, 0), 12, palette.gold)
 titleHeader.Font = Enum.Font.GothamBold
 
 local closeButton = button(header, "Close", "X", UDim2.fromOffset(30, 28), UDim2.new(1, -36, 0, 7))
@@ -265,7 +260,7 @@ local function loadCurrent(autoPlay)
     local token = loadingToken
     sound:Stop()
     sound.TimePosition = 0
-    sound.PlaybackSpeed = 1.0
+    sound.PlaybackSpeed = playbackSpeed
     local track = tracks[currentIndex]
     sound.SoundId = "rbxassetid://" .. tostring(track.AssetId)
     updateTrackLabels()
