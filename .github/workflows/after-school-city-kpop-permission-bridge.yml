@@ -1,0 +1,117 @@
+name: After School City KPOP Permission Bridge
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bridge:
+    if: startsWith(github.event.issue.title, 'ASC KPOP PERMISSION')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install target permission workflow and dispatch
+        shell: bash
+        env:
+          BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          [ -n "${BRIDGE_TOKEN:-}" ] || { echo 'BALI_ENTERTAIMENT_TOKEN missing'; exit 20; }
+          cat > /tmp/asc-kpop-permission.yml <<'YAML'
+          name: ASC KPOP Audio Permission
+
+          on:
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+
+          jobs:
+            permission:
+              runs-on: ubuntu-latest
+              timeout-minutes: 5
+              env:
+                AUDIO_KEY: ${{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}
+                UNIVERSE_ID: '10745359869'
+              steps:
+                - name: Grant KPOP bank audio use to After School City
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    python3 - <<'PY'
+                    import json, os, pathlib, urllib.request, urllib.error
+                    ids = [130787669922537,128649936033154,87125114946473,138472779676021,115164716109234,106731979070100,82573111697282,84541295288456,112025968048348,102724403050017,101221026959656,102729376941557,130045741934771,94909694876329,128638509475237,115814496839320,134192777315026,85568242991971]
+                    key=os.environ.get('AUDIO_KEY','').strip(); universe=os.environ['UNIVERSE_ID']
+                    report={'bank':'KPOP','universeId':universe,'assetIds':ids,'assetCount':len(ids),'keyPresent':bool(key),'permissionAttempted':False}
+                    def req(url, method='GET', payload=None, headers=None):
+                        data=None if payload is None else json.dumps(payload).encode()
+                        r=urllib.request.Request(url,data=data,headers=headers or {},method=method)
+                        try:
+                            with urllib.request.urlopen(r,timeout=30) as resp:
+                                raw=resp.read().decode('utf-8','replace')
+                                return resp.status, json.loads(raw) if raw.strip() else {}
+                        except urllib.error.HTTPError as e:
+                            raw=e.read().decode('utf-8','replace')
+                            try: body=json.loads(raw) if raw.strip() else {}
+                            except Exception: body={'raw':raw[-2000:]}
+                            return e.code,body
+                    if not key:
+                        report['status']='KEY_MISSING'
+                    else:
+                        code,info=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key},{'Content-Type':'application/json'})
+                        report['introspectHttp']=code
+                        report['authorizedUserId']=str(info.get('authorizedUserId')) if isinstance(info,dict) and info.get('authorizedUserId') is not None else None
+                        report['scopes']=[{'name':s.get('name'),'operations':s.get('operations') or []} for s in (info.get('scopes') or [])] if isinstance(info,dict) else []
+                        can_write=any(s.get('name')=='asset-permissions:write' for s in report['scopes'])
+                        report['hasAssetPermissionsWrite']=can_write
+                        if code!=200 or not can_write:
+                            report['status']='NO_ASSET_PERMISSION_SCOPE'
+                        else:
+                            payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':x} for x in ids]}
+                            pcode,pbody=req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+                            report['permissionAttempted']=True; report['permissionHttp']=pcode; report['response']=pbody
+                            success=[str(x) for x in (pbody.get('successAssetIds') or [])] if isinstance(pbody,dict) else []
+                            report['successAssetIds']=success; report['successCount']=len(success)
+                            report['status']='GRANTED_ALL' if len(success)==len(ids) else ('HTTP_SUCCESS_VERIFY_RUNTIME' if pcode in (200,201,204) else 'FAILED')
+                    pathlib.Path('asc-kpop-permission-result.json').write_text(json.dumps(report,indent=2)+'\n')
+                    print(json.dumps({k:report.get(k) for k in ['status','assetCount','permissionHttp','successCount','hasAssetPermissionsWrite']}))
+                    PY
+
+                - name: Upload permission result
+                  if: always()
+                  uses: actions/upload-artifact@v4
+                  with:
+                    name: asc-kpop-permission-${{ github.run_id }}
+                    path: asc-kpop-permission-result.json
+                    if-no-files-found: error
+                    retention-days: 30
+          YAML
+
+          CONTENT="$(base64 -w0 /tmp/asc-kpop-permission.yml)"
+          API='https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/contents/.github/workflows/asc-kpop-permission.yml'
+          SHA="$(curl -sS -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' "$API?ref=main" | jq -r '.sha // empty')"
+          PAYLOAD="$(jq -nc --arg msg 'Add ASC KPOP audio permission workflow' --arg content "$CONTENT" --arg branch 'main' --arg sha "$SHA" 'if $sha=="" then {message:$msg,content:$content,branch:$branch} else {message:$msg,content:$content,branch:$branch,sha:$sha} end')"
+          HTTP="$(curl -sS -o /tmp/write.json -w '%{http_code}' -X PUT -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$API" -d "$PAYLOAD")"
+          if [ "$HTTP" != '200' ] && [ "$HTTP" != '201' ]; then cat /tmp/write.json; exit 21; fi
+          sleep 2
+          HTTP2="$(curl -sS -o /tmp/dispatch.json -w '%{http_code}' -X POST -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/actions/workflows/asc-kpop-permission.yml/dispatches' -d '{"ref":"main"}')"
+          if [ "$HTTP2" != '204' ]; then cat /tmp/dispatch.json; exit 22; fi
+          echo 'ASC KPOP permission workflow dispatched.'
+
+      - name: Report bridge success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body:'ASC_KPOP_PERMISSION_DISPATCHED | universe=10745359869 | assets=18 | publish=false'})
+
+      - name: Report bridge failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body:'ASC_KPOP_PERMISSION_BRIDGE_FAILED | No map publish attempted.'})
