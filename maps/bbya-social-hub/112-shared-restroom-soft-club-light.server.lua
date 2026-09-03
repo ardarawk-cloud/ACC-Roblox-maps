@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — SHARED RESTROOM + MAIN CLUB SOFT LIGHTING v4
+-- BBYA SOCIAL HUB — SHARED RESTROOM + MAIN CLUB SOFT LIGHTING v5
 -- Premium tall shared restroom with full rear-footprint use and true 15-stud avatar clearance.
--- Keeps one free Travel restroom for all venues; Main Club soft-light authority below is unchanged.
+-- v5: basin cylinders use a horizontal shallow orientation; Main Club soft-light authority below is unchanged.
 
 local Workspace=game:GetService("Workspace")
 
@@ -47,13 +47,14 @@ end
 local restroom=Instance.new("Model")
 restroom.Name="SharedRestroomV1"
 restroom:SetAttribute("BBYASharedAmenity","RESTROOM")
-restroom:SetAttribute("LayoutVersion","V4_TRUE_15_CLEAR")
+restroom:SetAttribute("LayoutVersion","V5_TRUE_15_CLEAR_BASIN_HORIZONTAL")
 restroom:SetAttribute("RearSpaceUsed",true)
 restroom:SetAttribute("RoomDepthStuds",21.6)
 restroom:SetAttribute("PrivacyDivider",true)
 restroom:SetAttribute("PremiumInterior",true)
 restroom:SetAttribute("ZepetoClearance",true)
 restroom:SetAttribute("ClearInteriorHeightStuds",15)
+restroom:SetAttribute("BasinOrientation","HORIZONTAL_SHALLOW")
 restroom:SetAttribute("StallCount",3)
 restroom.Parent=root
 
@@ -94,8 +95,11 @@ part(fixtures,"VanityBase",Vector3.new(5.1,2.25,1.55),CFrame.new(38.2,2.18,-12.3
 part(fixtures,"VanityTop",Vector3.new(5.3,.24,1.72),CFrame.new(38.2,3.42,-12.35),C.stone,Enum.Material.Marble,0,false)
 part(fixtures,"VanityBacksplash",Vector3.new(5.45,1.25,.12),CFrame.new(38.2,4.05,-13.15),C.stone,Enum.Material.Marble,0,false)
 for i,x in ipairs({37.15,39.25}) do
- local basin=part(fixtures,"Basin_"..i,Vector3.new(1.45,.16,.88),CFrame.new(x,3.57,-12.35),C.white,Enum.Material.SmoothPlastic,0,false)
+ -- Roblox Cylinder length follows local X. Put the thin .16 dimension on local X,
+ -- then rotate Z 90 degrees so the basin stays shallow vertically and wide across X.
+ local basin=part(fixtures,"Basin_"..i,Vector3.new(.16,1.45,.88),CFrame.new(x,3.57,-12.35),C.white,Enum.Material.SmoothPlastic,0,false)
  basin.Shape=Enum.PartType.Cylinder;basin.CFrame=CFrame.new(x,3.57,-12.35)*CFrame.Angles(0,0,math.rad(90))
+ basin:SetAttribute("OrientationFix","HORIZONTAL_SHALLOW_V1")
  part(fixtures,"Faucet_"..i,Vector3.new(.12,.55,.12),CFrame.new(x,3.86,-12.85),C.metal,Enum.Material.Metal,0,false)
 end
 part(detail,"MirrorFrame",Vector3.new(5.7,5.6,.08),CFrame.new(38.2,7.7,-13.23),C.metal,Enum.Material.Metal,0,false)
@@ -170,4 +174,4 @@ for i,v in ipairs(clubFixturePositions) do
  surfaceLight(fixture,isBar and .70 or .56,isBar and 16 or 14,C.warm)
 end
 
-print("[BBYA] Shared Restroom true 15-clear v4 + Main Club soft lighting v2 online")
+print("[BBYA] Shared Restroom true 15-clear v5 + horizontal basins + Main Club soft lighting v2 online")
