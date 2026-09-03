@@ -1,0 +1,190 @@
+name: After School City Publish KPOP Bank
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/after-school-city-publish-kpop-bank.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: '12882a30a5c3b585f4a4eb0e19109442df4dc374'
+      BASE_LIVE_SHA: '91bf24724b017361f2ca23d1f17d057c21b2e76c'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+    steps:
+      - name: Checkout main authority
+        uses: actions/checkout@v4
+        with:
+          path: authority
+          fetch-depth: 0
+
+      - name: Verify previous LIVE receipt v51
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receipt = 'authority/deploy-status/after-school-city-publish-school-life-foundation-v1-2-0.json'
+          if(-not (Test-Path $receipt)){ throw 'Previous v51 receipt missing' }
+          $r = Get-Content $receipt -Raw | ConvertFrom-Json
+          if($r.status -ne 'LIVE_PUBLISHED'){ throw 'Previous receipt not LIVE_PUBLISHED' }
+          if([string]$r.sourceCommit -ne $env:BASE_LIVE_SHA){ throw "Previous LIVE source mismatch: $($r.sourceCommit)" }
+          if([int]$r.versionNumber -ne 51){ throw "Previous LIVE version mismatch: $($r.versionNumber)" }
+          if([string]$r.universeId -ne $env:UNIVERSE_ID -or [string]$r.placeId -ne $env:PLACE_ID){ throw 'Target mismatch' }
+          Write-Host 'PREVIOUS LIVE AUTHORITY PASS v51'
+
+      - name: Checkout exact KPOP source
+        uses: actions/checkout@v4
+        with:
+          repository: ardarawk-cloud/ACC-Roblox-maps
+          ref: 12882a30a5c3b585f4a4eb0e19109442df4dc374
+          path: asc-source
+          fetch-depth: 0
+
+      - name: Verify exact narrow KPOP delta
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $actual = (git -C asc-source rev-parse HEAD).Trim()
+          if($actual -ne $env:SOURCE_SHA){ throw "Source mismatch: $actual" }
+          $changed = @(git -C asc-source diff --name-only $env:BASE_LIVE_SHA $env:SOURCE_SHA)
+          $expected = @(
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua'
+          )
+          if($changed.Count -ne 2){ throw "Expected 2 changed files; got $($changed.Count): $($changed -join ', ')" }
+          foreach($p in $expected){ if($changed -notcontains $p){ throw "Missing expected KPOP file: $p" } }
+          foreach($p in $changed){ if($expected -notcontains $p){ throw "Scope violation: $p" } }
+          Write-Host 'KPOP NARROW DIFF PASS exact=2-files'
+
+      - name: Verify KPOP bank authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cfgPath = 'asc-source/maps/after-school-city/after-school-city.music-config.lua'
+          $playerPath = 'asc-source/maps/after-school-city/after-school-city.music-player.client.lua'
+          $cfg = Get-Content $cfgPath -Raw
+          $player = Get-Content $playerPath -Raw
+          foreach($token in @(
+            'Version = "0.9.0-kpop-bank-1"',
+            'BankName = "KPOP"',
+            'PlaybackSpeed = 0.5714285714'
+          )){ if($cfg -notmatch [regex]::Escape($token)){ throw "Missing KPOP config token: $token" } }
+          $trackCount = ([regex]::Matches($cfg, 'AssetId\s*=')).Count
+          if($trackCount -ne 18){ throw "Expected 18 KPOP tracks; got $trackCount" }
+          foreach($token in @(
+            'local playbackSpeed = math.clamp(tonumber(Config.PlaybackSpeed) or 1.0, 0.5, 2.0)',
+            'local bankName = tostring(Config.BankName or "MUSIC")',
+            'sound.PlaybackSpeed = playbackSpeed',
+            '"AFTER SCHOOL CITY  ·  " .. bankName'
+          )){ if($player -notmatch [regex]::Escape($token)){ throw "Missing music player token: $token" } }
+          if($player -match 'config PlaybackSpeed overridden to normal 1\.0'){ throw 'Old forced-normal playback override still present' }
+          Write-Host 'KPOP BANK QC PASS tracks=18 speed=0.5714285714'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+          if(-not $exe){ throw 'rojo.exe missing' }
+          $version = (& $exe.FullName --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact KPOP candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $place = Join-Path $env:RUNNER_TEMP 'after-school-city-kpop.rbxl'
+          & $env:ROJO_EXE build 'asc-source/maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
+          $sha = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          "PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA256=$sha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish exact KPOP build to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success = $false
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-kpop-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-kpop-publish-$attempt.json"
+            $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              $success = $true
+              break
+            }
+            Write-Host "ROBLOX UPLOAD attempt=$attempt HTTP $http: $body"
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp = Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version = [int]$resp.versionNumber
+          if($version -le 51){ throw "Invalid published version: $version" }
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH PASS version=$version"
+
+      - name: Persist KPOP LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git -C authority pull --rebase origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main before receipt write' }
+          $receiptPath = 'authority/deploy-status/after-school-city-publish-kpop-bank-v1.json'
+          $obj = [ordered]@{
+            status = 'LIVE_PUBLISHED'
+            project = 'AFTER SCHOOL CITY'
+            mode = 'KPOP_BANK_V1'
+            sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
+            sourceCommit = $env:SOURCE_SHA
+            baseLiveCommit = $env:BASE_LIVE_SHA
+            universeId = $env:UNIVERSE_ID
+            placeId = $env:PLACE_ID
+            versionNumber = [int]$env:PUBLISHED_VERSION
+            rojoVersion = $env:ROJO_VERSION
+            placeBytes = [int64]$env:PLACE_BYTES
+            placeSha256 = $env:PLACE_SHA256
+            bankName = 'KPOP'
+            trackCount = 18
+            playbackSpeed = 0.5714285714
+            runId = $env:GITHUB_RUN_ID
+            publishedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            note = 'KPOP bank live publish. Exact delta from v51 is limited to music config and personal music player. 18 approved audio assets; playback speed restores 1.75x-prepared files.'
+          }
+          $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+          git -C authority config user.name 'After School City Deploy Bot'
+          git -C authority config user.email 'actions@users.noreply.github.com'
+          git -C authority add deploy-status/after-school-city-publish-kpop-bank-v1.json
+          git -C authority commit -m "Record After School City KPOP LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
+          git -C authority push origin HEAD:main
+          if($LASTEXITCODE -ne 0){ throw 'Receipt push failed' }
+          Write-Host "LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:SOURCE_SHA"
