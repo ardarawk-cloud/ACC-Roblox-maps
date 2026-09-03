@@ -111,3 +111,127 @@ task.defer(responsive)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
 print("[BBYA] Mall UI v1 online: directory / tenant browse / cinema / indoor guide")
+
+-- MALL KPOP UI / CLUB-BLEED GUARD -------------------------------------------
+local SoundService=game:GetService("SoundService")
+local RunService=game:GetService("RunService")
+local oldKpop=pg:FindFirstChild("BBYAMallKPOPUI");if oldKpop then oldKpop:Destroy() end
+local kgui=Instance.new("ScreenGui");kgui.Name="BBYAMallKPOPUI";kgui.ResetOnSpawn=false;kgui.IgnoreGuiInset=true;kgui.DisplayOrder=72;kgui.Parent=pg
+local kToggle=button(kgui,"MallKPOPToggle","MALL · KPOP",UDim2.new(1,-142,1,-74),UDim2.fromOffset(124,42),Color3.fromRGB(42,23,39));kToggle.Visible=false;stroke(kToggle,C.pink,1,.35)
+local kPanel=Instance.new("Frame");kPanel.Name="MallKPOPPanel";kPanel.AnchorPoint=Vector2.new(1,1);kPanel.Position=UDim2.new(1,-18,1,-124);kPanel.Size=UDim2.fromOffset(330,430);kPanel.BackgroundColor3=C.bg;kPanel.BorderSizePixel=0;kPanel.Visible=false;kPanel.Parent=kgui;corner(kPanel,16);stroke(kPanel,C.pink,1,.35)
+label(kPanel,"Title","MALL · KPOP",UDim2.fromOffset(18,14),UDim2.new(1,-70,0,24),Enum.Font.GothamBlack,17,C.white)
+label(kPanel,"Bank","18 APPROVED · KPOP BANK",UDim2.fromOffset(18,39),UDim2.new(1,-70,0,18),Enum.Font.GothamBold,8,C.pink)
+local kClose=button(kPanel,"Close","×",UDim2.new(1,-48,0,12),UDim2.fromOffset(32,32),C.card2);kClose.TextSize=18
+local kNow=label(kPanel,"Now","NOW PLAYING · —",UDim2.fromOffset(18,65),UDim2.new(1,-36,0,34),Enum.Font.GothamBold,10,C.white)
+local kQueue=label(kPanel,"Queue","QUEUE · 0",UDim2.fromOffset(18,96),UDim2.new(1,-36,0,18),Enum.Font.GothamBold,8,C.muted)
+local kList=Instance.new("ScrollingFrame");kList.Name="KPOPList";kList.Position=UDim2.fromOffset(14,120);kList.Size=UDim2.new(1,-28,1,-134);kList.BackgroundTransparency=1;kList.BorderSizePixel=0;kList.ScrollBarThickness=3;kList.AutomaticCanvasSize=Enum.AutomaticSize.Y;kList.CanvasSize=UDim2.new();kList.Parent=kPanel
+local kLayout=Instance.new("UIListLayout");kLayout.Padding=UDim.new(0,6);kLayout.SortOrder=Enum.SortOrder.LayoutOrder;kLayout.Parent=kList
+local mallControl=ReplicatedStorage:FindFirstChild("BBYAMallMusicControl") or ReplicatedStorage:WaitForChild("BBYAMallMusicControl",30)
+local lastCatalogSignature=""
+
+local function insideMall()
+ local char=player.Character
+ local hrp=char and char:FindFirstChild("HumanoidRootPart")
+ if not hrp then return false end
+ local p=hrp.Position
+ return p.Y>-4 and p.Y<68 and math.abs(p.X)<=98 and p.Z>=285 and p.Z<=445
+end
+
+local function clearKRows()
+ for _,d in ipairs(kList:GetChildren()) do if d~=kLayout then d:Destroy() end end
+end
+
+local function rebuildKPOP()
+ local folder=ReplicatedStorage:FindFirstChild("BBYAMallPlaylistCatalog")
+ if not folder then return end
+ local indexed={}
+ for _,row in ipairs(folder:GetChildren()) do
+  if row:IsA("StringValue") then
+   local i=tonumber(row:GetAttribute("Index"))
+   if i then indexed[i]=row end
+  end
+ end
+ local sig=tostring(folder:GetAttribute("Count") or 0)..":"..tostring(#folder:GetChildren())
+ if sig==lastCatalogSignature and #kList:GetChildren()>1 then return end
+ lastCatalogSignature=sig
+ clearKRows()
+ for i=1,#indexed do
+  local row=indexed[i]
+  if row then
+   local b=button(kList,"KPOP_"..i,string.format("%02d  %s",i,row.Value),UDim2.new(),UDim2.new(1,-4,0,38),C.card)
+   b.LayoutOrder=i;b.TextXAlignment=Enum.TextXAlignment.Left;b.TextSize=10;stroke(b,C.pink,1,.75)
+   b.MouseButton1Click:Connect(function()
+    if mallControl and insideMall() then mallControl:FireServer("request",i) end
+   end)
+  end
+ end
+end
+
+local function hideGenericClubMusic(hideIt)
+ local menu=pg:FindFirstChild("BBYACommandMenuUI")
+ if menu then
+  for _,d in ipairs(menu:GetDescendants()) do
+   if d:IsA("TextButton") and d:GetAttribute("BBYACommandMenuId")=="MUSIC" then
+    if hideIt then
+     if d:GetAttribute("BBYAMallKPOPPrevVisible")==nil then d:SetAttribute("BBYAMallKPOPPrevVisible",d.Visible) end
+     d.Visible=false
+     d:SetAttribute("BBYAMallMusicSuppressed",true)
+    else
+     local prev=d:GetAttribute("BBYAMallKPOPPrevVisible")
+     if prev~=nil then d.Visible=prev==true;d:SetAttribute("BBYAMallKPOPPrevVisible",nil) end
+     d:SetAttribute("BBYAMallMusicSuppressed",nil)
+    end
+   end
+  end
+ end
+ local suite=pg:FindFirstChild("BBYAMusicSuiteV1")
+ if suite and suite:IsA("ScreenGui") then
+  if hideIt then
+   if suite:GetAttribute("BBYAMallKPOPPrevEnabled")==nil then suite:SetAttribute("BBYAMallKPOPPrevEnabled",suite.Enabled) end
+   suite.Enabled=false
+  else
+   local prev=suite:GetAttribute("BBYAMallKPOPPrevEnabled")
+   if prev~=nil then suite.Enabled=prev==true;suite:SetAttribute("BBYAMallKPOPPrevEnabled",nil) end
+  end
+ end
+end
+
+local function setMallAudioLocal(enabled)
+ local group=SoundService:FindFirstChild("BBYAMallMaster")
+ if group and group:IsA("SoundGroup") then
+  group.Volume=enabled and 1 or 0
+  group:SetAttribute("LocalMallAudible",enabled)
+ end
+end
+
+local function refreshKState()
+ local title=tostring(ReplicatedStorage:GetAttribute("BBYAMallCurrentTitle") or "—")
+ local idx=tonumber(ReplicatedStorage:GetAttribute("BBYAMallCurrentIndex")) or 0
+ local q=tonumber(ReplicatedStorage:GetAttribute("BBYAMallQueueCount")) or 0
+ kNow.Text=string.format("NOW PLAYING · %02d · %s",idx,title)
+ kQueue.Text="QUEUE · "..q.."  ·  PLAYLIST: MALL / KPOP"
+end
+
+kToggle.MouseButton1Click:Connect(function()
+ if insideMall() then kPanel.Visible=not kPanel.Visible;if kPanel.Visible then rebuildKPOP();refreshKState() end end
+end)
+kClose.MouseButton1Click:Connect(function()kPanel.Visible=false end)
+
+local lastInside=false
+local elapsed=0
+RunService.Heartbeat:Connect(function(dt)
+ elapsed+=dt
+ if elapsed<.20 then return end
+ elapsed=0
+ local inside=insideMall()
+ if inside~=lastInside then
+  lastInside=inside
+  kToggle.Visible=inside
+  if not inside then kPanel.Visible=false end
+ end
+ setMallAudioLocal(inside)
+ hideGenericClubMusic(inside)
+ if inside then rebuildKPOP();refreshKState() end
+end)
+
+print("[BBYA] Mall KPOP UI online: visible=MALL · KPOP, generic CLUB music suppressed inside Mall")
