@@ -1,4 +1,4 @@
--- BBYA MUSIC SUITE v1.1 — PREMIUM UI PHASE 2 + NATIVE MALL KPOP
+-- BBYA MUSIC SUITE v1 — PREMIUM UI PHASE 2
 -- Mobile-landscape cleanup: fixed sidebar, compact library, clean Now Playing, bounded Up Next/Queue.
 -- Server audio authority is unchanged; only player-facing music UI is replaced.
 
@@ -17,7 +17,6 @@ local remotes = RS:WaitForChild("BBYAClubRemotes", 30)
 if not remotes then return end
 local music = remotes:WaitForChild("Music", 30)
 local stateRemote = remotes:WaitForChild("State", 30)
-local mallControl = RS:WaitForChild("BBYAMallMusicControl", 30)
 
 local C = {
     bg = Color3.fromRGB(7, 8, 12),
@@ -41,7 +40,6 @@ local V = {
     FUNKOT = {label = "FUNKOT", accent = C.purple, group = "BBYAFunkotMaster"},
     SKATEPARK = {label = "SKATEPARK", accent = C.cyan, group = "BBYASkateparkMaster"},
     ROOFTOP = {label = "ROOFTOP", accent = C.gold, group = "BBYARooftopMaster"},
-    MALL = {label = "MALL", accent = C.gold, group = "BBYAMallMaster"},
     NONE = {label = "BBYA MUSIC", accent = C.purple},
 }
 
@@ -108,7 +106,6 @@ local function venueAt(p)
     if p.Y >= 20 and p.Y < 40 and math.abs(p.X) <= 58 and p.Z >= -46 and p.Z <= 46 then return "VIP" end
     if p.Y > -4 and p.Y < 34 and math.abs(p.X) < 61 and p.Z > 157 and p.Z < 253 then return "FUNKOT" end
     if p.Y > -4 and p.Y < 20 and math.abs(p.X) <= 61 and p.Z >= 72 and p.Z <= 152 then return "SKATEPARK" end
-    if p.Y >= -4 and p.Y <= 70 and p.X >= -96 and p.X <= 96 and p.Z >= 287 and p.Z <= 443 then return "MALL" end
     if p.Y > -4 and p.Y < 18 and math.abs(p.X) <= 61 and p.Z >= 0 and p.Z < 70 then return "MAIN" end
     return "NONE"
 end
@@ -432,43 +429,7 @@ local ql = Instance.new("UIListLayout")
 ql.Padding = UDim.new(0, 6)
 ql.Parent = qList
 
-local S = {tracks = {}, title = "", index = 0, playing = false, queue = 0, nextRequest = 0, autoNext = 0}
-
-local function mallTracks()
-    local folder = RS:FindFirstChild("BBYAMallPlaylistCatalog")
-    if not folder then return {} end
-    local indexed = {}
-    for _, row in ipairs(folder:GetChildren()) do
-        if row:IsA("StringValue") then
-            local i = tonumber(row:GetAttribute("Index"))
-            if i then
-                indexed[i] = {
-                    title = row.Value,
-                    assetId = tostring(row:GetAttribute("AssetId") or ""),
-                    playbackSpeed = tonumber(row:GetAttribute("PlaybackSpeed")) or 1,
-                    style = "KPOP • RANDOM MIX",
-                }
-            end
-        end
-    end
-    local out = {}
-    for i=1,#indexed do if indexed[i] then table.insert(out,indexed[i]) end end
-    return out
-end
-
-local function syncMall()
-    if venue() ~= "MALL" then return false end
-    local tracks = mallTracks()
-    if #tracks > 0 then S.tracks = tracks end
-    S.index = tonumber(RS:GetAttribute("BBYAMallCurrentIndex")) or 1
-    S.title = tostring(RS:GetAttribute("BBYAMallCurrentTitle") or "")
-    S.queue = tonumber(RS:GetAttribute("BBYAMallQueueCount")) or 0
-    S.nextRequest = tonumber(RS:GetAttribute("BBYAMallNextRequestIndex")) or 0
-    S.autoNext = tonumber(RS:GetAttribute("BBYAMallAutoNextIndex")) or 0
-    local sound = SS:FindFirstChild("BBYAMallMasterSound")
-    S.playing = sound and sound:IsA("Sound") and sound.IsPlaying or false
-    return true
-end
+local S = {tracks = {}, title = "", index = 0, playing = false, queue = 0, nextRequest = 0}
 
 local function clear(p, prefix)
     for _, x in ipairs(p:GetChildren()) do
@@ -497,20 +458,12 @@ end
 
 local function requestList()
     local v = venue()
-    if v == "MAIN" or v == "UNDERGROUND" then
-        music:FireServer("list")
-    elseif v == "MALL" then
-        syncMall()
-    end
+    if v == "MAIN" or v == "UNDERGROUND" then music:FireServer("list") end
 end
 
 local function request(i)
     local v = venue()
-    if v == "MAIN" or v == "UNDERGROUND" then
-        music:FireServer("request",i)
-    elseif v == "MALL" and mallControl then
-        mallControl:FireServer("request",i)
-    end
+    if v == "MAIN" or v == "UNDERGROUND" then music:FireServer("request",i) end
 end
 
 local function refreshChrome()
@@ -659,7 +612,6 @@ local function findSound()
         MAIN = {"BBYAClubDeckA", "BBYAClubDeckB"},
         UNDERGROUND = {"BBYABasementDeckA", "BBYABasementDeckB"},
         FUNKOT = {"BBYAFunkotDeck"},
-        MALL = {"BBYAMallMasterSound"},
     }
     for _, n in ipairs(known[v] or {}) do
         local x = SS:FindFirstChild(n, true) or workspace:FindFirstChild(n, true)
@@ -697,22 +649,14 @@ mute.Activated:Connect(function()
 end)
 
 prev.Activated:Connect(function()
-    local v = venue()
-    if not isAdmin() then return end
-    if v == "MALL" and mallControl then
-        mallControl:FireServer("prev")
-    elseif (v == "MAIN" or v == "UNDERGROUND") and #S.tracks > 0 then
+    if isAdmin() and (venue() == "MAIN" or venue() == "UNDERGROUND") and #S.tracks > 0 then
         local i = ((math.max(S.index, 1) - 2) % #S.tracks) + 1
         music:FireServer("play", i)
     end
 end)
 
 nextB.Activated:Connect(function()
-    local v = venue()
-    if not isAdmin() then return end
-    if v == "MALL" and mallControl then
-        mallControl:FireServer("next")
-    elseif v == "MAIN" or v == "UNDERGROUND" then
+    if isAdmin() and (venue() == "MAIN" or venue() == "UNDERGROUND") then
         music:FireServer("next")
     end
 end)
@@ -730,7 +674,7 @@ end
 
 stateRemote.OnClientEvent:Connect(function(kind, data)
     if kind == "playlist" and type(data) == "table" then
-        if venue() ~= "MALL" then S.tracks = data end
+        S.tracks = data
         if gui.Enabled then refresh() end
     elseif kind == "music" and type(data) == "table" then
         local v = tostring(data.venue or venue())
@@ -753,28 +697,6 @@ player:GetAttributeChangedSignal("BBYAAudioVenue"):Connect(function()
 end)
 player:GetAttributeChangedSignal("BBYAAdmin"):Connect(function() if gui.Enabled then refreshNow() end end)
 player:GetAttributeChangedSignal("BBYAMusicMuted"):Connect(function() if gui.Enabled then refreshNow() end end)
-
-for _, attr in ipairs({
-    "BBYAMallPlaylistCount", "BBYAMallCurrentIndex", "BBYAMallCurrentTitle",
-    "BBYAMallCurrentAssetId", "BBYAMallQueueCount", "BBYAMallNextRequestIndex",
-    "BBYAMallAutoNextIndex", "BBYAMallShuffleRemaining",
-}) do
-    RS:GetAttributeChangedSignal(attr):Connect(function()
-        if venue() == "MALL" then
-            syncMall()
-            if gui.Enabled then refresh() end
-        end
-    end)
-end
-
-RS.ChildAdded:Connect(function(child)
-    if child.Name == "BBYAMallPlaylistCatalog" and venue() == "MALL" then
-        task.defer(function()
-            syncMall()
-            if gui.Enabled then refresh() end
-        end)
-    end
-end)
 
 local bound = {}
 local function bind()
@@ -833,7 +755,6 @@ RunService.RenderStepped:Connect(function(dt)
     acc += dt
     if acc < 0.1 then return end
     acc = 0
-    if venue() == "MALL" then syncMall() end
     local s = findSound()
     local loud = s and s.PlaybackLoudness or 0
     local norm = math.clamp(loud / 600, 0, 1)
@@ -863,4 +784,4 @@ task.defer(function()
     task.delay(1.6, bind)
 end)
 
-print("[BBYA] MUSIC SUITE v1.1 online — native MALL KPOP + premium mobile Library / Now Playing / Queue")
+print("[BBYA] MUSIC SUITE v1 online — premium mobile Phase 2 Library / Now Playing / Queue")
