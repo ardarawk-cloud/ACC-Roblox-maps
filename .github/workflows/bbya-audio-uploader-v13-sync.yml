@@ -1,0 +1,97 @@
+name: BBYA Sync Talon Audio Uploader v1.3
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    if: startsWith(github.event.issue.title, 'BBYA SYNC AUDIO UPLOADER V1.3')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
+      TARGET_REPO: balientertaiment-web/Roblox-backup-publish
+
+    steps:
+      - name: Checkout approved v1.3 source
+        uses: actions/checkout@v4
+
+      - name: Sync v1.3 script and workflow through approved bridge token
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "${BRIDGE_TOKEN:-}" ] || { echo 'BALI_ENTERTAIMENT_TOKEN missing'; exit 20; }
+
+          put_file() {
+            local source_path="$1"
+            local target_path="$2"
+            local api="https://api.github.com/repos/${TARGET_REPO}/contents/${target_path}"
+            local current sha content payload http
+
+            current="$(curl -sS --location \
+              -H "Authorization: Bearer ${BRIDGE_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "$api")"
+            sha="$(printf '%s' "$current" | jq -r '.sha // empty')"
+            content="$(base64 -w0 "$source_path")"
+            payload="$(jq -nc \
+              --arg message 'Sync BBYA Music Manager simple uploader v1.3' \
+              --arg content "$content" \
+              --arg sha "$sha" \
+              '{message:$message,content:$content,branch:"main"} + (if $sha == "" then {} else {sha:$sha} end)')"
+
+            http="$(curl -sS --location \
+              -o /tmp/bbya-sync-response.json \
+              -w '%{http_code}' \
+              -X PUT \
+              -H "Authorization: Bearer ${BRIDGE_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              -H 'Content-Type: application/json' \
+              "$api" \
+              -d "$payload")"
+
+            if [ "$http" != '200' ] && [ "$http" != '201' ]; then
+              echo "Sync failed target=${target_path} HTTP=${http}"
+              jq '{message,documentation_url,status}' /tmp/bbya-sync-response.json || true
+              exit 21
+            fi
+            echo "Synced ${target_path} HTTP=${http}"
+          }
+
+          put_file \
+            'scripts/bbya-music-simple-upload-v13.py' \
+            'scripts/bbya-music-simple-upload-v13.py'
+          put_file \
+            'scripts/bbya-music-simple-upload-v13.workflow.yml' \
+            '.github/workflows/bbya-music-simple-upload-v13.yml'
+
+      - name: Mark sync success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'SYNC_OK — Talon uploader now uses BBYA Music Manager v1.3 (1.75x / PlaybackSpeed 0.5714285714, upload + moderation only).',
+            });
+
+      - name: Mark sync failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'SYNC_FAILED — bridge token could not update the Talon uploader. No audio upload or map publish was attempted.',
+            });
