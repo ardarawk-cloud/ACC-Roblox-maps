@@ -61,6 +61,7 @@ local ACCESSORY_MAP={Hat="Hat",HairAccessory="Hair",FaceAccessory="Face",NeckAcc
 local DIRECT_DESC={Head="Head",Face="Face",Torso="Torso",RightArm="RightArm",LeftArm="LeftArm",LeftLeg="LeftLeg",RightLeg="RightLeg",ClimbAnimation="ClimbAnimation",FallAnimation="FallAnimation",IdleAnimation="IdleAnimation",JumpAnimation="JumpAnimation",RunAnimation="RunAnimation",SwimAnimation="SwimAnimation",WalkAnimation="WalkAnimation",MoodAnimation="MoodAnimation"}
 local TYPE_BY_VALUE={}
 for _,e in ipairs(Enum.AvatarAssetType:GetEnumItems())do TYPE_BY_VALUE[e.Value]=e.Name end
+local ASSET_TYPE_CACHE={}
 
 local STORE={
  FASHION={tenant="luma",title="LUMA FASHION",sub="Fashion & layered clothing",catalog="PAKAIAN",assetTypes=TYPES.CLOTHES,keyword="",accent=C.pink},
@@ -183,17 +184,47 @@ local function getDescription()
 end
 local function cleanModel(m)for _,d in ipairs(m:GetDescendants())do if d:IsA("Script")or d:IsA("LocalScript")then d:Destroy()elseif d:IsA("BasePart")then d.Anchored=true;d.CanCollide=false;d.CanTouch=false;d.CanQuery=false end end end
 local function framePreviewModel(m)
- if not m then return false end;m.Parent=world;cleanModel(m);local center,size=bodyBounds(m);if not center or not size then return false end
+ if not m then return false end
+ local incoming=m.Parent~=world
+ cleanModel(m)
+ local center,size=bodyBounds(m)
+ if not center or not size then if incoming then m:Destroy()end;return false end
+ if incoming then world:ClearAllChildren();m.Parent=world end
  local rp=m:FindFirstChild("HumanoidRootPart",true);local forward=rp and rp.CFrame.LookVector or Vector3.new(0,0,-1);forward=Vector3.new(forward.X,0,forward.Z);if forward.Magnitude<.01 then forward=Vector3.new(0,0,-1)else forward=forward.Unit end
  local h=math.clamp(size.Y,4.5,8.5);local w=math.clamp(math.max(size.X,size.Z),2.5,6);local target=center;vcam.FieldOfView=34;vcam.CFrame=CFrame.lookAt(target+forward*math.max(h*1.72,w*1.95),target,Vector3.yAxis);return true
 end
-local function render(desc)world:ClearAllChildren();if not desc then return false end;local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);if not ok or not m then return false end;return framePreviewModel(m)end
-local function renderLiveCharacter()world:ClearAllChildren();local ch=player.Character;if not ch then return false end;local old=ch.Archivable;ch.Archivable=true;local ok,m=pcall(function()return ch:Clone()end);ch.Archivable=old;if not ok or not m then return false end;return framePreviewModel(m)end
+local function render(desc)if not desc then return false end;local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);if not ok or not m then return false end;return framePreviewModel(m)end
+local function renderLiveCharacter()local ch=player.Character;if not ch then return false end;local old=ch.Archivable;ch.Archivable=true;local ok,m=pcall(function()return ch:Clone()end);ch.Archivable=old;if not ok or not m then return false end;return framePreviewModel(m)end
 local function resetPreview()baseDescription=getDescription();previewDescription=baseDescription and baseDescription:Clone()or nil;if not renderLiveCharacter()then render(previewDescription)end;selectedLabel.Text="Avatar saat ini";selectedPrice.Text=""end
+local function typeNameFromRaw(raw)
+ local t=nil
+ if typeof(raw)=="EnumItem"then t=raw.Name
+ elseif tonumber(raw)then t=TYPE_BY_VALUE[tonumber(raw)]
+ else t=tostring(raw or ""):gsub("Enum%.AvatarAssetType%.","")end
+ if t==""or t=="Unknown"or tonumber(t)then return nil end
+ return t
+end
+local function supportedAssetType(t)return t and (t=="Shirt"or t=="TShirt"or t=="Pants"or DIRECT_DESC[t]~=nil or ACCESSORY_MAP[t]~=nil)end
 local function resolveAssetType(raw,id)
- if typeof(raw)=="EnumItem"then return raw.Name end;if tonumber(raw)and TYPE_BY_VALUE[tonumber(raw)]then return TYPE_BY_VALUE[tonumber(raw)]end
- local s=tostring(raw or ""):gsub("Enum%.AvatarAssetType%.","");if s~=""and not tonumber(s)then return s end
- if id then local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end);if ok and info then return TYPE_BY_VALUE[tonumber(info.AssetTypeId)]end end
+ id=tonumber(id)
+ if id and ASSET_TYPE_CACHE[id]then return ASSET_TYPE_CACHE[id]end
+
+ -- SearchCatalogAsync can return an absent/Unknown AssetType. ProductInfo was
+ -- the last runtime-proven source for TRY, so resolve from the asset itself first.
+ if id then
+  local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end)
+  local t=ok and info and TYPE_BY_VALUE[tonumber(info.AssetTypeId)]or nil
+  if supportedAssetType(t)then ASSET_TYPE_CACHE[id]=t;return t end
+ end
+
+ local t=typeNameFromRaw(raw)
+ if supportedAssetType(t)then if id then ASSET_TYPE_CACHE[id]=t end;return t end
+
+ if id then
+  local ok,details=pcall(function()return AvatarEditorService:GetItemDetails(id,Enum.AvatarItemType.Asset)end)
+  t=ok and details and typeNameFromRaw(details.AssetType or details.AssetTypeId)or nil
+  if supportedAssetType(t)then ASSET_TYPE_CACHE[id]=t;return t end
+ end
 end
 local function applyAssetToDescription(d,id,t)
  if not d or not id or not t then return false end;if t=="Shirt"then d.Shirt=id;return true elseif t=="TShirt"then d.GraphicTShirt=id;return true elseif t=="Pants"then d.Pants=id;return true end
@@ -204,7 +235,10 @@ local function applyAssetToDescription(d,id,t)
 end
 local function applyItem(it)
  if not it then return false end;if not previewDescription then previewDescription=getDescription()end;local d=previewDescription and previewDescription:Clone();if not d then return false end
- local id=idOf(it);if not id or itemTypeOf(it)=="Bundle"then return false end;local changed=applyAssetToDescription(d,id,resolveAssetType(it.AssetType,id));if changed then previewDescription=d;render(d);selectedLabel.Text="TRY • "..nameOf(it);selectedPrice.Text=priceText(it)end;return changed
+ local id=idOf(it);if not id or itemTypeOf(it)=="Bundle"then return false end
+ local changed=applyAssetToDescription(d,id,resolveAssetType(it.AssetType,id))
+ if not changed or not render(d)then return false end
+ previewDescription=d;selectedLabel.Text="TRY • "..nameOf(it);selectedPrice.Text=priceText(it);return true
 end
 local function selectItem(it)selected=it;selectedLabel.Text=nameOf(it);selectedPrice.Text=priceText(it)end
 
