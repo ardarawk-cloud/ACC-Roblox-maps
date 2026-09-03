@@ -1,13 +1,13 @@
--- BBYA SOCIAL HUB — MALL TEST bottom safe-area + selection actions fix v2
+-- BBYA SOCIAL HUB — MALL TEST bottom safe-area + selection actions fix v3
 -- Publish trigger only: canonical selection-action fix lives in 133-mall-robux-commerce.client.lua.
--- Keeps the V12 top position unchanged, raises only the lower edge by exactly 50 px,
+-- Keeps the V12 top position unchanged, raises only the lower edge by exactly 80 px,
 -- and exposes TRY / CART / SAVE / BUY immediately after a live product card is selected.
 
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 
-local CUT=50
+local CUT=80
 local connections={}
 local guard=false
 
@@ -81,4 +81,4 @@ pg.ChildRemoved:Connect(function(ch)
  if ch.Name=="BBYAMallRobuxCommerceUI"then clearConnections()end
 end)
 
-print("[BBYA] Mall bottom safe + selection actions fix active: lower edge +50px safe, TRY panel on product select")
+print("[BBYA] Mall bottom safe + selection actions fix active: lower edge +80px safe, TRY panel on product select")
