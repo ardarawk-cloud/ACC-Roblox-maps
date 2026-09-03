@@ -45,17 +45,19 @@ jobs:
         run: |
           ACTUAL="$(sha256sum maps/mount-bbya/place.rbxlx | awk '{print $1}')"
           BYTES="$(wc -c < maps/mount-bbya/place.rbxlx | tr -d ' ')"
-          test "$ACTUAL" = 'be0ad0129128855278ff18292d0bc6d0cb659446b6fe27c63db45205d88760ec'
-          test "$BYTES" = '65885'
+          test "$ACTUAL" = '3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa'
+          test "$BYTES" = '66386'
           grep -q '4187755690' maps/mount-bbya/.publish-v66-scale-pass
           grep -q '11832985967' maps/mount-bbya/.publish-v66-scale-pass
           grep -q 'REALISTIC_SCALE_SIGN_CLEANUP' maps/mount-bbya/.publish-v66-scale-pass
-          echo '[MOUNT BBYA] v6.6 scale-pass digest + target lock verified'
+          grep -q '3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa' maps/mount-bbya/.publish-v66-scale-pass
+          grep -q '66386' maps/mount-bbya/.publish-v66-scale-pass
+          echo '[MOUNT BBYA] v6.6 exact-branch digest + target lock verified'
       - name: Publish verified Mount BBYA v6.6 scale pass
         if: github.event_name == 'push' && hashFiles('maps/mount-bbya/.publish-v66-scale-pass') != ''
         env:
           ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
-          EXPECTED_RBXLX_SHA256: be0ad0129128855278ff18292d0bc6d0cb659446b6fe27c63db45205d88760ec
+          EXPECTED_RBXLX_SHA256: 3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa
           SOURCE_COMMIT: ${{ github.sha }}
         run: node scripts/publish-mount-bbya.js
       - name: Upload Phase 1 candidate and publish receipt
