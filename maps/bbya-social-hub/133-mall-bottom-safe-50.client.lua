@@ -1,4 +1,5 @@
 -- BBYA SOCIAL HUB — MALL TEST bottom safe-area + selection actions fix v2
+-- Publish trigger only: canonical selection-action fix lives in 133-mall-robux-commerce.client.lua.
 -- Keeps the V12 top position unchanged, raises only the lower edge by exactly 50 px,
 -- and exposes TRY / CART / SAVE / BUY immediately after a live product card is selected.
 
