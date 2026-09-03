@@ -61,11 +61,15 @@ jobs:
           foreach($m in @('MALL VERTICAL SPACING 20 + CINEMA v16','local LEVELS={1,21,41,61}','FloorSpacingStuds",20','VerticalAuthority","V16_20_STUD')){
             if(-not $v.Contains($m)){throw "Missing 20-stud vertical marker: $m"}
           }
-          $g=Get-Content 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua' -Raw
-          foreach($m in @('FloorSpacing20DecorAligned','MallDecor20StudAligned','MallStairMobileWidth','V18_WIDE','19.35,39.35,59.35,79.35')){
-            if(-not $g.Contains($m)){throw "Missing decor/stair alignment marker: $m"}
+          foreach($m in @('MallStairMobileWidth','V19_MID_CONNECTION_ONLY','ExitLandingsKeptClear','local flightWidth=7.4','part("MidLanding",Vector3.new(17.6,.48,4.5)','part("LowerLanding",Vector3.new(8.6,.42,3.1)','part("UpperLanding",Vector3.new(8.6,.42,3.1)')){
+            if(-not $v.Contains($m)){throw "Missing stair builder marker: $m"}
           }
-          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20 decor=aligned stairs=wide'
+          $g=Get-Content 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua' -Raw
+          foreach($m in @('FloorSpacing20DecorAligned','MallDecor20StudAligned','19.35,39.35,59.35,79.35')){
+            if(-not $g.Contains($m)){throw "Missing decor alignment marker: $m"}
+          }
+          if($g.Contains('d.Name=="LowerLanding" or d.Name=="UpperLanding"')){throw 'Late stair exit-landing patch still present'}
+          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20 decor=aligned stairs=mid-connection-only'
 
       - name: Enable third party sales in test build only
         shell: powershell

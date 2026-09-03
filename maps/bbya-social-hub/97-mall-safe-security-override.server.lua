@@ -512,51 +512,10 @@ for level,y in ipairs({19.35,39.35,59.35,79.35}) do
  end
 end
 
--- Mobile circulation cleanup: widen the v16 switchback stairs without changing their route.
-local stairDeadline=os.clock()+45
-local stairs=nil
-repeat
- stairs=mall:FindFirstChild("Escalators")
- if stairs and stairs:GetAttribute("Pass")=="V16_20_STUD_SWITCHBACK" then break end
- task.wait(.20)
-until os.clock()>=stairDeadline
-if stairs then
- for _,stair in ipairs(stairs:GetChildren()) do
-  if stair:IsA("Model") then
-   local flightA=stair:FindFirstChild("FlightA_Step0")
-   local flightB=stair:FindFirstChild("FlightB_Step0")
-   for _,d in ipairs(stair:GetChildren()) do
-    if d:IsA("BasePart") then
-     if d.Name:match("^FlightA_Step") or d.Name:match("^FlightB_Step") then
-      d.Size=Vector3.new(7.4,d.Size.Y,d.Size.Z)
-     elseif d.Name=="MidLanding" then
-      d.Size=Vector3.new(17.6,d.Size.Y,4.5)
-     elseif d.Name=="LowerLanding" or d.Name=="UpperLanding" then
-      d.Size=Vector3.new(10.8,d.Size.Y,4.1)
-     elseif d.Name=="OuterRailA" or d.Name=="InnerRailA" then
-      if flightA then
-       local side=(d.Position.X>=flightA.Position.X) and 1 or -1
-       d.CFrame=CFrame.new(flightA.Position.X+side*3.85,d.Position.Y,d.Position.Z)*d.CFrame.Rotation
-      end
-     elseif d.Name=="OuterRailB" or d.Name=="InnerRailB" then
-      if flightB then
-       local side=(d.Position.X>=flightB.Position.X) and 1 or -1
-       d.CFrame=CFrame.new(flightB.Position.X+side*3.85,d.Position.Y,d.Position.Z)*d.CFrame.Rotation
-      end
-     end
-    end
-   end
-   stair:SetAttribute("MobileWalkWidthStuds",7.4)
-  end
- end
- stairs:SetAttribute("MobileWidthPass","V18_WIDE")
- mall:SetAttribute("MallStairMobileWidth","V18_WIDE")
-end
-
 mall:SetAttribute("StorefrontAuthority","V6")
 mall:SetAttribute("MallMobileVisualAuthority","PREMIUM_GALLERY_V6")
 mall:SetAttribute("PremiumSecurityUntouchedMall",true)
 mall:SetAttribute("MallDecor20StudAligned","V18")
 out:SetAttribute("RebuiltTenants",rebuilt)
 out:SetAttribute("NativeStores",nativeCount)
-print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; 20-stud decor aligned; stairs widened",rebuilt,nativeCount))
+print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; 20-stud decor aligned",rebuilt,nativeCount))

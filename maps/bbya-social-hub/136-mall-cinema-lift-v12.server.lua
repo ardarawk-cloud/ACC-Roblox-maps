@@ -311,9 +311,13 @@ end
 local function buildSwitchback20(name,baseY,edgeZ,dir,xBase)
  local stair=Instance.new("Model")
  stair.Name=name
+ stair:SetAttribute("MobileWalkWidthStuds",7.4)
+ stair:SetAttribute("ExitLandingsKeptClear",true)
  stair.Parent=escal
  local xA=xBase-3.55
  local xB=xBase+3.55
+ local flightWidth=7.4
+ local railOffset=3.85
  local depth=1.42
  local run=.90
  local stepH=.46
@@ -323,30 +327,34 @@ local function buildSwitchback20(name,baseY,edgeZ,dir,xBase)
  for i=0,9 do
   local z=firstStart+dir*(i*run)
   local y=baseY+.72+i
-  part("FlightA_Step"..i,Vector3.new(5.9,stepH,depth),CFrame.new(xA,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
+  part("FlightA_Step"..i,Vector3.new(flightWidth,stepH,depth),CFrame.new(xA,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
  end
- part("MidLanding",Vector3.new(14.5,.48,3.6),CFrame.new(xBase,baseY+10.0,midZ),C.warmStone,Enum.Material.Slate,true,stair,0)
+ -- The widened surface belongs at the switchback connection only. Keep the
+ -- lower/upper exit landings compact so they do not cover the floor route.
+ part("MidLanding",Vector3.new(17.6,.48,4.5),CFrame.new(xBase,baseY+10.0,midZ),C.warmStone,Enum.Material.Slate,true,stair,0)
  for i=0,9 do
   local z=midZ-dir*(1.15+i*run)
   local y=baseY+10.72+i
-  part("FlightB_Step"..i,Vector3.new(5.9,stepH,depth),CFrame.new(xB,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
+  part("FlightB_Step"..i,Vector3.new(flightWidth,stepH,depth),CFrame.new(xB,y,z),C.graphite,Enum.Material.Metal,true,stair,0)
  end
  part("LowerLanding",Vector3.new(8.6,.42,3.1),CFrame.new(xA,baseY+.22,edgeZ+dir*.72),C.warmStone,Enum.Material.Slate,true,stair,0)
  part("UpperLanding",Vector3.new(8.6,.42,3.1),CFrame.new(xB,baseY+20.22,edgeZ+dir*.72),C.warmStone,Enum.Material.Slate,true,stair,0)
 
- local firstA=Vector3.new(xA-3.0,baseY+2.0,firstStart)
- local firstB=Vector3.new(xA-3.0,baseY+10.4,midZ-dir*.3)
- local secondA=Vector3.new(xB+3.0,baseY+11.0,midZ-dir*.3)
- local secondB=Vector3.new(xB+3.0,baseY+20.9,edgeZ+dir*1.0)
+ local firstA=Vector3.new(xA-railOffset,baseY+2.0,firstStart)
+ local firstB=Vector3.new(xA-railOffset,baseY+10.4,midZ-dir*.3)
+ local secondA=Vector3.new(xB+railOffset,baseY+11.0,midZ-dir*.3)
+ local secondB=Vector3.new(xB+railOffset,baseY+20.9,edgeZ+dir*1.0)
  beamBetween("OuterRailA",firstA,firstB,C.gold,stair,.14)
  beamBetween("OuterRailB",secondA,secondB,C.gold,stair,.14)
- beamBetween("InnerRailA",Vector3.new(xA+3.0,firstA.Y,firstA.Z),Vector3.new(xA+3.0,firstB.Y,firstB.Z),C.gold,stair,.11)
- beamBetween("InnerRailB",Vector3.new(xB-3.0,secondA.Y,secondA.Z),Vector3.new(xB-3.0,secondB.Y,secondB.Z),C.gold,stair,.11)
+ beamBetween("InnerRailA",Vector3.new(xA+railOffset,firstA.Y,firstA.Z),Vector3.new(xA+railOffset,firstB.Y,firstB.Z),C.gold,stair,.11)
+ beamBetween("InnerRailB",Vector3.new(xB-railOffset,secondA.Y,secondA.Z),Vector3.new(xB-railOffset,secondB.Y,secondB.Z),C.gold,stair,.11)
 end
 
 buildSwitchback20("L1_L2_SouthWest",LEVELS[1],338,1,-18)
 buildSwitchback20("L2_L3_NorthEast",LEVELS[2],392,-1,18)
 buildSwitchback20("L3_L4_SouthWest",LEVELS[3],338,1,-18)
+escal:SetAttribute("MobileWidthPass","V19_MID_CONNECTION_ONLY")
+mall:SetAttribute("MallStairMobileWidth","V19_MID_CONNECTION_ONLY")
 
 -- -----------------------------------------------------------------------------
 -- 3) REAR-WALL LIFT AT 20-STUD LEVELS
