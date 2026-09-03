@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v5
+-- BBYA SOCIAL HUB — VENUE-AWARE MENU MUSIC v6
 -- One premium Music Suite, always bound to the player's actual venue.
--- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP/NIGHT_MARKET
+-- MAIN/UNDERGROUND keep their native Music remote. VIP/FUNKOT/SKATEPARK/ROOFTOP/NIGHT_MARKET/MALL
 -- are bridged here so stale playlists never leak between venues and visible controls work.
 
 local Players=game:GetService("Players")
@@ -12,8 +12,8 @@ local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
 
-local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NIGHT_MARKET="PASAR MALAM",NONE="MUSIC"}
-local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82),NIGHT_MARKET=Color3.fromRGB(232,181,82)}
+local LABELS={MAIN="CLUB",UNDERGROUND="UNDERGROUND",VIP="VIP",FUNKOT="FUNKOT",SKATEPARK="SKATEPARK",ROOFTOP="ROOFTOP",NIGHT_MARKET="PASAR MALAM",MALL="MALL",NONE="MUSIC"}
+local ACCENT={VIP=Color3.fromRGB(232,181,82),FUNKOT=Color3.fromRGB(142,77,255),SKATEPARK=Color3.fromRGB(38,200,225),ROOFTOP=Color3.fromRGB(232,181,82),NIGHT_MARKET=Color3.fromRGB(232,181,82),MALL=Color3.fromRGB(255,191,88)}
 local WHITE=Color3.fromRGB(247,247,250)
 local MUTED=Color3.fromRGB(146,150,164)
 local CARD=Color3.fromRGB(21,22,30)
@@ -178,6 +178,7 @@ local vipRemote=remotes and remotes:FindFirstChild("VIPMusic")
 local funkotRemote=remotes and remotes:FindFirstChild("FunkotMusic")
 local skateControl=ReplicatedStorage:FindFirstChild("BBYASkateparkMusicControl") or ReplicatedStorage:WaitForChild("BBYASkateparkMusicControl",30)
 local rooftopControl=ReplicatedStorage:FindFirstChild("BBYARooftopMusicControl") or ReplicatedStorage:WaitForChild("BBYARooftopMusicControl",30)
+local mallControl=ReplicatedStorage:FindFirstChild("BBYAMallMusicControl") or ReplicatedStorage:WaitForChild("BBYAMallMusicControl",30)
 local cache={VIP={tracks={},state={}},FUNKOT={tracks={},state={}}}
 
 local function normalizeList(list)
@@ -203,6 +204,7 @@ local function tracksFor(v)
  if v=="SKATEPARK" then return folderTracks("BBYASkateparkPlaylistCatalog") end
  if v=="ROOFTOP" then return folderTracks("BBYARooftopPlaylistCatalog") end
  if v=="NIGHT_MARKET" then return folderTracks("BBYANightMarketPlaylistCatalog") end
+ if v=="MALL" then return folderTracks("BBYAMallPlaylistCatalog") end
  if cache[v] then return cache[v].tracks end
  return {}
 end
@@ -238,6 +240,12 @@ local function venueState(v,tracks)
   s.index=tonumber(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentIndex")) or 1
   s.title=tostring(ReplicatedStorage:GetAttribute("BBYANightMarketCurrentTitle") or "")
   s.sound=SoundService:FindFirstChild("BBYANightMarketMasterSound")
+ elseif v=="MALL" then
+  s.index=tonumber(ReplicatedStorage:GetAttribute("BBYAMallCurrentIndex")) or 1
+  s.title=tostring(ReplicatedStorage:GetAttribute("BBYAMallCurrentTitle") or "")
+  s.queue=tonumber(ReplicatedStorage:GetAttribute("BBYAMallQueueCount")) or 0
+  s.nextRequest=tonumber(ReplicatedStorage:GetAttribute("BBYAMallNextRequestIndex")) or 0
+  s.sound=SoundService:FindFirstChild("BBYAMallMasterSound")
  elseif v=="VIP" then
   local c=cache.VIP.state
   s.index=tonumber(c.index or ReplicatedStorage:GetAttribute("BBYAVIPCurrentIndex")) or 1
@@ -257,6 +265,7 @@ end
 local function sendRequest(v,i)
  if v=="SKATEPARK" and skateControl then skateControl:FireServer("request",i)
  elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer("request",i)
+ elseif v=="MALL" and mallControl then mallControl:FireServer("request",i)
  elseif v=="VIP" and vipRemote and isAdmin() then vipRemote:FireServer("request",i)
  elseif v=="FUNKOT" and funkotRemote then funkotRemote:FireServer("request",i) end
 end
@@ -264,6 +273,7 @@ local function sendTransport(v,action)
  if not isAdmin() then return end
  if v=="SKATEPARK" and skateControl then skateControl:FireServer(action)
  elseif v=="ROOFTOP" and rooftopControl then rooftopControl:FireServer(action)
+ elseif v=="MALL" and mallControl then mallControl:FireServer(action)
  elseif v=="VIP" and vipRemote then vipRemote:FireServer(action=="prev" and "previous" or action)
  elseif v=="FUNKOT" and funkotRemote and action=="next" then funkotRemote:FireServer("next") end
 end
@@ -278,7 +288,7 @@ local function rebuildLibrary(suite,lib,v,tracks,state)
  local shown=0;local a=ACCENT[v] or WHITE
  for i,t in ipairs(tracks) do
   local venueMeta=LABELS[v] or v
-  local meta=(v=="SKATEPARK" and math.abs((t.playbackSpeed or 1)-1)>.001) and string.format("%s • %.2fx",venueMeta,t.playbackSpeed) or venueMeta
+  local meta=((v=="SKATEPARK" or v=="MALL") and math.abs((t.playbackSpeed or 1)-1)>.001) and string.format("%s • %.2fx",venueMeta,t.playbackSpeed) or venueMeta
   if q=="" or string.find(string.lower(t.title.." "..meta),q,1,true) then
    shown+=1
    local r=Instance.new("Frame");r.Name="Track_"..i;r.LayoutOrder=i;r.Size=UDim2.new(1,-2,0,42);r.BackgroundColor3=CARD;r.BorderSizePixel=0;r.Parent=list;corner(r,8)
@@ -340,11 +350,11 @@ local function bindTransport(nowPage,v)
    transportBound[b]=true
    b.Activated:Connect(function()
     local venueNow=currentVenue()
-    if venueNow=="VIP" or venueNow=="FUNKOT" or venueNow=="SKATEPARK" or venueNow=="ROOFTOP" then sendTransport(venueNow,action) end
+    if venueNow=="VIP" or venueNow=="FUNKOT" or venueNow=="SKATEPARK" or venueNow=="ROOFTOP" or venueNow=="MALL" then sendTransport(venueNow,action) end
    end)
   end
  end
- if v=="VIP" or v=="SKATEPARK" or v=="ROOFTOP" then
+ if v=="VIP" or v=="SKATEPARK" or v=="ROOFTOP" or v=="MALL" then
   if nextB then nextB.Visible=isAdmin();nextB.Active=isAdmin() end
   if prev then prev.Visible=isAdmin();prev.Active=isAdmin() end
  elseif v=="FUNKOT" then
@@ -379,7 +389,7 @@ local function refreshPeripheral(force)
  if elapsed and elapsed:IsA("TextLabel") then elapsed.Text=fmt(state.sound and state.sound.TimePosition or 0) end
  if duration and duration:IsA("TextLabel") then duration.Text=fmt(state.sound and state.sound.TimeLength or 0) end
  bindTransport(nowPage,v);rebuildUpNext(nowPage,v,tracks,state);rebuildQueue(queuePage,v,tracks,state)
- suite:SetAttribute("BBYAAllVenueMusicSuiteBridge","V5")
+ suite:SetAttribute("BBYAAllVenueMusicSuiteBridge","V6")
 end
 
 local function onVenueChanged()
@@ -397,4 +407,4 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 for i=0,12 do task.delay(i*.25,function()onVenueChanged()end) end
-print("[BBYA] Venue-aware menu music v5 online: MAIN + UNDERGROUND native; VIP + FUNKOT + SKATEPARK + ROOFTOP + PASAR MALAM bound to their own playlists")
+print("[BBYA] Venue-aware menu music v6 online: MAIN + UNDERGROUND native; VIP + FUNKOT + SKATEPARK + ROOFTOP + PASAR MALAM + MALL bound to their own playlists")
