@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3.2
--- ONE Developer Product authority for DJ Wall and Support.
--- Products are discovered from the CURRENT universe; cross-game product IDs are never blindly prompted.
+-- BBYA SOCIAL HUB — MESSAGE NOTIFICATION + MONETIZATION AUTHORITY v3.3
+-- Paid community messages are delivered as in-game notifications, not DJ Wall screen content.
+-- ONE Developer Product authority remains shared by this message entry point and Support discovery.
+-- Products are discovered from the CURRENT universe; UI price is never allowed to disagree with catalog price.
 -- Support purchase prompts are resolved/validated here and opened by the local client; receipts stay server-authoritative.
 -- Roblox current ProductId/productId is authoritative; legacy DeveloperProductId is fallback only.
 
@@ -20,6 +21,8 @@ local stateRemote=remotes:FindFirstChild("State") or Instance.new("RemoteEvent")
 local monetizationRemote=remotes:FindFirstChild("Monetization") or Instance.new("RemoteEvent"); monetizationRemote.Name="Monetization"; monetizationRemote.Parent=remotes
 
 local KNOWN_DJ=3709047092
+local MESSAGE_PRICE=5
+local NOTIFICATION_SECONDS=6
 local KNOWN_SUPPORT={
  [10]=3709047095,[25]=3709047097,[50]=3709047101,[100]=3709047104,
  [250]=3709047106,[500]=3709047107,[1000]=3709047109,[2000]=3709048779,
@@ -51,31 +54,36 @@ local function refreshProducts()
  for amount,known in pairs(KNOWN_SUPPORT) do
   if byId[known] then supportProductByAmount[amount]=known; supportAmountByProduct[known]=amount end
  end
- if byId[KNOWN_DJ] then djProductId=KNOWN_DJ end
+ local knownDJ=byId[KNOWN_DJ]
+ if knownDJ and knownDJ.price==MESSAGE_PRICE then djProductId=KNOWN_DJ end
  for id,p in pairs(byId) do
   local n=upper(p.name); local price=p.price
-  if not djProductId and price==2 and n:find("DJ",1,true) and (n:find("WALL",1,true) or n:find("MESSAGE",1,true)) then djProductId=id end
+  if not djProductId and price==MESSAGE_PRICE and n:find("DJ",1,true) and (n:find("WALL",1,true) or n:find("MESSAGE",1,true)) then djProductId=id end
   if n:find("SUPPORT",1,true) or n:find("DONATE",1,true) or n:find("DONATION",1,true) then
    for _,amount in ipairs(SUPPORT_AMOUNTS) do
     if price==amount and not supportProductByAmount[amount] then supportProductByAmount[amount]=id; supportAmountByProduct[id]=amount end
    end
   end
  end
- catalogReady=true; catalogError=nil
+ catalogReady=true
+ if djProductId then catalogError=nil else catalogError=string.format("Message Developer Product must cost exactly %d Robux",MESSAGE_PRICE) end
  root:SetAttribute("BBYAMonetizationAuthority","V3_CURRENT_UNIVERSE")
  root:SetAttribute("BBYAMonetizationUniverseId",game.GameId)
  root:SetAttribute("BBYADJWallProductConfigured",djProductId~=nil)
+ root:SetAttribute("BBYAMessageProductConfigured",djProductId~=nil)
+ root:SetAttribute("BBYAMessagePriceRobux",MESSAGE_PRICE)
+ root:SetAttribute("BBYAMessageDelivery","NOTIFICATION")
  local count=0; for _ in pairs(supportProductByAmount) do count+=1 end
  root:SetAttribute("BBYASupportProductCount",count)
- print(string.format("[BBYA] Monetization catalog: universe=%s support=%d/8 dj=%s",tostring(game.GameId),count,tostring(djProductId)))
+ print(string.format("[BBYA] Monetization catalog: universe=%s support=%d/8 messageProduct=%s price=%dR",tostring(game.GameId),count,tostring(djProductId),MESSAGE_PRICE))
  return true
 end
 refreshProducts()
-task.delay(5,function() if not catalogReady or next(supportProductByAmount)==nil then refreshProducts() end end)
+task.delay(5,function() if not catalogReady or next(supportProductByAmount)==nil or not djProductId then refreshProducts() end end)
 
--- Keep one simple physical DJ wall display; monetization authority is independent from UI shell.
+-- Keep the physical DJ wall visuals intact; paid message delivery is now notification-only.
 local C={black=Color3.fromRGB(5,5,8),pink=Color3.fromRGB(255,38,155),cyan=Color3.fromRGB(0,210,238),gold=Color3.fromRGB(238,190,94),white=Color3.fromRGB(244,242,247),muted=Color3.fromRGB(164,157,171)}
-local model=Instance.new("Model"); model.Name="DJWallMessageSystem"; model:SetAttribute("Pass","DJ_WALL_MONETIZATION_V3"); model.Parent=root
+local model=Instance.new("Model"); model.Name="DJWallMessageSystem"; model:SetAttribute("Pass","MESSAGE_NOTIFICATION_MONETIZATION_V3_3"); model.Parent=root
 local function part(name,size,cf,color,material,transparency)
  local p=Instance.new("Part"); p.Name=name; p.Size=size; p.CFrame=cf; p.Color=color or C.black; p.Material=material or Enum.Material.Metal
  p.Transparency=transparency or 0; p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=true; p.CastShadow=false; p.Parent=model; return p
@@ -99,11 +107,11 @@ local message=Instance.new("Frame"); message.Size=UDim2.fromScale(1,1); message.
 local badge=lab(message,"BBYA LIVE MESSAGE",UDim2.fromScale(.06,.08),UDim2.fromScale(.88,.08),Enum.Font.GothamBlack,28,C.pink,Enum.TextXAlignment.Center)
 local msgText=lab(message,"",UDim2.fromScale(.08,.25),UDim2.fromScale(.84,.38),Enum.Font.GothamBlack,48,C.white,Enum.TextXAlignment.Center)
 local fromText=lab(message,"",UDim2.fromScale(.10,.69),UDim2.fromScale(.80,.08),Enum.Font.GothamBold,22,C.gold,Enum.TextXAlignment.Center)
-local prompt=Instance.new("ProximityPrompt"); prompt.Name="CreatePrestigeMessage"; prompt.ActionText="Create Message"; prompt.ObjectText="BBYA DJ Wall"; prompt.KeyboardKeyCode=Enum.KeyCode.E
+local prompt=Instance.new("ProximityPrompt"); prompt.Name="CreatePrestigeMessage"; prompt.ActionText="Create Message"; prompt.ObjectText="BBYA Message"; prompt.KeyboardKeyCode=Enum.KeyCode.E
 prompt.HoldDuration=0; prompt.MaxActivationDistance=14; prompt.RequiresLineOfSight=false; prompt.Parent=screen
 
-local DISPLAY_SECONDS=12; local MAX_CHARS=80; local SUBMIT_COOLDOWN=45; local MAX_QUEUE=20
-local queue={}; local pending={}; local lastSubmit={}; local displaying=false
+local MAX_CHARS=80; local SUBMIT_COOLDOWN=45
+local pending={}; local lastSubmit={}
 local CATEGORY={BIRTHDAY="BIRTHDAY CELEBRATION",LOVE="LOVE MESSAGE",SHOUTOUT="SHOUTOUT",CUSTOM="LIVE MESSAGE"}
 local function isAdmin(p)
  if p:GetAttribute("BBYAAdmin")==true then return true end
@@ -117,13 +125,23 @@ local function filterMessage(p,raw)
  if #(result:gsub("#",""):gsub("%s",""))<2 then return nil,"Pesan terlalu banyak disensor." end
  return result
 end
-local function queueMessage(e) if #queue>=MAX_QUEUE then return false end; table.insert(queue,e); return true end
-local function showMessage(e)
- displaying=true; idle.Visible=false; message.Visible=true; badge.Text="BBYA • "..(CATEGORY[e.category] or CATEGORY.CUSTOM); msgText.Text=e.text; fromText.Text="FROM @"..e.from
- task.wait(DISPLAY_SECONDS); message.Visible=false; idle.Visible=true; displaying=false
+local function payloadFor(e,paidRobux)
+ return {
+  userId=e.userId,
+  displayName=e.from,
+  text=e.text,
+  category=e.category,
+  categoryLabel=CATEGORY[e.category] or CATEGORY.CUSTOM,
+  paidRobux=paidRobux or MESSAGE_PRICE,
+  duration=NOTIFICATION_SECONDS,
+ }
 end
-task.spawn(function() while task.wait(.25) do if not displaying and #queue>0 then showMessage(table.remove(queue,1)) end end end)
-local function configFor(p) return {price=2,productConfigured=djProductId~=nil,maxChars=MAX_CHARS,displaySeconds=DISPLAY_SECONDS,queue=#queue,admin=isAdmin(p)} end
+local function broadcastNotification(e,paidRobux)
+ wallRemote:FireAllClients("notification",payloadFor(e,paidRobux))
+end
+local function configFor(p)
+ return {price=MESSAGE_PRICE,productConfigured=djProductId~=nil,maxChars=MAX_CHARS,notificationSeconds=NOTIFICATION_SECONDS,admin=isAdmin(p),catalogError=catalogError}
+end
 prompt.Triggered:Connect(function(p) wallRemote:FireClient(p,"open",configFor(p)) end)
 
 wallRemote.OnServerEvent:Connect(function(p,action,data)
@@ -132,22 +150,28 @@ wallRemote.OnServerEvent:Connect(function(p,action,data)
  local now=os.clock(); local last=lastSubmit[p.UserId] or 0
  if now-last<SUBMIT_COOLDOWN and not isAdmin(p) then wallRemote:FireClient(p,"toast","Tunggu sebentar sebelum kirim lagi."); return end
  if pending[p.UserId] then wallRemote:FireClient(p,"toast","Selesaikan request sebelumnya dulu."); return end
- if #queue>=MAX_QUEUE then wallRemote:FireClient(p,"toast","Antrean DJ Wall sedang penuh."); return end
  local category=tostring(data.category or "CUSTOM"):upper(); if not CATEGORY[category] then category="CUSTOM" end
  local filtered,err=filterMessage(p,data.text); if not filtered then wallRemote:FireClient(p,"toast",err or "Pesan ditolak."); return end
- local entry={text=filtered,category=category,from=p.DisplayName,userId=p.UserId}; lastSubmit[p.UserId]=now
- if isAdmin(p) then queueMessage(entry); wallRemote:FireClient(p,"queued",{position=#queue,text=filtered,adminPreview=true}); return end
+ local entry={text=filtered,category=category,from=p.DisplayName,userId=p.UserId}
+ if isAdmin(p) then
+  lastSubmit[p.UserId]=now
+  broadcastNotification(entry,0)
+  wallRemote:FireClient(p,"delivered",{text=filtered,adminPreview=true})
+  return
+ end
  if not djProductId then refreshProducts() end
- if not djProductId then wallRemote:FireClient(p,"toast","DJ Wall 2R belum dikonfigurasi untuk universe ini."); return end
- pending[p.UserId]=entry; wallRemote:FireClient(p,"purchase",{message=filtered})
+ if not djProductId then wallRemote:FireClient(p,"toast",string.format("Message %dR belum dikonfigurasi untuk universe ini.",MESSAGE_PRICE)); return end
+ pending[p.UserId]=entry
+ wallRemote:FireClient(p,"purchase",{message=filtered,price=MESSAGE_PRICE,productId=djProductId})
  local ok=pcall(function() MarketplaceService:PromptProductPurchase(p,djProductId) end)
- if not ok then pending[p.UserId]=nil; wallRemote:FireClient(p,"toast","Purchase prompt gagal dibuka.") end
+ if not ok then pending[p.UserId]=nil; wallRemote:FireClient(p,"toast","Purchase prompt gagal dibuka."); return end
+ lastSubmit[p.UserId]=now
 end)
 
 monetizationRemote.OnServerEvent:Connect(function(p,action,value)
  if action=="audit" then
   local available={}; for _,a in ipairs(SUPPORT_AMOUNTS) do available[a]=supportProductByAmount[a]~=nil end
-  monetizationRemote:FireClient(p,"audit",{support=available,dj=djProductId~=nil,universeId=game.GameId,error=catalogError}); return
+  monetizationRemote:FireClient(p,"audit",{support=available,dj=djProductId~=nil,message=djProductId~=nil,messagePrice=MESSAGE_PRICE,universeId=game.GameId,error=catalogError}); return
  end
  if action~="promptSupport" then return end
  local amount=tonumber(value); if not amount or not table.find(SUPPORT_AMOUNTS,amount) then return end
@@ -165,7 +189,11 @@ MarketplaceService.ProcessReceipt=function(receipt)
  if not catalogReady then refreshProducts() end
  if productId==djProductId then
   local e=pending[receipt.PlayerId]; pending[receipt.PlayerId]=nil
-  if e then queueMessage(e); local p=Players:GetPlayerByUserId(receipt.PlayerId); if p then wallRemote:FireClient(p,"queued",{position=#queue,text=e.text}) end end
+  if e then
+   broadcastNotification(e,MESSAGE_PRICE)
+   local p=Players:GetPlayerByUserId(receipt.PlayerId)
+   if p then wallRemote:FireClient(p,"delivered",{text=e.text,paidRobux=MESSAGE_PRICE}) end
+  end
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
  local amount=supportAmountByProduct[productId]
@@ -182,4 +210,4 @@ MarketplaceService.ProcessReceipt=function(receipt)
 end
 
 Players.PlayerRemoving:Connect(function(p) pending[p.UserId]=nil; lastSubmit[p.UserId]=nil end)
-print("[BBYA] DJ Wall + Monetization v3.2 online: current ProductId authority, support local prompt, one server receipt authority")
+print("[BBYA] Message notification + Monetization v3.3 online: 5R catalog-validated, notification delivery, one server receipt authority")
