@@ -58,7 +58,42 @@ end
 local architecture=mall:WaitForChild("MallArchitectureV3",90)
 local live=mall:WaitForChild("MallLiveUpgradeV2",90)
 mall:WaitForChild("MallRobuxCommerceV1",30)
-task.wait(2.0)
+
+-- Structural v16 owns the new floor spacing. Do not dress the old 14-stud elevations.
+local spacingDeadline=os.clock()+90
+while mall:GetAttribute("FloorSpacingStuds")~=20 and os.clock()<spacingDeadline do task.wait(.20) end
+local LEVELS={1,21,41,61}
+task.wait(1.0)
+
+local function setWorldY(p,newY)
+ if not p or not p:IsA("BasePart") then return end
+ local pos=p.Position
+ p.CFrame=CFrame.new(pos.X,newY,pos.Z)*p.CFrame.Rotation
+end
+
+-- Clean direct base-builder decor that cannot be moved as a tenant/model assembly.
+-- Old floor lights are removed entirely; this authority creates new ceiling lights below.
+for _,d in ipairs(mall:GetChildren()) do
+ if d:IsA("BasePart") then
+  local n=d.Name
+  local level=tonumber(n:match("^WayfindWest([1-4])$")) or tonumber(n:match("^WayfindEast([1-4])$"))
+  if level then
+   setWorldY(d,LEVELS[level]+1.08)
+  else
+   level=tonumber(n:match("^LevelSignW([1-4])$")) or tonumber(n:match("^LevelSignE([1-4])$"))
+   if level then
+    -- Deliberately overhead now, not floating around avatar height.
+    setWorldY(d,LEVELS[level]+16.3)
+   elseif n:match("^Light[1-4]") or n:match("^AtriumLight") then
+    d:Destroy()
+   elseif n=="DirectoryBoard3" or n=="DirectoryFace3" then
+    setWorldY(d,LEVELS[2]+3)
+   elseif n=="DirectoryBoard4" or n=="DirectoryFace4" then
+    setWorldY(d,LEVELS[3]+3)
+   end
+  end
+ end
+end
 
 -- Retire every previous tenant authority. v6 is the single final visual authority.
 for _,name in ipairs({"MallStorefrontAuthorityV4","MallStorefrontAuthorityV5","MallPremiumGalleryV6"}) do
@@ -99,6 +134,7 @@ out:SetAttribute("WorldRobuxBillboardsRemoved",true)
 out:SetAttribute("AtriumStageRemoved",true)
 out:SetAttribute("MobileEntranceSightline",true)
 out:SetAttribute("GlobalLightingUntouched",true)
+out:SetAttribute("FloorSpacing20DecorAligned",true)
 out.Parent=mall
 
 local C={
@@ -456,19 +492,19 @@ for _,idx in ipairs({1,3,5,7}) do
  localPoint(node,C.warm,.30,10)
 end
 
--- Corridor lighting: local SurfaceLights only. The screenshot showed the L1 mall as a dark box.
+-- Corridor lighting: local ceiling panels at the TRUE 20-stud ceilings for all four levels.
 local corridorLights=Instance.new("Model")
 corridorLights.Name="MallCorridorLocalLightingV6"
 corridorLights.Parent=out
-for level,y in ipairs({14.55,28.55}) do
+for level,y in ipairs({19.35,39.35,59.35,79.35}) do
  for _,x in ipairs({-43,43}) do
   for _,z in ipairs({326,365,404}) do
    local fixture=neon("CeilingPanel_L"..level.."_"..x.."_"..z,Vector3.new(7.5,.07,1.3),CFrame.new(x,y,z),C.warm,corridorLights,.68)
    local light=Instance.new("SurfaceLight")
    light.Face=Enum.NormalId.Bottom
    light.Color=C.warm
-   light.Brightness=1.15
-   light.Range=17
+   light.Brightness=.82
+   light.Range=15
    light.Angle=120
    light.Shadows=false
    light.Parent=fixture
@@ -476,9 +512,51 @@ for level,y in ipairs({14.55,28.55}) do
  end
 end
 
+-- Mobile circulation cleanup: widen the v16 switchback stairs without changing their route.
+local stairDeadline=os.clock()+45
+local stairs=nil
+repeat
+ stairs=mall:FindFirstChild("Escalators")
+ if stairs and stairs:GetAttribute("Pass")=="V16_20_STUD_SWITCHBACK" then break end
+ task.wait(.20)
+until os.clock()>=stairDeadline
+if stairs then
+ for _,stair in ipairs(stairs:GetChildren()) do
+  if stair:IsA("Model") then
+   local flightA=stair:FindFirstChild("FlightA_Step0")
+   local flightB=stair:FindFirstChild("FlightB_Step0")
+   for _,d in ipairs(stair:GetChildren()) do
+    if d:IsA("BasePart") then
+     if d.Name:match("^FlightA_Step") or d.Name:match("^FlightB_Step") then
+      d.Size=Vector3.new(7.4,d.Size.Y,d.Size.Z)
+     elseif d.Name=="MidLanding" then
+      d.Size=Vector3.new(17.6,d.Size.Y,4.5)
+     elseif d.Name=="LowerLanding" or d.Name=="UpperLanding" then
+      d.Size=Vector3.new(10.8,d.Size.Y,4.1)
+     elseif d.Name=="OuterRailA" or d.Name=="InnerRailA" then
+      if flightA then
+       local side=(d.Position.X>=flightA.Position.X) and 1 or -1
+       d.CFrame=CFrame.new(flightA.Position.X+side*3.85,d.Position.Y,d.Position.Z)*d.CFrame.Rotation
+      end
+     elseif d.Name=="OuterRailB" or d.Name=="InnerRailB" then
+      if flightB then
+       local side=(d.Position.X>=flightB.Position.X) and 1 or -1
+       d.CFrame=CFrame.new(flightB.Position.X+side*3.85,d.Position.Y,d.Position.Z)*d.CFrame.Rotation
+      end
+     end
+    end
+   end
+   stair:SetAttribute("MobileWalkWidthStuds",7.4)
+  end
+ end
+ stairs:SetAttribute("MobileWidthPass","V18_WIDE")
+ mall:SetAttribute("MallStairMobileWidth","V18_WIDE")
+end
+
 mall:SetAttribute("StorefrontAuthority","V6")
 mall:SetAttribute("MallMobileVisualAuthority","PREMIUM_GALLERY_V6")
 mall:SetAttribute("PremiumSecurityUntouchedMall",true)
+mall:SetAttribute("MallDecor20StudAligned","V18")
 out:SetAttribute("RebuiltTenants",rebuilt)
 out:SetAttribute("NativeStores",nativeCount)
-print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; legacy slabs/stage/billboards retired",rebuilt,nativeCount))
+print(string.format("[BBYA] Mall Premium Gallery v6 online: %d tenant visuals rebuilt; %d native R$ stores integrated; 20-stud decor aligned; stairs widened",rebuilt,nativeCount))
