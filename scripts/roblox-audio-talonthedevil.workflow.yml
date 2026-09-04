@@ -11,6 +11,11 @@ on:
         description: Roblox audio title
         required: true
         type: string
+      trim_start_seconds:
+        description: Optional seconds to trim from the source start before 1.75x preprocessing
+        required: false
+        default: '0'
+        type: string
       universe_id:
         description: Backward-compatible single target Universe; blank uses AM_STUDIO_SHARED
         required: false
@@ -59,6 +64,7 @@ jobs:
         env:
           DRIVE_FILE_ID_INPUT: ${{ inputs.drive_file_id }}
           TITLE_INPUT: ${{ inputs.title }}
+          TRIM_INPUT: ${{ inputs.trim_start_seconds }}
           LEGACY_UNIVERSE_INPUT: ${{ inputs.universe_id }}
           MODE_INPUT: ${{ inputs.permission_mode }}
           PROJECTS_INPUT: ${{ inputs.target_projects }}
@@ -70,6 +76,7 @@ jobs:
           if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
               drive = os.environ.get('DRIVE_FILE_ID_INPUT','').strip()
               title = os.environ.get('TITLE_INPUT','').strip()
+              trim = (os.environ.get('TRIM_INPUT','') or '0').strip()
               legacy = os.environ.get('LEGACY_UNIVERSE_INPUT','').strip()
               mode = (os.environ.get('MODE_INPUT','') or 'AM_STUDIO_SHARED').strip()
               projects = os.environ.get('PROJECTS_INPUT','').strip()
@@ -83,19 +90,27 @@ jobs:
                       key, value = line.split('=',1); fields[key.strip()] = value.strip()
               drive = fields.get('drive_file_id','')
               title = fields.get('title','')
+              trim = fields.get('trim_start_seconds','0') or '0'
               legacy = fields.get('universe_id','')
               mode = fields.get('permission_mode','AM_STUDIO_SHARED')
               projects = fields.get('target_projects','')
               universes = fields.get('universe_ids','')
           if not drive or not title:
               raise SystemExit('DRIVE_FILE_ID_AND_TITLE_REQUIRED')
+          try:
+              trim_value = float(trim)
+          except ValueError:
+              raise SystemExit('TRIM_START_SECONDS_MUST_BE_NUMERIC')
+          if trim_value < 0 or trim_value > 60:
+              raise SystemExit('TRIM_START_SECONDS_OUT_OF_RANGE_0_TO_60')
+          trim = ('%.3f' % trim_value).rstrip('0').rstrip('.') or '0'
           if legacy and not universes and mode.upper() == 'AM_STUDIO_SHARED':
               mode = 'CUSTOM'; universes = legacy
           batch = pathlib.Path(os.environ['RUNNER_TEMP']) / 'talon-audio-batch.json'
           batch.write_text(json.dumps([{'drive_file_id': drive, 'title': title}], ensure_ascii=False), encoding='utf-8')
           with pathlib.Path(os.environ['GITHUB_ENV']).open('a',encoding='utf-8') as f:
-              f.write(f'PERMISSION_MODE={mode}\nTARGET_PROJECTS={projects}\nCUSTOM_UNIVERSE_IDS={universes}\n')
-          print(f'Talon route standardized: speed=1.75 playback=0.5714285714 mode={mode}')
+              f.write(f'PERMISSION_MODE={mode}\nTARGET_PROJECTS={projects}\nCUSTOM_UNIVERSE_IDS={universes}\nTRIM_START_SECONDS={trim}\n')
+          print(f'Talon route standardized: speed=1.75 playback=0.5714285714 trim_start_seconds={trim} mode={mode}')
           PY
 
       - name: Install audio tools
@@ -110,10 +125,61 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/am-studio-audio-pipeline.py \
-            --batch "$RUNNER_TEMP/talon-audio-batch.json" \
-            --registry config/am-studio-roblox-universes.json \
-            --result upload-result.json
+          if python3 - <<'PY'
+          import os, sys
+          sys.exit(0 if float(os.environ.get('TRIM_START_SECONDS','0') or 0) > 0 else 1)
+          PY
+          then
+            python3 - <<'PY'
+          import importlib.util
+          import os
+          import pathlib
+          import subprocess
+          import sys
+
+          trim = float(os.environ.get('TRIM_START_SECONDS','0') or 0)
+          module_path = pathlib.Path('scripts/am-studio-audio-pipeline.py')
+          spec = importlib.util.spec_from_file_location('am_studio_audio_pipeline_base', module_path)
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          original_download = module.download_drive_file
+
+          def download_drive_file_with_trim(file_id, destination):
+              original_download(file_id, destination)
+              source_duration = module.probe_duration(destination)
+              if trim <= 0:
+                  return
+              if trim >= source_duration:
+                  raise RuntimeError(f'TRIM_START_SECONDS_EXCEEDS_SOURCE:{trim:.3f}>={source_duration:.3f}')
+              trimmed = destination.with_name(destination.name + '.trimmed.mp3')
+              process = subprocess.run(
+                  ['ffmpeg','-y','-hide_banner','-loglevel','error','-ss',f'{trim:.3f}','-i',str(destination),'-vn','-codec:a','libmp3lame','-b:a','192k',str(trimmed)],
+                  text=True,
+                  capture_output=True,
+              )
+              if process.returncode != 0:
+                  raise RuntimeError((process.stderr or 'FFMPEG_TRIM_FAILED')[-1500:])
+              trimmed_duration = module.probe_duration(trimmed)
+              if trimmed_duration <= 0:
+                  raise RuntimeError('TRIMMED_AUDIO_DURATION_INVALID')
+              trimmed.replace(destination)
+              print(f'AM_STUDIO_AUDIO_TRIM_APPLIED start={trim:.3f}s source={source_duration:.3f}s trimmed={trimmed_duration:.3f}s')
+
+          module.download_drive_file = download_drive_file_with_trim
+          sys.argv = [
+              'am-studio-audio-pipeline.py',
+              '--batch', str(pathlib.Path(os.environ['RUNNER_TEMP']) / 'talon-audio-batch.json'),
+              '--registry', 'config/am-studio-roblox-universes.json',
+              '--result', 'upload-result.json',
+          ]
+          module.main()
+          PY
+          else
+            python3 scripts/am-studio-audio-pipeline.py \
+              --batch "$RUNNER_TEMP/talon-audio-batch.json" \
+              --registry config/am-studio-roblox-universes.json \
+              --result upload-result.json
+          fi
 
       - name: Preserve receipt
         if: always() && hashFiles('upload-result.json') != ''
