@@ -110,7 +110,7 @@ jobs:
             exit 1
           fi
 
-          receipt_authorities="$(grep -R -F 'MarketplaceService.ProcessReceipt =' maps/bbya-social-hub --include='*.lua' --include='*.luau' | wc -l | tr -d ' ')"
+          receipt_authorities="$(grep -R -E 'MarketplaceService\.ProcessReceipt[[:space:]]*=' maps/bbya-social-hub --include='*.lua' --include='*.luau' | wc -l | tr -d ' ')"
           if [ "$receipt_authorities" != '1' ]; then
             echo "Expected exactly one MarketplaceService.ProcessReceipt assignment, found $receipt_authorities" >&2
             exit 1
