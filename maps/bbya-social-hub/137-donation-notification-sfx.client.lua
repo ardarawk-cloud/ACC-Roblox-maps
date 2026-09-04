@@ -32,6 +32,7 @@ donationSound:SetAttribute("BBYAAudioTimeLength", 0)
 donationSound:SetAttribute("BBYAAudioLastPlayAttempt", 0)
 donationSound:SetAttribute("BBYAAudioLastFailure", "")
 donationSound:SetAttribute("BBYAAudioPreloadStatus", "Pending")
+donationSound:SetAttribute("BBYAAudioPreloadFetchStatus", "Pending")
 
 local pendingCount = 0
 local playing = false
@@ -135,8 +136,14 @@ end)
 
 -- Preload asynchronously so client startup and donation UI/backend never block.
 task.spawn(function()
+	local finalFetchStatus = "Unknown"
 	local ok, err = pcall(function()
-		ContentProvider:PreloadAsync({ donationSound })
+		ContentProvider:PreloadAsync({ donationSound }, function(_contentId, assetFetchStatus)
+			finalFetchStatus = assetFetchStatus.Name
+			if not destroyed then
+				donationSound:SetAttribute("BBYAAudioPreloadFetchStatus", finalFetchStatus)
+			end
+		end)
 	end)
 
 	if destroyed then
@@ -146,7 +153,7 @@ task.spawn(function()
 	preloadFinished = true
 	if not ok then
 		donationSound:SetAttribute("BBYAAudioPreloadStatus", "Failed")
-		recordFailure("PreloadAsync failed: " .. tostring(err))
+		recordFailure("PreloadAsync error: " .. tostring(err))
 		return
 	end
 
@@ -155,7 +162,7 @@ task.spawn(function()
 		playNext()
 	else
 		donationSound:SetAttribute("BBYAAudioPreloadStatus", "FinishedNotLoaded")
-		recordFailure("PreloadAsync finished but Sound.IsLoaded=false or TimeLength=0")
+		recordFailure("PreloadAsync resolved (" .. finalFetchStatus .. ") but Sound.IsLoaded=false or TimeLength=0")
 	end
 end)
 
