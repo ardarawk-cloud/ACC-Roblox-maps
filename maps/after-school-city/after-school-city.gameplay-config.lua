@@ -1,7 +1,7 @@
 local GameplayConfig = {
-    Version = "1.2.0-school-life-foundation-1",
+    Version = "1.3.0-economy-first-shop-1",
     DataStoreName = "ASC_PlayerProfile_v1",
-    SchemaVersion = 1,
+    SchemaVersion = 2,
     AutosaveSeconds = 60,
     LoadRetries = 3,
     SaveRetries = 3,
