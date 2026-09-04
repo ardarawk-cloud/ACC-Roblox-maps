@@ -363,3 +363,94 @@ script.Destroying:Connect(function()
 end)
 
 print("[BBYA] Support purchase adapter v3.1 + queued DonationNotification popup v1 online; receipts/server/audio unchanged")
+
+-- -----------------------------------------------------------------------------
+-- QA DONATION SIMULATOR v1 — TEST PLACE ONLY / ZERO ROBUX
+-- Small local control panel. It only asks the TEST server simulator to emit the
+-- same DonationNotification contract consumed above; it never opens purchase UI.
+-- -----------------------------------------------------------------------------
+do
+ local TEST_UNIVERSE=10762005984
+ local TEST_PLACE=124607344716828
+ if game.GameId==TEST_UNIVERSE and game.PlaceId==TEST_PLACE then
+  task.spawn(function()
+   local qaRemote=ReplicatedStorage:WaitForChild("BBYAQADonationSimulatorV1",30)
+   if not qaRemote then return end
+
+   local old=playerGui:FindFirstChild("BBYAQADonationSimulatorUI")
+   if old then old:Destroy() end
+
+   local gui=Instance.new("ScreenGui")
+   gui.Name="BBYAQADonationSimulatorUI"
+   gui.ResetOnSpawn=false
+   gui.IgnoreGuiInset=false
+   gui.DisplayOrder=940
+   gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+   gui.Parent=playerGui
+   pcall(function()
+    gui.ScreenInsets=Enum.ScreenInsets.CoreUISafeInsets
+    gui.ClipToDeviceSafeArea=true
+   end)
+
+   local toggle=Instance.new("TextButton")
+   toggle.Name="Toggle"
+   toggle.AnchorPoint=Vector2.new(0,0.5)
+   toggle.Position=UDim2.new(0,10,0.5,-5)
+   toggle.Size=UDim2.fromOffset(104,36)
+   toggle.BackgroundColor3=Color3.fromRGB(18,20,28)
+   toggle.TextColor3=Color3.fromRGB(255,214,103)
+   toggle.Text="QA DONATE"
+   toggle.Font=Enum.Font.GothamBold
+   toggle.TextSize=12
+   toggle.AutoButtonColor=true
+   toggle.Parent=gui
+   corner(toggle,10)
+   stroke(toggle,Color3.fromRGB(232,184,93),0.28)
+
+   local panel=Instance.new("Frame")
+   panel.Name="Panel"
+   panel.Position=UDim2.new(0,122,0.5,-94)
+   panel.Size=UDim2.fromOffset(216,188)
+   panel.BackgroundColor3=Color3.fromRGB(14,15,20)
+   panel.BackgroundTransparency=0.03
+   panel.BorderSizePixel=0
+   panel.Visible=false
+   panel.Parent=gui
+   corner(panel,12)
+   stroke(panel,Color3.fromRGB(232,184,93),0.28)
+
+   local title=makeLabel(panel,"QA DONATION SIM",UDim2.fromOffset(12,8),UDim2.new(1,-24,0,22),Enum.Font.GothamBlack,12,Color3.fromRGB(232,184,93))
+   title.TextXAlignment=Enum.TextXAlignment.Center
+   local sub=makeLabel(panel,"TEST ONLY · 0 ROBUX",UDim2.fromOffset(12,28),UDim2.new(1,-24,0,18),Enum.Font.GothamMedium,9,C.muted)
+   sub.TextXAlignment=Enum.TextXAlignment.Center
+
+   local function qaButton(text,y,action)
+    local b=Instance.new("TextButton")
+    b.Size=UDim2.new(1,-24,0,30)
+    b.Position=UDim2.fromOffset(12,y)
+    b.BackgroundColor3=Color3.fromRGB(27,29,38)
+    b.TextColor3=C.white
+    b.Text=text
+    b.Font=Enum.Font.GothamBold
+    b.TextSize=11
+    b.AutoButtonColor=true
+    b.Parent=panel
+    corner(b,8)
+    stroke(b,C.line,0.48)
+    b.Activated:Connect(function() qaRemote:FireServer(action) end)
+    return b
+   end
+
+   qaButton("10R · NO MESSAGE",52,"NO_MSG_10")
+   qaButton("10R · WITH MESSAGE",86,"WITH_MSG_10")
+   qaButton("25R · NO MESSAGE",120,"NO_MSG_25")
+   qaButton("BURST · 10 / 25 / 50",154,"BURST")
+
+   toggle.Activated:Connect(function()
+    panel.Visible=not panel.Visible
+   end)
+
+   print("[BBYA QA] Donation simulator controls online — TEST PLACE ONLY / ZERO ROBUX")
+  end)
+ end
+end
