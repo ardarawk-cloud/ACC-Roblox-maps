@@ -374,6 +374,9 @@
         "SupportPurchaseClientV2": {
           "$path": "119-support-purchase.client.lua"
         },
+        "DonationNotificationSFXV1": {
+          "$path": "137-donation-notification-sfx.client.lua"
+        },
         "VenueAwareMenuMusicV1": {
           "$path": "114-venue-aware-menu-music.client.lua"
         },
