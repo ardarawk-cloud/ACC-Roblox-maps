@@ -1,0 +1,132 @@
+name: BBYA QA Donation SFX V113 TEST
+
+on:
+  push:
+    branches:
+      - 'bbya/qa/donation-sfx-v113-test'
+    paths:
+      - '.github/workflows/bbya-qa-donation-sfx-v113-test-temp.yml'
+
+permissions:
+  contents: read
+
+env:
+  TARGET_SOURCE: 3cf5bb368a9c1eb5d969ca9479b6f9c32e1180ed
+  TEST_UNIVERSE: '10762005984'
+  TEST_PLACE: '124607344716828'
+  AUDIO_ASSET: '138169036950863'
+
+jobs:
+  grant-build-publish-test:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Grant audio Use permission to TEST universe
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not $env:ROBLOX_API_KEY){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'}
+          $url='https://apis.roblox.com/asset-permissions-api/v1/assets/permissions'
+          $body=@{
+            subjectType='Universe'
+            subjectId=$env:TEST_UNIVERSE
+            action='Use'
+            requests=@(@{
+              assetId=[int64]$env:AUDIO_ASSET
+              grantToDependencies=$false
+            })
+          } | ConvertTo-Json -Depth 6 -Compress
+          $bodyFile=Join-Path $env:RUNNER_TEMP 'bbya-audio-permission-v113.json'
+          [System.IO.File]::WriteAllText($bodyFile,$body,(New-Object System.Text.UTF8Encoding($false)))
+          $response=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request PATCH --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/json-patch+json' --header 'Expect:' --data-binary "@$bodyFile" $url
+          $exit=$LASTEXITCODE
+          Write-Host "BBYA_AUDIO_PERMISSION_RESPONSE=$response"
+          if($exit -ne 0){throw "Audio permission grant failed with curl exit $exit"}
+          $r=$response | ConvertFrom-Json
+          $success=@($r.successAssetIds | ForEach-Object {[string]$_})
+          $errors=@($r.errors)
+          if($success -notcontains [string]$env:AUDIO_ASSET){throw "Asset $env:AUDIO_ASSET not confirmed in successAssetIds"}
+          if($errors.Count -gt 0){throw "Permission response contained errors: $($errors | ConvertTo-Json -Compress)"}
+          Write-Host "BBYA_AUDIO_PERMISSION_TEST_PASS asset=$env:AUDIO_ASSET universe=$env:TEST_UNIVERSE action=Use"
+
+      - name: Fetch exact v113 source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP 'bbya-qa-v113-source.zip'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-qa-v113-source'
+          Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+          Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:TARGET_SOURCE" -OutFile $zip
+          Expand-Archive $zip -DestinationPath $dir -Force
+          $repo=Get-ChildItem $dir -Directory | Select-Object -First 1
+          if(-not $repo){throw 'Exact v113 source missing'}
+          Get-ChildItem $env:GITHUB_WORKSPACE -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem $repo.FullName -Force | ForEach-Object { Copy-Item $_.FullName $env:GITHUB_WORKSPACE -Recurse -Force }
+          Write-Host "EXACT_V113_SOURCE=$env:TARGET_SOURCE"
+
+      - name: Static QA v113 checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $sfx='maps/bbya-social-hub/137-donation-notification-sfx.client.lua'
+          $popup='maps/bbya-social-hub/119-support-purchase.client.lua'
+          $sim='maps/bbya-social-hub/34-support-dashboard.server.lua'
+          $project='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($sfx,$popup,$sim,$project)){if(-not (Test-Path $p)){throw "Missing required file: $p"}}
+
+          $s=Get-Content $sfx -Raw
+          foreach($x in @('rbxassetid://138169036950863','PlaybackSpeed = 0.5714285714','Volume = 0.58','ContentProvider','PreloadAsync','BBYAAudioLoaded','BBYAAudioTimeLength','BBYAAudioPreloadStatus','BBYAAudioPreloadFetchStatus','Sound.Playing remained false','BBYAQADonationSimulatorUI','QA DONATE','TEST_UNIVERSE = 10762005984','TEST_PLACE = 124607344716828')){if(-not $s.Contains($x)){throw "Missing v113 SFX/QA marker: $x"}}
+          foreach($old in @('rbxassetid://9126072044','rbxassetid://1319346243')){if($s.Contains($old)){throw "Old SFX remains: $old"}}
+          foreach($forbidden in @('MarketplaceService','ProcessReceipt','DataStoreService','SoundGroup','PromptProductPurchase')){if($s.Contains($forbidden)){throw "Forbidden audio-scope marker found in 137: $forbidden"}}
+          $listenerCount=([regex]::Matches($s,'monetizationRemote\.OnClientEvent:Connect')).Count
+          if($listenerCount -ne 1){throw "Expected one DonationNotification listener in 137, found $listenerCount"}
+          $soundCount=([regex]::Matches($s,'Instance\.new\("Sound"\)')).Count
+          if($soundCount -ne 1){throw "Expected one reusable Sound in 137, found $soundCount"}
+
+          $q=Get-Content $sim -Raw
+          foreach($x in @('BBYAQADonationSimulatorV1','NO_MSG_10','WITH_MSG_10','NO_MSG_25','BURST','10762005984','124607344716828')){if(-not $q.Contains($x)){throw "Missing server simulator marker: $x"}}
+
+          $u=Get-Content $popup -Raw
+          foreach($x in @('local TOP_OFFSET=5','math.min(372','hasMessage and 170 or 128','DonationNotification')){if(-not $u.Contains($x)){throw "Donation popup baseline changed/missing marker: $x"}}
+
+          $p=Get-Content $project -Raw
+          if(-not $p.Contains('137-donation-notification-sfx.client.lua')){throw 'Donation SFX mapping missing'}
+          Write-Host 'BBYA_QA_DONATION_SFX_V113_STATIC_PASS'
+
+      - name: Build exact v113 source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $toolDir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $z=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z -DestinationPath $toolDir -Force
+          }
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-qa-donation-sfx-v113-test.rbxl'
+          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){throw 'Build failed'}
+          $bytes=(Get-Item $out).Length
+          $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          "BBYA_QA_BUILD=$out" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_BYTES=$bytes" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "BBYA_QA_DONATION_SFX_V113_BUILD_PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish TEST place only
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not $env:ROBLOX_API_KEY){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'}
+          $url="https://apis.roblox.com/universes/v1/$env:TEST_UNIVERSE/places/$env:TEST_PLACE/versions?versionType=Published"
+          $resp=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/octet-stream' --header 'Expect:' --data-binary "@$env:BBYA_QA_BUILD" $url
+          if($LASTEXITCODE -ne 0){throw 'TEST publish failed'}
+          $r=$resp|ConvertFrom-Json
+          if(-not $r.versionNumber){throw 'TEST versionNumber missing'}
+          Write-Host "BBYA_QA_DONATION_SFX_V113_TEST_PUBLISHED version=$($r.versionNumber) bytes=$env:BBYA_QA_BYTES sha256=$env:BBYA_QA_SHA256 candidate=$env:TARGET_SOURCE universe=$env:TEST_UNIVERSE place=$env:TEST_PLACE asset=$env:AUDIO_ASSET"
