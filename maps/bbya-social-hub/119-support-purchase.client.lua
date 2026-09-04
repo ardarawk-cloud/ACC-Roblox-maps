@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION LOCAL ADAPTER v3.1
+-- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION LOCAL ADAPTER v3.2
 -- Purchase prompt bridge remains function-only; receipts stay server-authoritative.
 -- Donation popup is visual-only and consumes Monetization:DonationNotification:v1.
 -- No purchase-success inference, no backend mutation, no audio authority.
@@ -22,7 +22,7 @@ local DISPLAY_ORDER=950
 local ENTER_TIME=0.30
 local HOLD_TIME=4.00
 local EXIT_TIME=0.30
-local TOP_OFFSET=12
+local TOP_OFFSET=5
 local MAX_MESSAGE_CHARS=180
 
 local oldGui=playerGui:FindFirstChild(GUI_NAME)
@@ -111,7 +111,7 @@ end
 local function popupWidth()
  local viewport=viewportSize()
  local margin=viewport.X<500 and 16 or 24
- return math.max(240,math.min(440,viewport.X-margin))
+ return math.max(232,math.min(372,viewport.X-margin))
 end
 
 local function applyResponsive(group,height)
@@ -137,14 +137,14 @@ local function createMetric(parent,title,value,pos)
  card.BackgroundTransparency=0.08
  card.BorderSizePixel=0
  card.Position=pos
- card.Size=UDim2.new(0.5,-5,1,0)
+ card.Size=UDim2.new(0.5,-4,1,0)
  card.Parent=parent
- corner(card,9)
+ corner(card,8)
  stroke(card,C.line,0.62)
 
- local titleLabel=makeLabel(card,title,UDim2.fromOffset(10,3),UDim2.new(1,-20,0,14),Enum.Font.GothamBold,9,C.muted)
+ local titleLabel=makeLabel(card,title,UDim2.fromOffset(9,2),UDim2.new(1,-18,0,12),Enum.Font.GothamBold,8,C.muted)
  titleLabel.TextTruncate=Enum.TextTruncate.AtEnd
- local valueLabel=makeLabel(card,tostring(value),UDim2.fromOffset(10,15),UDim2.new(1,-20,0,22),Enum.Font.GothamBlack,16,C.white)
+ local valueLabel=makeLabel(card,tostring(value),UDim2.fromOffset(9,13),UDim2.new(1,-18,0,18),Enum.Font.GothamBlack,13,C.white)
  valueLabel.TextTruncate=Enum.TextTruncate.AtEnd
  return card
 end
@@ -170,7 +170,7 @@ local function showDonation(payload)
  local username=tostring(payload.username or "")
  local messageText=type(payload.message)=="string" and payload.message or tostring(payload.message or "")
  local hasMessage=messageText~=""
- local height=hasMessage and 202 or 150
+ local height=hasMessage and 170 or 128
 
  local group=Instance.new("CanvasGroup")
  group.Name="DonationPopup"
@@ -184,7 +184,7 @@ local function showDonation(payload)
  group.Size=UDim2.fromOffset(popupWidth(),height)
  group.ZIndex=100
  group.Parent=notificationGui
- corner(group,14)
+ corner(group,12)
  stroke(group,C.gold,0.34)
 
  local accent=Instance.new("Frame")
@@ -194,17 +194,17 @@ local function showDonation(payload)
  accent.Size=UDim2.new(1,0,0,3)
  accent.ZIndex=101
  accent.Parent=group
- corner(accent,14)
+ corner(accent,12)
 
- local title=makeLabel(group,"NEW DONATION",UDim2.fromOffset(14,9),UDim2.new(1,-28,0,20),Enum.Font.GothamBlack,12,C.gold)
+ local title=makeLabel(group,"NEW DONATION",UDim2.fromOffset(12,6),UDim2.new(1,-24,0,18),Enum.Font.GothamBlack,10,C.gold)
  title.ZIndex=102
  title.TextTruncate=Enum.TextTruncate.AtEnd
 
  local identity=Instance.new("Frame")
  identity.BackgroundTransparency=1
  identity.BorderSizePixel=0
- identity.Position=UDim2.fromOffset(12,34)
- identity.Size=UDim2.new(1,-24,0,52)
+ identity.Position=UDim2.fromOffset(10,27)
+ identity.Size=UDim2.new(1,-20,0,44)
  identity.ZIndex=101
  identity.Parent=group
 
@@ -212,13 +212,13 @@ local function showDonation(payload)
  avatarShell.BackgroundColor3=C.card
  avatarShell.BorderSizePixel=0
  avatarShell.Position=UDim2.fromOffset(0,1)
- avatarShell.Size=UDim2.fromOffset(48,48)
+ avatarShell.Size=UDim2.fromOffset(40,40)
  avatarShell.ZIndex=102
  avatarShell.Parent=identity
- corner(avatarShell,24)
+ corner(avatarShell,20)
  stroke(avatarShell,C.line,0.5)
 
- local avatarFallback=makeLabel(avatarShell,"USER",UDim2.fromScale(0,0),UDim2.fromScale(1,1),Enum.Font.GothamBold,8,C.muted)
+ local avatarFallback=makeLabel(avatarShell,"USER",UDim2.fromScale(0,0),UDim2.fromScale(1,1),Enum.Font.GothamBold,7,C.muted)
  avatarFallback.TextXAlignment=Enum.TextXAlignment.Center
  avatarFallback.ZIndex=103
 
@@ -233,13 +233,13 @@ local function showDonation(payload)
  avatar.ScaleType=Enum.ScaleType.Crop
  avatar.ZIndex=104
  avatar.Parent=avatarShell
- corner(avatar,24)
+ corner(avatar,20)
 
- local nameLabel=makeLabel(identity,displayName,UDim2.fromOffset(60,3),UDim2.new(1,-60,0,24),Enum.Font.GothamBold,16,C.white)
+ local nameLabel=makeLabel(identity,displayName,UDim2.fromOffset(50,1),UDim2.new(1,-50,0,21),Enum.Font.GothamBold,14,C.white)
  nameLabel.TextTruncate=Enum.TextTruncate.AtEnd
  nameLabel.ZIndex=102
  local userText=username~="" and ("@"..username) or "@"
- local usernameLabel=makeLabel(identity,userText,UDim2.fromOffset(60,27),UDim2.new(1,-60,0,18),Enum.Font.GothamMedium,11,C.muted)
+ local usernameLabel=makeLabel(identity,userText,UDim2.fromOffset(50,22),UDim2.new(1,-50,0,16),Enum.Font.GothamMedium,10,C.muted)
  usernameLabel.TextTruncate=Enum.TextTruncate.AtEnd
  usernameLabel.ZIndex=102
 
@@ -248,12 +248,12 @@ local function showDonation(payload)
  local metrics=Instance.new("Frame")
  metrics.BackgroundTransparency=1
  metrics.BorderSizePixel=0
- metrics.Position=UDim2.fromOffset(12,94)
- metrics.Size=UDim2.new(1,-24,0,44)
+ metrics.Position=UDim2.fromOffset(10,77)
+ metrics.Size=UDim2.new(1,-20,0,36)
  metrics.ZIndex=101
  metrics.Parent=group
  createMetric(metrics,"DONATED",tostring(payload.amount or "?").." ROBUX",UDim2.fromScale(0,0)).ZIndex=102
- createMetric(metrics,"TOTAL",tostring(payload.total or "?").." ROBUX",UDim2.new(0.5,5,0,0)).ZIndex=102
+ createMetric(metrics,"TOTAL",tostring(payload.total or "?").." ROBUX",UDim2.new(0.5,4,0,0)).ZIndex=102
 
  if hasMessage then
   local messageCard=Instance.new("Frame")
@@ -261,14 +261,14 @@ local function showDonation(payload)
   messageCard.BackgroundColor3=C.panel
   messageCard.BackgroundTransparency=0.08
   messageCard.BorderSizePixel=0
-  messageCard.Position=UDim2.fromOffset(12,146)
-  messageCard.Size=UDim2.new(1,-24,0,44)
+  messageCard.Position=UDim2.fromOffset(10,120)
+  messageCard.Size=UDim2.new(1,-20,0,38)
   messageCard.ZIndex=101
   messageCard.Parent=group
-  corner(messageCard,9)
+  corner(messageCard,8)
   stroke(messageCard,C.line,0.64)
 
-  local messageLabel=makeLabel(messageCard,visualClip(messageText,MAX_MESSAGE_CHARS),UDim2.fromOffset(10,4),UDim2.new(1,-20,1,-8),Enum.Font.GothamMedium,11,C.white)
+  local messageLabel=makeLabel(messageCard,visualClip(messageText,MAX_MESSAGE_CHARS),UDim2.fromOffset(8,3),UDim2.new(1,-16,1,-6),Enum.Font.GothamMedium,10,C.white)
   messageLabel.TextWrapped=true
   messageLabel.TextTruncate=Enum.TextTruncate.AtEnd
   messageLabel.TextYAlignment=Enum.TextYAlignment.Center
@@ -362,4 +362,4 @@ script.Destroying:Connect(function()
  if workspaceCameraConnection then workspaceCameraConnection:Disconnect();workspaceCameraConnection=nil end
 end)
 
-print("[BBYA] Support purchase adapter v3.1 + queued DonationNotification popup v1 online; receipts/server/audio unchanged")
+print("[BBYA] Support purchase adapter v3.2 + compact queued DonationNotification popup v1.1 online; receipts/server/audio unchanged")
