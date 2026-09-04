@@ -189,3 +189,69 @@ for _,face in ipairs({leftFace,rightFace}) do
 end
 
 print("[BBYA] Entrance community honor walls v12 online: Live Community left/top neon safe inset v2")
+
+-- -----------------------------------------------------------------------------
+-- QA DONATION SIMULATOR v1 — TEST PLACE ONLY / ZERO ROBUX
+-- Test instrumentation only. Never grant rewards, write DataStores, or touch receipts.
+-- -----------------------------------------------------------------------------
+do
+    local TEST_UNIVERSE=10762005984
+    local TEST_PLACE=124607344716828
+    if game.GameId==TEST_UNIVERSE and game.PlaceId==TEST_PLACE then
+        local qaRemote=ReplicatedStorage:FindFirstChild("BBYAQADonationSimulatorV1")
+        if not qaRemote then
+            qaRemote=Instance.new("RemoteEvent")
+            qaRemote.Name="BBYAQADonationSimulatorV1"
+            qaRemote.Parent=ReplicatedStorage
+        end
+
+        local clubRemotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
+        local monetization=clubRemotes and clubRemotes:WaitForChild("Monetization",30)
+        local totals={}
+        local lastRequest={}
+
+        local function emit(player,amount,message)
+            if not monetization or not player or not player.Parent then return end
+            local uid=player.UserId
+            if totals[uid]==nil then
+                totals[uid]=tonumber(player:GetAttribute("BBYADonationRobuxTotal")) or 0
+            end
+            totals[uid]+=amount
+            monetization:FireAllClients("DonationNotification",{
+                userId=uid,
+                displayName=player.DisplayName,
+                username=player.Name,
+                avatarUserId=uid,
+                amount=amount,
+                total=totals[uid],
+                message=message or "",
+            })
+        end
+
+        qaRemote.OnServerEvent:Connect(function(player,action)
+            if type(action)~="string" then return end
+            local now=os.clock()
+            if now-(lastRequest[player.UserId] or 0)<0.25 then return end
+            lastRequest[player.UserId]=now
+
+            if action=="NO_MSG_10" then
+                emit(player,10,"")
+            elseif action=="WITH_MSG_10" then
+                emit(player,10,"QA test message — makasih support BBYA!")
+            elseif action=="NO_MSG_25" then
+                emit(player,25,"")
+            elseif action=="BURST" then
+                emit(player,10,"")
+                task.delay(0.10,function() if player.Parent then emit(player,25,"QA burst message") end end)
+                task.delay(0.20,function() if player.Parent then emit(player,50,"") end end)
+            end
+        end)
+
+        Players.PlayerRemoving:Connect(function(player)
+            totals[player.UserId]=nil
+            lastRequest[player.UserId]=nil
+        end)
+
+        print("[BBYA QA] Donation simulator v1 online — TEST PLACE ONLY / ZERO ROBUX")
+    end
+end
