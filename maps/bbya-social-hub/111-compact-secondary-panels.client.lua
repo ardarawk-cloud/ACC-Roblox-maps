@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — MUSIC + DJ LAUNCHER ADAPTER v4
+-- BBYA SOCIAL HUB — MUSIC + DJ LAUNCHER ADAPTER v4.1
 -- UI/NAVIGATION ONLY. Does not resize panels, change playlists, route audio, or own playback.
 -- MUSIC replaces only the launcher button in-place so navigation can transition atomically.
 -- BBYAMusicSuiteV1 remains the premium Music Suite authority and owns the real open path.
@@ -108,7 +108,7 @@ end
 local function requestMusicOpen()
  musicRequestToken+=1
  local token=musicRequestToken
- local _,_,drawer,menuButton=findMenu()
+ local _,_,drawer=findMenu()
  local reopenDrawer=drawer and drawer.Visible==true
 
  -- Never hide MENU/ROLES here. The retry runs off-thread; transition commits
@@ -177,10 +177,13 @@ bindMusic=function()
  if not menu or not list then return false end
  local musicButton=makeAtomicMusicButton(list)
  if not musicButton then return false end
+ -- Safety after any menu rebuild/DescendantAdded sequence.
+ musicButton.Active=true
+ musicButton.Selectable=true
  if boundMusicButtons[musicButton] then return true end
  boundMusicButtons[musicButton]=true
  musicButton.Activated:Connect(requestMusicOpen)
- print("[BBYA] Music launcher adapter v4 atomic button bound through Slot_MUSIC")
+ print("[BBYA] Music launcher adapter v4.1 atomic button bound through Slot_MUSIC")
  return true
 end
 
@@ -188,7 +191,8 @@ local function watchMenu(menu)
  if not menu or watchedMenus[menu] then return end
  watchedMenus[menu]=true
  menu.DescendantAdded:Connect(function(desc)
-  if desc:IsA("TextButton") and desc.Parent and desc.Parent.Name=="Slot_MUSIC" then
+  if desc:IsA("TextButton") and desc.Parent and desc.Parent.Name=="Slot_MUSIC"
+   and desc:GetAttribute("BBYAMusicAtomicNavV2")~=true then
    -- Close the tiny startup race before the kernel can expose a clickable
    -- hide-first MUSIC button. Styling finishes in the same frame; replacement
    -- happens deferred immediately after.
