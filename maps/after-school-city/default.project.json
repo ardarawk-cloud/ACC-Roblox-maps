@@ -18,6 +18,9 @@
       },
       "ASCSchoolLifeConfig": {
         "$path": "after-school-city.school-life-config.lua"
+      },
+      "ASCEconomyConfig": {
+        "$path": "after-school-city.economy-config.lua"
       }
     },
     "ServerScriptService": {
@@ -68,7 +71,8 @@
       "ASC_GameplayService": {"$path": "after-school-city.gameplay-service.lua"},
       "ASC_GameplayBootstrap": {"$path": "after-school-city.gameplay-bootstrap.server.lua"},
       "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"},
-      "ASC_SchoolLifeGameplayV120": {"$path": "after-school-city.school-life-gameplay-v120.server.lua"}
+      "ASC_SchoolLifeGameplayV120": {"$path": "after-school-city.school-life-gameplay-v120.server.lua"},
+      "ASC_EconomyV130": {"$path": "after-school-city.economy-first-shop-v130.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
