@@ -399,7 +399,7 @@
           "$path": "127-fishing-feedback-hotfix.client.lua"
         },
         "FishingProgressionClientV4": {
-          "$path": "128-fishing-progression-v4.server.lua"
+          "$path": "128-fishing-progression-v4.client.lua"
         },
         "FishingGateSatisfactionV6": {
           "$path": "130-fishing-gate-v6.client.lua"
