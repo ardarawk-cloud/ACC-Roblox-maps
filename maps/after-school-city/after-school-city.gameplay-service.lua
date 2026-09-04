@@ -62,6 +62,7 @@ local function newProfile()
         Rep = GameplayConfig.StartingRep,
         Level = 1,
         CompletedQuests = {},
+        Inventory = {},
         CreatedAt = os.time(),
         UpdatedAt = os.time(),
         Sessions = 0,
@@ -84,6 +85,16 @@ local function reconcile(raw)
         for questId, completed in pairs(raw.CompletedQuests) do
             if completed == true and GameplayConfig.Quests[questId] then
                 profile.CompletedQuests[questId] = true
+            end
+        end
+    end
+    if type(raw.Inventory) == "table" then
+        for itemId, count in pairs(raw.Inventory) do
+            if type(itemId) == "string" and type(count) == "number" then
+                local safeCount = math.max(0, math.floor(count))
+                if safeCount > 0 then
+                    profile.Inventory[itemId] = safeCount
+                end
             end
         end
     end
@@ -119,6 +130,7 @@ local function publicState(player)
             Rep = 0,
             Level = 1,
             Quest = nil,
+            Inventory = {},
             FoundationVersion = GameplayConfig.Version,
         }
     end
@@ -140,6 +152,7 @@ local function publicState(player)
             RewardCoins = quest.RewardCoins,
             RewardRep = quest.RewardRep,
         } or nil,
+        Inventory = clone(profile.Inventory),
         FoundationVersion = GameplayConfig.Version,
     }
 end
@@ -186,6 +199,7 @@ local function syncPlayer(player)
     player:SetAttribute("ASC_Coins", profile.Coins)
     player:SetAttribute("ASC_Rep", profile.Rep)
     player:SetAttribute("ASC_Level", profile.Level)
+    player:SetAttribute("ASC_ProfileSchemaVersion", GameplayConfig.SchemaVersion)
     player:SetAttribute("ASC_FoundationVersion", GameplayConfig.Version)
 
     statePush:FireClient(player, publicState(player))
@@ -236,7 +250,7 @@ local function loadProfile(player)
     if success then
         toast:FireClient(player, "Profile ready", "Progress will save automatically.")
     else
-        warn("[ASC V1.0] DataStore load failed; session-only profile for", player.UserId, lastError)
+        warn("[ASC V1.3] DataStore load failed; session-only profile for", player.UserId, lastError)
         toast:FireClient(player, "Save temporarily unavailable", "This session will not overwrite your cloud progress.")
     end
 end
@@ -280,7 +294,7 @@ local function saveProfile(player, reason)
         return true
     end
 
-    warn("[ASC V1.0] DataStore save failed", player.UserId, reason, lastError)
+    warn("[ASC V1.3] DataStore save failed", player.UserId, reason, lastError)
     return false
 end
 
@@ -297,6 +311,14 @@ end
 
 function GameplayService.GetState(player)
     return publicState(player)
+end
+
+function GameplayService.GetInventoryCount(player, itemId)
+    local entry = profiles[player]
+    if not entry then
+        return 0
+    end
+    return math.max(0, math.floor(tonumber(entry.Data.Inventory[tostring(itemId or "")]) or 0))
 end
 
 function GameplayService.ShowDialogue(player, speaker, text)
@@ -327,6 +349,40 @@ function GameplayService.Award(player, coins, rep, reason)
         toast:FireClient(player, tostring(reason or "Reward earned"), string.format("+%d Coins  +%d Rep", coins, rep))
     end
     return true
+end
+
+function GameplayService.PurchaseItem(player, itemId, price, maxOwned, displayName)
+    local entry = profiles[player]
+    if not entry then
+        return false, "PROFILE_NOT_READY", 0
+    end
+
+    itemId = tostring(itemId or "")
+    if itemId == "" or #itemId > 64 then
+        return false, "INVALID_ITEM", 0
+    end
+
+    price = math.max(0, math.floor(tonumber(price) or 0))
+    maxOwned = math.max(1, math.floor(tonumber(maxOwned) or 1))
+
+    local profile = entry.Data
+    local current = math.max(0, math.floor(tonumber(profile.Inventory[itemId]) or 0))
+    if current >= maxOwned then
+        return false, "ALREADY_OWNED", current
+    end
+    if profile.Coins < price then
+        return false, "INSUFFICIENT_COINS", current
+    end
+
+    profile.Coins -= price
+    profile.Inventory[itemId] = current + 1
+    profile.UpdatedAt = os.time()
+    entry.Dirty = true
+    syncPlayer(player)
+
+    local itemName = tostring(displayName or itemId)
+    toast:FireClient(player, itemName .. " purchased", string.format("-%d Coins  |  Owned %d", price, profile.Inventory[itemId]))
+    return true, nil, profile.Inventory[itemId]
 end
 
 function GameplayService.CanUseCooldown(player, key, seconds)
@@ -384,7 +440,7 @@ function GameplayService.CompleteQuest(player, questId)
     else
         task.delay(1.2, function()
             if player.Parent == Players then
-                GameplayService.ShowDialogue(player, "CITY GUIDE", "Exploration complete. New activities are coming next.")
+                GameplayService.ShowDialogue(player, "CITY GUIDE", "School Life complete. Earn ASC Coins from activities and spend them around the city.")
             end
         end)
     end
@@ -471,7 +527,7 @@ function GameplayService.Start()
 
     workspace:SetAttribute("ASC_GameplayFoundationVersion", GameplayConfig.Version)
     workspace:SetAttribute("ASC_GameplayFoundationReady", true)
-    print("[ASC V1.0] Gameplay Foundation ready", GameplayConfig.Version)
+    print("[ASC V1.3] Gameplay + economy profile authority ready", GameplayConfig.Version)
 end
 
 return GameplayService
