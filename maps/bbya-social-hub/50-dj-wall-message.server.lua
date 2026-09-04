@@ -337,9 +337,12 @@ local function tryRecoverPaidDj(player,entry)
  local attached,payload=attachRecoveryPayload(player.UserId,purchaseId,entry)
  if not attached or not payload then return nil,"DATASTORE" end
  local receiptOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,recoveryFilledAt=os.time()}))
+ if not receiptOk then
+  wallRemote:FireClient(player,"toast","Recovery pembayaran tersimpan dan menunggu finalisasi. Tidak ada charge baru.")
+  return true,purchaseId
+ end
  queueMessage(payload,purchaseId)
  wallRemote:FireClient(player,"queued",{position=#queue,text=payload.text,recovered=true})
- if not receiptOk then warn("[BBYA Monetization] recovery payload durable in user-state; receipt ledger retry pending "..purchaseId) end
  return true,purchaseId
 end
 
@@ -355,7 +358,7 @@ wallRemote.OnServerEvent:Connect(function(p,action,data)
  local entry={text=filtered,category=category,from=p.DisplayName,userId=p.UserId,createdAt=os.time()}; lastSubmit[p.UserId]=now
  if isAdmin(p) then queueMessage(entry); wallRemote:FireClient(p,"queued",{position=#queue,text=filtered,adminPreview=true}); return end
 
- local recovered,recoveryErr=tryRecoverPaidDj(p,entry)
+ local recovered=tryRecoverPaidDj(p,entry)
  if recovered==true then return end
  if recovered==nil then wallRemote:FireClient(p,"toast","Recovery pembayaran sedang tidak tersedia. Coba lagi sebentar; tidak ada charge baru.");return end
 
@@ -469,8 +472,13 @@ MarketplaceService.ProcessReceipt=function(receipt)
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
 
- local bound,payload,needsRecovery=bindDjReceipt(receipt,purchaseId)
- pending[tonumber(receipt.PlayerId)]=nil
+ local bound,payload,needsRecovery=true,nil,false
+ if record.state=="READY" and type(record.payload)=="table" then
+  payload=payloadOf(record.payload)
+ else
+  bound,payload,needsRecovery=bindDjReceipt(receipt,purchaseId)
+  pending[tonumber(receipt.PlayerId)]=nil
+ end
  if not bound then return Enum.ProductPurchaseDecision.NotProcessedYet end
  if needsRecovery or not payload then
   local waitOk=select(1,setReceiptFields(purchaseId,{state="WAITING_PAYLOAD",recoveryRecordedAt=os.time()}))
@@ -480,7 +488,7 @@ MarketplaceService.ProcessReceipt=function(receipt)
   return Enum.ProductPurchaseDecision.NotProcessedYet
  end
 
- local readyOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,grantRecordedAt=os.time()}))
+ local readyOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,grantRecordedAt=record.grantRecordedAt or os.time()}))
  if not readyOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
  queueMessage(payload,purchaseId)
  local ackOk,ackRecord=setReceiptFields(purchaseId,{state="ACK_READY",runtimeQueuedAt=os.time()})
