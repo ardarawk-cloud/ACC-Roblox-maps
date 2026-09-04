@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — DONATION NOTIFICATION SFX v1.1 + QA SIMULATOR CLIENT
+-- BBYA SOCIAL HUB — DONATION NOTIFICATION SFX v1.2 + QA SIMULATOR CLIENT
 -- Audio-only runtime consumer plus TEST-place-only QA controls.
 -- Production behavior: DonationNotification -> one global/non-positional Sound.
 -- TEST instrumentation never opens purchase UI and never infers purchase success.
@@ -24,8 +24,9 @@ end
 
 local donationSound = Instance.new("Sound")
 donationSound.Name = "BBYADonationNotificationSFX"
-donationSound.SoundId = "rbxassetid://9126072044"
+donationSound.SoundId = "rbxassetid://138169036950863"
 donationSound.Volume = 0.58
+donationSound.PlaybackSpeed = 0.5714285714
 donationSound.Looped = false
 donationSound.Parent = SoundService
 
@@ -191,4 +192,4 @@ destroyingConnection = script.Destroying:Connect(function()
 	if donationSound then donationSound:Destroy() end
 end)
 
-print("[BBYA Audio] DonationNotification SFX v1.1 online; server event only; SoundId 9126072044")
+print("[BBYA Audio] DonationNotification SFX v1.2 online; server event only; SoundId 138169036950863; PlaybackSpeed 0.5714285714")
