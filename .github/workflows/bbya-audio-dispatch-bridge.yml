@@ -23,16 +23,19 @@ jobs:
           field(){ printf '%s\n' "$BODY" | sed -n "s/^$1=//p" | head -n1; }
           DRIVE_FILE_ID="$(field drive_file_id)"
           AUDIO_TITLE="$(field title)"
+          TRIM_START_SECONDS="$(field trim_start_seconds)"
           UNIVERSE_ID="$(field universe_id)"
           PERMISSION_MODE="$(field permission_mode)"
           TARGET_PROJECTS="$(field target_projects)"
           UNIVERSE_IDS="$(field universe_ids)"
           [ -n "$DRIVE_FILE_ID" ] || { echo 'drive_file_id missing'; exit 10; }
           [ -n "$AUDIO_TITLE" ] || { echo 'title missing'; exit 11; }
+          [ -n "$TRIM_START_SECONDS" ] || TRIM_START_SECONDS='0'
           [ -n "$PERMISSION_MODE" ] || PERMISSION_MODE='AM_STUDIO_SHARED'
           {
             echo "drive_file_id=$DRIVE_FILE_ID"
             echo "audio_title=$AUDIO_TITLE"
+            echo "trim_start_seconds=$TRIM_START_SECONDS"
             echo "universe_id=$UNIVERSE_ID"
             echo "permission_mode=$PERMISSION_MODE"
             echo "target_projects=$TARGET_PROJECTS"
@@ -45,6 +48,7 @@ jobs:
           BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
           DRIVE_FILE_ID: ${{ steps.request.outputs.drive_file_id }}
           AUDIO_TITLE: ${{ steps.request.outputs.audio_title }}
+          TRIM_START_SECONDS: ${{ steps.request.outputs.trim_start_seconds }}
           UNIVERSE_ID: ${{ steps.request.outputs.universe_id }}
           PERMISSION_MODE: ${{ steps.request.outputs.permission_mode }}
           TARGET_PROJECTS: ${{ steps.request.outputs.target_projects }}
@@ -52,7 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "${BRIDGE_TOKEN:-}" ] || { echo 'BALI_ENTERTAIMENT_TOKEN missing'; exit 20; }
-          PAYLOAD="$(jq -nc --arg ref main --arg drive "$DRIVE_FILE_ID" --arg title "$AUDIO_TITLE" --arg legacy "$UNIVERSE_ID" --arg mode "$PERMISSION_MODE" --arg projects "$TARGET_PROJECTS" --arg universes "$UNIVERSE_IDS" '{ref:$ref,inputs:{drive_file_id:$drive,title:$title,universe_id:$legacy,permission_mode:$mode,target_projects:$projects,universe_ids:$universes}}')"
+          PAYLOAD="$(jq -nc --arg ref main --arg drive "$DRIVE_FILE_ID" --arg title "$AUDIO_TITLE" --arg trim "$TRIM_START_SECONDS" --arg legacy "$UNIVERSE_ID" --arg mode "$PERMISSION_MODE" --arg projects "$TARGET_PROJECTS" --arg universes "$UNIVERSE_IDS" '{ref:$ref,inputs:{drive_file_id:$drive,title:$title,trim_start_seconds:$trim,universe_id:$legacy,permission_mode:$mode,target_projects:$projects,universe_ids:$universes}}')"
           HTTP="$(curl -sS -o /tmp/dispatch-response.txt -w '%{http_code}' -X POST -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/balientertaiment-web/Roblox-backup-publish/actions/workflows/roblox-audio-talonthedevil.yml/dispatches' -d "$PAYLOAD")"
           [ "$HTTP" = '204' ] || { echo "Cross-repo dispatch failed HTTP=$HTTP"; cat /tmp/dispatch-response.txt || true; exit 21; }
           echo 'AUDIO_DISPATCHED_175_UNIFIED_PERMISSION_CONTRACT'
@@ -62,7 +66,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body:'AUDIO_DISPATCHED | 1.75x | permission contract enforced | No map publish.'});
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body:'AUDIO_DISPATCHED | 1.75x | trim-aware | permission contract enforced | No map publish.'});
 
       - name: Mark dispatch failure
         if: failure()
