@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION LOCAL ADAPTER v3
+-- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION LOCAL ADAPTER v3.1
 -- Purchase prompt bridge remains function-only; receipts stay server-authoritative.
 -- Donation popup is visual-only and consumes Monetization:DonationNotification:v1.
 -- No purchase-success inference, no backend mutation, no audio authority.
@@ -38,7 +38,8 @@ notificationGui.Parent=playerGui
 notificationGui:SetAttribute("BBYAUIAuthority","DONATION_NOTIFICATION_POPUP_V1")
 notificationGui:SetAttribute("BBYAContract","Monetization:DonationNotification:v1")
 pcall(function()
- notificationGui.ScreenInsets=Enum.ScreenInsets.DeviceSafeInsets
+ notificationGui.ScreenInsets=Enum.ScreenInsets.CoreUISafeInsets
+ notificationGui.ClipToDeviceSafeArea=true
 end)
 
 local C={
@@ -361,4 +362,4 @@ script.Destroying:Connect(function()
  if workspaceCameraConnection then workspaceCameraConnection:Disconnect();workspaceCameraConnection=nil end
 end)
 
-print("[BBYA] Support purchase adapter v3 + queued DonationNotification popup v1 online; receipts/server/audio unchanged")
+print("[BBYA] Support purchase adapter v3.1 + queued DonationNotification popup v1 online; receipts/server/audio unchanged")
