@@ -16,13 +16,26 @@ jobs:
     env:
       BRIDGE_TOKEN: ${{ secrets.BALI_ENTERTAIMENT_TOKEN }}
       TARGET_REPO: balientertaiment-web/Roblox-backup-publish
-      TARGET_BRANCH: audio-infra/global-shareable-standard-v1
 
     steps:
       - name: Checkout canonical infrastructure source
         uses: actions/checkout@v4
 
-      - name: Create or fast-forward uploader candidate branch and sync contract
+      - name: Resolve guarded target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")"
+          TARGET_BRANCH="$(printf '%s\n' "$BODY" | sed -n 's/^target_branch=//p' | head -n1)"
+          [ -n "$TARGET_BRANCH" ] || TARGET_BRANCH='audio-infra/global-shareable-standard-v1'
+          case "$TARGET_BRANCH" in
+            main|audio-infra/global-shareable-standard-v1) ;;
+            *) echo "TARGET_BRANCH_NOT_ALLOWED=$TARGET_BRANCH"; exit 19 ;;
+          esac
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> "$GITHUB_ENV"
+          echo "Guarded sync target: $TARGET_BRANCH"
+
+      - name: Sync unified audio contract through approved bridge token
         shell: bash
         run: |
           set -euo pipefail
@@ -31,24 +44,32 @@ jobs:
 
           MAIN_SHA="$(api "https://api.github.com/repos/${TARGET_REPO}/branches/main" | jq -r '.commit.sha // empty')"
           [ -n "$MAIN_SHA" ] || { echo 'TARGET_MAIN_SHA_MISSING'; exit 21; }
-          REF_API="https://api.github.com/repos/${TARGET_REPO}/git/refs/heads/${TARGET_BRANCH}"
-          CURRENT="$(api "$REF_API" || true)"
-          if [ "$(printf '%s' "$CURRENT" | jq -r '.object.sha // empty')" = '' ]; then
-            HTTP="$(curl -sS -o /tmp/ref.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${BRIDGE_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "https://api.github.com/repos/${TARGET_REPO}/git/refs" -d "$(jq -nc --arg ref "refs/heads/${TARGET_BRANCH}" --arg sha "$MAIN_SHA" '{ref:$ref,sha:$sha}')")"
-            [ "$HTTP" = '201' ] || { echo "TARGET_BRANCH_CREATE_FAILED HTTP=$HTTP"; cat /tmp/ref.json; exit 22; }
+
+          if [ "$TARGET_BRANCH" != 'main' ]; then
+            REF_API="https://api.github.com/repos/${TARGET_REPO}/git/refs/heads/${TARGET_BRANCH}"
+            CURRENT="$(api "$REF_API" || true)"
+            if [ "$(printf '%s' "$CURRENT" | jq -r '.object.sha // empty')" = '' ]; then
+              HTTP="$(curl -sS -o /tmp/ref.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${BRIDGE_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "https://api.github.com/repos/${TARGET_REPO}/git/refs" -d "$(jq -nc --arg ref "refs/heads/${TARGET_BRANCH}" --arg sha "$MAIN_SHA" '{ref:$ref,sha:$sha}')")"
+              [ "$HTTP" = '201' ] || { echo "TARGET_BRANCH_CREATE_FAILED HTTP=$HTTP"; cat /tmp/ref.json; exit 22; }
+            fi
           fi
 
           put_file() {
             local source_path="$1" target_path="$2"
             local endpoint="https://api.github.com/repos/${TARGET_REPO}/contents/${target_path}"
-            local current sha content payload http
+            local current sha content payload http message
             current="$(api "${endpoint}?ref=${TARGET_BRANCH}" || true)"
             sha="$(printf '%s' "$current" | jq -r '.sha // empty')"
             content="$(base64 -w0 "$source_path")"
-            payload="$(jq -nc --arg message 'Stage AM Studio global audio pipeline v1' --arg content "$content" --arg sha "$sha" --arg branch "$TARGET_BRANCH" '{message:$message,content:$content,branch:$branch} + (if $sha=="" then {} else {sha:$sha} end)')"
+            if [ "$TARGET_BRANCH" = 'main' ]; then
+              message='Activate AM Studio global audio pipeline v1'
+            else
+              message='Stage AM Studio global audio pipeline v1'
+            fi
+            payload="$(jq -nc --arg message "$message" --arg content "$content" --arg sha "$sha" --arg branch "$TARGET_BRANCH" '{message:$message,content:$content,branch:$branch} + (if $sha=="" then {} else {sha:$sha} end)')"
             http="$(curl -sS -o /tmp/put.json -w '%{http_code}' -X PUT -H "Authorization: Bearer ${BRIDGE_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "$endpoint" -d "$payload")"
             [ "$http" = '200' ] || [ "$http" = '201' ] || { echo "SYNC_FAILED ${target_path} HTTP=${http}"; cat /tmp/put.json; exit 23; }
-            echo "SYNCED ${target_path}"
+            echo "SYNCED ${target_path} -> ${TARGET_BRANCH}"
           }
 
           put_file config/am-studio-roblox-universes.json config/am-studio-roblox-universes.json
@@ -62,4 +83,8 @@ jobs:
         with:
           script: |
             const ok='${{ job.status }}' === 'success';
-            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body:ok ? 'GLOBAL_AUDIO_SYNC_OK | uploader candidate branch staged | 1.75x | no map publish.' : 'GLOBAL_AUDIO_SYNC_FAILED | uploader main untouched | no map publish.'});
+            const target=process.env.TARGET_BRANCH || 'unresolved';
+            const body=ok
+              ? `GLOBAL_AUDIO_SYNC_OK | target=${target} | 1.75x | permission contract enforced | no map publish.`
+              : `GLOBAL_AUDIO_SYNC_FAILED | target=${target} | no map publish.`;
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body});
