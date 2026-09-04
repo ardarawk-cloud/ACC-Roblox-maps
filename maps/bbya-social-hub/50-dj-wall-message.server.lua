@@ -1,14 +1,15 @@
--- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v3.2
+-- BBYA SOCIAL HUB — DJ WALL + MONETIZATION AUTHORITY v4.0
 -- ONE Developer Product authority for DJ Wall and Support.
--- Products are discovered from the CURRENT universe; cross-game product IDs are never blindly prompted.
--- Support purchase prompts are resolved/validated here and opened by the local client; receipts stay server-authoritative.
--- Roblox current ProductId/productId is authoritative; legacy DeveloperProductId is fallback only.
+-- ProcessReceipt safety foundation: PurchaseId idempotency, durable DJ recovery, durable Support recovery.
+-- Products/prices/presentation remain unchanged. Unknown products remain NotProcessedYet.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local TextService=game:GetService("TextService")
 local Workspace=game:GetService("Workspace")
+local DataStoreService=game:GetService("DataStoreService")
+local HttpService=game:GetService("HttpService")
 
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD")
 local old=root:FindFirstChild("DJWallMessageSystem"); if old then old:Destroy() end
@@ -25,6 +26,14 @@ local KNOWN_SUPPORT={
  [250]=3709047106,[500]=3709047107,[1000]=3709047109,[2000]=3709048779,
 }
 local SUPPORT_AMOUNTS={10,25,50,100,250,500,1000,2000}
+local SUPPORT_BY_PRODUCT={}
+for amount,id in pairs(KNOWN_SUPPORT) do SUPPORT_BY_PRODUCT[id]=amount end
+
+local RECEIPT_STORE=DataStoreService:GetDataStore("BBYA_MonetizationReceipts_v1")
+local USER_STORE=DataStoreService:GetDataStore("BBYA_MonetizationUsers_v1")
+local USER_MARKER_LIMIT=256
+local DJ_PENDING_TTL=30*60
+
 local supportProductByAmount={}
 local supportAmountByProduct={}
 local djProductId=nil
@@ -35,6 +44,94 @@ local function upper(v) return string.upper(tostring(v or "")) end
 local function productIdOf(p) return tonumber(p.ProductId or p.productId or p.DeveloperProductId or p.developerProductId or p.id) end
 local function priceOf(p) return tonumber(p.PriceInRobux or p.priceInRobux or p.Price or p.price) end
 local function nameOf(p) return tostring(p.Name or p.name or p.displayName or p.DisplayName or "") end
+local function userKey(userId) return "u:"..tostring(userId) end
+local function receiptKey(purchaseId) return "r:"..tostring(purchaseId) end
+
+local function normalizeUser(raw)
+ local u=type(raw)=="table" and raw or {}
+ u.version=1
+ u.supportTotal=tonumber(u.supportTotal) or 0
+ u.supportApplied=type(u.supportApplied)=="table" and u.supportApplied or {}
+ u.djOutstanding=type(u.djOutstanding)=="table" and u.djOutstanding or {}
+ u.djRecovery=type(u.djRecovery)=="table" and u.djRecovery or {}
+ if u.djPending~=nil and type(u.djPending)~="table" then u.djPending=nil end
+ return u
+end
+
+local function pruneSupportApplied(map)
+ local entries={}
+ for purchaseId,marker in pairs(map) do
+  table.insert(entries,{purchaseId=tostring(purchaseId),at=tonumber(type(marker)=="table" and marker.at) or 0})
+ end
+ if #entries<=USER_MARKER_LIMIT then return end
+ table.sort(entries,function(a,b)return a.at<b.at end)
+ for i=1,#entries-USER_MARKER_LIMIT do map[entries[i].purchaseId]=nil end
+end
+
+local function safeGet(store,key)
+ local ok,value=pcall(function() return store:GetAsync(key) end)
+ if not ok then warn("[BBYA Monetization] DataStore GetAsync failed "..tostring(key)..": "..tostring(value)) end
+ return ok,value
+end
+
+local function safeUpdate(store,key,transform)
+ local ok,value=pcall(function() return store:UpdateAsync(key,transform) end)
+ if not ok then warn("[BBYA Monetization] DataStore UpdateAsync failed "..tostring(key)..": "..tostring(value)) end
+ return ok,value
+end
+
+local function updateReceipt(purchaseId,transform)
+ return safeUpdate(RECEIPT_STORE,receiptKey(purchaseId),function(raw)
+  local r=type(raw)=="table" and raw or {}
+  return transform(r)
+ end)
+end
+
+local function ensureReceiptRecord(receipt,kind,amount)
+ local purchaseId=tostring(receipt.PurchaseId or "")
+ local playerId=tonumber(receipt.PlayerId)
+ local productId=tonumber(receipt.ProductId)
+ if purchaseId=="" or not playerId or not productId then return false,nil,"missing receipt identity" end
+ local now=os.time()
+ local ok,r=updateReceipt(purchaseId,function(current)
+  if current.purchaseId and tostring(current.purchaseId)~=purchaseId then current.integrityConflict=true;return current end
+  if current.playerId and tonumber(current.playerId)~=playerId then current.integrityConflict=true;return current end
+  if current.productId and tonumber(current.productId)~=productId then current.integrityConflict=true;return current end
+  current.version=1
+  current.purchaseId=purchaseId
+  current.playerId=playerId
+  current.productId=productId
+  current.kind=current.kind or kind
+  if amount then current.amount=current.amount or amount end
+  current.state=current.state or "RECORDED"
+  current.createdAt=current.createdAt or now
+  current.updatedAt=now
+  return current
+ end)
+ if not ok then return false,nil,"receipt datastore unavailable" end
+ if type(r)~="table" or r.integrityConflict or tonumber(r.playerId)~=playerId or tonumber(r.productId)~=productId or tostring(r.kind or "")~=kind then
+  warn("[BBYA Monetization] receipt integrity mismatch for "..purchaseId)
+  return false,r,"receipt integrity mismatch"
+ end
+ return true,r,nil
+end
+
+local function setReceiptFields(purchaseId,fields)
+ local now=os.time()
+ return updateReceipt(purchaseId,function(r)
+  for k,v in pairs(fields) do r[k]=v end
+  r.updatedAt=now
+  return r
+ end)
+end
+
+local function classifyProduct(productId)
+ if productId==KNOWN_DJ then return "DJ",nil end
+ local amount=SUPPORT_BY_PRODUCT[productId]
+ if amount then return "SUPPORT",amount end
+ return nil,nil
+end
+
 local function refreshProducts()
  local byId={}
  local ok,pages=pcall(function() return MarketplaceService:GetDeveloperProductsAsync() end)
@@ -62,7 +159,8 @@ local function refreshProducts()
   end
  end
  catalogReady=true; catalogError=nil
- root:SetAttribute("BBYAMonetizationAuthority","V3_CURRENT_UNIVERSE")
+ root:SetAttribute("BBYAMonetizationAuthority","V4_RECEIPT_SAFE")
+ root:SetAttribute("BBYAReceiptIdempotency","PURCHASE_ID_DATASTORE_V1")
  root:SetAttribute("BBYAMonetizationUniverseId",game.GameId)
  root:SetAttribute("BBYADJWallProductConfigured",djProductId~=nil)
  local count=0; for _ in pairs(supportProductByAmount) do count+=1 end
@@ -75,7 +173,7 @@ task.delay(5,function() if not catalogReady or next(supportProductByAmount)==nil
 
 -- Keep one simple physical DJ wall display; monetization authority is independent from UI shell.
 local C={black=Color3.fromRGB(5,5,8),pink=Color3.fromRGB(255,38,155),cyan=Color3.fromRGB(0,210,238),gold=Color3.fromRGB(238,190,94),white=Color3.fromRGB(244,242,247),muted=Color3.fromRGB(164,157,171)}
-local model=Instance.new("Model"); model.Name="DJWallMessageSystem"; model:SetAttribute("Pass","DJ_WALL_MONETIZATION_V3"); model.Parent=root
+local model=Instance.new("Model"); model.Name="DJWallMessageSystem"; model:SetAttribute("Pass","DJ_WALL_MONETIZATION_V4_RECEIPT_SAFE"); model.Parent=root
 local function part(name,size,cf,color,material,transparency)
  local p=Instance.new("Part"); p.Name=name; p.Size=size; p.CFrame=cf; p.Color=color or C.black; p.Material=material or Enum.Material.Metal
  p.Transparency=transparency or 0; p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=true; p.CastShadow=false; p.Parent=model; return p
@@ -104,7 +202,9 @@ prompt.HoldDuration=0; prompt.MaxActivationDistance=14; prompt.RequiresLineOfSig
 
 local DISPLAY_SECONDS=12; local MAX_CHARS=80; local SUBMIT_COOLDOWN=45; local MAX_QUEUE=20
 local queue={}; local pending={}; local lastSubmit={}; local displaying=false
+local queuedPurchases={}; local deferredPaid={}
 local CATEGORY={BIRTHDAY="BIRTHDAY CELEBRATION",LOVE="LOVE MESSAGE",SHOUTOUT="SHOUTOUT",CUSTOM="LIVE MESSAGE"}
+
 local function isAdmin(p)
  if p:GetAttribute("BBYAAdmin")==true then return true end
  return game.CreatorType==Enum.CreatorType.User and p.UserId==game.CreatorId
@@ -117,14 +217,131 @@ local function filterMessage(p,raw)
  if #(result:gsub("#",""):gsub("%s",""))<2 then return nil,"Pesan terlalu banyak disensor." end
  return result
 end
-local function queueMessage(e) if #queue>=MAX_QUEUE then return false end; table.insert(queue,e); return true end
+local function payloadOf(entry)
+ return {text=tostring(entry.text or ""),category=tostring(entry.category or "CUSTOM"),from=tostring(entry.from or "Guest"),userId=tonumber(entry.userId) or 0,createdAt=tonumber(entry.createdAt) or os.time()}
+end
+local function oldestRecoveryId(recovery)
+ local bestId,bestAt=nil,nil
+ for purchaseId,marker in pairs(recovery or {}) do
+  local at=tonumber(type(marker)=="table" and marker.at) or 0
+  if not bestAt or at<bestAt then bestAt=at;bestId=tostring(purchaseId) end
+ end
+ return bestId
+end
+
+local function markDjDisplayed(purchaseId,userId)
+ if not purchaseId or purchaseId=="" or not userId then return end
+ task.spawn(function()
+  local removed=false
+  for attempt=1,3 do
+   local ok=select(1,safeUpdate(USER_STORE,userKey(userId),function(raw)
+    local u=normalizeUser(raw)
+    u.djOutstanding[purchaseId]=nil
+    return u
+   end))
+   if ok then removed=true;break end
+   task.wait(.35*attempt)
+  end
+  if not removed then warn("[BBYA Monetization] DJ outstanding cleanup deferred for "..purchaseId) end
+  setReceiptFields(purchaseId,{displayedAt=os.time()})
+ end)
+end
+
+local function queueMessage(entry,purchaseId)
+ local e=payloadOf(entry)
+ e.purchaseId=purchaseId and tostring(purchaseId) or nil
+ if e.purchaseId then
+  if queuedPurchases[e.purchaseId] then return true end
+  queuedPurchases[e.purchaseId]=true
+  if #queue>=MAX_QUEUE then deferredPaid[e.purchaseId]=e;return true end
+ end
+ if #queue>=MAX_QUEUE then return false end
+ table.insert(queue,e)
+ return true
+end
+
 local function showMessage(e)
  displaying=true; idle.Visible=false; message.Visible=true; badge.Text="BBYA • "..(CATEGORY[e.category] or CATEGORY.CUSTOM); msgText.Text=e.text; fromText.Text="FROM @"..e.from
  task.wait(DISPLAY_SECONDS); message.Visible=false; idle.Visible=true; displaying=false
+ if e.purchaseId then markDjDisplayed(e.purchaseId,e.userId) end
 end
-task.spawn(function() while task.wait(.25) do if not displaying and #queue>0 then showMessage(table.remove(queue,1)) end end end)
+
+task.spawn(function()
+ while task.wait(.25) do
+  if #queue<MAX_QUEUE then
+   for purchaseId,e in pairs(deferredPaid) do deferredPaid[purchaseId]=nil;table.insert(queue,e);break end
+  end
+  if not displaying and #queue>0 then showMessage(table.remove(queue,1)) end
+ end
+end)
+
 local function configFor(p) return {price=2,productConfigured=djProductId~=nil,maxChars=MAX_CHARS,displaySeconds=DISPLAY_SECONDS,queue=#queue,admin=isAdmin(p)} end
 prompt.Triggered:Connect(function(p) wallRemote:FireClient(p,"open",configFor(p)) end)
+
+local function loadUser(userId)
+ local ok,data=safeGet(USER_STORE,userKey(userId))
+ if not ok then return false,nil end
+ return true,normalizeUser(data)
+end
+
+local function clearDjPending(userId,token)
+ if not token then return false end
+ local ok=select(1,safeUpdate(USER_STORE,userKey(userId),function(raw)
+  local u=normalizeUser(raw)
+  if u.djPending and tostring(u.djPending.token or "")==tostring(token) then u.djPending=nil end
+  return u
+ end))
+ return ok
+end
+
+local function persistNewDjPending(player,entry)
+ local token=HttpService:GenerateGUID(false)
+ local now=os.time()
+ local ok,u=safeUpdate(USER_STORE,userKey(player.UserId),function(raw)
+  local state=normalizeUser(raw)
+  local current=state.djPending
+  if current and now-(tonumber(current.createdAt) or now)>DJ_PENDING_TTL then state.djPending=nil;current=nil end
+  if current or next(state.djRecovery)~=nil then return state end
+  local p=payloadOf(entry);p.token=token;p.createdAt=now
+  state.djPending=p
+  return state
+ end)
+ if not ok then return false,nil,"DATASTORE" end
+ u=normalizeUser(u)
+ if u.djPending and tostring(u.djPending.token or "")==token then return true,u.djPending,nil end
+ if next(u.djRecovery)~=nil then return false,nil,"RECOVERY" end
+ return false,nil,"PENDING"
+end
+
+local function attachRecoveryPayload(userId,purchaseId,entry)
+ local now=os.time()
+ local ok,u=safeUpdate(USER_STORE,userKey(userId),function(raw)
+  local state=normalizeUser(raw)
+  if state.djOutstanding[purchaseId] then return state end
+  if not state.djRecovery[purchaseId] then return state end
+  local p=payloadOf(entry);p.createdAt=p.createdAt or now
+  state.djOutstanding[purchaseId]=p
+  state.djRecovery[purchaseId]=nil
+  return state
+ end)
+ if not ok then return false,nil end
+ u=normalizeUser(u)
+ return u.djOutstanding[purchaseId]~=nil,u.djOutstanding[purchaseId]
+end
+
+local function tryRecoverPaidDj(player,entry)
+ local ok,u=loadUser(player.UserId)
+ if not ok then return nil,"DATASTORE" end
+ local purchaseId=oldestRecoveryId(u.djRecovery)
+ if not purchaseId then return false,nil end
+ local attached,payload=attachRecoveryPayload(player.UserId,purchaseId,entry)
+ if not attached or not payload then return nil,"DATASTORE" end
+ local receiptOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,recoveryFilledAt=os.time()}))
+ queueMessage(payload,purchaseId)
+ wallRemote:FireClient(player,"queued",{position=#queue,text=payload.text,recovered=true})
+ if not receiptOk then warn("[BBYA Monetization] recovery payload durable in user-state; receipt ledger retry pending "..purchaseId) end
+ return true,purchaseId
+end
 
 wallRemote.OnServerEvent:Connect(function(p,action,data)
  if action=="config" then wallRemote:FireClient(p,"config",configFor(p)); return end
@@ -132,16 +349,34 @@ wallRemote.OnServerEvent:Connect(function(p,action,data)
  local now=os.clock(); local last=lastSubmit[p.UserId] or 0
  if now-last<SUBMIT_COOLDOWN and not isAdmin(p) then wallRemote:FireClient(p,"toast","Tunggu sebentar sebelum kirim lagi."); return end
  if pending[p.UserId] then wallRemote:FireClient(p,"toast","Selesaikan request sebelumnya dulu."); return end
- if #queue>=MAX_QUEUE then wallRemote:FireClient(p,"toast","Antrean DJ Wall sedang penuh."); return end
+ if #queue>=MAX_QUEUE and next(deferredPaid)==nil then wallRemote:FireClient(p,"toast","Antrean DJ Wall sedang penuh."); return end
  local category=tostring(data.category or "CUSTOM"):upper(); if not CATEGORY[category] then category="CUSTOM" end
  local filtered,err=filterMessage(p,data.text); if not filtered then wallRemote:FireClient(p,"toast",err or "Pesan ditolak."); return end
- local entry={text=filtered,category=category,from=p.DisplayName,userId=p.UserId}; lastSubmit[p.UserId]=now
+ local entry={text=filtered,category=category,from=p.DisplayName,userId=p.UserId,createdAt=os.time()}; lastSubmit[p.UserId]=now
  if isAdmin(p) then queueMessage(entry); wallRemote:FireClient(p,"queued",{position=#queue,text=filtered,adminPreview=true}); return end
+
+ local recovered,recoveryErr=tryRecoverPaidDj(p,entry)
+ if recovered==true then return end
+ if recovered==nil then wallRemote:FireClient(p,"toast","Recovery pembayaran sedang tidak tersedia. Coba lagi sebentar; tidak ada charge baru.");return end
+
  if not djProductId then refreshProducts() end
  if not djProductId then wallRemote:FireClient(p,"toast","DJ Wall 2R belum dikonfigurasi untuk universe ini."); return end
- pending[p.UserId]=entry; wallRemote:FireClient(p,"purchase",{message=filtered})
- local ok=pcall(function() MarketplaceService:PromptProductPurchase(p,djProductId) end)
- if not ok then pending[p.UserId]=nil; wallRemote:FireClient(p,"toast","Purchase prompt gagal dibuka.") end
+ local saved,durablePending,saveErr=persistNewDjPending(p,entry)
+ if not saved then
+  if saveErr=="RECOVERY" then wallRemote:FireClient(p,"toast","Ada pembayaran DJ Wall yang perlu dipulihkan. Kirim lagi sebentar; tidak akan ditagih dua kali.")
+  elseif saveErr=="PENDING" then wallRemote:FireClient(p,"toast","Selesaikan request DJ Wall sebelumnya dulu.")
+  else wallRemote:FireClient(p,"toast","Pembayaran sementara tidak tersedia karena penyimpanan gagal. Tidak ada charge dibuka.") end
+  return
+ end
+ pending[p.UserId]=durablePending
+ wallRemote:FireClient(p,"purchase",{message=filtered})
+ local promptOk=pcall(function() MarketplaceService:PromptProductPurchase(p,djProductId) end)
+ if not promptOk then
+  local token=durablePending.token
+  pending[p.UserId]=nil
+  task.spawn(function()clearDjPending(p.UserId,token)end)
+  wallRemote:FireClient(p,"toast","Purchase prompt gagal dibuka.")
+ end
 end)
 
 monetizationRemote.OnServerEvent:Connect(function(p,action,value)
@@ -158,28 +393,139 @@ monetizationRemote.OnServerEvent:Connect(function(p,action,value)
  monetizationRemote:FireClient(p,"promptSupportLocal",{amount=amount,productId=id})
 end)
 
+local function applySupportReceipt(receipt,purchaseId,amount)
+ local playerId=tonumber(receipt.PlayerId)
+ local now=os.time()
+ local ok,u=safeUpdate(USER_STORE,userKey(playerId),function(raw)
+  local state=normalizeUser(raw)
+  if not state.supportApplied[purchaseId] then
+   state.supportTotal=(tonumber(state.supportTotal) or 0)+amount
+   state.supportApplied[purchaseId]={amount=amount,at=now}
+   pruneSupportApplied(state.supportApplied)
+  end
+  return state
+ end)
+ if not ok then return false,nil end
+ u=normalizeUser(u)
+ local marker=u.supportApplied[purchaseId]
+ if not marker or tonumber(marker.amount)~=amount then return false,nil end
+ return true,u.supportTotal
+end
+
+local function bindDjReceipt(receipt,purchaseId)
+ local playerId=tonumber(receipt.PlayerId)
+ local now=os.time()
+ local ok,u=safeUpdate(USER_STORE,userKey(playerId),function(raw)
+  local state=normalizeUser(raw)
+  if state.djOutstanding[purchaseId] then return state end
+  if state.djPending then
+   local p=payloadOf(state.djPending)
+   state.djOutstanding[purchaseId]=p
+   state.djPending=nil
+   return state
+  end
+  state.djRecovery[purchaseId]=state.djRecovery[purchaseId] or {at=now,productId=KNOWN_DJ}
+  return state
+ end)
+ if not ok then return false,nil,false end
+ u=normalizeUser(u)
+ local payload=u.djOutstanding[purchaseId]
+ if payload then return true,payload,false end
+ if u.djRecovery[purchaseId] then return true,nil,true end
+ return false,nil,false
+end
+
 -- THE ONLY Developer Product receipt authority in this map.
 MarketplaceService.ProcessReceipt=function(receipt)
  local productId=tonumber(receipt.ProductId)
- if not productId then return Enum.ProductPurchaseDecision.NotProcessedYet end
- if not catalogReady then refreshProducts() end
- if productId==djProductId then
-  local e=pending[receipt.PlayerId]; pending[receipt.PlayerId]=nil
-  if e then queueMessage(e); local p=Players:GetPlayerByUserId(receipt.PlayerId); if p then wallRemote:FireClient(p,"queued",{position=#queue,text=e.text}) end end
-  return Enum.ProductPurchaseDecision.PurchaseGranted
+ local kind,amount=classifyProduct(productId)
+ if not kind then return Enum.ProductPurchaseDecision.NotProcessedYet end
+
+ local purchaseId=tostring(receipt.PurchaseId or "")
+ if purchaseId=="" then
+  warn("[BBYA Monetization] known product receipt missing PurchaseId")
+  return Enum.ProductPurchaseDecision.NotProcessedYet
  end
- local amount=supportAmountByProduct[productId]
- if amount then
-  local p=Players:GetPlayerByUserId(receipt.PlayerId)
+
+ local recordOk,record=ensureReceiptRecord(receipt,kind,amount)
+ if not recordOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
+ if record.state=="ACK_READY" then return Enum.ProductPurchaseDecision.PurchaseGranted end
+
+ if kind=="SUPPORT" then
+  local applied,total=applySupportReceipt(receipt,purchaseId,amount)
+  if not applied then return Enum.ProductPurchaseDecision.NotProcessedYet end
+  local readyOk=select(1,setReceiptFields(purchaseId,{state="READY",grantRecordedAt=os.time(),supportTotal=total}))
+  if not readyOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
+
+  local p=Players:GetPlayerByUserId(tonumber(receipt.PlayerId))
+  if p then p:SetAttribute("BBYASupportRobuxTotal",total) end
+
+  local ackOk,ackRecord=setReceiptFields(purchaseId,{state="ACK_READY",runtimeGrantedAt=os.time()})
+  if not ackOk or type(ackRecord)~="table" or ackRecord.state~="ACK_READY" then return Enum.ProductPurchaseDecision.NotProcessedYet end
   if p then
-   local total=(tonumber(p:GetAttribute("BBYASupportRobuxTotal")) or 0)+amount; p:SetAttribute("BBYASupportRobuxTotal",total)
    monetizationRemote:FireClient(p,"receipt",{amount=amount,message=string.format("Support %dR diterima • Thank you!",amount),total=total})
    stateRemote:FireAllClients("supportReceived",{displayName=p.DisplayName,userId=p.UserId,amount=amount,total=total})
   end
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
- return Enum.ProductPurchaseDecision.NotProcessedYet
+
+ local bound,payload,needsRecovery=bindDjReceipt(receipt,purchaseId)
+ pending[tonumber(receipt.PlayerId)]=nil
+ if not bound then return Enum.ProductPurchaseDecision.NotProcessedYet end
+ if needsRecovery or not payload then
+  local waitOk=select(1,setReceiptFields(purchaseId,{state="WAITING_PAYLOAD",recoveryRecordedAt=os.time()}))
+  if not waitOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
+  local p=Players:GetPlayerByUserId(tonumber(receipt.PlayerId))
+  if p then stateRemote:FireClient(p,"toast","Pembayaran DJ Wall tersimpan. Kirim ulang pesan untuk recovery; tidak akan ditagih lagi.") end
+  return Enum.ProductPurchaseDecision.NotProcessedYet
+ end
+
+ local readyOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,grantRecordedAt=os.time()}))
+ if not readyOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
+ queueMessage(payload,purchaseId)
+ local ackOk,ackRecord=setReceiptFields(purchaseId,{state="ACK_READY",runtimeQueuedAt=os.time()})
+ if not ackOk or type(ackRecord)~="table" or ackRecord.state~="ACK_READY" then return Enum.ProductPurchaseDecision.NotProcessedYet end
+ local p=Players:GetPlayerByUserId(tonumber(receipt.PlayerId))
+ if p then wallRemote:FireClient(p,"queued",{position=#queue,text=payload.text}) end
+ return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 
-Players.PlayerRemoving:Connect(function(p) pending[p.UserId]=nil; lastSubmit[p.UserId]=nil end)
-print("[BBYA] DJ Wall + Monetization v3.2 online: current ProductId authority, support local prompt, one server receipt authority")
+-- This event never grants a purchase. It only releases a canceled DJ pending payload.
+MarketplaceService.PromptProductPurchaseFinished:Connect(function(userId,productId,purchased)
+ if tonumber(productId)~=KNOWN_DJ or purchased then return end
+ local mem=pending[tonumber(userId)]
+ if mem then
+  pending[tonumber(userId)]=nil
+  task.spawn(function()clearDjPending(tonumber(userId),mem.token)end)
+ end
+end)
+
+local function recoverPlayer(player)
+ local ok,u=loadUser(player.UserId)
+ if not ok then return end
+ local persistedTotal=tonumber(u.supportTotal) or 0
+ player:SetAttribute("BBYASupportRobuxTotal",persistedTotal)
+ local recoveredCount=0
+ for purchaseId,payload in pairs(u.djOutstanding) do
+  if type(payload)=="table" then queueMessage(payload,tostring(purchaseId));recoveredCount+=1 end
+ end
+ local recoveryCount=0;for _ in pairs(u.djRecovery) do recoveryCount+=1 end
+ if recoveryCount>0 then
+  task.delay(1,function()
+   if player.Parent then stateRemote:FireClient(player,"toast","Ada pembayaran DJ Wall yang tersimpan. Kirim pesan DJ Wall untuk recovery tanpa charge baru.") end
+  end)
+ elseif recoveredCount>0 then
+  task.delay(1,function()
+   if player.Parent then stateRemote:FireClient(player,"toast","Pesan DJ Wall berbayar dipulihkan ke antrean.") end
+  end)
+ end
+end
+
+for _,p in ipairs(Players:GetPlayers()) do task.spawn(recoverPlayer,p) end
+Players.PlayerAdded:Connect(function(p)task.spawn(recoverPlayer,p)end)
+Players.PlayerRemoving:Connect(function(p)
+ pending[p.UserId]=nil
+ lastSubmit[p.UserId]=nil
+end)
+
+print("[BBYA] DJ Wall + Monetization v4.0 online: PurchaseId ledger / durable DJ recovery / durable Support recovery / one server receipt authority")
