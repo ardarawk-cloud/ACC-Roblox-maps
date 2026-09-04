@@ -1,155 +1,215 @@
-name: After School City V1.2 Dedication No Backdrop v52 QC
+name: Publish After School City Dedication No Backdrop v52 Patch
 
 on:
   push:
-    branches: [after-school-city/v120-dedication-no-backdrop-v52]
+    branches:
+      - after-school-city/v120-dedication-no-backdrop-v52
     paths:
       - '.github/workflows/after-school-city-v120-school-life-foundation-qc.yml'
-      - 'maps/after-school-city/after-school-city.intro.client.lua'
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  actions: read
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
 
 jobs:
-  qc:
+  publish:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      EXPECTED_SOURCE: '21c622b190a85f3ecf935aa46a2a06be34f67c84'
+      BASE_LIVE_SOURCE: '12882a30a5c3b585f4a4eb0e19109442df4dc374'
+      EXPECTED_QC_RUN: '33790514178'
+      EXPECTED_ARTIFACT: 'after-school-city-v52-dedication-no-backdrop-qc-21c622b190a85f3ecf935aa46a2a06be34f67c84'
+      EXPECTED_ARTIFACT_ID: '9907135135'
+      EXPECTED_RBXL_SHA256: 'f2ec4a58ced855844472cd8ad4c2fba926d735ccbb8d766ea51fc91566c4d0dc'
+      EXPECTED_RBXL_BYTES: '191304'
+      EXPECTED_PREVIOUS_VERSION: '52'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+
     steps:
-      - name: Checkout exact dedication patch candidate
+      - name: Checkout publish branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Exact v52 LIVE base and narrow diff gate
+      - name: Exact candidate and production-scope gate
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $base = '12882a30a5c3b585f4a4eb0e19109442df4dc374'
-          git cat-file -e "$base^{commit}"
-          if($LASTEXITCODE -ne 0){ throw 'v52 LIVE source unavailable' }
-          $mergeBase = (git merge-base $base $env:GITHUB_SHA).Trim()
-          if($mergeBase -ne $base){ throw "Candidate is not based on exact v52 LIVE source: $mergeBase" }
-          $allowed = @(
-            '.github/workflows/after-school-city-v120-school-life-foundation-qc.yml',
-            'maps/after-school-city/after-school-city.intro.client.lua'
-          )
-          $changed = @(git diff --name-only $base $env:GITHUB_SHA)
-          if($changed.Count -ne 2){ throw "Expected exactly 2 files, got $($changed.Count): $($changed -join ', ')" }
-          foreach($path in $changed){ if($allowed -notcontains $path){ throw "Scope violation: $path" } }
-          foreach($path in $allowed){ if($changed -notcontains $path){ throw "Missing required change: $path" } }
-          Write-Host "DEDICATION PATCH V52 NARROW DIFF PASS source=$env:GITHUB_SHA"
-
-      - name: Verify dedication copy and backdrop removal
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $introPath = 'maps/after-school-city/after-school-city.intro.client.lua'
-          $intro = Get-Content $introPath -Raw
-          foreach($token in @(
-            'AFTER SCHOOL CITY',
-            'A GAME MADE FOR',
-            'PUTU AZYA PUTRI\nBINTANG HARDAJAYA',
-            'This game was made especially for you.',
-            'WITH LOVE, DAD',
-            'ENTER THE CITY'
-          )){
-            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication lock missing: $token" }
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected QC source commit unavailable' }
+          $mergeBase = (git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Workflow head is not descended from exact QC source: $mergeBase" }
+          $after = @(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production source changed after exact QC source: $($after -join ', ')" }
+          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          if($prod.Count -ne 1 -or $prod[0] -ne 'maps/after-school-city/after-school-city.intro.client.lua'){
+            throw "Unexpected production delta from LIVE v52: $($prod -join ', ')"
+          }
+          $intro = (git show "$env:EXPECTED_SOURCE`:maps/after-school-city/after-school-city.intro.client.lua" | Out-String)
+          foreach($token in @('AFTER SCHOOL CITY','A GAME MADE FOR','This game was made especially for you.','WITH LOVE, DAD','ENTER THE CITY')){
+            if($intro -notmatch [regex]::Escape($token)){ throw "Dedication lock missing at exact source: $token" }
           }
           if($intro -match 'local\s+backdrop\s*=|backdrop\.Name\s*=\s*"Backdrop"|TweenService:Create\(backdrop'){
-            throw 'Backdrop implementation still present'
+            throw 'Backdrop implementation still present at exact source'
           }
-          foreach($token in @(
-            'card.Name = "Card"',
-            'enterButton.Name = "EnterButton"',
-            'gui.DisplayOrder = 1000'
-          )){
-            if($intro -notmatch [regex]::Escape($token)){ throw "Intro card authority missing: $token" }
+          Write-Host "EXACT SOURCE GATE PASS source=$env:EXPECTED_SOURCE scope=intro-only"
+
+      - name: Verify latest production receipt is still v52
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main receipts' }
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxPath = ''
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $raw = (git show "origin/main:$path" | Out-String)
+              $j = $raw | ConvertFrom-Json
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxPath = $path; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
           }
-          Write-Host 'DEDICATION COPY LOCK PASS; FULL-SCREEN BACKDROP REMOVED'
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale publish base: latest receipt v$maxVersion path=$maxPath source=$maxSource" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest v52 source mismatch: $maxSource" }
+          Write-Host "LIVE RECEIPT GATE PASS v$maxVersion source=$maxSource"
 
-      - name: Verify v52 KPOP and non-intro production authority unchanged
+      - name: Download exact QC artifact without rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.EXPECTED_ARTIFACT }}
+          path: publish-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.EXPECTED_QC_RUN }}
+
+      - name: Verify exact QC artifact bytes hash and receipt
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $base = '12882a30a5c3b585f4a4eb0e19109442df4dc374'
-          $unexpected = @(git diff --name-only $base $env:GITHUB_SHA -- 'maps/after-school-city' | Where-Object { $_ -ne 'maps/after-school-city/after-school-city.intro.client.lua' })
-          if($unexpected.Count -gt 0){ throw "Unexpected production source change: $($unexpected -join ', ')" }
-          $cfg = Get-Content 'maps/after-school-city/after-school-city.music-config.lua' -Raw
-          $player = Get-Content 'maps/after-school-city/after-school-city.music-player.client.lua' -Raw
+          $places = @(Get-ChildItem 'publish-input' -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){ throw "Expected exactly one RBXL; got $($places.Count)" }
+          $place = $places[0]
+          $bytes = $place.Length
+          $hash = (Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:EXPECTED_RBXL_BYTES){ throw "RBXL byte mismatch: $bytes" }
+          if($hash -ne $env:EXPECTED_RBXL_SHA256){ throw "RBXL SHA256 mismatch: $hash" }
+          $receiptFile = Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
+          if(-not $receiptFile){ throw 'QC receipt missing from exact artifact' }
+          $receipt = Get-Content $receiptFile.FullName -Raw
           foreach($token in @(
-            'Version = "0.9.0-kpop-bank-1"',
-            'BankName = "KPOP"',
-            'PlaybackSpeed = 0.5714285714'
-          )){ if($cfg -notmatch [regex]::Escape($token)){ throw "v52 KPOP authority missing: $token" } }
-          $trackCount = ([regex]::Matches($cfg, 'AssetId\s*=')).Count
-          if($trackCount -ne 18){ throw "Expected 18 v52 KPOP tracks; got $trackCount" }
-          if($player -notmatch [regex]::Escape('sound.PlaybackSpeed = playbackSpeed')){ throw 'v52 KPOP playback authority missing' }
-          Write-Host 'V52 KPOP + NON-INTRO PRODUCTION AUTHORITY UNCHANGED'
-
-      - name: Verify School Life and persistence locks still present
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $gameplay = Get-Content 'maps/after-school-city/after-school-city.gameplay-config.lua' -Raw
-          foreach($token in @(
-            'DataStoreName = "ASC_PlayerProfile_v1"',
-            'SchemaVersion = 1',
-            '"SCHOOL_MEET_TEACHER"',
-            '"SCHOOL_HELP_CANTEEN"',
-            '"SCHOOL_JOIN_CLUB"'
-          )){ if($gameplay -notmatch [regex]::Escape($token)){ throw "Protected gameplay lock missing: $token" } }
-          Write-Host 'SCHOOL LIFE + PERSISTENCE LOCK PASS'
-
-      - name: Prepare Rojo 7.7.0
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
-          $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
-          New-Item -ItemType Directory -Path $dir -Force | Out-Null
-          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
-          Expand-Archive -Path $zip -DestinationPath $dir -Force
-          $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
-          if(-not $exe){ throw 'rojo.exe missing' }
-          $version = (& $exe.FullName --version | Out-String).Trim()
-          if($LASTEXITCODE -ne 0 -or $version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
-          "ROJO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "ROJO_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build exact v52 dedication patch candidate and hash
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $out = Join-Path $env:RUNNER_TEMP 'asc-v52-dedication-no-backdrop-qc'
-          New-Item -ItemType Directory -Path $out -Force | Out-Null
-          $place = Join-Path $out 'after-school-city-v52-dedication-no-backdrop.rbxl'
-          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
-          $bytes = (Get-Item $place).Length
-          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
-          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
-          $receipt = @(
             'STATUS=QC_PASSED',
             'MODE=DEDICATION_NO_BACKDROP_V52_PATCH',
-            'BASE_LIVE_COMMIT=12882a30a5c3b585f4a4eb0e19109442df4dc374',
-            "SOURCE_COMMIT=$env:GITHUB_SHA",
-            "ROJO=$env:ROJO_VERSION",
-            "RBXL_BYTES=$bytes",
-            "SHA256=$hash",
+            "BASE_LIVE_COMMIT=$env:BASE_LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            "RBXL_BYTES=$env:EXPECTED_RBXL_BYTES",
+            "SHA256=$env:EXPECTED_RBXL_SHA256",
             'SCOPE=INTRO_BACKDROP_ONLY',
             'DEDICATION_COPY=UNCHANGED',
             'KPOP_BANK=V52_PRESERVED_18_TRACKS',
             'DATASTORE_SCHEMA_GAMEPLAY_MAP=UNCHANGED'
-          )
-          $receipt | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding ascii
-          $receipt | ForEach-Object { Write-Host $_ }
-          "QC_OUT_DIR=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          )){
+            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact QC receipt token missing: $token" }
+          }
+          "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
 
-      - name: Upload exact v52 dedication patch QC artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: after-school-city-v52-dedication-no-backdrop-qc-${{ github.sha }}
-          path: ${{ env.QC_OUT_DIR }}
-          if-no-files-found: error
-          retention-days: 7
+      - name: Recheck LIVE receipt immediately before publish
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne 52 -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
+          Write-Host 'FINAL PRE-PUBLISH LIVE GATE PASS'
+
+      - name: Publish exact QC artifact to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact QC RBXL missing at publish step' }
+          $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success = $false
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-dedication-no-backdrop-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-dedication-no-backdrop-publish-$attempt.json"
+            $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              $success = $true
+              break
+            }
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp = Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version = [int]$resp.versionNumber
+          if($version -le [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Invalid published version: $version" }
+          $publishedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH SUCCESS version=$version source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
+
+      - name: Persist exact LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          git switch -C receipt-main origin/main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to switch to refreshed main for receipt' }
+          $receiptPath = 'deploy-status/after-school-city-publish-dedication-no-backdrop-v52-patch.json'
+          $obj = [ordered]@{
+            status = 'LIVE_PUBLISHED'
+            project = 'AFTER SCHOOL CITY'
+            mode = 'DEDICATION_NO_BACKDROP_V52_PATCH'
+            sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
+            sourceCommit = $env:EXPECTED_SOURCE
+            baseLiveCommit = $env:BASE_LIVE_SOURCE
+            qcRunId = $env:EXPECTED_QC_RUN
+            qcArtifactId = [int64]$env:EXPECTED_ARTIFACT_ID
+            universeId = $env:UNIVERSE_ID
+            placeId = $env:PLACE_ID
+            versionNumber = [int]$env:PUBLISHED_VERSION
+            rojoVersion = '7.7.0'
+            placeBytes = [int64]$env:EXPECTED_RBXL_BYTES
+            placeSha256 = $env:EXPECTED_RBXL_SHA256
+            runId = $env:GITHUB_RUN_ID
+            publishedAt = $env:PUBLISHED_AT
+            note = 'Exact QC artifact published without rebuild. Scope: remove full-screen dedication backdrop only; dedication card/copy preserved.'
+          }
+          $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+          git config user.name 'After School City Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add $receiptPath
+          git commit -m "Record After School City dedication no-backdrop LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
+          git push origin HEAD:main
+          if($LASTEXITCODE -ne 0){ throw 'Receipt push failed after Roblox publish; DO NOT RERUN PUBLISHER' }
+          Write-Host "LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
