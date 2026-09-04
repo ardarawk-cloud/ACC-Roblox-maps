@@ -12,6 +12,7 @@ local activityRemote = remotes:WaitForChild("AFKActivity", 30)
 if not activityRemote or not activityRemote:IsA("RemoteEvent") then return end
 
 local REPORT_INTERVAL_SECONDS = 20
+local WAKE_REPORT_MIN_INTERVAL_SECONDS = 1
 local MOVEMENT_POLL_SECONDS = 1
 local lastSentAt = 0
 
@@ -41,7 +42,8 @@ end
 
 local function reportActivity(force)
     local now = os.clock()
-    if not force and now - lastSentAt < REPORT_INTERVAL_SECONDS then return end
+    local minimumInterval = force and WAKE_REPORT_MIN_INTERVAL_SECONDS or REPORT_INTERVAL_SECONDS
+    if now - lastSentAt < minimumInterval then return end
     lastSentAt = now
     activityRemote:FireServer()
 end
