@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "defaultPermissionMode": "AM_STUDIO_SHARED",
+  "policy": {
+    "customMustBeRegistered": true,
+    "readyStatusRequiresAllPermissionTargets": true
+  },
+  "projects": {
+    "BBYA_SOCIAL_HUB_PRODUCTION": {
+      "universeId": "8116636513",
+      "enabled": true,
+      "audioShared": true
+    },
+    "BBYA_SOCIAL_HUB_TEST": {
+      "universeId": "10762005984",
+      "enabled": true,
+      "audioShared": true
+    },
+    "LOST_AND_FOUND_NIGHT_SHIFT": {
+      "universeId": "10745354451",
+      "enabled": true,
+      "audioShared": true
+    },
+    "AFTER_SCHOOL_CITY": {
+      "universeId": "10745359869",
+      "enabled": true,
+      "audioShared": true
+    },
+    "TRACK_01": {
+      "universeId": "10745349805",
+      "enabled": true,
+      "audioShared": true
+    },
+    "ZONA_PERANG": {
+      "universeId": "10744157359",
+      "enabled": true,
+      "audioShared": true
+    },
+    "MOUNT_BBYA": {
+      "universeId": "4187755690",
+      "enabled": true,
+      "audioShared": true
+    },
+    "MOUNTAIN_SOCIAL_CLOSED_TEST": {
+      "universeId": "10744139279",
+      "enabled": false,
+      "audioShared": false,
+      "reason": "separate closed-test target; not approved for global shared-audio grants"
+    }
+  }
+}
