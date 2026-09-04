@@ -374,6 +374,9 @@
         "SupportPurchaseClientV2": {
           "$path": "119-support-purchase.client.lua"
         },
+        "DonationNotificationSFXV1": {
+          "$path": "137-donation-notification-sfx.client.lua"
+        },
         "VenueAwareMenuMusicV1": {
           "$path": "114-venue-aware-menu-music.client.lua"
         },
@@ -396,7 +399,7 @@
           "$path": "127-fishing-feedback-hotfix.client.lua"
         },
         "FishingProgressionClientV4": {
-          "$path": "128-fishing-progression-v4.client.lua"
+          "$path": "128-fishing-progression-v4.server.lua"
         },
         "FishingGateSatisfactionV6": {
           "$path": "130-fishing-gate-v6.client.lua"
