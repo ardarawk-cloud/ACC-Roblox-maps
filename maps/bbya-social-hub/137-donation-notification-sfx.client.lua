@@ -85,6 +85,8 @@ playNext = function()
 		donationSound:Play()
 	end)
 	if not ok then
+		-- Restore this event to the FIFO. Do not auto-loop retries.
+		pendingCount += 1
 		playing = false
 		recordFailure("Play() error: " .. tostring(err))
 		return
@@ -96,6 +98,8 @@ playNext = function()
 			return
 		end
 		if not donationSound.Playing then
+			-- Restore this event to the FIFO. A later load/event may retry it.
+			pendingCount += 1
 			playing = false
 			recordFailure("Play() returned but Sound.Playing remained false")
 		end
