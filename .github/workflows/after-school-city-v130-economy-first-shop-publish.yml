@@ -1,0 +1,222 @@
+name: Publish After School City V1.3 Economy First Shop
+
+on:
+  push:
+    branches:
+      - after-school-city/v130-economy-first-shop
+    paths:
+      - '.github/workflows/after-school-city-v130-economy-first-shop-publish.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SOURCE: 'ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
+      BASE_LIVE_SOURCE: '21c622b190a85f3ecf935aa46a2a06be34f67c84'
+      EXPECTED_QC_RUN: '33866355662'
+      EXPECTED_ARTIFACT: 'after-school-city-v130-economy-first-shop-qc-ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
+      EXPECTED_ARTIFACT_ID: '9934118978'
+      EXPECTED_PREVIOUS_VERSION: '53'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+
+    steps:
+      - name: Checkout publish branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact candidate and production-scope gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected V1.3 QC source commit unavailable' }
+          $mergeBase = (git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head is not descended from exact QC source: $mergeBase" }
+          $after = @(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production source changed after exact V1.3 QC source: $($after -join ', ')" }
+
+          $expected = @(
+            'maps/after-school-city/after-school-city.config.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          if($prod.Count -ne $expected.Count){ throw "Unexpected V1.3 production delta count: $($prod.Count) => $($prod -join ', ')" }
+          foreach($path in $expected){ if($prod -notcontains $path){ throw "Expected V1.3 production file missing: $path" } }
+          foreach($path in $prod){ if($expected -notcontains $path){ throw "Unexpected V1.3 production file: $path" } }
+          Write-Host "EXACT V1.3 SOURCE GATE PASS source=$env:EXPECTED_SOURCE files=$($prod.Count)"
+
+      - name: Verify latest production receipt is still v53
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main receipts' }
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxPath = ''
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $raw = (git show "origin/main:$path" | Out-String)
+              $j = $raw | ConvertFrom-Json
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxPath = $path; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale publish base: latest receipt v$maxVersion path=$maxPath source=$maxSource" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest v53 source mismatch: $maxSource" }
+          Write-Host "LIVE RECEIPT GATE PASS v$maxVersion source=$maxSource"
+
+      - name: Download exact V1.3 QC artifact without rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.EXPECTED_ARTIFACT }}
+          path: publish-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.EXPECTED_QC_RUN }}
+
+      - name: Verify exact QC artifact and capture immutable hash
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $places = @(Get-ChildItem 'publish-input' -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){ throw "Expected exactly one RBXL; got $($places.Count)" }
+          $place = $places[0]
+          $bytes = $place.Length
+          $hash = (Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
+
+          $receiptFile = Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
+          if(-not $receiptFile){ throw 'QC receipt missing from exact artifact' }
+          $receipt = Get-Content $receiptFile.FullName -Raw
+          foreach($token in @(
+            'STATUS=QC_PASSED',
+            'MODE=V130_ECONOMY_FIRST_SHOP',
+            "BASE_LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
+            'BASE_LIVE_ROBLOX_VERSION=53',
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'DATASTORE=ASC_PlayerProfile_v1',
+            'SCHEMA=2_BACKWARD_RECONCILE',
+            'FIRST_SHOP=STUDENT_MINI_MART',
+            'ITEMS=4_PERSISTENT_COLLECTIBLES',
+            'PURCHASE_AUTHORITY=SERVER_ONLY',
+            'MARKETPLACE_ROBUX=NONE',
+            'LIVE_V53_AUTHORITIES=PRESERVED'
+          )){
+            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact V1.3 QC receipt token missing: $token" }
+          }
+
+          "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT V1.3 QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
+
+      - name: Recheck LIVE receipt immediately before publish
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
+          Write-Host 'FINAL PRE-PUBLISH LIVE GATE PASS'
+
+      - name: Publish exact V1.3 QC artifact to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact V1.3 QC RBXL missing at publish step' }
+          $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success = $false
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-v130-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-v130-publish-$attempt.json"
+            $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              $success = $true
+              break
+            }
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp = Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version = [int]$resp.versionNumber
+          if($version -le [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Invalid published version: $version" }
+          $publishedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH SUCCESS version=$version source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
+
+      - name: Persist exact V1.3 LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          git switch -C receipt-main origin/main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to switch to refreshed main for receipt' }
+          $receiptPath = 'deploy-status/after-school-city-publish-v130-economy-first-shop.json'
+          $obj = [ordered]@{
+            status = 'LIVE_PUBLISHED'
+            project = 'AFTER SCHOOL CITY'
+            mode = 'V130_ECONOMY_FIRST_SHOP'
+            sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
+            sourceCommit = $env:EXPECTED_SOURCE
+            baseLiveCommit = $env:BASE_LIVE_SOURCE
+            qcRunId = $env:EXPECTED_QC_RUN
+            qcArtifactId = [int64]$env:EXPECTED_ARTIFACT_ID
+            universeId = $env:UNIVERSE_ID
+            placeId = $env:PLACE_ID
+            versionNumber = [int]$env:PUBLISHED_VERSION
+            rojoVersion = '7.7.0'
+            placeBytes = [int64]$env:PLACE_BYTES
+            placeSha256 = $env:PLACE_SHA256
+            runId = $env:GITHUB_RUN_ID
+            publishedAt = $env:PUBLISHED_AT
+            note = 'Exact V1.3-A Economy Core + First Shop QC artifact published without rebuild. Student Mini Mart purchases use ASC Coins, server authority, persistent inventory, and preserve V1.2 authorities.'
+          }
+          $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+          git config user.name 'After School City Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add $receiptPath
+          git commit -m "Record After School City V1.3 Economy First Shop LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
+          git push origin HEAD:main
+          if($LASTEXITCODE -ne 0){ throw 'Receipt push failed after Roblox publish; DO NOT RERUN PUBLISHER' }
+          Write-Host "V1.3 LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
