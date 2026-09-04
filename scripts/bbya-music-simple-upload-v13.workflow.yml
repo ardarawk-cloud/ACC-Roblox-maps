@@ -7,6 +7,21 @@ on:
         description: JSON array of drive_file_id/title objects
         required: true
         type: string
+      permission_mode:
+        description: AM_STUDIO_SHARED, TARGET_PROJECT, or CUSTOM
+        required: false
+        default: AM_STUDIO_SHARED
+        type: string
+      target_projects:
+        description: Comma-separated registry project keys for TARGET_PROJECT
+        required: false
+        default: ''
+        type: string
+      universe_ids:
+        description: JSON array or comma-separated registered Universe IDs for CUSTOM
+        required: false
+        default: ''
+        type: string
   issues:
     types: [opened]
 
@@ -23,40 +38,51 @@ jobs:
     timeout-minutes: 330
     env:
       AUDIO_KEY: ${{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}
+      AUDIO_KEY_SECRET_NAME: TALONTHEDEVIL_AUDIO_PUBLISHER
       MAX_MODERATION_WAIT_SECONDS: '14400'
 
     steps:
       - name: Checkout uploader
         uses: actions/checkout@v4
 
-      - name: Read and validate batch request
+      - name: Read upload and sharing request
         shell: bash
         env:
           DISPATCH_BATCH_JSON: ${{ inputs.batch_json }}
+          DISPATCH_PERMISSION_MODE: ${{ inputs.permission_mode }}
+          DISPATCH_TARGET_PROJECTS: ${{ inputs.target_projects }}
+          DISPATCH_UNIVERSE_IDS: ${{ inputs.universe_ids }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json
-          import os
-          import pathlib
-
+          import json, os, pathlib
           if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
               raw = os.environ.get('DISPATCH_BATCH_JSON', '')
+              mode = os.environ.get('DISPATCH_PERMISSION_MODE', '') or 'AM_STUDIO_SHARED'
+              projects = os.environ.get('DISPATCH_TARGET_PROJECTS', '')
+              universes = os.environ.get('DISPATCH_UNIVERSE_IDS', '')
           else:
               event = json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text(encoding='utf-8'))
               body = (event.get('issue') or {}).get('body') or ''
-              raw = ''
+              fields = {}
               for line in body.splitlines():
-                  if line.startswith('batch_json='):
-                      raw = line[len('batch_json='):]
-                      break
-
+                  if '=' in line:
+                      key, value = line.split('=', 1)
+                      fields[key.strip()] = value.strip()
+              raw = fields.get('batch_json', '')
+              mode = fields.get('permission_mode', 'AM_STUDIO_SHARED')
+              projects = fields.get('target_projects', '')
+              universes = fields.get('universe_ids', '')
           batch = json.loads(raw)
           if not isinstance(batch, list) or not 1 <= len(batch) <= 100:
               raise SystemExit('BATCH_MUST_CONTAIN_1_TO_100_ITEMS')
-          target = pathlib.Path(os.environ['RUNNER_TEMP']) / 'bbya-music-batch.json'
-          target.write_text(json.dumps(batch, ensure_ascii=False), encoding='utf-8')
-          print(f'Validated {len(batch)} audio request(s).')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'bbya-music-batch.json').write_text(json.dumps(batch, ensure_ascii=False), encoding='utf-8')
+          out = pathlib.Path(os.environ['GITHUB_ENV'])
+          with out.open('a', encoding='utf-8') as f:
+              f.write(f'PERMISSION_MODE={mode}\n')
+              f.write(f'TARGET_PROJECTS={projects}\n')
+              f.write(f'CUSTOM_UNIVERSE_IDS={universes}\n')
+          print(f'Validated {len(batch)} audio request(s); permission_mode={mode}.')
           PY
 
       - name: Install audio tools
@@ -66,22 +92,21 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg curl
           python3 -m pip install --quiet 'gdown==6.1.0'
-          ffmpeg -version | head -1
-          gdown --version
 
-      - name: Upload 1.75x audio and await moderation
+      - name: Upload 1.75x, await moderation, grant and verify Use permission
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/bbya-music-simple-upload-v13.py \
+          python3 scripts/am-studio-audio-pipeline.py \
             --batch "$RUNNER_TEMP/bbya-music-batch.json" \
+            --registry config/am-studio-roblox-universes.json \
             --result upload-result.json
 
       - name: Preserve machine-readable result
         if: always() && hashFiles('upload-result.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: bbya-music-simple-upload-v13-${{ github.run_id }}
+          name: am-studio-audio-v1-${{ github.run_id }}
           path: upload-result.json
           if-no-files-found: error
           retention-days: 30
@@ -92,31 +117,22 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            let body;
             if (!fs.existsSync('upload-result.json')) {
-              body = 'BBYA MUSIC SIMPLE UPLOAD v1.3 FAILED BEFORE RESULT — check workflow logs. No map publish was attempted.';
-            } else {
-              const data = JSON.parse(fs.readFileSync('upload-result.json', 'utf8'));
-              const clean = (value) => String(value ?? '').replaceAll('|', '\\|').replaceAll('\n', ' ').slice(0, 180);
-              const lines = [
-                '## BBYA Music Simple Upload v1.3',
-                '',
-                `Speed factor: **${data.speedFactor}x** · Roblox PlaybackSpeed: **${data.playbackSpeed}**`,
-                '',
-                '| # | Source title | Asset ID | Moderation | Status |',
-                '|---:|---|---:|---|---|',
-              ];
-              for (const item of data.items || []) {
-                lines.push(`| ${item.index} | ${clean(item.sourceTitle)} | ${clean(item.assetId || '—')} | ${clean(item.moderation || item.moderationState || '—')} | ${clean(item.status)} |`);
-                if (item.error) lines.push(`|  | Error |  |  | ${clean(item.error)} |`);
-              }
-              lines.push('', '**No Audio Bank name was chosen. No Universe permission was granted. No map was injected or published.**');
-              lines.push('', '```json', JSON.stringify(data.summary || {}, null, 2), '```');
-              body = lines.join('\n').slice(0, 65000);
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: 'AUDIO_PIPELINE_FAILED_BEFORE_RECEIPT — NOT READY FOR MAP USE. No map publish attempted.'});
+              return;
             }
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body,
-            });
+            const data = JSON.parse(fs.readFileSync('upload-result.json', 'utf8'));
+            const clean = v => String(v ?? '').replaceAll('|','\\|').replaceAll('\n',' ').slice(0,180);
+            const lines = [
+              '## AM Studio Audio Pipeline v1',
+              '',
+              `Final status: **${clean(data.status)}**`,
+              `Upload speed: **${data.uploadedSpeed}x** · PlaybackSpeed: **${data.playbackSpeed}**`,
+              `Permission mode: **${clean(data.permissionMode)}**`,
+              '',
+              '| # | Title | Asset ID | Moderation | Permission |',
+              '|---:|---|---:|---|---|'
+            ];
+            for (const item of data.items || []) lines.push(`| ${item.index} | ${clean(item.sourceTitle)} | ${clean(item.assetId || '—')} | ${clean(item.moderation || '—')} | ${clean(item.status)} |`);
+            lines.push('', 'No audio bank, playlist, map injection, or map publish was attempted.');
+            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: lines.join('\n').slice(0,65000)});

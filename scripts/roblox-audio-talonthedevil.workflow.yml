@@ -1,0 +1,146 @@
+name: BBYA Audio Upload - TalonTheDevil
+
+on:
+  workflow_dispatch:
+    inputs:
+      drive_file_id:
+        description: Google Drive file ID
+        required: true
+        type: string
+      title:
+        description: Roblox audio title
+        required: true
+        type: string
+      universe_id:
+        description: Backward-compatible single target Universe; blank uses AM_STUDIO_SHARED
+        required: false
+        default: ''
+        type: string
+      permission_mode:
+        description: AM_STUDIO_SHARED, TARGET_PROJECT, or CUSTOM
+        required: false
+        default: AM_STUDIO_SHARED
+        type: string
+      target_projects:
+        description: Comma-separated registry project keys
+        required: false
+        default: ''
+        type: string
+      universe_ids:
+        description: Explicit registered Universe IDs for CUSTOM
+        required: false
+        default: ''
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  upload-audio:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.event.issue.title, 'BBYA AUDIO UPLOAD')
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}
+      AUDIO_KEY_SECRET_NAME: TALONTHEDEVIL_AUDIO_PUBLISHER
+      MAX_MODERATION_WAIT_SECONDS: '14400'
+
+    steps:
+      - name: Checkout uploader
+        uses: actions/checkout@v4
+
+      - name: Resolve backward-compatible request
+        shell: bash
+        env:
+          DRIVE_FILE_ID_INPUT: ${{ inputs.drive_file_id }}
+          TITLE_INPUT: ${{ inputs.title }}
+          LEGACY_UNIVERSE_INPUT: ${{ inputs.universe_id }}
+          MODE_INPUT: ${{ inputs.permission_mode }}
+          PROJECTS_INPUT: ${{ inputs.target_projects }}
+          UNIVERSES_INPUT: ${{ inputs.universe_ids }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib
+          if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
+              drive = os.environ.get('DRIVE_FILE_ID_INPUT','').strip()
+              title = os.environ.get('TITLE_INPUT','').strip()
+              legacy = os.environ.get('LEGACY_UNIVERSE_INPUT','').strip()
+              mode = (os.environ.get('MODE_INPUT','') or 'AM_STUDIO_SHARED').strip()
+              projects = os.environ.get('PROJECTS_INPUT','').strip()
+              universes = os.environ.get('UNIVERSES_INPUT','').strip()
+          else:
+              event = json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text(encoding='utf-8'))
+              body = (event.get('issue') or {}).get('body') or ''
+              fields = {}
+              for line in body.splitlines():
+                  if '=' in line:
+                      key, value = line.split('=',1); fields[key.strip()] = value.strip()
+              drive = fields.get('drive_file_id','')
+              title = fields.get('title','')
+              legacy = fields.get('universe_id','')
+              mode = fields.get('permission_mode','AM_STUDIO_SHARED')
+              projects = fields.get('target_projects','')
+              universes = fields.get('universe_ids','')
+          if not drive or not title:
+              raise SystemExit('DRIVE_FILE_ID_AND_TITLE_REQUIRED')
+          if legacy and not universes and mode.upper() == 'AM_STUDIO_SHARED':
+              mode = 'CUSTOM'; universes = legacy
+          batch = pathlib.Path(os.environ['RUNNER_TEMP']) / 'talon-audio-batch.json'
+          batch.write_text(json.dumps([{'drive_file_id': drive, 'title': title}], ensure_ascii=False), encoding='utf-8')
+          with pathlib.Path(os.environ['GITHUB_ENV']).open('a',encoding='utf-8') as f:
+              f.write(f'PERMISSION_MODE={mode}\nTARGET_PROJECTS={projects}\nCUSTOM_UNIVERSE_IDS={universes}\n')
+          print(f'Talon route standardized: speed=1.75 playback=0.5714285714 mode={mode}')
+          PY
+
+      - name: Install audio tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl
+          python3 -m pip install --quiet 'gdown==6.1.0'
+
+      - name: Unified 1.75x upload and permission contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/am-studio-audio-pipeline.py \
+            --batch "$RUNNER_TEMP/talon-audio-batch.json" \
+            --registry config/am-studio-roblox-universes.json \
+            --result upload-result.json
+
+      - name: Preserve receipt
+        if: always() && hashFiles('upload-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: talon-am-studio-audio-${{ github.run_id }}
+          path: upload-result.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Show safe result
+        if: always()
+        shell: bash
+        run: |
+          if [ -f upload-result.json ]; then
+            jq '{status,uploadedSpeed,playbackSpeed,permissionMode,summary,items:[.items[]|{sourceTitle,assetId,moderation,status,grantedUniverses,failedUniverses}]}' upload-result.json
+          else
+            echo 'NO_RECEIPT — NOT READY FOR MAP USE'
+          fi
+
+      - name: Reply result to issue
+        if: always() && github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.existsSync('upload-result.json')
+              ? `AM_STUDIO_AUDIO_RESULT | ${JSON.parse(fs.readFileSync('upload-result.json','utf8')).status} | 1.75x / PlaybackSpeed 0.5714285714 | No map publish attempted.`
+              : 'AM_STUDIO_AUDIO_RESULT | FAILED_BEFORE_RECEIPT | NOT READY FOR MAP USE | No map publish attempted.';
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body});
