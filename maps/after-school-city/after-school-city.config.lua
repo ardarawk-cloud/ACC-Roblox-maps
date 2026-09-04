@@ -1,7 +1,7 @@
 local Config = {
     ProjectId = "after-school-city",
     DisplayName = "AFTER SCHOOL CITY",
-    Version = "1.2.0-school-life-foundation-1",
+    Version = "1.3.0-economy-first-shop-1",
     OrientationBaseVersion = "0.4.7-orientation-correction-1",
     VisualFidelityVersion = "0.5.0-visual-fidelity-1",
     RuntimeReconcileVersion = "0.5.1-runtime-reconcile-1",
@@ -21,6 +21,7 @@ local Config = {
     RoadSidewalkIntersectionCleanupVersion = "0.8.2-road-sidewalk-intersection-cleanup-1",
     GameplayFoundationVersion = "1.0.0-gameplay-foundation-1",
     SchoolLifeGameplayVersion = "1.2.0-school-life-foundation-1",
+    EconomyVersion = "1.3.0-economy-first-shop-1",
 
     Roblox = {
         UniverseId = "10745359869",
