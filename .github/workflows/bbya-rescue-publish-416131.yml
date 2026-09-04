@@ -1,0 +1,234 @@
+name: BBYA Rescue Publish 416131
+
+on:
+  push:
+    branches:
+      - rescue/bbya-clean-publish-416131
+    paths:
+      - '.github/workflows/bbya-rescue-publish-416131.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bbya-rescue-publish-416131
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_SOURCE: '416131399be55091c86ca4b2325f75550b1e0043'
+      TARGET_PARENT: 'f145fbaaa5bb3ef06acae2e3aae504b42d90c1bb'
+      TARGET_BRANCH: 'live/bbya-donation-music-clean-v697'
+      TARGET_UNIVERSE: '8116636513'
+      TARGET_PLACE: '131894120482837'
+      PREVIOUS_VERSION: '697'
+
+    steps:
+      - name: Checkout rescue tooling branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install canonical Roblox serializer
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Materialize and verify exact locked source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$TARGET_BRANCH"
+          git cat-file -e "$TARGET_SOURCE^{commit}"
+
+          actual_parent="$(git rev-parse "$TARGET_SOURCE^")"
+          if [ "$actual_parent" != "$TARGET_PARENT" ]; then
+            echo "Unexpected TARGET_SOURCE parent: $actual_parent" >&2
+            exit 1
+          fi
+
+          rm -rf /tmp/bbya-target
+          git worktree add --detach /tmp/bbya-target "$TARGET_SOURCE"
+          actual_source="$(git -C /tmp/bbya-target rev-parse HEAD)"
+          if [ "$actual_source" != "$TARGET_SOURCE" ]; then
+            echo "Exact-source verification failed: $actual_source" >&2
+            exit 1
+          fi
+
+          actual_files="$(git diff --name-only "$TARGET_PARENT" "$TARGET_SOURCE" | sort)"
+          expected_files="$(printf '%s\n' \
+            'maps/bbya-social-hub/111-compact-secondary-panels.client.lua' \
+            'maps/bbya-social-hub/119-support-purchase.client.lua' \
+            'maps/bbya-social-hub/137-donation-notification-sfx.client.lua' \
+            'maps/bbya-social-hub/50-dj-wall-message.server.lua' \
+            'maps/bbya-social-hub/default.project.json' | sort)"
+          if [ "$actual_files" != "$expected_files" ]; then
+            echo 'Unexpected integration delta:' >&2
+            printf '%s\n' "$actual_files" >&2
+            exit 1
+          fi
+
+          echo "TARGET_SOURCE_VERIFIED=$actual_source"
+          echo 'INTEGRATION_DELTA_VERIFIED=5_FILES'
+
+      - name: Static production safety recheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/bbya-target
+
+          sfx='maps/bbya-social-hub/137-donation-notification-sfx.client.lua'
+          test -f "$sfx"
+          grep -Fq 'rbxassetid://131641367206235' "$sfx"
+          grep -Eq 'Volume[[:space:]]*=[[:space:]]*0\.58' "$sfx"
+          grep -Eq 'PlaybackSpeed[[:space:]]*=[[:space:]]*0\.5714285714' "$sfx"
+
+          if grep -R -n -E '138169036950863|9126072044|1319346243' maps/bbya-social-hub; then
+            echo 'Forbidden old donation SFX ID found.' >&2
+            exit 1
+          fi
+
+          if grep -R -n -E 'BBYAQADonationSimulatorUI|BBYAQADonationSimulatorV1|QA DONATE|NO_MSG_10|WITH_MSG_10|TEST_UNIVERSE|TEST_PLACE' maps/bbya-social-hub; then
+            echo 'Forbidden QA simulator/test marker found.' >&2
+            exit 1
+          fi
+
+          receipt_authorities="$(grep -R -F 'MarketplaceService.ProcessReceipt =' maps/bbya-social-hub --include='*.lua' --include='*.luau' | wc -l | tr -d ' ')"
+          if [ "$receipt_authorities" != '1' ]; then
+            echo "Expected exactly one MarketplaceService.ProcessReceipt assignment, found $receipt_authorities" >&2
+            exit 1
+          fi
+
+          echo 'STATIC_QC=PASS'
+          echo 'DONATION_SFX=rbxassetid://131641367206235'
+          echo 'DONATION_SFX_VOLUME=0.58'
+          echo 'DONATION_SFX_PLAYBACK_SPEED=0.5714285714'
+          echo 'PROCESS_RECEIPT_AUTHORITIES=1'
+          echo 'QA_SIMULATOR=ABSENT'
+          echo 'OLD_SFX_IDS=ABSENT'
+
+      - name: Build exact-source BBYA place
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/bbya-target
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-zero-live.rbxl
+          test -s /tmp/bbya-zero-live.rbxl
+          bytes="$(stat -c%s /tmp/bbya-zero-live.rbxl)"
+          sha256="$(sha256sum /tmp/bbya-zero-live.rbxl | awk '{print $1}')"
+          echo "BUILD_BYTES=$bytes" | tee -a "$GITHUB_ENV"
+          echo "BUILD_SHA256=$sha256" | tee -a "$GITHUB_ENV"
+
+      - name: Publish exact source through v697 publisher lineage
+        shell: bash
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-zero-live.rbxl
+        run: |
+          set -euo pipefail
+          cd /tmp/bbya-target
+          GITHUB_SHA="$TARGET_SOURCE" node scripts/publish-map.js a-club
+          test -f deploy-status/a-club.json
+
+      - name: Assert and preserve exact deployment receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/bbya-target
+          node <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('deploy-status/a-club.json', 'utf8'));
+          const expectedSource = process.env.TARGET_SOURCE;
+          const expectedUniverse = process.env.TARGET_UNIVERSE;
+          const expectedPlace = process.env.TARGET_PLACE;
+          const previousVersion = Number(process.env.PREVIOUS_VERSION);
+          const version = Number(r?.response?.versionNumber);
+          const failures = [];
+          if (r.status !== 'PUBLISHED') failures.push(`status=${r.status}`);
+          if (r.sourceCommit !== expectedSource) failures.push(`sourceCommit=${r.sourceCommit}`);
+          if (String(r.universeId) !== expectedUniverse) failures.push(`universeId=${r.universeId}`);
+          if (String(r.placeId) !== expectedPlace) failures.push(`placeId=${r.placeId}`);
+          if (!Number.isFinite(version) || version <= previousVersion) failures.push(`versionNumber=${r?.response?.versionNumber}`);
+          if (failures.length) {
+            console.error('Receipt assertion failed:', failures.join(', '));
+            process.exit(1);
+          }
+          console.log(`RECEIPT_STATUS=${r.status}`);
+          console.log(`RECEIPT_SOURCE=${r.sourceCommit}`);
+          console.log(`RECEIPT_UNIVERSE=${r.universeId}`);
+          console.log(`RECEIPT_PLACE=${r.placeId}`);
+          console.log(`ROBLOX_VERSION=${version}`);
+          NODE
+          cp deploy-status/a-club.json /tmp/a-club-rescue.json
+
+      - name: Persist receipt only onto fresh current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          success=false
+          receipt_commit=''
+
+          for attempt in 1 2 3; do
+            cd "$GITHUB_WORKSPACE"
+            git worktree remove --force /tmp/bbya-main 2>/dev/null || true
+            rm -rf /tmp/bbya-main
+            git fetch origin main
+            git worktree add --detach /tmp/bbya-main origin/main
+
+            cd /tmp/bbya-main
+            mkdir -p deploy-status
+            cp /tmp/a-club-rescue.json deploy-status/a-club.json
+            git config user.name 'BBYA Exact-Source Rescue Publisher'
+            git config user.email 'actions@users.noreply.github.com'
+            git add deploy-status/a-club.json
+
+            changed="$(git diff --cached --name-only)"
+            if [ "$changed" != 'deploy-status/a-club.json' ]; then
+              echo "Receipt persistence attempted unexpected files: $changed" >&2
+              exit 1
+            fi
+
+            if git diff --cached --quiet; then
+              receipt_commit="$(git rev-parse HEAD)"
+              success=true
+              break
+            fi
+
+            git commit -m 'Record BBYA clean v697-lineage rescue deploy receipt [skip ci]'
+            receipt_commit="$(git rev-parse HEAD)"
+            if git push origin HEAD:main; then
+              success=true
+              break
+            fi
+
+            echo "Main advanced during receipt persistence; retrying from fresh origin/main (attempt $attempt)."
+          done
+
+          if [ "$success" != 'true' ]; then
+            echo 'Failed to persist receipt safely after three fresh-main attempts.' >&2
+            exit 1
+          fi
+
+          echo "MAIN_RECEIPT_COMMIT=$receipt_commit"
+          echo "RESCUE_RUN_ID=$GITHUB_RUN_ID"
+          echo "RESCUE_JOB=$GITHUB_JOB"
+          echo "FINAL_BUILD_BYTES=$BUILD_BYTES"
+          echo "FINAL_BUILD_SHA256=$BUILD_SHA256"
