@@ -1,0 +1,108 @@
+name: BBYA QA Music + Donation V112 TEST
+
+on:
+  push:
+    branches:
+      - 'bbya/qa/music-donation-v112-test'
+    paths:
+      - '.github/workflows/bbya-qa-music-donation-v112-test-temp.yml'
+
+permissions:
+  contents: read
+
+env:
+  TARGET_SOURCE: 423423f6dd8d587671f3216865c4dfc1f13c2d58
+  TEST_UNIVERSE: '10762005984'
+  TEST_PLACE: '124607344716828'
+
+jobs:
+  qa-test-publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Fetch exact v112 source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP 'bbya-qa-v112-source.zip'
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-qa-v112-source'
+          Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+          Invoke-WebRequest -Uri "https://codeload.github.com/ardarawk-cloud/ACC-Roblox-maps/zip/$env:TARGET_SOURCE" -OutFile $zip
+          Expand-Archive $zip -DestinationPath $dir -Force
+          $repo=Get-ChildItem $dir -Directory | Select-Object -First 1
+          if(-not $repo){throw 'Exact v112 source missing'}
+          Get-ChildItem $env:GITHUB_WORKSPACE -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem $repo.FullName -Force | ForEach-Object { Copy-Item $_.FullName $env:GITHUB_WORKSPACE -Recurse -Force }
+          Write-Host "EXACT_V112_SOURCE=$env:TARGET_SOURCE"
+
+      - name: Static QA v112 checks
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $music='maps/bbya-social-hub/111-compact-secondary-panels.client.lua'
+          $popup='maps/bbya-social-hub/119-support-purchase.client.lua'
+          $sfx='maps/bbya-social-hub/137-donation-notification-sfx.client.lua'
+          $sim='maps/bbya-social-hub/34-support-dashboard.server.lua'
+          $backend='maps/bbya-social-hub/50-dj-wall-message.server.lua'
+          $project='maps/bbya-social-hub/default.project.json'
+          foreach($p in @($music,$popup,$sfx,$sim,$backend,$project)){if(-not (Test-Path $p)){throw "Missing required file: $p"}}
+
+          $m=Get-Content $music -Raw
+          foreach($x in @('MUSIC + DJ LAUNCHER ADAPTER v4.1','BBYAMusicAtomicNavV2','BBYAMusicAtomicTransitionV2','requestMusicOpen','restoreNavigation')){if(-not $m.Contains($x)){throw "Missing MUSIC v2 marker: $x"}}
+          if($m.Contains('BBYAMusicSuiteAdapterV3')){throw 'Old MUSIC v3 adapter marker remains'}
+
+          $u=Get-Content $popup -Raw
+          foreach($x in @('local TOP_OFFSET=5','math.min(372','hasMessage and 170 or 128','DonationNotification')){if(-not $u.Contains($x)){throw "Missing compact popup marker: $x"}}
+
+          $s=Get-Content $sfx -Raw
+          foreach($x in @('rbxassetid://138169036950863','PlaybackSpeed = 0.5714285714','Volume = 0.58','DonationNotification','BBYAQADonationSimulatorUI','QA DONATE','TEST_UNIVERSE = 10762005984','TEST_PLACE = 124607344716828')){if(-not $s.Contains($x)){throw "Missing final SFX/simulator marker: $x"}}
+          foreach($old in @('rbxassetid://9126072044','rbxassetid://1319346243')){if($s.Contains($old)){throw "Old SFX remains: $old"}}
+
+          $q=Get-Content $sim -Raw
+          foreach($x in @('BBYAQADonationSimulatorV1','NO_MSG_10','WITH_MSG_10','NO_MSG_25','BURST','10762005984','124607344716828')){if(-not $q.Contains($x)){throw "Missing server simulator marker: $x"}}
+
+          $b=Get-Content $backend -Raw
+          foreach($x in @('BBYA_MonetizationUsers_v1','BBYA_MonetizationReceipts_v1','DonationNotification','donationTotal','PurchaseId')){if(-not $b.Contains($x)){throw "Missing backend marker: $x"}}
+          $receiptCount=([regex]::Matches($b,'ProcessReceipt')).Count
+          if($receiptCount -ne 1){throw "Expected one ProcessReceipt marker in backend, found $receiptCount"}
+
+          $p=Get-Content $project -Raw
+          if(-not $p.Contains('137-donation-notification-sfx.client.lua')){throw 'Donation SFX mapping missing'}
+          if(-not $p.Contains('111-compact-secondary-panels.client.lua')){throw 'Music adapter mapping missing'}
+          Write-Host 'BBYA_QA_MUSIC_DONATION_V112_STATIC_PASS'
+
+      - name: Build exact v112 source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $toolDir=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+          $rojo=Join-Path $toolDir 'rojo.exe'
+          if(-not (Test-Path $rojo)){
+            $z=Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
+            Invoke-WebRequest -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z -DestinationPath $toolDir -Force
+          }
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-qa-music-donation-v112-test.rbxl'
+          & $rojo build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){throw 'Build failed'}
+          $bytes=(Get-Item $out).Length
+          $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          "BBYA_QA_BUILD=$out" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_BYTES=$bytes" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BBYA_QA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "BBYA_QA_MUSIC_DONATION_V112_BUILD_PASS bytes=$bytes sha256=$sha"
+
+      - name: Publish TEST place only
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if(-not $env:ROBLOX_API_KEY){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 missing'}
+          $url="https://apis.roblox.com/universes/v1/$env:TEST_UNIVERSE/places/$env:TEST_PLACE/versions?versionType=Published"
+          $resp=& curl.exe --silent --show-error --fail-with-body --http1.1 --ipv4 --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --header 'Content-Type: application/octet-stream' --header 'Expect:' --data-binary "@$env:BBYA_QA_BUILD" $url
+          if($LASTEXITCODE -ne 0){throw 'TEST publish failed'}
+          $r=$resp|ConvertFrom-Json
+          if(-not $r.versionNumber){throw 'TEST versionNumber missing'}
+          Write-Host "BBYA_QA_MUSIC_DONATION_V112_TEST_PUBLISHED version=$($r.versionNumber) bytes=$env:BBYA_QA_BYTES sha256=$env:BBYA_QA_SHA256 candidate=$env:TARGET_SOURCE universe=$env:TEST_UNIVERSE place=$env:TEST_PLACE"
