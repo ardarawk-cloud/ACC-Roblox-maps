@@ -1,6 +1,7 @@
--- BBYA MUSIC SUITE v1.1 — PREMIUM UI PHASE 2 + NATIVE MALL KPOP
+-- BBYA MUSIC SUITE v1.2 — PREMIUM UI PHASE 2 + NATIVE MALL KPOP
 -- Mobile-landscape cleanup: fixed sidebar, compact library, clean Now Playing, bounded Up Next/Queue.
 -- Server audio authority is unchanged; only player-facing music UI is replaced.
+-- v1.2 removes the full-screen dim backdrop and avoids blocking startup on late Mall remotes.
 
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
@@ -17,7 +18,9 @@ local remotes = RS:WaitForChild("BBYAClubRemotes", 30)
 if not remotes then return end
 local music = remotes:WaitForChild("Music", 30)
 local stateRemote = remotes:WaitForChild("State", 30)
-local mallControl = RS:WaitForChild("BBYAMallMusicControl", 30)
+-- Mall music is optional at initial client startup. Do not stall the entire Music Suite
+-- for up to 30 seconds while waiting for this remote; bind it when/if it arrives.
+local mallControl = RS:FindFirstChild("BBYAMallMusicControl")
 
 local C = {
     bg = Color3.fromRGB(7, 8, 12),
@@ -137,9 +140,10 @@ gui.Enabled = false
 gui.Parent = pg
 
 local dim = Instance.new("Frame")
+dim.Name = "Backdrop"
 dim.Size = UDim2.fromScale(1, 1)
 dim.BackgroundColor3 = Color3.new(0, 0, 0)
-dim.BackgroundTransparency = 0.18
+dim.BackgroundTransparency = 1
 dim.BorderSizePixel = 0
 dim.Parent = gui
 
@@ -768,7 +772,9 @@ for _, attr in ipairs({
 end
 
 RS.ChildAdded:Connect(function(child)
-    if child.Name == "BBYAMallPlaylistCatalog" and venue() == "MALL" then
+    if child.Name == "BBYAMallMusicControl" then
+        mallControl = child
+    elseif child.Name == "BBYAMallPlaylistCatalog" and venue() == "MALL" then
         task.defer(function()
             syncMall()
             if gui.Enabled then refresh() end
@@ -782,7 +788,7 @@ local function bind()
     local d = m and m:FindFirstChild("FeatureDrawer")
     local slot = d and d:FindFirstChild("Slot_MUSIC", true)
     if not slot then return end
-    for _, x in ipairs(slot:GetChildren()) do
+    for _, x in ipairs(slot:GetDescendants()) do
         if x:IsA("TextButton") and not bound[x] then
             bound[x] = true
             x.Activated:Connect(function() task.defer(open) end)
@@ -790,7 +796,11 @@ local function bind()
     end
 end
 
-pg.ChildAdded:Connect(function() task.defer(bind) end)
+pg.DescendantAdded:Connect(function(obj)
+    if obj.Name == "BBYACommandMenuUI" or obj.Name == "FeatureDrawer" or obj.Name == "Slot_MUSIC" or obj:IsA("TextButton") then
+        task.defer(bind)
+    end
+end)
 if legacy then
     legacy:GetPropertyChangedSignal("Visible"):Connect(function()
         if legacy.Visible then task.defer(open) end
@@ -861,6 +871,7 @@ task.defer(function()
     switch("LIBRARY")
     task.delay(0.8, bind)
     task.delay(1.6, bind)
+    task.delay(3.2, bind)
 end)
 
-print("[BBYA] MUSIC SUITE v1.1 online — native MALL KPOP + premium mobile Library / Now Playing / Queue")
+print("[BBYA] MUSIC SUITE v1.2 online — no backdrop + nonblocking Mall remote + resilient launcher bind")
