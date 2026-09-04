@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "DEDICATION_NO_BACKDROP_V52_PATCH",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "21c622b190a85f3ecf935aa46a2a06be34f67c84",
+    "baseLiveCommit":  "12882a30a5c3b585f4a4eb0e19109442df4dc374",
+    "qcRunId":  "33790514178",
+    "qcArtifactId":  9907135135,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  53,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  191304,
+    "placeSha256":  "f2ec4a58ced855844472cd8ad4c2fba926d735ccbb8d766ea51fc91566c4d0dc",
+    "runId":  "33860079715",
+    "publishedAt":  "2026-09-04T09:47:53Z",
+    "note":  "Exact QC artifact published without rebuild. Scope: remove full-screen dedication backdrop only; dedication card/copy preserved."
+}
