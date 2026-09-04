@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V130_ECONOMY_FIRST_SHOP",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "ed9a3c5e4db107c84ba41192c59e64ce62efaa8a",
+    "baseLiveCommit":  "21c622b190a85f3ecf935aa46a2a06be34f67c84",
+    "qcRunId":  "33866355662",
+    "qcArtifactId":  9934118978,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  54,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  195475,
+    "placeSha256":  "80add077816d493ae92101634e112e78c375d750f34952be302c113c25b336ea",
+    "runId":  "33866682427",
+    "publishedAt":  "2026-09-04T11:10:58Z",
+    "note":  "Exact V1.3-A Economy Core + First Shop QC artifact published without rebuild. Student Mini Mart purchases use ASC Coins, server authority, persistent inventory, and preserve V1.2 authorities."
+}
