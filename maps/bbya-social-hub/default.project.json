@@ -184,6 +184,9 @@
       "PlayerProgressionV1": {
         "$path": "92-player-progression.server.lua"
       },
+      "AFKStateAuthorityV1": {
+        "$path": "137-afk-state.server.lua"
+      },
       "FunkotClubV1": {
         "$path": "92-funkot-club.server.lua"
       },
@@ -233,7 +236,7 @@
         "$path": "98-night-market.server.lua"
       },
       "NightMarketPremiumV3": {
-        "$path": "99-night-market-premium.server.lua"
+        "$path": "99-night-market-premium-v3.server.lua"
       },
       "NightMarketControlFixV344": {
         "$path": "100-night-market-control-fix.server.lua"
@@ -281,6 +284,7 @@
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
         "RuntimeEditorClient": {
           "$path": "23-editor.client.lua"
         },
@@ -409,6 +413,9 @@
         },
         "DeveloperDJPerformanceClientV4": {
           "$path": "129-developer-dj-performance-v4.client.lua"
+        },
+        "AFKActivityReporterV1": {
+          "$path": "137-afk-activity.client.lua"
         }
       }
     },
