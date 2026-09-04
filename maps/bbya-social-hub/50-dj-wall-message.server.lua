@@ -31,8 +31,9 @@ for amount,id in pairs(KNOWN_SUPPORT) do SUPPORT_BY_PRODUCT[id]=amount end
 
 local RECEIPT_STORE=DataStoreService:GetDataStore("BBYA_MonetizationReceipts_v1")
 local USER_STORE=DataStoreService:GetDataStore("BBYA_MonetizationUsers_v1")
-local USER_MARKER_LIMIT=256
 local DJ_PENDING_TTL=30*60
+local DJ_RUNTIME_CLAIM_TTL=120
+local SERVER_CLAIM_ID=(game.JobId~="" and game.JobId) or ("studio-"..HttpService:GenerateGUID(false))
 
 local supportProductByAmount={}
 local supportAmountByProduct={}
@@ -56,16 +57,6 @@ local function normalizeUser(raw)
  u.djRecovery=type(u.djRecovery)=="table" and u.djRecovery or {}
  if u.djPending~=nil and type(u.djPending)~="table" then u.djPending=nil end
  return u
-end
-
-local function pruneSupportApplied(map)
- local entries={}
- for purchaseId,marker in pairs(map) do
-  table.insert(entries,{purchaseId=tostring(purchaseId),at=tonumber(type(marker)=="table" and marker.at) or 0})
- end
- if #entries<=USER_MARKER_LIMIT then return end
- table.sort(entries,function(a,b)return a.at<b.at end)
- for i=1,#entries-USER_MARKER_LIMIT do map[entries[i].purchaseId]=nil end
 end
 
 local function safeGet(store,key)
@@ -123,6 +114,25 @@ local function setReceiptFields(purchaseId,fields)
   r.updatedAt=now
   return r
  end)
+end
+
+local function claimDjRuntime(purchaseId)
+ local now=os.time()
+ local ok,r=updateReceipt(purchaseId,function(current)
+  if current.state=="ACK_READY" then return current end
+  local owner=tostring(current.runtimeClaimedBy or "")
+  local claimedAt=tonumber(current.runtimeClaimedAt) or 0
+  if owner=="" or owner==SERVER_CLAIM_ID or now-claimedAt>DJ_RUNTIME_CLAIM_TTL then
+   current.runtimeClaimedBy=SERVER_CLAIM_ID
+   current.runtimeClaimedAt=now
+  end
+  current.updatedAt=now
+  return current
+ end)
+ if not ok or type(r)~="table" then return false,"ERROR",r end
+ if r.state=="ACK_READY" then return false,"ACK",r end
+ if tostring(r.runtimeClaimedBy or "")~=SERVER_CLAIM_ID then return false,"BUSY",r end
+ return true,"CLAIMED",r
 end
 
 local function classifyProduct(productId)
@@ -229,19 +239,24 @@ local function oldestRecoveryId(recovery)
  return bestId
 end
 
+local function removeDjOutstanding(userId,purchaseId)
+ local removed=false
+ for attempt=1,3 do
+  local ok=select(1,safeUpdate(USER_STORE,userKey(userId),function(raw)
+   local u=normalizeUser(raw)
+   u.djOutstanding[purchaseId]=nil
+   return u
+  end))
+  if ok then removed=true;break end
+  task.wait(.35*attempt)
+ end
+ return removed
+end
+
 local function markDjDisplayed(purchaseId,userId)
  if not purchaseId or purchaseId=="" or not userId then return end
  task.spawn(function()
-  local removed=false
-  for attempt=1,3 do
-   local ok=select(1,safeUpdate(USER_STORE,userKey(userId),function(raw)
-    local u=normalizeUser(raw)
-    u.djOutstanding[purchaseId]=nil
-    return u
-   end))
-   if ok then removed=true;break end
-   task.wait(.35*attempt)
-  end
+  local removed=removeDjOutstanding(userId,purchaseId)
   if not removed then warn("[BBYA Monetization] DJ outstanding cleanup deferred for "..purchaseId) end
   setReceiptFields(purchaseId,{displayedAt=os.time()})
  end)
@@ -336,12 +351,27 @@ local function tryRecoverPaidDj(player,entry)
  if not purchaseId then return false,nil end
  local attached,payload=attachRecoveryPayload(player.UserId,purchaseId,entry)
  if not attached or not payload then return nil,"DATASTORE" end
- local receiptOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,recoveryFilledAt=os.time()}))
+ local receiptOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,recoveryFilledAt=os.time(),grantRecordedAt=os.time()}))
  if not receiptOk then
   wallRemote:FireClient(player,"toast","Recovery pembayaran tersimpan dan menunggu finalisasi. Tidak ada charge baru.")
   return true,purchaseId
  end
+ local claimed,claimStatus,claimRecord=claimDjRuntime(purchaseId)
+ if claimStatus=="ACK" then
+  if type(claimRecord)=="table" and not claimRecord.displayedAt then queueMessage(payload,purchaseId) end
+  wallRemote:FireClient(player,"queued",{position=#queue,text=payload.text,recovered=true})
+  return true,purchaseId
+ end
+ if not claimed then
+  wallRemote:FireClient(player,"toast","Recovery pembayaran tersimpan dan sedang difinalisasi. Tidak ada charge baru.")
+  return true,purchaseId
+ end
  queueMessage(payload,purchaseId)
+ local ackOk=select(1,setReceiptFields(purchaseId,{state="ACK_READY",runtimeQueuedAt=os.time()}))
+ if not ackOk then
+  wallRemote:FireClient(player,"toast","Pesan recovery sudah aman di antrean; konfirmasi receipt akan dicoba ulang.")
+  return true,purchaseId
+ end
  wallRemote:FireClient(player,"queued",{position=#queue,text=payload.text,recovered=true})
  return true,purchaseId
 end
@@ -404,7 +434,6 @@ local function applySupportReceipt(receipt,purchaseId,amount)
   if not state.supportApplied[purchaseId] then
    state.supportTotal=(tonumber(state.supportTotal) or 0)+amount
    state.supportApplied[purchaseId]={amount=amount,at=now}
-   pruneSupportApplied(state.supportApplied)
   end
   return state
  end)
@@ -490,6 +519,9 @@ MarketplaceService.ProcessReceipt=function(receipt)
 
  local readyOk=select(1,setReceiptFields(purchaseId,{state="READY",payload=payload,grantRecordedAt=record.grantRecordedAt or os.time()}))
  if not readyOk then return Enum.ProductPurchaseDecision.NotProcessedYet end
+ local claimed,claimStatus=claimDjRuntime(purchaseId)
+ if claimStatus=="ACK" then return Enum.ProductPurchaseDecision.PurchaseGranted end
+ if not claimed then return Enum.ProductPurchaseDecision.NotProcessedYet end
  queueMessage(payload,purchaseId)
  local ackOk,ackRecord=setReceiptFields(purchaseId,{state="ACK_READY",runtimeQueuedAt=os.time()})
  if not ackOk or type(ackRecord)~="table" or ackRecord.state~="ACK_READY" then return Enum.ProductPurchaseDecision.NotProcessedYet end
@@ -515,7 +547,14 @@ local function recoverPlayer(player)
  player:SetAttribute("BBYASupportRobuxTotal",persistedTotal)
  local recoveredCount=0
  for purchaseId,payload in pairs(u.djOutstanding) do
-  if type(payload)=="table" then queueMessage(payload,tostring(purchaseId));recoveredCount+=1 end
+  if type(payload)=="table" then
+   local ledgerOk,ledger=safeGet(RECEIPT_STORE,receiptKey(tostring(purchaseId)))
+   if ledgerOk and type(ledger)=="table" and ledger.displayedAt then
+    task.spawn(function()removeDjOutstanding(player.UserId,tostring(purchaseId))end)
+   elseif ledgerOk and type(ledger)=="table" and ledger.state=="ACK_READY" then
+    queueMessage(payload,tostring(purchaseId));recoveredCount+=1
+   end
+  end
  end
  local recoveryCount=0;for _ in pairs(u.djRecovery) do recoveryCount+=1 end
  if recoveryCount>0 then
@@ -536,4 +575,4 @@ Players.PlayerRemoving:Connect(function(p)
  lastSubmit[p.UserId]=nil
 end)
 
-print("[BBYA] DJ Wall + Monetization v4.0 online: PurchaseId ledger / durable DJ recovery / durable Support recovery / one server receipt authority")
+print("[BBYA] DJ Wall + Monetization v4.0 online: PurchaseId ledger / durable DJ recovery / durable Support recovery / cross-server runtime claim / one server receipt authority")
