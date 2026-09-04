@@ -236,7 +236,7 @@
         "$path": "98-night-market.server.lua"
       },
       "NightMarketPremiumV3": {
-        "$path": "99-night-market-premium-v3.server.lua"
+        "$path": "99-night-market-premium.server.lua"
       },
       "NightMarketControlFixV344": {
         "$path": "100-night-market-control-fix.server.lua"
@@ -284,7 +284,6 @@
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
-        "$className": "StarterPlayerScripts",
         "RuntimeEditorClient": {
           "$path": "23-editor.client.lua"
         },
