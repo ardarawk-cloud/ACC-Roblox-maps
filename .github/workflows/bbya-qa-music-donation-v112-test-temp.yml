@@ -63,8 +63,8 @@ jobs:
 
           $b=Get-Content $backend -Raw
           foreach($x in @('BBYA_MonetizationUsers_v1','BBYA_MonetizationReceipts_v1','DonationNotification','donationTotal','PurchaseId')){if(-not $b.Contains($x)){throw "Missing backend marker: $x"}}
-          $receiptCount=([regex]::Matches($b,'ProcessReceipt')).Count
-          if($receiptCount -ne 1){throw "Expected one ProcessReceipt marker in backend, found $receiptCount"}
+          $receiptCount=([regex]::Matches($b,'MarketplaceService\.ProcessReceipt\s*=')).Count
+          if($receiptCount -ne 1){throw "Expected one ProcessReceipt assignment in backend, found $receiptCount"}
 
           $p=Get-Content $project -Raw
           if(-not $p.Contains('137-donation-notification-sfx.client.lua')){throw 'Donation SFX mapping missing'}
