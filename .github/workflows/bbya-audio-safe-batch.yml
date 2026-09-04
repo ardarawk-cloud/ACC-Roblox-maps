@@ -6,35 +6,50 @@ on:
     paths:
       - 'maps/bbya-social-hub/.audio-safe-batch-trigger'
       - 'maps/bbya-social-hub/audio-rights-confirmation.json'
-  schedule:
-    - cron: '27,57 * * * *'
   workflow_dispatch:
+    inputs:
+      permission_mode:
+        description: AM_STUDIO_SHARED, TARGET_PROJECT, or CUSTOM
+        required: false
+        default: AM_STUDIO_SHARED
+        type: string
+      target_projects:
+        description: Comma-separated registry project keys
+        required: false
+        default: ''
+        type: string
+      universe_ids:
+        description: Explicit registered Universe IDs for CUSTOM
+        required: false
+        default: ''
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bbya-audio-safe-batch-gudangpet88
   cancel-in-progress: false
 
 jobs:
-  sequential_audio:
+  upload_audio_only:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 330
     env:
       AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
-      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
-      DRIVE_FOLDER_URL: 'https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
-      EXPECTED_AUDIO_USERNAME: 'gudangpet88'
-      BBYA_UNIVERSE: '8116636513'
-      MAX_MODERATION_WAIT_SECONDS: '1500'
+      AUDIO_KEY_SECRET_NAME: AMSTUDIO_AUDIO_UPLOADER_01
+      EXPECTED_AUDIO_USERNAME: gudangpet88
+      DRIVE_FOLDER_URL: https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd
+      MAX_MODERATION_WAIT_SECONDS: '14400'
+      PERMISSION_MODE: ${{ inputs.permission_mode || 'AM_STUDIO_SHARED' }}
+      TARGET_PROJECTS: ${{ inputs.target_projects || '' }}
+      CUSTOM_UNIVERSE_IDS: ${{ inputs.universe_ids || '' }}
 
     steps:
-      - name: Checkout live main
+      - name: Checkout canonical audio infrastructure
         uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0
 
       - name: Require explicit legal-rights confirmation
         shell: bash
@@ -44,94 +59,45 @@ jobs:
           import json, pathlib
           folder='1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd'
           p=pathlib.Path('maps/bbya-social-hub/audio-rights-confirmation.json')
-          ok=False
-          if p.exists():
-              try:
-                  d=json.loads(p.read_text(encoding='utf-8'))
-                  ok=(d.get('confirmed') is True and d.get('driveFolderId')==folder and d.get('scope')=='ALL_AUDIO_IN_FOLDER')
-              except Exception:
-                  ok=False
-          if ok:
-              print('Audio rights confirmation present for this exact Drive folder.')
-              raise SystemExit(0)
-          out=pathlib.Path('deploy-status/bbya-audio-safe-batch.json')
-          out.parent.mkdir(parents=True,exist_ok=True)
-          out.write_text(json.dumps({
-              'version':1,
-              'status':'BLOCKED_RIGHTS_UNVERIFIED',
-              'driveFolderId':folder,
-              'uploadAttempted':False,
-              'reason':'Roblox requires the uploader to own or have all legal rights/licenses needed for uploaded audio. Explicit confirmation for this batch is not present.'
-          },indent=2)+'\n',encoding='utf-8')
-          raise SystemExit(3)
+          if not p.exists(): raise SystemExit('BLOCKED_RIGHTS_UNVERIFIED')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          if not (d.get('confirmed') is True and d.get('driveFolderId')==folder and d.get('scope')=='ALL_AUDIO_IN_FOLDER'):
+              raise SystemExit('BLOCKED_RIGHTS_UNVERIFIED')
+          print('Audio rights confirmation verified for exact Drive folder.')
           PY
-
-      - name: Persist legal-rights safety block
-        if: failure()
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ ! -f deploy-status/bbya-audio-safe-batch.json ]; then exit 0; fi
-          git config user.name 'ACC Roblox Audio Safety Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/bbya-audio-safe-batch.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Record BBYA audio rights safety block [skip ci]'
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-
-      - name: Mark runner booted
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p deploy-status
-          printf '{"status":"BOOTED","workflow":"BBYA Audio Safe Batch — gudangpet88","runId":"%s","triggerCommit":"%s"}\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > deploy-status/bbya-audio-safe-batch-boot.json
-          git config user.name 'ACC Roblox Audio Safety Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add deploy-status/bbya-audio-safe-batch-boot.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Mark BBYA gudangpet88 audio runner booted [skip ci]'
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Install audio tools
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
+          sudo apt-get install -y -qq ffmpeg curl
           python3 -m pip install --quiet 'gdown==6.1.0'
-          ffmpeg -version | head -1
-          gdown --version
 
-      - name: Cache Rojo
-        id: rojo-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/rojo
-          key: rojo-7.7.0-${{ runner.os }}
-
-      - name: Install Rojo
-        if: steps.rojo-cache.outputs.cache-hit != 'true'
-        run: cargo install rojo --version 7.7.0 --locked
-
-      - name: Verify Rojo
-        run: rojo --version
-
-      - name: Run strict one-by-one audio pipeline
+      - name: Unified 1.75x upload and permission contract
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/bbya-audio-safe-batch.py
+          python3 scripts/am-studio-audio-pipeline.py \
+            --drive-folder-url "$DRIVE_FOLDER_URL" \
+            --registry config/am-studio-roblox-universes.json \
+            --result upload-result.json
+
+      - name: Preserve machine-readable receipt
+        if: always() && hashFiles('upload-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: gudangpet88-am-studio-audio-${{ github.run_id }}
+          path: upload-result.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce no map mutation
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f upload-result.json ]; then
+            jq -e '.mapInjected == false and .mapPublished == false and .bankUpdated == false and .uploadedSpeed == 1.75 and .playbackSpeed == 0.5714285714' upload-result.json >/dev/null
+          fi
+          git diff --exit-code -- maps/bbya-social-hub || { echo 'MAP_MUTATION_FORBIDDEN'; exit 40; }
