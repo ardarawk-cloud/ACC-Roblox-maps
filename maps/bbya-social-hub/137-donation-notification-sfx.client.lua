@@ -19,8 +19,9 @@ end
 
 local donationSound = Instance.new("Sound")
 donationSound.Name = "BBYADonationNotificationSFX"
-donationSound.SoundId = "rbxassetid://9126072044"
+donationSound.SoundId = "rbxassetid://138169036950863"
 donationSound.Volume = 0.58
+donationSound.PlaybackSpeed = 0.5714285714
 donationSound.Looped = false
 donationSound.Parent = SoundService
 
@@ -71,4 +72,4 @@ destroyingConnection = script.Destroying:Connect(function()
 	end
 end)
 
-print("[BBYA Audio] DonationNotification SFX v1 online; server event only; SoundId 9126072044")
+print("[BBYA Audio] DonationNotification SFX v1 online; server event only; SoundId 138169036950863")
