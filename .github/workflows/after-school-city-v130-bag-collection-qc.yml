@@ -1,0 +1,198 @@
+name: After School City V1.3 BAG Collection QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v130-economy-first-shop
+    paths:
+      - '.github/workflows/after-school-city-v130-bag-collection-qc.yml'
+
+permissions:
+  contents: read
+
+env:
+  LIVE_SOURCE: 'ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
+  LIVE_VERSION: '54'
+  LIVE_RECEIPT: 'deploy-status/after-school-city-publish-v130-economy-first-shop.json'
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact source lineage and protected scope
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = (git rev-parse HEAD).Trim()
+          if([string]::IsNullOrWhiteSpace($source)){ throw 'Candidate source SHA unavailable' }
+          git cat-file -e "$env:LIVE_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'LIVE source commit unavailable' }
+          $mergeBase = (git merge-base $env:LIVE_SOURCE $source).Trim()
+          if($mergeBase -ne $env:LIVE_SOURCE){ throw "Candidate is not descended from LIVE source: $mergeBase" }
+
+          $productionDelta = @(git diff --name-only $env:LIVE_SOURCE $source -- 'maps/after-school-city')
+          $expected = @(
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.ui-glass-v102.client.lua'
+          )
+          if($productionDelta.Count -ne $expected.Count){ throw "Unexpected production delta count: $($productionDelta.Count) => $($productionDelta -join ', ')" }
+          foreach($path in $expected){ if($productionDelta -notcontains $path){ throw "Expected BAG UI file missing: $path" } }
+          foreach($path in $productionDelta){ if($expected -notcontains $path){ throw "Protected production file changed: $path" } }
+
+          $protected = @(
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          foreach($path in $protected){
+            git diff --quiet $env:LIVE_SOURCE $source -- $path
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed: $path" }
+          }
+
+          "SOURCE_SHA=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SOURCE SCOPE PASS source=$source productionFiles=$($productionDelta.Count)"
+
+      - name: Verify LIVE v54 receipt authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main LIVE receipts' }
+          $raw = (git show "origin/main:$env:LIVE_RECEIPT" | Out-String)
+          $receipt = $raw | ConvertFrom-Json
+          if($receipt.status -ne 'LIVE_PUBLISHED'){ throw "LIVE receipt status mismatch: $($receipt.status)" }
+          if([int]$receipt.versionNumber -ne [int]$env:LIVE_VERSION){ throw "LIVE version mismatch: $($receipt.versionNumber)" }
+          if([string]$receipt.sourceCommit -ne $env:LIVE_SOURCE){ throw "LIVE source mismatch: $($receipt.sourceCommit)" }
+          if([string]$receipt.placeId -ne '121603385909425'){ throw "Place mismatch: $($receipt.placeId)" }
+          if([string]$receipt.universeId -ne '10745359869'){ throw "Universe mismatch: $($receipt.universeId)" }
+          Write-Host "LIVE AUTHORITY PASS version=$env:LIVE_VERSION source=$env:LIVE_SOURCE"
+
+      - name: BAG source contract QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $hudPath = 'maps/after-school-city/after-school-city.gameplay-hud.client.lua'
+          $glassPath = 'maps/after-school-city/after-school-city.ui-glass-v102.client.lua'
+          $hud = Get-Content $hudPath -Raw
+          $glass = Get-Content $glassPath -Raw
+
+          foreach($token in @(
+            'ASCEconomyConfig',
+            'BagButton',
+            'BagPanel',
+            'state.Inventory',
+            'StatePush',
+            'RequestState',
+            'PersistenceWarning',
+            'refreshBagPanel',
+            'CAMPUS_NOTEBOOK',
+            'CITY_STICKER_PACK',
+            'ASC_KEYCHAIN',
+            'STUDENT_TOTE',
+            'Buku Catatan Kampus',
+            'Paket Stiker Kota',
+            'Gantungan Kunci ASC',
+            'Tas Tote Pelajar'
+          )){
+            if($hud -notmatch [regex]::Escape($token)){ throw "Required BAG UI token missing: $token" }
+          }
+
+          foreach($forbidden in @('DataStoreService','MarketplaceService','PromptProductPurchase','ProcessReceipt','EquipButton','UseButton','UnequipButton')){
+            if($hud -match [regex]::Escape($forbidden)){ throw "Forbidden client authority/action found: $forbidden" }
+          }
+
+          foreach($token in @('BagPanel','enforceMinimumTransparency(bagPanel, 0.46)','maxOffset')){
+            if($glass -notmatch [regex]::Escape($token)){ throw "Glass BAG integration token missing: $token" }
+          }
+
+          $server = Get-Content 'maps/after-school-city/after-school-city.gameplay-service.lua' -Raw
+          $config = Get-Content 'maps/after-school-city/after-school-city.gameplay-config.lua' -Raw
+          foreach($token in @('ASC_PlayerProfile_v1','SchemaVersion = 2','Inventory = {}','profile.Inventory','PurchaseItem','statePush:FireClient')){
+            if(($server + "`n" + $config) -notmatch [regex]::Escape($token)){ throw "Protected ownership/persistence token missing: $token" }
+          }
+
+          Write-Host 'BAG SOURCE CONTRACT PASS - metadata presentation only; ownership remains server state'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cmd = Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe = $cmd.Source
+          } else {
+            $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+            $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+            if(Test-Path $dir){ Remove-Item $dir -Recurse -Force }
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){ throw 'rojo.exe not found' }
+            $rojoExe = $exe.FullName
+          }
+          $version = (& $rojoExe --version | Out-String).Trim()
+          if($LASTEXITCODE -ne 0){ throw 'Rojo version check failed' }
+          if($version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$rojoExe" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=7.7.0" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO PASS version=$version"
+
+      - name: Build exact BAG candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-bag-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v130-bag-collection.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){ throw "Rojo build failed: $LASTEXITCODE" }
+          if(-not (Test-Path $place)){ throw 'Generated RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+
+          $receiptPath = Join-Path $outDir 'qc-receipt.txt'
+          @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=BAG_COLLECTION_OWNED_ITEMS',
+            "LIVE_ROBLOX_VERSION=$env:LIVE_VERSION",
+            "LIVE_SOURCE=$env:LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:SOURCE_SHA",
+            "ROJO_VERSION=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'OWNERSHIP_AUTHORITY=SERVER_STATE_INVENTORY',
+            'DATASTORE=ASC_PlayerProfile_v1',
+            'SCHEMA=2_UNCHANGED',
+            'USE_EQUIP_ACTIONS=NONE_CURRENTLY',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          ) | Set-Content $receiptPath -Encoding utf8
+
+          "RBXL_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ARTIFACT_PATH=$outDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS source=$env:SOURCE_SHA bytes=$bytes sha256=$hash"
+
+      - name: Upload exact candidate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v130-bag-collection-qc-${{ env.SOURCE_SHA }}
+          path: ${{ env.ARTIFACT_PATH }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: QC summary
+        shell: powershell
+        run: |
+          Write-Host "QC_COMPLETE source=$env:SOURCE_SHA rojo=$env:ROJO_VERSION bytes=$env:RBXL_BYTES sha256=$env:RBXL_SHA256 runtime=PENDING publish=NO"
