@@ -1,0 +1,23 @@
+{
+  "name": "HangarExclusiveClub",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "HangarClubServer": {
+        "$path": "club.server.lua"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "HangarClubClient": {
+          "$path": "club.client.lua"
+        }
+      }
+    }
+  }
+}
