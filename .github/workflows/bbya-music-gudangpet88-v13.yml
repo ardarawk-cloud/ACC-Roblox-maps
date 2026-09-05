@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 330
     env:
-      AUDIO_KEY: ${{ secrets.GUDANGPET88_AUDIO_PUBLISHER }}
-      AUDIO_KEY_SECRET_NAME: GUDANGPET88_AUDIO_PUBLISHER
+      AUDIO_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      AUDIO_KEY_SECRET_NAME: AMSTUDIO_AUDIO_UPLOADER_01
       MAX_MODERATION_WAIT_SECONDS: '14400'
 
     steps:
