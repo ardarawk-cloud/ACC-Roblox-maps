@@ -1,4 +1,4 @@
-name: Publish After School City V1.3 Economy First Shop
+name: Publish After School City V1.3 BAG Collection
 
 on:
   push:
@@ -20,12 +20,15 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     env:
-      EXPECTED_SOURCE: 'ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
-      BASE_LIVE_SOURCE: '21c622b190a85f3ecf935aa46a2a06be34f67c84'
-      EXPECTED_QC_RUN: '33866355662'
-      EXPECTED_ARTIFACT: 'after-school-city-v130-economy-first-shop-qc-ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
-      EXPECTED_ARTIFACT_ID: '9934118978'
-      EXPECTED_PREVIOUS_VERSION: '53'
+      EXPECTED_SOURCE: '370f5b5fca3fbae7b6b52d39de72279349e5711c'
+      BASE_LIVE_SOURCE: 'ed9a3c5e4db107c84ba41192c59e64ce62efaa8a'
+      EXPECTED_QC_RUN: '33933704444'
+      EXPECTED_ARTIFACT: 'after-school-city-v130-bag-collection-qc-370f5b5fca3fbae7b6b52d39de72279349e5711c'
+      EXPECTED_ARTIFACT_ID: '9959437863'
+      EXPECTED_ARTIFACT_DIGEST: 'f5a6f5856d18df1f63391ea7da507b5133e29cc918708616ce19076ecf2da472'
+      EXPECTED_BYTES: '200352'
+      EXPECTED_SHA256: '23c860ecb2e23776c91c37c83e62d6b1eb8ef175cc8095a7e67936d8f75489d3'
+      EXPECTED_PREVIOUS_VERSION: '54'
       UNIVERSE_ID: '10745359869'
       PLACE_ID: '121603385909425'
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -36,32 +39,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Exact candidate and production-scope gate
+      - name: Exact BAG candidate and production-scope gate
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
-          if($LASTEXITCODE -ne 0){ throw 'Expected V1.3 QC source commit unavailable' }
+          if($LASTEXITCODE -ne 0){ throw 'Expected BAG QC source commit unavailable' }
           $mergeBase = (git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
-          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head is not descended from exact QC source: $mergeBase" }
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head is not descended from exact BAG QC source: $mergeBase" }
+
           $after = @(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
-          if($after.Count -ne 0){ throw "Production source changed after exact V1.3 QC source: $($after -join ', ')" }
+          if($after.Count -ne 0){ throw "Production source changed after exact BAG QC source: $($after -join ', ')" }
 
           $expected = @(
-            'maps/after-school-city/after-school-city.config.lua',
-            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.ui-glass-v102.client.lua'
+          )
+          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          if($prod.Count -ne $expected.Count){ throw "Unexpected BAG production delta count: $($prod.Count) => $($prod -join ', ')" }
+          foreach($path in $expected){ if($prod -notcontains $path){ throw "Expected BAG production file missing: $path" } }
+          foreach($path in $prod){ if($expected -notcontains $path){ throw "Unexpected BAG production file: $path" } }
+
+          $protected = @(
             'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
             'maps/after-school-city/after-school-city.economy-config.lua',
             'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua',
             'maps/after-school-city/default.project.json'
           )
-          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
-          if($prod.Count -ne $expected.Count){ throw "Unexpected V1.3 production delta count: $($prod.Count) => $($prod -join ', ')" }
-          foreach($path in $expected){ if($prod -notcontains $path){ throw "Expected V1.3 production file missing: $path" } }
-          foreach($path in $prod){ if($expected -notcontains $path){ throw "Unexpected V1.3 production file: $path" } }
-          Write-Host "EXACT V1.3 SOURCE GATE PASS source=$env:EXPECTED_SOURCE files=$($prod.Count)"
+          foreach($path in $protected){
+            git diff --quiet $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- $path
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed in BAG candidate: $path" }
+          }
+          Write-Host "EXACT BAG SOURCE GATE PASS source=$env:EXPECTED_SOURCE files=$($prod.Count)"
 
-      - name: Verify latest production receipt is still v53
+      - name: Verify latest production receipt is still v54
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
@@ -82,10 +94,10 @@ jobs:
             } catch {}
           }
           if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale publish base: latest receipt v$maxVersion path=$maxPath source=$maxSource" }
-          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest v53 source mismatch: $maxSource" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest v54 source mismatch: $maxSource" }
           Write-Host "LIVE RECEIPT GATE PASS v$maxVersion source=$maxSource"
 
-      - name: Download exact V1.3 QC artifact without rebuild
+      - name: Download exact BAG QC artifact without rebuild
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.EXPECTED_ARTIFACT }}
@@ -94,7 +106,7 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ env.EXPECTED_QC_RUN }}
 
-      - name: Verify exact QC artifact and capture immutable hash
+      - name: Verify exact BAG QC artifact
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
@@ -103,34 +115,36 @@ jobs:
           $place = $places[0]
           $bytes = $place.Length
           $hash = (Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($bytes -lt 1024){ throw "RBXL too small: $bytes" }
+          if($bytes -ne [int64]$env:EXPECTED_BYTES){ throw "RBXL byte mismatch: $bytes" }
+          if($hash -ne $env:EXPECTED_SHA256){ throw "RBXL SHA mismatch: $hash" }
 
           $receiptFile = Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
-          if(-not $receiptFile){ throw 'QC receipt missing from exact artifact' }
+          if(-not $receiptFile){ throw 'QC receipt missing from exact BAG artifact' }
           $receipt = Get-Content $receiptFile.FullName -Raw
           foreach($token in @(
-            'STATUS=QC_PASSED',
-            'MODE=V130_ECONOMY_FIRST_SHOP',
-            "BASE_LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
-            'BASE_LIVE_ROBLOX_VERSION=53',
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=BAG_COLLECTION_OWNED_ITEMS',
+            'LIVE_ROBLOX_VERSION=54',
+            "LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
             "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
-            "RBXL_BYTES=$bytes",
-            "SHA256=$hash",
+            'ROJO_VERSION=7.7.0',
+            "RBXL_BYTES=$env:EXPECTED_BYTES",
+            "SHA256=$env:EXPECTED_SHA256",
+            'OWNERSHIP_AUTHORITY=SERVER_STATE_INVENTORY',
             'DATASTORE=ASC_PlayerProfile_v1',
-            'SCHEMA=2_BACKWARD_RECONCILE',
-            'FIRST_SHOP=STUDENT_MINI_MART',
-            'ITEMS=4_PERSISTENT_COLLECTIBLES',
-            'PURCHASE_AUTHORITY=SERVER_ONLY',
-            'MARKETPLACE_ROBUX=NONE',
-            'LIVE_V53_AUTHORITIES=PRESERVED'
+            'SCHEMA=2_UNCHANGED',
+            'USE_EQUIP_ACTIONS=NONE_CURRENTLY',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
           )){
-            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact V1.3 QC receipt token missing: $token" }
+            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact BAG QC receipt token missing: $token" }
           }
 
           "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "EXACT V1.3 QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
+          Write-Host "EXACT BAG QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
 
       - name: Recheck LIVE receipt immediately before publish
         shell: powershell
@@ -152,17 +166,17 @@ jobs:
           if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
           Write-Host 'FINAL PRE-PUBLISH LIVE GATE PASS'
 
-      - name: Publish exact V1.3 QC artifact to Roblox
+      - name: Publish exact BAG QC artifact to Roblox
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
-          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact V1.3 QC RBXL missing at publish step' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact BAG QC RBXL missing at publish step' }
           $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
           $success = $false
-          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-v130-publish-response.json'
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-v130-bag-publish-response.json'
           for($attempt=1; $attempt -le 4; $attempt++){
-            $tmp = Join-Path $env:RUNNER_TEMP "asc-v130-publish-$attempt.json"
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-v130-bag-publish-$attempt.json"
             $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
             $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
             if($http -match '^2\d\d$'){
@@ -184,18 +198,18 @@ jobs:
           "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "ROBLOX PUBLISH SUCCESS version=$version source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
 
-      - name: Persist exact V1.3 LIVE receipt to main
+      - name: Persist exact BAG LIVE receipt to main
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           git fetch origin main
           git switch -C receipt-main origin/main
           if($LASTEXITCODE -ne 0){ throw 'Unable to switch to refreshed main for receipt' }
-          $receiptPath = 'deploy-status/after-school-city-publish-v130-economy-first-shop.json'
+          $receiptPath = 'deploy-status/after-school-city-publish-v130-bag-collection.json'
           $obj = [ordered]@{
             status = 'LIVE_PUBLISHED'
             project = 'AFTER SCHOOL CITY'
-            mode = 'V130_ECONOMY_FIRST_SHOP'
+            mode = 'V130_BAG_COLLECTION'
             sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
             sourceCommit = $env:EXPECTED_SOURCE
             baseLiveCommit = $env:BASE_LIVE_SOURCE
@@ -209,14 +223,14 @@ jobs:
             placeSha256 = $env:PLACE_SHA256
             runId = $env:GITHUB_RUN_ID
             publishedAt = $env:PUBLISHED_AT
-            note = 'Exact V1.3-A Economy Core + First Shop QC artifact published without rebuild. Student Mini Mart purchases use ASC Coins, server authority, persistent inventory, and preserve V1.2 authorities.'
+            note = 'Exact V1.3 BAG / Collection QC artifact published without rebuild. BAG is client presentation of server-authoritative Inventory; V1.3 Economy First Shop, DataStore ASC_PlayerProfile_v1 schema 2, and prior authorities are preserved.'
           }
           $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
           git config user.name 'After School City Deploy Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add $receiptPath
-          git commit -m "Record After School City V1.3 Economy First Shop LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          git commit -m "Record After School City V1.3 BAG Collection LIVE v$env:PUBLISHED_VERSION [skip ci]"
           if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
           git push origin HEAD:main
           if($LASTEXITCODE -ne 0){ throw 'Receipt push failed after Roblox publish; DO NOT RERUN PUBLISHER' }
-          Write-Host "V1.3 LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
+          Write-Host "BAG LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
