@@ -92,6 +92,7 @@
       "FishingSatisfactionV6": {"$path": "130-fishing-satisfaction-v6.server.lua"},
       "DJLiveCleanServer": {"$path": "137-dj-live-clean.server.lua"},
       "AFKStatusServer": {"$path": "139-afk.server.lua"},
+      "SultanContributionAdapter": {"$path": "141-sultan-contribution.server.lua"},
       "VIPTrack01AuthorityV2": {"$path": "110-vip-track01.server.lua"},
       "FunkotPlaylistAuthorityV1": {"$path": "121-funkot-playlist.server.lua"},
       "RooftopPlaylistAuthorityV1": {"$path": "134-rooftop-playlist.server.lua"}
