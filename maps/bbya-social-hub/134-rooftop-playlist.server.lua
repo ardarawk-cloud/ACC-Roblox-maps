@@ -1,8 +1,9 @@
--- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v8.1
+-- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v8.2
 -- Four physical corner speaker blocks + one canonical seamless master clock.
 -- Self-healing runtime plus server-authoritative request / PREV / NEXT controls for the premium Music Suite.
--- v8.1: exact 10-track Arda-approved / BBYA Production-permitted Rooftop catalog.
+-- v8.2: exact 10-track Arda-approved / BBYA Production-permitted Rooftop catalog.
 -- Source audio is uploaded at 1.75x; runtime compensates with 1/1.75 playback so guests hear normal tempo/pitch.
+-- Speaker elevation follows the final rooftop deck datum after the +14.5 world lift.
 -- Routing and KPOP/SFX untouched.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -24,13 +25,16 @@ local PLAYLIST={
 }
 local SOURCE_UPLOAD_SPEED=1.75
 local NORMAL_PLAYBACK_SPEED=1/SOURCE_UPLOAD_SPEED
+local ROOFTOP_DECK_Y=59.86
+local SPEAKER_HEIGHT=4.2
+local SPEAKER_CENTER_Y=ROOFTOP_DECK_Y+(SPEAKER_HEIGHT*.5)
 if #PLAYLIST==0 then return end
 
 local SPEAKER_SPECS={
- {name="BBYARooftopSpeakerBlock1",pos=Vector3.new(47,47.55,-34)},
- {name="BBYARooftopSpeakerBlock2",pos=Vector3.new(-47,47.55,-34)},
- {name="BBYARooftopSpeakerBlock3",pos=Vector3.new(47,47.55,34)},
- {name="BBYARooftopSpeakerBlock4",pos=Vector3.new(-47,47.55,34)},
+ {name="BBYARooftopSpeakerBlock1",pos=Vector3.new(47,SPEAKER_CENTER_Y,-34)},
+ {name="BBYARooftopSpeakerBlock2",pos=Vector3.new(-47,SPEAKER_CENTER_Y,-34)},
+ {name="BBYARooftopSpeakerBlock3",pos=Vector3.new(47,SPEAKER_CENTER_Y,34)},
+ {name="BBYARooftopSpeakerBlock4",pos=Vector3.new(-47,SPEAKER_CENTER_Y,34)},
 }
 
 local control=ReplicatedStorage:FindFirstChild("BBYARooftopMusicControl")
@@ -53,7 +57,7 @@ local function inZone(player)
  local h=c and c:FindFirstChild("HumanoidRootPart")
  if not h then return false end
  local p=h.Position
- return p.Y>=40 and p.Y<=60 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48
+ return p.Y>=55 and p.Y<=68 and math.abs(p.X)<=62 and p.Z>=-48 and p.Z<=48
 end
 
 local function isAdmin(player)
@@ -118,13 +122,15 @@ local function ensureSpeakers()
  if not speakerRoot then speakerRoot=Instance.new("Folder");speakerRoot.Name="BBYARooftopSpeakerArrayV4";speakerRoot.Parent=Workspace end
  speakerRoot:SetAttribute("Venue","ROOFTOP")
  speakerRoot:SetAttribute("SpeakerCount",#SPEAKER_SPECS)
- speakerRoot:SetAttribute("AudioProfile","WARM_SEAMLESS_SELF_HEAL_V7")
+ speakerRoot:SetAttribute("AudioProfile","WARM_SEAMLESS_SELF_HEAL_V8_2")
+ speakerRoot:SetAttribute("DeckDatumY",ROOFTOP_DECK_Y)
+ speakerRoot:SetAttribute("SpeakerCenterY",SPEAKER_CENTER_Y)
  table.clear(speakers)
  for i,spec in ipairs(SPEAKER_SPECS) do
   local p=speakerRoot:FindFirstChild(spec.name)
   if p and not p:IsA("Part") then p:Destroy();p=nil end
   if not p then p=Instance.new("Part");p.Name=spec.name;p.Parent=speakerRoot end
-  p.Size=Vector3.new(2.8,4.2,2.8)
+  p.Size=Vector3.new(2.8,SPEAKER_HEIGHT,2.8)
   p.CFrame=CFrame.lookAt(spec.pos,Vector3.new(0,spec.pos.Y,0))
   p.Anchored=true;p.CanCollide=true;p.CanTouch=true;p.CanQuery=true
   p.Material=Enum.Material.Metal;p.Color=Color3.fromRGB(27,28,32)
@@ -132,6 +138,7 @@ local function ensureSpeakers()
   p:SetAttribute("Venue","ROOFTOP")
   p:SetAttribute("Purpose","ROOM_SPEAKER_VISUAL_MASTER_CLOCK")
   p:SetAttribute("SpeakerIndex",i)
+  p:SetAttribute("DeckDatumY",ROOFTOP_DECK_Y)
   for _,child in ipairs(p:GetChildren()) do
    if child:IsA("Sound") then pcall(function()child:Stop()end);child:Destroy() end
   end
@@ -175,13 +182,14 @@ local function publishState()
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentAssetId",t.assetId)
  ReplicatedStorage:SetAttribute("BBYARooftopSourceUploadSpeed",SOURCE_UPLOAD_SPEED)
  ReplicatedStorage:SetAttribute("BBYARooftopPlaybackSpeed",NORMAL_PLAYBACK_SPEED)
+ ReplicatedStorage:SetAttribute("BBYARooftopSpeakerCenterY",SPEAKER_CENTER_Y)
  publishQueue()
  if group then
   group:SetAttribute("CurrentIndex",currentIndex)
   group:SetAttribute("CurrentTitle",t.title)
   group:SetAttribute("CurrentAssetId",t.assetId)
   group:SetAttribute("SpeakerCount",#speakers)
-  group:SetAttribute("PlaybackTopology","SINGLE_MASTER_CLOCK_SELF_HEAL_CONTROLS_V7")
+  group:SetAttribute("PlaybackTopology","SINGLE_MASTER_CLOCK_SELF_HEAL_CONTROLS_V8_2")
   group:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
  end
  if speakerRoot then
@@ -205,9 +213,10 @@ local function ensureCore()
  group:SetAttribute("BBYALocalZoneOnly",true)
  group:SetAttribute("PlaylistReady",true)
  group:SetAttribute("PlaylistCount",#PLAYLIST)
- group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_10_APPROVED_V8_1")
+ group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_10_APPROVED_V8_2")
  group:SetAttribute("SourceUploadSpeed",SOURCE_UPLOAD_SPEED)
  group:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
+ group:SetAttribute("DeckDatumY",ROOFTOP_DECK_Y)
  ensureToneEQ();ensureSpeakers();local created=ensureMasterSound();publishCatalog();publishQueue()
  return created
 end
@@ -323,4 +332,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Rooftop authority v8.1 online; 10 approved tracks + 1.75x upload compensation + request/PREV/NEXT controls + self-heal")
+print("[BBYA] Rooftop authority v8.2 online; 10 approved tracks + 1.75x upload compensation + corrected speaker elevation + request/PREV/NEXT controls + self-heal")
