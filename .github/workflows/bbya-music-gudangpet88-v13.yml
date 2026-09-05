@@ -1,0 +1,99 @@
+name: BBYA Music - Gudangpet88 Upload v1.3
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  upload-audio:
+    if: startsWith(github.event.issue.title, 'BBYA MUSIC GUDANGPET88 V1.3')
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      AUDIO_KEY: ${{ secrets.GUDANGPET88_AUDIO_PUBLISHER }}
+      AUDIO_KEY_SECRET_NAME: GUDANGPET88_AUDIO_PUBLISHER
+      MAX_MODERATION_WAIT_SECONDS: '14400'
+
+    steps:
+      - name: Read upload and sharing request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib
+          event = json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text(encoding='utf-8'))
+          body = (event.get('issue') or {}).get('body') or ''
+          fields = {}
+          for line in body.splitlines():
+              if '=' in line:
+                  key, value = line.split('=', 1)
+                  fields[key.strip()] = value.strip()
+          raw = fields.get('batch_json', '')
+          mode = fields.get('permission_mode', 'AM_STUDIO_SHARED')
+          projects = fields.get('target_projects', '')
+          universes = fields.get('universe_ids', '')
+          batch = json.loads(raw)
+          if not isinstance(batch, list) or not 1 <= len(batch) <= 100:
+              raise SystemExit('BATCH_MUST_CONTAIN_1_TO_100_ITEMS')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'bbya-music-batch.json').write_text(json.dumps(batch, ensure_ascii=False), encoding='utf-8')
+          out = pathlib.Path(os.environ['GITHUB_ENV'])
+          with out.open('a', encoding='utf-8') as f:
+              f.write(f'PERMISSION_MODE={mode}\n')
+              f.write(f'TARGET_PROJECTS={projects}\n')
+              f.write(f'CUSTOM_UNIVERSE_IDS={universes}\n')
+          PY
+
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl git
+          python3 -m pip install --quiet 'gdown==6.1.0'
+
+      - name: Checkout unified uploader contract
+        uses: actions/checkout@v4
+        with:
+          repository: balientertaiment-web/Roblox-backup-publish
+          ref: main
+          path: uploader
+
+      - name: Upload 1.75x, await moderation, grant and verify Use permission
+        shell: bash
+        working-directory: uploader
+        run: |
+          set -euo pipefail
+          python3 scripts/am-studio-audio-pipeline.py \
+            --batch "$RUNNER_TEMP/bbya-music-batch.json" \
+            --registry config/am-studio-roblox-universes.json \
+            --result "$GITHUB_WORKSPACE/upload-result.json"
+
+      - name: Preserve machine-readable result
+        if: always() && hashFiles('upload-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: am-studio-audio-gudangpet88-${{ github.run_id }}
+          path: upload-result.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Reply result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('upload-result.json')) {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: 'GUDANGPET88_AUDIO_PIPELINE_FAILED_BEFORE_RECEIPT — NOT READY FOR MAP USE. No map publish attempted.'});
+              return;
+            }
+            const data = JSON.parse(fs.readFileSync('upload-result.json', 'utf8'));
+            const clean = v => String(v ?? '').replaceAll('|','\\|').replaceAll('\n',' ').slice(0,180);
+            const lines = ['## AM Studio Audio Pipeline — gudangpet88','',`Final status: **${clean(data.status)}**`,`Upload speed: **${data.uploadedSpeed}x** · PlaybackSpeed: **${data.playbackSpeed}**`,`Permission mode: **${clean(data.permissionMode)}**`,'','| # | Title | Asset ID | Moderation | Permission |','|---:|---|---:|---|---|'];
+            for (const item of data.items || []) lines.push(`| ${item.index} | ${clean(item.sourceTitle)} | ${clean(item.assetId || '—')} | ${clean(item.moderation || '—')} | ${clean(item.status)} |`);
+            lines.push('', 'No audio bank, playlist, map injection, or map publish was attempted.');
+            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: lines.join('\n').slice(0,65000)});
