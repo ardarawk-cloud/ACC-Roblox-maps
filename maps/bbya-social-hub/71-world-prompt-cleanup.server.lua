@@ -258,10 +258,11 @@ task.spawn(function()
   uplight.Name="PalmUplight";uplight.Color=C.warm;uplight.Brightness=.12;uplight.Range=7;uplight.Shadows=false;uplight.Parent=crownBall
  end
 
- -- Remove the three primitive west-edge planters from v3 before replacing them.
+ -- Realistic-scale landscape pass: remove all six primitive v3 edge planters
+ -- before deterministic replacement. This prevents planter/palm duplication.
  local landscape=roof:FindFirstChild("RooftopLandscapeV3")
  if landscape then
-  for i=1,3 do
+  for i=1,6 do
    local oldPlanter=landscape:FindFirstChild("Planter"..i)
    if oldPlanter then oldPlanter:Destroy() end
   end
@@ -273,18 +274,21 @@ task.spawn(function()
  palm("WestPalmC",-53.4,7.0,8.8,.45,-.35,.96)
  palm("WestPalmD",-53.1,37.0,10.0,-.45,-.25,1.08)
 
+ -- East side replaces original Planter4/5/6 at the same base coordinates.
+ palm("EastPalmA",53.0,-29.0,8.8,-.45,.20,1.00)
+ palm("EastPalmB",53.0,2.0,9.4,.30,.45,1.02)
+ palm("EastPalmC",53.0,36.0,9.8,-.35,-.20,1.04)
+
  -- Seal the small structural void between the pool walls and surrounding coping.
- -- These panels sit outside the water volume and below the walking surface.
  local fascia=Instance.new("Model");fascia.Name="PoolPerimeterFasciaV32";fascia.Parent=out
  part("PoolGapSealWest",Vector3.new(.72,3.25,31.2),CFrame.new(-29.18,43.45,12),C.stoneDark,Enum.Material.Limestone,0,true,fascia)
  part("PoolGapSealEast",Vector3.new(.72,3.25,31.2),CFrame.new(29.18,43.45,12),C.stoneDark,Enum.Material.Limestone,0,true,fascia)
  part("PoolGapSealNorth",Vector3.new(58.2,2.65,.58),CFrame.new(0,43.65,27.95),C.stoneDark,Enum.Material.Limestone,0,true,fascia)
- -- Keep the south infinity edge visually open; only mask the lower sightline to the club below.
  part("InfinityShadowSkirt",Vector3.new(55.5,1.18,.36),CFrame.new(0,42.15,-4.04),C.charcoal,Enum.Material.Metal,0,false,fascia)
  part("WestCopingReveal",Vector3.new(.18,.18,31.0),CFrame.new(-29.48,44.96,12),C.brass,Enum.Material.Metal,.08,false,fascia)
  part("EastCopingReveal",Vector3.new(.18,.18,31.0),CFrame.new(29.48,44.96,12),C.brass,Enum.Material.Metal,.08,false,fascia)
 
- -- The two exposed shower poles read unfinished in mobile view. Give them a small teak privacy screen.
+ -- Upgrade exposed shower poles with a small teak privacy screen.
  local service=roof:FindFirstChild("PoolServiceV3")
  if service then
   for _,obj in ipairs(service:GetDescendants()) do
@@ -306,6 +310,8 @@ task.spawn(function()
  roof:SetAttribute("RooftopTropicalProfile","TROPICAL_EDGE_V32")
  roof:SetAttribute("PoolPerimeterFascia",true)
  roof:SetAttribute("WestPalmCount",4)
+ roof:SetAttribute("EastPalmCount",3)
  roof:SetAttribute("TropicalShowerUpgrade",true)
- print("[BBYA] Rooftop tropical edge v3.2 online: west palms / pool gap fascia / tropical shower / infinity preserved")
+ roof:SetAttribute("RooftopScaleProfile","REALISTIC_SCALE_V1")
+ print("[BBYA] Rooftop tropical edge v3.2 + realistic scale v1 online: west/east palms / pool gap fascia / tropical shower / infinity preserved")
 end)
