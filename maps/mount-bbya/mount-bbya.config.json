@@ -1,0 +1,33 @@
+{
+  "project": "MOUNT BBYA",
+  "sourceVersion": "6.5.0-phase1-premium-candidate",
+  "donor": {
+    "branch": "agent/mountain-master-v3",
+    "commit": "08dc1c083289a6505808607546fbfb788ea21d36",
+    "build": "v6.4-phase1-multiscript-runtime"
+  },
+  "publishTarget": {
+    "universeId": "4187755690",
+    "placeId": "11832985967"
+  },
+  "forbiddenTarget": {
+    "project": "Mountain Social",
+    "universeId": "10744139279",
+    "placeId": "82661754996018"
+  },
+  "phase": {
+    "scope": "SPAWN_TO_CP1_ONLY",
+    "terrainFrozenAfterCore": true,
+    "cp2PlusAllowed": false
+  },
+  "systems": {
+    "spawnSafety": true,
+    "checkpointSave": true,
+    "dayNight": true,
+    "mobilePerformance": true
+  },
+  "publish": {
+    "enabled": false,
+    "reason": "Candidate must pass build QC and user visual/runtime approval before publish"
+  }
+}

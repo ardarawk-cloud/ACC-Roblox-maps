@@ -1,0 +1,70 @@
+name: Mount BBYA Phase 1 QC
+
+on:
+  pull_request:
+    paths:
+      - 'maps/mount-bbya/**'
+      - 'maps/registry.json'
+      - 'scripts/inject-mount-bbya.js'
+      - 'scripts/qc-mount-bbya-phase1.js'
+      - 'scripts/publish-mount-bbya.js'
+      - '.github/workflows/mount-bbya-phase1-qc.yml'
+  push:
+    branches:
+      - 'mount-bbya/**'
+    paths:
+      - 'maps/mount-bbya/**'
+      - 'maps/registry.json'
+      - 'scripts/inject-mount-bbya.js'
+      - 'scripts/qc-mount-bbya-phase1.js'
+      - 'scripts/publish-mount-bbya.js'
+      - '.github/workflows/mount-bbya-phase1-qc.yml'
+
+jobs:
+  build-qc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build isolated Mount BBYA candidate
+        run: node scripts/inject-mount-bbya.js
+      - name: Static target and Phase 1 QC
+        run: node scripts/qc-mount-bbya-phase1.js
+      - name: Candidate metadata
+        run: |
+          sha256sum maps/mount-bbya/place.rbxlx
+          wc -c maps/mount-bbya/place.rbxlx
+      - name: Verify owner-authorized v6.6 scale-pass publish lock
+        if: github.event_name == 'push' && hashFiles('maps/mount-bbya/.publish-v66-scale-pass') != ''
+        shell: bash
+        run: |
+          ACTUAL="$(sha256sum maps/mount-bbya/place.rbxlx | awk '{print $1}')"
+          BYTES="$(wc -c < maps/mount-bbya/place.rbxlx | tr -d ' ')"
+          test "$ACTUAL" = '3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa'
+          test "$BYTES" = '66386'
+          grep -q '4187755690' maps/mount-bbya/.publish-v66-scale-pass
+          grep -q '11832985967' maps/mount-bbya/.publish-v66-scale-pass
+          grep -q 'REALISTIC_SCALE_SIGN_CLEANUP' maps/mount-bbya/.publish-v66-scale-pass
+          grep -q '3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa' maps/mount-bbya/.publish-v66-scale-pass
+          grep -q '66386' maps/mount-bbya/.publish-v66-scale-pass
+          echo '[MOUNT BBYA] v6.6 exact-branch digest + target lock verified'
+      - name: Publish verified Mount BBYA v6.6 scale pass
+        if: github.event_name == 'push' && hashFiles('maps/mount-bbya/.publish-v66-scale-pass') != ''
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          EXPECTED_RBXLX_SHA256: 3c828232dd1db20185c3784c5f75cd72a1b6ee5e7821078b57117a83bdaf9eaa
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: node scripts/publish-mount-bbya.js
+      - name: Upload Phase 1 candidate and publish receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: mount-bbya-phase1-${{ github.sha }}
+          path: |
+            maps/mount-bbya/place.rbxlx
+            deploy-status/mount-bbya-publish-receipt.json
+          if-no-files-found: warn
