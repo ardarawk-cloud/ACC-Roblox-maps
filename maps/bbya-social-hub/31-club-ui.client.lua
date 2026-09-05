@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — UNIFIED UI v6
+-- BBYA SOCIAL HUB — UNIFIED UI v7
 -- Responsive shell only. Audio audibility is owned exclusively by VenueAudioRouter; this UI never writes SoundGroup/Sound Volume.
+-- Travel purchase flow is price-first, purchase-locked, and result-driven.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,6 +12,8 @@ local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes")
 local musicRemote=remotes:WaitForChild("Music")
 local supportRemote=remotes:WaitForChild("Support")
 local teleportRemote=remotes:WaitForChild("Teleport")
+local travelResult=remotes:WaitForChild("TravelResult")
+local travelCatalogRemote=remotes:WaitForChild("TravelCatalog")
 local stateRemote=remotes:WaitForChild("State")
 
 local pg=player:WaitForChild("PlayerGui")
@@ -88,23 +91,121 @@ local supportGrid=Instance.new("UIGridLayout");supportGrid.CellSize=UDim2.new(.4
 local function syncSupportCanvas()supportHolder.CanvasSize=UDim2.fromOffset(0,math.max(0,supportGrid.AbsoluteContentSize.Y+8))end
 supportGrid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(syncSupportCanvas)
 
+local toast=Instance.new("TextLabel");toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.new(.5,0,1,-22);toast.Size=UDim2.fromOffset(420,42);toast.BackgroundColor3=Color3.fromRGB(12,11,15);toast.BackgroundTransparency=.03;toast.TextColor3=C.WHITE;toast.Font=Enum.Font.GothamMedium;toast.TextSize=12;toast.Visible=false;toast.BorderSizePixel=0;toast.Parent=gui;round(toast,10);stroke(toast,C.PINK,1,.48)
+local function showToast(t)toast.Text=t;toast.Visible=true;task.delay(2.6,function()if toast.Text==t then toast.Visible=false end end)end
+
 local travel=Instance.new("Frame");travel.BackgroundTransparency=1;travel.Size=UDim2.fromScale(1,1);travel.Visible=false;travel.Parent=content
 label(travel,"MOVE THROUGH BBYA",UDim2.fromOffset(0,0),UDim2.new(1,0,0,26),Enum.Font.GothamBold,17,C.WHITE)
-label(travel,"Only destinations with valid walkable geometry are shown.",UDim2.fromOffset(0,28),UDim2.new(1,0,0,24),Enum.Font.Gotham,10,C.MUTED)
+label(travel,"Paid destinations show the locked Robux amount before Roblox purchase opens.",UDim2.fromOffset(0,28),UDim2.new(1,0,0,24),Enum.Font.Gotham,10,C.MUTED)
 local travelGridHolder=Instance.new("Frame");travelGridHolder.Position=UDim2.fromOffset(0,64);travelGridHolder.Size=UDim2.new(1,0,1,-64);travelGridHolder.BackgroundTransparency=1;travelGridHolder.Parent=travel
 local travelGrid=Instance.new("UIGridLayout");travelGrid.CellSize=UDim2.new(.32,0,.45,0);travelGrid.CellPadding=UDim2.new(.02,0,.06,0);travelGrid.Parent=travelGridHolder
 local destinations={{"ARRIVAL","Arrival","ENTRY"},{"PHOTO STUDIO","Photo","FLOOR 1"},{"LOOK LAB","LookLab","FLOOR 1"},{"MAIN CLUB","MainClub","FLOOR 1"},{"VIP LEVEL","VIP","UPPER"},{"ROOFTOP","Rooftop","POOL"}}
+local travelCatalog={}
+local travelButtons={}
+local travelDisplay={}
+local travelBusyKey=nil
+local travelBusyToken=0
+
+local function travelButtonText(key)
+ local info=travelCatalog[key]
+ if not info or not tonumber(info.price) then return "GO" end
+ if info.owned==true then return "OWNED • GO" end
+ if info.available~=true then return tostring(info.price).." R$ • UNAVAILABLE" end
+ return tostring(info.price).." R$ • GO"
+end
+
+local function refreshTravelButtons()
+ for key,b in pairs(travelButtons) do
+  if key~=travelBusyKey then b.Text=travelButtonText(key) end
+ end
+end
+
+local function loadTravelCatalog()
+ local ok,data=pcall(function()return travelCatalogRemote:InvokeServer()end)
+ if ok and type(data)=="table" then
+  travelCatalog=data
+  refreshTravelButtons()
+  return true
+ end
+ return false
+end
+
 for i,d in ipairs(destinations) do
  local c=card(travelGridHolder,"Destination"..i)
  local accent=Instance.new("Frame");accent.Size=UDim2.new(0,4,1,-18);accent.Position=UDim2.fromOffset(9,9);accent.BackgroundColor3=(d[2]=="MainClub" and C.PINK or (d[2]=="Photo" and C.CYAN or C.GOLD));accent.BorderSizePixel=0;accent.Parent=c;round(accent,4)
  label(c,d[1],UDim2.fromOffset(24,18),UDim2.new(1,-36,0,24),Enum.Font.GothamBold,13,C.WHITE)
  label(c,d[3],UDim2.fromOffset(24,45),UDim2.new(1,-36,0,18),Enum.Font.GothamBold,9,C.MUTED)
  local go=button(c,"GO",UDim2.new(0,24,1,-44),UDim2.new(1,-38,0,32),Color3.fromRGB(33,29,38));stroke(go,accent.BackgroundColor3,1,.45)
- go.MouseButton1Click:Connect(function()teleportRemote:FireServer(d[2]);panel.Visible=false end)
+ travelButtons[d[2]]=go;travelDisplay[d[2]]=d[1]
+ go.MouseButton1Click:Connect(function()
+  if travelBusyKey then return end
+  local info=travelCatalog[d[2]]
+  if info and tonumber(info.price) then
+   if info.available~=true and info.owned~=true then
+    showToast(d[1].." • access belum tersedia")
+    return
+   end
+  elseif d[2]=="VIP" or d[2]=="Rooftop" then
+   if not loadTravelCatalog() then
+    showToast("Harga Travel belum sinkron. Coba lagi.")
+    return
+   end
+   info=travelCatalog[d[2]]
+   if not info or not tonumber(info.price) then
+    showToast("Harga Travel belum tersedia")
+    return
+   end
+  end
+
+  travelBusyKey=d[2]
+  travelBusyToken+=1
+  local token=travelBusyToken
+  if info and tonumber(info.price) and info.owned~=true then
+   go.Text=string.format("%d R$ • PURCHASE",tonumber(info.price))
+  else
+   go.Text="OPENING..."
+  end
+  teleportRemote:FireServer(d[2])
+  task.delay(125,function()
+   if travelBusyKey==d[2] and travelBusyToken==token then
+    travelBusyKey=nil
+    refreshTravelButtons()
+    showToast("Travel reset. Silakan coba lagi.")
+   end
+  end)
+ end)
 end
 
-local toast=Instance.new("TextLabel");toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.new(.5,0,1,-22);toast.Size=UDim2.fromOffset(420,42);toast.BackgroundColor3=Color3.fromRGB(12,11,15);toast.BackgroundTransparency=.03;toast.TextColor3=C.WHITE;toast.Font=Enum.Font.GothamMedium;toast.TextSize=12;toast.Visible=false;toast.BorderSizePixel=0;toast.Parent=gui;round(toast,10);stroke(toast,C.PINK,1,.48)
-local function showToast(t)toast.Text=t;toast.Visible=true;task.delay(2.6,function()if toast.Text==t then toast.Visible=false end end)end
+task.spawn(loadTravelCatalog)
+
+travelResult.OnClientEvent:Connect(function(ok,key,msg,phase)
+ key=tostring(key or "");phase=tostring(phase or "result")
+ local b=travelButtons[key]
+ if phase=="prompt" then
+  local info=travelCatalog[key]
+  if b and info and tonumber(info.price) then b.Text=string.format("%d R$ • ROBLOX",tonumber(info.price)) end
+  return
+ end
+ if phase=="paid" then
+  if b then b.Text="Traveling..." end
+  showToast("Traveling...")
+  return
+ end
+
+ if key==travelBusyKey then
+  travelBusyKey=nil
+  travelBusyToken+=1
+ end
+ if phase=="teleported" and ok==true then
+  if travelCatalog[key] then travelCatalog[key].owned=true end
+  refreshTravelButtons()
+  panel.Visible=false
+  return
+ end
+ refreshTravelButtons()
+ if msg~="" then showToast(msg) end
+end)
+
 local function activeTab(b,on,col)b.BackgroundColor3=on and (col or C.PINKD) or C.PANEL end
 local currentVenue="MAIN"
 local function applyVenueCopy()
@@ -121,7 +222,7 @@ local function setPage(which)
  activeTab(musicTab,which=="music",C.PINKD);activeTab(supportTab,which=="support",Color3.fromRGB(22,64,76));activeTab(travelTab,which=="travel",Color3.fromRGB(80,58,31))
  if which=="music" then applyVenueCopy();musicRemote:FireServer("list")
  elseif which=="support" then pageTitle.Text="SUPPORT BBYA";pageSub.Text="Community support • scroll to choose an amount";supportRemote:FireServer("list")
- else pageTitle.Text="TRAVEL";pageSub.Text="Quick access to verified BBYA social zones" end
+ else pageTitle.Text="TRAVEL";pageSub.Text="Price first • Roblox purchase • success-only teleport";task.spawn(loadTravelCatalog) end
 end
 brand.MouseButton1Click:Connect(function()if panel.Visible then panel.Visible=false else setPage("music") end end)
 musicTab.MouseButton1Click:Connect(function()setPage("music")end);supportTab.MouseButton1Click:Connect(function()setPage("support")end);travelTab.MouseButton1Click:Connect(function()setPage("travel")end);close.MouseButton1Click:Connect(function()panel.Visible=false end)
@@ -224,4 +325,4 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 musicRemote:FireServer("list");supportRemote:FireServer("list")
-print("[BBYA] Unified UI v6 online: UI-only venue context / audio routing owned by VenueAudioRouter")
+print("[BBYA] Unified UI v7 online: travel price-first purchase/result flow / audio routing owned by VenueAudioRouter")
