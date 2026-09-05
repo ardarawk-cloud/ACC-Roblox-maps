@@ -1,14 +1,15 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.7
--- Independent local-only SoundGroups for every music venue.
--- Rooftop + Skatepark + Pasar Malam are active; VIP remains isolated/reset.
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.8
+-- Independent local-only SoundGroups for venue playback.
+-- Rooftop + Skatepark + Pasar Malam are active; Mall is explicitly silent; VIP remains isolated/reset here and is re-owned by VIP authority.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
--- v4.7 activates the approved 5-track Pasar Malam Dangdut/Koplo bank at playback 0.8x.
+-- v4.8 normalizes the approved Pop Punk upload at 1/1.75 speed and gives Mall an explicit silent master.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local ContentProvider=game:GetService("ContentProvider")
 local Workspace=game:GetService("Workspace")
 
+local NORMALIZED_175X=1/1.75
 local SKATE_PLAYLIST={
  {title="Mutronic Plague",assetId="1837057495"},
  {title="Rock On",assetId="1841242625"},
@@ -16,8 +17,8 @@ local SKATE_PLAYLIST={
  {title="We've Got This! - 60",assetId="9043707741"},
  {title="Fuel Fury",assetId="9042632936"},
  {title="Boom Boom (b 30)",assetId="1840009708"},
- {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8},
- {title="Vierra - Perih (Pop Punk Version)",assetId="73111765506214",playbackSpeed=0.8},
+ {title="Untungnya Hidup Harus Tetap Berjalan",assetId="101433831748471",playbackSpeed=0.8,approvalState="APPROVED"},
+ {title="Vierra - Perih (Pop Punk Version)",assetId="73111765506214",playbackSpeed=NORMALIZED_175X,approvalState="APPROVED",speedProfile="NORMALIZED_175X_UPLOAD"},
 }
 
 local NIGHT_MARKET_PLAYLIST={
@@ -40,16 +41,22 @@ local function ensure(name,venue,active,state)
   g:SetAttribute("MusicCatalogState",state or "ACTIVE")
  else
   g:SetAttribute("PlaylistCount",0)
-  g:SetAttribute("MusicCatalogState","RESET_EMPTY")
+  g:SetAttribute("MusicCatalogState",state or "RESET_EMPTY")
  end
  return g
 end
 
-local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V6")
+local skateGroup=ensure("BBYASkateparkMaster","SKATEPARK",true,"SKATEPARK_MIXED_V7_POP_PUNK_NORMALIZED")
 skateGroup.Volume=1.0
 skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
+skateGroup:SetAttribute("ApprovedPopPunkSpeed",NORMALIZED_175X)
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
-ensure("BBYAVIPMaster","VIP",false)
+ensure("BBYAVIPMaster","VIP",false,"VIP_DELEGATED_TO_110_AUTHORITY")
+local mallGroup=ensure("BBYAMallMaster","MALL",false,"MALL_SILENT_AUTHORITY_V1")
+mallGroup:SetAttribute("Authority","VENUE_AUDIO_MASTERS_V4_8")
+mallGroup:SetAttribute("MusicPolicy","SILENT_NO_INHERITED_VENUE_AUDIO")
+mallGroup:SetAttribute("PlaylistReady",false)
+mallGroup:SetAttribute("PlaylistCount",0)
 
 local skateControl=ReplicatedStorage:FindFirstChild("BBYASkateparkMusicControl")
 if skateControl and not skateControl:IsA("RemoteEvent") then skateControl:Destroy();skateControl=nil end
@@ -69,6 +76,7 @@ local function publishSkateCatalog()
  folder:SetAttribute("Count",#SKATE_PLAYLIST)
  folder:SetAttribute("RightsProfile","ROBLOX_CREATOR_STORE_APM_PLUS_CUSTOM_APPROVED")
  folder:SetAttribute("ControlRemote","BBYASkateparkMusicControl")
+ folder:SetAttribute("ApprovedPopPunkSpeed",NORMALIZED_175X)
  for i,t in ipairs(SKATE_PLAYLIST) do
   local row=Instance.new("StringValue")
   row.Name=string.format("Track%02d",i)
@@ -76,6 +84,8 @@ local function publishSkateCatalog()
   row:SetAttribute("AssetId",t.assetId)
   row:SetAttribute("Index",i)
   row:SetAttribute("PlaybackSpeed",tonumber(t.playbackSpeed) or 1)
+  row:SetAttribute("ApprovalState",t.approvalState or "ROBLOX_CREATOR_STORE")
+  if t.speedProfile then row:SetAttribute("SpeedProfile",t.speedProfile) end
   row.Parent=folder
  end
 end
@@ -143,6 +153,7 @@ local function playIndex(wanted)
   sound:SetAttribute("Title",track.title)
   sound:SetAttribute("PlaylistIndex",index)
   sound:SetAttribute("PlaybackSpeed",sound.PlaybackSpeed)
+  if track.speedProfile then sound:SetAttribute("SpeedProfile",track.speedProfile) else sound:SetAttribute("SpeedProfile",nil) end
   publishState(track)
   local preloadOk=pcall(function()ContentProvider:PreloadAsync({sound})end)
   if preloadOk and waitLoaded(6) then
@@ -229,6 +240,7 @@ nightMarketGroup.Volume=1.0
 nightMarketGroup:SetAttribute("PlaylistId","pasar-malam-koplo")
 nightMarketGroup:SetAttribute("GenrePolicy","DANGDUT_KOPLO")
 nightMarketGroup:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
+nightMarketGroup:SetAttribute("Authority","VENUE_AUDIO_MASTERS_V4_8")
 nightMarketGroup:SetAttribute("PlaylistCount",#NIGHT_MARKET_PLAYLIST)
 nightMarketGroup:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
 
@@ -371,4 +383,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.7: Skatepark preserved; Pasar Malam 5-track approved Dangdut/Koplo bank active at 0.8x")
+print("[BBYA] Venue audio masters v4.8: Mall silent authority / Skatepark Pop Punk normalized 1/1.75 / Pasar Malam approved bank preserved")
