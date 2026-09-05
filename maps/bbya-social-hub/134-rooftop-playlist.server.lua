@@ -1,7 +1,9 @@
--- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v8
+-- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v8.1
 -- Four physical corner speaker blocks + one canonical seamless master clock.
 -- Self-healing runtime plus server-authoritative request / PREV / NEXT controls for the premium Music Suite.
--- v8: exact 10-track Arda-approved / BBYA Production-permitted Rooftop catalog. Routing and KPOP/SFX untouched.
+-- v8.1: exact 10-track Arda-approved / BBYA Production-permitted Rooftop catalog.
+-- Source audio is uploaded at 1.75x; runtime compensates with 1/1.75 playback so guests hear normal tempo/pitch.
+-- Routing and KPOP/SFX untouched.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -20,6 +22,8 @@ local PLAYLIST={
  {title="Ajak aku kembali",assetId="115989404258612"},
  {title="Aku berharap kamu tau",assetId="107555884946142"}
 }
+local SOURCE_UPLOAD_SPEED=1.75
+local NORMAL_PLAYBACK_SPEED=1/SOURCE_UPLOAD_SPEED
 if #PLAYLIST==0 then return end
 
 local SPEAKER_SPECS={
@@ -76,6 +80,8 @@ local function publishCatalog()
  folder:SetAttribute("Venue","ROOFTOP")
  folder:SetAttribute("Count",#PLAYLIST)
  folder:SetAttribute("ControlRemote","BBYARooftopMusicControl")
+ folder:SetAttribute("SourceUploadSpeed",SOURCE_UPLOAD_SPEED)
+ folder:SetAttribute("PlaybackSpeed",NORMAL_PLAYBACK_SPEED)
  for i,t in ipairs(PLAYLIST) do
   local name="Track"..tostring(i)
   local entry=folder:FindFirstChild(name)
@@ -84,7 +90,7 @@ local function publishCatalog()
   entry.Value=t.title
   entry:SetAttribute("Index",i)
   entry:SetAttribute("AssetId",t.assetId)
-  entry:SetAttribute("PlaybackSpeed",1)
+  entry:SetAttribute("PlaybackSpeed",NORMAL_PLAYBACK_SPEED)
  end
  for _,entry in ipairs(folder:GetChildren()) do
   local i=tonumber(entry:GetAttribute("Index"))
@@ -150,10 +156,12 @@ local function ensureMasterSound()
  masterSound.SoundGroup=group
  masterSound.Looped=false
  masterSound.Volume=.72
- masterSound.PlaybackSpeed=1
+ masterSound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED
  masterSound:SetAttribute("Venue","ROOFTOP")
  masterSound:SetAttribute("SeamlessMasterClock",true)
  masterSound:SetAttribute("SelfHealing",true)
+ masterSound:SetAttribute("SourceUploadSpeed",SOURCE_UPLOAD_SPEED)
+ masterSound:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
  return created
 end
 
@@ -165,6 +173,8 @@ local function publishState()
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentIndex",currentIndex)
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentTitle",t.title)
  ReplicatedStorage:SetAttribute("BBYARooftopCurrentAssetId",t.assetId)
+ ReplicatedStorage:SetAttribute("BBYARooftopSourceUploadSpeed",SOURCE_UPLOAD_SPEED)
+ ReplicatedStorage:SetAttribute("BBYARooftopPlaybackSpeed",NORMAL_PLAYBACK_SPEED)
  publishQueue()
  if group then
   group:SetAttribute("CurrentIndex",currentIndex)
@@ -172,6 +182,7 @@ local function publishState()
   group:SetAttribute("CurrentAssetId",t.assetId)
   group:SetAttribute("SpeakerCount",#speakers)
   group:SetAttribute("PlaybackTopology","SINGLE_MASTER_CLOCK_SELF_HEAL_CONTROLS_V7")
+  group:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
  end
  if speakerRoot then
   speakerRoot:SetAttribute("CurrentIndex",currentIndex)
@@ -194,7 +205,9 @@ local function ensureCore()
  group:SetAttribute("BBYALocalZoneOnly",true)
  group:SetAttribute("PlaylistReady",true)
  group:SetAttribute("PlaylistCount",#PLAYLIST)
- group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_10_APPROVED_V8")
+ group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_10_APPROVED_V8_1")
+ group:SetAttribute("SourceUploadSpeed",SOURCE_UPLOAD_SPEED)
+ group:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
  ensureToneEQ();ensureSpeakers();local created=ensureMasterSound();publishCatalog();publishQueue()
  return created
 end
@@ -213,11 +226,13 @@ local function loadCurrent(resetPosition)
  local t=PLAYLIST[currentIndex]
  if not masterSound or not masterSound.Parent then ensureCore() end
  masterSound:Stop()
+ masterSound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED
  masterSound.SoundId="rbxassetid://"..t.assetId
  if resetPosition then masterSound.TimePosition=0 end
  masterSound:SetAttribute("Title",t.title)
  masterSound:SetAttribute("PlaylistIndex",currentIndex)
  masterSound:SetAttribute("PlaylistId","rooftop-tropical")
+ masterSound:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
  publishState()
  pcall(function()masterSound:Play()end)
 end
@@ -282,6 +297,7 @@ task.spawn(function()
   group.Volume=.86
   group:SetAttribute("PlaylistReady",true)
   group:SetAttribute("PlaylistCount",#PLAYLIST)
+  if masterSound then masterSound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED end
   publishState()
 
   local expected="rbxassetid://"..PLAYLIST[currentIndex].assetId
@@ -307,4 +323,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Rooftop authority v8 online; 10 approved tracks + request/PREV/NEXT controls + self-heal")
+print("[BBYA] Rooftop authority v8.1 online; 10 approved tracks + 1.75x upload compensation + request/PREV/NEXT controls + self-heal")
