@@ -87,7 +87,7 @@ local function seat(parent, name, size, cframe, color)
     s.Size = size
     s.CFrame = cframe
     s.Color = color
-    s.Material = Enum.Material.Leather
+    s.Material = Enum.Material.Fabric
     return s
 end
 
@@ -252,12 +252,14 @@ end
 -- Music authority --------------------------------------------------------------
 local currentSongIndex = 1
 local autoAdvance = true
-local endedConnection
 
 local function broadcastState()
     local entry
     for _, song in ipairs(PLAYLIST) do
-        if song.id == music.SoundId then entry = song break end
+        if song.id == music.SoundId then
+            entry = song
+            break
+        end
     end
     ClubState:FireAllClients({
         soundId = music.SoundId,
@@ -277,7 +279,7 @@ local function playIndex(index)
     broadcastState()
 end
 
-endedConnection = music.Ended:Connect(function()
+music.Ended:Connect(function()
     if autoAdvance then playIndex(currentSongIndex + 1) end
 end)
 
@@ -370,7 +372,7 @@ local function updateDonation(playerId, purchaseId, amount)
     local added = false
     local total = 0
     local ok = pcall(function()
-        local saved = donations:UpdateAsync(key, function(old)
+        donations:UpdateAsync(key, function(old)
             local data = type(old) == "table" and old or { total = 0, receipts = {} }
             data.receipts = type(data.receipts) == "table" and data.receipts or {}
             if not data.receipts[purchaseId] then
