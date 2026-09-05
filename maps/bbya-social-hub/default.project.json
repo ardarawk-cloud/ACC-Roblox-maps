@@ -91,6 +91,7 @@
       "FishingProgressionV4": {"$path": "128-fishing-progression-v4.server.lua"},
       "FishingSatisfactionV6": {"$path": "130-fishing-satisfaction-v6.server.lua"},
       "DJLiveCleanServer": {"$path": "137-dj-live-clean.server.lua"},
+      "AFKStatusServer": {"$path": "139-afk.server.lua"},
       "VIPTrack01AuthorityV2": {"$path": "110-vip-track01.server.lua"},
       "FunkotPlaylistAuthorityV1": {"$path": "121-funkot-playlist.server.lua"},
       "RooftopPlaylistAuthorityV1": {"$path": "134-rooftop-playlist.server.lua"}
@@ -139,7 +140,8 @@
         "FishingProgressionClientV4": {"$path": "128-fishing-progression-v4.client.lua"},
         "FishingGateSatisfactionV6": {"$path": "130-fishing-gate-v6.client.lua"},
         "FishingVisualIndexV7": {"$path": "131-fishing-index-visual-v7.client.lua"},
-        "DJLiveCleanClient": {"$path": "137-dj-live-clean.client.lua"}
+        "DJLiveCleanClient": {"$path": "137-dj-live-clean.client.lua"},
+        "AFKDetectorClient": {"$path": "139-afk.client.lua"}
       }
     },
     "Lighting": {"$className": "Lighting", "$properties": {"Brightness": 2.35, "ClockTime": 21}}
