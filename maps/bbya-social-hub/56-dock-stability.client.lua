@@ -1,12 +1,11 @@
--- BBYA MUSIC UI TEST — UI KERNEL v2.4
--- TEST TARGET ONLY: Universe 10762005984 / Place 124607344716828
--- ONE UI shell authority. v69 geometry is locked.
--- Support/Party are server-authoritative. Music is large. DJ LIVE routes only to the clean authority.
+-- BBYA SOCIAL HUB — UI KERNEL v2.5 REVISION BATCH
+-- ONE outer shell authority for compact secondary panels. Dark-glass, mobile-first, X-only panel close controls.
+-- Support/Party are server-authoritative. MUSIC uses its dedicated suite. DJ LIVE remains role-gated with explicit owner/QA route.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local StarterGui=game:GetService("StarterGui")
-local OWNER_USERNAME="nadmo97"
+local DJ_QA_USERNAMES={nadmo97=true,arda_moron123=true}
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
@@ -19,6 +18,7 @@ local travelResult=remotes:FindFirstChild("TravelResult")
 local wallRemote=remotes:FindFirstChild("DJWall")
 local monetizationRemote=remotes:WaitForChild("Monetization",30)
 local gearRemote=remotes:WaitForChild("ClubGear",30)
+local afkRemote=remotes:WaitForChild("AFKStatus",30)
 
 local old=pg:FindFirstChild("BBYACommandMenuUI")
 if old then old:Destroy() end
@@ -26,8 +26,8 @@ if old then old:Destroy() end
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYACommandMenuUI"; gui.ResetOnSpawn=false; gui.IgnoreGuiInset=true
 gui.DisplayOrder=220; gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V2_4_WHOLE_SYSTEM")
-gui:SetAttribute("BBYALayoutLock","V69_COMPACT_V6")
+gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V2_5_REVISION_BATCH")
+gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_COMPACT_GLASS_V1")
 gui:SetAttribute("DJLiveRoute","BBYADJLiveCleanUI")
 dock.Visible=false
 
@@ -46,7 +46,7 @@ local function label(parent,value,pos,size,font,ts,color)
 end
 local function button(parent,value,pos,size,color)
  local b=Instance.new("TextButton"); b.Text=value; b.Position=pos or UDim2.new(); b.Size=size or UDim2.new()
- b.BackgroundColor3=color or C.card; b.BorderSizePixel=0; b.TextColor3=C.white; b.Font=Enum.Font.GothamBold
+ b.BackgroundColor3=color or C.card; b.BackgroundTransparency=.10; b.BorderSizePixel=0; b.TextColor3=C.white; b.Font=Enum.Font.GothamBold
  b.TextSize=10; b.AutoButtonColor=true; b.Active=true; b.Selectable=true; b.Parent=parent; corner(b,9); stroke(b,C.line,.6); return b
 end
 local function vp() camera=workspace.CurrentCamera or camera; return camera and camera.ViewportSize or Vector2.new(1280,720) end
@@ -64,24 +64,24 @@ local function placeNormal(o)
  if not o or not o:IsA("GuiObject") then return end
  clearLegacyScale(o); local w,h=normalRect()
  o.AnchorPoint=Vector2.new(1,.5); o.Position=UDim2.new(1,-12,.5,0); o.Size=UDim2.fromOffset(w,h)
- o.ClipsDescendants=true; o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V2_V69_LOCK")
+ o.ClipsDescendants=true; o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_GENERAL_PANEL_COMPACT_V1")
 end
 local function placeMusic(o)
  if not o or not o:IsA("GuiObject") then return end
  clearLegacyScale(o); local v=vp()
- o.AnchorPoint=Vector2.new(.5,.5); o.Position=UDim2.fromScale(.5,.53)
- o.Size=UDim2.fromOffset(math.clamp(v.X-80,720,980),math.clamp(v.Y-36,480,680))
- o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_V2_MUSIC")
+ o.AnchorPoint=Vector2.new(.5,.5); o.Position=UDim2.fromScale(.5,.52)
+ o.Size=UDim2.fromOffset(math.clamp(v.X-120,680,900),math.clamp(v.Y-90,430,610))
+ o:SetAttribute("BBYAOuterLayoutAuthority","MUSIC_SUITE_COMPACT_V1")
 end
 
 local menuButton=button(gui,"MENU",UDim2.new(1,-86,0,8),UDim2.fromOffset(74,36),Color3.fromRGB(18,18,25))
 menuButton.Name="MenuButton"; stroke(menuButton,C.pink,.28)
 
 local drawer=Instance.new("Frame")
-drawer.Name="FeatureDrawer"; drawer.BackgroundColor3=C.bg; drawer.BackgroundTransparency=.24; drawer.BorderSizePixel=0
+drawer.Name="FeatureDrawer"; drawer.BackgroundColor3=C.bg; drawer.BackgroundTransparency=.32; drawer.BorderSizePixel=0
 drawer.Visible=false; drawer.ZIndex=201; drawer.Parent=gui; corner(drawer,14); stroke(drawer,C.pink,.46); placeNormal(drawer)
 local head=Instance.new("Frame"); head.Position=UDim2.fromOffset(10,9); head.Size=UDim2.new(1,-20,0,50)
-head.BackgroundColor3=C.panel; head.BackgroundTransparency=.18; head.BorderSizePixel=0; head.ZIndex=202; head.Parent=drawer; corner(head,10)
+head.BackgroundColor3=C.panel; head.BackgroundTransparency=.28; head.BorderSizePixel=0; head.ZIndex=202; head.Parent=drawer; corner(head,10)
 label(head,"BBYA MENU",UDim2.fromOffset(11,4),UDim2.new(1,-22,0,22),Enum.Font.GothamBlack,13,C.white).ZIndex=203
 label(head,"ALL FEATURES",UDim2.fromOffset(11,25),UDim2.new(1,-22,0,16),Enum.Font.GothamBold,8,C.muted).ZIndex=203
 local list=Instance.new("ScrollingFrame"); list.Name="FeatureList"; list.Position=UDim2.fromOffset(10,66); list.Size=UDim2.new(1,-20,1,-76)
@@ -91,16 +91,14 @@ local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,7); ll.SortOrder=En
 local pad=Instance.new("UIPadding"); pad.PaddingBottom=UDim.new(0,8); pad.Parent=list
 
 local managed={}; local current=nil; local visibilityBound={}
-local function restoreMenu()
- current=nil; menuButton.Visible=true; menuButton.Text="MENU"
-end
+local function restoreMenu() current=nil; menuButton.Visible=true; menuButton.Text="MENU" end
 local musicSuiteBound={}
 local function bindMusicSuiteVisibility()
  local musicGui=pg:FindFirstChild("BBYAMusicSuiteV1")
  if not musicGui or not musicGui:IsA("ScreenGui") or musicSuiteBound[musicGui] then return end
  musicSuiteBound[musicGui]=true
  local function sync()
-  if musicGui.Enabled then drawer.Visible=false; menuButton.Visible=false; current="MUSIC"
+  if musicGui.Enabled then drawer.Visible=false;menuButton.Visible=false;current="MUSIC"
   elseif current=="MUSIC" then restoreMenu() end
  end
  musicGui:GetPropertyChangedSignal("Enabled"):Connect(sync);sync()
@@ -115,40 +113,35 @@ local function register(key,obj)
 end
 local function hideAll(except)
  for key,obj in pairs(managed) do if key~=except and obj and obj:IsA("GuiObject") then obj.Visible=false end end
- local hub=clubUI:FindFirstChild("HubPanel",true); if except~="MUSIC" and hub then hub.Visible=false end
+ local hub=clubUI:FindFirstChild("HubPanel",true);if except~="MUSIC" and hub then hub.Visible=false end
  current=except
 end
-local function closeMenu() drawer.Visible=false; menuButton.Text="MENU" end
-local function showNormal(key,obj)
- hideAll(key); placeNormal(obj); obj.Visible=true; closeMenu(); current=key; menuButton.Visible=false
-end
+local function closeMenu() drawer.Visible=false;menuButton.Text="MENU" end
+local function showNormal(key,obj) hideAll(key);placeNormal(obj);obj.Visible=true;closeMenu();current=key;menuButton.Visible=false end
 local function makePanel(name,title,accent,parent)
- local p=Instance.new("Frame"); p.Name=name; p.BackgroundColor3=C.bg; p.BackgroundTransparency=.28; p.BorderSizePixel=0
- p.Visible=false; p.ZIndex=400; p.Active=true; p.Parent=parent or gui; corner(p,14); stroke(p,accent,.38); placeNormal(p)
+ local p=Instance.new("Frame");p.Name=name;p.BackgroundColor3=C.bg;p.BackgroundTransparency=.34;p.BorderSizePixel=0
+ p.Visible=false;p.ZIndex=400;p.Active=true;p.Parent=parent or gui;corner(p,14);stroke(p,accent,.38);placeNormal(p)
  label(p,title,UDim2.fromOffset(14,10),UDim2.new(1,-54,0,28),Enum.Font.GothamBlack,14,C.white).ZIndex=402
- local x=button(p,"×",UDim2.new(1,-42,0,8),UDim2.fromOffset(32,32),C.card); x.ZIndex=403; x.Activated:Connect(function() p.Visible=false end)
+ local x=button(p,"×",UDim2.new(1,-42,0,8),UDim2.fromOffset(32,32),C.card);x.TextSize=18;x.ZIndex=403;x.Activated:Connect(function()p.Visible=false end)
  return p
 end
 local function toast(msg)
- local oldToast=gui:FindFirstChild("KernelToast"); if oldToast then oldToast:Destroy() end
+ local oldToast=gui:FindFirstChild("KernelToast");if oldToast then oldToast:Destroy() end
  local t=label(gui,tostring(msg),UDim2.new(.5,-170,1,-58),UDim2.fromOffset(340,38),Enum.Font.GothamBold,10,C.white)
- t.Name="KernelToast"; t.BackgroundColor3=C.panel; t.BackgroundTransparency=.08; t.BorderSizePixel=0
- t.TextXAlignment=Enum.TextXAlignment.Center; t.ZIndex=900; corner(t,9); stroke(t,C.cyan,.45)
- task.delay(3,function() if t.Parent then t:Destroy() end end)
+ t.Name="KernelToast";t.BackgroundColor3=C.panel;t.BackgroundTransparency=.18;t.BorderSizePixel=0;t.TextXAlignment=Enum.TextXAlignment.Center;t.ZIndex=900;corner(t,9);stroke(t,C.cyan,.45)
+ task.delay(3,function()if t.Parent then t:Destroy() end end)
 end
 local function menuEntry(textValue,order,accent,callback)
  local parent=list
- if textValue=="MUSIC" then
-  local slot=Instance.new("Frame");slot.Name="Slot_MUSIC";slot.LayoutOrder=order;slot.Size=UDim2.new(1,-4,0,44);slot.BackgroundTransparency=1;slot.BorderSizePixel=0;slot.ZIndex=203;slot.Parent=list;parent=slot
- end
+ if textValue=="MUSIC" then local slot=Instance.new("Frame");slot.Name="Slot_MUSIC";slot.LayoutOrder=order;slot.Size=UDim2.new(1,-4,0,44);slot.BackgroundTransparency=1;slot.BorderSizePixel=0;slot.ZIndex=203;slot.Parent=list;parent=slot end
  local size=textValue=="MUSIC" and UDim2.fromScale(1,1) or UDim2.new(1,-4,0,44)
- local b=button(parent,textValue,nil,size,C.card); b.LayoutOrder=order; b.ZIndex=204; stroke(b,accent,.58); b.Activated:Connect(callback); return b
+ local b=button(parent,textValue,nil,size,C.card);b.LayoutOrder=order;b.ZIndex=204;stroke(b,accent,.58);b.Activated:Connect(callback);return b
 end
 
 local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan,gui))
 label(supportPanel,"Choose Robux amount",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
-local supportScroll=Instance.new("ScrollingFrame"); supportScroll.Name="KernelSupportScroller"; supportScroll.Position=UDim2.fromOffset(12,70);supportScroll.Size=UDim2.new(1,-24,1,-82);supportScroll.BackgroundTransparency=1;supportScroll.BorderSizePixel=0;supportScroll.Active=true;supportScroll.ScrollingEnabled=true;supportScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;supportScroll.CanvasSize=UDim2.new();supportScroll.ScrollBarThickness=3;supportScroll.ZIndex=402;supportScroll.Parent=supportPanel
-local sl=Instance.new("UIListLayout"); sl.Padding=UDim.new(0,7); sl.Parent=supportScroll
+local supportScroll=Instance.new("ScrollingFrame");supportScroll.Name="KernelSupportScroller";supportScroll.Position=UDim2.fromOffset(12,70);supportScroll.Size=UDim2.new(1,-24,1,-82);supportScroll.BackgroundTransparency=1;supportScroll.BorderSizePixel=0;supportScroll.Active=true;supportScroll.ScrollingEnabled=true;supportScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;supportScroll.CanvasSize=UDim2.new();supportScroll.ScrollBarThickness=3;supportScroll.ZIndex=402;supportScroll.Parent=supportPanel
+local sl=Instance.new("UIListLayout");sl.Padding=UDim.new(0,7);sl.Parent=supportScroll
 local supportButtons={}
 for i,a in ipairs({10,25,50,100,250,500,1000,2000}) do
  local b=button(supportScroll,tostring(a).." ROBUX",nil,UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,C.cyan,.58);supportButtons[a]=b
@@ -175,7 +168,7 @@ local communityPanel=register("COMMUNITY",makePanel("CommunityPanel","BBYA COMMU
 local communityBody=Instance.new("ScrollingFrame");communityBody.Position=UDim2.fromOffset(12,52);communityBody.Size=UDim2.new(1,-24,1,-64);communityBody.BackgroundTransparency=1;communityBody.BorderSizePixel=0;communityBody.Active=true;communityBody.ScrollingEnabled=true;communityBody.AutomaticCanvasSize=Enum.AutomaticSize.Y;communityBody.CanvasSize=UDim2.new();communityBody.ScrollBarThickness=3;communityBody.ZIndex=402;communityBody.Parent=communityPanel
 local cl=Instance.new("UIListLayout");cl.Padding=UDim.new(0,8);cl.Parent=communityBody
 local function infoCard(titleText,bodyText,accent)
- local f=Instance.new("Frame");f.Size=UDim2.new(1,-4,0,100);f.BackgroundColor3=C.panel;f.BackgroundTransparency=.18;f.BorderSizePixel=0;f.ZIndex=402;f.Parent=communityBody;corner(f,10);stroke(f,accent,.58)
+ local f=Instance.new("Frame");f.Size=UDim2.new(1,-4,0,100);f.BackgroundColor3=C.panel;f.BackgroundTransparency=.28;f.BorderSizePixel=0;f.ZIndex=402;f.Parent=communityBody;corner(f,10);stroke(f,accent,.58)
  label(f,titleText,UDim2.fromOffset(10,8),UDim2.new(1,-20,0,22),Enum.Font.GothamBold,11,C.white).ZIndex=403
  local t=label(f,bodyText,UDim2.fromOffset(10,32),UDim2.new(1,-20,1,-40),Enum.Font.Gotham,9,C.muted);t.TextYAlignment=Enum.TextYAlignment.Top;t.ZIndex=403
 end
@@ -184,7 +177,7 @@ infoCard("HOW TO JOIN","Open the BBYA game page → Social Links → Discord.",C
 infoCard("WHY JOIN?","Early announcements • polls • music updates • community hangout",C.pink)
 
 local partyPanel=register("PARTY",makePanel("PartyStuffPanel","PARTY STUFF",C.gold,gui))
-label(partyPanel,"Equip cosmetic gear",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
+label(partyPanel,"Gear + AFK sign",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local partyList=Instance.new("Frame");partyList.Position=UDim2.fromOffset(12,72);partyList.Size=UDim2.new(1,-24,1,-84);partyList.BackgroundTransparency=1;partyList.ZIndex=402;partyList.Parent=partyPanel
 local pl=Instance.new("UIListLayout");pl.Padding=UDim.new(0,8);pl.Parent=partyList
 local function setBackpackVisible(enabled)pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled)end)end
@@ -192,7 +185,10 @@ local function requestGear(name)setBackpackVisible(false);toast("EQUIPPING "..st
 for i,g in ipairs({{"MONEY GUN","Money Gun",C.green},{"GLOWSTICK","Glowstick",C.cyan},{"PARTY SPARKLER","Party Sparkler",C.gold}}) do
  local b=button(partyList,g[1],nil,UDim2.new(1,0,0,50),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,g[3],.5);b.Activated:Connect(function()requestGear(g[2])end)
 end
-local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,50),C.card);away.LayoutOrder=4;away.ZIndex=403;stroke(away,C.pink,.5);away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
+local afkButton=button(partyList,"AFK SIGN",nil,UDim2.new(1,0,0,50),C.card);afkButton.LayoutOrder=4;afkButton.ZIndex=403;stroke(afkButton,C.gold,.42)
+local function refreshAFKButton()afkButton.Text=player:GetAttribute("BBYAAFKManual")==true and "AFK SIGN • ON  (TAP TO REMOVE)" or "AFK SIGN" end
+afkButton.Activated:Connect(function()afkRemote:FireServer("manualToggle")end)
+local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,50),C.card);away.LayoutOrder=5;away.ZIndex=403;stroke(away,C.pink,.5);away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
 
 menuEntry("MUSIC",1,C.pink,function()hideAll("MUSIC");closeMenu();menuButton.Visible=false;current="MUSIC" end)
 menuEntry("SUPPORT",2,C.cyan,function()showNormal("SUPPORT",supportPanel)end)
@@ -205,11 +201,13 @@ end)
 menuEntry("DANCE",5,C.pink,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local dp=social and social:FindFirstChild("DancePanel");if dp then register("DANCE",dp);showNormal("DANCE",dp) else toast("DANCE LOADING...") end end)
 menuEntry("CARRY",6,C.cyan,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local cp=social and social:FindFirstChild("CarryPanel");if cp then register("CARRY",cp);showNormal("CARRY",cp) else toast("CARRY LOADING...") end end)
 menuEntry("COMMUNITY",7,C.cyan,function()showNormal("COMMUNITY",communityPanel)end)
-menuEntry("PARTY STUFF",8,C.gold,function()showNormal("PARTY",partyPanel);setBackpackVisible(false)end)
+menuEntry("PARTY STUFF",8,C.gold,function()showNormal("PARTY",partyPanel);setBackpackVisible(false);refreshAFKButton()end)
 
-local function canDJLive()
- return string.lower(player.Name)==OWNER_USERNAME or (player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ")
+local function isDJQA()
+ local name=string.lower(player.Name)
+ return DJ_QA_USERNAMES[name]==true or player:GetAttribute("BBYAOwner")==true or (game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
 end
+local function canDJLive()return isDJQA() or (player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ") end
 local djEntry
 djEntry=menuEntry("DJ LIVE",9,C.gold,function()
  if not canDJLive() then toast("DJ LIVE • DJ ROLE ONLY");return end
@@ -220,12 +218,12 @@ djEntry=menuEntry("DJ LIVE",9,C.gold,function()
 end)
 local function refreshDJEntry()
  if djEntry then djEntry.Visible=canDJLive() end
- if current=="DJ" and not canDJLive() then
-  local dj=pg:FindFirstChild("BBYADJLiveCleanUI");local p=dj and dj:FindFirstChild("DJLivePanel",true);if p and p:IsA("GuiObject") then p.Visible=false end;restoreMenu()
- end
+ if current=="DJ" and not canDJLive() then local dj=pg:FindFirstChild("BBYADJLiveCleanUI");local p=dj and dj:FindFirstChild("DJLivePanel",true);if p and p:IsA("GuiObject") then p.Visible=false end;restoreMenu() end
 end
 player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(refreshDJEntry)
 player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(refreshDJEntry)
+player:GetAttributeChangedSignal("BBYAOwner"):Connect(refreshDJEntry)
+player:GetAttributeChangedSignal("BBYAAFKManual"):Connect(refreshAFKButton)
 
 menuButton.Activated:Connect(function()
  menuButton.Visible=true
@@ -239,7 +237,6 @@ monetizationRemote.OnClientEvent:Connect(function(action,data)
   if data.message then toast(data.message) end
  elseif action=="receipt" then
   local amount=tonumber(data.amount);if amount and supportButtons[amount] then supportButtons[amount].Text=tostring(amount).." ROBUX" end
-  -- Receipt success is represented by the dedicated NEW DONATION broadcast; no duplicate small receipt toast here.
  end
 end)
 gearRemote.OnClientEvent:Connect(function(action,data)
@@ -250,7 +247,12 @@ gearRemote.OnClientEvent:Connect(function(action,data)
   else setBackpackVisible(true);toast(data.message or "PARTY GEAR FAILED") end
  end
 end)
-player.CharacterAdded:Connect(function()task.defer(function()setBackpackVisible(true);restoreMenu();refreshDJEntry()end)end)
+afKRemote=nil
+if afkRemote then afkRemote.OnClientEvent:Connect(function(action,data)
+ if action=="manualState" then data=type(data)=="table" and data or {};refreshAFKButton();toast(data.active==true and "AFK SIGN ON" or "AFK SIGN REMOVED") end
+end) end
+
+player.CharacterAdded:Connect(function()task.defer(function()setBackpackVisible(true);restoreMenu();refreshDJEntry();refreshAFKButton()end)end)
 pg.ChildAdded:Connect(function(child)if child.Name=="BBYAMusicSuiteV1" then task.defer(bindMusicSuiteVisibility) end end)
 
 local function layoutAll()
@@ -260,5 +262,5 @@ local function layoutAll()
 end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layoutAll)end)
-task.defer(function()bindMusicSuiteVisibility();layoutAll();refreshDJEntry()end)
-print("[BBYA TEST] UI KERNEL v2.4 online: v69 geometry lock + clean DJ LIVE role route + no duplicate Support receipt toast")
+task.defer(function()bindMusicSuiteVisibility();layoutAll();refreshDJEntry();refreshAFKButton()end)
+print("[BBYA] UI KERNEL v2.5 online: compact glass panels + AFK SIGN + DJ owner/QA route")
