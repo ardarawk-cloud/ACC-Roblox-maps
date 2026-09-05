@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v7
+-- BBYA SOCIAL HUB — ROOFTOP TROPICAL PLAYLIST AUTHORITY v8
 -- Four physical corner speaker blocks + one canonical seamless master clock.
 -- Self-healing runtime plus server-authoritative request / PREV / NEXT controls for the premium Music Suite.
+-- v8: exact 10-track Arda-approved / BBYA Production-permitted Rooftop catalog. Routing and KPOP/SFX untouched.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
@@ -8,9 +9,16 @@ local Workspace=game:GetService("Workspace")
 local Players=game:GetService("Players")
 
 local PLAYLIST={
- {title="Damon Empero ft. Veronica - Vacation | Tropical House | - Damon Empero",assetId="81739335079331"},
- {title="Rolipso - Come Around (Lyrics) - Sensual Musique",assetId="102905513042645"},
- {title="Dovian - Starting Over (Lyrics) - Sensual Musique",assetId="80455951712097"}
+ {title="Seksi musik",assetId="105487713760091"},
+ {title="Orang lain",assetId="84947610237530"},
+ {title="Nyunset",assetId="120548212398790"},
+ {title="Cinta lagi",assetId="77495993960172"},
+ {title="Tropical",assetId="96703385093368"},
+ {title="Berdiri di sebelahku",assetId="98964227395218"},
+ {title="Setiap menit",assetId="100869573664531"},
+ {title="Musik asik",assetId="134438985639092"},
+ {title="Ajak aku kembali",assetId="115989404258612"},
+ {title="Aku berharap kamu tau",assetId="107555884946142"}
 }
 if #PLAYLIST==0 then return end
 
@@ -186,7 +194,7 @@ local function ensureCore()
  group:SetAttribute("BBYALocalZoneOnly",true)
  group:SetAttribute("PlaylistReady",true)
  group:SetAttribute("PlaylistCount",#PLAYLIST)
- group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_SELF_HEAL_CONTROLS_V7")
+ group:SetAttribute("MusicCatalogState","ROOFTOP_TROPICAL_10_APPROVED_V8")
  ensureToneEQ();ensureSpeakers();local created=ensureMasterSound();publishCatalog();publishQueue()
  return created
 end
@@ -299,4 +307,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Rooftop authority v7 online; 3-track catalog + request/PREV/NEXT controls + self-heal")
+print("[BBYA] Rooftop authority v8 online; 10 approved tracks + request/PREV/NEXT controls + self-heal")
