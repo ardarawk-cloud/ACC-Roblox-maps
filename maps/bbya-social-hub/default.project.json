@@ -98,7 +98,8 @@
       "RooftopPlaylistAuthorityV1": {"$path": "134-rooftop-playlist.server.lua"},
       "LeadDanceSyncServerV1": {"$path": "144-lead-dance-sync.server.lua"},
       "AvatarSwitchServerV1": {"$path": "145-avatar-switch.server.lua"},
-      "DonorCrownAuthorityV1": {"$path": "146-donor-crowns.server.lua"}
+      "DonorCrownAuthorityV1": {"$path": "146-donor-crowns.server.lua"},
+      "CommunityPhysicalAvatarsV1": {"$path": "147-community-statues.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
