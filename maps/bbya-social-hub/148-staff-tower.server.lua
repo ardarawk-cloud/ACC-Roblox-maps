@@ -283,11 +283,10 @@ facadeLevel("OwnerFacade",floorSurface[3],floorSurface[4],shell)
 local core=model("PrivateAccessCore")
 core:SetAttribute("FutureElevatorIntegration",true)
 core:SetAttribute("RoleAccessAuthority","SYSTEM_HANDOFF_REQUIRED")
+core:SetAttribute("OpenInteriorSide",true)
 
--- Visual shaft marker on the east edge; deliberately non-functional in WORLD / BUILD scope.
-for _,x in ipairs({coreRight-.35,coreLeft+.35}) do
- part("CoreWallX"..x,Vector3.new(.45,39,CORE_D),CFrame.new(x,floorSurface[1]+19.5,coreZ),C.charcoal,Enum.Material.Concrete,true,core)
-end
+-- Keep the east/rear shaft walls for massing; the west side stays open to each interior floor.
+part("CoreWallEast",Vector3.new(.45,39,CORE_D),CFrame.new(coreRight-.35,floorSurface[1]+19.5,coreZ),C.charcoal,Enum.Material.Concrete,true,core)
 part("CoreRearWall",Vector3.new(CORE_W,39,.45),CFrame.new(coreX,floorSurface[1]+19.5,coreNorth-.25),C.charcoal,Enum.Material.Concrete,true,core)
 
 local function stairRun(name,lowerSurface,upperSurface,reverse,parent)
