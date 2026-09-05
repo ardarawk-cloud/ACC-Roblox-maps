@@ -463,7 +463,9 @@ end
 local function syncMall()
     if venue() ~= "MALL" then return false end
     local tracks = mallTracks()
-    if #tracks > 0 then S.tracks = tracks end
+    -- Mall must never inherit a stale playlist from another venue while its own
+    -- catalog is late, empty, or still replicating. Empty is safer than CLUB bleed.
+    S.tracks = tracks
     S.index = tonumber(RS:GetAttribute("BBYAMallCurrentIndex")) or 1
     S.title = tostring(RS:GetAttribute("BBYAMallCurrentTitle") or "")
     S.queue = tonumber(RS:GetAttribute("BBYAMallQueueCount")) or 0
