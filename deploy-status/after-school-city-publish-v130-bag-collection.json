@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V130_BAG_COLLECTION",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "370f5b5fca3fbae7b6b52d39de72279349e5711c",
+    "baseLiveCommit":  "ed9a3c5e4db107c84ba41192c59e64ce62efaa8a",
+    "qcRunId":  "33933704444",
+    "qcArtifactId":  9959437863,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  55,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  200352,
+    "placeSha256":  "23c860ecb2e23776c91c37c83e62d6b1eb8ef175cc8095a7e67936d8f75489d3",
+    "runId":  "33969839099",
+    "publishedAt":  "2026-09-05T13:46:15Z",
+    "note":  "Exact V1.3 BAG / Collection QC artifact published without rebuild. BAG is client presentation of server-authoritative Inventory; V1.3 Economy First Shop, DataStore ASC_PlayerProfile_v1 schema 2, and prior authorities are preserved."
+}
