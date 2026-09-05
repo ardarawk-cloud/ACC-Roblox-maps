@@ -1,26 +1,61 @@
--- BBYA SOCIAL HUB — PAID ZONE PORTALS v1.1
--- Open-frame premium portal for Funkot Club. Physical access authority remains in Paid Zone Hard Seal.
+-- BBYA SOCIAL HUB — FUNKOT CLOSED WALL v2
+-- Retires the old open-frame Funkot doorway. The physical opening is sealed with a wall.
+-- Travel/teleport remains the only legitimate Funkot access; paid-zone hard-seal authority is untouched.
+
 local Workspace=game:GetService("Workspace")
 local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",35)
 if not root then return end
-local old=root:FindFirstChild("PaidZonePortalsV1");if old then old:Destroy() end
-local m=Instance.new("Model");m.Name="PaidZonePortalsV1";m.Parent=root
-m:SetAttribute("FunkotTravelOnly",true);m:SetAttribute("FunkotPrice",10)
-local C={black=Color3.fromRGB(9,9,12),metal=Color3.fromRGB(63,67,74),glass=Color3.fromRGB(77,93,105),pink=Color3.fromRGB(235,42,156),cyan=Color3.fromRGB(30,184,214),white=Color3.fromRGB(242,242,245),muted=Color3.fromRGB(171,172,180)}
-local function p(n,s,cf,c,mat,collide,tr)
- local x=Instance.new("Part");x.Name=n;x.Size=s;x.CFrame=cf;x.Color=c or C.metal;x.Material=mat or Enum.Material.Metal;x.Anchored=true;x.CanCollide=collide==true;x.CanTouch=false;x.Transparency=tr or 0;x.Parent=m;return x
-end
-local left=p("FunkotPortalL",Vector3.new(1.1,15,2),CFrame.new(-11.4,7.5,157.1),C.metal,Enum.Material.Metal,true)
-local right=p("FunkotPortalR",Vector3.new(1.1,15,2),CFrame.new(11.4,7.5,157.1),C.metal,Enum.Material.Metal,true)
-p("FunkotPortalTop",Vector3.new(23.9,1.1,2),CFrame.new(0,14.45,157.1),C.metal,Enum.Material.Metal,true)
-local sign=p("FunkotTravelSign",Vector3.new(19,3.4,.34),CFrame.new(0,11.2,156.35)*CFrame.Angles(0,math.rad(180),0),C.black,Enum.Material.Metal,false)
-local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Front;gui.PixelsPerStud=70;gui.LightInfluence=.08;gui.Parent=sign
-local title=Instance.new("TextLabel");title.BackgroundTransparency=1;title.Position=UDim2.fromScale(.06,.08);title.Size=UDim2.fromScale(.88,.55);title.Text="FUNKOT CLUB";title.TextColor3=C.white;title.Font=Enum.Font.GothamBlack;title.TextScaled=true;title.Parent=gui
-local sub=Instance.new("TextLabel");sub.BackgroundTransparency=1;sub.Position=UDim2.fromScale(.08,.66);sub.Size=UDim2.fromScale(.84,.19);sub.Text="TRAVEL ACCESS • 10 R$";sub.TextColor3=C.pink;sub.Font=Enum.Font.GothamBold;sub.TextScaled=true;sub.Parent=gui
-for _,x in ipairs({-7,7}) do
- local lamp=p("PortalLamp"..x,Vector3.new(.35,.35,.35),CFrame.new(x,13.2,156.4),C.black,Enum.Material.SmoothPlastic,false,1)
- local l=Instance.new("PointLight");l.Color=(x<0) and C.pink or C.cyan;l.Brightness=.65;l.Range=11;l.Shadows=false;l.Parent=lamp
-end
-m:SetAttribute("OpenCenterVisual",true)
+
+local old=root:FindFirstChild("PaidZonePortalsV1")
+if old then old:Destroy() end
+
+local m=Instance.new("Model")
+m.Name="PaidZonePortalsV1"
+m.Parent=root
+m:SetAttribute("Pass","FUNKOT_CLOSED_WALL_V2")
+m:SetAttribute("FunkotTravelOnly",true)
+m:SetAttribute("OldDoorRetired",true)
+m:SetAttribute("OpeningSealed",true)
 m:SetAttribute("HardSealAuthority","PaidZoneHardSealV1")
-print("[BBYA] Paid Zone Portals v1.1 online: Funkot open-frame visual / hard-seal access preserved")
+m:SetAttribute("TeleportAuthorityUntouched",true)
+
+-- Rear Funkot shell SouthWallL/R leave a 24-stud center opening from X -12..12 at Z 161.
+-- Fill exactly that opening with the same shell profile; no walk-through door remains.
+local wall=Instance.new("Part")
+wall.Name="FunkotClosedSouthWall"
+wall.Size=Vector3.new(24,30,2)
+wall.CFrame=CFrame.new(0,15.5,161)
+wall.Color=Color3.fromRGB(20,21,25)
+wall.Material=Enum.Material.Concrete
+wall.Anchored=true
+wall.CanCollide=true
+wall.CanTouch=false
+wall.CanQuery=true
+wall.CastShadow=true
+wall.TopSurface=Enum.SurfaceType.Smooth
+wall.BottomSurface=Enum.SurfaceType.Smooth
+wall.Parent=m
+wall:SetAttribute("Purpose","SEALED_FUNKTOT_ENTRY_OPENING")
+wall:SetAttribute("AccessMode","TRAVEL_TELEPORT_ONLY")
+
+-- Small flush identifier only; this is signage, not a door/portal.
+local sign=Instance.new("SurfaceGui")
+sign.Name="FunkotClosedWallSign"
+sign.Face=Enum.NormalId.Front
+sign.PixelsPerStud=38
+sign.LightInfluence=.15
+sign.Parent=wall
+
+local text=Instance.new("TextLabel")
+text.BackgroundTransparency=1
+text.AnchorPoint=Vector2.new(.5,.5)
+text.Position=UDim2.fromScale(.5,.5)
+text.Size=UDim2.fromScale(.78,.18)
+text.Text="FUNKOT CLUB  •  TRAVEL ACCESS"
+text.TextColor3=Color3.fromRGB(220,220,226)
+text.Font=Enum.Font.GothamBold
+text.TextScaled=true
+text.TextTransparency=.28
+text.Parent=sign
+
+print("[BBYA] Funkot closed wall v2 online: old doorway retired / opening sealed / Travel teleport preserved")
