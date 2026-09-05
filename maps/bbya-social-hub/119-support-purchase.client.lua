@@ -1,13 +1,13 @@
--- BBYA SOCIAL HUB — SUPPORT PURCHASE LOCAL ADAPTER v4
+-- BBYA SOCIAL HUB — SUPPORT PURCHASE LOCAL ADAPTER v4.1
 -- Native Roblox checkout only. No custom receipt/purchase confirmation toast.
--- UI Kernel still owns the Support panel; Monetization authority owns validation + ProcessReceipt/grant.
+-- The legacy Support panel keeps its existing single prompt trigger; this adapter only services
+-- Monetization-authority local prompts and never attaches a second click handler.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 
 local player=Players.LocalPlayer
-local pg=player:WaitForChild("PlayerGui")
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
 local monetizationRemote=remotes and remotes:WaitForChild("Monetization",30)
 if not monetizationRemote then return end
@@ -49,25 +49,4 @@ MarketplaceService.PromptProductPurchaseFinished:Connect(function(userId,product
  finishPrompt()
 end)
 
--- Existing Support cards are created dynamically by the unified UI.
--- Bridge those cards to the single Monetization authority without creating a second UI.
-local function bindSupportButton(button)
- if not button:IsA("TextButton") or button:GetAttribute("BBYASupportNativeBoundV4") then return end
- local scroller=button.Parent
- if not scroller or scroller.Name~="SupportScroller" then return end
- local amount=tonumber((button.Text or ""):match("(%d[%d]*)"))
- if not amount then return end
- button:SetAttribute("BBYASupportNativeBoundV4",true)
- button.MouseButton1Click:Connect(function()
-  if promptBusy then return end
-  monetizationRemote:FireServer("promptSupport",amount)
- end)
-end
-
-local function scan()
- for _,d in ipairs(pg:GetDescendants()) do bindSupportButton(d) end
-end
-pg.DescendantAdded:Connect(function(d)task.defer(function()bindSupportButton(d)end)end)
-task.defer(scan)
-
-print("[BBYA] Support purchase local adapter v4 online: native checkout only / no custom receipt toast")
+print("[BBYA] Support purchase local adapter v4.1 online: native checkout only / no custom toast / no duplicate button binding")
