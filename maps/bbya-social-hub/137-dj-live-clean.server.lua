@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — DJ LIVE CLEAN ENGINE v2
--- Single DJ LIVE audio/control authority. DJ managed role is the only access key.
+-- BBYA SOCIAL HUB — DJ LIVE CLEAN ENGINE v2.1
+-- Single DJ LIVE audio/control authority.
+-- Access: managed DJ role, plus OWNER (@nadmo97) as an explicit QA exception without changing OWNER's managed role/title.
 -- Venue catalog/routing remains owned by existing BBYA music authorities outside DJ LIVE.
 
 local Players=game:GetService("Players")
@@ -8,6 +9,7 @@ local SoundService=game:GetService("SoundService")
 local ContentProvider=game:GetService("ContentProvider")
 local Debris=game:GetService("Debris")
 
+local OWNER_USERNAME="nadmo97"
 local VENUE_GROUPS={CLUB="BBYAClubMaster",VIP="BBYAVIPMaster",UNDERGROUND="BBYABasementMaster",FUNKOT="BBYAFunkotMaster"}
 local AUTO_SOURCES={CLUB={"BBYAClubDeckA","BBYAClubDeckB"},VIP={"BBYAVIPPlaylist"},UNDERGROUND={"BBYABasementDeckA","BBYABasementDeckB"},FUNKOT={"BBYAFunkotRuntimeV6"}}
 
@@ -101,7 +103,7 @@ local getLibrary=remote("RemoteFunction","DJLiveGetLibrary")
 local engine=SoundService:FindFirstChild("BBYADJLiveCleanEngine")
 if engine and not engine:IsA("Folder") then engine:Destroy();engine=nil end
 if not engine then engine=Instance.new("Folder");engine.Name="BBYADJLiveCleanEngine";engine.Parent=SoundService end
-engine:SetAttribute("Version","DJ_LIVE_CLEAN_V2_DJ_ROLE_ONLY")
+engine:SetAttribute("Version","DJ_LIVE_CLEAN_V2_1_DJ_PLUS_OWNER_QA")
 
 local function ensureEffect(sound,className,name)
  local e=sound:FindFirstChild(name);if e and e.ClassName~=className then e:Destroy();e=nil end
@@ -123,10 +125,10 @@ local function freshDeck()return {trackIndex=0,title="EMPTY",artist="",assetId=0
 local S={live=false,map="CLUB",crossfader=.5,operator=nil,operatorUserId=nil,notice="",decks={A=freshDeck(),B=freshDeck()}}
 local suppressed={};local lastAction={};local brakeToken={A=0,B=0}
 
-local function authorized(p)
- return p~=nil and p:GetAttribute("BBYAHasDJRole")==true and p:GetAttribute("BBYAManagedRole")=="DJ"
-end
-local function identity(p)return authorized(p) and "DJ" or nil end
+local function isOwnerQA(p)return p~=nil and string.lower(p.Name)==OWNER_USERNAME end
+local function hasManagedDJ(p)return p~=nil and p:GetAttribute("BBYAHasDJRole")==true and p:GetAttribute("BBYAManagedRole")=="DJ" end
+local function authorized(p)return isOwnerQA(p) or hasManagedDJ(p) end
+local function identity(p)if isOwnerQA(p) then return "OWNER_QA" end;if hasManagedDJ(p) then return "DJ" end;return nil end
 local function groupFor(map)local n=VENUE_GROUPS[map];local g=n and SoundService:FindFirstChild(n);return g and g:IsA("SoundGroup") and g or nil end
 local function deckObjects(deck)if deck=="A" then return soundA,fxA,S.decks.A elseif deck=="B" then return soundB,fxB,S.decks.B end end
 local function autoSources(map)local out={};for _,name in ipairs(AUTO_SOURCES[map] or {}) do local s=SoundService:FindFirstChild(name);if s and s:IsA("Sound") then table.insert(out,s) end end;return out end
@@ -140,7 +142,7 @@ local function routeDecks()local g=groupFor(S.map);if not g then return false en
 local function applyFx(deck)local _,fx,d=deckObjects(deck);if d then for name,e in pairs(fx) do e.Enabled=d.fx[name]==true end end end
 local function applyMix()local x=math.clamp(tonumber(S.crossfader) or .5,0,1);soundA.Volume=S.live and math.cos(x*math.pi*.5) or 0;soundB.Volume=S.live and math.sin(x*math.pi*.5) or 0;applyFx("A");applyFx("B") end
 local function syncPlayingFlags()S.decks.A.playing=soundA.Playing;S.decks.B.playing=soundB.Playing end
-local function snapshot()syncPlayingFlags();return {authorized=true,version="DJ_LIVE_CLEAN_V2",live=S.live,map=S.map,crossfader=S.crossfader,operator=S.operator,notice=S.notice,decks=S.decks} end
+local function snapshot()syncPlayingFlags();return {authorized=true,version="DJ_LIVE_CLEAN_V2_1",live=S.live,map=S.map,crossfader=S.crossfader,operator=S.operator,notice=S.notice,decks=S.decks} end
 local function broadcast(notice)
  if notice~=nil then S.notice=tostring(notice) end
  local snap=snapshot();for _,p in ipairs(Players:GetPlayers()) do if authorized(p) then stateRemote:FireClient(p,snap) end end
@@ -185,7 +187,7 @@ local function setMap(map)
 end
 local function liveStart(player)
  if S.live or not authorized(player) then return end;if not routeDecks() then broadcast("Venue master belum siap");return end
- S.live=true;S.operator="DJ";S.operatorUserId=player.UserId;suppressSources(S.map);applyMix();broadcast("DJ LIVE START • "..S.map)
+ S.live=true;S.operator=identity(player);S.operatorUserId=player.UserId;suppressSources(S.map);applyMix();broadcast("DJ LIVE START • "..S.map)
 end
 local function handle(player,kind,payload)
  if not authorized(player) then return end
@@ -199,18 +201,18 @@ getState.OnServerInvoke=function(player)if not authorized(player) then return {a
 getLibrary.OnServerInvoke=function(player)if not authorized(player) then return {} end;return LIBRARY end
 
 local function applyAuth(p)
- local ok=authorized(p);p:SetAttribute("BBYADJLiveAuthorized",ok);p:SetAttribute("BBYADJLiveIdentity",ok and "DJ" or "")
- if S.live and S.operatorUserId==p.UserId and not ok then stopLive("DJ LIVE STOP • DJ role removed") end
+ local ok=authorized(p);local id=identity(p);p:SetAttribute("BBYADJLiveAuthorized",ok);p:SetAttribute("BBYADJLiveIdentity",id or "")
+ if S.live and S.operatorUserId==p.UserId and not ok then stopLive("DJ LIVE STOP • authorization removed") end
 end
 local function bindPlayer(p)
  applyAuth(p);p:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(function()applyAuth(p)end);p:GetAttributeChangedSignal("BBYAManagedRole"):Connect(function()applyAuth(p)end)
 end
 for _,p in ipairs(Players:GetPlayers()) do bindPlayer(p) end
 Players.PlayerAdded:Connect(bindPlayer)
-Players.PlayerRemoving:Connect(function(p)lastAction[p]=nil;if S.live and S.operatorUserId==p.UserId then stopLive("DJ LIVE STOP • DJ left") end end)
+Players.PlayerRemoving:Connect(function(p)lastAction[p]=nil;if S.live and S.operatorUserId==p.UserId then stopLive("DJ LIVE STOP • operator left") end end)
 soundA.Ended:Connect(function()syncPlayingFlags();broadcast()end);soundB.Ended:Connect(function()syncPlayingFlags();broadcast()end)
 task.spawn(function()while task.wait(.10) do if S.live then enforceSuppression();applyMix() end end end)
 task.spawn(function()while task.wait(.40) do if S.live or soundA.Playing or soundB.Playing then broadcast() end end end)
 game:BindToClose(function()restoreSources();restoreAutoDefaults(S.map)end)
 routeDecks();applyMix()
-print("[BBYA] DJ LIVE CLEAN ENGINE v2 online: strict DJ role gate + Deck A/B + venue routing + FX/SFX")
+print("[BBYA] DJ LIVE CLEAN ENGINE v2.1 online: strict DJ role + OWNER QA exception / Deck A-B / venue routing / FX-SFX")
