@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v2.1
+-- BBYA SOCIAL HUB — BASEMENT INDO AUTODJ v2.2
 -- Independent underground channel: Indo breakbeat / indo-bounce only.
 -- Uses its own Deck A/B, FIFO request queue and 4-second AutoMix.
--- v2.1 removes confirmed dead audio and restores the real live-track state when an incoming track stalls.
+-- v2.2 injects 8 owner-supplied Underground tracks and normalizes 1.75x-uploaded assets at runtime.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -14,6 +14,7 @@ folder.Name="BBYAClubRemotes";folder.Parent=ReplicatedStorage
 local stateRemote=folder:FindFirstChild("State") or Instance.new("RemoteEvent");stateRemote.Name="State";stateRemote.Parent=folder
 local basementMusic=folder:FindFirstChild("BasementMusic") or Instance.new("BindableEvent");basementMusic.Name="BasementMusic";basementMusic.Parent=folder
 
+local NORMALIZED_175X=1/1.75
 local PLAYLIST={
  {title="Tabola Bale - Kienzy x Ajun Perwira BKB EDIT",id="77926481439798",style="underground"},
  {title="SOLEDAD [ DESTRA PRAYOGO ]#BKB2K25",id="112400686884526",style="underground"},
@@ -50,7 +51,15 @@ local PLAYLIST={
  {title="EE SAKADUNG KADING 2026 - -Ndhy Huo-",id="82680681349117",style="underground",playbackSpeed=0.8},
  {title="BLACK HOLE - DJ TELOOR REMIX",id="126615725566516",style="underground",playbackSpeed=0.8},
  {title="SERANA - FOR REVENGE (DJ Ugi Mekti BKB Edit)",id="79441401193706",style="underground",playbackSpeed=0.8},
- {title="MUTIARA - IYAN.FG - #AlbumJDMBreaks2026",id="117092832313612",style="underground",playbackSpeed=0.8}
+ {title="MUTIARA - IYAN.FG - #AlbumJDMBreaks2026",id="117092832313612",style="underground",playbackSpeed=0.8},
+ {title="Kamu gak bakal tau",id="128236218314957",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Surga",id="73490528411091",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Hati",id="117969837722651",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Bintang jatuh",id="82059974893640",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Kapal tenggelam",id="124813032756402",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Pegangan",id="131317518484469",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Dalu dalu",id="112530372468543",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Anak kampung",id="128982389712711",style="underground",playbackSpeed=NORMALIZED_175X}
 }
 
 local MIX_SECONDS=4.0
@@ -75,7 +84,7 @@ local function toastBasement(msg)forBasementPlayers(function(p)stateRemote:FireC
 for _,name in ipairs({"BBYABasementDeckA","BBYABasementDeckB"}) do local old=SoundService:FindFirstChild(name);if old then old:Destroy() end end
 local group=SoundService:FindFirstChild("BBYABasementMaster");if group then group:Destroy() end
 group=Instance.new("SoundGroup");group.Name="BBYABasementMaster";group.Volume=1;group.Parent=SoundService
-group:SetAttribute("BBYAAudioMode","UNDERGROUND_OWNER_DUAL_DECK_V2");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","UNDERGROUND_OWNER_LIBRARY");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY")
+group:SetAttribute("BBYAAudioMode","UNDERGROUND_OWNER_DUAL_DECK_V2");group:SetAttribute("Venue","BASEMENT");group:SetAttribute("GenrePolicy","UNDERGROUND_OWNER_LIBRARY");group:SetAttribute("PlaylistCount",#PLAYLIST);group:SetAttribute("MixSeconds",MIX_SECONDS);group:SetAttribute("QueuePolicy","FIFO_REQUEST_TO_STANDBY");group:SetAttribute("Normalized175xPlaybackSpeed",NORMALIZED_175X)
 local eq=Instance.new("EqualizerSoundEffect");eq.Name="BasementEQ";eq.LowGain=2.35;eq.MidGain=-.75;eq.HighGain=-1.1;eq.Parent=group
 local comp=Instance.new("CompressorSoundEffect");comp.Name="BasementCompressor";comp.Threshold=-11;comp.Ratio=2.5;comp.Attack=.05;comp.Release=.24;comp.GainMakeup=.7;comp.Parent=group
 local room=Instance.new("ReverbSoundEffect");room.Name="BasementRoom";room.DecayTime=1.15;room.Density=.86;room.Diffusion=.9;room.DryLevel=-1;room.WetLevel=-11;room.Parent=group
