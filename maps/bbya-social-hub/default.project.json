@@ -141,7 +141,8 @@
         "FishingGateSatisfactionV6": {"$path": "130-fishing-gate-v6.client.lua"},
         "FishingVisualIndexV7": {"$path": "131-fishing-index-visual-v7.client.lua"},
         "DJLiveCleanClient": {"$path": "137-dj-live-clean.client.lua"},
-        "AFKDetectorClient": {"$path": "139-afk.client.lua"}
+        "AFKDetectorClient": {"$path": "139-afk.client.lua"},
+        "PhotoFreecamV1": {"$path": "140-photo-freecam.client.lua"}
       }
     },
     "Lighting": {"$className": "Lighting", "$properties": {"Brightness": 2.35, "ClockTime": 21}}
