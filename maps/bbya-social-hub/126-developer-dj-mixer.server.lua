@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — DEVELOPER DJ MIXER v2
+-- BBYA SOCIAL HUB — DEVELOPER DJ MIXER v2.1
 -- Full-screen mobile live-event mixer backend.
--- Access: experience CreatorId (RR) + arda_moron123 (AMstudio) ONLY.
+-- Access: active BBYA owner authority + experience CreatorId ONLY.
 -- Audio source remains Roblox Audio Asset IDs only.
 
 local Players=game:GetService("Players")
@@ -9,7 +9,7 @@ local SoundService=game:GetService("SoundService")
 local MarketplaceService=game:GetService("MarketplaceService")
 local ContentProvider=game:GetService("ContentProvider")
 
-local AM_STUDIO_USERNAME="arda_moron123"
+local OWNER_USERNAME="nadmo97"
 local VENUE_GROUPS={
  MAIN="BBYAClubMaster",UNDERGROUND="BBYABasementMaster",VIP="BBYAVIPMaster",
  FUNKOT="BBYAFunkotMaster",SKATEPARK="BBYASkateparkMaster",ROOFTOP="BBYARooftopMaster",
@@ -27,7 +27,7 @@ getState.Name="DeveloperDJGetState";getState.Parent=remotes
 local function usernameKey(p)return p and string.lower(p.Name) or "" end
 local function identity(p)
  if not p then return nil end
- if usernameKey(p)==AM_STUDIO_USERNAME then return "AMSTUDIO" end
+ if usernameKey(p)==OWNER_USERNAME or p:GetAttribute("BBYAOwner")==true then return "OWNER" end
  if game.CreatorType==Enum.CreatorType.User and p.UserId==game.CreatorId then return "RR" end
  return nil
 end
@@ -36,8 +36,8 @@ local function authorized(p)return identity(p)~=nil end
 local mixer=SoundService:FindFirstChild("BBYADeveloperDJMixer")
 if mixer and not mixer:IsA("Folder") then mixer:Destroy();mixer=nil end
 if not mixer then mixer=Instance.new("Folder");mixer.Name="BBYADeveloperDJMixer";mixer.Parent=SoundService end
-mixer:SetAttribute("BBYADeveloperDJMixerVersion","V2_FULLSCREEN_VINYL_FX")
-mixer:SetAttribute("AccessPolicy","CREATOR_ID_PLUS_ARDA_MORON123_ONLY")
+mixer:SetAttribute("BBYADeveloperDJMixerVersion","V2_1_OWNER_AUTH")
+mixer:SetAttribute("AccessPolicy","BBYA_OWNER_PLUS_CREATOR_ID_ONLY")
 
 local function ensureGroup(name,deck)
  local g=SoundService:FindFirstChild(name)
@@ -134,7 +134,7 @@ local function snapshot()
   return {assetId=st.assetId,title=st.title,volume=st.volume,pitch=st.pitch,cue=st.cue,preloaded=st.preloaded,
    fx=table.clone(st.fx),busyFx=st.busyFx,playing=sound.Playing,timePosition=sound.TimePosition,timeLength=sound.TimeLength}
  end
- return {authorized=true,version="V2_FULLSCREEN_VINYL_FX",live=state.live,venue=state.venue,crossfader=state.crossfader,operator=state.operator,
+ return {authorized=true,version="V2_1_OWNER_AUTH",live=state.live,venue=state.venue,crossfader=state.crossfader,operator=state.operator,
   decks={A=d(state.decks.A,soundA),B=d(state.decks.B,soundB)}}
 end
 local function broadcast()
@@ -268,4 +268,4 @@ task.spawn(function()while task.wait(.2) do if state.live and suppressed.group a
 task.spawn(function()while task.wait(.35) do if state.live or soundA.Playing or soundB.Playing then broadcast() end end end)
 game:BindToClose(function()restoreVenue()end)
 applyLiveRouting();applyMix()
-print("[BBYA] Developer DJ Mixer v2 online: fullscreen vinyl UI backend + SYNC + 9 FX/deck")
+print("[BBYA] Developer DJ Mixer v2.1 online: active owner auth + fullscreen vinyl UI backend")
