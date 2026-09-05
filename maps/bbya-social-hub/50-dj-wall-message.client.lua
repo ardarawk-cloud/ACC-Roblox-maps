@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — MESSAGE CLIENT v4 FUNCTION-ONLY
--- Public DJ WALL identity retired. Uses the existing physical screen/legacy remote only; no second wall/UI authority.
+-- BBYA SOCIAL HUB — MESSAGE CLIENT v4.1 FUNCTION-ONLY
+-- Public DJ WALL identity retired. Existing legacy GUI/remote identifiers remain internal for UI Kernel compatibility.
 -- Nine Roblox-verified MESSAGE tiers: 2 / 5 / 10 / 25 / 50 / 100 / 250 / 500 / 1000 R$.
 
 local Players=game:GetService("Players")
@@ -26,10 +26,14 @@ local function button(parent,text,pos,size,bg)
 end
 
 local gui=Instance.new("ScreenGui")
-gui.Name="BBYAMessageUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=35;gui.Parent=pg
+-- Internal legacy name is intentionally preserved because UI Kernel locates this object by identifier.
+gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=35;gui.Parent=pg
+gui:SetAttribute("PublicName","MESSAGE")
+gui:SetAttribute("LegacyDJWallPublicNameRetired",true)
 
 local panel=Instance.new("Frame")
-panel.Name="MessageComposerPanel";panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(1,-96,0,48);panel.Size=UDim2.fromOffset(268,500)
+-- Internal panel name is intentionally preserved; all player-visible copy is MESSAGE.
+panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(1,0);panel.Position=UDim2.new(1,-96,0,48);panel.Size=UDim2.fromOffset(268,500)
 panel.BackgroundColor3=C.BG;panel.BackgroundTransparency=.18;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui
 corner(panel,14);stroke(panel,C.PINK,.32)
 panel:SetAttribute("BBYAOuterLayoutOwner","UI_KERNEL")
@@ -69,15 +73,12 @@ local LOCKED_TIERS={2,5,10,25,50,100,250,500,1000}
 local selectedAmount=2
 local tierButtons={}
 local config={tiers=LOCKED_TIERS,available={},maxChars=80,admin=false,publicName="MESSAGE"}
+local refresh
 for i,amount in ipairs(LOCKED_TIERS)do
  local b=button(tiersHolder,tostring(amount).." R$",UDim2.new(),UDim2.new(),C.CARD);b.LayoutOrder=i;b.TextSize=8;tierButtons[amount]=b
  b.Activated:Connect(function()
   if config.admin or config.available[amount]~=false then selectedAmount=amount end
-  for value,x in pairs(tierButtons)do
-   local selected=value==selectedAmount
-   x.BackgroundColor3=selected and Color3.fromRGB(91,28,66)or C.CARD
-   x.TextColor3=(config.available[value]==false and not config.admin)and Color3.fromRGB(93,91,99)or C.WHITE
-  end
+  if refresh then refresh() end
  end)
 end
 
@@ -86,16 +87,18 @@ local hint=label(panel,"Roblox filter applies before display. Tier changes price
 local status=label(panel,"",UDim2.fromOffset(14,466),UDim2.new(1,-28,0,22),Enum.Font.GothamBold,8,C.CYAN)
 
 local busy=false
-local function refresh()
+refresh=function()
+ if not config.admin and config.available[selectedAmount]==false then
+  for _,amount in ipairs(LOCKED_TIERS)do
+   if config.available[amount]~=false then selectedAmount=amount;break end
+  end
+ end
  for amount,b in pairs(tierButtons)do
   local selected=amount==selectedAmount
   local available=config.admin or config.available[amount]~=false
   b.Active=available;b.AutoButtonColor=available
   b.BackgroundColor3=selected and Color3.fromRGB(91,28,66)or C.CARD
   b.TextColor3=available and C.WHITE or Color3.fromRGB(93,91,99)
- end
- if not config.admin and config.available[selectedAmount]==false then
-  for _,amount in ipairs(LOCKED_TIERS)do if config.available[amount]~=false then selectedAmount=amount;break end end
  end
  send.Text=config.admin and "TEST MESSAGE • FREE" or ("SEND MESSAGE • "..tostring(selectedAmount).." R$")
  status.Text=config.admin and "OWNER / ADMIN PREVIEW" or "ROBLOX PURCHASE REQUIRED"
@@ -111,9 +114,7 @@ local function applyConfig(data)
  config.available=type(config.available)=="table" and config.available or {}
  refresh()
 end
-local function openPanel(data)
- applyConfig(data);panel.Visible=true
-end
+local function openPanel(data)applyConfig(data);panel.Visible=true end
 local function closePanel()panel.Visible=false;box:ReleaseFocus()end
 close.Activated:Connect(closePanel)
 
@@ -150,4 +151,4 @@ wallRemote.OnClientEvent:Connect(function(action,data)
 end)
 
 refresh();wallRemote:FireServer("config")
-print("[BBYA] MESSAGE client v4 online: 9 tiers / existing screen / no public DJ WALL")
+print("[BBYA] MESSAGE client v4.1 online: 9 tiers / UI Kernel compatibility preserved / no public DJ WALL")
