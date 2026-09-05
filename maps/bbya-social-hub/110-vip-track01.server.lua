@@ -1,11 +1,17 @@
--- BBYA SOCIAL HUB - VIP AMAPIANO PLAYLIST AUTHORITY v5
+-- BBYA SOCIAL HUB - VIP AMAPIANO PLAYLIST AUTHORITY v6
+-- v6: exact 5-asset Amapiano VIP catalog supplied by Arda. Existing VIP routing/volume preserved; KPOP/SFX untouched.
+
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local Players=game:GetService("Players")
+local MarketplaceService=game:GetService("MarketplaceService")
+
 local PLAYLIST={
- {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",key="D# minor / Eb minor",camelot="2A"},
- {title="ACC_Audio_1787515147552.mp3",assetId="135466870455541",key="D minor",camelot="7A"},
- {title="ACC_Audio_1787515343208.mp3",assetId="104570664651564",key="F# minor",camelot="11A"}
+ {title="AUDIO #126169746073506",assetId="126169746073506"},
+ {title="AUDIO #71255967755640",assetId="71255967755640"},
+ {title="AUDIO #96302475011963",assetId="96302475011963"},
+ {title="AUDIO #120132620242467",assetId="120132620242467"},
+ {title="AUDIO #132641805708328",assetId="132641805708328"}
 }
 
 if #PLAYLIST==0 then return end
@@ -51,7 +57,7 @@ local function ensureCore()
  group:SetAttribute("PlaylistCount",#PLAYLIST)
  group:SetAttribute("RecoveryActive",false)
  group:SetAttribute("RecoveryFallbackCount",0)
- group:SetAttribute("MusicCatalogState","VIP_AMAPIANO_ACTIVE")
+ group:SetAttribute("MusicCatalogState","VIP_AMAPIANO_5_APPROVED_V6")
 
  local old=SoundService:FindFirstChild("BBYAVIPTrack01")
  if old then old:Destroy() end
@@ -125,6 +131,21 @@ ensureCore()
 bindEnded()
 playIndex(currentIndex)
 
+-- Resolve display titles from Roblox metadata without inventing song names in source.
+task.spawn(function()
+ for index,track in ipairs(PLAYLIST) do
+  task.spawn(function()
+   local id=tonumber(track.assetId)
+   if not id then return end
+   local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end)
+   if not ok or type(info)~="table" or type(info.Name)~="string" or info.Name=="" then return end
+   track.title=info.Name
+   if index==currentIndex and sound and sound.Parent then sound:SetAttribute("Title",track.title) end
+   publishState();vipRemote:FireAllClients("playlist",PLAYLIST);vipRemote:FireAllClients("state",currentData())
+  end)
+ end
+end)
+
 task.spawn(function()
  while task.wait(1) do
   ensureCore()
@@ -136,4 +157,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] VIP Amapiano playlist authority v5 online; tracks",#PLAYLIST)
+print("[BBYA] VIP Amapiano playlist authority v6 online; exact tracks",#PLAYLIST)
