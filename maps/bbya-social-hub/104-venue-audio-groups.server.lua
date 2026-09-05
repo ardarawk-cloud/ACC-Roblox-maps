@@ -1,8 +1,8 @@
--- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.8
+-- BBYA SOCIAL HUB — VENUE AUDIO MASTERS v4.9
 -- Independent local-only SoundGroups for venue playback.
--- Rooftop + Skatepark + Pasar Malam are active; Mall is explicitly silent; VIP remains isolated/reset here and is re-owned by VIP authority.
+-- Rooftop + Skatepark + Pasar Malam are active; Mall is delegated exclusively to 121-funkot-playlist.server.lua; VIP remains isolated/reset here and is re-owned by VIP authority.
 -- Skatepark uses Roblox Creator Store/APM assets plus approved custom uploads.
--- v4.8 normalizes the approved Pop Punk upload at 1/1.75 speed and gives Mall an explicit silent master.
+-- v4.9 preserves the approved Pop Punk 1/1.75 compensation and retires the conflicting Mall silent authority.
 
 local SoundService=game:GetService("SoundService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -52,11 +52,8 @@ skateGroup:SetAttribute("VenueGainProfile","SKATEPARK_FULL_LEVEL_V1")
 skateGroup:SetAttribute("ApprovedPopPunkSpeed",NORMALIZED_175X)
 ensure("BBYARooftopMaster","ROOFTOP",true,"ROOFTOP_TROPICAL_ACTIVE")
 ensure("BBYAVIPMaster","VIP",false,"VIP_DELEGATED_TO_110_AUTHORITY")
-local mallGroup=ensure("BBYAMallMaster","MALL",false,"MALL_SILENT_AUTHORITY_V1")
-mallGroup:SetAttribute("Authority","VENUE_AUDIO_MASTERS_V4_8")
-mallGroup:SetAttribute("MusicPolicy","SILENT_NO_INHERITED_VENUE_AUDIO")
-mallGroup:SetAttribute("PlaylistReady",false)
-mallGroup:SetAttribute("PlaylistCount",0)
+-- MALL IS INTENTIONALLY NOT TOUCHED HERE.
+-- 121-funkot-playlist.server.lua is the single Mall KPOP SoundGroup/Sound/catalog authority.
 
 local skateControl=ReplicatedStorage:FindFirstChild("BBYASkateparkMusicControl")
 if skateControl and not skateControl:IsA("RemoteEvent") then skateControl:Destroy();skateControl=nil end
@@ -240,7 +237,7 @@ nightMarketGroup.Volume=1.0
 nightMarketGroup:SetAttribute("PlaylistId","pasar-malam-koplo")
 nightMarketGroup:SetAttribute("GenrePolicy","DANGDUT_KOPLO")
 nightMarketGroup:SetAttribute("SyncAuthority","BBYA_MUSIC_MANAGER")
-nightMarketGroup:SetAttribute("Authority","VENUE_AUDIO_MASTERS_V4_8")
+nightMarketGroup:SetAttribute("Authority","VENUE_AUDIO_MASTERS_V4_9")
 nightMarketGroup:SetAttribute("PlaylistCount",#NIGHT_MARKET_PLAYLIST)
 nightMarketGroup:SetAttribute("RightsProfile","UNIVERSE_PERMISSION_HTTP_200_APPROVED_ONLY")
 
@@ -383,4 +380,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Venue audio masters v4.8: Mall silent authority / Skatepark Pop Punk normalized 1/1.75 / Pasar Malam approved bank preserved")
+print("[BBYA] Venue audio masters v4.9: Mall delegated to 121 / Skatepark Pop Punk normalized 1/1.75 preserved / Pasar Malam approved bank preserved")
