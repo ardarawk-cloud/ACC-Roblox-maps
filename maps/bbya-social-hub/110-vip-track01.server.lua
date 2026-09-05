@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB - VIP AMAPIANO PLAYLIST AUTHORITY v6.2
--- v6.2: exact 5-asset Amapiano VIP catalog supplied by Arda.
--- Upload policy: source audio is uploaded at 1.75x; runtime playback compensates with 1/1.75 to restore normal tempo/pitch.
+-- BBYA SOCIAL HUB - VIP AMAPIANO PLAYLIST AUTHORITY v6.3
+-- v6.3: restore original 3 VIP tracks and append 5 approved uploads.
+-- Original 3 remain at normal runtime speed 1.0.
+-- New 5 were uploaded at 1.75x and are compensated at runtime with 1/1.75.
 -- Existing VIP routing/volume preserved; KPOP/SFX untouched.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -8,15 +9,20 @@ local SoundService=game:GetService("SoundService")
 local Players=game:GetService("Players")
 local MarketplaceService=game:GetService("MarketplaceService")
 
-local PLAYLIST={
- {title="AUDIO #126169746073506",assetId="126169746073506"},
- {title="AUDIO #71255967755640",assetId="71255967755640"},
- {title="AUDIO #96302475011963",assetId="96302475011963"},
- {title="AUDIO #120132620242467",assetId="120132620242467"},
- {title="AUDIO #132641805708328",assetId="132641805708328"}
-}
+local ORIGINAL_SPEED=1
 local UPLOAD_SPEED=1.75
-local NORMAL_PLAYBACK_SPEED=1/UPLOAD_SPEED
+local COMPENSATED_SPEED=1/UPLOAD_SPEED
+
+local PLAYLIST={
+ {title="Wonder Girls - Nobody (ROOKIE Amapiano Edit)",assetId="105859685125263",playbackSpeed=ORIGINAL_SPEED,uploadSpeed=1},
+ {title="AUDIO #135466870455541",assetId="135466870455541",playbackSpeed=ORIGINAL_SPEED,uploadSpeed=1},
+ {title="AUDIO #104570664651564",assetId="104570664651564",playbackSpeed=ORIGINAL_SPEED,uploadSpeed=1},
+ {title="AUDIO #126169746073506",assetId="126169746073506",playbackSpeed=COMPENSATED_SPEED,uploadSpeed=UPLOAD_SPEED},
+ {title="AUDIO #71255967755640",assetId="71255967755640",playbackSpeed=COMPENSATED_SPEED,uploadSpeed=UPLOAD_SPEED},
+ {title="AUDIO #96302475011963",assetId="96302475011963",playbackSpeed=COMPENSATED_SPEED,uploadSpeed=UPLOAD_SPEED},
+ {title="AUDIO #120132620242467",assetId="120132620242467",playbackSpeed=COMPENSATED_SPEED,uploadSpeed=UPLOAD_SPEED},
+ {title="AUDIO #132641805708328",assetId="132641805708328",playbackSpeed=COMPENSATED_SPEED,uploadSpeed=UPLOAD_SPEED}
+}
 
 if #PLAYLIST==0 then return end
 
@@ -33,13 +39,21 @@ local sound
 local endedConnection
 local lastControl={}
 
+local function currentTrack()
+ return PLAYLIST[currentIndex]
+end
+
 local function currentData()
- local track=PLAYLIST[currentIndex]
- return {venue="VIP",index=currentIndex,title=track.title,assetId=track.assetId,playing=sound and sound.IsPlaying or false,count=#PLAYLIST,playbackSpeed=NORMAL_PLAYBACK_SPEED,uploadSpeed=UPLOAD_SPEED}
+ local track=currentTrack()
+ return {
+  venue="VIP",index=currentIndex,title=track.title,assetId=track.assetId,
+  playing=sound and sound.IsPlaying or false,count=#PLAYLIST,
+  playbackSpeed=track.playbackSpeed,uploadSpeed=track.uploadSpeed
+ }
 end
 
 local function publishState()
- local track=PLAYLIST[currentIndex]
+ local track=currentTrack()
  ReplicatedStorage:SetAttribute("BBYAVIPTrack01Enabled",true)
  ReplicatedStorage:SetAttribute("BBYAVIPPlaylistId","vip-amapiano")
  ReplicatedStorage:SetAttribute("BBYAVIPPlaylistCount",#PLAYLIST)
@@ -48,11 +62,12 @@ local function publishState()
  ReplicatedStorage:SetAttribute("BBYAVIPCurrentAssetId",track.assetId)
  ReplicatedStorage:SetAttribute("BBYAVIPTrack01Title",PLAYLIST[1].title)
  ReplicatedStorage:SetAttribute("BBYAVIPTrack01AssetId",PLAYLIST[1].assetId)
- ReplicatedStorage:SetAttribute("BBYAVIPUploadSpeed",UPLOAD_SPEED)
- ReplicatedStorage:SetAttribute("BBYAVIPPlaybackSpeed",NORMAL_PLAYBACK_SPEED)
+ ReplicatedStorage:SetAttribute("BBYAVIPUploadSpeed",track.uploadSpeed)
+ ReplicatedStorage:SetAttribute("BBYAVIPPlaybackSpeed",track.playbackSpeed)
 end
 
 local function ensureCore()
+ local track=currentTrack()
  group=SoundService:FindFirstChild("BBYAVIPMaster")
  if group and not group:IsA("SoundGroup") then group:Destroy();group=nil end
  if not group then group=Instance.new("SoundGroup");group.Name="BBYAVIPMaster";group.Parent=SoundService end
@@ -63,9 +78,9 @@ local function ensureCore()
  group:SetAttribute("PlaylistCount",#PLAYLIST)
  group:SetAttribute("RecoveryActive",false)
  group:SetAttribute("RecoveryFallbackCount",0)
- group:SetAttribute("MusicCatalogState","VIP_AMAPIANO_5_APPROVED_V6_2")
- group:SetAttribute("UploadSpeed",UPLOAD_SPEED)
- group:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
+ group:SetAttribute("MusicCatalogState","VIP_AMAPIANO_8_APPROVED_V6_3")
+ group:SetAttribute("UploadSpeed",track.uploadSpeed)
+ group:SetAttribute("PlaybackSpeedLocked",track.playbackSpeed)
 
  local old=SoundService:FindFirstChild("BBYAVIPTrack01")
  if old then old:Destroy() end
@@ -81,9 +96,9 @@ local function ensureCore()
  sound.SoundGroup=group
  sound.Looped=false
  sound.Volume=.72
- sound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED
- sound:SetAttribute("UploadSpeed",UPLOAD_SPEED)
- sound:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
+ sound.PlaybackSpeed=track.playbackSpeed
+ sound:SetAttribute("UploadSpeed",track.uploadSpeed)
+ sound:SetAttribute("PlaybackSpeedLocked",track.playbackSpeed)
 end
 
 local function broadcastState()
@@ -94,22 +109,24 @@ end
 local function playIndex(index)
  if #PLAYLIST==0 then return end
  currentIndex=((tonumber(index) or 1)-1)%#PLAYLIST+1
+ local track=currentTrack()
  ensureCore()
- local track=PLAYLIST[currentIndex]
  sound:Stop()
- sound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED
+ sound.PlaybackSpeed=track.playbackSpeed
  sound.SoundId="rbxassetid://"..track.assetId
  sound.TimePosition=0
  sound:SetAttribute("Title",track.title)
  sound:SetAttribute("Venue","VIP")
  sound:SetAttribute("PlaylistIndex",currentIndex)
  sound:SetAttribute("PlaylistId","vip-amapiano")
- sound:SetAttribute("UploadSpeed",UPLOAD_SPEED)
- sound:SetAttribute("PlaybackSpeedLocked",NORMAL_PLAYBACK_SPEED)
+ sound:SetAttribute("UploadSpeed",track.uploadSpeed)
+ sound:SetAttribute("PlaybackSpeedLocked",track.playbackSpeed)
+ group:SetAttribute("UploadSpeed",track.uploadSpeed)
+ group:SetAttribute("PlaybackSpeedLocked",track.playbackSpeed)
  publishState()
  pcall(function()sound:Play()end)
  task.delay(.15,broadcastState)
- print("[BBYA] VIP Amapiano now playing",currentIndex,track.title,track.assetId,"upload",UPLOAD_SPEED,"runtime",NORMAL_PLAYBACK_SPEED)
+ print("[BBYA] VIP Amapiano now playing",currentIndex,track.title,track.assetId,"upload",track.uploadSpeed,"runtime",track.playbackSpeed)
 end
 
 local function bindEnded()
@@ -162,14 +179,19 @@ end)
 
 task.spawn(function()
  while task.wait(1) do
+  local track=currentTrack()
   ensureCore()
   publishState()
   group.Volume=.62
   group:SetAttribute("PlaylistReady",true)
   group:SetAttribute("PlaylistCount",#PLAYLIST)
-  if sound then sound.PlaybackSpeed=NORMAL_PLAYBACK_SPEED end
+  if sound then
+   sound.PlaybackSpeed=track.playbackSpeed
+   sound:SetAttribute("UploadSpeed",track.uploadSpeed)
+   sound:SetAttribute("PlaybackSpeedLocked",track.playbackSpeed)
+  end
   if sound and not sound.IsPlaying then pcall(function()sound:Play()end) end
  end
 end)
 
-print("[BBYA] VIP Amapiano playlist authority v6.2 online; exact tracks",#PLAYLIST,"upload speed",UPLOAD_SPEED,"runtime speed",NORMAL_PLAYBACK_SPEED)
+print("[BBYA] VIP Amapiano playlist authority v6.3 online; tracks",#PLAYLIST,"original",3,"compensated",5)
