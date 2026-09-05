@@ -24,6 +24,9 @@ roof:SetAttribute("NativeSeating",true)
 roof:SetAttribute("GlobalLightingUntouched",true)
 roof:SetAttribute("AccessLogicUntouched",true)
 roof:SetAttribute("DesignLanguage","Bali sky resort • limestone • teak • glass • warm hospitality")
+roof:SetAttribute("RooftopScaleProfile","REALISTIC_SCALE_V1")
+roof:SetAttribute("FootprintPreserved",true)
+roof:SetAttribute("NoUniformGlobalScale",true)
 
 local C={
  limestone=Color3.fromRGB(151,143,132),
@@ -183,11 +186,13 @@ for _,z in ipairs({-15.8,-11.8,35.8}) do
 end
 
 -- Frameless outer safety glass with slim metal shoe at floor level.
+-- Realistic-scale pass: preserve the original lower datum at Y=45.20,
+-- but reduce the visible glass from 5.0 to 3.8 studs.
 for _,d in ipairs({
- {"North",Vector3.new(118,5,.28),CFrame.new(0,47.7,45.0),Vector3.new(118,.18,.42),CFrame.new(0,45.28,45.0)},
- {"South",Vector3.new(118,5,.28),CFrame.new(0,47.7,-45.0),Vector3.new(118,.18,.42),CFrame.new(0,45.28,-45.0)},
- {"West",Vector3.new(.28,5,90),CFrame.new(-59.0,47.7,0),Vector3.new(.42,.18,90),CFrame.new(-59.0,45.28,0)},
- {"East",Vector3.new(.28,5,90),CFrame.new(59.0,47.7,0),Vector3.new(.42,.18,90),CFrame.new(59.0,45.28,0)},
+ {"North",Vector3.new(118,3.8,.28),CFrame.new(0,47.10,45.0),Vector3.new(118,.18,.42),CFrame.new(0,45.28,45.0)},
+ {"South",Vector3.new(118,3.8,.28),CFrame.new(0,47.10,-45.0),Vector3.new(118,.18,.42),CFrame.new(0,45.28,-45.0)},
+ {"West",Vector3.new(.28,3.8,90),CFrame.new(-59.0,47.10,0),Vector3.new(.42,.18,90),CFrame.new(-59.0,45.28,0)},
+ {"East",Vector3.new(.28,3.8,90),CFrame.new(59.0,47.10,0),Vector3.new(.42,.18,90),CFrame.new(59.0,45.28,0)},
 }) do
  local g=part("GlassRail"..d[1],d[2],d[3],C.glass,Enum.Material.Glass,.66,true,architecture)
  g.Reflectance=.04
@@ -237,39 +242,40 @@ end
 -- 3) SCULPTURAL CABANAS + DAYBEDS
 -- -----------------------------------------------------------------------------
 local cabanas=model("PremiumCabanasV3")
+local CABANA_CLEAR_HEIGHT=8.6
 local function cabana(name,x,z,yaw)
  local m=model(name,cabanas)
  local base=CFrame.new(x,45.45,z)*CFrame.Angles(0,math.rad(yaw),0)
- -- Slim posts and deep timber portal.
+ -- Realistic-scale portal: retain horizontal furniture footprint and increase architectural height.
  for _,sx in ipairs({-6.1,6.1}) do
   for _,sz in ipairs({-4.1,4.1}) do
-   part("Post",Vector3.new(.42,7.7,.42),base*CFrame.new(sx,3.85,sz),C.teakDark,Enum.Material.WoodPlanks,0,true,m)
+   part("Post",Vector3.new(.48,CABANA_CLEAR_HEIGHT,.48),base*CFrame.new(sx,CABANA_CLEAR_HEIGHT/2,sz),C.teakDark,Enum.Material.WoodPlanks,0,true,m)
   end
  end
  for _,sz in ipairs({-4.1,4.1}) do
-  part("TopBeam",Vector3.new(12.7,.52,.52),base*CFrame.new(0,7.7,sz),C.teakDark,Enum.Material.WoodPlanks,0,true,m)
+  part("TopBeam",Vector3.new(12.9,.58,.58),base*CFrame.new(0,CABANA_CLEAR_HEIGHT,sz),C.teakDark,Enum.Material.WoodPlanks,0,true,m)
  end
  -- Slatted canopy creates real shadow pattern.
  for _,sx in ipairs({-5.4,-4.05,-2.7,-1.35,0,1.35,2.7,4.05,5.4}) do
-  part("RoofSlat",Vector3.new(.28,.20,8.8),base*CFrame.new(sx,7.86,0),C.teak,Enum.Material.WoodPlanks,0,false,m)
+  part("RoofSlat",Vector3.new(.30,.22,8.9),base*CFrame.new(sx,CABANA_CLEAR_HEIGHT+.16,0),C.teak,Enum.Material.WoodPlanks,0,false,m)
  end
- -- Layered daybed rather than one block.
+ -- Layered daybed remains at the approved human scale.
  part("DaybedPlinth",Vector3.new(10.2,.55,5.8),base*CFrame.new(0,.55,0),C.teakDark,Enum.Material.WoodPlanks,0,true,m)
  part("DaybedCushion",Vector3.new(9.7,.52,5.3),base*CFrame.new(0,1.10,0),C.fabric,Enum.Material.Fabric,0,true,m)
  part("DaybedBack",Vector3.new(9.7,2.15,.48),base*CFrame.new(0,2.15,2.38)*CFrame.Angles(math.rad(-9),0,0),C.fabricDark,Enum.Material.Fabric,0,true,m)
  for _,xo in ipairs({-3.3,0,3.3}) do
   part("BackPillow",Vector3.new(2.6,1.55,.42),base*CFrame.new(xo,2.18,2.05)*CFrame.Angles(math.rad(-9),0,0),C.fabricWarm,Enum.Material.Fabric,0,false,m)
  end
- local lamp=cylinder("Pendant",.58,.92,base*CFrame.new(0,6.35,0),C.warm,Enum.Material.Glass,m,false,.10)
+ local lamp=cylinder("Pendant",.58,.92,base*CFrame.new(0,CABANA_CLEAR_HEIGHT-1.35,0),C.warm,Enum.Material.Glass,m,false,.10)
  pointLight(lamp,C.warm,.75,12)
- -- Two auto-sit zones per daybed, both face the pool.
  local target=Vector3.new(0,45.9,12)
  for i,xo in ipairs({-2.5,2.5}) do
   nativeSeat("DaybedSeat"..i,(base*CFrame.new(xo,1.55,0)).Position,target,Vector3.new(3.6,.32,4.2),m)
  end
 end
-cabana("CabanaWest",-48,20,90)
-cabana("CabanaEast",48,20,-90)
+-- Respacing only: move each cabana outward by 3 studs; do not globally scale furniture.
+cabana("CabanaWest",-51,20,90)
+cabana("CabanaEast",51,20,-90)
 
 -- -----------------------------------------------------------------------------
 -- 4) POOLSIDE LOUNGERS
@@ -293,7 +299,6 @@ end
 -- 5) ROOFTOP BAR + NATIVE BAR STOOLS
 -- -----------------------------------------------------------------------------
 local bar=model("RooftopBarV3")
--- Bar canopy with warm timber fins.
 for _,x in ipairs({-17.5,17.5}) do
  part("BarColumn",Vector3.new(.48,8.2,.48),CFrame.new(x,49.2,-29.0),C.teakDark,Enum.Material.WoodPlanks,0,true,bar)
 end
@@ -307,11 +312,9 @@ part("BarFrontInset",Vector3.new(31.0,1.85,.22),CFrame.new(0,46.9,-20.66),C.teak
 part("BarTop",Vector3.new(35,.34,7.3),CFrame.new(0,48.45,-24.0),C.limestone,Enum.Material.Marble,0,true,bar)
 part("BackWall",Vector3.new(35,6.4,.44),CFrame.new(0,49.75,-30.2),C.teakDark,Enum.Material.WoodPlanks,0,true,bar)
 
--- Integrated identity, intentionally restrained.
 local identity=part("BarIdentity",Vector3.new(14,2.4,.16),CFrame.new(0,51.0,-29.94),C.ink,Enum.Material.Metal,0,false,bar)
 signText(identity,Enum.NormalId.Front,"BBYA SKY RESORT","ROOFTOP • POOL • SUNSET")
 
--- Floating shelves and bottle silhouettes.
 for row,y in ipairs({49.1,50.65}) do
  part("Shelf"..row,Vector3.new(27,.18,1.1),CFrame.new(0,y,-29.62),C.teak,Enum.Material.WoodPlanks,0,true,bar)
  for i=-6,6 do
@@ -320,13 +323,11 @@ for row,y in ipairs({49.1,50.65}) do
  end
 end
 
--- Pendants with warm practical light only.
 for _,x in ipairs({-12,-6,0,6,12}) do
  local lamp=cylinder("BarPendant"..x,.50,.78,CFrame.new(x,51.8,-22.0),C.warm,Enum.Material.Glass,bar,false,.12)
  pointLight(lamp,C.warm,.60,10)
 end
 
--- Visible stools + invisible native seat zones.
 for _,x in ipairs({-13,-8,-3,3,8,13}) do
  local s=model("BarStool"..x,bar)
  cylinder("StoolCushion",.52,2.55,CFrame.new(x,46.85,-18.85),C.fabricDark,Enum.Material.Fabric,s,true,0)
@@ -387,7 +388,6 @@ for i,pos in ipairs({
  Vector3.new(53,0,-29),Vector3.new(53,0,2),Vector3.new(53,0,36),
 }) do planter("Planter"..i,pos,1) end
 
--- Towel console + pool shower, small but makes the resort functional.
 local service=model("PoolServiceV3")
 part("TowelConsole",Vector3.new(7.5,2.2,2.4),CFrame.new(-41,46.2,36),C.teakDark,Enum.Material.WoodPlanks,0,true,service)
 for i=1,4 do
@@ -399,7 +399,6 @@ for _,x in ipairs({20,24}) do
  head.CFrame=CFrame.new(x,50.25,34.1)*CFrame.Angles(math.rad(90),0,0)
 end
 
--- Low practical bollards along sunset deck; local light only.
 for _,x in ipairs({-48,-36,-18,18,36,48}) do
  local bollard=part("DeckBollard"..x,Vector3.new(.42,1.45,.42),CFrame.new(x,45.95,-43.2),C.metal,Enum.Material.Metal,0,true,landscape)
  local lens=part("BollardLens"..x,Vector3.new(.30,.34,.30),CFrame.new(x,46.48,-43.2),C.warm,Enum.Material.Glass,.12,false,landscape)
@@ -418,4 +417,5 @@ nativeSeat("ArrivalSeat",Vector3.new(48,46.68,-36),Vector3.new(43,46,-28),Vector
 
 roof:SetAttribute("NativeSeatCount",seatCount)
 roof:SetAttribute("RooftopProfile","PREMIUM_SKY_RESORT_V3")
-print(string.format("[BBYA] Rooftop Resort Premium v3 online: Terrain infinity pool / interactive seating %d / cabanas / bar / sunset lounge / local lighting only",seatCount))
+roof:SetAttribute("RooftopRealisticScaleRebuild",true)
+print(string.format("[BBYA] Rooftop Resort Premium v3 + Realistic Scale v1 online: Terrain infinity pool / interactive seating %d / respaced cabanas / realistic rail proportion / local lighting only",seatCount))

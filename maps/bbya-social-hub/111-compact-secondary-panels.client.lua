@@ -1,168 +1,110 @@
--- BBYA SOCIAL HUB — DJ LIVE READINESS BRIDGE v5
--- DJ / MENU INTEROP ONLY.
--- Main BBYACommandMenuUI remains the single visible DJ LIVE launcher.
--- Developer DJ v3/v4 remains the single full-screen console authority.
--- This bridge only prevents early clicks before the console is ready, hides the
--- legacy standalone fallback button, and restores MENU after the DJ console closes.
--- Music Suite / audio / playlists / venue routing are intentionally untouched.
+-- BBYA SOCIAL HUB — DJ LIVE COMMAND MENU BRIDGE v6
+-- One visible DJ LIVE launcher: BBYACommandMenuUI.
+-- Strict DJ-role visibility. Opens only BBYADJLiveCleanUI / DJLivePanel.
+-- Legacy Developer DJ UI/fallback launcher is retired from player view.
+-- Music Suite / audio / playlists / venue routing are untouched here.
 
-local Players = game:GetService("Players")
+local Players=game:GetService("Players")
 
-local player = Players.LocalPlayer
-local pg = player:WaitForChild("PlayerGui")
+local player=Players.LocalPlayer
+local pg=player:WaitForChild("PlayerGui")
 
-local NAME = "BBYADJLiveReadinessBridgeV5"
-local old = pg:FindFirstChild(NAME)
-if old then old:Destroy() end
-
-local marker = Instance.new("ScreenGui")
-marker.Name = NAME
-marker.ResetOnSpawn = false
-marker.IgnoreGuiInset = true
-marker.DisplayOrder = 1
-marker.Parent = pg
-
-local panelBound = setmetatable({}, {__mode = "k"})
-local launcherBound = setmetatable({}, {__mode = "k"})
-
-local function commandMenu()
-    return pg:FindFirstChild("BBYACommandMenuUI")
+for _,name in ipairs({"BBYADJLiveReadinessBridgeV5","BBYADJLiveCommandMenuBridgeV6"}) do
+ local old=pg:FindFirstChild(name);if old then old:Destroy() end
 end
+local marker=Instance.new("ScreenGui")
+marker.Name="BBYADJLiveCommandMenuBridgeV6";marker.ResetOnSpawn=false;marker.IgnoreGuiInset=true;marker.DisplayOrder=1;marker.Parent=pg
+marker:SetAttribute("LauncherAuthority","COMMAND_MENU_ONLY")
+marker:SetAttribute("RoleRequired","DJ")
 
+local panelBound=setmetatable({}, {__mode="k"})
+local launcherBound=setmetatable({}, {__mode="k"})
+
+local function hasDJRole()
+ return player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ"
+end
+local function commandMenu()return pg:FindFirstChild("BBYACommandMenuUI")end
 local function menuParts()
-    local menu = commandMenu()
-    if not menu then return nil, nil, nil end
-    local drawer = menu:FindFirstChild("FeatureDrawer", true)
-    local menuButton = menu:FindFirstChild("MenuButton", true)
-    local list = drawer and drawer:FindFirstChild("FeatureList", true)
-    return drawer, menuButton, list
+ local menu=commandMenu();if not menu then return nil,nil,nil end
+ local drawer=menu:FindFirstChild("FeatureDrawer",true)
+ local menuButton=menu:FindFirstChild("MenuButton",true)
+ local list=drawer and drawer:FindFirstChild("FeatureList",true)
+ return drawer,menuButton,list
 end
-
-local function developerPanel()
-    local gui = pg:FindFirstChild("BBYADeveloperDJUI")
-    local panel = gui and gui:FindFirstChild("DeveloperDJMixerPanel", true)
-    if panel and panel:IsA("GuiObject") then
-        return panel
-    end
-    return nil
+local function cleanPanel()
+ local g=pg:FindFirstChild("BBYADJLiveCleanUI")
+ local p=g and g:FindFirstChild("DJLivePanel",true)
+ return p and p:IsA("GuiObject") and p or nil
 end
-
 local function mainDJButton()
-    local _, _, list = menuParts()
-    if not list then return nil end
-
-    for _, d in ipairs(list:GetDescendants()) do
-        if d:IsA("TextButton") then
-            local text = string.upper(tostring(d.Text or ""))
-            if text == "DJ LIVE" or text:find("DJ LIVE", 1, true) == 1 then
-                return d
-            end
-        end
-    end
-    return nil
+ local _,_,list=menuParts();if not list then return nil end
+ for _,d in ipairs(list:GetDescendants()) do
+  if d:IsA("TextButton") then
+   local t=string.upper(tostring(d.Text or ""))
+   if t=="DJ LIVE" or t:find("DJ LIVE",1,true)==1 then return d end
+  end
+ end
 end
-
-local function suppressStandaloneFallback()
-    local gui = pg:FindFirstChild("BBYADeveloperDJUI")
-    if not gui then return end
-
-    for _, d in ipairs(gui:GetDescendants()) do
-        if d.Name == "FallbackDJButton" and d:IsA("GuiButton") then
-            d.Visible = false
-            d.Active = false
-            d.AutoButtonColor = false
-            d.Selectable = false
-            pcall(function() d.Interactable = false end)
-            d:SetAttribute("BBYARetiredStandaloneDJLauncher", true)
-        end
-    end
+local function retireLegacyDJ()
+ local legacy=pg:FindFirstChild("BBYADeveloperDJUI")
+ if not legacy then return end
+ if legacy:IsA("ScreenGui") then legacy.Enabled=false;legacy:SetAttribute("BBYARetiredByCleanDJV2",true) end
+ for _,d in ipairs(legacy:GetDescendants()) do
+  if d:IsA("GuiObject") and (d.Name=="FallbackDJButton" or d.Name=="DeveloperDJMixerPanel") then d.Visible=false end
+  if d:IsA("GuiButton") and d.Name=="FallbackDJButton" then d.Active=false;d.AutoButtonColor=false;d.Selectable=false;pcall(function()d.Interactable=false end) end
+ end
 end
-
-local function setLauncherReady(button, ready)
-    if not button or not button.Parent then return end
-
-    button:SetAttribute("BBYADJConsoleReady", ready)
-    button.Active = ready
-    button.Selectable = ready
-    button.AutoButtonColor = ready
-    pcall(function() button.Interactable = ready end)
-
-    if ready then
-        button.Text = "DJ LIVE"
-        button.TextTransparency = 0
-    else
-        button.Text = "DJ LIVE • LOADING"
-        button.TextTransparency = 0.18
-    end
+local function setMenuVisible(visible)
+ local drawer,menuButton=menuParts()
+ if not visible and drawer and drawer:IsA("GuiObject") then drawer.Visible=false end
+ if menuButton and menuButton:IsA("GuiObject") then menuButton.Visible=visible end
 end
-
+local function setLauncherState(button,panel)
+ if not button or not button.Parent then return end
+ local role=hasDJRole();local ready=role and panel~=nil
+ button.Visible=role
+ button.Active=ready;button.Selectable=ready;button.AutoButtonColor=ready
+ pcall(function()button.Interactable=ready end)
+ button.Text=ready and "DJ LIVE" or "DJ LIVE • LOADING"
+ button.TextTransparency=ready and 0 or .18
+ button:SetAttribute("BBYADJConsoleReady",ready)
+ button:SetAttribute("BBYADJRoleVisible",role)
+ button:SetAttribute("BBYADJLauncherAuthority","COMMAND_MENU_CLEAN_V2")
+end
 local function bindPanel(panel)
-    if not panel or panelBound[panel] then return end
-    panelBound[panel] = true
-
-    panel:GetPropertyChangedSignal("Visible"):Connect(function()
-        local drawer, menuButton = menuParts()
-        if panel.Visible then
-            if drawer and drawer:IsA("GuiObject") then drawer.Visible = false end
-            if menuButton and menuButton:IsA("GuiButton") then
-                menuButton.Visible = false
-                menuButton.Text = "MENU"
-            end
-        else
-            if menuButton and menuButton:IsA("GuiButton") then
-                menuButton.Visible = true
-                menuButton.Text = "MENU"
-            end
-        end
-    end)
+ if not panel or panelBound[panel] then return end;panelBound[panel]=true
+ panel:GetPropertyChangedSignal("Visible"):Connect(function()
+  if panel.Visible then setMenuVisible(false) else setMenuVisible(true) end
+ end)
 end
-
 local function bindLauncher(button)
-    if not button or launcherBound[button] then return end
-    launcherBound[button] = true
-    button:SetAttribute("BBYADJLauncherAuthority", "COMMAND_MENU_KERNEL")
+ if not button or launcherBound[button] then return end;launcherBound[button]=true
+ button.Activated:Connect(function()
+  if not hasDJRole() then return end
+  local panel=cleanPanel();if not panel then return end
+  local drawer=select(1,menuParts());if drawer and drawer:IsA("GuiObject") then drawer.Visible=false end
+  panel.Visible=true;setMenuVisible(false)
+ end)
 end
-
 local function rescan()
-    suppressStandaloneFallback()
-
-    local button = mainDJButton()
-    local panel = developerPanel()
-
-    if panel then bindPanel(panel) end
-    if button then
-        bindLauncher(button)
-        setLauncherReady(button, panel ~= nil)
-    end
+ retireLegacyDJ()
+ local panel=cleanPanel();local button=mainDJButton()
+ if panel then bindPanel(panel) end
+ if button then bindLauncher(button);setLauncherState(button,panel) end
+ if panel and not hasDJRole() and panel.Visible then panel.Visible=false end
 end
 
+player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(rescan)
+player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(rescan)
 pg.DescendantAdded:Connect(function(desc)
-    if desc.Name == "BBYACommandMenuUI"
-        or desc.Name == "FeatureDrawer"
-        or desc.Name == "FeatureList"
-        or desc.Name == "BBYADeveloperDJUI"
-        or desc.Name == "DeveloperDJMixerPanel"
-        or desc.Name == "FallbackDJButton"
-        or (desc:IsA("TextButton") and string.find(string.upper(tostring(desc.Text or "")), "DJ LIVE", 1, true))
-    then
-        task.defer(rescan)
-    end
+ if desc.Name=="BBYACommandMenuUI" or desc.Name=="FeatureDrawer" or desc.Name=="FeatureList" or desc.Name=="BBYADJLiveCleanUI" or desc.Name=="DJLivePanel" or desc.Name=="BBYADeveloperDJUI" or (desc:IsA("TextButton") and string.find(string.upper(tostring(desc.Text or "")),"DJ LIVE",1,true)) then task.defer(rescan) end
 end)
-
-pg.DescendantRemoving:Connect(function(desc)
-    if desc.Name == "BBYADeveloperDJUI" or desc.Name == "DeveloperDJMixerPanel" then
-        task.defer(rescan)
-    end
-end)
+pg.DescendantRemoving:Connect(function(desc)if desc.Name=="DJLivePanel" or desc.Name=="BBYADJLiveCleanUI" then task.defer(rescan) end end)
 
 task.spawn(function()
-    local deadline = os.clock() + 35
-    repeat
-        rescan()
-        task.wait(0.20)
-    until os.clock() >= deadline
+ local deadline=os.clock()+35
+ repeat rescan();task.wait(.20) until os.clock()>=deadline
 end)
-
 task.defer(rescan)
 
-print("[BBYA] DJ LIVE READINESS BRIDGE v5 online — command-menu launcher + developer console, Music untouched")
+print("[BBYA] DJ LIVE command-menu bridge v6 online: DJ-only + clean console + legacy UI retired")

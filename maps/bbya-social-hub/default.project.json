@@ -95,7 +95,11 @@
       "SultanContributionAdapter": {"$path": "141-sultan-contribution.server.lua"},
       "VIPTrack01AuthorityV2": {"$path": "110-vip-track01.server.lua"},
       "FunkotPlaylistAuthorityV1": {"$path": "121-funkot-playlist.server.lua"},
-      "RooftopPlaylistAuthorityV1": {"$path": "134-rooftop-playlist.server.lua"}
+      "RooftopPlaylistAuthorityV1": {"$path": "134-rooftop-playlist.server.lua"},
+      "LeadDanceSyncServerV1": {"$path": "144-lead-dance-sync.server.lua"},
+      "AvatarSwitchServerV1": {"$path": "145-avatar-switch.server.lua"},
+      "DonorCrownAuthorityV1": {"$path": "146-donor-crowns.server.lua"},
+      "CommunityPhysicalAvatarsV1": {"$path": "147-community-statues.server.lua"}
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
@@ -143,7 +147,11 @@
         "FishingVisualIndexV7": {"$path": "131-fishing-index-visual-v7.client.lua"},
         "DJLiveCleanClient": {"$path": "137-dj-live-clean.client.lua"},
         "AFKDetectorClient": {"$path": "139-afk.client.lua"},
-        "PhotoFreecamV1": {"$path": "140-photo-freecam.client.lua"}
+        "PhotoFreecamV1": {"$path": "140-photo-freecam.client.lua"},
+        "IdentityUIV1": {"$path": "142-identity-ui.client.lua"},
+        "SaweriaLinkV1": {"$path": "143-saweria-link.client.lua"},
+        "LeadDanceSyncClientV1": {"$path": "144-lead-dance-sync.client.lua"},
+        "AvatarSwitchClientV1": {"$path": "145-avatar-switch.client.lua"}
       }
     },
     "Lighting": {"$className": "Lighting", "$properties": {"Brightness": 2.35, "ClockTime": 21}}

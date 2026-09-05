@@ -39,13 +39,13 @@ p("L2WestFascia",Vector3.new(2,20,72),CFrame.new(-59,34,4),C.wall,Enum.Material.
 p("L2EastFascia",Vector3.new(2,20,72),CFrame.new(59,34,4),C.wall,Enum.Material.Metal)
 p("L2RearFascia",Vector3.new(120,20,2),CFrame.new(0,34,44),C.wall,Enum.Material.Metal)
 
--- Upper-level / rooftop dressing remains here; Floor 1 dressing is intentionally absent.
+-- Upper-level VIP dressing remains here; Floor 1 dressing is intentionally absent.
+-- Rooftop physical dressing is owned exclusively by:
+--   70-rooftop-resort.server.lua
+--   71-world-prompt-cleanup.server.lua (Rooftop v3.1/v3.2 late polish only)
+-- Do not create parallel RoofLounge / RoofPathLight geometry here.
 for _,x in ipairs({-50,-42,-34}) do
  p("VIPSeat"..x,Vector3.new(7,2.5,4),CFrame.new(x,26,28),C.metal,Enum.Material.Fabric)
-end
-for _,x in ipairs({-48,-24,24,48}) do
- p("RoofLounge"..x,Vector3.new(9,2.5,5),CFrame.new(x,45.8,-26),C.metal,Enum.Material.Fabric)
- neon("RoofPathLight"..x,Vector3.new(3,.18,.18),CFrame.new(x,45.9,-18),C.warm)
 end
 
 print("[BBYA] structural shell loaded; rear-center DJ wall opening enabled")
