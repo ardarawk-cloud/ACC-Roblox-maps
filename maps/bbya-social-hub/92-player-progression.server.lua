@@ -1,5 +1,7 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.1
 -- Authority: persistent social level/XP, managed roles, custom cosmetic TITLE and overhead identity.
+-- Official staff roles: OWNER / CO OWNER / ADMIN / MODERATOR / DJ / LEAD / MEDIA.
+-- VIP / CREW remain supported as legacy access roles and are kept distinct from the new dedicated feature roles.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -12,7 +14,7 @@ local OWNER_USERNAME="nadmo97"
 local ADMIN_USERNAMES={
  ["styxraasoraaa"]=true,
 }
-local VALID_ROLES={VIP=true,CREW=true,ADMIN=true,DJ=true,LEAD=true,MEDIA=true,NONE=true}
+local VALID_ROLES={VIP=true,CREW=true,COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,NONE=true}
 local LEVEL_MINUTES=10
 local TITLE_MAX=16
 local sessionMinutes={}
@@ -36,10 +38,13 @@ local levelUp=remote("RemoteEvent","LevelUp")
 local COLORS={
  Newbie=Color3.fromRGB(245,245,247),Regular=Color3.fromRGB(247,55,158),Socialite=Color3.fromRGB(59,157,255),
  Aristokrat=Color3.fromRGB(73,214,129),Monarch=Color3.fromRGB(235,184,74),GreatMonarch=Color3.fromRGB(255,205,82),
- Owner=Color3.fromRGB(255,113,196),Admin=Color3.fromRGB(73,207,235),Crew=Color3.fromRGB(103,230,174),VIP=Color3.fromRGB(235,184,74),
- DJ=Color3.fromRGB(174,104,255),Lead=Color3.fromRGB(255,98,87),Media=Color3.fromRGB(69,172,255),
+ Owner=Color3.fromRGB(255,113,196),CoOwner=Color3.fromRGB(255,151,78),Admin=Color3.fromRGB(73,207,235),Moderator=Color3.fromRGB(116,222,173),
+ Crew=Color3.fromRGB(103,230,174),VIP=Color3.fromRGB(235,184,74),DJ=Color3.fromRGB(174,104,255),Lead=Color3.fromRGB(255,98,87),Media=Color3.fromRGB(69,172,255),
 }
-local ROLE_COLORS={OWNER=COLORS.Owner,ADMIN=COLORS.Admin,CREW=COLORS.Crew,VIP=COLORS.VIP,DJ=COLORS.DJ,LEAD=COLORS.Lead,MEDIA=COLORS.Media}
+local ROLE_COLORS={
+ OWNER=COLORS.Owner,["CO OWNER"]=COLORS.CoOwner,ADMIN=COLORS.Admin,MODERATOR=COLORS.Moderator,
+ CREW=COLORS.Crew,VIP=COLORS.VIP,DJ=COLORS.DJ,LEAD=COLORS.Lead,MEDIA=COLORS.Media,
+}
 local RESERVED_COLOR_HEX={}
 local function colorHex(c)
  return string.format("#%02X%02X%02X",math.floor(c.R*255+.5),math.floor(c.G*255+.5),math.floor(c.B*255+.5))
@@ -61,12 +66,13 @@ local function managedRole(player)
  local r=player and player:GetAttribute("BBYAManagedRole")
  return type(r)=="string" and r or nil
 end
+local function isCoOwner(player)return player and managedRole(player)=="COOWNER" end
 local function isAdmin(player)
  return player and (ADMIN_USERNAMES[usernameKey(player)]==true or managedRole(player)=="ADMIN")
 end
 local function canManageRoles(player)
  if not player then return false end
- if isOwner(player) or isAdmin(player) then return true end
+ if isOwner(player) or isCoOwner(player) or isAdmin(player) then return true end
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
 local function levelFromMinutes(minutes)return math.max(1,math.floor(math.max(0,minutes)/LEVEL_MINUTES)+1) end
@@ -136,8 +142,9 @@ local function clearTag(character)
 end
 local function effectiveRole(player)
  if isOwner(player) then return "OWNER" end
- if isAdmin(player) then return "ADMIN" end
  local role=managedRole(player)
+ if role=="COOWNER" then return "CO OWNER" end
+ if isAdmin(player) then return "ADMIN" end
  if role and VALID_ROLES[role] and role~="NONE" then return role end
  return "VISITOR"
 end
@@ -178,6 +185,8 @@ local function clearManagedAccess(player)
  player:SetAttribute("BBYAHasDJRole",false)
  player:SetAttribute("BBYAHasLeadRole",false)
  player:SetAttribute("BBYAHasMediaRole",false)
+ player:SetAttribute("BBYAModerator",false)
+ if not isOwner(player) then player:SetAttribute("BBYACoOwner",false) end
  if not isOwner(player) and ADMIN_USERNAMES[usernameKey(player)]~=true then
   player:SetAttribute("BBYAAdmin",false);player:SetAttribute("BBYAStaff",false)
  end
@@ -195,8 +204,12 @@ local function applyManagedAccess(player)
  if isOwner(player) then
   player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAOwner",true);player:SetAttribute("BBYACoOwner",true);player:SetAttribute("BBYAQueen",true)
   grantFullAccess(player)
+ elseif role=="COOWNER" then
+  player:SetAttribute("BBYACoOwner",true);player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAStaff",true);grantFullAccess(player)
  elseif ADMIN_USERNAMES[usernameKey(player)]==true or role=="ADMIN" then
   player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAStaff",true);grantFullAccess(player)
+ elseif role=="MODERATOR" then
+  player:SetAttribute("BBYAModerator",true);player:SetAttribute("BBYAStaff",true);player:SetAttribute("BBYAVIPBypass",true);player:SetAttribute("BBYARooftopBypass",true)
  elseif role=="CREW" then
   player:SetAttribute("BBYAStaff",true);player:SetAttribute("BBYAVIPBypass",true);player:SetAttribute("BBYARooftopBypass",true);player:SetAttribute("BBYASecretRoomBypass",true)
  elseif role=="VIP" then
@@ -271,14 +284,16 @@ end
 roleSnapshot.OnServerInvoke=function(player)return buildSnapshot(player)end
 roleAction.OnServerInvoke=function(operator,targetUserId,role)
  if not canManageRoles(operator) then return {ok=false,message="No permission."} end
- role=string.upper(tostring(role or ""));if not VALID_ROLES[role] then return {ok=false,message="Invalid role."} end
+ role=string.upper(tostring(role or "")):gsub("%s+","")
+ if not VALID_ROLES[role] then return {ok=false,message="Invalid role."} end
  targetUserId=tonumber(targetUserId);local target=targetUserId and Players:GetPlayerByUserId(targetUserId)
  if not target then return {ok=false,message="Player is no longer online.",snapshot=buildSnapshot(operator)} end
  if isOwner(target) then return {ok=false,message="OWNER role is locked.",snapshot=buildSnapshot(operator)} end
  local stored=(role=="NONE") and nil or role
  local ok=persistRole(target.UserId,stored)
  loadedRoles[target.UserId]=stored;target:SetAttribute("BBYAManagedRole",stored);applyIdentity(target)
- return {ok=true,persisted=ok,message=ok and (target.DisplayName.." → "..(stored or "VISITOR")) or (target.DisplayName.." updated for this server; DataStore retry needed."),snapshot=buildSnapshot(operator)}
+ local displayRole=stored=="COOWNER" and "CO OWNER" or (stored or "VISITOR")
+ return {ok=true,persisted=ok,message=ok and (target.DisplayName.." → "..displayRole) or (target.DisplayName.." updated for this server; DataStore retry needed."),snapshot=buildSnapshot(operator)}
 end
 
 titleSnapshot.OnServerInvoke=function(player)
@@ -328,4 +343,4 @@ task.spawn(function()
  end
 end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end end)
-print("[BBYA] Player progression v5 online: persistent level/XP + DJ/LEAD/MEDIA roles + server-filtered custom TITLE")
+print("[BBYA] Player progression v5.1 online: persistent level/XP + CO OWNER/ADMIN/MODERATOR/DJ/LEAD/MEDIA + server-filtered custom TITLE")
