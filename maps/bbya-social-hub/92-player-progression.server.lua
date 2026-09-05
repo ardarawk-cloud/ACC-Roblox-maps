@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.1
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.2
 -- Authority: persistent social level/XP, managed roles, custom cosmetic TITLE and overhead identity.
 -- Official staff roles: OWNER / CO OWNER / ADMIN / MODERATOR / DJ / LEAD / MEDIA.
--- VIP / CREW remain supported as legacy access roles and are kept distinct from the new dedicated feature roles.
+-- Revision v1.1 requested assignments are resolved through Roblox username authority before UserId persistence; no guessed IDs.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -14,6 +14,11 @@ local OWNER_USERNAME="nadmo97"
 local ADMIN_USERNAMES={
  ["styxraasoraaa"]=true,
 }
+local REQUESTED_ROLE_ASSIGNMENTS={
+ ["arda_moron123"]={username="Arda_moron123",role="MEDIA"},
+ ["talonthedevil"]={username="Talonthedevil",role="LEAD"},
+ ["ridhoomaukamu"]={username="Ridhoomaukamu",role="DJ"},
+}
 local VALID_ROLES={VIP=true,CREW=true,COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,NONE=true}
 local LEVEL_MINUTES=10
 local TITLE_MAX=16
@@ -22,6 +27,7 @@ local loadedMinutes={}
 local loadedRoles={}
 local loadedTitles={}
 local lastLevel={}
+local requestedRoleByUserId={}
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -78,6 +84,44 @@ end
 local function levelFromMinutes(minutes)return math.max(1,math.floor(math.max(0,minutes)/LEVEL_MINUTES)+1) end
 local function roleKey(uid)return "u_"..tostring(uid) end
 local function titleKey(uid)return "u_"..tostring(uid) end
+
+local function exactResolveRequested(req)
+ local ok,uid=pcall(function()return Players:GetUserIdFromNameAsync(req.username)end)
+ if not ok or not tonumber(uid) or uid<=0 then return nil end
+ local okName,resolved=pcall(function()return Players:GetNameFromUserIdAsync(uid)end)
+ if not okName or string.lower(tostring(resolved))~=string.lower(req.username) then return nil end
+ return uid,resolved
+end
+local function persistRequestedResolved(req,uid,resolved)
+ requestedRoleByUserId[uid]=req.role
+ local okRead,current=pcall(function()return roleStore:GetAsync(roleKey(uid))end)
+ local okWrite=true
+ if not okRead or current~=req.role then okWrite=pcall(function()roleStore:SetAsync(roleKey(uid),req.role)end) end
+ ReplicatedStorage:SetAttribute("BBYARoleLock_"..req.username,okWrite and (tostring(uid)..":"..req.role) or "STORE_FAILED")
+ if okWrite then print("[BBYA Roles] resolved + locked",resolved,uid,req.role) else warn("[BBYA Roles] persistence failed",req.username,uid,req.role) end
+ return okWrite
+end
+local function bootstrapRequestedRoles()
+ local resolvedCount=0
+ for _,req in pairs(REQUESTED_ROLE_ASSIGNMENTS) do
+  local uid,resolved=exactResolveRequested(req)
+  if uid then persistRequestedResolved(req,uid,resolved);resolvedCount+=1 else ReplicatedStorage:SetAttribute("BBYARoleLock_"..req.username,"RESOLVE_FAILED");warn("[BBYA Roles] exact Roblox username resolution failed",req.username) end
+ end
+ ReplicatedStorage:SetAttribute("BBYARevisionRoleLocksResolved",resolvedCount)
+ ReplicatedStorage:SetAttribute("BBYARevisionRoleLocksComplete",resolvedCount==3)
+end
+local function requestedRoleForPlayer(player)
+ local locked=requestedRoleByUserId[player.UserId]
+ if locked then return locked end
+ local req=REQUESTED_ROLE_ASSIGNMENTS[usernameKey(player)]
+ if not req then return nil end
+ local okName,resolved=pcall(function()return Players:GetNameFromUserIdAsync(player.UserId)end)
+ if not okName or string.lower(tostring(resolved))~=string.lower(req.username) then return nil end
+ requestedRoleByUserId[player.UserId]=req.role
+ return req.role
+end
+
+task.spawn(bootstrapRequestedRoles)
 
 local function normalizeRoleLike(value)
  local s=string.upper(tostring(value or ""))
@@ -234,6 +278,11 @@ local function loadRole(player)
  local role=nil
  local ok,data=pcall(function()return roleStore:GetAsync(roleKey(player.UserId))end)
  if ok and type(data)=="string" and VALID_ROLES[data] and data~="NONE" then role=data end
+ local requested=requestedRoleForPlayer(player)
+ if requested then
+  role=requested
+  if not ok or data~=requested then task.spawn(function()persistRequestedResolved(REQUESTED_ROLE_ASSIGNMENTS[usernameKey(player)],player.UserId,player.Name)end) end
+ end
  loadedRoles[player.UserId]=role
  player:SetAttribute("BBYAManagedRole",role)
 end
@@ -276,7 +325,7 @@ local function buildSnapshot(operator)
  if not canManageRoles(operator) then return {authorized=false} end
  local list={}
  for _,p in ipairs(Players:GetPlayers()) do
-  table.insert(list,{userId=p.UserId,username=p.Name,displayName=p.DisplayName,role=effectiveRole(p),locked=isOwner(p)})
+  table.insert(list,{userId=p.UserId,username=p.Name,displayName=p.DisplayName,role=effectiveRole(p),locked=isOwner(p) or requestedRoleForPlayer(p)~=nil})
  end
  table.sort(list,function(a,b)if a.locked~=b.locked then return a.locked end return string.lower(a.displayName)<string.lower(b.displayName) end)
  return {authorized=true,operator=effectiveRole(operator),players=list}
@@ -289,6 +338,8 @@ roleAction.OnServerInvoke=function(operator,targetUserId,role)
  targetUserId=tonumber(targetUserId);local target=targetUserId and Players:GetPlayerByUserId(targetUserId)
  if not target then return {ok=false,message="Player is no longer online.",snapshot=buildSnapshot(operator)} end
  if isOwner(target) then return {ok=false,message="OWNER role is locked.",snapshot=buildSnapshot(operator)} end
+ local requested=requestedRoleForPlayer(target)
+ if requested then return {ok=false,message=target.DisplayName.." role is locked to "..requested.." by revision authority.",snapshot=buildSnapshot(operator)} end
  local stored=(role=="NONE") and nil or role
  local ok=persistRole(target.UserId,stored)
  loadedRoles[target.UserId]=stored;target:SetAttribute("BBYAManagedRole",stored);applyIdentity(target)
@@ -343,4 +394,4 @@ task.spawn(function()
  end
 end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end end)
-print("[BBYA] Player progression v5.1 online: persistent level/XP + CO OWNER/ADMIN/MODERATOR/DJ/LEAD/MEDIA + server-filtered custom TITLE")
+print("[BBYA] Player progression v5.2 online: persistent level/XP + exact-resolved locked MEDIA/LEAD/DJ revision assignments + custom TITLE")
