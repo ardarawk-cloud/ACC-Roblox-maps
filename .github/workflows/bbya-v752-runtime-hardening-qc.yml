@@ -45,8 +45,8 @@ jobs:
           msg=text('150-message.client.lua')
           display=text('151-community-display.server.lua')
           must(ident,'PLAYER IDENTITY UI v1.4 COLOR PALETTE','TITLE palette')
+          must(ident,'Hex typing removed from player-facing UI','TITLE palette removal')
           must(ident,'TitleColorPalette','TITLE palette')
-          must_not(ident,'Hex typing','old title hex UX')
           must(msg,'MESSAGE CLIENT v8.1 SUPPORT-SHELL NOTIFICATION','MESSAGE hardening')
           must(display,'COMMUNITY PHYSICAL DISPLAY v1.1 RIG-SAFE','Owner display hardening')
 
