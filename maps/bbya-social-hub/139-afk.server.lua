@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — AFK STATUS AUTHORITY v2
--- One AFK authority for automatic idle status + manual PARTY STUFF AFK SIGN.
--- Manual sign is a lightweight left-hand prop and never changes Humanoid movement, animations, dance, carry, tools, or camera.
+-- BBYA SOCIAL HUB — AFK STATUS AUTHORITY v3
+-- One AFK state authority for automatic idle tracking + manual PARTY STUFF AFK SIGN.
+-- Runtime QC lock: NO floating AFK tag above the head. The held board is the only visual indicator.
+-- Manual sign never changes Humanoid movement, animations, dance, carry, tools, or camera.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -14,10 +15,12 @@ if not remote then remote=Instance.new("RemoteEvent");remote.Name="AFKStatus";re
 local lastRequest={}
 local SIGN_NAME="BBYAAFKSign"
 local GRIP_NAME="BBYAAFKSignGrip"
+local LEGACY_TAG_NAME="BBYAAFKTag"
 
 local function clearTag(character)
- local head=character and character:FindFirstChild("Head")
- local tag=head and head:FindFirstChild("BBYAAFKTag")
+ if not character then return end
+ local head=character:FindFirstChild("Head")
+ local tag=head and head:FindFirstChild(LEGACY_TAG_NAME)
  if tag then tag:Destroy() end
 end
 
@@ -50,11 +53,11 @@ local function weld(root,p,offset)
 end
 
 local function signFace(board,face)
- local sg=Instance.new("SurfaceGui");sg.Face=face;sg.AlwaysOnTop=false;sg.LightInfluence=.05;sg.PixelsPerStud=70;sg.Parent=board
- local bg=Instance.new("Frame");bg.Size=UDim2.fromScale(1,1);bg.BackgroundColor3=Color3.fromRGB(15,15,19);bg.BackgroundTransparency=.08;bg.BorderSizePixel=0;bg.Parent=sg
- local stroke=Instance.new("UIStroke");stroke.Color=Color3.fromRGB(235,184,74);stroke.Thickness=2;stroke.Transparency=.08;stroke.Parent=bg
- local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="AFK";text.TextColor3=Color3.fromRGB(247,229,191);text.TextStrokeTransparency=.72;text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=bg
- local pad=Instance.new("UIPadding");pad.PaddingLeft=UDim.new(.12,0);pad.PaddingRight=UDim.new(.12,0);pad.PaddingTop=UDim.new(.12,0);pad.PaddingBottom=UDim.new(.12,0);pad.Parent=text
+ local sg=Instance.new("SurfaceGui");sg.Face=face;sg.AlwaysOnTop=false;sg.LightInfluence=.05;sg.PixelsPerStud=82;sg.Parent=board
+ local bg=Instance.new("Frame");bg.Size=UDim2.fromScale(1,1);bg.BackgroundColor3=Color3.fromRGB(15,15,19);bg.BackgroundTransparency=.06;bg.BorderSizePixel=0;bg.Parent=sg
+ local stroke=Instance.new("UIStroke");stroke.Color=Color3.fromRGB(235,184,74);stroke.Thickness=2;stroke.Transparency=.06;stroke.Parent=bg
+ local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="AFK";text.TextColor3=Color3.fromRGB(247,229,191);text.TextStrokeTransparency=.68;text.Font=Enum.Font.GothamBlack;text.TextScaled=true;text.Parent=bg
+ local pad=Instance.new("UIPadding");pad.PaddingLeft=UDim.new(.05,0);pad.PaddingRight=UDim.new(.05,0);pad.PaddingTop=UDim.new(.04,0);pad.PaddingBottom=UDim.new(.04,0);pad.Parent=text
 end
 
 local function buildSign(player)
@@ -62,11 +65,11 @@ local function buildSign(player)
  local hum=character and character:FindFirstChildOfClass("Humanoid")
  local hand=leftHand(character)
  if not character or not hum or hum.Health<=0 or not hand or not hand:IsA("BasePart") then return false end
- clearSign(character)
+ clearTag(character);clearSign(character)
  local model=Instance.new("Model");model.Name=SIGN_NAME;model:SetAttribute("BBYAAFKManualSign",true);model.Parent=character
- local handle=part(model,"Handle",Vector3.new(.14,2.15,.14),Color3.fromRGB(93,76,55),Enum.Material.Wood)
- local board=part(model,"Board",Vector3.new(2.55,1.35,.12),Color3.fromRGB(22,22,27),Enum.Material.SmoothPlastic)
- weld(handle,board,CFrame.new(0,1.43,0))
+ local handle=part(model,"Handle",Vector3.new(.14,2.18,.14),Color3.fromRGB(93,76,55),Enum.Material.Wood)
+ local board=part(model,"Board",Vector3.new(2.68,1.44,.12),Color3.fromRGB(22,22,27),Enum.Material.SmoothPlastic)
+ weld(handle,board,CFrame.new(0,1.47,0))
  signFace(board,Enum.NormalId.Front);signFace(board,Enum.NormalId.Back)
  local offset=CFrame.new(-.12,-.86,-.18)*CFrame.Angles(0,0,math.rad(-7))
  handle.CFrame=hand.CFrame*offset
@@ -74,23 +77,8 @@ local function buildSign(player)
  return true
 end
 
-local function applyTag(player)
- local character=player.Character
- local head=character and character:FindFirstChild("Head")
- if not head then return end
- clearTag(character)
- if player:GetAttribute("BBYAAFK")~=true then return end
- local gui=Instance.new("BillboardGui")
- gui.Name="BBYAAFKTag";gui.Adornee=head;gui.Size=UDim2.fromOffset(92,24);gui.StudsOffset=Vector3.new(0,3.55,0)
- gui.AlwaysOnTop=true;gui.MaxDistance=70;gui.LightInfluence=0;gui.Parent=head
- local bg=Instance.new("Frame");bg.Size=UDim2.fromScale(1,1);bg.BackgroundColor3=Color3.fromRGB(13,13,18);bg.BackgroundTransparency=.28;bg.BorderSizePixel=0;bg.Parent=gui
- local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=bg
- local stroke=Instance.new("UIStroke");stroke.Color=Color3.fromRGB(235,184,74);stroke.Transparency=.28;stroke.Thickness=1;stroke.Parent=bg
- local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundTransparency=1;text.Text="AFK";text.TextColor3=Color3.fromRGB(246,225,184);text.Font=Enum.Font.GothamBold;text.TextSize=11;text.Parent=bg
-end
-
 local function applyVisuals(player)
- applyTag(player)
+ clearTag(player.Character)
  if player:GetAttribute("BBYAAFKManual")==true then buildSign(player) else clearSign(player.Character) end
 end
 
@@ -99,7 +87,7 @@ local function setAutomatic(player,value)
  value=value==true
  player:SetAttribute("BBYAAFK",value)
  player:SetAttribute("BBYAAFKSince",value and os.time() or 0)
- applyVisuals(player)
+ clearTag(player.Character)
 end
 
 local function setManual(player,value)
@@ -127,7 +115,7 @@ local function wire(player)
  player.CharacterAdded:Connect(function(character)
   character:WaitForChild("Head",10);task.delay(.35,function()if player.Parent then applyVisuals(player) end end)
  end)
- player:GetAttributeChangedSignal("BBYAAFK"):Connect(function()task.defer(function()if player.Parent then applyTag(player) end end)end)
+ player:GetAttributeChangedSignal("BBYAAFK"):Connect(function()task.defer(function()if player.Parent then clearTag(player.Character) end end)end)
  player:GetAttributeChangedSignal("BBYAAFKManual"):Connect(function()task.defer(function()if player.Parent then applyVisuals(player) end end)end)
 end
 
@@ -135,4 +123,4 @@ for _,player in ipairs(Players:GetPlayers()) do wire(player) end
 Players.PlayerAdded:Connect(wire)
 Players.PlayerRemoving:Connect(function(player)lastRequest[player]=nil end)
 
-print("[BBYA] AFK authority v2 online: auto idle + manual held AFK SIGN / movement-animation-safe")
+print("[BBYA] AFK authority v3 online: held-sign-only visual / larger AFK text / movement-animation-safe")
