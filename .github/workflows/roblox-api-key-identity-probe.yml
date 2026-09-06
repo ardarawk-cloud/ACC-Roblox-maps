@@ -2,16 +2,15 @@ name: ROBLOX_API_KEY Identity Probe
 # safe identity-only probe; no upload or publish
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/roblox-api-key-identity-probe.yml'
+  issues:
+    types: [opened]
 
 permissions:
   contents: read
 
 jobs:
   probe:
+    if: startsWith(github.event.issue.title, 'ROBLOX_API_KEY IDENTITY PROBE')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
