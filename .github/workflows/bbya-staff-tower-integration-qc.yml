@@ -22,15 +22,25 @@ jobs:
           $tower='maps/bbya-social-hub/148-staff-tower.server.lua'
           $project='maps/bbya-social-hub/default.project.json'
           $funkot='maps/bbya-social-hub/92-funkot-club.server.lua'
-          $actual=(git hash-object $tower).Trim()
-          if($actual -ne '9725f96428414c5106fcb8d23979dd206ba9700b'){throw "Staff Tower blob mismatch: $actual"}
+          function GitBlobSha([string]$path){
+            $bytes=[System.IO.File]::ReadAllBytes((Resolve-Path $path))
+            $prefix=[System.Text.Encoding]::ASCII.GetBytes("blob $($bytes.Length)`0")
+            $all=New-Object byte[] ($prefix.Length+$bytes.Length)
+            [Array]::Copy($prefix,0,$all,0,$prefix.Length)
+            [Array]::Copy($bytes,0,$all,$prefix.Length,$bytes.Length)
+            $sha=[System.Security.Cryptography.SHA1]::Create()
+            try{return -join ($sha.ComputeHash($all)|ForEach-Object{$_.ToString('x2')})}finally{$sha.Dispose()}
+          }
+          $towerSha=GitBlobSha $tower
+          if($towerSha -ne '9725f96428414c5106fcb8d23979dd206ba9700b'){throw "Staff Tower blob mismatch: $towerSha"}
+          $funkotSha=GitBlobSha $funkot
+          if($funkotSha -ne '35d45d286361bb35dfd09e0f15af88b0a97086ef'){throw "Funkot authority changed: $funkotSha"}
           $p=Get-Content $project -Raw
           if(([regex]::Matches($p,'148-staff-tower\.server\.lua')).Count -ne 1){throw 'Staff Tower must be registered exactly once'}
           $s=Get-Content $tower -Raw
           foreach($m in @('STAFF_TOWER_V1','148_STAFF_TOWER_V1','ABOVE_FUNKOT','PRIVATE_EXECUTIVE_STAFF_RESIDENCE','local PODIUM_W,PODIUM_D=72,48','local TOWER_W,TOWER_D=52,34','OpenInteriorSide",true','UnitCount",4','OwnerPenthouse','HelipadVisualOnly",true','RoofPlanterNE')){if($s -notmatch [regex]::Escape($m)){throw "Missing tower lock marker: $m"}}
           if($s -match 'RunService|Heartbeat'){throw 'Runtime loop forbidden in Staff Tower source'}
-          if((git diff 65578c03c3b76d15d5cfc82c2a7a6fdbf34da659 -- $funkot)){throw 'Funkot source changed in integration branch'}
-          Write-Host 'Staff Tower exact-source static QC PASS'
+          Write-Host "Staff Tower exact-source static QC PASS tower=$towerSha funkot=$funkotSha"
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
