@@ -1,19 +1,19 @@
--- BBYA SOCIAL HUB — UI KERNEL v2.6 GENERAL PANEL LOCK
--- ONE outer shell authority for compact secondary panels. Dark-glass, mobile-first, X-only panel close controls.
--- Runtime QC lock: all managed secondary panels use the same General Panel footprint and never expose a duplicate CLOSE button.
--- Support/Party are server-authoritative. MUSIC uses its dedicated suite. DJ LIVE remains role-gated with explicit owner/QA route.
+-- BBYA SOCIAL HUB — UI KERNEL v3 CLEAN GENERAL PANEL REBUILD
+-- Clean authority after repeated QC regressions.
+-- GENERAL PANEL is restored to the original narrow right-side footprint; other compact panels follow it.
+-- MUSIC, MESSAGE, ROLE and DJ LIVE own their dedicated layouts and are never resized by this kernel.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local StarterGui=game:GetService("StarterGui")
-local DJ_QA_USERNAMES={nadmo97=true,arda_moron123=true}
+
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local camera=workspace.CurrentCamera
-local clubUI=pg:WaitForChild("BBYAClubUI",30); if not clubUI then return end
-local dock=clubUI:WaitForChild("TopDock",30); if not dock then return end
+local clubUI=pg:WaitForChild("BBYAClubUI",30);if not clubUI then return end
+local dock=clubUI:WaitForChild("TopDock",30);if not dock then return end
+local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30);if not remotes then return end
 
-local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30); if not remotes then return end
 local teleportRemote=remotes:FindFirstChild("Teleport")
 local travelResult=remotes:FindFirstChild("TravelResult")
 local wallRemote=remotes:FindFirstChild("DJWall")
@@ -21,248 +21,131 @@ local monetizationRemote=remotes:WaitForChild("Monetization",30)
 local gearRemote=remotes:WaitForChild("ClubGear",30)
 local afkRemote=remotes:WaitForChild("AFKStatus",30)
 
-local old=pg:FindFirstChild("BBYACommandMenuUI")
-if old then old:Destroy() end
-
+local old=pg:FindFirstChild("BBYACommandMenuUI");if old then old:Destroy() end
 local gui=Instance.new("ScreenGui")
-gui.Name="BBYACommandMenuUI"; gui.ResetOnSpawn=false; gui.IgnoreGuiInset=true
-gui.DisplayOrder=220; gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V2_6_GENERAL_PANEL_LOCK")
-gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_340_SQUARE_MOBILE_SAFE")
-gui:SetAttribute("DJLiveRoute","BBYADJLiveCleanUI")
+gui.Name="BBYACommandMenuUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=220;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
+gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V3_CLEAN_GENERAL_PANEL")
+gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_ORIGINAL_NARROW")
 dock.Visible=false
 
-local C={
- bg=Color3.fromRGB(11,11,16),panel=Color3.fromRGB(19,19,26),card=Color3.fromRGB(29,29,39),
- white=Color3.fromRGB(246,246,249),muted=Color3.fromRGB(158,160,172),line=Color3.fromRGB(72,75,89),
- pink=Color3.fromRGB(234,46,163),cyan=Color3.fromRGB(38,194,222),gold=Color3.fromRGB(220,171,92),
- purple=Color3.fromRGB(145,84,255),green=Color3.fromRGB(77,211,137),red=Color3.fromRGB(220,82,96)
-}
-local function corner(o,r) local x=o:FindFirstChildOfClass("UICorner") or Instance.new("UICorner"); x.CornerRadius=UDim.new(0,r or 10); x.Parent=o end
-local function stroke(o,c,tr) local x=o:FindFirstChild("KernelStroke") or Instance.new("UIStroke"); x.Name="KernelStroke"; x.Color=c or C.line; x.Thickness=1; x.Transparency=tr or .45; x.Parent=o end
+local C={bg=Color3.fromRGB(11,11,16),panel=Color3.fromRGB(19,19,26),card=Color3.fromRGB(29,29,39),white=Color3.fromRGB(246,246,249),muted=Color3.fromRGB(158,160,172),line=Color3.fromRGB(72,75,89),pink=Color3.fromRGB(234,46,163),cyan=Color3.fromRGB(38,194,222),gold=Color3.fromRGB(220,171,92),purple=Color3.fromRGB(145,84,255),green=Color3.fromRGB(77,211,137)}
+local function corner(o,r)local x=Instance.new("UICorner");x.CornerRadius=UDim.new(0,r or 10);x.Parent=o end
+local function stroke(o,c,tr)local x=Instance.new("UIStroke");x.Name="KernelStroke";x.Color=c or C.line;x.Thickness=1;x.Transparency=tr or .45;x.Parent=o end
 local function label(parent,value,pos,size,font,ts,color)
- local l=Instance.new("TextLabel"); l.BackgroundTransparency=1; l.Text=value; l.Position=pos; l.Size=size
- l.Font=font or Enum.Font.Gotham; l.TextSize=ts or 10; l.TextColor3=color or C.white; l.TextWrapped=true
- l.TextXAlignment=Enum.TextXAlignment.Left; l.TextYAlignment=Enum.TextYAlignment.Center; l.Parent=parent; return l
+ local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=tostring(value or "");l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=color or C.white;l.TextWrapped=true;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.Parent=parent;return l
 end
 local function button(parent,value,pos,size,color)
- local b=Instance.new("TextButton"); b.Text=value; b.Position=pos or UDim2.new(); b.Size=size or UDim2.new()
- b.BackgroundColor3=color or C.card; b.BackgroundTransparency=.10; b.BorderSizePixel=0; b.TextColor3=C.white; b.Font=Enum.Font.GothamBold
- b.TextSize=10; b.AutoButtonColor=true; b.Active=true; b.Selectable=true; b.Parent=parent; corner(b,9); stroke(b,C.line,.6); return b
+ local b=Instance.new("TextButton");b.Text=tostring(value or "");b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=color or C.card;b.BackgroundTransparency=.10;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=10;b.AutoButtonColor=true;b.Active=true;b.Parent=parent;corner(b,9);stroke(b,C.line,.6);return b
 end
-local function vp() camera=workspace.CurrentCamera or camera; return camera and camera.ViewportSize or Vector2.new(1280,720) end
-local function normalRect()
- local v=vp()
- local safeW=math.max(240,v.X-24)
- local safeH=math.max(260,v.Y-64)
- return math.min(340,safeW),math.min(340,safeH)
+local function viewport()camera=workspace.CurrentCamera or camera;return camera and camera.ViewportSize or Vector2.new(1280,720)end
+local function generalRect()
+ local v=viewport()
+ return math.clamp(math.floor(v.X*.17),210,240),math.clamp(v.Y-42,340,620)
 end
-local function clearLegacyScale(o)
- if not o then return end
- for _,n in ipairs({"BBYAOwnerPanelScaleV7","BBYAOwnerCommunityScaleV7","BBYAMatchDanceScaleV4","BBYAMatchDanceScaleV5","BBYAMatchDanceScaleV6","BBYAMatchDanceScaleV13","BBYAMatchDanceScaleV14"}) do
-  local s=o:FindFirstChild(n); if s and s:IsA("UIScale") then s:Destroy() end
- end
-end
-local function placeNormal(o)
+local function placeGeneral(o)
  if not o or not o:IsA("GuiObject") then return end
- clearLegacyScale(o); local w,h=normalRect()
- o.AnchorPoint=Vector2.new(1,.5); o.Position=UDim2.new(1,-12,.5,20); o.Size=UDim2.fromOffset(w,h)
- o.ClipsDescendants=true; o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_GENERAL_PANEL_340_V2")
+ local w,h=generalRect();o.AnchorPoint=Vector2.new(1,.5);o.Position=UDim2.new(1,-12,.5,0);o.Size=UDim2.fromOffset(w,h);o.ClipsDescendants=true;o:SetAttribute("BBYAOuterLayoutAuthority","GENERAL_PANEL_ORIGINAL_NARROW_V1")
 end
-local function placeMusic(o)
- if not o or not o:IsA("GuiObject") then return end
- clearLegacyScale(o); local v=vp()
- o.AnchorPoint=Vector2.new(.5,.5); o.Position=UDim2.fromScale(.5,.52)
- o.Size=UDim2.fromOffset(math.clamp(v.X-120,680,900),math.clamp(v.Y-90,430,610))
- o:SetAttribute("BBYAOuterLayoutAuthority","MUSIC_SUITE_COMPACT_V1")
-end
+local function setBackpackVisible(enabled)pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled)end)end
 
-local menuButton=button(gui,"MENU",UDim2.new(1,-86,0,8),UDim2.fromOffset(74,36),Color3.fromRGB(18,18,25))
-menuButton.Name="MenuButton"; stroke(menuButton,C.pink,.28)
-
-local drawer=Instance.new("Frame")
-drawer.Name="FeatureDrawer"; drawer.BackgroundColor3=C.bg; drawer.BackgroundTransparency=.32; drawer.BorderSizePixel=0
-drawer.Visible=false; drawer.ZIndex=201; drawer.Parent=gui; corner(drawer,14); stroke(drawer,C.pink,.46); placeNormal(drawer)
-local head=Instance.new("Frame"); head.Position=UDim2.fromOffset(10,9); head.Size=UDim2.new(1,-20,0,50)
-head.BackgroundColor3=C.panel; head.BackgroundTransparency=.28; head.BorderSizePixel=0; head.ZIndex=202; head.Parent=drawer; corner(head,10)
+local menuButton=button(gui,"MENU",UDim2.new(1,-86,0,8),UDim2.fromOffset(74,36),Color3.fromRGB(18,18,25));menuButton.Name="MenuButton";stroke(menuButton,C.pink,.28)
+local drawer=Instance.new("Frame");drawer.Name="FeatureDrawer";drawer.BackgroundColor3=C.bg;drawer.BackgroundTransparency=.32;drawer.BorderSizePixel=0;drawer.Visible=false;drawer.ZIndex=201;drawer.Parent=gui;corner(drawer,14);stroke(drawer,C.pink,.46);placeGeneral(drawer)
+local head=Instance.new("Frame");head.Position=UDim2.fromOffset(10,9);head.Size=UDim2.new(1,-20,0,50);head.BackgroundColor3=C.panel;head.BackgroundTransparency=.28;head.BorderSizePixel=0;head.ZIndex=202;head.Parent=drawer;corner(head,10)
 label(head,"BBYA MENU",UDim2.fromOffset(11,4),UDim2.new(1,-22,0,22),Enum.Font.GothamBlack,13,C.white).ZIndex=203
 label(head,"ALL FEATURES",UDim2.fromOffset(11,25),UDim2.new(1,-22,0,16),Enum.Font.GothamBold,8,C.muted).ZIndex=203
-local list=Instance.new("ScrollingFrame"); list.Name="FeatureList"; list.Position=UDim2.fromOffset(10,66); list.Size=UDim2.new(1,-20,1,-76)
-list.BackgroundTransparency=1; list.BorderSizePixel=0; list.Active=true; list.ScrollingEnabled=true; list.ScrollingDirection=Enum.ScrollingDirection.Y
-list.ScrollBarThickness=3; list.ScrollBarImageColor3=C.pink; list.AutomaticCanvasSize=Enum.AutomaticSize.Y; list.CanvasSize=UDim2.new(); list.ZIndex=202; list.Parent=drawer
-local ll=Instance.new("UIListLayout"); ll.Padding=UDim.new(0,7); ll.SortOrder=Enum.SortOrder.LayoutOrder; ll.HorizontalAlignment=Enum.HorizontalAlignment.Center; ll.Parent=list
-local pad=Instance.new("UIPadding"); pad.PaddingBottom=UDim.new(0,8); pad.Parent=list
+local list=Instance.new("ScrollingFrame");list.Name="FeatureList";list.Position=UDim2.fromOffset(10,66);list.Size=UDim2.new(1,-20,1,-76);list.BackgroundTransparency=1;list.BorderSizePixel=0;list.Active=true;list.ScrollingEnabled=true;list.AutomaticCanvasSize=Enum.AutomaticSize.Y;list.CanvasSize=UDim2.new();list.ScrollBarThickness=3;list.ScrollBarImageColor3=C.pink;list.ZIndex=202;list.Parent=drawer
+local layout=Instance.new("UIListLayout");layout.Padding=UDim.new(0,7);layout.SortOrder=Enum.SortOrder.LayoutOrder;layout.HorizontalAlignment=Enum.HorizontalAlignment.Center;layout.Parent=list
+local pad=Instance.new("UIPadding");pad.PaddingBottom=UDim.new(0,8);pad.Parent=list
 
-local managed={}; local current=nil; local visibilityBound={}
-local function restoreMenu() current=nil; menuButton.Visible=true; menuButton.Text="MENU" end
-local musicSuiteBound={}
-local function bindMusicSuiteVisibility()
- local musicGui=pg:FindFirstChild("BBYAMusicSuiteV1")
- if not musicGui or not musicGui:IsA("ScreenGui") or musicSuiteBound[musicGui] then return end
- musicSuiteBound[musicGui]=true
- local function sync()
-  if musicGui.Enabled then drawer.Visible=false;menuButton.Visible=false;current="MUSIC"
-  elseif current=="MUSIC" then restoreMenu() end
- end
- musicGui:GetPropertyChangedSignal("Enabled"):Connect(sync);sync()
-end
+local managed={};local current=nil;local visibilityBound={}
+local function restoreMenu()current=nil;menuButton.Visible=true;menuButton.Text="MENU"end
 local function register(key,obj)
  managed[key]=obj
- if obj and obj:IsA("GuiObject") and not visibilityBound[obj] then
-  visibilityBound[obj]=true
-  obj:GetPropertyChangedSignal("Visible"):Connect(function()if not obj.Visible and current==key then restoreMenu() end end)
- end
+ if obj and obj:IsA("GuiObject") and not visibilityBound[obj] then visibilityBound[obj]=true;obj:GetPropertyChangedSignal("Visible"):Connect(function()if not obj.Visible and current==key then restoreMenu()end end)end
  return obj
 end
 local function hideAll(except)
- for key,obj in pairs(managed) do if key~=except and obj and obj:IsA("GuiObject") then obj.Visible=false end end
- local hub=clubUI:FindFirstChild("HubPanel",true);if except~="MUSIC" and hub then hub.Visible=false end
+ for k,o in pairs(managed)do if k~=except and o and o:IsA("GuiObject")then o.Visible=false end end
  current=except
 end
-local function closeMenu() drawer.Visible=false;menuButton.Text="MENU" end
-local function showNormal(key,obj) hideAll(key);placeNormal(obj);obj.Visible=true;closeMenu();current=key;menuButton.Visible=false end
-local function makePanel(name,title,accent,parent)
- local p=Instance.new("Frame");p.Name=name;p.BackgroundColor3=C.bg;p.BackgroundTransparency=.34;p.BorderSizePixel=0
- p.Visible=false;p.ZIndex=400;p.Active=true;p.Parent=parent or gui;corner(p,14);stroke(p,accent,.38);placeNormal(p)
+local function showGeneral(key,obj)hideAll(key);placeGeneral(obj);obj.Visible=true;drawer.Visible=false;menuButton.Visible=false;current=key end
+local function makePanel(name,title,accent)
+ local p=Instance.new("Frame");p.Name=name;p.BackgroundColor3=C.bg;p.BackgroundTransparency=.34;p.BorderSizePixel=0;p.Visible=false;p.ZIndex=400;p.Active=true;p.Parent=gui;corner(p,14);stroke(p,accent,.38);placeGeneral(p)
  label(p,title,UDim2.fromOffset(14,10),UDim2.new(1,-54,0,28),Enum.Font.GothamBlack,14,C.white).ZIndex=402
  local x=button(p,"×",UDim2.new(1,-42,0,8),UDim2.fromOffset(32,32),C.card);x.TextSize=18;x.ZIndex=403;x.Activated:Connect(function()p.Visible=false end)
  return p
 end
 local function toast(msg)
  local oldToast=gui:FindFirstChild("KernelToast");if oldToast then oldToast:Destroy() end
- local t=label(gui,tostring(msg),UDim2.new(.5,-170,1,-58),UDim2.fromOffset(340,38),Enum.Font.GothamBold,10,C.white)
- t.Name="KernelToast";t.BackgroundColor3=C.panel;t.BackgroundTransparency=.18;t.BorderSizePixel=0;t.TextXAlignment=Enum.TextXAlignment.Center;t.ZIndex=900;corner(t,9);stroke(t,C.cyan,.45)
- task.delay(3,function()if t.Parent then t:Destroy() end end)
+ local t=label(gui,msg,UDim2.new(.5,-160,1,-54),UDim2.fromOffset(320,36),Enum.Font.GothamBold,9,C.white);t.Name="KernelToast";t.BackgroundColor3=C.panel;t.BackgroundTransparency=.14;t.BorderSizePixel=0;t.TextXAlignment=Enum.TextXAlignment.Center;t.ZIndex=900;corner(t,9);stroke(t,C.cyan,.45);task.delay(2.5,function()if t.Parent then t:Destroy()end end)
 end
 local function menuEntry(textValue,order,accent,callback)
  local parent=list
- if textValue=="MUSIC" then local slot=Instance.new("Frame");slot.Name="Slot_MUSIC";slot.LayoutOrder=order;slot.Size=UDim2.new(1,-4,0,44);slot.BackgroundTransparency=1;slot.BorderSizePixel=0;slot.ZIndex=203;slot.Parent=list;parent=slot end
- local size=textValue=="MUSIC" and UDim2.fromScale(1,1) or UDim2.new(1,-4,0,44)
- local b=button(parent,textValue,nil,size,C.card);b.LayoutOrder=order;b.ZIndex=204;stroke(b,accent,.58);b.Activated:Connect(callback);return b
+ if textValue=="MUSIC"then local slot=Instance.new("Frame");slot.Name="Slot_MUSIC";slot.LayoutOrder=order;slot.Size=UDim2.new(1,-4,0,44);slot.BackgroundTransparency=1;slot.BorderSizePixel=0;slot.ZIndex=203;slot.Parent=list;parent=slot end
+ local b=button(parent,textValue,nil,textValue=="MUSIC"and UDim2.fromScale(1,1)or UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=order;b.ZIndex=204;b:SetAttribute("BBYACommandMenuId",textValue);stroke(b,accent,.58);b.Activated:Connect(callback);return b
 end
 
-local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan,gui))
+local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan))
 label(supportPanel,"Choose Robux amount",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
-local supportScroll=Instance.new("ScrollingFrame");supportScroll.Name="KernelSupportScroller";supportScroll.Position=UDim2.fromOffset(12,70);supportScroll.Size=UDim2.new(1,-24,1,-82);supportScroll.BackgroundTransparency=1;supportScroll.BorderSizePixel=0;supportScroll.Active=true;supportScroll.ScrollingEnabled=true;supportScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;supportScroll.CanvasSize=UDim2.new();supportScroll.ScrollBarThickness=3;supportScroll.ZIndex=402;supportScroll.Parent=supportPanel
+local supportScroll=Instance.new("ScrollingFrame");supportScroll.Position=UDim2.fromOffset(12,70);supportScroll.Size=UDim2.new(1,-24,1,-82);supportScroll.BackgroundTransparency=1;supportScroll.BorderSizePixel=0;supportScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;supportScroll.CanvasSize=UDim2.new();supportScroll.ScrollBarThickness=3;supportScroll.ZIndex=402;supportScroll.Parent=supportPanel
 local sl=Instance.new("UIListLayout");sl.Padding=UDim.new(0,7);sl.Parent=supportScroll
 local supportButtons={}
-for i,a in ipairs({10,25,50,100,250,500,1000,2000}) do
- local b=button(supportScroll,tostring(a).." ROBUX",nil,UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,C.cyan,.58);supportButtons[a]=b
- b.Activated:Connect(function()b.Text="OPENING...";monetizationRemote:FireServer("promptSupport",a);task.delay(4,function()if b.Parent and b.Text=="OPENING..." then b.Text=tostring(a).." ROBUX" end end)end)
-end
+for i,a in ipairs({10,25,50,100,250,500,1000,2000})do local b=button(supportScroll,tostring(a).." ROBUX",nil,UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,C.cyan,.58);supportButtons[a]=b;b.Activated:Connect(function()b.Text="OPENING...";monetizationRemote:FireServer("promptSupport",a);task.delay(3,function()if b.Parent then b.Text=tostring(a).." ROBUX"end end)end)end
 
-local travelPanel=register("TRAVEL",makePanel("TravelPanel","TRAVEL",C.gold,gui))
+local travelPanel=register("TRAVEL",makePanel("TravelPanel","TRAVEL",C.gold))
 local travelStatus=label(travelPanel,"Tap destination",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted);travelStatus.ZIndex=402
-local travelScroll=Instance.new("ScrollingFrame");travelScroll.Position=UDim2.fromOffset(12,70);travelScroll.Size=UDim2.new(1,-24,1,-82);travelScroll.BackgroundTransparency=1;travelScroll.BorderSizePixel=0;travelScroll.Active=true;travelScroll.ScrollingEnabled=true;travelScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;travelScroll.CanvasSize=UDim2.new();travelScroll.ScrollBarThickness=3;travelScroll.ZIndex=402;travelScroll.Parent=travelPanel
+local travelScroll=Instance.new("ScrollingFrame");travelScroll.Position=UDim2.fromOffset(12,70);travelScroll.Size=UDim2.new(1,-24,1,-82);travelScroll.BackgroundTransparency=1;travelScroll.BorderSizePixel=0;travelScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;travelScroll.CanvasSize=UDim2.new();travelScroll.ScrollBarThickness=3;travelScroll.ZIndex=402;travelScroll.Parent=travelPanel
 local tl=Instance.new("UIListLayout");tl.Padding=UDim.new(0,7);tl.Parent=travelScroll
-local destinations={{"ARRIVAL","Arrival"},{"PHOTO STUDIO","Photo"},{"LOOK LAB","LookLab"},{"MAIN CLUB","MainClub"},{"TOILET / RESTROOM","Toilet"},{"VIP LEVEL","VIP"},{"SKATEPARK","Skatepark"},{"ROOFTOP","Rooftop"},{"UNDERGROUND","Basement"},{"FUNKOT CLUB","Funkot"},{"BBYA MALL","Mall"},{"PASAR MALAM","NightMarket"}}
-local travelButtons={}
-for i,d in ipairs(destinations) do
- local b=button(travelScroll,d[1],nil,UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,C.gold,.6);travelButtons[d[2]]=b
- b.Activated:Connect(function()if teleportRemote then travelStatus.Text="Traveling to "..d[1];teleportRemote:FireServer(d[2]) end end)
-end
-if travelResult then travelResult.OnClientEvent:Connect(function(ok,key)
- local b=travelButtons[tostring(key or "")];if not b then return end
- if ok then travelStatus.Text="Arrived • "..b.Text;task.delay(.12,function()if travelPanel.Parent then travelPanel.Visible=false end end)
- else travelStatus.Text="Try again • "..b.Text;task.delay(1,function()if travelStatus.Parent and travelPanel.Visible then travelStatus.Text="Tap destination" end end) end
-end) end
+for i,d in ipairs({{"ARRIVAL","Arrival"},{"PHOTO STUDIO","Photo"},{"LOOK LAB","LookLab"},{"MAIN CLUB","MainClub"},{"TOILET / RESTROOM","Toilet"},{"VIP LEVEL","VIP"},{"SKATEPARK","Skatepark"},{"ROOFTOP","Rooftop"},{"UNDERGROUND","Basement"},{"FUNKOT CLUB","Funkot"},{"BBYA MALL","Mall"},{"PASAR MALAM","NightMarket"}})do local b=button(travelScroll,d[1],nil,UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,C.gold,.6);b.Activated:Connect(function()if teleportRemote then travelStatus.Text="Traveling to "..d[1];teleportRemote:FireServer(d[2])end end)end
+if travelResult then travelResult.OnClientEvent:Connect(function(ok,key)travelStatus.Text=ok and("Arrived • "..tostring(key))or("Try again • "..tostring(key));if ok then task.delay(.12,function()travelPanel.Visible=false end)end end)end
 
-local communityPanel=register("COMMUNITY",makePanel("CommunityPanel","BBYA COMMUNITY",C.cyan,gui))
-local communityBody=Instance.new("ScrollingFrame");communityBody.Position=UDim2.fromOffset(12,52);communityBody.Size=UDim2.new(1,-24,1,-64);communityBody.BackgroundTransparency=1;communityBody.BorderSizePixel=0;communityBody.Active=true;communityBody.ScrollingEnabled=true;communityBody.AutomaticCanvasSize=Enum.AutomaticSize.Y;communityBody.CanvasSize=UDim2.new();communityBody.ScrollBarThickness=3;communityBody.ZIndex=402;communityBody.Parent=communityPanel
+local communityPanel=register("COMMUNITY",makePanel("CommunityPanel","BBYA COMMUNITY",C.cyan))
+local communityBody=Instance.new("ScrollingFrame");communityBody.Position=UDim2.fromOffset(12,52);communityBody.Size=UDim2.new(1,-24,1,-64);communityBody.BackgroundTransparency=1;communityBody.BorderSizePixel=0;communityBody.AutomaticCanvasSize=Enum.AutomaticSize.Y;communityBody.CanvasSize=UDim2.new();communityBody.ScrollBarThickness=3;communityBody.ZIndex=402;communityBody.Parent=communityPanel
 local cl=Instance.new("UIListLayout");cl.Padding=UDim.new(0,8);cl.Parent=communityBody
-local function infoCard(titleText,bodyText,accent)
- local f=Instance.new("Frame");f.Size=UDim2.new(1,-4,0,100);f.BackgroundColor3=C.panel;f.BackgroundTransparency=.28;f.BorderSizePixel=0;f.ZIndex=402;f.Parent=communityBody;corner(f,10);stroke(f,accent,.58)
- label(f,titleText,UDim2.fromOffset(10,8),UDim2.new(1,-20,0,22),Enum.Font.GothamBold,11,C.white).ZIndex=403
- local t=label(f,bodyText,UDim2.fromOffset(10,32),UDim2.new(1,-20,1,-40),Enum.Font.Gotham,9,C.muted);t.TextYAlignment=Enum.TextYAlignment.Top;t.ZIndex=403
-end
-infoCard("DISCORD COMMUNITY","Event alerts • DJ nights • updates • feedback • hangout",C.cyan)
-infoCard("HOW TO JOIN","Open the BBYA game page → Social Links → Discord.",C.gold)
-infoCard("WHY JOIN?","Early announcements • polls • music updates • community hangout",C.pink)
+for _,spec in ipairs({{"DISCORD COMMUNITY","Event alerts • DJ nights • updates • feedback • hangout",C.cyan},{"HOW TO JOIN","Open the BBYA game page → Social Links → Discord.",C.gold},{"WHY JOIN?","Early announcements • polls • music updates • community hangout",C.pink}})do local f=Instance.new("Frame");f.Size=UDim2.new(1,-4,0,100);f.BackgroundColor3=C.panel;f.BackgroundTransparency=.28;f.BorderSizePixel=0;f.ZIndex=402;f.Parent=communityBody;corner(f,10);stroke(f,spec[3],.58);label(f,spec[1],UDim2.fromOffset(10,8),UDim2.new(1,-20,0,22),Enum.Font.GothamBold,11,C.white).ZIndex=403;local t=label(f,spec[2],UDim2.fromOffset(10,32),UDim2.new(1,-20,1,-40),Enum.Font.Gotham,9,C.muted);t.TextYAlignment=Enum.TextYAlignment.Top;t.ZIndex=403 end
 
-local partyPanel=register("PARTY",makePanel("PartyStuffPanel","PARTY STUFF",C.gold,gui))
+local partyPanel=register("PARTY",makePanel("PartyStuffPanel","PARTY STUFF",C.gold))
 label(partyPanel,"Gear + AFK sign",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local partyList=Instance.new("Frame");partyList.Position=UDim2.fromOffset(12,72);partyList.Size=UDim2.new(1,-24,1,-84);partyList.BackgroundTransparency=1;partyList.ZIndex=402;partyList.Parent=partyPanel
 local pl=Instance.new("UIListLayout");pl.Padding=UDim.new(0,8);pl.Parent=partyList
-local function setBackpackVisible(enabled)pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled)end)end
-local function requestGear(name)setBackpackVisible(false);toast("EQUIPPING "..string.upper(name).."...");gearRemote:FireServer("equip",name)end
-for i,g in ipairs({{"MONEY GUN","Money Gun",C.green},{"GLOWSTICK","Glowstick",C.cyan},{"PARTY SPARKLER","Party Sparkler",C.gold}}) do
- local b=button(partyList,g[1],nil,UDim2.new(1,0,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,g[3],.5);b.Activated:Connect(function()requestGear(g[2])end)
-end
-local afkButton=button(partyList,"AFK SIGN",nil,UDim2.new(1,0,0,44),C.card);afkButton.LayoutOrder=4;afkButton.ZIndex=403;stroke(afkButton,C.gold,.42)
-local function refreshAFKButton()afkButton.Text=player:GetAttribute("BBYAAFKManual")==true and "AFK SIGN • ON  (TAP TO REMOVE)" or "AFK SIGN" end
+for i,g in ipairs({{"MONEY GUN","Money Gun",C.green},{"GLOWSTICK","Glowstick",C.cyan},{"PARTY SPARKLER","Party Sparkler",C.gold}})do local b=button(partyList,g[1],nil,UDim2.new(1,0,0,50),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,g[3],.5);b.Activated:Connect(function()setBackpackVisible(false);gearRemote:FireServer("equip",g[2])end)end
+local afkButton=button(partyList,"AFK SIGN",nil,UDim2.new(1,0,0,50),C.card);afkButton.LayoutOrder=4;afkButton.ZIndex=403;stroke(afkButton,C.gold,.42)
+local function refreshAFK()afkButton.Text=player:GetAttribute("BBYAAFKManual")==true and"AFK SIGN • ON"or"AFK SIGN"end
 afkButton.Activated:Connect(function()afkRemote:FireServer("manualToggle")end)
-local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,44),C.card);away.LayoutOrder=5;away.ZIndex=403;stroke(away,C.pink,.5);away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
+local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,50),C.card);away.LayoutOrder=5;away.ZIndex=403;away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
 
-menuEntry("MUSIC",1,C.pink,function()hideAll("MUSIC");closeMenu();menuButton.Visible=false;current="MUSIC" end)
-menuEntry("SUPPORT",2,C.cyan,function()showNormal("SUPPORT",supportPanel)end)
-menuEntry("TRAVEL",3,C.gold,function()travelStatus.Text="Tap destination";showNormal("TRAVEL",travelPanel)end)
+menuEntry("MUSIC",1,C.pink,function()drawer.Visible=false;menuButton.Visible=false;current="MUSIC"end)
+menuEntry("SUPPORT",2,C.cyan,function()showGeneral("SUPPORT",supportPanel)end)
+menuEntry("TRAVEL",3,C.gold,function()travelStatus.Text="Tap destination";showGeneral("TRAVEL",travelPanel)end)
 menuEntry("MESSAGE",4,C.purple,function()
- hideAll("MESSAGE");closeMenu();menuButton.Visible=false;if wallRemote then wallRemote:FireServer("config") end
+ drawer.Visible=false;menuButton.Visible=false;current="MESSAGE";if wallRemote then wallRemote:FireServer("config")end
  local wall=pg:FindFirstChild("BBYADJWallUI");local p=wall and wall:FindFirstChild("DJWallComposerPanel",true)
- if p then register("MESSAGE",p);placeNormal(p);p.Visible=true;current="MESSAGE" else restoreMenu() end
+ if p then register("MESSAGE",p);p.Visible=true else restoreMenu()end
 end)
-menuEntry("DANCE",5,C.pink,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local dp=social and social:FindFirstChild("DancePanel");if dp then register("DANCE",dp);showNormal("DANCE",dp) else toast("DANCE LOADING...") end end)
-menuEntry("CARRY",6,C.cyan,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local cp=social and social:FindFirstChild("CarryPanel");if cp then register("CARRY",cp);showNormal("CARRY",cp) else toast("CARRY LOADING...") end end)
-menuEntry("COMMUNITY",7,C.cyan,function()showNormal("COMMUNITY",communityPanel)end)
-menuEntry("PARTY STUFF",8,C.gold,function()showNormal("PARTY",partyPanel);setBackpackVisible(false);refreshAFKButton()end)
-
-local function isDJQA()
- local name=string.lower(player.Name)
- return DJ_QA_USERNAMES[name]==true or player:GetAttribute("BBYAOwner")==true or (game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
-end
-local function canDJLive()return isDJQA() or (player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ") end
-local djEntry
-djEntry=menuEntry("DJ LIVE",9,C.gold,function()
- if not canDJLive() then toast("DJ LIVE • DJ ROLE ONLY");return end
- hideAll("DJ");closeMenu();menuButton.Visible=false
+menuEntry("DANCE",5,C.pink,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local p=social and social:FindFirstChild("DancePanel");if p then register("DANCE",p);showGeneral("DANCE",p)else toast("DANCE LOADING...")end end)
+menuEntry("CARRY",6,C.cyan,function()local social=pg:FindFirstChild("BBYASocialHangoutUI");local p=social and social:FindFirstChild("CarryPanel");if p then register("CARRY",p);showGeneral("CARRY",p)else toast("CARRY LOADING...")end end)
+menuEntry("COMMUNITY",7,C.cyan,function()showGeneral("COMMUNITY",communityPanel)end)
+menuEntry("PARTY STUFF",8,C.gold,function()showGeneral("PARTY",partyPanel);setBackpackVisible(false);refreshAFK()end)
+local djEntry=menuEntry("DJ LIVE",9,C.gold,function()
  local dj=pg:FindFirstChild("BBYADJLiveCleanUI");local p=dj and dj:FindFirstChild("DJLivePanel",true)
- if dj and dj:IsA("ScreenGui") then dj.Enabled=true end
- if p and p:IsA("GuiObject") then p.Visible=true;current="DJ" else restoreMenu();toast("DJ LIVE LOADING...") end
+ if p then drawer.Visible=false;menuButton.Visible=false;current="DJ";p.Visible=true else toast("DJ LIVE LOADING...")end
 end)
-local function refreshDJEntry()
- if djEntry then djEntry.Visible=canDJLive() end
- if current=="DJ" and not canDJLive() then local dj=pg:FindFirstChild("BBYADJLiveCleanUI");local p=dj and dj:FindFirstChild("DJLivePanel",true);if p and p:IsA("GuiObject") then p.Visible=false end;restoreMenu() end
+local function refreshDJEntry()if djEntry then djEntry.Visible=player:GetAttribute("BBYAOwner")==true or(player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ")or string.lower(player.Name)=="nadmo97"or string.lower(player.Name)=="arda_moron123"end end
+
+menuButton.Activated:Connect(function()if drawer.Visible then drawer.Visible=false else hideAll(nil);placeGeneral(drawer);drawer.Visible=true end end)
+monetizationRemote.OnClientEvent:Connect(function(action,data)data=type(data)=="table"and data or{};if action=="status"or action=="receipt"then local amount=tonumber(data.amount);if amount and supportButtons[amount]then supportButtons[amount].Text=tostring(amount).." ROBUX"end;if data.message then toast(data.message)end end end)
+gearRemote.OnClientEvent:Connect(function(action,data)data=type(data)=="table"and data or{};if action=="result"then if data.ok then partyPanel.Visible=false;toast(data.message or"EQUIPPED")else setBackpackVisible(true);toast(data.message or"PARTY GEAR FAILED")end end end)
+if afkRemote then afkRemote.OnClientEvent:Connect(function(action)if action=="manualState"then refreshAFK()end end)end
+player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(refreshDJEntry);player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(refreshDJEntry);player:GetAttributeChangedSignal("BBYAOwner"):Connect(refreshDJEntry);player:GetAttributeChangedSignal("BBYAAFKManual"):Connect(refreshAFK)
+
+local function watchExternal(name,key)
+ local g=pg:FindFirstChild(name);if not g then return end
+ for _,d in ipairs(g:GetDescendants())do if d:IsA("GuiObject")and(d.Name=="RolePanel"or d.Name=="DJLivePanel"or d.Name=="DJWallComposerPanel")then register(key,d)end end
 end
-player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(refreshDJEntry)
-player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(refreshDJEntry)
-player:GetAttributeChangedSignal("BBYAOwner"):Connect(refreshDJEntry)
-player:GetAttributeChangedSignal("BBYAAFKManual"):Connect(refreshAFKButton)
-
-menuButton.Activated:Connect(function()
- menuButton.Text="MENU"
- if drawer.Visible then drawer.Visible=false else hideAll(nil);placeNormal(drawer);drawer.Visible=true end
-end)
-
-monetizationRemote.OnClientEvent:Connect(function(action,data)
- data=type(data)=="table" and data or {}
- if action=="status" then
-  local amount=tonumber(data.amount);if amount and supportButtons[amount] then supportButtons[amount].Text=tostring(amount).." ROBUX" end
-  if data.message then toast(data.message) end
- elseif action=="receipt" then
-  local amount=tonumber(data.amount);if amount and supportButtons[amount] then supportButtons[amount].Text=tostring(amount).." ROBUX" end
- end
-end)
-gearRemote.OnClientEvent:Connect(function(action,data)
- data=type(data)=="table" and data or {}
- if action=="result" then
-  local gearName=tostring(data.name or "")
-  if data.ok then if gearName=="" then setBackpackVisible(true) else setBackpackVisible(false) end;partyPanel.Visible=false;toast(data.message or ("EQUIPPED • "..gearName))
-  else setBackpackVisible(true);toast(data.message or "PARTY GEAR FAILED") end
- end
-end)
-if afkRemote then afkRemote.OnClientEvent:Connect(function(action,data)
- if action=="manualState" then data=type(data)=="table" and data or {};refreshAFKButton();toast(data.active==true and "AFK SIGN ON" or "AFK SIGN REMOVED") end
-end) end
-
-player.CharacterAdded:Connect(function()task.defer(function()setBackpackVisible(true);restoreMenu();refreshDJEntry();refreshAFKButton()end)end)
-pg.ChildAdded:Connect(function(child)if child.Name=="BBYAMusicSuiteV1" then task.defer(bindMusicSuiteVisibility) end end)
-
-local function layoutAll()
- placeNormal(drawer);placeNormal(supportPanel);placeNormal(travelPanel);placeNormal(communityPanel);placeNormal(partyPanel)
- for _,key in ipairs({"DANCE","CARRY","MESSAGE"}) do local o=managed[key];if o and o.Visible then placeNormal(o) end end
- local hub=clubUI:FindFirstChild("HubPanel",true);if hub and hub.Visible and current=="MUSIC" then placeMusic(hub) end
-end
-if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
+pg.ChildAdded:Connect(function(child)if child.Name=="BBYAMusicSuiteV1"then child:GetPropertyChangedSignal("Enabled"):Connect(function()if child.Enabled then drawer.Visible=false;menuButton.Visible=false;current="MUSIC"elseif current=="MUSIC"then restoreMenu()end end)elseif child.Name=="BBYADJWallUI"then task.defer(function()watchExternal("BBYADJWallUI","MESSAGE")end)end end)
+local function layoutAll()placeGeneral(drawer);placeGeneral(supportPanel);placeGeneral(travelPanel);placeGeneral(communityPanel);placeGeneral(partyPanel);for _,k in ipairs({"DANCE","CARRY"})do local o=managed[k];if o and o.Visible then placeGeneral(o)end end end
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layoutAll)end)
-task.defer(function()bindMusicSuiteVisibility();layoutAll();refreshDJEntry();refreshAFKButton()end)
-print("[BBYA] UI KERNEL v2.6 online: General Panel 340 lock + X-only close + mobile safe")
+player.CharacterAdded:Connect(function()setBackpackVisible(true);restoreMenu();refreshAFK();refreshDJEntry()end)
+task.defer(function()layoutAll();refreshAFK();refreshDJEntry()end)
+print("[BBYA] UI Kernel v3 online: original narrow General Panel restored / dedicated panels untouched")

@@ -1,77 +1,79 @@
--- BBYA SOCIAL HUB — MESSAGE CLIENT v6 MOBILE-SAFE
--- Public DJ WALL identity retired. Existing legacy GUI/remote identifiers remain internal for UI Kernel compatibility.
--- Runtime QC lock: write -> category -> Robux tier -> explicit KIRIM / SEND must all remain inside the panel viewport.
+-- BBYA SOCIAL HUB — MESSAGE CLIENT v7 CLEAN COMPACT
+-- Compact 80-char composer. SEND is always visible. Success gets a clear notification + SFX.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local SoundService=game:GetService("SoundService")
+local TweenService=game:GetService("TweenService")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
-local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes")
-local wallRemote=remotes:WaitForChild("DJWall")
+local wallRemote=ReplicatedStorage:WaitForChild("BBYAClubRemotes"):WaitForChild("DJWall")
+local SUCCESS_SFX="rbxassetid://7112275565"
 
-local old=pg:FindFirstChild("BBYADJWallUI");if old then old:Destroy() end
-local oldPublic=pg:FindFirstChild("BBYAMessageUI");if oldPublic then oldPublic:Destroy() end
-local C={BG=Color3.fromRGB(10,10,14),PANEL=Color3.fromRGB(19,17,24),CARD=Color3.fromRGB(29,25,34),PINK=Color3.fromRGB(247,55,158),WHITE=Color3.fromRGB(244,243,247),MUTED=Color3.fromRGB(158,154,166),GOLD=Color3.fromRGB(215,169,96),CYAN=Color3.fromRGB(39,191,218)}
-local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
-local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col;s.Thickness=1;s.Transparency=tr or .45;s.Parent=o;return s end
-local function label(parent,text,pos,size,font,ts,col)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=col or C.WHITE;l.TextWrapped=true;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.Parent=parent;return l end
-local function button(parent,text,pos,size,bg)local b=Instance.new("TextButton");b.Text=text;b.Position=pos;b.Size=size;b.BackgroundColor3=bg or C.CARD;b.BackgroundTransparency=.12;b.BorderSizePixel=0;b.TextColor3=C.WHITE;b.Font=Enum.Font.GothamBold;b.TextSize=9;b.AutoButtonColor=true;b.Parent=parent;corner(b,9);return b end
+local old=pg:FindFirstChild("BBYADJWallUI");if old then old:Destroy()end
+local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=235;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg;gui:SetAttribute("PublicName","MESSAGE");gui:SetAttribute("BBYAUIAuthority","MESSAGE_V7_CLEAN_COMPACT")
+local C={bg=Color3.fromRGB(10,10,14),panel=Color3.fromRGB(19,17,24),card=Color3.fromRGB(29,25,34),pink=Color3.fromRGB(247,55,158),white=Color3.fromRGB(246,245,248),muted=Color3.fromRGB(165,161,172),cyan=Color3.fromRGB(55,199,227),green=Color3.fromRGB(86,222,151)}
+local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
+local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col;s.Thickness=1;s.Transparency=tr or .45;s.Parent=o end
+local function label(p,v,pos,size,font,ts,col,align)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=tostring(v or"");l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 9;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextWrapped=true;l.Parent=p;return l end
+local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos;b.Size=size;b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.08;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.AutoButtonColor=true;b.Parent=p;corner(b,8);stroke(b,C.card,.2);return b end
+local function kernelMenuVisible(v)local k=pg:FindFirstChild("BBYACommandMenuUI");local m=k and k:FindFirstChild("MenuButton",true);if m then m.Visible=v end end
 
-local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=35;gui.Parent=pg
-gui:SetAttribute("PublicName","MESSAGE");gui:SetAttribute("LegacyDJWallPublicNameRetired",true)
-local panel=Instance.new("Frame");panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-12,.5,0);panel.Size=UDim2.fromOffset(340,340)
-panel.BackgroundColor3=C.BG;panel.BackgroundTransparency=.32;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,14);stroke(panel,C.PINK,.32)
-panel:SetAttribute("BBYAOuterLayoutOwner","UI_KERNEL");panel:SetAttribute("PublicName","MESSAGE");panel:SetAttribute("Flow","WRITE_TIER_SEND");panel:SetAttribute("MobileSafe",true)
-label(panel,"MESSAGE",UDim2.fromOffset(14,9),UDim2.new(1,-58,0,26),Enum.Font.GothamBlack,14,C.WHITE)
-label(panel,"1  Tulis pesan",UDim2.fromOffset(14,34),UDim2.new(1,-28,0,16),Enum.Font.GothamBold,8,C.MUTED)
-local close=button(panel,"×",UDim2.new(1,-40,0,7),UDim2.fromOffset(30,30),C.CARD);close.TextSize=17
-
-local categories={{"BIRTHDAY","BIRTHDAY"},{"LOVE","LOVE"},{"SHOUTOUT","SHOUTOUT"},{"CUSTOM","CUSTOM"}}
-local category="BIRTHDAY"
-local cats=Instance.new("Frame");cats.Position=UDim2.fromOffset(12,52);cats.Size=UDim2.new(1,-24,0,28);cats.BackgroundTransparency=1;cats.Parent=panel
-local catButtons={}
-for i,c in ipairs(categories)do local b=button(cats,c[2],UDim2.new((i-1)*.25,0,0,0),UDim2.new(.25,-3,1,0),C.CARD);b.TextSize=7;catButtons[c[1]]=b;b.Activated:Connect(function()category=c[1];for k,x in pairs(catButtons)do x.BackgroundColor3=(k==category)and Color3.fromRGB(91,28,66)or C.CARD end end)end
+local panel=Instance.new("Frame");panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.5,18);panel.Size=UDim2.fromOffset(330,300);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.10;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,15);stroke(panel,C.pink,.28)
+panel:SetAttribute("PublicName","MESSAGE");panel:SetAttribute("Flow","WRITE_TIER_SEND");panel:SetAttribute("DedicatedLayout",true)
+label(panel,"MESSAGE",UDim2.fromOffset(14,8),UDim2.new(1,-58,0,24),Enum.Font.GothamBlack,14,C.white)
+local close=button(panel,"×",UDim2.new(1,-40,0,7),UDim2.fromOffset(30,30),C.card);close.TextSize=17
+local cats=Instance.new("Frame");cats.Position=UDim2.fromOffset(12,38);cats.Size=UDim2.new(1,-24,0,27);cats.BackgroundTransparency=1;cats.Parent=panel
+local category="BIRTHDAY";local catButtons={}
+for i,name in ipairs({"BIRTHDAY","LOVE","SHOUTOUT","CUSTOM"})do local b=button(cats,name,UDim2.new((i-1)*.25,0,0,0),UDim2.new(.25,-3,1,0),C.card);b.TextSize=7;catButtons[name]=b;b.Activated:Connect(function()category=name;for k,x in pairs(catButtons)do x.BackgroundColor3=k==category and Color3.fromRGB(91,28,66)or C.card end end)end
 catButtons.BIRTHDAY.BackgroundColor3=Color3.fromRGB(91,28,66)
 
-local box=Instance.new("TextBox");box.Position=UDim2.fromOffset(12,86);box.Size=UDim2.new(1,-24,0,70);box.BackgroundColor3=C.PANEL;box.BackgroundTransparency=.16;box.BorderSizePixel=0;box.ClearTextOnFocus=false;box.MultiLine=true;box.Text="";box.PlaceholderText="Write your message...";box.PlaceholderColor3=Color3.fromRGB(112,106,119);box.TextColor3=C.WHITE;box.Font=Enum.Font.GothamMedium;box.TextSize=9;box.TextWrapped=true;box.TextXAlignment=Enum.TextXAlignment.Left;box.TextYAlignment=Enum.TextYAlignment.Top;box.Parent=panel;corner(box,10);stroke(box,Color3.fromRGB(62,51,67),.45)
-local pad=Instance.new("UIPadding");pad.PaddingLeft=UDim.new(0,9);pad.PaddingRight=UDim.new(0,9);pad.PaddingTop=UDim.new(0,7);pad.PaddingBottom=UDim.new(0,7);pad.Parent=box
-local count=label(panel,"0 / 80",UDim2.new(1,-88,0,157),UDim2.fromOffset(74,16),Enum.Font.GothamBold,7,C.MUTED);count.TextXAlignment=Enum.TextXAlignment.Right
-label(panel,"2  Pilih nominal Robux",UDim2.fromOffset(14,174),UDim2.new(1,-28,0,16),Enum.Font.GothamBold,8,C.MUTED)
-local tiersHolder=Instance.new("Frame");tiersHolder.Position=UDim2.fromOffset(12,194);tiersHolder.Size=UDim2.new(1,-24,0,74);tiersHolder.BackgroundTransparency=1;tiersHolder.Parent=panel
-local tierGrid=Instance.new("UIGridLayout");tierGrid.CellPadding=UDim2.fromOffset(5,5);tierGrid.CellSize=UDim2.new(1/3,-4,0,21);tierGrid.FillDirectionMaxCells=3;tierGrid.SortOrder=Enum.SortOrder.LayoutOrder;tierGrid.Parent=tiersHolder
-
-local LOCKED_TIERS={2,5,10,25,50,100,250,500,1000};local selectedAmount=2;local tierButtons={};local config={tiers=LOCKED_TIERS,available={},maxChars=80,admin=false,publicName="MESSAGE"};local refresh
-for i,amount in ipairs(LOCKED_TIERS)do local b=button(tiersHolder,tostring(amount).." R$",UDim2.new(),UDim2.new(),C.CARD);b.LayoutOrder=i;b.TextSize=7;tierButtons[amount]=b;b.Activated:Connect(function()if config.admin or config.available[amount]~=false then selectedAmount=amount end;if refresh then refresh() end end)end
-
-local send=button(panel,"3  KIRIM / SEND • 2 R$",UDim2.fromOffset(12,278),UDim2.new(1,-24,0,38),Color3.fromRGB(91,28,66));send.TextSize=9;stroke(send,C.PINK,.30)
-local status=label(panel,"READY • ROBLOX PURCHASE REQUIRED",UDim2.fromOffset(14,318),UDim2.new(1,-28,0,16),Enum.Font.GothamBold,7,C.CYAN)
+local box=Instance.new("TextBox");box.Position=UDim2.fromOffset(12,72);box.Size=UDim2.new(1,-24,0,52);box.BackgroundColor3=C.panel;box.BackgroundTransparency=.10;box.BorderSizePixel=0;box.ClearTextOnFocus=false;box.MultiLine=true;box.Text="";box.PlaceholderText="Tulis pesan singkat...";box.PlaceholderColor3=C.muted;box.TextColor3=C.white;box.Font=Enum.Font.GothamMedium;box.TextSize=9;box.TextWrapped=true;box.TextXAlignment=Enum.TextXAlignment.Left;box.TextYAlignment=Enum.TextYAlignment.Top;box.Parent=panel;corner(box,9);stroke(box,Color3.fromRGB(67,55,72),.5);local bp=Instance.new("UIPadding");bp.PaddingLeft=UDim.new(0,9);bp.PaddingRight=UDim.new(0,9);bp.PaddingTop=UDim.new(0,7);bp.PaddingBottom=UDim.new(0,7);bp.Parent=box
+local count=label(panel,"0 / 80",UDim2.new(1,-76,0,124),UDim2.fromOffset(62,14),Enum.Font.GothamBold,7,C.muted,Enum.TextXAlignment.Right)
+label(panel,"PILIH ROBUX",UDim2.fromOffset(14,139),UDim2.new(1,-28,0,14),Enum.Font.GothamBold,7,C.muted)
+local tiers=Instance.new("Frame");tiers.Position=UDim2.fromOffset(12,157);tiers.Size=UDim2.new(1,-24,0,65);tiers.BackgroundTransparency=1;tiers.Parent=panel
+local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(4,4);grid.CellSize=UDim2.new(1/3,-3,0,19);grid.FillDirectionMaxCells=3;grid.Parent=tiers
+local LOCKED={2,5,10,25,50,100,250,500,1000};local selected=2;local tierButtons={};local config={available={},maxChars=80,admin=false}
+for i,a in ipairs(LOCKED)do local b=button(tiers,tostring(a).." R$",UDim2.new(),UDim2.new(),C.card);b.LayoutOrder=i;b.TextSize=7;tierButtons[a]=b;b.Activated:Connect(function()if config.admin or config.available[a]~=false then selected=a;for amount,x in pairs(tierButtons)do x.BackgroundColor3=amount==selected and Color3.fromRGB(91,28,66)or C.card end end)end end
+tierButtons[2].BackgroundColor3=Color3.fromRGB(91,28,66)
+local send=button(panel,"KIRIM / SEND • 2 R$",UDim2.fromOffset(12,230),UDim2.new(1,-24,0,40),Color3.fromRGB(111,29,78));send.TextSize=10;stroke(send,C.pink,.18)
+local status=label(panel,"READY",UDim2.fromOffset(14,274),UDim2.new(1,-28,0,16),Enum.Font.GothamBold,7,C.cyan)
 
 local busy=false
-refresh=function()
- if not config.admin and config.available[selectedAmount]==false then for _,amount in ipairs(LOCKED_TIERS)do if config.available[amount]~=false then selectedAmount=amount;break end end end
- for amount,b in pairs(tierButtons)do local selected=amount==selectedAmount;local available=config.admin or config.available[amount]~=false;b.Active=available;b.AutoButtonColor=available;b.BackgroundColor3=selected and Color3.fromRGB(91,28,66)or C.CARD;b.TextColor3=available and C.WHITE or Color3.fromRGB(93,91,99);b.Text=(selected and "✓ " or "")..tostring(amount).." R$" end
- send.Text=config.admin and "3  KIRIM TEST • FREE" or ("3  KIRIM / SEND • "..tostring(selectedAmount).." R$")
- status.Text=config.admin and "OWNER / ADMIN PREVIEW" or "READY • ROBLOX PURCHASE REQUIRED"
+local function refresh()
+ if not config.admin and config.available[selected]==false then for _,a in ipairs(LOCKED)do if config.available[a]~=false then selected=a;break end end end
+ for a,b in pairs(tierButtons)do local available=config.admin or config.available[a]~=false;b.Active=available;b.AutoButtonColor=available;b.TextTransparency=available and 0 or .55;b.BackgroundColor3=a==selected and Color3.fromRGB(91,28,66)or C.card end
+ send.Text=config.admin and"KIRIM TEST • FREE"or("KIRIM / SEND • "..tostring(selected).." R$");send.Active=not busy;send.AutoButtonColor=not busy
 end
-local function showToast(text)local oldToast=gui:FindFirstChild("MessageToast");if oldToast then oldToast:Destroy() end;local t=label(gui,tostring(text),UDim2.new(.5,-160,1,-58),UDim2.fromOffset(320,38),Enum.Font.GothamBold,9,C.WHITE);t.Name="MessageToast";t.BackgroundColor3=C.PANEL;t.BackgroundTransparency=.16;t.BorderSizePixel=0;t.TextXAlignment=Enum.TextXAlignment.Center;t.ZIndex=50;corner(t,9);stroke(t,C.PINK,.45);task.delay(2.5,function()if t.Parent then t:Destroy()end end)end
-local function applyConfig(data)if type(data)~="table" then return end;config=data;config.available=type(config.available)=="table" and config.available or {};refresh()end
-local function openPanel(data)applyConfig(data);panel.Visible=true end
-local function closePanel()panel.Visible=false;box:ReleaseFocus()end
+local function toast(txt,col)
+ local old=gui:FindFirstChild("MessageToast");if old then old:Destroy()end
+ local t=label(gui,txt,UDim2.new(.5,-160,0,78),UDim2.fromOffset(320,42),Enum.Font.GothamBlack,10,C.white,Enum.TextXAlignment.Center);t.Name="MessageToast";t.BackgroundColor3=C.panel;t.BackgroundTransparency=.06;t.BorderSizePixel=0;t.ZIndex=500;corner(t,11);stroke(t,col or C.pink,.25);task.delay(2.4,function()if t.Parent then t:Destroy()end end)
+end
+local function playSuccess()
+ local s=Instance.new("Sound");s.Name="BBYAMessageSuccessSFX";s.SoundId=SUCCESS_SFX;s.Volume=1.15;s.Parent=SoundService;pcall(function()s:Play()end);task.delay(5,function()if s.Parent then s:Destroy()end end)
+end
+local function applyConfig(d)if type(d)~="table"then return end;config=d;config.available=type(config.available)=="table"and config.available or{};refresh()end
+local function openPanel(d)applyConfig(d);panel.Visible=true;kernelMenuVisible(false);status.Text="READY"end
+local function closePanel()panel.Visible=false;box:ReleaseFocus();kernelMenuVisible(true)end
 close.Activated:Connect(closePanel)
 box:GetPropertyChangedSignal("Text"):Connect(function()local max=tonumber(config.maxChars)or 80;if #box.Text>max then box.Text=box.Text:sub(1,max);box.CursorPosition=#box.Text+1 end;count.Text=string.format("%d / %d",#box.Text,max)end)
-
 send.Activated:Connect(function()
- if busy then return end
- if #box.Text<2 then showToast("1 • Tulis pesan dulu.");box:CaptureFocus();return end
- if not config.admin and config.available[selectedAmount]==false then showToast("2 • Pilih tier yang tersedia.");return end
- busy=true;send.Text="CHECKING MESSAGE...";wallRemote:FireServer("submit",{category=category,text=box.Text,amount=selectedAmount});task.delay(2,function()busy=false;if panel.Visible then refresh()end end)
+ if busy then return end;if #box.Text<2 then toast("Tulis pesan dulu.");box:CaptureFocus();return end
+ busy=true;status.Text="PROCESSING...";send.Text="PROCESSING...";refresh();wallRemote:FireServer("submit",{category=category,text=box.Text,amount=selected})
+ task.delay(6,function()if busy then busy=false;status.Text="COBA LAGI";refresh()end end)
 end)
 wallRemote.OnClientEvent:Connect(function(action,data)
- if action=="open" then openPanel(data)
- elseif action=="config" and type(data)=="table" then applyConfig(data)
- elseif action=="toast" then busy=false;showToast(tostring(data));if panel.Visible then refresh()end
- elseif action=="purchase" then busy=false;local amount=(type(data)=="table" and tonumber(data.amount))or selectedAmount;showToast("Pesan lolos filter • buka purchase "..tostring(amount).." Robux.");refresh()
- elseif action=="queued" then busy=false;local pos=(type(data)=="table" and data.position)or 1;showToast("MESSAGE masuk antrean #"..tostring(pos)..".");box.Text="";closePanel() end
+ if action=="open"then openPanel(data)
+ elseif action=="config"then applyConfig(data)
+ elseif action=="processing"then status.Text="PROCESSING..."
+ elseif action=="toast"then busy=false;status.Text="READY";refresh();toast(tostring(data))
+ elseif action=="purchase"then busy=false;status.Text="ROBLOX PURCHASE";refresh();toast("Pesan lolos • selesaikan purchase Roblox.",C.cyan)
+ elseif action=="queued"then busy=false;local pos=type(data)=="table"and(data.position or 1)or 1;playSuccess();toast("MESSAGE TERKIRIM • QUEUE #"..tostring(pos),C.green);box.Text="";status.Text="SENT";task.delay(.35,closePanel)
+ end
 end)
-refresh();wallRemote:FireServer("config")
-print("[BBYA] MESSAGE client v6 online: mobile-safe 340x340 / explicit WRITE-TIER-SEND flow")
+local cam=workspace.CurrentCamera
+local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local scale=math.min(1,math.max(.82,(vp.Y-70)/330));panel.Size=UDim2.fromOffset(math.floor(330*scale),math.floor(300*scale));panel.Position=UDim2.new(.5,0,.5,18)end
+if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
+refresh();wallRemote:FireServer("config");task.defer(layout)
+print("[BBYA] MESSAGE client v7 online: compact 80-char box / visible SEND / success notification + SFX")
