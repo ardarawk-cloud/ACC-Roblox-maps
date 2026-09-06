@@ -165,3 +165,4 @@ jobs:
           Write-Host "BBYA_CURRENT_MAIN_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:GITHUB_SHA"
 
 # trigger-current-main-live-20260907-v752-runtime-hardening
+# trigger-current-main-live-20260907-staff-tower-live-qc
