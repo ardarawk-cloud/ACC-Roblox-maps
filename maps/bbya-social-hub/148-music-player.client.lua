@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MUSIC PLAYER v5 SINGLE AUTHORITY
+-- BBYA SOCIAL HUB — MUSIC PLAYER v5.1 GLASS PRECISION
 -- One compact presentation authority. Reads venue catalogs/remotes only; never mutates SoundId/Volume/PlaybackSpeed.
 -- Viewer: PLAYLIST / REQUEST / FAV. Owner/admin adds NEXT.
+-- QC repair: presentation layers share one restrained smoky-glass opacity; playback/control logic is unchanged.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -25,9 +26,9 @@ local SOUNDS={MAIN={"BBYAClubDeckA","BBYAClubDeckB"},UNDERGROUND={"BBYABasementD
 
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
 local function stroke(o,c,tr)local s=Instance.new("UIStroke");s.Color=c or C.line;s.Thickness=1;s.Transparency=tr or .45;s.Parent=o;return s end
-local function frame(p,n,pos,size,bg,tr,r)local f=Instance.new("Frame");f.Name=n;f.Position=pos or UDim2.new();f.Size=size or UDim2.new();f.BackgroundColor3=bg or C.panel;f.BackgroundTransparency=tr or .18;f.BorderSizePixel=0;f.Parent=p;if r then corner(f,r)end;return f end
+local function frame(p,n,pos,size,bg,tr,r)local f=Instance.new("Frame");f.Name=n;f.Position=pos or UDim2.new();f.Size=size or UDim2.new();f.BackgroundColor3=bg or C.panel;f.BackgroundTransparency=tr==nil and .34 or tr;f.BorderSizePixel=0;f.Parent=p;if r then corner(f,r)end;return f end
 local function label(p,n,t,pos,size,font,ts,col,align)local l=Instance.new("TextLabel");l.Name=n;l.BackgroundTransparency=1;l.Text=t;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextTruncate=Enum.TextTruncate.AtEnd;l.Parent=p;return l end
-local function button(p,n,t,pos,size,bg)local b=Instance.new("TextButton");b.Name=n;b.Text=t;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=bg or C.card;b.BackgroundTransparency=.10;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.AutoButtonColor=true;b.Parent=p;corner(b,8);stroke(b,C.line,.58);return b end
+local function button(p,n,t,pos,size,bg)local b=Instance.new("TextButton");b.Name=n;b.Text=t;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=bg or C.card;b.BackgroundTransparency=.30;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.AutoButtonColor=true;b.Parent=p;corner(b,8);stroke(b,C.line,.58);return b end
 local function isOwner()return player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYAOwner")==true or(game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)or string.lower(player.Name)=="nadmo97"end
 local function venue()local v=tostring(player:GetAttribute("BBYAAudioVenue")or"NONE");if v=="BASEMENT"then v="UNDERGROUND"end;return VENUES[v]and v or"NONE"end
 local function normalize(list)local out={};for i,t in ipairs(type(list)=="table"and list or{})do out[i]={title=tostring(t.title or("Track "..i)),artist=tostring(t.artist or t.style or t.genre or""),assetId=tostring(t.assetId or t.id or"")}end;return out end
@@ -55,18 +56,18 @@ local function requestList(v)if v=="MAIN"or v=="UNDERGROUND"then mainRemote:Fire
 
 local old=pg:FindFirstChild("BBYAMusicPlayerV5");if old then old:Destroy()end
 for _,n in ipairs({"BBYAMusicSuiteV1","BBYACompactMusicLayerV7"})do local g=pg:FindFirstChild(n);if g then g:Destroy()end end
-local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_SINGLE_AUTHORITY")
-local shell=frame(gui,"MusicPanel",UDim2.new(1,-18,.5,18),UDim2.fromOffset(400,400),C.bg,.13,20);shell.AnchorPoint=Vector2.new(1,.5);local shellStroke=stroke(shell,C.purple,.20)
-local hero=frame(shell,"Hero",UDim2.fromOffset(12,12),UDim2.new(1,-24,0,142),C.panel,.16,16)
+local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_1_GLASS_PRECISION")
+local shell=frame(gui,"MusicPanel",UDim2.new(1,-18,.5,18),UDim2.fromOffset(400,400),C.bg,.30,20);shell.AnchorPoint=Vector2.new(1,.5);local shellStroke=stroke(shell,C.purple,.20)
+local hero=frame(shell,"Hero",UDim2.fromOffset(12,12),UDim2.new(1,-24,0,142),C.panel,.34,16)
 local venueText=label(hero,"Venue","BBYA MUSIC",UDim2.fromOffset(14,10),UDim2.new(.52,0,0,16),Enum.Font.GothamBold,8,C.muted)
 local title=label(hero,"NowPlaying","BELUM ADA LAGU",UDim2.fromOffset(14,30),UDim2.new(1,-62,0,28),Enum.Font.GothamBlack,16,C.white)
 local stateText=label(hero,"State","STANDBY",UDim2.fromOffset(14,59),UDim2.new(.5,0,0,16),Enum.Font.GothamBold,8,C.green)
 local close=button(hero,"Close","×",UDim2.new(1,-42,0,10),UDim2.fromOffset(30,30),C.card);close.TextSize=16
-local wave=frame(hero,"Wave",UDim2.new(.60,0,0,55),UDim2.new(.34,0,0,38),C.panel,1);local bars={};for i=1,15 do local b=frame(wave,"B"..i,UDim2.new((i-.5)/15,0,1,0),UDim2.new(.04,0,0,7+((i*9)%20)),i%5==0 and C.cyan or C.white,.35,3);b.AnchorPoint=Vector2.new(.5,1);bars[i]=b end
-local rail=frame(hero,"Progress",UDim2.fromOffset(14,102),UDim2.new(1,-28,0,4),C.card,0,3);local fill=frame(rail,"Fill",UDim2.new(),UDim2.new(0,0,1,0),C.purple,0,3)
+local wave=frame(hero,"Wave",UDim2.new(.60,0,0,55),UDim2.new(.34,0,0,38),C.panel,1);local bars={};for i=1,15 do local b=frame(wave,"B"..i,UDim2.new((i-.5)/15,0,1,0),UDim2.new(.04,0,0,7+((i*9)%20)),i%5==0 and C.cyan or C.white,.42,3);b.AnchorPoint=Vector2.new(.5,1);bars[i]=b end
+local rail=frame(hero,"Progress",UDim2.fromOffset(14,102),UDim2.new(1,-28,0,4),C.card,.34,3);local fill=frame(rail,"Fill",UDim2.new(),UDim2.new(0,0,1,0),C.purple,0,3)
 local elapsed=label(hero,"Elapsed","00:00",UDim2.fromOffset(14,109),UDim2.fromOffset(58,14),Enum.Font.GothamBold,7,C.muted);local duration=label(hero,"Duration","00:00",UDim2.new(1,-72,0,109),UDim2.fromOffset(58,14),Enum.Font.GothamBold,7,C.muted,Enum.TextXAlignment.Right)
 
-local body=frame(shell,"Body",UDim2.fromOffset(12,164),UDim2.new(1,-24,1,-214),C.panel,.24,14);stroke(body,C.line,.62)
+local body=frame(shell,"Body",UDim2.fromOffset(12,164),UDim2.new(1,-24,1,-214),C.panel,.36,14);stroke(body,C.line,.62)
 local bodyTitle=label(body,"Title","UP NEXT",UDim2.fromOffset(12,6),UDim2.new(1,-24,0,20),Enum.Font.GothamBlack,10,C.white)
 local list=Instance.new("ScrollingFrame");list.Position=UDim2.fromOffset(9,30);list.Size=UDim2.new(1,-18,1,-38);list.BackgroundTransparency=1;list.BorderSizePixel=0;list.AutomaticCanvasSize=Enum.AutomaticSize.Y;list.CanvasSize=UDim2.new();list.ScrollBarThickness=2;list.Parent=body;local ll=Instance.new("UIListLayout");ll.Padding=UDim.new(0,4);ll.Parent=list
 
@@ -79,7 +80,7 @@ local mode="NOW";local currentTracks={};local currentState={};local activeSound=
 local function favKey(v,i)return v..":"..tostring(i)end
 local function clearRows()for _,c in ipairs(list:GetChildren())do if c:IsA("GuiObject")and c~=ll then c:Destroy()end end end
 local function row(index,item,kind)
- local r=frame(list,"Row"..index,nil,UDim2.new(1,-2,0,32),C.card,.10,8);label(r,"Index",string.format("%02d",index),UDim2.fromOffset(7,0),UDim2.fromOffset(26,32),Enum.Font.GothamBlack,7,(VENUES[venue()]or VENUES.NONE).accent,Enum.TextXAlignment.Center);label(r,"Track",item.title or("Track "..index),UDim2.fromOffset(37,1),UDim2.new(1,-82,0,18),Enum.Font.GothamBold,8,C.white);label(r,"Meta",item.artist or"",UDim2.fromOffset(37,17),UDim2.new(1,-82,0,12),Enum.Font.Gotham,6,C.muted)
+ local r=frame(list,"Row"..index,nil,UDim2.new(1,-2,0,32),C.card,.30,8);label(r,"Index",string.format("%02d",index),UDim2.fromOffset(7,0),UDim2.fromOffset(26,32),Enum.Font.GothamBlack,7,(VENUES[venue()]or VENUES.NONE).accent,Enum.TextXAlignment.Center);label(r,"Track",item.title or("Track "..index),UDim2.fromOffset(37,1),UDim2.new(1,-82,0,18),Enum.Font.GothamBold,8,C.white);label(r,"Meta",item.artist or"",UDim2.fromOffset(37,17),UDim2.new(1,-82,0,12),Enum.Font.Gotham,6,C.muted)
  if kind=="REQUEST"then local b=button(r,"Req","REQUEST",UDim2.new(1,-62,0,5),UDim2.fromOffset(56,22),Color3.fromRGB(54,34,83));b.TextSize=6;b.Activated:Connect(function()remoteControl(venue(),"request",index)end)else local k=favKey(venue(),index);local b=button(r,"Fav",favorites[k]and"♥"or"♡",UDim2.new(1,-30,0,5),UDim2.fromOffset(24,22),C.card);b.TextColor3=favorites[k]and C.pink or C.muted;b.Activated:Connect(function()if favorites[k]then favorites[k]=nil else favorites[k]=true end;b.Text=favorites[k]and"♥"or"♡";b.TextColor3=favorites[k]and C.pink or C.muted end)end
 end
 local function render()
@@ -112,4 +113,4 @@ if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
 local acc=0;RunService.RenderStepped:Connect(function(dt)if not gui.Enabled then return end;acc+=dt;if acc<.12 then return end;acc=0;if activeSound and activeSound.Parent then local len=tonumber(activeSound.TimeLength)or 0;local pos=tonumber(activeSound.TimePosition)or 0;fill.Size=UDim2.new(len>0 and math.clamp(pos/len,0,1)or 0,0,1,0);elapsed.Text=fmt(pos);duration.Text=fmt(len);local loud=math.clamp((activeSound.PlaybackLoudness or 0)/500,0,1);for i,b in ipairs(bars)do b.Size=UDim2.new(.04,0,0,7+math.floor(loud*(8+((i*7)%18))))end end end)
 task.defer(function()layout();bindMenu();refresh()end)
-print("[BBYA] Music Player v5 online: single compact authority / live venue catalogs / viewer 3 controls + owner NEXT")
+print("[BBYA] Music Player v5.1 online: consistent smoky glass / live venue catalogs / behavior preserved")
