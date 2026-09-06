@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V131_MUSIC_PLAYBACK_HOTFIX",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "a8ad670be399600e90e35db37480468bd3841f9b",
+    "baseLiveCommit":  "370f5b5fca3fbae7b6b52d39de72279349e5711c",
+    "qcRunId":  "34044653696",
+    "qcArtifactId":  9992727608,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  56,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  200344,
+    "placeSha256":  "67b42ca1013af12cd7eaf2be8c7157a998b32cc417c1fb9fc80aeb31ca875e64",
+    "runId":  "34044778129",
+    "publishedAt":  "2026-09-06T16:14:26Z",
+    "note":  "Exact V1.3 personal music playback hotfix QC artifact published without rebuild. Only the client playback transition changed from Resume() to Play(); KPOP 18-track bank and all prior AFTER SCHOOL CITY authorities remain unchanged."
+}
