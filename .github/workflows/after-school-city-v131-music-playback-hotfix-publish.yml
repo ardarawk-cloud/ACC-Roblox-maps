@@ -1,0 +1,230 @@
+name: Publish After School City V1.3 Music Playback Hotfix
+
+on:
+  push:
+    branches:
+      - after-school-city/v131-music-playback-hotfix
+    paths:
+      - '.github/workflows/after-school-city-v131-music-playback-hotfix-publish.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SOURCE: 'a8ad670be399600e90e35db37480468bd3841f9b'
+      BASE_LIVE_SOURCE: '370f5b5fca3fbae7b6b52d39de72279349e5711c'
+      EXPECTED_QC_RUN: '34044653696'
+      EXPECTED_ARTIFACT: 'after-school-city-v131-music-playback-hotfix-qc-a8ad670be399600e90e35db37480468bd3841f9b'
+      EXPECTED_ARTIFACT_ID: '9992727608'
+      EXPECTED_ARTIFACT_DIGEST: 'd9fc9f11370f789784b72991b6185e6d4756a7a6eae1e94ae2133e292992e0dc'
+      EXPECTED_BYTES: '200344'
+      EXPECTED_SHA256: '67b42ca1013af12cd7eaf2be8c7157a998b32cc417c1fb9fc80aeb31ca875e64'
+      EXPECTED_PREVIOUS_VERSION: '55'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+
+    steps:
+      - name: Checkout publish branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact music hotfix source and scope gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected music hotfix QC source unavailable' }
+          $mergeBase = (git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head is not descended from exact music hotfix source: $mergeBase" }
+
+          $after = @(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production source changed after exact music hotfix QC source: $($after -join ', ')" }
+
+          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          if($prod.Count -ne 1 -or $prod[0] -ne 'maps/after-school-city/after-school-city.music-player.client.lua'){
+            throw "Unexpected music hotfix production delta: $($prod -join ', ')"
+          }
+
+          foreach($path in @(
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/default.project.json',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua'
+          )){
+            git diff --quiet $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- $path
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed in music hotfix: $path" }
+          }
+          Write-Host "EXACT MUSIC HOTFIX SOURCE GATE PASS source=$env:EXPECTED_SOURCE"
+
+      - name: Verify latest production receipt is still v55
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main receipts' }
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxPath = ''
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxPath = $path; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale publish base: latest receipt v$maxVersion path=$maxPath source=$maxSource" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest LIVE source mismatch: $maxSource" }
+          Write-Host "LIVE RECEIPT GATE PASS v$maxVersion source=$maxSource"
+
+      - name: Download exact music hotfix QC artifact without rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.EXPECTED_ARTIFACT }}
+          path: publish-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.EXPECTED_QC_RUN }}
+
+      - name: Verify exact music hotfix QC artifact
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $places = @(Get-ChildItem 'publish-input' -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){ throw "Expected exactly one RBXL; got $($places.Count)" }
+          $place = $places[0]
+          $bytes = $place.Length
+          $hash = (Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:EXPECTED_BYTES){ throw "RBXL byte mismatch: $bytes" }
+          if($hash -ne $env:EXPECTED_SHA256){ throw "RBXL SHA mismatch: $hash" }
+
+          $receiptFile = Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
+          if(-not $receiptFile){ throw 'QC receipt missing from exact music hotfix artifact' }
+          $receipt = Get-Content $receiptFile.FullName -Raw
+          foreach($token in @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=PERSONAL_MUSIC_PLAYBACK_HOTFIX',
+            'LIVE_ROBLOX_VERSION=55',
+            "LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            'ROJO_VERSION=7.7.0',
+            "RBXL_BYTES=$env:EXPECTED_BYTES",
+            "SHA256=$env:EXPECTED_SHA256",
+            'MUSIC_BANK=KPOP_18_TRACKS_UNCHANGED',
+            'PLAYBACK_CHANGE=RESUME_TO_PLAY',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          )){
+            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact music hotfix QC receipt token missing: $token" }
+          }
+
+          "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT MUSIC HOTFIX QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
+
+      - name: Recheck LIVE immediately before publish
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
+          Write-Host 'FINAL PRE-PUBLISH LIVE GATE PASS'
+
+      - name: Publish exact music hotfix QC artifact to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact music hotfix QC RBXL missing at publish step' }
+          $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success = $false
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-v131-music-hotfix-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-v131-music-hotfix-publish-$attempt.json"
+            $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              $success = $true
+              break
+            }
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp = Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version = [int]$resp.versionNumber
+          if($version -le [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Invalid published version: $version" }
+          $publishedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH SUCCESS version=$version source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
+
+      - name: Persist exact music hotfix LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          git switch -C receipt-main origin/main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to switch to refreshed main for receipt' }
+          $receiptPath = 'deploy-status/after-school-city-publish-v131-music-playback-hotfix.json'
+          $obj = [ordered]@{
+            status = 'LIVE_PUBLISHED'
+            project = 'AFTER SCHOOL CITY'
+            mode = 'V131_MUSIC_PLAYBACK_HOTFIX'
+            sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
+            sourceCommit = $env:EXPECTED_SOURCE
+            baseLiveCommit = $env:BASE_LIVE_SOURCE
+            qcRunId = $env:EXPECTED_QC_RUN
+            qcArtifactId = [int64]$env:EXPECTED_ARTIFACT_ID
+            universeId = $env:UNIVERSE_ID
+            placeId = $env:PLACE_ID
+            versionNumber = [int]$env:PUBLISHED_VERSION
+            rojoVersion = '7.7.0'
+            placeBytes = [int64]$env:PLACE_BYTES
+            placeSha256 = $env:PLACE_SHA256
+            runId = $env:GITHUB_RUN_ID
+            publishedAt = $env:PUBLISHED_AT
+            note = 'Exact V1.3 personal music playback hotfix QC artifact published without rebuild. Only the client playback transition changed from Resume() to Play(); KPOP 18-track bank and all prior AFTER SCHOOL CITY authorities remain unchanged.'
+          }
+          $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+          git config user.name 'After School City Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add $receiptPath
+          git commit -m "Record After School City V1.3 Music Playback Hotfix LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
+          git push origin HEAD:main
+          if($LASTEXITCODE -ne 0){ throw 'Receipt push failed after Roblox publish; DO NOT RERUN PUBLISHER' }
+          Write-Host "MUSIC HOTFIX LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
