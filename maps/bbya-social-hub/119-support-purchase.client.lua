@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION v5
+-- BBYA SOCIAL HUB — SUPPORT PURCHASE + DONATION NOTIFICATION v6
 -- Native Roblox checkout remains the only purchase confirmation UI.
--- Big NEW DONATION broadcast is separate from checkout and appears for donor + other players after server receipt success.
+-- NEW DONATION broadcast is compact and plays an audible cash/chime SFX after server receipt success.
 -- No legacy small Support receipt toast.
 
 local Players=game:GetService("Players")
@@ -19,6 +19,7 @@ if not monetizationRemote or not stateRemote then return end
 local promptBusy=false
 local activeProductId=nil
 local popupToken=0
+local FALLBACK_DONATION_SFX="rbxassetid://7112275565"
 
 local function finishPrompt()
  promptBusy=false
@@ -30,7 +31,7 @@ local gui=Instance.new("ScreenGui")
 gui.Name="BBYADonationNotificationUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=230;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
 
 gui:SetAttribute("LegacySmallSupportToastRetired",true)
-gui:SetAttribute("NotificationAuthority","NEW_DONATION_V5")
+gui:SetAttribute("NotificationAuthority","NEW_DONATION_V6_COMPACT_SFX")
 
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 12);c.Parent=o end
 local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col;s.Thickness=1;s.Transparency=tr or .35;s.Parent=o end
@@ -39,15 +40,15 @@ local function label(parent,text,pos,size,font,ts,col)
 end
 
 local panel=Instance.new("Frame")
-panel.Name="NewDonationPopup";panel.AnchorPoint=Vector2.new(.5,0);panel.Position=UDim2.new(.5,0,0.11,-120);panel.Size=UDim2.fromOffset(390,92)
-panel.BackgroundColor3=Color3.fromRGB(14,14,19);panel.BackgroundTransparency=.04;panel.BorderSizePixel=0;panel.Visible=false;panel.Parent=gui;corner(panel,14);stroke(panel,Color3.fromRGB(235,184,74),.22)
-local accent=Instance.new("Frame");accent.Size=UDim2.fromOffset(4,70);accent.Position=UDim2.fromOffset(10,11);accent.BackgroundColor3=Color3.fromRGB(235,184,74);accent.BorderSizePixel=0;accent.Parent=panel;corner(accent,3)
-local avatar=Instance.new("ImageLabel");avatar.Position=UDim2.fromOffset(24,14);avatar.Size=UDim2.fromOffset(64,64);avatar.BackgroundColor3=Color3.fromRGB(27,27,34);avatar.BorderSizePixel=0;avatar.ScaleType=Enum.ScaleType.Crop;avatar.Parent=panel;corner(avatar,32);stroke(avatar,Color3.fromRGB(235,184,74),.18)
-local title=label(panel,"NEW DONATION",UDim2.fromOffset(102,9),UDim2.new(1,-116,0,20),Enum.Font.GothamBlack,12,Color3.fromRGB(235,184,74))
-local who=label(panel,"SUPPORTER",UDim2.fromOffset(102,28),UDim2.new(1,-116,0,19),Enum.Font.GothamBold,13,Color3.fromRGB(245,245,248))
-local amount=label(panel,"DONATED 0 ROBUX",UDim2.fromOffset(102,48),UDim2.new(.52,-10,0,18),Enum.Font.GothamBold,10,Color3.fromRGB(247,55,158))
-local total=label(panel,"TOTAL 0 ROBUX",UDim2.new(.52,4,0,48),UDim2.new(.48,-18,0,18),Enum.Font.GothamBold,10,Color3.fromRGB(73,207,235))
-local sub=label(panel,"THANK YOU FOR SUPPORTING BBYA",UDim2.fromOffset(102,67),UDim2.new(1,-116,0,14),Enum.Font.GothamMedium,8,Color3.fromRGB(157,159,171))
+panel.Name="NewDonationPopup";panel.AnchorPoint=Vector2.new(.5,0);panel.Position=UDim2.new(.5,0,0.11,-110);panel.Size=UDim2.fromOffset(318,84)
+panel.BackgroundColor3=Color3.fromRGB(14,14,19);panel.BackgroundTransparency=.04;panel.BorderSizePixel=0;panel.Visible=false;panel.Parent=gui;corner(panel,13);stroke(panel,Color3.fromRGB(235,184,74),.22)
+local accent=Instance.new("Frame");accent.Size=UDim2.fromOffset(4,62);accent.Position=UDim2.fromOffset(9,11);accent.BackgroundColor3=Color3.fromRGB(235,184,74);accent.BorderSizePixel=0;accent.Parent=panel;corner(accent,3)
+local avatar=Instance.new("ImageLabel");avatar.Position=UDim2.fromOffset(22,15);avatar.Size=UDim2.fromOffset(54,54);avatar.BackgroundColor3=Color3.fromRGB(27,27,34);avatar.BorderSizePixel=0;avatar.ScaleType=Enum.ScaleType.Crop;avatar.Parent=panel;corner(avatar,27);stroke(avatar,Color3.fromRGB(235,184,74),.18)
+local title=label(panel,"NEW DONATION",UDim2.fromOffset(88,6),UDim2.new(1,-98,0,18),Enum.Font.GothamBlack,11,Color3.fromRGB(235,184,74))
+local who=label(panel,"SUPPORTER",UDim2.fromOffset(88,23),UDim2.new(1,-98,0,18),Enum.Font.GothamBold,12,Color3.fromRGB(245,245,248))
+local amount=label(panel,"DONATED 0 R$",UDim2.fromOffset(88,42),UDim2.new(.52,-6,0,16),Enum.Font.GothamBold,9,Color3.fromRGB(247,55,158))
+local total=label(panel,"TOTAL 0 R$",UDim2.new(.52,0,0,42),UDim2.new(.48,-10,0,16),Enum.Font.GothamBold,9,Color3.fromRGB(73,207,235))
+local sub=label(panel,"THANK YOU FOR SUPPORTING BBYA",UDim2.fromOffset(88,60),UDim2.new(1,-98,0,13),Enum.Font.GothamMedium,7,Color3.fromRGB(157,159,171))
 
 local function findDonationSfx()
  local function inspect(root)
@@ -62,10 +63,18 @@ local function findDonationSfx()
  return inspect(SoundService) or inspect(ReplicatedStorage)
 end
 local function playDonationSfx()
- local source=findDonationSfx();if not source then return end
- local clone=source:Clone();clone.Name="BBYADonationChimeRuntime";clone.Looped=false;clone.Parent=SoundService
+ local source=findDonationSfx()
+ local clone
+ if source then
+  clone=source:Clone()
+ else
+  clone=Instance.new("Sound")
+  clone.SoundId=FALLBACK_DONATION_SFX
+  clone.Volume=.9
+ end
+ clone.Name="BBYADonationChimeRuntime";clone.Looped=false;clone.Parent=SoundService
  pcall(function()clone.TimePosition=0;clone:Play()end)
- task.delay(math.clamp((clone.TimeLength or 2)+1,2,8),function()if clone then clone:Destroy() end end)
+ task.delay(6,function()if clone and clone.Parent then clone:Destroy() end end)
 end
 local function setAvatar(uid)
  avatar.Image=""
@@ -80,13 +89,13 @@ local function showDonation(data)
  local display=tostring(data.displayName or "SUPPORTER")
  local donated=math.max(0,math.floor(tonumber(data.amount) or 0))
  local cumulative=math.max(donated,math.floor(tonumber(data.total) or donated))
- who.Text=string.upper(display);amount.Text="DONATED "..donated.." ROBUX";total.Text="TOTAL "..cumulative.." ROBUX";setAvatar(data.userId)
- panel.Visible=true;panel.Position=UDim2.new(.5,0,.11,-110);panel.BackgroundTransparency=.18
+ who.Text=string.upper(display);amount.Text="DONATED "..donated.." R$";total.Text="TOTAL "..cumulative.." R$";setAvatar(data.userId)
+ panel.Visible=true;panel.Position=UDim2.new(.5,0,.11,-100);panel.BackgroundTransparency=.18
  TweenService:Create(panel,TweenInfo.new(.22,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,.11,0),BackgroundTransparency=.04}):Play()
  playDonationSfx()
  task.delay(4.6,function()
   if popupToken~=token or not panel.Parent then return end
-  local tw=TweenService:Create(panel,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{Position=UDim2.new(.5,0,.11,-110),BackgroundTransparency=.2});tw:Play();tw.Completed:Wait();if popupToken==token then panel.Visible=false end
+  local tw=TweenService:Create(panel,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{Position=UDim2.new(.5,0,.11,-100),BackgroundTransparency=.2});tw:Play();tw.Completed:Wait();if popupToken==token then panel.Visible=false end
  end)
 end
 
@@ -111,4 +120,4 @@ MarketplaceService.PromptProductPurchaseFinished:Connect(function(userId,product
  finishPrompt()
 end)
 
-print("[BBYA] Support v5 online: native checkout + big NEW DONATION broadcast / donor+self / existing SFX adapter / no small toast")
+print("[BBYA] Support v6 online: compact NEW DONATION popup + audible SFX fallback + native checkout")
