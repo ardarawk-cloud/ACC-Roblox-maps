@@ -1,9 +1,10 @@
--- BBYA SOCIAL HUB — LEAD DANCE SYNC CLIENT v3 SLIDER
--- Sync logic preserved. UI rebuilt to avoid overlap; speed uses draggable 0.50x–1.75x slider.
+-- BBYA SOCIAL HUB — LEAD DANCE SYNC CLIENT v3.1 ACTIVE TRACK SPEED
+-- UI layout preserved. Slider now resolves the currently playing Action dance and continuously owns its speed while active.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local UserInputService=game:GetService("UserInputService")
+local RunService=game:GetService("RunService")
 local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
@@ -15,13 +16,27 @@ local function humanoid()local c=player.Character;return c and c:FindFirstChildO
 local function animator()local h=humanoid();return h and h:FindFirstChildOfClass("Animator")end
 local function clampSpeed(v)return math.clamp(tonumber(v)or 1,.50,1.75)end
 local function animationId(track)if not track then return nil end;local ok,a=pcall(function()return track.Animation end);if not ok or not a then return nil end;local ok2,id=pcall(function()return a.AnimationId end);if not ok2 then return nil end;return tostring(id or""):match("(%d+)")end
-local function validDanceTrack(track)if not track then return false end;local okLoop,looped=pcall(function()return track.Looped end);if not okLoop or not looped then return false end;local okP,p=pcall(function()return track.Priority end);if okP and p~=Enum.AnimationPriority.Action and p~=Enum.AnimationPriority.Action2 and p~=Enum.AnimationPriority.Action3 and p~=Enum.AnimationPriority.Action4 then return false end;return animationId(track)~=nil end
+local function actionPriority(track)local ok,p=pcall(function()return track.Priority end);return ok and(p==Enum.AnimationPriority.Action or p==Enum.AnimationPriority.Action2 or p==Enum.AnimationPriority.Action3 or p==Enum.AnimationPriority.Action4)end
+local function validDanceTrack(track)if not track or not animationId(track)or not actionPriority(track)then return false end;local ok,playing=pcall(function()return track.IsPlaying end);return not ok or playing end
+local function resolveLeadTrack()
+ if validDanceTrack(latestLeadTrack)then return latestLeadTrack end
+ local a=animator();if not a then latestLeadTrack=nil;return nil end
+ local best=nil;local bestRank=-1
+ local rank={[Enum.AnimationPriority.Action]=1,[Enum.AnimationPriority.Action2]=2,[Enum.AnimationPriority.Action3]=3,[Enum.AnimationPriority.Action4]=4}
+ for _,track in ipairs(a:GetPlayingAnimationTracks())do
+  if validDanceTrack(track)then local ok,p=pcall(function()return track.Priority end);local r=ok and(rank[p]or 0)or 0;if r>=bestRank then best=track;bestRank=r end end
+ end
+ latestLeadTrack=best;return best
+end
 local function stopSyncTrack()if syncTrack then pcall(function()syncTrack:Stop(.12)end);pcall(function()syncTrack:Destroy()end);syncTrack=nil end end
 local function sliderPct()return(leadSpeed-.50)/(1.75-.50)end
 local function updateSpeedVisual()if speedLabel then speedLabel.Text=string.format("%.2f×",leadSpeed)end;local p=math.clamp(sliderPct(),0,1);if sliderFill then sliderFill.Size=UDim2.new(p,0,1,0)end;if sliderThumb then sliderThumb.Position=UDim2.new(p,0,.5,0)end end
-local function applyLeaderSpeed()leadSpeed=clampSpeed(leadSpeed);updateSpeedVisual();if latestLeadTrack and validDanceTrack(latestLeadTrack)then pcall(function()latestLeadTrack:AdjustSpeed(leadSpeed)end)end;if leadSyncActive and isLead()then social:FireServer("leadSyncSpeed",{speed=leadSpeed})end end
-local function sendCurrent(kind)if not isLead()then return end;local track=latestLeadTrack;if not validDanceTrack(track)then if statusLabel then statusLabel.Text="PLAY A DANCE FIRST"end;return end;pcall(function()track:AdjustSpeed(leadSpeed)end);social:FireServer(kind,{animationId=animationId(track),timePosition=tonumber(track.TimePosition)or 0,speed=leadSpeed})end
-local function bindAnimator()local a=animator();if not a or a==boundAnimator then return end;if animationConn then animationConn:Disconnect()end;if runningConn then runningConn:Disconnect()end;boundAnimator=a;animationConn=a.AnimationPlayed:Connect(function(track)task.delay(.06,function()if track and track.Parent~=nil and validDanceTrack(track)then latestLeadTrack=track;if isLead()then pcall(function()track:AdjustSpeed(leadSpeed)end)end;if leadSyncActive and isLead()then sendCurrent("leadSyncDance")end end end)end);local h=humanoid();if h then runningConn=h.Running:Connect(function(speed)if speed>.45 and leadSyncActive and isLead()then leadSyncActive=false;social:FireServer("leadSyncStop",{});if statusLabel then statusLabel.Text="SYNC OFF • MOVED"end end end)end end
+local function applyLeaderSpeed()
+ leadSpeed=clampSpeed(leadSpeed);updateSpeedVisual();local track=resolveLeadTrack();if track then pcall(function()track:AdjustSpeed(leadSpeed)end);if statusLabel then statusLabel.Text="SPEED ACTIVE"end elseif statusLabel then statusLabel.Text="PLAY A DANCE FIRST"end
+ if leadSyncActive and isLead()then social:FireServer("leadSyncSpeed",{speed=leadSpeed})end
+end
+local function sendCurrent(kind)if not isLead()then return end;local track=resolveLeadTrack();if not track then if statusLabel then statusLabel.Text="PLAY A DANCE FIRST"end;return end;pcall(function()track:AdjustSpeed(leadSpeed)end);social:FireServer(kind,{animationId=animationId(track),timePosition=tonumber(track.TimePosition)or 0,speed=leadSpeed})end
+local function bindAnimator()local a=animator();if not a or a==boundAnimator then return end;if animationConn then animationConn:Disconnect()end;if runningConn then runningConn:Disconnect()end;boundAnimator=a;animationConn=a.AnimationPlayed:Connect(function(track)task.delay(.04,function()if track and track.Parent~=nil and animationId(track)and actionPriority(track)then latestLeadTrack=track;if isLead()then pcall(function()track:AdjustSpeed(leadSpeed)end)end;if leadSyncActive and isLead()then sendCurrent("leadSyncDance")end end end)end);local h=humanoid();if h then runningConn=h.Running:Connect(function(speed)if speed>.45 and leadSyncActive and isLead()then leadSyncActive=false;social:FireServer("leadSyncStop",{});if statusLabel then statusLabel.Text="SYNC OFF • MOVED"end end end)end end
 local function playFollower(data)if isLead()or carryBusy()then return end;local h=humanoid();if not h or h.Health<=0 then return end;local a=animator();if not a then a=Instance.new("Animator");a.Parent=h end;stopSyncTrack();local anim=Instance.new("Animation");anim.AnimationId="rbxassetid://"..tostring(data.animationId or"");local ok,t=pcall(function()return a:LoadAnimation(anim)end);anim:Destroy();if not ok or not t then return end;syncTrack=t;local speed=clampSpeed(data.speed);pcall(function()t.Priority=Enum.AnimationPriority.Action;t.Looped=true;t:Play(.1);t:AdjustSpeed(speed)end);task.delay(.08,function()if syncTrack~=t then return end;local elapsed=0;pcall(function()elapsed=math.max(0,workspace:GetServerTimeNow()-(tonumber(data.serverTime)or workspace:GetServerTimeNow()))end);pcall(function()t.TimePosition=math.max(0,(tonumber(data.timePosition)or 0)+elapsed*speed)end)end)end
 local function setFollowerSpeed(data)if syncTrack then pcall(function()syncTrack:AdjustSpeed(clampSpeed(data and data.speed))end)end end
 local function removeBar()if bar then bar:Destroy()end;bar=nil;statusLabel=nil;speedLabel=nil;sliderFill=nil;sliderThumb=nil end
@@ -45,4 +60,5 @@ local function applyPanelMode()
 end
 social.OnClientEvent:Connect(function(kind,data)data=type(data)=="table"and data or{};if kind=="leadSyncDance"then playFollower(data)elseif kind=="leadSyncSpeed"then setFollowerSpeed(data)elseif kind=="leadSyncStop"then stopSyncTrack()elseif kind=="leadSyncStatus"and isLead()then leadSyncActive=data.active==true;leadSpeed=clampSpeed(data.speed or leadSpeed);updateSpeedVisual();if statusLabel then statusLabel.Text=leadSyncActive and("SYNC • "..tostring(data.count or 0).." CROWD")or tostring(data.message or"SYNC OFF")end end end)
 player:GetAttributeChangedSignal("BBYAHasLeadRole"):Connect(function()if not isLead()and leadSyncActive then social:FireServer("leadSyncStop",{});leadSyncActive=false end;task.defer(applyPanelMode)end);player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(function()if not isLead()and leadSyncActive then social:FireServer("leadSyncStop",{});leadSyncActive=false end;task.defer(applyPanelMode)end);player.CharacterAdded:Connect(function()stopSyncTrack();latestLeadTrack=nil;boundAnimator=nil;task.delay(.8,function()bindAnimator();applyPanelMode()end)end);pg.ChildAdded:Connect(function(c)if c.Name=="BBYASocialHangoutUI"then task.defer(applyPanelMode);task.delay(.4,applyPanelMode)end end);task.spawn(function()for _=1,40 do bindAnimator();if applyPanelMode()then break end;task.wait(.25)end end)
-print("[BBYA] LEAD Dance Sync v3 online: clean controls + draggable 0.50x–1.75x speed slider")
+local speedOwnAcc=0;RunService.Heartbeat:Connect(function(dt)if not isLead()then return end;speedOwnAcc+=dt;if speedOwnAcc<.20 then return end;speedOwnAcc=0;local track=resolveLeadTrack();if track then pcall(function()track:AdjustSpeed(leadSpeed)end)end end)
+print("[BBYA] LEAD Dance Sync v3.1 online: slider owns active dance speed 0.50x–1.75x + sync propagation")
