@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — UI KERNEL v3 CLEAN GENERAL PANEL REBUILD
--- Clean authority after repeated QC regressions.
--- GENERAL PANEL is restored to the original narrow right-side footprint; other compact panels follow it.
+-- BBYA SOCIAL HUB — UI KERNEL v3.1 SUPPORT COMPACT
+-- GENERAL PANEL original narrow footprint remains frozen.
+-- SUPPORT keeps General width but uses a shorter dedicated shell; no overlay authority.
 -- MUSIC, MESSAGE, ROLE and DJ LIVE own their dedicated layouts and are never resized by this kernel.
 
 local Players=game:GetService("Players")
@@ -24,8 +24,9 @@ local afkRemote=remotes:WaitForChild("AFKStatus",30)
 local old=pg:FindFirstChild("BBYACommandMenuUI");if old then old:Destroy() end
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYACommandMenuUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=220;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V3_CLEAN_GENERAL_PANEL")
+gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V3_1_SUPPORT_COMPACT")
 gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_ORIGINAL_NARROW")
+gui:SetAttribute("BBYASupportLayout","SUPPORT_COMPACT_V1")
 dock.Visible=false
 
 local C={bg=Color3.fromRGB(11,11,16),panel=Color3.fromRGB(19,19,26),card=Color3.fromRGB(29,29,39),white=Color3.fromRGB(246,246,249),muted=Color3.fromRGB(158,160,172),line=Color3.fromRGB(72,75,89),pink=Color3.fromRGB(234,46,163),cyan=Color3.fromRGB(38,194,222),gold=Color3.fromRGB(220,171,92),purple=Color3.fromRGB(145,84,255),green=Color3.fromRGB(77,211,137)}
@@ -45,6 +46,11 @@ end
 local function placeGeneral(o)
  if not o or not o:IsA("GuiObject") then return end
  local w,h=generalRect();o.AnchorPoint=Vector2.new(1,.5);o.Position=UDim2.new(1,-12,.5,0);o.Size=UDim2.fromOffset(w,h);o.ClipsDescendants=true;o:SetAttribute("BBYAOuterLayoutAuthority","GENERAL_PANEL_ORIGINAL_NARROW_V1")
+end
+local function placeSupport(o)
+ if not o or not o:IsA("GuiObject") then return end
+ local w=select(1,generalRect());local v=viewport();local h=math.clamp(math.floor(v.Y*.60),320,390)
+ o.AnchorPoint=Vector2.new(1,.5);o.Position=UDim2.new(1,-12,.5,0);o.Size=UDim2.fromOffset(w,h);o.ClipsDescendants=true;o:SetAttribute("BBYAOuterLayoutAuthority","SUPPORT_COMPACT_V1")
 end
 local function setBackpackVisible(enabled)pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled)end)end
 
@@ -68,7 +74,7 @@ local function hideAll(except)
  for k,o in pairs(managed)do if k~=except and o and o:IsA("GuiObject")then o.Visible=false end end
  current=except
 end
-local function showGeneral(key,obj)hideAll(key);placeGeneral(obj);obj.Visible=true;drawer.Visible=false;menuButton.Visible=false;current=key end
+local function showGeneral(key,obj)hideAll(key);if key=="SUPPORT"then placeSupport(obj)else placeGeneral(obj)end;obj.Visible=true;drawer.Visible=false;menuButton.Visible=false;current=key end
 local function makePanel(name,title,accent)
  local p=Instance.new("Frame");p.Name=name;p.BackgroundColor3=C.bg;p.BackgroundTransparency=.34;p.BorderSizePixel=0;p.Visible=false;p.ZIndex=400;p.Active=true;p.Parent=gui;corner(p,14);stroke(p,accent,.38);placeGeneral(p)
  label(p,title,UDim2.fromOffset(14,10),UDim2.new(1,-54,0,28),Enum.Font.GothamBlack,14,C.white).ZIndex=402
@@ -85,7 +91,7 @@ local function menuEntry(textValue,order,accent,callback)
  local b=button(parent,textValue,nil,textValue=="MUSIC"and UDim2.fromScale(1,1)or UDim2.new(1,-4,0,44),C.card);b.LayoutOrder=order;b.ZIndex=204;b:SetAttribute("BBYACommandMenuId",textValue);stroke(b,accent,.58);b.Activated:Connect(callback);return b
 end
 
-local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan))
+local supportPanel=register("SUPPORT",makePanel("SupportPanel","SUPPORT BBYA",C.cyan));placeSupport(supportPanel)
 label(supportPanel,"Choose Robux amount",UDim2.fromOffset(14,45),UDim2.new(1,-28,0,20),Enum.Font.GothamMedium,9,C.muted).ZIndex=402
 local supportScroll=Instance.new("ScrollingFrame");supportScroll.Position=UDim2.fromOffset(12,70);supportScroll.Size=UDim2.new(1,-24,1,-82);supportScroll.BackgroundTransparency=1;supportScroll.BorderSizePixel=0;supportScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y;supportScroll.CanvasSize=UDim2.new();supportScroll.ScrollBarThickness=3;supportScroll.ZIndex=402;supportScroll.Parent=supportPanel
 local sl=Instance.new("UIListLayout");sl.Padding=UDim.new(0,7);sl.Parent=supportScroll
@@ -143,9 +149,9 @@ local function watchExternal(name,key)
  for _,d in ipairs(g:GetDescendants())do if d:IsA("GuiObject")and(d.Name=="RolePanel"or d.Name=="DJLivePanel"or d.Name=="DJWallComposerPanel")then register(key,d)end end
 end
 pg.ChildAdded:Connect(function(child)if child.Name=="BBYAMusicSuiteV1"then child:GetPropertyChangedSignal("Enabled"):Connect(function()if child.Enabled then drawer.Visible=false;menuButton.Visible=false;current="MUSIC"elseif current=="MUSIC"then restoreMenu()end end)elseif child.Name=="BBYADJWallUI"then task.defer(function()watchExternal("BBYADJWallUI","MESSAGE")end)end end)
-local function layoutAll()placeGeneral(drawer);placeGeneral(supportPanel);placeGeneral(travelPanel);placeGeneral(communityPanel);placeGeneral(partyPanel);for _,k in ipairs({"DANCE","CARRY"})do local o=managed[k];if o and o.Visible then placeGeneral(o)end end end
+local function layoutAll()placeGeneral(drawer);placeSupport(supportPanel);placeGeneral(travelPanel);placeGeneral(communityPanel);placeGeneral(partyPanel);for _,k in ipairs({"DANCE","CARRY"})do local o=managed[k];if o and o.Visible then placeGeneral(o)end end end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layoutAll)end)
 player.CharacterAdded:Connect(function()setBackpackVisible(true);restoreMenu();refreshAFK();refreshDJEntry()end)
 task.defer(function()layoutAll();refreshAFK();refreshDJEntry()end)
-print("[BBYA] UI Kernel v3 online: original narrow General Panel restored / dedicated panels untouched")
+print("[BBYA] UI Kernel v3.1 online: General frozen / Support compact / dedicated panels untouched")
