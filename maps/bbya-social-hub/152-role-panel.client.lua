@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — ROLE PANEL v11 FINAL ROOT REPAIR
--- Role logic unchanged; final QC repair is layout only: right-docked, smoky glass, no Dance overlap.
+-- BBYA SOCIAL HUB — ROLE PANEL v11.1 MENU-AWARE LAUNCHER
+-- Role logic unchanged; right-docked smoky panel preserved.
+-- Launcher now hides while the BBYA command drawer or Dance panel is open.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -10,7 +11,7 @@ local snapshotRemote=remotes:WaitForChild("RolePanelSnapshot",25)
 local actionRemote=remotes:WaitForChild("RolePanelAction",25)
 local ok,snapshot=pcall(function()return snapshotRemote:InvokeServer()end);if not ok or type(snapshot)~="table"or snapshot.authorized~=true then return end
 local old=pg:FindFirstChild("BBYARolePanelUI");if old then old:Destroy()end
-local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_FINAL_RIGHT_SMOKY")
+local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_1_MENU_AWARE")
 local C={bg=Color3.fromRGB(10,10,14),panel=Color3.fromRGB(20,20,26),card=Color3.fromRGB(31,31,39),line=Color3.fromRGB(72,74,86),white=Color3.fromRGB(248,248,250),muted=Color3.fromRGB(185,187,197),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(73,207,235),green=Color3.fromRGB(103,230,174),gold=Color3.fromRGB(235,184,74),red=Color3.fromRGB(235,91,104),purple=Color3.fromRGB(174,104,255),orange=Color3.fromRGB(255,151,78)}
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col or C.line;s.Transparency=tr or .4;s.Thickness=1;s.Parent=o end
@@ -35,8 +36,24 @@ local function assign(role)if not selectedUserId or selectedLocked then return e
 local function menuVisible(v)local m=pg:FindFirstChild("BBYACommandMenuUI");local b=m and m:FindFirstChild("MenuButton",true);if b then b.Visible=v end end
 local function closePanel()panel.Visible=false;menuVisible(true);open.Visible=true end;open.Activated:Connect(function()panel.Visible=true;open.Visible=false;menuVisible(false);refresh()end);close.Activated:Connect(closePanel)
 local function danceVisible()local g=pg:FindFirstChild("BBYASocialHangoutUI");local p=g and g:FindFirstChild("DancePanel",true);return p and p:IsA("GuiObject")and p.Visible end
-local function syncLauncher()if panel.Visible then open.Visible=false;return end;open.Visible=not danceVisible()end
-pg.DescendantAdded:Connect(function(d)if d.Name=="DancePanel"and d:IsA("GuiObject")then d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher);task.defer(syncLauncher)end end)
+local function commandDrawerVisible()
+ local m=pg:FindFirstChild("BBYACommandMenuUI")
+ local d=m and m:FindFirstChild("FeatureDrawer",true)
+ return d and d:IsA("GuiObject")and d.Visible
+end
+local function syncLauncher()if panel.Visible then open.Visible=false;return end;open.Visible=not danceVisible() and not commandDrawerVisible()end
+local function bindCommandDrawer()
+ local m=pg:FindFirstChild("BBYACommandMenuUI")
+ local d=m and m:FindFirstChild("FeatureDrawer",true)
+ if d and d:IsA("GuiObject")and d:GetAttribute("BBYARoleLauncherBound")~=true then
+  d:SetAttribute("BBYARoleLauncherBound",true)
+  d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher)
+ end
+end
+pg.DescendantAdded:Connect(function(d)
+ if d.Name=="DancePanel"and d:IsA("GuiObject")then d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher);task.defer(syncLauncher)
+ elseif d.Name=="FeatureDrawer"and d:IsA("GuiObject")then task.defer(function()bindCommandDrawer();syncLauncher()end) end
+end)
 local cam=workspace.CurrentCamera;local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local s=math.clamp(math.min(vp.Y-84,420),330,420);panel.Size=UDim2.fromOffset(s,s);panel.Position=UDim2.new(1,-18,.5,18)end;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
-Players.PlayerAdded:Connect(function()if panel.Visible then task.delay(.3,refresh)end end);Players.PlayerRemoving:Connect(function()if panel.Visible then task.delay(.2,refresh)end end);task.spawn(function()while task.wait(.2)do syncLauncher()end end);task.defer(function()layout();render(snapshot);syncLauncher()end)
-print("[BBYA] Role Panel v11 online: right dock / smoky / Dance-safe launcher / original role logic")
+Players.PlayerAdded:Connect(function()if panel.Visible then task.delay(.3,refresh)end end);Players.PlayerRemoving:Connect(function()if panel.Visible then task.delay(.2,refresh)end end);task.spawn(function()while task.wait(.2)do bindCommandDrawer();syncLauncher()end end);task.defer(function()layout();render(snapshot);bindCommandDrawer();syncLauncher()end)
+print("[BBYA] Role Panel v11.1 online: right dock / smoky / Dance + command-menu safe launcher")
