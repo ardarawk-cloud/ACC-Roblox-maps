@@ -1,0 +1,120 @@
+name: BBYA v752 Runtime Hardening QC
+
+on:
+  push:
+    branches: [bbya/v752-runtime-hardening-v2]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v752-runtime-hardening-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  source-qc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authority and regression QC
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json
+
+          root=Path('maps/bbya-social-hub')
+          project=(root/'default.project.json').read_text(encoding='utf-8')
+          json.loads(project)
+
+          def text(name): return (root/name).read_text(encoding='utf-8')
+          def must(s, needle, label):
+              if needle not in s: raise SystemExit(f'MISSING {label}: {needle}')
+          def must_not(s, needle, label):
+              if needle in s: raise SystemExit(f'FORBIDDEN {label}: {needle}')
+
+          # General remains frozen; only Support gets a shorter dedicated shell inside the same kernel.
+          ui=text('56-dock-stability.client.lua')
+          for m in ['UI KERNEL v3.1 SUPPORT COMPACT','GENERAL_PANEL_ORIGINAL_NARROW','SUPPORT_COMPACT_V1','local function placeSupport(o)','placeSupport(supportPanel)']:
+              must(ui,m,'UI kernel')
+          must(ui,'math.clamp(math.floor(v.X*.17),210,240),math.clamp(v.Y-42,340,620)','General benchmark')
+          must(ui,'if key=="SUPPORT"then placeSupport(obj)else placeGeneral(obj)end','single Support layout authority')
+
+          # Three already-approved hardening changes ported exactly onto fresh main.
+          ident=text('142-identity-ui.client.lua')
+          msg=text('150-message.client.lua')
+          display=text('151-community-display.server.lua')
+          must(ident,'PLAYER IDENTITY UI v1.4 COLOR PALETTE','TITLE palette')
+          must(ident,'TitleColorPalette','TITLE palette')
+          must_not(ident,'Hex typing','old title hex UX')
+          must(msg,'MESSAGE CLIENT v8.1 SUPPORT-SHELL NOTIFICATION','MESSAGE hardening')
+          must(display,'COMMUNITY PHYSICAL DISPLAY v1.1 RIG-SAFE','Owner display hardening')
+
+          # Music stays one presentation authority and may never mutate playback.
+          music=text('148-music-player.client.lua')
+          must(project,'"MusicPlayerV5": {"$path": "148-music-player.client.lua"}','Music mapping')
+          for m in ['BBYASkateparkPlaylistCatalog','BBYAMallPlaylistCatalog','PLAYLIST','REQUEST','FAV','NEXT']:
+              must(music,m,'Music v5')
+          for pattern in [r'\.SoundId\s*=',r'\.Volume\s*=',r'\.PlaybackSpeed\s*=']:
+              if re.search(pattern,music): raise SystemExit(f'Music UI mutates playback: {pattern}')
+
+          # Skatepark binding/data remains protected and current.
+          skate=text('104-venue-audio-groups.server.lua')
+          for m in ['BBYASkateparkPlaylistCatalog','BBYASkateparkMusicControl','BBYASkateparkMasterSound','101433831748471','73111765506214','Vierra - Perih']:
+              must(skate,m,'Skatepark')
+
+          # Mall clean authority/bank remains intact.
+          mall=text('149-mall-music.server.lua')
+          for m in ['MALL KPOP MUSIC AUTHORITY v3 CLEAN','BBYAMallPlaylistCatalog','BBYAMallMasterSound','BBYAMallMusicControl']:
+              must(mall,m,'Mall')
+          if mall.count('title=') < 18: raise SystemExit('Mall playlist lost tracks')
+
+          # DJ FAIL#3: old suppression logic is retired, replacement uses EQ gates only.
+          djs=text('137-dj-live-clean.server.lua')
+          djc=text('155-dj-live.client.lua')
+          must(djs,'DJ LIVE ENGINE v5 CLEAN REPLACEMENT','DJ v5 server')
+          must(djs,'BBYADJLiveV5AutoGate','DJ v5 gate')
+          must(djs,'g.LowGain=-80;g.MidGain=-80;g.HighGain=-80','DJ EQ gate')
+          must(djs,'AutoDJTakeover","PER_SOURCE_EQ_GATE_ONLY','DJ gate policy')
+          for old in ['suppressSources','restoreAutoDefaults','BBYADJLiveSuppressed','suppressed={}']:
+              must_not(djs,old,'retired DJ suppression')
+          for source in ['BBYAClubDeckA','BBYAClubDeckB','BBYAVIPPlaylist','BBYABasementDeckA','BBYABasementDeckB','BBYAFunkotRuntimeV6']:
+              must(djs,source,'DJ source inventory')
+          must(djc,'DJ LIVE UI v5 CLEAN REPLACEMENT','DJ v5 client')
+          for m in ['SYMMETRIC_A_MIXER_B_SAFE_V1','VenueFooter','DeckArea','PLAYLIST "..deck','CUE','PLAY','SYNC','CROSSFADER']:
+              must(djc,m,'DJ v5 layout')
+          must_not(djc,'DJ_LIVE_V4_FINAL_ROOT_REPAIR','old DJ v4')
+
+          # Existing manifest still maps exactly one DJ server/client path; contents above are the replacement authority.
+          if project.count('137-dj-live-clean.server.lua') != 1: raise SystemExit('DJ server mapping count != 1')
+          if project.count('155-dj-live.client.lua') != 1: raise SystemExit('DJ client mapping count != 1')
+
+          # Support success volume stays hardened.
+          support=text('119-support-purchase.client.lua')
+          must(support,'SUCCESS_VOLUME=1.55','Support SFX')
+
+          print('BBYA_V752_RUNTIME_HARDENING_SOURCE_QC_PASS')
+          PY
+
+      - name: Prepare Rojo 7.7.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rojo"
+          curl -fsSL -o "$RUNNER_TEMP/rojo.zip" "https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-linux-x86_64.zip"
+          unzip -q -o "$RUNNER_TEMP/rojo.zip" -d "$RUNNER_TEMP/rojo"
+          ROJO="$(find "$RUNNER_TEMP/rojo" -type f -name rojo -print -quit)"
+          test -n "$ROJO"
+          chmod +x "$ROJO"
+          "$ROJO" --version
+          echo "ROJO_EXE=$ROJO" >> "$GITHUB_ENV"
+
+      - name: Full BBYA Rojo build
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/bbya-v752-runtime-hardening.rbxl"
+          "$ROJO_EXE" build maps/bbya-social-hub/default.project.json -o "$OUT"
+          test -f "$OUT"
+          test "$(stat -c%s "$OUT")" -gt 1024
+          echo "BBYA_V752_ROJO_BUILD_PASS bytes=$(stat -c%s "$OUT") source=$GITHUB_SHA"
