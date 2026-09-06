@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — UI KERNEL v2.5 REVISION BATCH
+-- BBYA SOCIAL HUB — UI KERNEL v2.6 GENERAL PANEL LOCK
 -- ONE outer shell authority for compact secondary panels. Dark-glass, mobile-first, X-only panel close controls.
+-- Runtime QC lock: all managed secondary panels use the same General Panel footprint and never expose a duplicate CLOSE button.
 -- Support/Party are server-authoritative. MUSIC uses its dedicated suite. DJ LIVE remains role-gated with explicit owner/QA route.
 
 local Players=game:GetService("Players")
@@ -26,8 +27,8 @@ if old then old:Destroy() end
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYACommandMenuUI"; gui.ResetOnSpawn=false; gui.IgnoreGuiInset=true
 gui.DisplayOrder=220; gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V2_5_REVISION_BATCH")
-gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_COMPACT_GLASS_V1")
+gui:SetAttribute("BBYAUIAuthority","UI_KERNEL_V2_6_GENERAL_PANEL_LOCK")
+gui:SetAttribute("BBYALayoutLock","GENERAL_PANEL_340_SQUARE_MOBILE_SAFE")
 gui:SetAttribute("DJLiveRoute","BBYADJLiveCleanUI")
 dock.Visible=false
 
@@ -52,7 +53,9 @@ end
 local function vp() camera=workspace.CurrentCamera or camera; return camera and camera.ViewportSize or Vector2.new(1280,720) end
 local function normalRect()
  local v=vp()
- return math.clamp(math.floor(v.X*.17),210,240), math.clamp(v.Y-42,340,620)
+ local safeW=math.max(240,v.X-24)
+ local safeH=math.max(260,v.Y-64)
+ return math.min(340,safeW),math.min(340,safeH)
 end
 local function clearLegacyScale(o)
  if not o then return end
@@ -63,8 +66,8 @@ end
 local function placeNormal(o)
  if not o or not o:IsA("GuiObject") then return end
  clearLegacyScale(o); local w,h=normalRect()
- o.AnchorPoint=Vector2.new(1,.5); o.Position=UDim2.new(1,-12,.5,0); o.Size=UDim2.fromOffset(w,h)
- o.ClipsDescendants=true; o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_GENERAL_PANEL_COMPACT_V1")
+ o.AnchorPoint=Vector2.new(1,.5); o.Position=UDim2.new(1,-12,.5,20); o.Size=UDim2.fromOffset(w,h)
+ o.ClipsDescendants=true; o:SetAttribute("BBYAOuterLayoutAuthority","UI_KERNEL_GENERAL_PANEL_340_V2")
 end
 local function placeMusic(o)
  if not o or not o:IsA("GuiObject") then return end
@@ -183,12 +186,12 @@ local pl=Instance.new("UIListLayout");pl.Padding=UDim.new(0,8);pl.Parent=partyLi
 local function setBackpackVisible(enabled)pcall(function()StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,enabled)end)end
 local function requestGear(name)setBackpackVisible(false);toast("EQUIPPING "..string.upper(name).."...");gearRemote:FireServer("equip",name)end
 for i,g in ipairs({{"MONEY GUN","Money Gun",C.green},{"GLOWSTICK","Glowstick",C.cyan},{"PARTY SPARKLER","Party Sparkler",C.gold}}) do
- local b=button(partyList,g[1],nil,UDim2.new(1,0,0,50),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,g[3],.5);b.Activated:Connect(function()requestGear(g[2])end)
+ local b=button(partyList,g[1],nil,UDim2.new(1,0,0,44),C.card);b.LayoutOrder=i;b.ZIndex=403;stroke(b,g[3],.5);b.Activated:Connect(function()requestGear(g[2])end)
 end
-local afkButton=button(partyList,"AFK SIGN",nil,UDim2.new(1,0,0,50),C.card);afkButton.LayoutOrder=4;afkButton.ZIndex=403;stroke(afkButton,C.gold,.42)
+local afkButton=button(partyList,"AFK SIGN",nil,UDim2.new(1,0,0,44),C.card);afkButton.LayoutOrder=4;afkButton.ZIndex=403;stroke(afkButton,C.gold,.42)
 local function refreshAFKButton()afkButton.Text=player:GetAttribute("BBYAAFKManual")==true and "AFK SIGN • ON  (TAP TO REMOVE)" or "AFK SIGN" end
 afkButton.Activated:Connect(function()afkRemote:FireServer("manualToggle")end)
-local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,50),C.card);away.LayoutOrder=5;away.ZIndex=403;stroke(away,C.pink,.5);away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
+local away=button(partyList,"SIMPAN / PUT AWAY",nil,UDim2.new(1,0,0,44),C.card);away.LayoutOrder=5;away.ZIndex=403;stroke(away,C.pink,.5);away.Activated:Connect(function()gearRemote:FireServer("putAway")end)
 
 menuEntry("MUSIC",1,C.pink,function()hideAll("MUSIC");closeMenu();menuButton.Visible=false;current="MUSIC" end)
 menuEntry("SUPPORT",2,C.cyan,function()showNormal("SUPPORT",supportPanel)end)
@@ -226,8 +229,8 @@ player:GetAttributeChangedSignal("BBYAOwner"):Connect(refreshDJEntry)
 player:GetAttributeChangedSignal("BBYAAFKManual"):Connect(refreshAFKButton)
 
 menuButton.Activated:Connect(function()
- menuButton.Visible=true
- if drawer.Visible then closeMenu() else hideAll(nil);placeNormal(drawer);drawer.Visible=true;menuButton.Text="CLOSE" end
+ menuButton.Text="MENU"
+ if drawer.Visible then drawer.Visible=false else hideAll(nil);placeNormal(drawer);drawer.Visible=true end
 end)
 
 monetizationRemote.OnClientEvent:Connect(function(action,data)
@@ -247,7 +250,6 @@ gearRemote.OnClientEvent:Connect(function(action,data)
   else setBackpackVisible(true);toast(data.message or "PARTY GEAR FAILED") end
  end
 end)
-afKRemote=nil
 if afkRemote then afkRemote.OnClientEvent:Connect(function(action,data)
  if action=="manualState" then data=type(data)=="table" and data or {};refreshAFKButton();toast(data.active==true and "AFK SIGN ON" or "AFK SIGN REMOVED") end
 end) end
@@ -263,4 +265,4 @@ end
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(layoutAll) end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(layoutAll)end)
 task.defer(function()bindMusicSuiteVisibility();layoutAll();refreshDJEntry();refreshAFKButton()end)
-print("[BBYA] UI KERNEL v2.5 online: compact glass panels + AFK SIGN + DJ owner/QA route")
+print("[BBYA] UI KERNEL v2.6 online: General Panel 340 lock + X-only close + mobile safe")
