@@ -1,0 +1,105 @@
+name: BBYA v750 Root Rebuild QC
+
+on:
+  push:
+    branches: [bbya/v750-rootwork-impl]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-v750-root-rebuild-qc.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authority and regression QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p='maps/bbya-social-hub/default.project.json'
+          $project=Get-Content $p -Raw
+          $json=Get-Content $p -Raw | ConvertFrom-Json
+
+          function Must([string]$file,[string]$needle){
+            $s=Get-Content $file -Raw
+            if($s -notmatch [regex]::Escape($needle)){throw "Missing marker '$needle' in $file"}
+          }
+          function MustNot([string]$text,[string]$needle){if($text -match [regex]::Escape($needle)){throw "Forbidden mapped authority: $needle"}}
+
+          # One active Music presentation + one venue router.
+          Must $p '"MusicPlayerV5": {"$path": "148-music-player.client.lua"}'
+          Must $p '"VenueAudioRouterV10": {"$path": "148-venue-audio-router.client.lua"}'
+          foreach($old in @('93-venue-music-ui.client.lua','103-music-ui-final.client.lua','104-venue-audio-router.client.lua','105-music-ui-integrity.client.lua','106-now-playing-title.client.lua','109-music-catalog-reset-ui.client.lua','114-venue-aware-menu-music.client.lua')){MustNot $project $old}
+          $music=Get-Content 'maps/bbya-social-hub/148-music-player.client.lua' -Raw
+          if($music -match '(?m)\.SoundId\s*=|(?m)\.Volume\s*=|(?m)\.PlaybackSpeed\s*='){throw 'Music UI mutates playback authority'}
+          foreach($m in @('PLAYLIST','REQUEST','FAV','NEXT','BBYASkateparkPlaylistCatalog','BBYAMallPlaylistCatalog')){if($music -notmatch [regex]::Escape($m)){throw "Music marker missing: $m"}}
+
+          # Latest known Skate injected tracks must remain in the active server catalog.
+          Must 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' '101433831748471'
+          Must 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' '73111765506214'
+          Must 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' 'Vierra - Perih'
+
+          # Mall catalog is exact 18-track clean authority and preload cannot gate Play().
+          Must $p '"MallMusicAuthorityV3": {"$path": "149-mall-music.server.lua"}'
+          $mall=Get-Content 'maps/bbya-social-hub/149-mall-music.server.lua' -Raw
+          foreach($m in @('MALL KPOP MUSIC AUTHORITY v3 CLEAN','BBYAMallPlaylistCatalog','ContentProvider:PreloadAsync({sound})','sound:Play()','248 and x.Z<=455')){if($mall -notmatch [regex]::Escape($m)){throw "Mall marker missing: $m"}}
+          if(($mall | Select-String -Pattern 'title=' -AllMatches).Matches.Count -lt 18){throw 'Mall playlist lost tracks'}
+
+          # MESSAGE old authority retired after QC fail #3; exact product IDs preserved.
+          Must $p '"MessageAuthorityV8": {"$path": "150-message.server.lua"}'
+          Must $p '"MessageClientV8": {"$path": "150-message.client.lua"}'
+          MustNot $project '50-dj-wall-message.server.lua'
+          MustNot $project '50-dj-wall-message.client.lua'
+          $msg=Get-Content 'maps/bbya-social-hub/150-message.server.lua' -Raw
+          foreach($id in @('3709047092','3711399029','3711399032','3711399033','3711399036','3711399038','3711399041','3711399044','3711399047','3709047095','3709047097','3709047101','3709047104','3709047106','3709047107','3709047109','3709048779')){if($msg -notmatch $id){throw "Verified product ID missing: $id"}}
+          Must 'maps/bbya-social-hub/150-message.client.lua' 'DJWallComposerPanel'
+          Must 'maps/bbya-social-hub/150-message.client.lua' 'KIRIM / SEND'
+
+          # Owner old render authority retired after QC fail #3; new Top3 + frozen owner location.
+          Must $p '"CommunityPhysicalDisplayV1": {"$path": "151-community-display.server.lua"}'
+          MustNot $project '147-community-statues.server.lua'
+          foreach($m in @('OWNER_SPOT=Vector3.new(-54.5,FLOOR_Y,-50.6)','rank=1','rank=2','rank=3','LIVE_CHARACTER_CLONE','CreateHumanoidModelFromUserIdAsync')){Must 'maps/bbya-social-hub/151-community-display.server.lua' $m}
+
+          # UI fixes: Role right dock/smoky, Dance slider, Avatar 2-col Fit, DJ final layout, Support volume tune.
+          foreach($m in @('UDim2.new(1,-18,.5,18)','BackgroundTransparency=.26','DancePanel')){Must 'maps/bbya-social-hub/152-role-panel.client.lua' $m}
+          foreach($m in @('SpeedSlider','0.50','1.75','UserInputService')){Must 'maps/bbya-social-hub/153-lead-dance-sync.client.lua' $m}
+          foreach($m in @('FillDirectionMaxCells=2','Enum.ScaleType.Fit','UDim2.new(1,-18,.5,18)')){Must 'maps/bbya-social-hub/154-avatar-switch.client.lua' $m}
+          foreach($m in @('DJ_LIVE_V4_FINAL_ROOT_REPAIR','PLAYLIST','UDim2.new(0,10,1,-46)','UDim2.new(1,-74,1,-46)')){Must 'maps/bbya-social-hub/155-dj-live.client.lua' $m}
+          Must 'maps/bbya-social-hub/119-support-purchase.client.lua' 'SUCCESS_VOLUME=1.55'
+
+          Write-Host 'BBYA v750 root rebuild static QC PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-v750-root-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-v750-root-rojo-7.7.0.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zip,$dir)
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version check failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-v750-root-rebuild.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $out)){throw 'RBXL missing'}
+          if((Get-Item $out).Length -lt 1024){throw 'RBXL too small'}
+          Write-Host "BBYA_V750_ROOT_REBUILD_BUILD_PASS bytes=$((Get-Item $out).Length) source=$env:GITHUB_SHA"
