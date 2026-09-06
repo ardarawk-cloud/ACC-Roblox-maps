@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — DJ LIVE CLEAN UI v2.2
+-- BBYA SOCIAL HUB — DJ LIVE CLEAN UI v2.3 RUNTIME PRECISION
 -- Compact control surface. BBYA MENU is the only entry point.
 -- Access: managed DJ role + explicit owner/QA identities; QA does not receive the managed DJ role.
+-- Runtime QC lock: Roblox top-bar safe, Deck A/B mirrored around mixer, CUE over PLAY and FX over SYNC.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -20,8 +21,8 @@ if not action or not stateRemote or not getState or not getLibrary then return e
 
 local old=pg:FindFirstChild("BBYADJLiveCleanUI");if old then old:Destroy() end
 local gui=Instance.new("ScreenGui")
-gui.Name="BBYADJLiveCleanUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAFeature","DJ_LIVE");gui:SetAttribute("LauncherRetired",true);gui:SetAttribute("RoleRequired","DJ_OR_OWNER_QA")
+gui.Name="BBYADJLiveCleanUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=false;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
+gui:SetAttribute("BBYAFeature","DJ_LIVE");gui:SetAttribute("LauncherRetired",true);gui:SetAttribute("RoleRequired","DJ_OR_OWNER_QA");gui:SetAttribute("SafeTopBar",true)
 
 local C={BG=Color3.fromRGB(7,7,9),PANEL=Color3.fromRGB(18,18,22),CARD=Color3.fromRGB(28,28,34),LINE=Color3.fromRGB(68,69,78),WHITE=Color3.fromRGB(245,245,248),MUTED=Color3.fromRGB(158,160,171),ACTIVE=Color3.fromRGB(244,244,246),BLACK=Color3.fromRGB(9,9,11),GOLD=Color3.fromRGB(220,171,92),RED=Color3.fromRGB(218,77,92)}
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
@@ -33,7 +34,7 @@ local function frame(parent,pos,size,color,r)local f=Instance.new("Frame");f.Pos
 
 local root=Instance.new("Frame")
 root.Name="DJLivePanel";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=C.BG;root.BackgroundTransparency=.24;root.BorderSizePixel=0;root.Visible=false;root.Parent=gui
-root:SetAttribute("BBYAOuterLayoutAuthority","DJ_LIVE_CLEAN_V2_2_COMPACT_GLASS")
+root:SetAttribute("BBYAOuterLayoutAuthority","DJ_LIVE_CLEAN_V2_3_RUNTIME_PRECISION")
 
 local header=frame(root,UDim2.fromOffset(8,8),UDim2.new(1,-16,0,48),C.PANEL,10)
 label(header,"DJ LIVE",UDim2.fromOffset(14,4),UDim2.fromOffset(120,20),Enum.Font.GothamBlack,16,C.WHITE)
@@ -50,18 +51,21 @@ local function isOwnerQA()local name=string.lower(player.Name);return QA_USERNAM
 local function hasManagedDJ()return player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ" end
 local function accessAllowed()return isOwnerQA() or hasManagedDJ() end
 local function readyLabel()return isOwnerQA() and "OWNER QA • READY" or "DJ ROLE • READY" end
-local function kernelMenuVisible(visible)local k=pg:FindFirstChild("BBYACommandMenuUI");local m=k and k:FindFirstChild("MenuButton",true);if m and m:IsA("GuiObject") then m.Visible=visible end end
+local function kernelMenuVisible(visible)local k=pg:FindFirstChild("BBYACommandMenuUI");local m=k and k:FindFirstChild("MenuButton",true);if m and m:IsA("GuiObject") then m.Visible=visible;if m:IsA("TextButton") then m.Text="MENU" end end end
 local function closePanel()root.Visible=false;if dialog then dialog:Destroy();dialog=nil end;kernelMenuVisible(true)end
 close.Activated:Connect(closePanel)
 root:GetPropertyChangedSignal("Visible"):Connect(function()if root.Visible then if not accessAllowed() then root.Visible=false;return end;kernelMenuVisible(false) else kernelMenuVisible(true) end end)
 
 local function waveform(parent)local h=Instance.new("Frame");h.BackgroundTransparency=1;h.ClipsDescendants=true;h.Size=UDim2.fromScale(1,1);h.Parent=parent;for i=1,36 do local bar=Instance.new("Frame");bar.AnchorPoint=Vector2.new(.5,.5);bar.Position=UDim2.new((i-.5)/36,0,.5,0);bar.Size=UDim2.fromOffset(2,6+((i*13)%20));bar.BackgroundColor3=C.WHITE;bar.BackgroundTransparency=.52;bar.BorderSizePixel=0;bar.Parent=h end end
 local function makeDeck(deck,left)
- local f=frame(content,left and UDim2.new(0,0,0,0) or UDim2.new(.5,6,0,0),UDim2.new(.5,-78,1,0),C.PANEL,12)
+ local f=frame(content,left and UDim2.new(0,0,0,0) or UDim2.new(.5,78,0,0),UDim2.new(.5,-78,1,0),C.PANEL,12)
  local badge=frame(f,UDim2.fromOffset(10,10),UDim2.fromOffset(34,34),C.CARD,7);label(badge,deck,UDim2.new(),UDim2.fromScale(1,1),Enum.Font.GothamBlack,16,C.WHITE,Enum.TextXAlignment.Center)
  local title=label(f,"EMPTY",UDim2.fromOffset(52,7),UDim2.new(1,-116,0,22),Enum.Font.GothamBold,13,C.WHITE);local artist=label(f,"",UDim2.fromOffset(52,28),UDim2.new(1,-116,0,16),Enum.Font.Gotham,9,C.MUTED);local bpm=label(f,"-- BPM",UDim2.new(1,-70,0,12),UDim2.fromOffset(60,20),Enum.Font.GothamBold,10,C.WHITE,Enum.TextXAlignment.Right)
  local wave=frame(f,UDim2.fromOffset(10,52),UDim2.new(1,-20,0,34),C.BLACK,7);wave.ClipsDescendants=true;waveform(wave)
- local cue=button(f,"CUE",UDim2.fromOffset(10,96),UDim2.fromOffset(58,38),C.CARD);local play=button(f,"PLAY",UDim2.fromOffset(74,96),UDim2.fromOffset(66,38),C.CARD);local sync=button(f,"SYNC",UDim2.fromOffset(146,96),UDim2.fromOffset(58,38),C.CARD);local fx=button(f,"FX",UDim2.new(1,-68,0,96),UDim2.fromOffset(58,38),C.ACTIVE);fx.TextColor3=C.BLACK
+ local cue=button(f,"CUE",UDim2.fromOffset(10,96),UDim2.fromOffset(58,30),C.CARD)
+ local play=button(f,"PLAY",UDim2.fromOffset(10,132),UDim2.fromOffset(58,30),C.CARD)
+ local fx=button(f,"FX",UDim2.new(1,-68,0,96),UDim2.fromOffset(58,30),C.ACTIVE);fx.TextColor3=C.BLACK
+ local sync=button(f,"SYNC",UDim2.new(1,-68,0,132),UDim2.fromOffset(58,30),C.CARD)
  local jog=Instance.new("Frame");jog.AnchorPoint=Vector2.new(.5,.5);jog.Position=UDim2.new(.5,0,.62,0);jog.Size=UDim2.fromOffset(94,94);jog.BackgroundColor3=C.BLACK;jog.BackgroundTransparency=.08;jog.BorderSizePixel=0;jog.Parent=f;corner(jog,47);local js=Instance.new("UIStroke");js.Color=C.LINE;js.Thickness=2;js.Parent=jog
  local inner=Instance.new("Frame");inner.AnchorPoint=Vector2.new(.5,.5);inner.Position=UDim2.fromScale(.5,.5);inner.Size=UDim2.fromOffset(57,57);inner.BackgroundTransparency=1;inner.Parent=jog;corner(inner,29);stroke(inner,C.LINE,.2)
  local dot=Instance.new("Frame");dot.AnchorPoint=Vector2.new(.5,.5);dot.Position=UDim2.fromScale(.5,.5);dot.Size=UDim2.fromOffset(7,7);dot.BackgroundColor3=C.WHITE;dot.BorderSizePixel=0;dot.Parent=jog;corner(dot,4)
@@ -153,4 +157,4 @@ RunService.RenderStepped:Connect(function(dt)
  for i,b in ipairs(meterB) do b.BackgroundTransparency=(state.live and db and db.playing and i<=math.floor(6+5*math.abs(math.sin(meterTime*4.3+1)))) and .05 or .78 end
 end)
 
-print("[BBYA] DJ LIVE CLEAN UI v2.2 online: managed DJ + explicit owner/QA / compact glass / X-only close")
+print("[BBYA] DJ LIVE CLEAN UI v2.3 online: topbar-safe / mirrored deck spacing / vertical CUE-PLAY + FX-SYNC")
