@@ -23,7 +23,7 @@ local C={bg=Color3.fromRGB(7,7,9),panel=Color3.fromRGB(18,18,22),card=Color3.fro
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col or C.line;s.Thickness=1;s.Transparency=tr or .3;s.Parent=o end
 local function label(p,v,pos,size,font,ts,col,align)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=tostring(v or"");l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextTruncate=Enum.TextTruncate.AtEnd;l.Parent=p;return l end
-local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos;b.Size=size;b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.08;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBlack;b.TextSize=10;b.AutoButtonColor=true;b.Parent=p;corner(b,9);stroke(b,C.line,.45);return b end
+local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.08;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBlack;b.TextSize=10;b.AutoButtonColor=true;b.Parent=p;corner(b,9);stroke(b,C.line,.45);return b end
 local function frame(p,pos,size,col,r)local f=Instance.new("Frame");f.Position=pos;f.Size=size;f.BackgroundColor3=col or C.panel;f.BackgroundTransparency=.14;f.BorderSizePixel=0;f.Parent=p;corner(f,r or 10);stroke(f,C.line,.36);return f end
 local function setActive(b,on)b.BackgroundColor3=on and C.active or C.card;b.TextColor3=on and C.black or C.white end
 local function kernelMenuVisible(v)local k=pg:FindFirstChild("BBYACommandMenuUI");local m=k and k:FindFirstChild("MenuButton",true);if m then m.Visible=v end end
@@ -54,10 +54,7 @@ end
 local function openFX(deck)
  local box=modal("DECK "..deck.." • FX");for i,name in ipairs({"ECHO","FILTER","REVERB","FLANGER","HORN","AIRHORN","BRAKE","SIREN"})do local col=(i-1)%2;local row=math.floor((i-1)/2);local b=button(box,name,UDim2.new(col*.5,16-col*4,0,52+row*58),UDim2.new(.5,-20,0,50),C.card);b.ZIndex=103;b.Activated:Connect(function()if i<=4 then action:FireServer("fx_toggle",{deck=deck,fx=name})else action:FireServer("sample",{deck=deck,fx=name})end end)end
 end
-local function waveform(parent)
- local h=Instance.new("Frame");h.BackgroundTransparency=1;h.Size=UDim2.fromScale(1,1);h.Parent=parent
- for i=1,42 do local b=Instance.new("Frame");b.AnchorPoint=Vector2.new(.5,.5);b.Position=UDim2.new((i-.5)/42,0,.5,0);b.Size=UDim2.new(0,2,0,6+((i*13)%24));b.BackgroundColor3=C.white;b.BackgroundTransparency=.48;b.BorderSizePixel=0;b.Parent=h end
-end
+local function waveform(parent)local h=Instance.new("Frame");h.BackgroundTransparency=1;h.Size=UDim2.fromScale(1,1);h.Parent=parent;for i=1,42 do local b=Instance.new("Frame");b.AnchorPoint=Vector2.new(.5,.5);b.Position=UDim2.new((i-.5)/42,0,.5,0);b.Size=UDim2.new(0,2,0,6+((i*13)%24));b.BackgroundColor3=C.white;b.BackgroundTransparency=.48;b.BorderSizePixel=0;b.Parent=h end end
 local function makeDeck(deck,isLeft)
  local accent=isLeft and Color3.fromRGB(247,55,158)or Color3.fromRGB(73,207,235)
  local f=frame(content,isLeft and UDim2.new(0,0,0,0)or UDim2.new(.5,78,0,0),UDim2.new(.5,-78,1,0),C.panel,12)
@@ -75,7 +72,6 @@ local function makeDeck(deck,isLeft)
  deckRefs[deck]={title=title,artist=artist,bpm=bpm,play=play,jog=jog,jogStroke=js,rotation=0,accent=accent}
 end
 makeDeck("A",true);makeDeck("B",false)
-
 local mixer=frame(content,UDim2.new(.5,-66,0,0),UDim2.new(0,132,1,0),C.panel,12);label(mixer,"MIXER",UDim2.fromOffset(8,8),UDim2.new(1,-16,0,20),Enum.Font.GothamBlack,10,C.white,Enum.TextXAlignment.Center)
 local meter=Instance.new("Frame");meter.Position=UDim2.fromOffset(18,38);meter.Size=UDim2.new(1,-36,1,-132);meter.BackgroundTransparency=1;meter.Parent=mixer;local meterA,meterB={},{}
 for i=1,12 do for side,tbl in ipairs({meterA,meterB})do local b=Instance.new("Frame");b.AnchorPoint=Vector2.new(0,1);b.Position=UDim2.new(side==1 and 0 or .58,0,1,-(i-1)*8);b.Size=UDim2.new(.40,0,0,6);b.BackgroundColor3=C.white;b.BackgroundTransparency=.78;b.BorderSizePixel=0;b.Parent=meter;corner(b,2);tbl[i]=b end end
@@ -86,13 +82,8 @@ local function sendCross(x)local p=math.clamp((x-rail.AbsolutePosition.X)/math.m
 hit.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true;sendCross(i.Position.X)end end);UserInputService.InputChanged:Connect(function(i)if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then sendCross(i.Position.X)end end);UserInputService.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end end)
 label(mixer,"CROSSFADER",UDim2.new(0,8,1,-38),UDim2.new(1,-16,0,14),Enum.Font.GothamBold,7,C.muted,Enum.TextXAlignment.Center)
 for i,name in ipairs({"CLUB","VIP","UNDERGROUND","FUNKOT"})do local b=button(footer,name,UDim2.new((i-1)/4,6,0,6),UDim2.new(.25,-12,0,34),C.card);b.TextSize=name=="UNDERGROUND"and 8 or 10;mapButtons[name]=b;b.Activated:Connect(function()action:FireServer("map",{value=name})end)end
-
-local function applyState(s)
- if type(s)~="table"or s.authorized~=true then return end;state=s;status.Text=tostring(s.notice or(s.live and("LIVE • "..tostring(s.map))or"READY"));live.Text=s.live and"LIVE • STOP"or"LIVE START";setActive(live,s.live==true);for m,b in pairs(mapButtons)do setActive(b,m==s.map)end;thumb.Position=UDim2.new(math.clamp(tonumber(s.crossfader)or .5,0,1),0,.5,0)
- for deck,r in pairs(deckRefs)do local d=s.decks and s.decks[deck]or{};r.title.Text=tostring(d.title or"EMPTY");r.artist.Text=tostring(d.artist or"");local bpm=tonumber(d.bpm)or 0;r.bpm.Text=(bpm>0 and tostring(bpm)or"--").." BPM";r.play.Text=d.playing and"PAUSE"or"PLAY";r.jogStroke.Color=d.playing and r.accent or C.line end
-end
-stateRemote.OnClientEvent:Connect(applyState)
-live.Activated:Connect(function()if state.live then action:FireServer("live_stop",{})else action:FireServer("live_start",{})end end)
+local function applyState(s)if type(s)~="table"or s.authorized~=true then return end;state=s;status.Text=tostring(s.notice or(s.live and("LIVE • "..tostring(s.map))or"READY"));live.Text=s.live and"LIVE • STOP"or"LIVE START";setActive(live,s.live==true);for m,b in pairs(mapButtons)do setActive(b,m==s.map)end;thumb.Position=UDim2.new(math.clamp(tonumber(s.crossfader)or .5,0,1),0,.5,0);for deck,r in pairs(deckRefs)do local d=s.decks and s.decks[deck]or{};r.title.Text=tostring(d.title or"EMPTY");r.artist.Text=tostring(d.artist or"");local bpm=tonumber(d.bpm)or 0;r.bpm.Text=(bpm>0 and tostring(bpm)or"--").." BPM";r.play.Text=d.playing and"PAUSE"or"PLAY";r.jogStroke.Color=d.playing and r.accent or C.line end end
+stateRemote.OnClientEvent:Connect(applyState);live.Activated:Connect(function()if state.live then action:FireServer("live_stop",{})else action:FireServer("live_start",{})end end)
 local function closePanel()root.Visible=false;clearDialog();kernelMenuVisible(true)end;close.Activated:Connect(closePanel)
 root:GetPropertyChangedSignal("Visible"):Connect(function()if root.Visible then if not allowed()then root.Visible=false;return end;kernelMenuVisible(false)else kernelMenuVisible(true)end end)
 local function refreshAuth()gui.Enabled=allowed();if not gui.Enabled then closePanel();return end;local okS,s=pcall(function()return getState:InvokeServer()end);if okS then applyState(s)end;local okL,l=pcall(function()return getLibrary:InvokeServer()end);if okL and type(l)=="table"then library=l end end
