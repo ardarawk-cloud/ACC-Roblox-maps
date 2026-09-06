@@ -22,10 +22,15 @@ jobs:
       - name: Checkout current main authority
         uses: actions/checkout@v4
 
-      - name: Verify Main Club upgrade markers
+      - name: Verify current BBYA authority markers
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          function Must([string]$file,[string]$needle){
+            $s=Get-Content $file -Raw
+            if($s -notmatch [regex]::Escape($needle)){throw "Missing live-source marker '$needle' in $file"}
+          }
+
           $visual=Get-Content 'maps/bbya-social-hub/132-mainclub-social-lounge-v1.server.lua' -Raw
           foreach($needle in @(
             'MAIN_CLUB_FORMER_STUDIO_PREMIUM_V4',
@@ -40,15 +45,28 @@ jobs:
           )){if($visual -notmatch [regex]::Escape($needle)){throw "Missing live-source visual marker: $needle"}}
           if($visual -match 'Lighting\.(Brightness|Ambient|OutdoorAmbient|ClockTime|ExposureCompensation)'){throw 'Visual pass touches global Lighting'}
 
-          $audio=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          $router=Get-Content 'maps/bbya-social-hub/148-venue-audio-router.client.lua' -Raw
           foreach($needle in @(
-            'STRICT VENUE AUDIO ROUTER v9',
-            'FORMER_STUDIO_LOUNGE=-3.0',
-            'RESTROOM=-7.0',
+            'STRICT VENUE AUDIO ROUTER v10 SINGLE AUTHORITY',
+            'FORMER_STUDIO_LOUNGE=-3',
+            'RESTROOM=-7',
             'BBYAAudioRoom',
-            'BBYAMainTrimDb'
-          )){if($audio -notmatch [regex]::Escape($needle)){throw "Missing live-source audio marker: $needle"}}
-          if($audio -match 'SoundId\s*='){throw 'Audio router mutates SoundId'}
+            'BBYAMainTrimDb',
+            'ROUTER_V10_EQ_ONLY'
+          )){if($router -notmatch [regex]::Escape($needle)){throw "Missing live-source router marker: $needle"}}
+          if($router -match 'SoundId\s*='){throw 'Venue router mutates SoundId'}
+
+          Must 'maps/bbya-social-hub/137-dj-live-clean.server.lua' 'DJ LIVE ENGINE v5 CLEAN REPLACEMENT'
+          Must 'maps/bbya-social-hub/155-dj-live.client.lua' 'DJ LIVE UI v5 CLEAN REPLACEMENT'
+          Must 'maps/bbya-social-hub/142-identity-ui.client.lua' 'PLAYER IDENTITY UI v1.4 COLOR PALETTE'
+          Must 'maps/bbya-social-hub/150-message.client.lua' 'MESSAGE CLIENT v8.1 SUPPORT-SHELL NOTIFICATION'
+          Must 'maps/bbya-social-hub/151-community-display.server.lua' 'COMMUNITY PHYSICAL DISPLAY v1.1 RIG-SAFE'
+          Must 'maps/bbya-social-hub/56-dock-stability.client.lua' 'SUPPORT_COMPACT_V1'
+          Must 'maps/bbya-social-hub/148-music-player.client.lua' 'MUSIC PLAYER v5 SINGLE AUTHORITY'
+          Must 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' 'BBYASkateparkPlaylistCatalog'
+          Must 'maps/bbya-social-hub/104-venue-audio-groups.server.lua' '73111765506214'
+          Must 'maps/bbya-social-hub/149-mall-music.server.lua' 'MALL KPOP MUSIC AUTHORITY v3 CLEAN'
+
           Write-Host "BBYA_CURRENT_MAIN_MARKERS_PASS source=$env:GITHUB_SHA"
 
       - name: Prepare Rojo 7.7.0
@@ -146,9 +164,4 @@ jobs:
           Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $uri -Body ($payload | ConvertTo-Json -Depth 5) | Out-Null
           Write-Host "BBYA_CURRENT_MAIN_RECEIPT_PERSISTED version=$env:BBYA_VERSION source=$env:GITHUB_SHA"
 
-# trigger-current-main-live-20260826
-# trigger-current-main-live-20260901-underground-dark-lock-v5
-# trigger-current-main-live-20260901-audio-router-v9-refresh
-# trigger-current-main-live-20260906-revision-batch-v1-1
-# trigger-current-main-live-20260906-runtime-qc-v744-fixes
-# trigger-current-main-live-20260906-clean-rebuild-after-v746
+# trigger-current-main-live-20260907-v752-runtime-hardening
