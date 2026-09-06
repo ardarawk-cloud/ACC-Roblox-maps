@@ -1,4 +1,5 @@
 name: ROBLOX_API_KEY Identity Probe
+# safe identity-only probe; no upload or publish
 
 on:
   push:
