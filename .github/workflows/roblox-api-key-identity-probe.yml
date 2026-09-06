@@ -1,0 +1,57 @@
+name: ROBLOX_API_KEY Identity Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/roblox-api-key-identity-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CANDIDATE_KEY: ${{ secrets.ROBLOX_API_KEY }}
+    steps:
+      - name: Introspect ROBLOX_API_KEY safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${CANDIDATE_KEY:-}" ]]; then
+            echo 'PROBE_STATUS=SECRET_MISSING'
+            exit 10
+          fi
+          out="$RUNNER_TEMP/introspect.json"
+          code=$(curl -sS -o "$out" -w '%{http_code}' -X POST \
+            'https://apis.roblox.com/api-keys/v1/introspect' \
+            -H 'Content-Type: application/json' \
+            --data "{\"apiKey\":\"$CANDIDATE_KEY\"}")
+          echo "INTROSPECT_HTTP=$code"
+          [[ "$code" == 200 ]] || exit 11
+          name=$(jq -r '.name // empty' "$out")
+          uid=$(jq -r '.authorizedUserId // empty' "$out")
+          enabled=$(jq -r '.enabled // empty' "$out")
+          expired=$(jq -r '.expired // empty' "$out")
+          echo "KEY_NAME=$name"
+          echo "AUTHORIZED_USER_ID=$uid"
+          echo "ENABLED=$enabled"
+          echo "EXPIRED=$expired"
+          echo 'SCOPES:'
+          jq -r '.scopes[]? | "  \(.name):\((.operations // [])|join(","))"' "$out"
+          if [[ -n "$uid" ]]; then
+            u="$RUNNER_TEMP/user.json"
+            ucode=$(curl -sS -o "$u" -w '%{http_code}' "https://users.roblox.com/v1/users/$uid")
+            echo "USER_LOOKUP_HTTP=$ucode"
+            if [[ "$ucode" == 200 ]]; then
+              echo "AUTHORIZED_USERNAME=$(jq -r '.name // empty' "$u")"
+            fi
+          fi
+          if [[ "$uid" == '10001957153' ]]; then
+            echo 'CADANGAN02_MATCH=YES'
+          else
+            echo 'CADANGAN02_MATCH=NO'
+          fi
+          echo 'PROBE_STATUS=COMPLETE'
