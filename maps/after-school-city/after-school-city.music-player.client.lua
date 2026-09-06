@@ -312,7 +312,7 @@ local function togglePlayback()
         if sound.SoundId == "" then
             loadCurrent(true)
         else
-            sound:Resume()
+            sound:Play()
             playButton.Text = "PAUSE"
             statusLabel.Text = "Playing · personal"
         end
