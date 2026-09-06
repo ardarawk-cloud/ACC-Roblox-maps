@@ -1,0 +1,82 @@
+name: BBYA v746 Clean Rebuild QC
+
+on:
+  pull_request:
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - '.github/workflows/bbya-qc-rebuild-v746.yml'
+  workflow_dispatch:
+
+jobs:
+  qc:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Source authority QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $music=Get-Content 'maps/bbya-social-hub/103-music-ui-final.client.lua' -Raw
+          foreach($s in @('MUSIC PLAYER v4 CLEAN REBUILD','PLAYLIST','REQUEST','FAV','NEXT','BBYAMallPlaylistCatalog','BBYASkateparkPlaylistCatalog','BBYARooftopPlaylistCatalog')){if($music -notmatch [regex]::Escape($s)){throw "Music marker missing: $s"}}
+          if($music -match 'SoundId\s*='){throw 'Music UI must never mutate SoundId'}
+          if($music -match 'PlaybackSpeed\s*='){throw 'Music UI must never mutate PlaybackSpeed'}
+          if($music -match '\.Volume\s*='){throw 'Music UI must never mutate audio volume'}
+
+          $kernel=Get-Content 'maps/bbya-social-hub/56-dock-stability.client.lua' -Raw
+          foreach($s in @('UI_KERNEL_V3_CLEAN_GENERAL_PANEL','math.floor(v.X*.17)','210,240','v.Y-42,340,620')){if($kernel -notmatch [regex]::Escape($s)){throw "General panel marker missing: $s"}}
+          if($kernel -match 'GENERAL_PANEL_340_SQUARE'){throw 'Old 340-square General authority still active'}
+
+          $msg=Get-Content 'maps/bbya-social-hub/50-dj-wall-message.client.lua' -Raw
+          $msgServer=Get-Content 'maps/bbya-social-hub/50-dj-wall-message.server.lua' -Raw
+          foreach($s in @('MESSAGE CLIENT v7 CLEAN COMPACT','KIRIM / SEND','BBYAMessageSuccessSFX')){if($msg -notmatch [regex]::Escape($s)){throw "Message client marker missing: $s"}}
+          foreach($s in @('SUBMIT_COOLDOWN=8','3709047092','3711399047','3709047095','3709048779','MarketplaceService.ProcessReceipt')){if($msgServer -notmatch [regex]::Escape($s)){throw "Message server marker missing: $s"}}
+
+          $dj=Get-Content 'maps/bbya-social-hub/137-dj-live-clean.client.lua' -Raw
+          foreach($s in @('DJ LIVE CLEAN UI v3','PLAYLIST','CUE','PLAY','FX','SYNC')){if($dj -notmatch [regex]::Escape($s)){throw "DJ marker missing: $s"}}
+          if($dj -match 'PLAYLIST A.*UDim2.new\(0,0,1'){throw 'Legacy bottom Playlist A overlay detected'}
+
+          $role=Get-Content 'maps/bbya-social-hub/91-owner-ui.client.lua' -Raw
+          foreach($s in @('ROLE PANEL v10 CLEAN COMPACT','no fullscreen backdrop','RolePanel')){if($role -notmatch [regex]::Escape($s)){throw "Role marker missing: $s"}}
+
+          $statue=Get-Content 'maps/bbya-social-hub/147-community-statues.server.lua' -Raw
+          foreach($s in @('PHYSICAL AVATARS v3 RIG-SAFE','saneBounds','NORMALIZED_NON_LAYERED_R15','OWNER_SPOT=Vector3.new(-54.5','DONOR_SPOT=Vector3.new(54.5')){if($statue -notmatch [regex]::Escape($s)){throw "Statue marker missing: $s"}}
+
+          $router=Get-Content 'maps/bbya-social-hub/104-venue-audio-router.client.lua' -Raw
+          if($router -notmatch 'p.Z>=278.*p.Z<=443'){throw 'Mall connector audio boundary missing'}
+          if($router -match 'SoundId\s*='){throw 'Audio router mutates SoundId'}
+
+          Write-Host 'BBYA_CLEAN_REBUILD_SOURCE_QC_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $dir=Join-Path $env:RUNNER_TEMP 'bbya-qc-rebuild-rojo'
+            $zip=Join-Path $env:RUNNER_TEMP 'bbya-qc-rebuild-rojo.zip'
+            if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
+            if(Test-Path $zip){Remove-Item $zip -Force}
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){throw 'rojo.exe not found'}
+            $rojo=$exe.FullName
+          }
+          & $rojo --version
+          if($LASTEXITCODE -ne 0){throw 'Rojo version failed'}
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Full BBYA Rojo build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-qc-rebuild-v746.rbxl'
+          & $env:ROJO_EXE build 'maps/bbya-social-hub/default.project.json' -o $out
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not (Test-Path $out)){throw 'RBXL missing'}
+          if((Get-Item $out).Length -lt 1024){throw 'RBXL unexpectedly small'}
+          Write-Host "BBYA_CLEAN_REBUILD_ROJO_PASS bytes=$((Get-Item $out).Length)"
