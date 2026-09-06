@@ -1,9 +1,11 @@
--- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10
--- Server-authoritative destination pricing, purchase locking, purchase result, and teleport completion.
+-- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.1 STAFF TOWER ROLE GATE
+-- Server-authoritative destination pricing, purchase locking, purchase result, teleport completion,
+-- and role-only Staff Tower access resolved from the live StaffTowerV1 geometry authority.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -58,12 +60,39 @@ local function isAdmin(player)
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
 
+local function hasAnyBBYARole(player)
+ if not player then return false end
+ if player:GetAttribute("BBYAOwner")==true or player:GetAttribute("BBYACoOwner")==true or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYAModerator")==true then return true end
+ local role=player:GetAttribute("BBYAManagedRole")
+ return type(role)=="string" and role~="" and role~="NONE"
+end
+
 local function hasRoleBypass(player,key)
  if isAdmin(player) then return true end
  if key=="VIP" and player:GetAttribute("BBYAVIPBypass")==true then return true end
  if key=="Rooftop" and player:GetAttribute("BBYARooftopBypass")==true then return true end
  if key=="Basement" and player:GetAttribute("BBYASecretRoomBypass")==true then return true end
  return false
+end
+
+local function resolveStaffTowerArrival()
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+ local funkot=root and root:FindFirstChild("FunkotClub")
+ local tower=funkot and funkot:FindFirstChild("StaffTowerV1")
+ if not tower or tower:GetAttribute("Pass")~="STAFF_TOWER_V1" then return nil end
+ local podium=tower:FindFirstChild("TransferPodium")
+ local threshold=podium and podium:FindFirstChild("PrivateArrivalThreshold")
+ if not threshold or not threshold:IsA("BasePart") then return nil end
+ return threshold.CFrame*CFrame.new(0,3.25,0)
+end
+
+local function destinationCFrame(key)
+ if key=="StaffTower" then return resolveStaffTowerArrival() end
+ return destinations[key]
+end
+
+local function destinationKnown(key)
+ return key=="StaffTower" or destinations[key]~=nil
 end
 
 local function toast(player,msg)
@@ -83,8 +112,12 @@ local function clearPending(player)
 end
 
 local function doTeleport(player,key)
- local cf=destinations[key]
- if not cf then return false,"Unknown destination" end
+ if key=="StaffTower" and not hasAnyBBYARole(player) then return false,"Staff role required" end
+ local cf=destinationCFrame(key)
+ if not cf then
+  if key=="StaffTower" then return false,"Staff Tower arrival belum siap" end
+  return false,"Unknown destination"
+ end
  local char=player and player.Character
  local hrp=char and char:FindFirstChild("HumanoidRootPart")
  local hum=char and char:FindFirstChildOfClass("Humanoid")
@@ -118,16 +151,14 @@ catalog.OnServerInvoke=function(player)
  local out={}
  for key,price in pairs(PRICES) do
   local passId=tonumber(PASSES[key]) or 0
-  out[key]={
-   price=price,
-   available=passId>0,
-   owned=owns(player,key),
-  }
+  out[key]={price=price,available=passId>0,owned=owns(player,key)}
  end
+ out.StaffTower={price=0,available=hasAnyBBYARole(player) and resolveStaffTowerArrival()~=nil,owned=hasAnyBBYARole(player),roleRequired=true}
  return out
 end
 
 internal.Event:Connect(function(player,key)
+ if not destinationKnown(key) then send(player,false,key,"Destination tidak tersedia","error");return end
  local ok,msg=doTeleport(player,key)
  if ok then toast(player,tostring(key).." access ready.") end
  send(player,ok,key,msg,ok and "teleported" or "error")
@@ -135,8 +166,12 @@ end)
 
 tp.OnServerEvent:Connect(function(player,key)
  key=tostring(key or "")
- if not destinations[key] then
+ if not destinationKnown(key) then
   send(player,false,key,"Destination tidak tersedia","error")
+  return
+ end
+ if key=="StaffTower" and not hasAnyBBYARole(player) then
+  send(player,false,key,"Staff role required","denied")
   return
  end
 
@@ -222,4 +257,4 @@ Players.PlayerRemoving:Connect(function(player)
  pending[player.UserId]=nil
 end)
 
-print("[BBYA] Travel v10 online: locked price preview / purchase lock / success-only traveling / result reset")
+print("[BBYA] Travel v10.1 online: paid travel preserved / role-only Staff Tower arrival / server gate")

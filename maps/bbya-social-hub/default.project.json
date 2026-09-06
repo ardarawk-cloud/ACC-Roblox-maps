@@ -123,6 +123,7 @@
         "SkateboardControlsV4": {"$path": "135-skateboard-controls.client.lua"},
         "BasementAudioUIPatchV5": {"$path": "81-basement-audio-ui.client.lua"},
         "RolePanelV11": {"$path": "152-role-panel.client.lua"},
+        "StaffTowerRoleTravelClientV1": {"$path": "156-staff-tower-role-travel.client.lua"},
         "DashboardUpgradeV1": {"$path": "92-dashboard-ui.client.lua"},
         "FreecamV2": {"$path": "92-freecam.client.lua"},
         "FunkotZoneV1": {"$path": "92-funkot-zone.client.lua"},
