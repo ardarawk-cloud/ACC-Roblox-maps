@@ -63,7 +63,7 @@ jobs:
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
             Add-Type -AssemblyName System.IO.Compression.FileSystem
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($zip,$dir)
+            [System.IO.Compression.FileSystem.ZipFile]::ExtractToDirectory($zip,$dir)
             $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
             if(-not $exe){throw 'rojo.exe not found'}
             $rojo=$exe.FullName
@@ -150,3 +150,4 @@ jobs:
 # trigger-current-main-live-20260901-underground-dark-lock-v5
 # trigger-current-main-live-20260901-audio-router-v9-refresh
 # trigger-current-main-live-20260906-revision-batch-v1-1
+# trigger-current-main-live-20260906-runtime-qc-v744-fixes
