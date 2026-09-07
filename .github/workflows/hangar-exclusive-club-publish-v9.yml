@@ -1,6 +1,10 @@
 name: Publish Hangar Exclusive Club v9 Static Full Mesh
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/hangar-exclusive-club-publish-v9.yml'
   workflow_dispatch:
 
 concurrency:
@@ -14,6 +18,7 @@ env:
   HANGAR_UNIVERSE_ID: '10745364913'
   HANGAR_PLACE_ID: '76001567401911'
   HANGAR_MODE: 'V9_STATIC_CLOUD_FULL_MESH'
+  HANGAR_V9_MODEL_ASSET_ID: '81110796411770'
 
 jobs:
   build-publish-verify:
@@ -24,6 +29,20 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Inject approved static cloud asset into build source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([int64]$env:HANGAR_V9_MODEL_ASSET_ID -le 0){throw 'Approved Hangar v9 asset ID is invalid'}
+          $path='maps/hangar-exclusive-club/static-mesh-v9.server.lua'
+          $runtime=Get-Content $path -Raw
+          $pattern='local HANGAR_MODEL_ASSET_ID = \d+ -- HANGAR_STATIC_MODEL_ASSET_ID'
+          if($runtime -notmatch $pattern){throw 'Hangar v9 static asset marker missing'}
+          $runtime=[regex]::Replace($runtime,$pattern,"local HANGAR_MODEL_ASSET_ID = $env:HANGAR_V9_MODEL_ASSET_ID -- HANGAR_STATIC_MODEL_ASSET_ID")
+          Set-Content -Path $path -Value $runtime -Encoding utf8
+          if((Get-Content $path -Raw) -notmatch "local HANGAR_MODEL_ASSET_ID = $env:HANGAR_V9_MODEL_ASSET_ID"){throw 'Static asset injection failed'}
+          Write-Host "HANGAR_V9_ASSET_INJECT_PASS asset=$env:HANGAR_V9_MODEL_ASSET_ID"
 
       - name: Hard gate static cloud mesh authority
         shell: powershell
@@ -36,8 +55,7 @@ jobs:
           $m=[regex]::Match($runtime,'local HANGAR_MODEL_ASSET_ID = (\d+) -- HANGAR_STATIC_MODEL_ASSET_ID')
           if(-not $m.Success){throw 'Static model asset ID marker malformed'}
           $asset=[int64]$m.Groups[1].Value
-          if($asset -le 0){throw 'Static model asset ID is not locked'}
-          "HANGAR_V9_MODEL_ASSET_ID=$asset" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          if($asset -ne [int64]$env:HANGAR_V9_MODEL_ASSET_ID){throw "Static model asset mismatch source=$asset expected=$env:HANGAR_V9_MODEL_ASSET_ID"}
           $project=Get-Content 'maps/hangar-exclusive-club/default.project.json' -Raw
           if($project -notmatch 'static-mesh-v9.server.lua'){throw 'v9 static runtime is not mounted'}
           if($project -match 'full-mesh-v8.server.lua'){throw 'runtime EditableMesh v8 must not be mounted'}
@@ -104,6 +122,7 @@ jobs:
             sourceCommit=$env:GITHUB_SHA
             mode=$env:HANGAR_MODE
             staticModelAssetId=[int64]$env:HANGAR_V9_MODEL_ASSET_ID
+            staticModelModeration='Approved'
             robloxVersion=[int]$env:HANGAR_ROBLOX_VERSION
             placeBytes=[int64]$env:HANGAR_PLACE_BYTES
             sha256=$env:HANGAR_PLACE_SHA256
