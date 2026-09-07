@@ -9,6 +9,9 @@
       "$className": "ServerScriptService",
       "HangarClubServer": {
         "$path": "club.server.lua"
+      },
+      "HangarFullMeshV2": {
+        "$path": "full-mesh.server.lua"
       }
     },
     "StarterPlayer": {

@@ -1,0 +1,129 @@
+name: Publish Hangar Exclusive Club Full Mesh v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/hangar-exclusive-club-publish.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: hangar-exclusive-club-live-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  HANGAR_UNIVERSE_ID: '10745364913'
+  HANGAR_PLACE_ID: '76001567401911'
+
+jobs:
+  build-publish-verify:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Hard gate Full Mesh v2 target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=Get-Content 'maps/hangar-exclusive-club/full-mesh.server.lua' -Raw
+          foreach($marker in @('FULL MESH authority v2.0','local WIDTH = 360','local DEPTH = 280','local WALL_H = 88','local CROWN_H = 126','HangarFullMeshReady','AIRCRAFT_HANGAR_XL','CreateEditableMesh','CreateMeshPartAsync','Mesh_PrivateJet_A_FULL','Mesh_PrivateJet_B_FULL','Mesh_Helicopter_FULL')){
+            if($src -notmatch [regex]::Escape($marker)){throw "Missing Full Mesh marker: $marker"}
+          }
+          $project=Get-Content 'maps/hangar-exclusive-club/default.project.json' -Raw
+          if($project -notmatch 'full-mesh.server.lua'){throw 'Full Mesh runtime is not mounted in Rojo project'}
+          Write-Host 'HANGAR_FULL_MESH_V2_SOURCE_GATE_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'hangar-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-rojo.zip'
+            if(Test-Path $d){Remove-Item $d -Recurse -Force};New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive -Path $z -DestinationPath $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo.exe missing'};$rojo=$e.FullName
+          }
+          & $rojo --version;if($LASTEXITCODE -ne 0){throw 'Rojo failed'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build Hangar place
+        id: build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-full-mesh-v2.rbxlx'
+          & $env:ROJO_EXE build 'maps/hangar-exclusive-club/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 10000){throw 'Invalid Hangar RBXLX'}
+          $hash=(Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          "HANGAR_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_SHA256=$hash"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
+
+      - name: Publish to Roblox
+        id: publish
+        shell: powershell
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 secret missing'}
+          $url="https://apis.roblox.com/universes/v1/$env:HANGAR_UNIVERSE_ID/places/$env:HANGAR_PLACE_ID/versions?versionType=Published"
+          $headers=@{'x-api-key'=$env:ROBLOX_API_KEY}
+          $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers $headers -ContentType 'application/xml' -InFile $env:HANGAR_PLACE_FILE
+          if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Roblox publish HTTP $($resp.StatusCode)"}
+          $payload=$resp.Content|ConvertFrom-Json
+          $version=[int]$payload.versionNumber
+          if($version -le 0){throw 'Missing Roblox versionNumber'}
+          "HANGAR_ROBLOX_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_PUBLISHED version=$version"
+
+      - name: Persist verified receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          New-Item -ItemType Directory -Path 'deploy-status' -Force|Out-Null
+          $receipt=[ordered]@{
+            status='LIVE_PUBLISHED'
+            ok=$true
+            universeId=$env:HANGAR_UNIVERSE_ID
+            placeId=$env:HANGAR_PLACE_ID
+            sourceCommit=$env:GITHUB_SHA
+            mode='FULL_MESH_V2_AIRCRAFT_HANGAR_XL'
+            robloxVersion=[int]$env:HANGAR_ROBLOX_VERSION
+            placeBytes=[int64]$env:HANGAR_PLACE_BYTES
+            sha256=$env:HANGAR_PLACE_SHA256
+            publishRun=[int64]$env:GITHUB_RUN_ID
+            publishedAt=(Get-Date).ToUniversalTime().ToString('o')
+            previewUrl='https://www.roblox.com/games/76001567401911'
+          }
+          $receipt|ConvertTo-Json -Depth 5|Set-Content 'deploy-status/hangar-exclusive-club.json' -Encoding utf8
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/hangar-exclusive-club.json
+          if(-not (git diff --cached --quiet)){
+            git commit -m "Record Hangar Exclusive Club live v$env:HANGAR_ROBLOX_VERSION [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          }
+
+      - name: Enforce LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $r=Get-Content 'deploy-status/hangar-exclusive-club.json' -Raw|ConvertFrom-Json
+          if($r.status -ne 'LIVE_PUBLISHED' -or -not $r.ok){throw 'Hangar publish receipt is not LIVE_PUBLISHED'}
+          if([string]$r.universeId -ne $env:HANGAR_UNIVERSE_ID -or [string]$r.placeId -ne $env:HANGAR_PLACE_ID){throw 'Hangar target mismatch'}
+          if([int]$r.robloxVersion -le 0){throw 'Invalid Roblox version'}
+          if([string]$r.sourceCommit -ne $env:GITHUB_SHA){throw 'Hangar source SHA mismatch'}
+          Write-Host "HANGAR_FULL_MESH_V2_LIVE_VERIFIED version=$($r.robloxVersion) source=$($r.sourceCommit)"
