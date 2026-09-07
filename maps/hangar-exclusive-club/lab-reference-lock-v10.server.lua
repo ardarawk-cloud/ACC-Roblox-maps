@@ -1,11 +1,11 @@
 -- HANGAR EXCLUSIVE CLUB — LAB REFERENCE LOCK v10
 -- LAB ONLY. DO NOT PUBLISH TO HANGAR LIVE.
 -- Visual authority: supplied Hangar reference image. No improvisation.
+-- OWNER LOCK: NO LASERS. No neon rods, no Beam lasers, no laser rig.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
 
 local HANGAR_LAB_MODEL_ASSET_ID = 0 -- HANGAR_LAB_V10_MODEL_ASSET_ID
 local WIDTH = 360
@@ -19,6 +19,7 @@ Workspace:SetAttribute("HangarLabV10", true)
 Workspace:SetAttribute("HangarLabReferenceLock", "SUPPLIED_IMAGE_NO_IMPROVISATION")
 Workspace:SetAttribute("HangarLabRuntimeMode", "V10_WAITING_STATIC_MODEL")
 Workspace:SetAttribute("HangarLabVisualQC", "PENDING")
+Workspace:SetAttribute("HangarLabLasers", "DISABLED_BY_OWNER")
 
 -- Hard environmental lock: no galaxy, no clouds.
 for _, child in ipairs(Lighting:GetChildren()) do
@@ -44,12 +45,14 @@ Lighting.GlobalShadows = true
 local map = Workspace:WaitForChild("Map")
 task.wait(1.5)
 
--- Remove neon proxy rods immediately, even if the v10 cloud model fails.
+-- Remove every legacy laser/neon proxy immediately.
 local oldLightingSystem = Workspace:FindFirstChild("LightingSystem")
 if oldLightingSystem then
     local oldLasers = oldLightingSystem:FindFirstChild("Lasers")
     if oldLasers then oldLasers:Destroy() end
 end
+local existingLaserRig = map:FindFirstChild("MovingLaserRigV10")
+if existingLaserRig then existingLaserRig:Destroy() end
 local furniture = map:FindFirstChild("Furniture")
 if furniture then
     local rogueNeon = furniture:FindFirstChild("DJBoothNeon")
@@ -156,7 +159,7 @@ for _, folderName in ipairs({"Architecture", "Vehicles", "Furniture"}) do
     end
 end
 
--- Strip visible old stage-light housings/lenses. New lasers below are Beam based and animated.
+-- Strip old stage-light housings/lenses. No laser replacement is created.
 if oldLightingSystem then
     local stageLights = oldLightingSystem:FindFirstChild("StageLights")
     if stageLights then stageLights:Destroy() end
@@ -198,7 +201,7 @@ collider("LeftWall", Vector3.new(5,WALL_H,DEPTH), CFrame.new(-WIDTH/2,WALL_H/2,C
 collider("RightWall", Vector3.new(5,WALL_H,DEPTH), CFrame.new(WIDTH/2,WALL_H/2,CENTER_Z))
 collider("BackWall", Vector3.new(WIDTH,WALL_H,5), CFrame.new(0,WALL_H/2,BACK_Z))
 
--- Reference lighting: industrial white ceiling pools, not overexposed slabs.
+-- Reference lighting: industrial white ceiling pools only.
 local oldLights = map:FindFirstChild("HangarLabLightsV10")
 if oldLights then oldLights:Destroy() end
 local lights = Instance.new("Folder")
@@ -224,81 +227,6 @@ for _, z in ipairs({-150,-100,-50,0,48}) do
         pl.Parent = holder
     end
 end
-
--- MOVING LASER RIG: real Beam objects with animated targets. No rigid neon rods.
-local laserRoot = Instance.new("Folder")
-laserRoot.Name = "MovingLaserRigV10"
-laserRoot.Parent = map
-local colors = {
-    Color3.fromRGB(0,235,255),
-    Color3.fromRGB(198,35,255),
-    Color3.fromRGB(255,35,180),
-    Color3.fromRGB(55,255,45),
-    Color3.fromRGB(0,235,255),
-    Color3.fromRGB(198,35,255),
-}
-local rigs = {}
-for i = 1, 6 do
-    local emitter = Instance.new("Part")
-    emitter.Name = "LaserEmitter" .. i
-    emitter.Anchored = true
-    emitter.CanCollide = false
-    emitter.CanTouch = false
-    emitter.CanQuery = false
-    emitter.Transparency = 1
-    emitter.Size = Vector3.one
-    emitter.CFrame = CFrame.new(-62 + (i-1)*24.8, 56, 53)
-    emitter.Parent = laserRoot
-
-    local target = Instance.new("Part")
-    target.Name = "LaserTarget" .. i
-    target.Anchored = true
-    target.CanCollide = false
-    target.CanTouch = false
-    target.CanQuery = false
-    target.Transparency = 1
-    target.Size = Vector3.one
-    target.CFrame = CFrame.new(-70 + (i-1)*28, 7, -18)
-    target.Parent = laserRoot
-
-    local a0 = Instance.new("Attachment")
-    a0.Name = "EmitterAttachment"
-    a0.Parent = emitter
-    local a1 = Instance.new("Attachment")
-    a1.Name = "TargetAttachment"
-    a1.Parent = target
-
-    local beam = Instance.new("Beam")
-    beam.Name = "MovingLaser" .. i
-    beam.Attachment0 = a0
-    beam.Attachment1 = a1
-    beam.Color = ColorSequence.new(colors[i])
-    beam.Width0 = 0.13
-    beam.Width1 = 0.08
-    beam.LightEmission = 1
-    beam.LightInfluence = 0
-    beam.FaceCamera = true
-    beam.Transparency = NumberSequence.new(0.08)
-    beam.Parent = emitter
-
-    rigs[i] = {target=target, phase=(i-1)*0.85}
-end
-
-local connection
-connection = RunService.Heartbeat:Connect(function()
-    if not laserRoot.Parent then
-        if connection then connection:Disconnect() end
-        return
-    end
-    local t = Workspace:GetServerTimeNow()
-    for i, rig in ipairs(rigs) do
-        local phase = rig.phase
-        local x = math.sin(t*0.72 + phase) * 82
-        local z = -18 + math.cos(t*0.46 + phase*1.31) * 55
-        local y = 5 + (math.sin(t*0.91 + phase)*0.5 + 0.5) * 20
-        rig.target.CFrame = CFrame.new(x, y, z)
-    end
-end)
 
 -- Mesh-backed club branding.
 local signPart
@@ -326,7 +254,8 @@ Workspace:SetAttribute("HangarLabRuntimeMode", "V10_REFERENCE_LOCK_READY")
 Workspace:SetAttribute("HangarLabStaticMeshCount", meshCount)
 Workspace:SetAttribute("HangarLabRogueBlocksRemoved", true)
 Workspace:SetAttribute("HangarLabRigidNeonRemoved", true)
-Workspace:SetAttribute("HangarLabMovingLasers", true)
+Workspace:SetAttribute("HangarLabMovingLasers", false)
+Workspace:SetAttribute("HangarLabLasers", "DISABLED_BY_OWNER")
 Workspace:SetAttribute("HangarLabAircraftLayout", "REFERENCE_FLANKING_STAGE")
 Workspace:SetAttribute("HangarLabVisualQC", "READY_FOR_SCREENSHOT")
-print("[HANGAR LAB V10] REFERENCE LOCK READY", HANGAR_LAB_MODEL_ASSET_ID, meshCount, boxSize)
+print("[HANGAR LAB V10] REFERENCE LOCK READY / NO LASERS", HANGAR_LAB_MODEL_ASSET_ID, meshCount, boxSize)
