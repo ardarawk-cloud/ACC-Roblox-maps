@@ -10,11 +10,8 @@
       "HangarClubServer": {
         "$path": "club.server.lua"
       },
-      "HangarFullMeshV2": {
-        "$path": "full-mesh.server.lua"
-      },
-      "HangarVisualRescue": {
-        "$path": "visual-rescue.server.lua"
+      "HangarV7EnclosedInterior": {
+        "$path": "visual-rescue-v7.server.lua"
       }
     },
     "StarterPlayer": {
