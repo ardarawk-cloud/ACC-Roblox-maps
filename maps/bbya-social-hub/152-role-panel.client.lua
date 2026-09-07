@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — ROLE PANEL v11.2 MUSIC-SIZE LOCK
--- Role logic unchanged. Shell geometry now exactly matches the approved Music panel: 400x400, right dock, same vertical offset.
--- Internal controls are reflowed inside that exact shell; launcher/menu behavior is preserved.
+-- BBYA SOCIAL HUB — ROLE PANEL v11.3 MUSIC RESPONSIVE SHELL
+-- Role logic unchanged. Shell now uses the exact Music responsive size rule and right-dock position.
+-- Internal controls reflow inside 330–420px so close/action controls stay reachable on mobile.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,17 +11,17 @@ local snapshotRemote=remotes:WaitForChild("RolePanelSnapshot",25)
 local actionRemote=remotes:WaitForChild("RolePanelAction",25)
 local ok,snapshot=pcall(function()return snapshotRemote:InvokeServer()end);if not ok or type(snapshot)~="table"or snapshot.authorized~=true then return end
 local old=pg:FindFirstChild("BBYARolePanelUI");if old then old:Destroy()end
-local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_2_MUSIC_SIZE_LOCK")
+local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_3_MUSIC_RESPONSIVE_SHELL")
 local C={bg=Color3.fromRGB(10,10,14),panel=Color3.fromRGB(20,20,26),card=Color3.fromRGB(31,31,39),line=Color3.fromRGB(72,74,86),white=Color3.fromRGB(248,248,250),muted=Color3.fromRGB(185,187,197),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(73,207,235),green=Color3.fromRGB(103,230,174),gold=Color3.fromRGB(235,184,74),red=Color3.fromRGB(235,91,104),purple=Color3.fromRGB(174,104,255),orange=Color3.fromRGB(255,151,78)}
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col or C.line;s.Transparency=tr or .4;s.Thickness=1;s.Parent=o end
 local function text(p,v,pos,size,font,ts,col,align)local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Text=tostring(v or"");t.Position=pos;t.Size=size;t.Font=font or Enum.Font.Gotham;t.TextSize=ts or 11;t.TextColor3=col or C.white;t.TextXAlignment=align or Enum.TextXAlignment.Left;t.TextYAlignment=Enum.TextYAlignment.Center;t.TextTruncate=Enum.TextTruncate.AtEnd;t.TextStrokeTransparency=.78;t.Parent=p;return t end
 local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.22;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBlack;b.TextSize=10;b.TextStrokeTransparency=.55;b.AutoButtonColor=true;b.Parent=p;corner(b,9);stroke(b,C.line,.55);return b end
 local open=button(gui,"ROLES",UDim2.new(1,-92,0,52),UDim2.fromOffset(78,34),C.panel);open.Name="RolePanelOpen";open.TextColor3=C.gold
-local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-18,.5,-10);panel.Size=UDim2.fromOffset(400,400);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.26;panel.BorderSizePixel=0;panel.Visible=false;panel.Parent=gui;corner(panel,16);stroke(panel,C.gold,.28)
-text(panel,"BBYA ROLE PANEL",UDim2.fromOffset(16,10),UDim2.new(1,-64,0,26),Enum.Font.GothamBlack,16,C.white);text(panel,"Persistent staff roles",UDim2.fromOffset(16,34),UDim2.new(1,-64,0,16),Enum.Font.GothamBold,8,C.muted);local close=button(panel,"×",UDim2.new(1,-44,0,9),UDim2.fromOffset(32,32),C.card);close.TextSize=18
-local playerList=Instance.new("ScrollingFrame");playerList.Position=UDim2.fromOffset(12,62);playerList.Size=UDim2.fromOffset(150,326);playerList.BackgroundColor3=C.panel;playerList.BackgroundTransparency=.38;playerList.BorderSizePixel=0;playerList.ScrollBarThickness=2;playerList.AutomaticCanvasSize=Enum.AutomaticSize.Y;playerList.CanvasSize=UDim2.new();playerList.Parent=panel;corner(playerList,11);stroke(playerList,C.line,.55);local lp=Instance.new("UIPadding");lp.PaddingTop=UDim.new(0,6);lp.PaddingBottom=UDim.new(0,6);lp.PaddingLeft=UDim.new(0,6);lp.PaddingRight=UDim.new(0,6);lp.Parent=playerList;local ll=Instance.new("UIListLayout");ll.Padding=UDim.new(0,5);ll.Parent=playerList
-local detail=Instance.new("Frame");detail.Position=UDim2.fromOffset(172,62);detail.Size=UDim2.new(1,-184,1,-74);detail.BackgroundColor3=C.panel;detail.BackgroundTransparency=.38;detail.BorderSizePixel=0;detail.Parent=panel;corner(detail,11);stroke(detail,C.line,.55)
+local panel=Instance.new("Frame");panel.Name="RolePanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-18,.5,-10);panel.Size=UDim2.fromOffset(400,400);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.26;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,16);stroke(panel,C.gold,.28)
+text(panel,"BBYA ROLE PANEL",UDim2.fromOffset(16,8),UDim2.new(1,-66,0,24),Enum.Font.GothamBlack,15,C.white);text(panel,"Persistent staff roles",UDim2.fromOffset(16,30),UDim2.new(1,-66,0,15),Enum.Font.GothamBold,8,C.muted);local close=button(panel,"×",UDim2.new(1,-46,0,7),UDim2.fromOffset(36,36),C.card);close.TextSize=20;close.ZIndex=50
+local playerList=Instance.new("ScrollingFrame");playerList.Position=UDim2.fromOffset(12,56);playerList.Size=UDim2.fromOffset(144,332);playerList.BackgroundColor3=C.panel;playerList.BackgroundTransparency=.38;playerList.BorderSizePixel=0;playerList.ScrollBarThickness=2;playerList.AutomaticCanvasSize=Enum.AutomaticSize.Y;playerList.CanvasSize=UDim2.new();playerList.Parent=panel;corner(playerList,11);stroke(playerList,C.line,.55);local lp=Instance.new("UIPadding");lp.PaddingTop=UDim.new(0,6);lp.PaddingBottom=UDim.new(0,6);lp.PaddingLeft=UDim.new(0,6);lp.PaddingRight=UDim.new(0,6);lp.Parent=playerList;local ll=Instance.new("UIListLayout");ll.Padding=UDim.new(0,5);ll.Parent=playerList
+local detail=Instance.new("Frame");detail.Position=UDim2.fromOffset(166,56);detail.Size=UDim2.fromOffset(222,332);detail.BackgroundColor3=C.panel;detail.BackgroundTransparency=.38;detail.BorderSizePixel=0;detail.Parent=panel;corner(detail,11);stroke(detail,C.line,.55)
 local selectedName=text(detail,"SELECT PLAYER",UDim2.fromOffset(12,8),UDim2.new(1,-24,0,22),Enum.Font.GothamBlack,13,C.white);local selectedUser=text(detail,"",UDim2.fromOffset(12,28),UDim2.new(1,-24,0,16),Enum.Font.Gotham,8,C.muted);local currentRole=text(detail,"ROLE —",UDim2.fromOffset(12,47),UDim2.new(1,-24,0,18),Enum.Font.GothamBold,9,C.gold)
 local grid=Instance.new("Frame");grid.Position=UDim2.fromOffset(10,76);grid.Size=UDim2.new(1,-20,0,190);grid.BackgroundTransparency=1;grid.Parent=detail;local gl=Instance.new("UIGridLayout");gl.CellPadding=UDim2.fromOffset(6,6);gl.CellSize=UDim2.new(.5,-3,0,40);gl.FillDirectionMaxCells=2;gl.Parent=grid
 local roleSpecs={{"COOWNER","CO OWNER",C.orange},{"ADMIN","ADMIN",C.cyan},{"MODERATOR","MODERATOR",C.green},{"DJ","DJ",C.purple},{"LEAD","LEAD",C.red},{"MEDIA","MEDIA",Color3.fromRGB(69,172,255)},{"VIP","VIP",C.gold},{"CREW","CREW",C.green}};local roleButtons={};for i,s in ipairs(roleSpecs)do local b=button(grid,s[2],nil,UDim2.new(),s[3]);b.LayoutOrder=i;roleButtons[s[1]]=b end
@@ -54,6 +54,24 @@ pg.DescendantAdded:Connect(function(d)
  if d.Name=="DancePanel"and d:IsA("GuiObject")then d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher);task.defer(syncLauncher)
  elseif d.Name=="FeatureDrawer"and d:IsA("GuiObject")then task.defer(function()bindCommandDrawer();syncLauncher()end) end
 end)
-local function layout()panel.Size=UDim2.fromOffset(400,400);panel.Position=UDim2.new(1,-18,.5,-10)end
+local cam=workspace.CurrentCamera
+local function layout()
+ cam=workspace.CurrentCamera or cam
+ local vp=cam and cam.ViewportSize or Vector2.new(1280,720)
+ local s=math.clamp(math.min(vp.Y-84,420),330,420)
+ panel.Size=UDim2.fromOffset(s,s);panel.Position=UDim2.new(1,-18,.5,-10)
+ local margin=12;local contentY=56;local contentH=s-contentY-margin;local leftW=math.floor(s*.36);local gap=10
+ playerList.Position=UDim2.fromOffset(margin,contentY);playerList.Size=UDim2.fromOffset(leftW,contentH)
+ local detailX=margin+leftW+gap;local detailW=s-detailX-margin
+ detail.Position=UDim2.fromOffset(detailX,contentY);detail.Size=UDim2.fromOffset(detailW,contentH)
+ local statusY=contentH-18;local removeY=statusY-42;local gridY=76;local gridH=math.max(112,removeY-gridY-8)
+ grid.Position=UDim2.fromOffset(10,gridY);grid.Size=UDim2.new(1,-20,0,gridH)
+ gl.CellSize=UDim2.new(.5,-3,0,math.max(24,math.floor((gridH-18)/4)))
+ remove.Position=UDim2.fromOffset(10,removeY);remove.Size=UDim2.new(1,-20,0,36)
+ status.Position=UDim2.fromOffset(12,statusY);status.Size=UDim2.new(1,-24,0,14)
+ close.Position=UDim2.new(1,-46,0,7)
+end
+if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
 Players.PlayerAdded:Connect(function()if panel.Visible then task.delay(.3,refresh)end end);Players.PlayerRemoving:Connect(function()if panel.Visible then task.delay(.2,refresh)end end);task.spawn(function()while task.wait(.2)do bindCommandDrawer();syncLauncher()end end);task.defer(function()layout();render(snapshot);bindCommandDrawer();syncLauncher()end)
-print("[BBYA] Role Panel v11.2 online: exact Music 400x400 shell / right dock / menu-safe launcher")
+print("[BBYA] Role Panel v11.3 online: exact Music responsive shell 330-420 / right dock / mobile-safe close")
