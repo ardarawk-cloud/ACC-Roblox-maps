@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — MESSAGE CLIENT v8.4 MESSAGE EMPHASIS
--- Composer/purchase/SFX flow preserved. Only the actual sent-message body is emphasized for mobile readability.
+-- BBYA SOCIAL HUB — MESSAGE CLIENT v8.5 QC TOTAL + MUSIC SIZE
+-- Composer/purchase/SFX flow preserved.
+-- QC only: composer follows Music panel geometry, sent-message body is slightly larger, and cumulative paid MESSAGE total is shown.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -16,8 +17,8 @@ local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col;s.Th
 local function label(p,v,pos,size,font,ts,col,align)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=tostring(v or"");l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 9;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextWrapped=true;l.Parent=p;return l end
 local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos;b.Size=size;b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.10;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.AutoButtonColor=true;b.Parent=p;corner(b,8);stroke(b,C.card,.2);return b end
 local old=pg:FindFirstChild("BBYADJWallUI");if old then old:Destroy()end
-local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=940;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MESSAGE_V8_4_MESSAGE_EMPHASIS")
-local panel=Instance.new("Frame");panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-18,.5,18);panel.Size=UDim2.fromOffset(360,330);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.14;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,15);stroke(panel,C.pink,.28)
+local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=940;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MESSAGE_V8_5_QC_TOTAL_MUSIC_SIZE")
+local panel=Instance.new("Frame");panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-18,.5,-10);panel.Size=UDim2.fromOffset(400,400);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.14;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,15);stroke(panel,C.pink,.28)
 label(panel,"MESSAGE",UDim2.fromOffset(14,8),UDim2.new(1,-58,0,24),Enum.Font.GothamBlack,14,C.white)
 local close=button(panel,"×",UDim2.new(1,-40,0,7),UDim2.fromOffset(30,30),C.card);close.TextSize=17
 local cats=Instance.new("Frame");cats.Position=UDim2.fromOffset(12,40);cats.Size=UDim2.new(1,-24,0,28);cats.BackgroundTransparency=1;cats.Parent=panel
@@ -47,11 +48,12 @@ local function showMessageSuccess(data)
  task.spawn(function()local ok,url=pcall(function()return Players:GetUserThumbnailAsync(player.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size420x420)end);if ok and url and avatar.Parent then avatar.Image=url end end)
  local heading=label(popup,"MESSAGE SENT",UDim2.fromOffset(98,7),UDim2.new(1,-110,0,16),Enum.Font.GothamBlack,10,C.pink);heading.ZIndex=601
  local who=label(popup,string.upper(player.DisplayName),UDim2.fromOffset(98,23),UDim2.new(1,-110,0,18),Enum.Font.GothamBold,10,C.white);who.ZIndex=601
- local pos=type(data)=="table"and tonumber(data.position)or 1;local paid=type(data)=="table"and tonumber(data.amount)or selected
- local q=label(popup,"QUEUE #"..tostring(pos or 1),UDim2.fromOffset(98,41),UDim2.new(.48,-4,0,14),Enum.Font.GothamBold,8,C.cyan);q.ZIndex=601
- local tier=label(popup,(paid and paid>0)and(tostring(paid).." R$")or"ADMIN TEST",UDim2.new(.54,0,0,41),UDim2.new(.42,-10,0,14),Enum.Font.GothamBold,8,C.green);tier.ZIndex=601
+ local pos=type(data)=="table"and tonumber(data.position)or 1;local paid=type(data)=="table"and tonumber(data.amount)or selected;local cumulative=type(data)=="table"and tonumber(data.total)or 0
+ local q=label(popup,"QUEUE #"..tostring(pos or 1),UDim2.fromOffset(98,41),UDim2.new(.45,-4,0,14),Enum.Font.GothamBold,8,C.cyan);q.ZIndex=601
+ local tier=label(popup,(paid and paid>0)and(tostring(paid).." R$")or"ADMIN TEST",UDim2.new(.51,0,0,41),UDim2.new(.20,-4,0,14),Enum.Font.GothamBold,8,C.green);tier.ZIndex=601
+ local total=label(popup,"TOTAL "..tostring(math.max(0,math.floor(cumulative or 0))).." R$",UDim2.new(.71,0,0,41),UDim2.new(.27,-10,0,14),Enum.Font.GothamBold,8,C.cyan,Enum.TextXAlignment.Right);total.ZIndex=601
  local textPreview=type(data)=="table"and tostring(data.text or"")or"";if textPreview==""then textPreview="YOUR MESSAGE IS IN THE BBYA QUEUE"end
- local preview=label(popup,textPreview,UDim2.fromOffset(98,60),UDim2.new(1,-112,0,61),Enum.Font.GothamBlack,17,C.white);preview.ZIndex=601;preview.TextWrapped=true;preview.TextYAlignment=Enum.TextYAlignment.Top;preview.TextXAlignment=Enum.TextXAlignment.Left;preview.TextTruncate=Enum.TextTruncate.AtEnd
+ local preview=label(popup,textPreview,UDim2.fromOffset(98,61),UDim2.new(1,-112,0,60),Enum.Font.GothamBlack,19,C.white);preview.ZIndex=601;preview.TextWrapped=true;preview.TextYAlignment=Enum.TextYAlignment.Top;preview.TextXAlignment=Enum.TextXAlignment.Left;preview.TextTruncate=Enum.TextTruncate.AtEnd
  TweenService:Create(popup,TweenInfo.new(.22,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,.10,0)}):Play();successSfx()
  task.delay(POPUP_SECONDS,function()if notificationToken~=token or not popup.Parent then return end;local tw=TweenService:Create(popup,TweenInfo.new(.22),{Position=UDim2.new(.5,0,.10,-142)});tw:Play();tw.Completed:Wait();if popup.Parent and notificationToken==token then popup:Destroy()end end)
 end
@@ -60,5 +62,5 @@ send.Activated:Connect(function()if busy then return end;if #box.Text<2 then toa
 remote.OnClientEvent:Connect(function(action,data)if action=="open"then openPanel(data)elseif action=="config"then applyConfig(data)elseif action=="processing"then status.Text="PROCESSING..."elseif action=="toast"then busy=false;status.Text="READY";refresh();toast(tostring(data))elseif action=="purchase"then busy=false;status.Text="ROBLOX PURCHASE";refresh()elseif action=="queued"then busy=false;showMessageSuccess(data);box.Text="";status.Text="SENT";task.delay(.35,closePanel)end end)
 local bound={};local function bindMenu()local menu=pg:FindFirstChild("BBYACommandMenuUI");if not menu then return end;for _,d in ipairs(menu:GetDescendants())do if d:IsA("TextButton")and d:GetAttribute("BBYACommandMenuId")=="MESSAGE"and not bound[d]then bound[d]=true;d.Activated:Connect(function()local drawer=menu:FindFirstChild("FeatureDrawer",true);if drawer then drawer.Visible=false end;openPanel(config)end)end end end
 pg.DescendantAdded:Connect(function(d)if d:IsA("TextButton")then task.defer(bindMenu)end end);task.spawn(function()for _=1,40 do bindMenu();task.wait(.2)end end)
-local cam=workspace.CurrentCamera;local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local s=math.clamp(math.min(vp.Y-84,420),330,420);panel.Size=UDim2.fromOffset(s,math.min(330,s));panel.Position=UDim2.new(1,-18,.5,18)end;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;task.defer(layout);remote:FireServer("config")
-print("[BBYA] MESSAGE client v8.4 online: 17px actual-message body / 9.5s dwell / purchase + SFX preserved")
+local cam=workspace.CurrentCamera;local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local s=math.clamp(math.min(vp.Y-84,420),330,420);panel.Size=UDim2.fromOffset(s,s);panel.Position=UDim2.new(1,-18,.5,-10)end;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;task.defer(layout);remote:FireServer("config")
+print("[BBYA] MESSAGE client v8.5 online: Music-size panel / 19px message body / cumulative MESSAGE total / SFX preserved")
