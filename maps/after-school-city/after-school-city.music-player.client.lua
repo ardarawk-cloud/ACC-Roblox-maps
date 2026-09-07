@@ -1,4 +1,4 @@
--- AFTER SCHOOL CITY — Personal Music Player v0.9.0
+-- AFTER SCHOOL CITY — Personal Music Player v0.9.1
 -- Client-only audio: each player controls only their own music session.
 
 local Players = game:GetService("Players")
@@ -35,13 +35,14 @@ for _, entry in ipairs(type(Config.Tracks) == "table" and Config.Tracks or {}) d
     end
 end
 
-local defaultVolume = math.clamp(tonumber(Config.DefaultVolume) or 0.45, 0, 1)
+local maxVolume = 2.0
+local defaultVolumePercent = math.clamp(tonumber(Config.DefaultVolume) or 0.45, 0, 1)
 local playbackSpeed = math.clamp(tonumber(Config.PlaybackSpeed) or 1.0, 0.5, 2.0)
 local bankName = tostring(Config.BankName or "MUSIC")
 
 local sound = Instance.new("Sound")
 sound.Name = "ASC_PersonalMusicSound"
-sound.Volume = defaultVolume
+sound.Volume = defaultVolumePercent * maxVolume
 sound.PlaybackSpeed = playbackSpeed
 sound.Looped = false
 sound.Parent = SoundService
@@ -223,7 +224,8 @@ local function hasTracks()
 end
 
 local function updateVolumeText()
-    volumeLabel.Text = string.format("VOL %d%%", math.floor(sound.Volume * 100 + 0.5))
+    local percent = math.clamp(sound.Volume / maxVolume, 0, 1)
+    volumeLabel.Text = string.format("VOL %d%%", math.floor(percent * 100 + 0.5))
 end
 
 local function setControlsEnabled(enabled)
@@ -334,11 +336,11 @@ nextButton.Activated:Connect(function()
 end)
 
 volumeDown.Activated:Connect(function()
-    sound.Volume = math.clamp(sound.Volume - 0.1, 0, 1)
+    sound.Volume = math.clamp(sound.Volume - (maxVolume * 0.1), 0, maxVolume)
     updateVolumeText()
 end)
 volumeUp.Activated:Connect(function()
-    sound.Volume = math.clamp(sound.Volume + 0.1, 0, 1)
+    sound.Volume = math.clamp(sound.Volume + (maxVolume * 0.1), 0, maxVolume)
     updateVolumeText()
 end)
 
@@ -396,4 +398,4 @@ if hasTracks() then
     loadCurrent(Config.AutoPlay == true)
 end
 
-print(string.format("[AFTER SCHOOL CITY] Personal Music Player v0.9.0 ready; tracks=%d localOnly=true playbackSpeed=1.0", #tracks))
+print(string.format("[AFTER SCHOOL CITY] Personal Music Player v0.9.1 ready; tracks=%d localOnly=true playbackSpeed=%.4f maxVolume=%.1f", #tracks, playbackSpeed, maxVolume))
