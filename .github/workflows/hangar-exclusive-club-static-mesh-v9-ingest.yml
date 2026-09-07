@@ -49,28 +49,50 @@ jobs:
           "HANGAR_V9_GLB_SHA256=$((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "HANGAR_V9_GLB_BUILD_PASS bytes=$((Get-Item $out).Length)"
 
-      - name: Resolve Hangar Roblox creator
+      - name: Resolve valid Roblox creator
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO asset-write key missing'}
-          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:HANGAR_UNIVERSE_ID"
-          if(-not $meta.data -or $meta.data.Count -lt 1){throw 'Unable to resolve Hangar universe creator'}
-          $creator=$meta.data[0].creator
-          $type=[string]$creator.type
-          $id=[string]$creator.id
-          if($id -notmatch '^\d+$'){throw "Invalid creator id: $id"}
-          if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported creator type: $type"}
-          "HANGAR_CREATOR_FIELD=$field" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_CREATOR_RESOLVED type=$type id=$id"
+
+          # Hangar metadata currently reports User id=0. Probe known sibling
+          # experiences that use the same ACC Roblox asset pipeline and take the
+          # first concrete User/Group creator. Never submit creator id 0.
+          $candidateUniverses=@(
+            $env:HANGAR_UNIVERSE_ID,
+            '8116636513',   # BBYA Social Hub — proven AM_STUDIO asset ingest path
+            '10745349805'   # TRACK 01 sibling experience
+          )
+          $resolved=$null
+          foreach($universe in $candidateUniverses){
+            try{
+              $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$universe"
+              if(-not $meta.data -or $meta.data.Count -lt 1){continue}
+              $creator=$meta.data[0].creator
+              $type=[string]$creator.type
+              $id=[string]$creator.id
+              Write-Host "HANGAR_CREATOR_PROBE universe=$universe type=$type id=$id"
+              if($id -notmatch '^\d+$' -or [int64]$id -le 0){continue}
+              if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{continue}
+              $resolved=[pscustomobject]@{Universe=$universe;Type=$type;Id=$id;Field=$field}
+              break
+            }catch{
+              Write-Warning "Creator probe failed universe=$universe error=$($_.Exception.Message)"
+            }
+          }
+          if(-not $resolved){throw 'Unable to resolve any valid Roblox creator; all candidate creator IDs were missing/zero'}
+          "HANGAR_CREATOR_FIELD=$($resolved.Field)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_CREATOR_ID=$($resolved.Id)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_CREATOR_SOURCE_UNIVERSE=$($resolved.Universe)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_CREATOR_RESOLVED sourceUniverse=$($resolved.Universe) type=$($resolved.Type) id=$($resolved.Id)"
 
       - name: Upload Hangar static Model asset
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+          if([int64]$env:HANGAR_CREATOR_ID -le 0){throw 'Refusing asset upload with creator id 0'}
           $creator=@{}
-          $creator[$env:HANGAR_CREATOR_FIELD]=$env:HANGAR_CREATOR_ID
+          $creator[$env:HANGAR_CREATOR_FIELD]=[int64]$env:HANGAR_CREATOR_ID
           $request=@{
             assetType='Model'
             displayName='Hangar Exclusive Club - Static Full Mesh v9'
@@ -87,7 +109,7 @@ jobs:
           try{$created=$raw|ConvertFrom-Json}catch{throw "Invalid asset response: $raw"}
           if(-not $created.path){throw "Asset upload rejected: $raw"}
           $operationId=([string]$created.path)-replace '^operations/',''
-          Write-Host "HANGAR_V9_UPLOAD_ACCEPTED operation=$operationId"
+          Write-Host "HANGAR_V9_UPLOAD_ACCEPTED operation=$operationId creator=$env:HANGAR_CREATOR_ID"
           $assetId=$null
           for($i=0;$i -lt 90;$i++){
             Start-Sleep -Seconds 4
@@ -97,7 +119,7 @@ jobs:
             if($op.done){
               if($op.error){throw "Roblox asset operation failed: $($op.error|ConvertTo-Json -Compress -Depth 8)"}
               $assetId=[string]$op.response.assetId
-              if($assetId -notmatch '^\d+$'){throw "Asset operation completed without assetId: $opRaw"}
+              if($assetId -notmatch '^\d+$' -or [int64]$assetId -le 0){throw "Asset operation completed without valid assetId: $opRaw"}
               Write-Host "HANGAR_V9_UPLOAD_DONE asset=$assetId moderation=$([string]$op.response.moderationResult.moderationState)"
               break
             }
@@ -127,7 +149,7 @@ jobs:
           $source=[string]$updated.commit.sha
           if($source -notmatch '^[0-9a-f]{40}$'){throw 'Missing canonical lock commit'}
           "HANGAR_V9_CANONICAL_SOURCE=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V9_ASSET_LOCK_PASS source=$source asset=$env:HANGAR_V9_MODEL_ASSET_ID"
+          Write-Host "HANGAR_V9_ASSET_LOCK_PASS source=$source asset=$env:HANGAR_V9_MODEL_ASSET_ID creator=$env:HANGAR_CREATOR_ID"
 
       - name: Dispatch v9 canonical publish
         shell: powershell
