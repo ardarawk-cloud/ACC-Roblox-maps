@@ -13,8 +13,8 @@
       "HangarV7EnclosedInterior": {
         "$path": "visual-rescue-v7.server.lua"
       },
-      "HangarFullMeshV8": {
-        "$path": "full-mesh-v8.server.lua"
+      "HangarStaticFullMeshV9": {
+        "$path": "static-mesh-v9.server.lua"
       }
     },
     "StarterPlayer": {
