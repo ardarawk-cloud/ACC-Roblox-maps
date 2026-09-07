@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — MUSIC PLAYER v5.2 MOBILE POSITION
+-- BBYA SOCIAL HUB — MUSIC PLAYER v5.3 ACTIVE DECK VISUALIZER
 -- Existing glass presentation and playback/control behavior are preserved.
--- QC-only layout correction: lift the same panel slightly upward so bottom controls/list remain visible on mobile.
+-- QC-only: wave/progress follows the actually playing LIVE deck, including Underground A/B AutoMix handoffs.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -36,7 +36,18 @@ local function catalog(name)local folder=ReplicatedStorage:FindFirstChild(name);
 local cache={MAIN={tracks={},state={}},UNDERGROUND={tracks={},state={}},VIP={tracks={},state={}},FUNKOT={tracks={},state={}}}
 local favorites={}
 local function tracksFor(v)if FOLDERS[v]then return catalog(FOLDERS[v])end;return cache[v]and cache[v].tracks or{}end
-local function soundFor(v)for _,n in ipairs(SOUNDS[v]or{})do local s=SoundService:FindFirstChild(n,true);if s and s:IsA("Sound")then return s end end end
+local function soundFor(v)
+ local fallback=nil
+ for _,n in ipairs(SOUNDS[v]or{})do
+  local s=SoundService:FindFirstChild(n,true)
+  if s and s:IsA("Sound")then
+   fallback=fallback or s
+   if s:GetAttribute("DeckRole")=="LIVE"and s.IsPlaying then return s end
+  end
+ end
+ for _,n in ipairs(SOUNDS[v]or{})do local s=SoundService:FindFirstChild(n,true);if s and s:IsA("Sound")and s.IsPlaying then return s end end
+ return fallback
+end
 local function stateFor(v,tracks)
  local s={index=1,title="",playing=false,nextRequest=0}
  if ATTRS[v]then local a=ATTRS[v];s.index=tonumber(ReplicatedStorage:GetAttribute(a[1]))or 1;s.title=tostring(ReplicatedStorage:GetAttribute(a[2])or"");s.nextRequest=a[3]and(tonumber(ReplicatedStorage:GetAttribute(a[3]))or 0)or 0
@@ -55,7 +66,7 @@ local function requestList(v)if v=="MAIN"or v=="UNDERGROUND"then mainRemote:Fire
 
 local old=pg:FindFirstChild("BBYAMusicPlayerV5");if old then old:Destroy()end
 for _,n in ipairs({"BBYAMusicSuiteV1","BBYACompactMusicLayerV7"})do local g=pg:FindFirstChild(n);if g then g:Destroy()end end
-local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_2_MOBILE_POSITION")
+local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_3_ACTIVE_DECK_VISUALIZER")
 local shell=frame(gui,"MusicPanel",UDim2.new(1,-18,.5,-10),UDim2.fromOffset(400,400),C.bg,.30,20);shell.AnchorPoint=Vector2.new(1,.5);local shellStroke=stroke(shell,C.purple,.20)
 local hero=frame(shell,"Hero",UDim2.fromOffset(12,12),UDim2.new(1,-24,0,142),C.panel,.34,16)
 local venueText=label(hero,"Venue","BBYA MUSIC",UDim2.fromOffset(14,10),UDim2.new(.52,0,0,16),Enum.Font.GothamBold,8,C.muted)
@@ -108,6 +119,6 @@ local cam=workspace.CurrentCamera
 local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local size=math.clamp(math.min(vp.Y-84,420),330,420);shell.Size=UDim2.fromOffset(size,size);shell.Position=UDim2.new(1,-18,.5,-10);syncButtons()end
 if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
-local acc=0;RunService.RenderStepped:Connect(function(dt)if not gui.Enabled then return end;acc+=dt;if acc<.12 then return end;acc=0;if activeSound and activeSound.Parent then local len=tonumber(activeSound.TimeLength)or 0;local pos=tonumber(activeSound.TimePosition)or 0;fill.Size=UDim2.new(len>0 and math.clamp(pos/len,0,1)or 0,0,1,0);elapsed.Text=fmt(pos);duration.Text=fmt(len);local loud=math.clamp((activeSound.PlaybackLoudness or 0)/500,0,1);for i,b in ipairs(bars)do b.Size=UDim2.new(.04,0,0,7+math.floor(loud*(8+((i*7)%18))))end end end)
+local acc=0;RunService.RenderStepped:Connect(function(dt)if not gui.Enabled then return end;acc+=dt;if acc<.12 then return end;acc=0;local resolved=soundFor(venue());if resolved then activeSound=resolved end;if activeSound and activeSound.Parent then local len=tonumber(activeSound.TimeLength)or 0;local pos=tonumber(activeSound.TimePosition)or 0;fill.Size=UDim2.new(len>0 and math.clamp(pos/len,0,1)or 0,0,1,0);elapsed.Text=fmt(pos);duration.Text=fmt(len);local loud=math.clamp((activeSound.PlaybackLoudness or 0)/500,0,1);for i,b in ipairs(bars)do b.Size=UDim2.new(.04,0,0,7+math.floor(loud*(8+((i*7)%18))))end end end)
 task.defer(function()layout();bindMenu();refresh()end)
-print("[BBYA] Music Player v5.2 online: same glass panel / mobile position lifted / behavior preserved")
+print("[BBYA] Music Player v5.3 online: active deck visualizer / playback preserved")
