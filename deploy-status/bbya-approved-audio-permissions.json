@@ -62,6 +62,9 @@
   ],
   "assetCount": 14,
   "keyDiagnostics": {
+    "TALONTHEDEVIL_AUDIO_PUBLISHER": {
+      "present": false
+    },
     "AMSTUDIO_AUDIO_UPLOADER_01": {
       "present": true,
       "http": 200,
@@ -181,6 +184,11 @@
       "granted": true,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -204,6 +212,11 @@
       "granted": true,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -226,6 +239,11 @@
       "assetId": "134467357340949",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
@@ -281,6 +299,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -334,6 +357,11 @@
       "assetId": "137855682924521",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
@@ -389,6 +417,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -442,6 +475,11 @@
       "assetId": "76764826294674",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
@@ -497,6 +535,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -550,6 +593,11 @@
       "assetId": "122266407959894",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
@@ -605,6 +653,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -658,6 +711,11 @@
       "assetId": "85284576958779",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
@@ -713,6 +771,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -767,6 +830,11 @@
       "granted": false,
       "attempts": [
         {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
+        {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
           "http": 200,
@@ -820,6 +888,11 @@
       "assetId": "106253638699689",
       "granted": false,
       "attempts": [
+        {
+          "key": "TALONTHEDEVIL_AUDIO_PUBLISHER",
+          "attempted": false,
+          "result": "KEY_UNAVAILABLE"
+        },
         {
           "key": "AMSTUDIO_AUDIO_UPLOADER_01",
           "attempted": true,
