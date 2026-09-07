@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.1 STAFF TOWER ROLE GATE
+-- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.2 STAFF TOWER STAFF-ONLY GATE
 -- Server-authoritative destination pricing, purchase locking, purchase result, teleport completion,
--- and role-only Staff Tower access resolved from the live StaffTowerV1 geometry authority.
+-- and staff-only Staff Tower access resolved from the live StaffTowerV1 geometry authority.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
@@ -42,7 +42,6 @@ local destinations={
  NightMarket=CFrame.new(0,4,482),
 }
 
--- Locked BBYA travel prices. IDs are provided by TravelPasses and synced from Roblox.
 local PRICES={VIP=5,Skatepark=5,Rooftop=10,Basement=20,Funkot=10,Mall=10,NightMarket=10}
 local keyByPass={}
 for key,id in pairs(PASSES) do
@@ -53,6 +52,7 @@ end
 local ownershipCache={}
 local debounce={}
 local pending={}
+local STAFF_ROLES={COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,CREW=true}
 
 local function isAdmin(player)
  if not player then return false end
@@ -60,11 +60,11 @@ local function isAdmin(player)
  return game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId
 end
 
-local function hasAnyBBYARole(player)
+local function hasStaffTowerRole(player)
  if not player then return false end
  if player:GetAttribute("BBYAOwner")==true or player:GetAttribute("BBYACoOwner")==true or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYAModerator")==true then return true end
  local role=player:GetAttribute("BBYAManagedRole")
- return type(role)=="string" and role~="" and role~="NONE"
+ return type(role)=="string" and STAFF_ROLES[role]==true
 end
 
 local function hasRoleBypass(player,key)
@@ -112,7 +112,7 @@ local function clearPending(player)
 end
 
 local function doTeleport(player,key)
- if key=="StaffTower" and not hasAnyBBYARole(player) then return false,"Staff role required" end
+ if key=="StaffTower" and not hasStaffTowerRole(player) then return false,"Staff role required" end
  local cf=destinationCFrame(key)
  if not cf then
   if key=="StaffTower" then return false,"Staff Tower arrival belum siap" end
@@ -153,7 +153,8 @@ catalog.OnServerInvoke=function(player)
   local passId=tonumber(PASSES[key]) or 0
   out[key]={price=price,available=passId>0,owned=owns(player,key)}
  end
- out.StaffTower={price=0,available=hasAnyBBYARole(player) and resolveStaffTowerArrival()~=nil,owned=hasAnyBBYARole(player),roleRequired=true}
+ local staff=hasStaffTowerRole(player)
+ out.StaffTower={price=0,available=staff and resolveStaffTowerArrival()~=nil,owned=staff,roleRequired=true}
  return out
 end
 
@@ -170,7 +171,7 @@ tp.OnServerEvent:Connect(function(player,key)
   send(player,false,key,"Destination tidak tersedia","error")
   return
  end
- if key=="StaffTower" and not hasAnyBBYARole(player) then
+ if key=="StaffTower" and not hasStaffTowerRole(player) then
   send(player,false,key,"Staff role required","denied")
   return
  end
@@ -242,7 +243,6 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player,passId
  ownershipCache[player.UserId]=ownershipCache[player.UserId] or {}
  ownershipCache[player.UserId][key]=true
 
- -- Traveling state is emitted only after Roblox confirms purchase success.
  send(player,true,key,"Traveling...","paid")
  local ok,msg=doTeleport(player,key)
  if ok then
@@ -257,4 +257,4 @@ Players.PlayerRemoving:Connect(function(player)
  pending[player.UserId]=nil
 end)
 
-print("[BBYA] Travel v10.1 online: paid travel preserved / role-only Staff Tower arrival / server gate")
+print("[BBYA] Travel v10.2 online: staff full bypass compatible / Staff Tower staff-only / VIP excluded")
