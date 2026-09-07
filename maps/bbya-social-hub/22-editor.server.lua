@@ -10,6 +10,7 @@ local CO_OWNER_USERNAMES={
  ["nadmo97"]=true,
  ["arda_moron123"]=true,
 }
+local EDITOR_USERNAME="arda_moron123"
 
 local deleteStore=DataStoreService:GetDataStore("BBYA_EDITOR_DELETE_V1")
 local DELETE_KEY="GLOBAL_TOMBSTONES"
@@ -23,11 +24,15 @@ local function isAdmin(player)
  return player:GetAttribute("BBYAAdmin")==true
 end
 
+local function isEditorOwner(player)
+ return player~=nil and string.lower(player.Name)==EDITOR_USERNAME
+end
+
 local function bindEditorToggle(player)
- -- Keep EDIT hidden on join. Authorized admins can still toggle it with /bbyaedit or !bbyaedit.
- player:SetAttribute("BBYAEditorVisible",false)
+ -- EDIT is owner-only. Arda gets it visible on join and can still hide/show it with /bbyaedit.
+ player:SetAttribute("BBYAEditorVisible",isEditorOwner(player))
  player.Chatted:Connect(function(message)
-  if not isAdmin(player) then return end
+  if not isEditorOwner(player) then return end
   local text=string.lower((message or ""):gsub("%s+",""))
   if text=="/bbyaedit" or text=="!bbyaedit" then
    player:SetAttribute("BBYAEditorVisible",not player:GetAttribute("BBYAEditorVisible"))
@@ -124,7 +129,7 @@ local function saveCF(target)
 end
 
 remote.OnServerEvent:Connect(function(player,action,target,arg)
- if not isAdmin(player) then return end
+ if not isEditorOwner(player) then return end
  if action=="rotate" and editable(target) then
   saveCF(target);target.CFrame=target.CFrame*CFrame.Angles(0,math.rad(tonumber(arg) or 15),0)
  elseif action=="move" and editable(target) and typeof(arg)=="Vector3" then
@@ -148,4 +153,4 @@ remote.OnServerEvent:Connect(function(player,action,target,arg)
  end
 end)
 
-print("[BBYA] Runtime editor hidden by default; admin chat toggle /bbyaedit")
+print("[BBYA] Runtime editor owner-only: arda_moron123 visible on join / server actions hard-gated")
