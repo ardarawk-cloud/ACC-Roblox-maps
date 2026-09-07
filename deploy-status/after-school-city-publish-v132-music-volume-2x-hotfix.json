@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V132_MUSIC_VOLUME_2X_HOTFIX",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "2f120100924b2b855b156ba518176323e295225d",
+    "baseLiveCommit":  "a8ad670be399600e90e35db37480468bd3841f9b",
+    "qcRunId":  "34149381352",
+    "qcArtifactId":  10028820531,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  57,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  200427,
+    "placeSha256":  "0390dbf3dc2bece4135c1aaf7697e287e3412257b53b4dc30896f5c5b93356cf",
+    "runId":  "34149732184",
+    "publishedAt":  "2026-09-07T17:58:33Z",
+    "note":  "Exact V1.3 personal music volume 2x hotfix QC artifact published without rebuild. UI remains 0-100 percent while 100 percent maps to Sound.Volume 2.0. KPOP 18-track bank, playback behavior from v56, and all prior AFTER SCHOOL CITY authorities remain unchanged."
+}
