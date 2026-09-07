@@ -64,6 +64,12 @@
         "expired": false,
         "scopes": [
           {
+            "name": "asset-permissions",
+            "operations": [
+              "write"
+            ]
+          },
+          {
             "name": "asset",
             "operations": [
               "read",
