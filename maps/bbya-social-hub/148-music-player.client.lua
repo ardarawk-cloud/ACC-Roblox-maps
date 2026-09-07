@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — MUSIC PLAYER v5.1 GLASS PRECISION
--- One compact presentation authority. Reads venue catalogs/remotes only; never mutates SoundId/Volume/PlaybackSpeed.
--- Viewer: PLAYLIST / REQUEST / FAV. Owner/admin adds NEXT.
--- QC repair: presentation layers share one restrained smoky-glass opacity; playback/control logic is unchanged.
+-- BBYA SOCIAL HUB — MUSIC PLAYER v5.2 MOBILE POSITION
+-- Existing glass presentation and playback/control behavior are preserved.
+-- QC-only layout correction: lift the same panel slightly upward so bottom controls/list remain visible on mobile.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -56,8 +55,8 @@ local function requestList(v)if v=="MAIN"or v=="UNDERGROUND"then mainRemote:Fire
 
 local old=pg:FindFirstChild("BBYAMusicPlayerV5");if old then old:Destroy()end
 for _,n in ipairs({"BBYAMusicSuiteV1","BBYACompactMusicLayerV7"})do local g=pg:FindFirstChild(n);if g then g:Destroy()end end
-local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_1_GLASS_PRECISION")
-local shell=frame(gui,"MusicPanel",UDim2.new(1,-18,.5,18),UDim2.fromOffset(400,400),C.bg,.30,20);shell.AnchorPoint=Vector2.new(1,.5);local shellStroke=stroke(shell,C.purple,.20)
+local gui=Instance.new("ScreenGui");gui.Name="BBYAMusicPlayerV5";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=930;gui.Enabled=false;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MUSIC_PLAYER_V5_2_MOBILE_POSITION")
+local shell=frame(gui,"MusicPanel",UDim2.new(1,-18,.5,-10),UDim2.fromOffset(400,400),C.bg,.30,20);shell.AnchorPoint=Vector2.new(1,.5);local shellStroke=stroke(shell,C.purple,.20)
 local hero=frame(shell,"Hero",UDim2.fromOffset(12,12),UDim2.new(1,-24,0,142),C.panel,.34,16)
 local venueText=label(hero,"Venue","BBYA MUSIC",UDim2.fromOffset(14,10),UDim2.new(.52,0,0,16),Enum.Font.GothamBold,8,C.muted)
 local title=label(hero,"NowPlaying","BELUM ADA LAGU",UDim2.fromOffset(14,30),UDim2.new(1,-62,0,28),Enum.Font.GothamBlack,16,C.white)
@@ -70,7 +69,6 @@ local elapsed=label(hero,"Elapsed","00:00",UDim2.fromOffset(14,109),UDim2.fromOf
 local body=frame(shell,"Body",UDim2.fromOffset(12,164),UDim2.new(1,-24,1,-214),C.panel,.36,14);stroke(body,C.line,.62)
 local bodyTitle=label(body,"Title","UP NEXT",UDim2.fromOffset(12,6),UDim2.new(1,-24,0,20),Enum.Font.GothamBlack,10,C.white)
 local list=Instance.new("ScrollingFrame");list.Position=UDim2.fromOffset(9,30);list.Size=UDim2.new(1,-18,1,-38);list.BackgroundTransparency=1;list.BorderSizePixel=0;list.AutomaticCanvasSize=Enum.AutomaticSize.Y;list.CanvasSize=UDim2.new();list.ScrollBarThickness=2;list.Parent=body;local ll=Instance.new("UIListLayout");ll.Padding=UDim.new(0,4);ll.Parent=list
-
 local controls=frame(shell,"Controls",UDim2.new(0,12,1,-40),UDim2.new(1,-24,0,28),C.panel,1)
 local controlButtons={};local ctl=Instance.new("UIListLayout");ctl.FillDirection=Enum.FillDirection.Horizontal;ctl.HorizontalAlignment=Enum.HorizontalAlignment.Center;ctl.Padding=UDim.new(0,5);ctl.Parent=controls
 local function ctlButton(n,t,order)local b=button(controls,n,t,nil,UDim2.fromOffset(80,28),C.card);b.LayoutOrder=order;controlButtons[n]=b;return b end
@@ -99,7 +97,6 @@ local function closePanel()gui.Enabled=false;local menu=pg:FindFirstChild("BBYAC
 local bound={};local function openPlayer()hub.Visible=false;gui.Enabled=true;mode="NOW";requestList(venue());roleLauncher(false);task.delay(.06,refresh)end
 local function bindMenu()local m=pg:FindFirstChild("BBYACommandMenuUI");local slot=m and m:FindFirstChild("Slot_MUSIC",true);if not slot then return end;for _,b in ipairs(slot:GetDescendants())do if b:IsA("TextButton")and not bound[b]then bound[b]=true;b.Activated:Connect(openPlayer)end end end
 pg.DescendantAdded:Connect(function(d)if d:IsA("TextButton")then task.defer(bindMenu)end end)
-
 stateRemote.OnClientEvent:Connect(function(kind,data)local v=venue();if kind=="playlist"and type(data)=="table"and(v=="MAIN"or v=="UNDERGROUND")then cache[v].tracks=normalize(data)elseif kind=="music"and type(data)=="table"then local dv=tostring(data.venue or v);if dv=="BASEMENT"then dv="UNDERGROUND"end;if cache[dv]then cache[dv].state=data end end;if gui.Enabled then refresh()end end)
 if vipRemote then vipRemote.OnClientEvent:Connect(function(kind,data)if kind=="playlist"then cache.VIP.tracks=normalize(data)elseif kind=="state"and type(data)=="table"then cache.VIP.state=data end;if gui.Enabled and venue()=="VIP"then refresh()end end)end
 if funkotRemote then funkotRemote.OnClientEvent:Connect(function(kind,data)if kind=="playlist"then cache.FUNKOT.tracks=normalize(data)elseif kind=="state"and type(data)=="table"then cache.FUNKOT.state=data end;if gui.Enabled and venue()=="FUNKOT"then refresh()end end)end
@@ -108,9 +105,9 @@ ReplicatedStorage.DescendantAdded:Connect(function(d)if gui.Enabled and(d:IsA("S
 for _,a in ipairs({"BBYASkateparkCurrentIndex","BBYASkateparkCurrentTitle","BBYARooftopCurrentIndex","BBYARooftopCurrentTitle","BBYAMallCurrentIndex","BBYAMallCurrentTitle","BBYANightMarketCurrentIndex","BBYANightMarketCurrentTitle"})do ReplicatedStorage:GetAttributeChangedSignal(a):Connect(function()if gui.Enabled then refresh()end end)end
 
 local cam=workspace.CurrentCamera
-local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local size=math.clamp(math.min(vp.Y-84,420),330,420);shell.Size=UDim2.fromOffset(size,size);shell.Position=UDim2.new(1,-18,.5,18);syncButtons()end
+local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local size=math.clamp(math.min(vp.Y-84,420),330,420);shell.Size=UDim2.fromOffset(size,size);shell.Position=UDim2.new(1,-18,.5,-10);syncButtons()end
 if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
 local acc=0;RunService.RenderStepped:Connect(function(dt)if not gui.Enabled then return end;acc+=dt;if acc<.12 then return end;acc=0;if activeSound and activeSound.Parent then local len=tonumber(activeSound.TimeLength)or 0;local pos=tonumber(activeSound.TimePosition)or 0;fill.Size=UDim2.new(len>0 and math.clamp(pos/len,0,1)or 0,0,1,0);elapsed.Text=fmt(pos);duration.Text=fmt(len);local loud=math.clamp((activeSound.PlaybackLoudness or 0)/500,0,1);for i,b in ipairs(bars)do b.Size=UDim2.new(.04,0,0,7+math.floor(loud*(8+((i*7)%18))))end end end)
 task.defer(function()layout();bindMenu();refresh()end)
-print("[BBYA] Music Player v5.1 online: consistent smoky glass / live venue catalogs / behavior preserved")
+print("[BBYA] Music Player v5.2 online: same glass panel / mobile position lifted / behavior preserved")
