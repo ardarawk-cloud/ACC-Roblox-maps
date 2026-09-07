@@ -1,17 +1,19 @@
--- BBYA SOCIAL HUB — DJ LIVE ENGINE v6.1 RUNTIME HARDENED
--- Keeps the v6 two-deck authority and EQ-gate takeover. This repair makes FX deliberately audible,
--- re-applies FX/gates during long sessions, and preserves authoritative timeline/BPM state.
+-- BBYA SOCIAL HUB — DJ LIVE ENGINE v6.2 HARD SESSION OWNERSHIP
+-- LIVE ON is a session lock: temporary role/auth attribute churn must never stop the DJ session.
+-- While LIVE is ON, every non-DJ Sound routed to the selected venue SoundGroup is hard-gated.
+-- Ownership ends only on explicit LIVE STOP, operator leave, or deliberate venue switch handling.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local SoundService=game:GetService("SoundService")
 local ContentProvider=game:GetService("ContentProvider")
 local Debris=game:GetService("Debris")
+local Workspace=game:GetService("Workspace")
 
 local QA_USERNAMES={nadmo97=true,arda_moron123=true}
 local VENUE_GROUPS={CLUB="BBYAClubMaster",VIP="BBYAVIPMaster",UNDERGROUND="BBYABasementMaster",FUNKOT="BBYAFunkotMaster"}
-local AUTO_SOURCES={CLUB={"BBYAClubDeckA","BBYAClubDeckB","BBYAMainPublicFallbackV4"},VIP={"BBYAVIPPlaylist"},UNDERGROUND={"BBYABasementDeckA","BBYABasementDeckB","BBYAUndergroundBreakbeatFallbackV4"},FUNKOT={"BBYAFunkotRuntimeV6"}}
-local GATE_NAME="BBYADJLiveV61AutoGate"
+local AUTO_SOURCES={CLUB={"BBYAClubDeckA","BBYAClubDeckB","BBYAMainPublicFallbackV4"},VIP={"BBYAVIPPlaylist"},UNDERGROUND={"BBYABasementDeckA","BBYABasementDeckB","BBYAUndergroundBreakbeatFallbackV4"},FUNKOT={"BBYAFunkotRuntimeV6","BBYAFunkotDeck"}}
+local GATE_NAME="BBYADJLiveV62OwnershipGate"
 local NORMALIZED_175X=1/1.75
 local BPM_BY_ASSET={[96983528563473]=128}
 local LIBRARY={}
@@ -33,7 +35,7 @@ local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes")or Instance.new
 local function remote(className,name)local r=remotes:FindFirstChild(name);if r and not r:IsA(className)then r:Destroy();r=nil end;if not r then r=Instance.new(className);r.Name=name;r.Parent=remotes end;return r end
 local action=remote("RemoteEvent","DJLiveAction");local stateRemote=remote("RemoteEvent","DJLiveState");local getState=remote("RemoteFunction","DJLiveGetState");local getLibrary=remote("RemoteFunction","DJLiveGetLibrary")
 for _,name in ipairs({"BBYADJLiveCleanEngine","BBYADJLiveV5Engine","BBYADJLiveV6Engine","BBYADJLiveV61Engine"})do local old=SoundService:FindFirstChild(name);if old then old:Destroy()end end
-local engine=Instance.new("Folder");engine.Name="BBYADJLiveV61Engine";engine:SetAttribute("Version","DJ_LIVE_V6_1_RUNTIME_HARDENED");engine:SetAttribute("AutoDJTakeover","PER_SOURCE_EQ_GATE_ONLY");engine:SetAttribute("TimelineState","AUTHORITATIVE_TIMEPOSITION_TIMELENGTH");engine:SetAttribute("FXAuthority","SERVER_CHILD_EFFECTS_STRONG_V1");engine:SetAttribute("LongSession","SELF_HEALING_GATE_AND_FX");engine.Parent=SoundService
+local engine=Instance.new("Folder");engine.Name="BBYADJLiveV61Engine";engine:SetAttribute("Version","DJ_LIVE_V6_2_HARD_SESSION");engine:SetAttribute("AutoDJTakeover","LIVE_SESSION_HARD_OWNERSHIP");engine:SetAttribute("TimelineState","AUTHORITATIVE_TIMEPOSITION_TIMELENGTH");engine:SetAttribute("FXAuthority","SERVER_CHILD_EFFECTS_STRONG_V1");engine:SetAttribute("LongSession","AUTH_CHURN_IMMUNE_HARD_GATE");engine.Parent=SoundService
 
 local function ensureEffect(sound,className,name)local e=sound:FindFirstChild(name);if e and e.ClassName~=className then e:Destroy();e=nil end;if not e then e=Instance.new(className);e.Name=name;e.Parent=sound end;return e end
 local function configureFx(fx)
@@ -43,7 +45,7 @@ local function configureFx(fx)
  fx.FLANGER.Enabled=false;fx.FLANGER.Depth=.85;fx.FLANGER.Mix=.75;fx.FLANGER.Rate=.55
 end
 local function makeDeck(name)
- local s=Instance.new("Sound");s.Name=name;s.Volume=0;s.Looped=false;s.PlaybackSpeed=1;s.Parent=engine;s:SetAttribute("BBYADJLiveV61Deck",true)
+ local s=Instance.new("Sound");s.Name=name;s.Volume=0;s.Looped=false;s.PlaybackSpeed=1;s.Parent=engine;s:SetAttribute("BBYADJLiveV62Deck",true)
  local fx={ECHO=ensureEffect(s,"EchoSoundEffect","DJV61Echo"),FILTER=ensureEffect(s,"EqualizerSoundEffect","DJV61Filter"),REVERB=ensureEffect(s,"ReverbSoundEffect","DJV61Reverb"),FLANGER=ensureEffect(s,"FlangeSoundEffect","DJV61Flanger")};configureFx(fx);return s,fx
 end
 local soundA,fxA=makeDeck("DeckA");local soundB,fxB=makeDeck("DeckB")
@@ -53,24 +55,43 @@ local lastAction={};local brakeToken={A=0,B=0};local gated={};local gatedMap=nil
 local function isOwnerQA(p)if not p then return false end;local name=string.lower(p.Name);return QA_USERNAMES[name]==true or p:GetAttribute("BBYAOwner")==true or(game.CreatorType==Enum.CreatorType.User and p.UserId==game.CreatorId)end
 local function hasManagedDJ(p)return p~=nil and p:GetAttribute("BBYAHasDJRole")==true and p:GetAttribute("BBYAManagedRole")=="DJ"end
 local function authorized(p)return isOwnerQA(p)or hasManagedDJ(p)end
-local function identity(p)if isOwnerQA(p)then return"OWNER_QA"elseif hasManagedDJ(p)then return"DJ"end end
+local function sessionAuthorized(p)return p~=nil and(authorized(p)or(S.live and S.operatorUserId==p.UserId))end
+local function identity(p)if isOwnerQA(p)then return"OWNER_QA"elseif hasManagedDJ(p)then return"DJ"elseif S.live and p and S.operatorUserId==p.UserId then return S.operator or"DJ_SESSION"end end
 local function groupFor(map)local name=VENUE_GROUPS[map];local g=name and SoundService:FindFirstChild(name);return g and g:IsA("SoundGroup")and g or nil end
 local function deckObjects(deck)if deck=="A"then return soundA,fxA,S.decks.A elseif deck=="B"then return soundB,fxB,S.decks.B end end
-local function clearGates()for s,g in pairs(gated)do if g and g.Parent then g:Destroy()end;if s and s.Parent then s:SetAttribute("BBYADJLiveV61Gated",false)end end;gated={};gatedMap=nil;S.gateActive=false;for _,d in ipairs(SoundService:GetDescendants())do if d:IsA("EqualizerSoundEffect")and(d.Name==GATE_NAME or d.Name=="BBYADJLiveV6AutoGate"or d.Name=="BBYADJLiveV5AutoGate")then d:Destroy()end end end
-local function findNamedSound(name)local d=SoundService:FindFirstChild(name,true);return d and d:IsA("Sound")and d or nil end
-local function ensureGate(sound)if not sound or not sound.Parent or sound:IsDescendantOf(engine)then return end;local g=sound:FindFirstChild(GATE_NAME);if g and not g:IsA("EqualizerSoundEffect")then g:Destroy();g=nil end;if not g then g=Instance.new("EqualizerSoundEffect");g.Name=GATE_NAME;g.Parent=sound end;g.Enabled=true;g.LowGain=-80;g.MidGain=-80;g.HighGain=-80;gated[sound]=g;sound:SetAttribute("BBYADJLiveV61Gated",true)end
+local function clearGates()
+ for s,g in pairs(gated)do if g and g.Parent then g:Destroy()end;if s and s.Parent then s:SetAttribute("BBYADJLiveV62Gated",nil)end end
+ gated={};gatedMap=nil;S.gateActive=false
+ for _,root in ipairs({SoundService,Workspace})do for _,d in ipairs(root:GetDescendants())do if d:IsA("EqualizerSoundEffect")and(d.Name==GATE_NAME or d.Name=="BBYADJLiveV61AutoGate"or d.Name=="BBYADJLiveV6AutoGate"or d.Name=="BBYADJLiveV5AutoGate")then d:Destroy()end end end
+end
+local function findNamedSound(name)local d=SoundService:FindFirstChild(name,true)or Workspace:FindFirstChild(name,true);return d and d:IsA("Sound")and d or nil end
+local function ensureGate(sound)
+ if not sound or not sound.Parent or sound:IsDescendantOf(engine)then return end
+ local g=sound:FindFirstChild(GATE_NAME);if g and not g:IsA("EqualizerSoundEffect")then g:Destroy();g=nil end;if not g then g=Instance.new("EqualizerSoundEffect");g.Name=GATE_NAME;g.Parent=sound end
+ g.Enabled=true;g.LowGain=-80;g.MidGain=-80;g.HighGain=-80;gated[sound]=g;sound:SetAttribute("BBYADJLiveV62Gated",true)
+end
 local function mixGains()local x=math.clamp(tonumber(S.crossfader)or.5,0,1);return math.cos(x*math.pi*.5),math.sin(x*math.pi*.5)end
-local function shouldGate()if not S.live then return false end;local ga,gb=mixGains();return(soundA.Playing and ga>.025)or(soundB.Playing and gb>.025)end
-local function syncAutoGates()if not shouldGate()then if gatedMap then clearGates()end;return end;if gatedMap~=S.map then clearGates();gatedMap=S.map end;for _,name in ipairs(AUTO_SOURCES[S.map]or{})do ensureGate(findNamedSound(name))end;gatedMap=S.map;S.gateActive=true end
+local function syncAutoGates()
+ if not S.live then if gatedMap then clearGates()end;return end
+ if gatedMap~=S.map then clearGates();gatedMap=S.map end
+ local group=groupFor(S.map);if not group then return end
+ for _,name in ipairs(AUTO_SOURCES[S.map]or{})do ensureGate(findNamedSound(name))end
+ for _,root in ipairs({SoundService,Workspace})do
+  for _,d in ipairs(root:GetDescendants())do
+   if d:IsA("Sound")and not d:IsDescendantOf(engine)and d.SoundGroup==group then ensureGate(d)end
+  end
+ end
+ gatedMap=S.map;S.gateActive=true
+end
 local function routeDecks()local g=groupFor(S.map);if not g then return false end;soundA.SoundGroup=g;soundB.SoundGroup=g;engine:SetAttribute("Map",S.map);engine:SetAttribute("Live",S.live);return true end
 local function applyFx(deck)local _,fx,d=deckObjects(deck);if not d then return end;configureFx(fx);for name,e in pairs(fx)do e.Enabled=d.fx[name]==true;e:SetAttribute("BBYADJFXActive",d.fx[name]==true)end end
 local function applyMix()local ga,gb=mixGains();soundA.Volume=S.live and ga or 0;soundB.Volume=S.live and gb or 0;applyFx("A");applyFx("B");syncAutoGates()end
 local function syncOne(sound,d)d.playing=sound.Playing;d.playbackSpeed=sound.PlaybackSpeed;d.timePosition=tonumber(sound.TimePosition)or 0;d.timeLength=tonumber(sound.TimeLength)or 0;d.loaded=sound.IsLoaded end
 local function syncPlayingFlags()syncOne(soundA,S.decks.A);syncOne(soundB,S.decks.B)end
-local function snapshot()syncPlayingFlags();return{authorized=true,version="DJ_LIVE_V6_1",live=S.live,map=S.map,crossfader=S.crossfader,operator=S.operator,notice=S.notice,gateActive=S.gateActive,decks=S.decks}end
-local function broadcast(notice)if notice~=nil then S.notice=tostring(notice)end;local snap=snapshot();for _,p in ipairs(Players:GetPlayers())do if authorized(p)then stateRemote:FireClient(p,snap)end end end
+local function snapshot()syncPlayingFlags();return{authorized=true,version="DJ_LIVE_V6_2",live=S.live,map=S.map,crossfader=S.crossfader,operator=S.operator,operatorUserId=S.operatorUserId,notice=S.notice,gateActive=S.gateActive,decks=S.decks}end
+local function broadcast(notice)if notice~=nil then S.notice=tostring(notice)end;local snap=snapshot();for _,p in ipairs(Players:GetPlayers())do if sessionAuthorized(p)then stateRemote:FireClient(p,snap)end end end
 local function resetDecks()soundA:Stop();soundB:Stop();soundA.SoundId="";soundB.SoundId="";soundA.PlaybackSpeed=1;soundB.PlaybackSpeed=1;S.decks.A=freshDeck();S.decks.B=freshDeck();applyMix()end
-local function stopLive(notice)S.live=false;S.operator=nil;S.operatorUserId=nil;clearGates();soundA:Pause();soundB:Pause();applyMix();engine:SetAttribute("Live",false);broadcast(notice or"DJ LIVE STOP")end
+local function stopLive(notice)S.live=false;S.operator=nil;S.operatorUserId=nil;engine:SetAttribute("Live",false);clearGates();soundA:Pause();soundB:Pause();applyMix();broadcast(notice or"DJ LIVE STOP")end
 local function loadTrack(deck,index)local sound,_,d=deckObjects(deck);local t=LIBRARY[tonumber(index)or 0];if not sound or not d or not t or t.map~=S.map then return false end;sound:Stop();sound.TimePosition=0;sound.PlaybackSpeed=t.playbackSpeed or 1;sound.SoundId="rbxassetid://"..tostring(t.id);d.trackIndex=t.index;d.title=t.title;d.artist=t.artist;d.assetId=t.id;d.bpm=t.bpm;d.bpmSource=t.bpmSource;d.baseSpeed=t.playbackSpeed or 1;d.playbackSpeed=sound.PlaybackSpeed;d.cue=0;d.loaded=false;d.playing=false;d.timePosition=0;d.timeLength=0;task.spawn(function()pcall(function()ContentProvider:PreloadAsync({sound})end);if d.trackIndex==t.index then syncOne(sound,d);broadcast("LOADED • DECK "..deck.." • "..t.title)end end);return true end
 local function playToggle(deck)local sound,_,d=deckObjects(deck);if not sound or not d or d.assetId<1 then return end;if not S.live then S.notice="START DJ LIVE FIRST";broadcast();return end;if sound.Playing then sound:Pause()else pcall(function()sound:Play()end)end;syncPlayingFlags();applyMix()end
 local function cue(deck)local sound,_,d=deckObjects(deck);if not sound or not d or d.assetId<1 then return end;if sound.Playing then sound:Pause()end;pcall(function()sound.TimePosition=math.max(0,d.cue or 0)end);syncPlayingFlags();applyMix()end
@@ -80,21 +101,26 @@ local function toggleFx(deck,name)name=string.upper(tostring(name or""));local _
 local function brake(deck)local sound,_,d=deckObjects(deck);if not sound or not d or d.assetId<1 then return end;brakeToken[deck]+=1;local token=brakeToken[deck];local start=math.max(.2,sound.PlaybackSpeed);task.spawn(function()for i=1,12 do if brakeToken[deck]~=token then return end;sound.PlaybackSpeed=math.max(.08,start*(1-i/13));task.wait(.045)end;if brakeToken[deck]==token then sound:Pause();sound.PlaybackSpeed=d.baseSpeed or 1;syncPlayingFlags();applyMix();broadcast("BRAKE • DECK "..deck)end end)end
 local function normalized(v)return string.upper(tostring(v or"")):gsub("[^A-Z0-9]","")end
 local function findExistingSample(name)local wanted=normalized(name);for _,r in ipairs({SoundService,ReplicatedStorage})do for _,d in ipairs(r:GetDescendants())do if d:IsA("Sound")and not d:IsDescendantOf(engine)and(normalized(d.Name)==wanted or normalized(d:GetAttribute("BBYASFXName"))==wanted)then return d end end end end
-local function triggerSample(deck,name)name=string.upper(tostring(name or""));if name=="BRAKE"then brake(deck);return end;local source=findExistingSample(name);if not source or source.SoundId==""then broadcast(name.." sample belum tersedia");return end;local clone=Instance.new("Sound");clone.Name="DJV61Sample_"..name;clone.SoundId=source.SoundId;clone.Volume=math.max(source.Volume,1);clone.PlaybackSpeed=source.PlaybackSpeed;clone.SoundGroup=groupFor(S.map);clone.Parent=engine;Debris:AddItem(clone,20);pcall(function()clone:Play()end);broadcast(name.." • DECK "..deck)end
-local function setMap(map)map=string.upper(tostring(map or""));if not VENUE_GROUPS[map]or not groupFor(map)then broadcast("AUDIO MASTER "..map.." BELUM SIAP");return false end;if map==S.map then return true end;clearGates();S.map=map;resetDecks();routeDecks();engine:SetAttribute("Map",map);broadcast("VENUE • "..map);return true end
-local function liveStart(player)if S.live or not authorized(player)then return end;if not routeDecks()then broadcast("VENUE MASTER BELUM SIAP");return end;S.live=true;S.operator=identity(player);S.operatorUserId=player.UserId;engine:SetAttribute("Live",true);applyMix();broadcast("DJ LIVE READY • "..S.map)end
-local function handle(player,kind,payload)if not authorized(player)then return end;local now=os.clock();if now-(lastAction[player]or 0)<.03 then return end;lastAction[player]=now;kind=string.lower(tostring(kind or""));payload=type(payload)=="table"and payload or{};local deck=string.upper(tostring(payload.deck or""));if kind=="load"then loadTrack(deck,payload.index)elseif kind=="play_toggle"then playToggle(deck)elseif kind=="cue"then cue(deck)elseif kind=="sync"then syncDeck(deck)elseif kind=="crossfader"then S.crossfader=math.clamp(tonumber(payload.value)or.5,0,1);applyMix()elseif kind=="fx_toggle"then toggleFx(deck,payload.fx)elseif kind=="sample"then triggerSample(deck,payload.fx)elseif kind=="map"then setMap(payload.value)elseif kind=="live_start"then liveStart(player)elseif kind=="live_stop"and(S.operatorUserId==player.UserId or isOwnerQA(player))then stopLive()else return end;broadcast()end
+local function triggerSample(deck,name)name=string.upper(tostring(name or""));if name=="BRAKE"then brake(deck);return end;local source=findExistingSample(name);if not source or source.SoundId==""then broadcast(name.." sample belum tersedia");return end;local clone=Instance.new("Sound");clone.Name="DJV62Sample_"..name;clone.SoundId=source.SoundId;clone.Volume=math.max(source.Volume,1);clone.PlaybackSpeed=source.PlaybackSpeed;clone.SoundGroup=groupFor(S.map);clone.Parent=engine;Debris:AddItem(clone,20);pcall(function()clone:Play()end);broadcast(name.." • DECK "..deck)end
+local function setMap(map)map=string.upper(tostring(map or""));if not VENUE_GROUPS[map]or not groupFor(map)then broadcast("AUDIO MASTER "..map.." BELUM SIAP");return false end;if map==S.map then return true end;clearGates();S.map=map;resetDecks();routeDecks();engine:SetAttribute("Map",map);syncAutoGates();broadcast("VENUE • "..map);return true end
+local function liveStart(player)if S.live or not authorized(player)then return end;if not routeDecks()then broadcast("VENUE MASTER BELUM SIAP");return end;S.live=true;S.operator=identity(player)or"DJ";S.operatorUserId=player.UserId;engine:SetAttribute("Live",true);engine:SetAttribute("OperatorUserId",player.UserId);applyMix();broadcast("DJ LIVE READY • "..S.map)end
+local function handle(player,kind,payload)
+ if not sessionAuthorized(player)then return end
+ local now=os.clock();if now-(lastAction[player]or 0)<.03 then return end;lastAction[player]=now;kind=string.lower(tostring(kind or""));payload=type(payload)=="table"and payload or{};local deck=string.upper(tostring(payload.deck or""))
+ if kind=="load"then loadTrack(deck,payload.index)elseif kind=="play_toggle"then playToggle(deck)elseif kind=="cue"then cue(deck)elseif kind=="sync"then syncDeck(deck)elseif kind=="crossfader"then S.crossfader=math.clamp(tonumber(payload.value)or.5,0,1);applyMix()elseif kind=="fx_toggle"then toggleFx(deck,payload.fx)elseif kind=="sample"then triggerSample(deck,payload.fx)elseif kind=="map"then setMap(payload.value)elseif kind=="live_start"then liveStart(player)elseif kind=="live_stop"and(S.operatorUserId==player.UserId or isOwnerQA(player))then stopLive()else return end;broadcast()
+end
 
 action.OnServerEvent:Connect(handle)
-getState.OnServerInvoke=function(player)if not authorized(player)then return{authorized=false}end;return snapshot()end
-getLibrary.OnServerInvoke=function(player)if not authorized(player)then return{}end;return LIBRARY end
-local function applyAuth(p)local ok=authorized(p);p:SetAttribute("BBYADJLiveAuthorized",ok);p:SetAttribute("BBYADJLiveIdentity",identity(p)or"");if S.live and S.operatorUserId==p.UserId and not ok then stopLive("DJ LIVE STOP • AUTH REMOVED")end end
+getState.OnServerInvoke=function(player)if not sessionAuthorized(player)then return{authorized=false}end;return snapshot()end
+getLibrary.OnServerInvoke=function(player)if not sessionAuthorized(player)then return{}end;return LIBRARY end
+local function applyAuth(p)local ok=authorized(p);p:SetAttribute("BBYADJLiveAuthorized",ok);p:SetAttribute("BBYADJLiveIdentity",identity(p)or"");if S.live and S.operatorUserId==p.UserId then p:SetAttribute("BBYADJLiveSessionOwner",true)else p:SetAttribute("BBYADJLiveSessionOwner",nil)end end
 local function bindPlayer(p)applyAuth(p);p:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(function()applyAuth(p)end);p:GetAttributeChangedSignal("BBYAManagedRole"):Connect(function()applyAuth(p)end);p:GetAttributeChangedSignal("BBYAOwner"):Connect(function()applyAuth(p)end)end
 for _,p in ipairs(Players:GetPlayers())do bindPlayer(p)end;Players.PlayerAdded:Connect(bindPlayer)
 Players.PlayerRemoving:Connect(function(p)lastAction[p]=nil;if S.live and S.operatorUserId==p.UserId then stopLive("DJ LIVE STOP • OPERATOR LEFT")end end)
 soundA.Ended:Connect(function()syncPlayingFlags();applyMix();broadcast("DECK A ENDED")end);soundB.Ended:Connect(function()syncPlayingFlags();applyMix();broadcast("DECK B ENDED")end)
-SoundService.DescendantAdded:Connect(function(d)if d:IsA("Sound")and S.live then task.defer(syncAutoGates)end end)
-task.spawn(function()while task.wait(.20)do if S.live then syncAutoGates();applyFx("A");applyFx("B")end end end)
+local function descendantAdded(d)if d:IsA("Sound")and S.live then task.defer(function()local g=groupFor(S.map);if g and d.SoundGroup==g and not d:IsDescendantOf(engine)then ensureGate(d)end end)end end
+SoundService.DescendantAdded:Connect(descendantAdded);Workspace.DescendantAdded:Connect(descendantAdded)
+task.spawn(function()while task.wait(.50)do if S.live then syncAutoGates();applyFx("A");applyFx("B")end end end)
 task.spawn(function()while task.wait(.25)do if S.live or soundA.Playing or soundB.Playing then broadcast()end end end)
 game:BindToClose(clearGates);routeDecks();applyMix()
-print("[BBYA] DJ LIVE v6.1 online: strong FX / long-session self-heal / BPM + timeline / EQ-gate takeover")
+print("[BBYA] DJ LIVE v6.2 online: hard session ownership / auth-churn immune / venue-wide gate until LIVE OFF")
