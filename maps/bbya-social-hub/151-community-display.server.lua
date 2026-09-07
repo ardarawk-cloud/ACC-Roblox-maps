@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — COMMUNITY PHYSICAL DISPLAY v3 LOCKED STAGE / LIVE AVATAR REFRESH
+-- BBYA SOCIAL HUB — COMMUNITY PHYSICAL DISPLAY v3.1 STABLE DESCRIPTION REFRESH
 -- Physical podium geometry is frozen. Only the avatar model inside each locked slot may refresh.
--- Rebuild strategy: current live Character clone first, then Roblox user/description fallbacks.
+-- QC: rebuild display avatars from complete HumanoidDescription sources instead of cloning a live Character mid-load.
 -- Replacement is transactional: a visible working avatar is never removed until a valid replacement exists.
 
 local Players=game:GetService("Players")
@@ -19,10 +19,11 @@ end
 
 local runtime=Instance.new("Model")
 runtime.Name="CommunityPhysicalDisplayV1"
-runtime:SetAttribute("PhysicalAuthority","151_V3_LOCKED_STAGE_LIVE_REFRESH")
+runtime:SetAttribute("PhysicalAuthority","151_V3_1_STABLE_DESCRIPTION_REFRESH")
 runtime:SetAttribute("StageGeometryLock","OWNER_-54.5_-50.6__DONOR_49.8_54.5_59.2_-50.6")
 runtime:SetAttribute("AvatarUpdatePolicy","REPLACE_MODEL_ONLY_KEEP_STAGE")
 runtime:SetAttribute("AvatarReplacementPolicy","BUILD_VALIDATE_THEN_SWAP")
+runtime:SetAttribute("AvatarSourcePolicy","APPLIED_DESCRIPTION_FIRST_NO_LIVE_CHARACTER_CLONE")
 runtime:SetAttribute("TopDonorCount",3)
 runtime.Parent=root
 
@@ -66,7 +67,13 @@ local function validRig(model)
  local hum=model:FindFirstChildOfClass("Humanoid")
  local rootPart=model:FindFirstChild("HumanoidRootPart",true)
  local head=model:FindFirstChild("Head",true)
- return hum~=nil and rootPart~=nil and rootPart:IsA("BasePart") and head~=nil and head:IsA("BasePart")
+ local torso=model:FindFirstChild("UpperTorso",true)or model:FindFirstChild("Torso",true)
+ if not hum or not rootPart or not rootPart:IsA("BasePart")or not head or not head:IsA("BasePart")or not torso or not torso:IsA("BasePart")then return false end
+ local bodyParts=0
+ for _,d in ipairs(model:GetDescendants())do
+  if d:IsA("BasePart")and not accessoryAncestor(d)then bodyParts+=1 end
+ end
+ return bodyParts>=6
 end
 local function sanitizeRig(model)
  if not model then return end
@@ -88,15 +95,6 @@ local function sanitizeRig(model)
  local rp=model:FindFirstChild("HumanoidRootPart",true)
  if rp and rp:IsA("BasePart")then rp.Anchored=true;rp.Massless=false;model.PrimaryPart=rp end
 end
-local function cloneLive(uid)
- local p=Players:GetPlayerByUserId(uid);local char=p and p.Character
- local hum=char and char:FindFirstChildOfClass("Humanoid");local rp=char and char:FindFirstChild("HumanoidRootPart")
- if not char or not hum or not rp then return nil end
- local old=char.Archivable;char.Archivable=true
- local ok,m=pcall(function()return char:Clone()end)
- char.Archivable=old
- if ok and m then sanitizeRig(m);if validRig(m)then return m,"LIVE_CHARACTER_CLONE"end;m:Destroy()end
-end
 local function fromAppliedDescription(uid)
  local p=Players:GetPlayerByUserId(uid);local hum=p and p.Character and p.Character:FindFirstChildOfClass("Humanoid")
  if not hum then return nil end
@@ -117,14 +115,12 @@ end
 local function makeAvatar(uid,preferLive)
  uid=tonumber(uid);if not uid then return nil,"INVALID_UID" end
  if preferLive~=false then
-  local m,s=cloneLive(uid);if m then return m,s end
-  m,s=fromAppliedDescription(uid);if m then return m,s end
+  local m,s=fromAppliedDescription(uid);if m then return m,s end
  end
  local m,s=fromUserModel(uid);if m then return m,s end
  m,s=fromUserDescription(uid,Enum.HumanoidRigType.R15);if m then return m,s end
  m,s=fromUserDescription(uid,Enum.HumanoidRigType.R6);if m then return m,s end
  if preferLive==false then
-  m,s=cloneLive(uid);if m then return m,s end
   m,s=fromAppliedDescription(uid);if m then return m,s end
  end
  return nil,"FAILED_ALL_SOURCES"
@@ -215,16 +211,16 @@ local function refreshDisplayedUser(uid)
   if key~="OWNER"and currentUid==uid then replaceAvatar(key,uid,true)end
  end
 end
-local function scheduleLiveRefresh(p)
+local function scheduleStableRefresh(p,firstDelay,secondDelay)
  if not p or not p.Parent then return end
  local uid=p.UserId
- task.delay(.45,function()if p.Parent then refreshDisplayedUser(uid)end end)
- task.delay(1.35,function()if p.Parent then refreshDisplayedUser(uid)end end)
+ task.delay(firstDelay or .2,function()if p.Parent then refreshDisplayedUser(uid)end end)
+ if secondDelay then task.delay(secondDelay,function()if p.Parent then refreshDisplayedUser(uid)end end)end
 end
 local function wire(p)
- p.CharacterAdded:Connect(function()scheduleLiveRefresh(p)end)
- p.CharacterAppearanceLoaded:Connect(function()scheduleLiveRefresh(p)end)
- p:GetAttributeChangedSignal("BBYAActiveOutfitId"):Connect(function()scheduleLiveRefresh(p)end)
+ p.CharacterAdded:Connect(function()scheduleStableRefresh(p,1.6,2.8)end)
+ p.CharacterAppearanceLoaded:Connect(function()scheduleStableRefresh(p,.15,.8)end)
+ p:GetAttributeChangedSignal("BBYAActiveOutfitId"):Connect(function()scheduleStableRefresh(p,.25,1.0)end)
 end
 for _,p in ipairs(Players:GetPlayers())do wire(p)end
 Players.PlayerAdded:Connect(wire)
@@ -237,4 +233,4 @@ task.delay(1.2,function()refreshDonors()end)
 task.spawn(function()while task.wait(30)do refreshDonors()end end)
 task.spawn(function()while task.wait(90)do if not slots.OWNER then refreshOwner(false)end end end)
 
-print("[BBYA] Community Display v3 online: podium geometry LOCKED / live Character refresh / transactional avatar swap")
+print("[BBYA] Community Display v3.1 online: locked podium / stable HumanoidDescription refresh / no partial live clone")
