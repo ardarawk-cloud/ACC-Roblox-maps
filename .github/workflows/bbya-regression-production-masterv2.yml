@@ -56,9 +56,9 @@ jobs:
           if($legacy -match '(?m)\.Volume\s*='){throw '81 volume ownership regression'}
           if($legacy -notmatch 'BBYALegacyVolumeWriterDisabled'){throw '81 disable marker missing'}
           if($router -notmatch 'ROUTER_V9_4_EQ_ONLY' -or $router -notmatch 'BBYAFunkotHardGateV9'){throw 'Router v9.4 lock missing'}
-          if($ug -notmatch 'DARK_SAFE_V3'){throw 'Underground dark-safe marker missing'}
+          if($ug -notmatch 'DARK_SAFE_V4_EMISSIVE_ONLY'){throw 'Underground dark-safe v4 marker missing'}
           if($ug -match 'GetService\("Lighting"\)'){throw 'Underground owns global Lighting'}
-          if($dark -notmatch 'DARK_UNDERGROUND_V6_SLIGHT_LIFT'){throw 'Underground final dark lock missing'}
+          if($dark -notmatch 'DARK_UNDERGROUND_V11_PLUS4'){throw 'Underground final v11 plus4 lock missing'}
           if($cars -notmatch 'fallback red/blue entrance cars remain' -or $cars -notmatch 'FallbackCarsRetained'){throw 'Entrance car failsafe missing'}
           if($lighting -notmatch 'GLOBAL_LIGHTING_AUTHORITY_V4'){throw 'Global Lighting authority missing'}
           Write-Host 'BBYA_VALIDATED_RUNTIME_LOCKS_PASS'
