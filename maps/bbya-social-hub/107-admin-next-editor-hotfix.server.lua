@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8.1 OWNER-ONLY EDIT VISIBILITY
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
--- Runtime EDIT stays hidden by default for all admins; /bbyaedit can still show it when needed.
--- v8 retires the duplicate Community Wall neon geometry hotfix; 34-support-dashboard is sole visual authority.
+-- Runtime EDIT is visible only for arda_moron123; all other staff/admin accounts remain hidden.
+-- Community Wall neon geometry remains owned only by 34-support-dashboard.server.lua.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,6 +11,7 @@ local Workspace=game:GetService("Workspace")
 local STATIC_ADMIN_USERNAMES={
  ["arda_moron123"]=true,
 }
+local EDITOR_USERNAME="arda_moron123"
 
 local function usernameKey(player)
  return player and string.lower(player.Name) or ""
@@ -18,6 +19,10 @@ end
 
 local function isStaticAdmin(player)
  return player and STATIC_ADMIN_USERNAMES[usernameKey(player)]==true
+end
+
+local function isEditorOwner(player)
+ return player~=nil and usernameKey(player)==EDITOR_USERNAME
 end
 
 local function grantStaticAdminAccess(player)
@@ -50,7 +55,7 @@ local function bindStaticAdmin(player)
      if player.Parent then grantStaticAdminAccess(player) end
     end)
    end
-  end)
+  end
  end
  task.delay(3,function()
   if player.Parent then grantStaticAdminAccess(player) end
@@ -108,22 +113,25 @@ local function stopRecovery(v)
  return false
 end
 
--- Keep the runtime editor hidden by default. The existing /bbyaedit command in the editor server
--- remains available to authorized admins whenever the editor is needed again.
-local function hideEditorByDefault(player)
+-- Hard visibility policy: only arda_moron123 can see/use EDIT.
+-- This intentionally overrides the retired "hide for everyone" behavior from this hotfix.
+local function syncEditorVisibility(player)
  if not player then return end
- player:SetAttribute("BBYAEditorVisible",false)
- player:SetAttribute("BBYAEditorAutoShownV1",false)
+ local owner=isEditorOwner(player)
+ player:SetAttribute("BBYAEditorVisible",owner)
+ player:SetAttribute("BBYAEditorAutoShownV1",owner)
 end
 
 for _,p in ipairs(Players:GetPlayers()) do
+ syncEditorVisibility(p)
  task.delay(2,function()
-  if p.Parent then hideEditorByDefault(p) end
+  if p.Parent then syncEditorVisibility(p) end
  end)
 end
 Players.PlayerAdded:Connect(function(p)
+ syncEditorVisibility(p)
  task.delay(2,function()
-  if p.Parent then hideEditorByDefault(p) end
+  if p.Parent then syncEditorVisibility(p) end
  end)
 end)
 
@@ -183,4 +191,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v8 online: static admin + full bypass; EDIT hidden by default; Community Wall neon authority retired here; Funkot entrance debris cleanup active")
+print("[BBYA] Admin NEXT + editor hotfix v8.1 online: EDIT visible only for arda_moron123; all other staff hidden")
