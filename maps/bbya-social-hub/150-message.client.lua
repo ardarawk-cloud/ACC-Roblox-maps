@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — MESSAGE CLIENT v8.5 QC TOTAL + MUSIC SIZE
+-- BBYA SOCIAL HUB — MESSAGE CLIENT v8.6 LARGE SUCCESS POPUP
 -- Composer/purchase/SFX flow preserved.
--- QC only: composer follows Music panel geometry, sent-message body is slightly larger, and cumulative paid MESSAGE total is shown.
+-- QC only: the successful MESSAGE notification is scaled up substantially while keeping total donation and existing content.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -17,7 +17,7 @@ local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col;s.Th
 local function label(p,v,pos,size,font,ts,col,align)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=tostring(v or"");l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 9;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextWrapped=true;l.Parent=p;return l end
 local function button(p,v,pos,size,col)local b=Instance.new("TextButton");b.Text=v;b.Position=pos;b.Size=size;b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.10;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBold;b.TextSize=8;b.AutoButtonColor=true;b.Parent=p;corner(b,8);stroke(b,C.card,.2);return b end
 local old=pg:FindFirstChild("BBYADJWallUI");if old then old:Destroy()end
-local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=940;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MESSAGE_V8_5_QC_TOTAL_MUSIC_SIZE")
+local gui=Instance.new("ScreenGui");gui.Name="BBYADJWallUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=940;gui.Parent=pg;gui:SetAttribute("BBYAUIAuthority","MESSAGE_V8_6_LARGE_SUCCESS_POPUP")
 local panel=Instance.new("Frame");panel.Name="DJWallComposerPanel";panel.AnchorPoint=Vector2.new(1,.5);panel.Position=UDim2.new(1,-18,.5,-10);panel.Size=UDim2.fromOffset(400,400);panel.BackgroundColor3=C.bg;panel.BackgroundTransparency=.14;panel.BorderSizePixel=0;panel.Visible=false;panel.ClipsDescendants=true;panel.Parent=gui;corner(panel,15);stroke(panel,C.pink,.28)
 label(panel,"MESSAGE",UDim2.fromOffset(14,8),UDim2.new(1,-58,0,24),Enum.Font.GothamBlack,14,C.white)
 local close=button(panel,"×",UDim2.new(1,-40,0,7),UDim2.fromOffset(30,30),C.card);close.TextSize=17
@@ -42,7 +42,8 @@ local function successSfx()local s=Instance.new("Sound");s.Name="BBYAMessageSucc
 local notificationToken=0
 local function showMessageSuccess(data)
  notificationToken+=1;local token=notificationToken;local oldN=gui:FindFirstChild("MessageSuccessPopup");if oldN then oldN:Destroy()end
- local popup=Instance.new("Frame");popup.Name="MessageSuccessPopup";popup.AnchorPoint=Vector2.new(.5,0);popup.Position=UDim2.new(.5,0,.10,-142);popup.Size=UDim2.fromOffset(370,132);popup.BackgroundColor3=Color3.fromRGB(14,14,19);popup.BackgroundTransparency=.04;popup.BorderSizePixel=0;popup.ZIndex=600;popup.Parent=gui;corner(popup,13);stroke(popup,C.pink,.22)
+ local popup=Instance.new("Frame");popup.Name="MessageSuccessPopup";popup.AnchorPoint=Vector2.new(.5,0);popup.Position=UDim2.new(.5,0,.10,-200);popup.Size=UDim2.fromOffset(370,132);popup.BackgroundColor3=Color3.fromRGB(14,14,19);popup.BackgroundTransparency=.04;popup.BorderSizePixel=0;popup.ZIndex=600;popup.Parent=gui;corner(popup,13);stroke(popup,C.pink,.22)
+ local popupScale=Instance.new("UIScale");popupScale.Name="QCNotificationScale";popupScale.Scale=1.45;popupScale.Parent=popup
  local accent=Instance.new("Frame");accent.Size=UDim2.fromOffset(4,108);accent.Position=UDim2.fromOffset(9,12);accent.BackgroundColor3=C.pink;accent.BorderSizePixel=0;accent.ZIndex=601;accent.Parent=popup;corner(accent,3)
  local avatar=Instance.new("ImageLabel");avatar.Position=UDim2.fromOffset(22,18);avatar.Size=UDim2.fromOffset(62,62);avatar.BackgroundColor3=Color3.fromRGB(27,27,34);avatar.BorderSizePixel=0;avatar.ScaleType=Enum.ScaleType.Crop;avatar.ZIndex=601;avatar.Parent=popup;corner(avatar,31);stroke(avatar,C.pink,.18)
  task.spawn(function()local ok,url=pcall(function()return Players:GetUserThumbnailAsync(player.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size420x420)end);if ok and url and avatar.Parent then avatar.Image=url end end)
@@ -55,7 +56,7 @@ local function showMessageSuccess(data)
  local textPreview=type(data)=="table"and tostring(data.text or"")or"";if textPreview==""then textPreview="YOUR MESSAGE IS IN THE BBYA QUEUE"end
  local preview=label(popup,textPreview,UDim2.fromOffset(98,61),UDim2.new(1,-112,0,60),Enum.Font.GothamBlack,19,C.white);preview.ZIndex=601;preview.TextWrapped=true;preview.TextYAlignment=Enum.TextYAlignment.Top;preview.TextXAlignment=Enum.TextXAlignment.Left;preview.TextTruncate=Enum.TextTruncate.AtEnd
  TweenService:Create(popup,TweenInfo.new(.22,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,.10,0)}):Play();successSfx()
- task.delay(POPUP_SECONDS,function()if notificationToken~=token or not popup.Parent then return end;local tw=TweenService:Create(popup,TweenInfo.new(.22),{Position=UDim2.new(.5,0,.10,-142)});tw:Play();tw.Completed:Wait();if popup.Parent and notificationToken==token then popup:Destroy()end end)
+ task.delay(POPUP_SECONDS,function()if notificationToken~=token or not popup.Parent then return end;local tw=TweenService:Create(popup,TweenInfo.new(.22),{Position=UDim2.new(.5,0,.10,-200)});tw:Play();tw.Completed:Wait();if popup.Parent and notificationToken==token then popup:Destroy()end end)
 end
 box:GetPropertyChangedSignal("Text"):Connect(function()local max=tonumber(config.maxChars)or 80;if #box.Text>max then box.Text=box.Text:sub(1,max);box.CursorPosition=#box.Text+1 end;count.Text=#box.Text.." / "..max end)
 send.Activated:Connect(function()if busy then return end;if #box.Text<2 then toast("Tulis pesan dulu.");return end;busy=true;status.Text="PROCESSING...";refresh();remote:FireServer("submit",{category=category,text=box.Text,amount=selected});task.delay(7,function()if busy then busy=false;status.Text="COBA LAGI";refresh()end end)end)
@@ -63,4 +64,4 @@ remote.OnClientEvent:Connect(function(action,data)if action=="open"then openPane
 local bound={};local function bindMenu()local menu=pg:FindFirstChild("BBYACommandMenuUI");if not menu then return end;for _,d in ipairs(menu:GetDescendants())do if d:IsA("TextButton")and d:GetAttribute("BBYACommandMenuId")=="MESSAGE"and not bound[d]then bound[d]=true;d.Activated:Connect(function()local drawer=menu:FindFirstChild("FeatureDrawer",true);if drawer then drawer.Visible=false end;openPanel(config)end)end end end
 pg.DescendantAdded:Connect(function(d)if d:IsA("TextButton")then task.defer(bindMenu)end end);task.spawn(function()for _=1,40 do bindMenu();task.wait(.2)end end)
 local cam=workspace.CurrentCamera;local function layout()cam=workspace.CurrentCamera or cam;local vp=cam and cam.ViewportSize or Vector2.new(1280,720);local s=math.clamp(math.min(vp.Y-84,420),330,420);panel.Size=UDim2.fromOffset(s,s);panel.Position=UDim2.new(1,-18,.5,-10)end;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;task.defer(layout);remote:FireServer("config")
-print("[BBYA] MESSAGE client v8.5 online: Music-size panel / 19px message body / cumulative MESSAGE total / SFX preserved")
+print("[BBYA] MESSAGE client v8.6 online: 1.45x success notification / cumulative total / SFX preserved")

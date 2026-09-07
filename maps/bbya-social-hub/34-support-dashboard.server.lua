@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — COMMUNITY + OWNER + TOP 3 DONATOR v1.2 LIVE AVATAR HOOK
--- Existing board geometry/layout is LOCKED and preserved.
--- Server remains authoritative for ranking/totals; donor avatar slots expose the qualified user id so the client renderer can show the current in-session avatar.
+-- BBYA SOCIAL HUB — COMMUNITY + OWNER + TOP 3 DONATOR v1.3 READABLE NEON
+-- Existing physical board geometry stays LOCKED.
+-- Server remains authoritative for ranking/totals; only SurfaceGui readability is corrected.
+-- Donor avatar slots still expose the qualified user id for the client renderer.
 
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
@@ -20,12 +21,14 @@ end
 
 local model=Instance.new("Model")
 model.Name="CommunityOwnerDonorHub"
-model:SetAttribute("Pass","COMMUNITY_OWNER_TOP3_V1_2_LIVE_AVATAR_HOOK")
+model:SetAttribute("Pass","COMMUNITY_OWNER_TOP3_V1_3_READABLE_NEON")
 model:SetAttribute("DonorEligibility",">1000")
 model:SetAttribute("FakeDonors",false)
 model:SetAttribute("ServerAuthoritative",true)
 model:SetAttribute("SultanContributionPolicy","VERIFIED_ATTRIBUTE_ONLY")
 model:SetAttribute("AvatarVisualAuthority","CLIENT_CURRENT_CHARACTER")
+model:SetAttribute("BoardGeometryLock",true)
+model:SetAttribute("BoardReadability","PPS_40_LARGE_TYPE")
 model.Parent=root
 
 local C={
@@ -41,7 +44,7 @@ local function frame(parent,pos,size,color,tr,r)
  local f=Instance.new("Frame");f.Position=pos;f.Size=size;f.BackgroundColor3=color or C.PANEL;f.BackgroundTransparency=tr or 0;f.BorderSizePixel=0;f.Parent=parent;if r then corner(f,r) end;return f
 end
 local function label(parent,txt,pos,size,col,font,ts,align)
- local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Text=tostring(txt or "");t.Position=pos;t.Size=size;t.TextColor3=col or C.WHITE;t.Font=font or Enum.Font.Gotham;t.TextSize=ts or 18;t.TextWrapped=true;t.TextXAlignment=align or Enum.TextXAlignment.Left;t.TextYAlignment=Enum.TextYAlignment.Center;t.Parent=parent;return t
+ local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Text=tostring(txt or "");t.Position=pos;t.Size=size;t.TextColor3=col or C.WHITE;t.Font=font or Enum.Font.Gotham;t.TextSize=ts or 18;t.TextWrapped=true;t.TextXAlignment=align or Enum.TextXAlignment.Left;t.TextYAlignment=Enum.TextYAlignment.Center;t.TextStrokeColor3=C.BLACK;t.TextStrokeTransparency=.66;t.Parent=parent;return t
 end
 local function image(parent,pos,size)
  local i=Instance.new("ImageLabel");i.BackgroundColor3=C.PANEL2;i.BorderSizePixel=0;i.Position=pos;i.Size=size;i.ScaleType=Enum.ScaleType.Crop;i.Parent=parent;corner(i,999);stroke(i,C.CYAN,2,.15);return i
@@ -75,7 +78,7 @@ local function makeBoard(name,x,accentA,accentB)
  part("LeftNeon",Vector3.new(.10,BOARD_H-.45,.10),cf*CFrame.new(-BOARD_W*.5+.17,0,-.22),accentB,Enum.Material.Neon,0,holder)
  part("RightNeon",Vector3.new(.10,BOARD_H-.45,.10),cf*CFrame.new(BOARD_W*.5-.17,0,-.22),accentA,Enum.Material.Neon,0,holder)
  local light=Instance.new("PointLight");light.Color=accentA;light.Brightness=.28;light.Range=7;light.Shadows=false;light.Parent=face
- local gui=Instance.new("SurfaceGui");gui.Name="BBYAEntranceBoardUI";gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=false;gui.LightInfluence=0;gui.PixelsPerStud=88;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;gui.Parent=face
+ local gui=Instance.new("SurfaceGui");gui.Name="BBYAEntranceBoardUI";gui.Face=Enum.NormalId.Front;gui.AlwaysOnTop=false;gui.LightInfluence=0;gui.PixelsPerStud=40;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;gui.Parent=face
  local bg=frame(gui,UDim2.fromScale(0,0),UDim2.fromScale(1,1),C.DARK,0)
  local grad=Instance.new("UIGradient");grad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(33,13,30)),ColorSequenceKeypoint.new(.52,Color3.fromRGB(8,9,13)),ColorSequenceKeypoint.new(1,Color3.fromRGB(5,21,27))});grad.Rotation=18;grad.Parent=bg
  return holder,face,bg
@@ -254,4 +257,4 @@ task.delay(2,refreshRanking)
 task.spawn(function()while task.wait(30) do refreshRanking() end end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do persistPlayer(p) end end)
 
-print("[BBYA] Community + Owner + Top 3 Donator v1.2 online: locked board layout / live-avatar hook / real donor ranking")
+print("[BBYA] Community + Owner + Top 3 Donator v1.3 online: board geometry locked / readable neon SurfaceGui / live avatar hook")
