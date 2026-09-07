@@ -1,5 +1,5 @@
 {
-  "status": "PARTIAL_OR_FAILED",
+  "status": "GRANTED_ALL",
   "universeId": "8116636513",
   "playlistAssetCount": 24,
   "playlistAssetIds": [
@@ -31,35 +31,12 @@
   "uploadAttempted": false,
   "attempts": [
     {
-      "key": "ROBLOX_AUDIO_API_KEY",
+      "key": "AMSTUDIO_AUDIO_UPLOADER_01",
       "keyInfo": {
         "present": true,
         "http": 200,
-        "name": "ROBLOX_AUDIO_API_KEY",
-        "authorizedUserId": "8878884630",
-        "enabled": true,
-        "expired": false,
-        "scopes": [
-          {
-            "name": "asset",
-            "operations": [
-              "read",
-              "write"
-            ]
-          }
-        ],
-        "authorizedUsername": "RidhooMauKamu"
-      },
-      "permissionAttempted": false,
-      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
-    },
-    {
-      "key": "AM_STUDIO",
-      "keyInfo": {
-        "present": true,
-        "http": 200,
-        "name": "AM_STUDIO",
-        "authorizedUserId": "4141352496",
+        "name": "AMSTUDIO_AUDIO_UPLOADER_01",
+        "authorizedUserId": "9296030038",
         "enabled": true,
         "expired": false,
         "scopes": [
@@ -75,88 +52,71 @@
               "read",
               "write"
             ]
-          },
-          {
-            "name": "developer-product",
-            "operations": [
-              "read",
-              "write"
-            ]
-          },
-          {
-            "name": "game-pass",
-            "operations": [
-              "read",
-              "write"
-            ]
-          },
-          {
-            "name": "universe-places",
-            "operations": [
-              "write"
-            ]
-          },
-          {
-            "name": "universe.event",
-            "operations": [
-              "read",
-              "write"
-            ]
-          },
-          {
-            "name": "universe.place.instance",
-            "operations": [
-              "read",
-              "write"
-            ]
-          },
-          {
-            "name": "universe.place",
-            "operations": [
-              "read",
-              "write"
-            ]
-          },
-          {
-            "name": "universe.thumbnail",
-            "operations": [
-              "read",
-              "write"
-            ]
           }
         ],
-        "authorizedUsername": "Arda_Moron123"
+        "authorizedUsername": "GudangPet88"
       },
-      "permissionAttempted": false,
-      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+      "permissionAttempted": true,
+      "http": 200,
+      "response": {
+        "successAssetIds": [
+          96983528563473,
+          105877233550276,
+          94337788677482,
+          112322493409786,
+          89165355590583,
+          134057367195123,
+          91900235935901,
+          115774171488936,
+          100162128635185,
+          82993942539950,
+          109286172792690,
+          94547306143480,
+          109116552044147,
+          123077675190094,
+          87114365256034,
+          136681158481930,
+          131557279061872,
+          93670094706108,
+          81169975667413,
+          123696371004403,
+          74479015238422,
+          102620964808698,
+          99998363156285,
+          88925775968276
+        ],
+        "errors": []
+      },
+      "successCount": 24,
+      "result": "SUCCESS"
     }
   ],
-  "grantedAssetIds": [],
-  "grantedCount": 0,
-  "missingAssetIds": [
-    "96983528563473",
-    "105877233550276",
-    "94337788677482",
-    "112322493409786",
-    "89165355590583",
-    "134057367195123",
-    "91900235935901",
-    "115774171488936",
-    "100162128635185",
-    "82993942539950",
-    "109286172792690",
-    "94547306143480",
-    "109116552044147",
-    "123077675190094",
-    "87114365256034",
-    "136681158481930",
-    "131557279061872",
-    "93670094706108",
-    "81169975667413",
-    "123696371004403",
+  "grantedAssetIds": [
     "74479015238422",
-    "102620964808698",
+    "81169975667413",
+    "82993942539950",
+    "87114365256034",
+    "88925775968276",
+    "89165355590583",
+    "91900235935901",
+    "93670094706108",
+    "94337788677482",
+    "94547306143480",
+    "96983528563473",
     "99998363156285",
-    "88925775968276"
-  ]
+    "100162128635185",
+    "102620964808698",
+    "105877233550276",
+    "109116552044147",
+    "109286172792690",
+    "112322493409786",
+    "115774171488936",
+    "123077675190094",
+    "123696371004403",
+    "131557279061872",
+    "134057367195123",
+    "136681158481930"
+  ],
+  "grantedCount": 24,
+  "missingAssetIds": []
 }
