@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STAFF TOWER ROLE TRAVEL CLIENT v1
+-- BBYA SOCIAL HUB — STAFF TOWER ROLE TRAVEL CLIENT v1.1
 -- Adds exactly one Staff Tower destination to the existing TRAVEL panel.
--- Visibility is role-only; server remains the final access authority.
+-- Staff-only visibility; VIP is a guest role and never receives Staff Tower access.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -10,13 +10,13 @@ local pg=player:WaitForChild("PlayerGui")
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes",30)
 local teleportRemote=remotes:WaitForChild("Teleport",30)
 
-local VALID={COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,VIP=true,CREW=true}
+local VALID_STAFF={COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,CREW=true}
 local buttonRef=nil
 
 local function hasTowerRole()
  if player:GetAttribute("BBYAOwner")==true or player:GetAttribute("BBYACoOwner")==true or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYAModerator")==true then return true end
  local role=player:GetAttribute("BBYAManagedRole")
- return type(role)=="string" and VALID[role]==true
+ return type(role)=="string" and VALID_STAFF[role]==true
 end
 
 local function travelParts()
@@ -57,7 +57,7 @@ local function installButton()
  b.Text="STAFF TOWER"
  b.LayoutOrder=13
  b.Visible=true
- b:SetAttribute("BBYAStaffTowerTravel","ROLE_ONLY_V1")
+ b:SetAttribute("BBYAStaffTowerTravel","STAFF_ONLY_V1_1")
  b.Parent=scroll
  b.Activated:Connect(function()
   if not hasTowerRole() then b.Visible=false;return end
@@ -82,4 +82,4 @@ task.spawn(function()
  end
 end)
 
-print("[BBYA] Staff Tower role travel v1 online: role-only button / server-gated access")
+print("[BBYA] Staff Tower role travel v1.1 online: staff-only / VIP excluded / server-gated access")
