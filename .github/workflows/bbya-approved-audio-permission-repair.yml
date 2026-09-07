@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/bbya-approved-audio-permission-repair.yml'
+      - 'maps/bbya-social-hub/104-venue-audio-groups.server.lua'
   workflow_dispatch:
 
 permissions:
@@ -23,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Grant exact Underground 8 to BBYA Universe
+      - name: Grant approved Skatepark custom audio to BBYA Universe
         env:
           AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
           AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
@@ -31,20 +32,19 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, os, pathlib, urllib.request, urllib.error
+          import json, os, pathlib, re, urllib.request, urllib.error
 
           root=pathlib.Path('.')
+          src=(root/'maps/bbya-social-hub/104-venue-audio-groups.server.lua').read_text(encoding='utf-8')
+          block=src.split('local SKATE_PLAYLIST={',1)[1].split('local NIGHT_MARKET_PLAYLIST=',1)[0]
+          assets=[]
+          seen=set()
+          for title, asset_id, tail in re.findall(r'\{title="([^"]+)",assetId="(\d+)"([^}]*)\}', block):
+              if 'approvalState="APPROVED"' in tail and asset_id not in seen:
+                  seen.add(asset_id)
+                  assets.append({'title':title,'assetId':asset_id})
+
           universe=os.environ['UNIVERSE_ID']
-          assets=[
-              {'title':'Kamu gak bakal tau','assetId':'128236218314957'},
-              {'title':'Surga','assetId':'73490528411091'},
-              {'title':'Hati','assetId':'117969837722651'},
-              {'title':'Bintang jatuh','assetId':'82059974893640'},
-              {'title':'Kapal tenggelam','assetId':'124813032756402'},
-              {'title':'Pegangan','assetId':'131317518484469'},
-              {'title':'Dalu dalu','assetId':'112530372468543'},
-              {'title':'Anak kampung','assetId':'128982389712711'},
-          ]
 
           def request(url, method='GET', payload=None, headers=None):
               data=None if payload is None else json.dumps(payload).encode('utf-8')
@@ -84,7 +84,7 @@ jobs:
           report={
               'status':'STARTED',
               'universeId':universe,
-              'source':'TARGETED_UNDERGROUND_MANUAL_8',
+              'source':'SKATE_PLAYLIST approvalState=APPROVED',
               'assets':assets,
               'assetCount':len(assets),
               'keyDiagnostics':key_info,
@@ -112,7 +112,7 @@ jobs:
                       'PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'}
                   )
                   success_ids=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
-                  ok=(aid in success_ids) or code in (200,201,204)
+                  ok=(aid in success_ids) or (code in (200,201,204) and not (data.get('errors') if isinstance(data,dict) else None))
                   result['attempts'].append({'key':label,'attempted':True,'http':code,'successAssetIds':success_ids,'response':data,'ok':ok})
                   if ok:
                       result['granted']=True
@@ -124,7 +124,7 @@ jobs:
           report['grantedAssetIds']=granted
           report['grantedCount']=len(granted)
           report['missingAssetIds']=[a['assetId'] for a in assets if a['assetId'] not in granted]
-          report['status']='GRANTED_ALL' if len(granted)==len(assets) else 'PARTIAL_OR_FAILED'
+          report['status']='GRANTED_ALL' if assets and len(granted)==len(assets) else 'PARTIAL_OR_FAILED'
           out=root/'deploy-status/bbya-approved-audio-permissions.json'
           out.parent.mkdir(parents=True,exist_ok=True)
           out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
@@ -149,7 +149,7 @@ jobs:
               echo 'Permission report already current.'
               exit 0
             fi
-            git commit -m 'Record BBYA Underground 8 permission result [skip ci]'
+            git commit -m 'Record BBYA Skatepark audio permission result [skip ci]'
             if git push origin HEAD:main; then
               exit 0
             fi
