@@ -26,6 +26,7 @@ jobs:
 
       - name: Grant approved Skatepark custom audio to BBYA Universe
         env:
+          TALON_KEY: ${{ secrets.TALONTHEDEVIL_AUDIO_PUBLISHER }}
           UPLOADER_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
           AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
           AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
@@ -78,6 +79,7 @@ jobs:
               }
 
           keys=[
+              ('TALONTHEDEVIL_AUDIO_PUBLISHER',os.environ.get('TALON_KEY','').strip()),
               ('AMSTUDIO_AUDIO_UPLOADER_01',os.environ.get('UPLOADER_KEY','').strip()),
               ('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),
               ('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),
