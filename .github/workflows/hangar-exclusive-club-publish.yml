@@ -1,4 +1,4 @@
-name: Publish Hangar Exclusive Club v6 Visual Rescue
+name: Publish Hangar Exclusive Club v7 Enclosed Interior
 
 on:
   push:
@@ -17,7 +17,7 @@ permissions:
 env:
   HANGAR_UNIVERSE_ID: '10745364913'
   HANGAR_PLACE_ID: '76001567401911'
-  HANGAR_MODE: 'V6_VISUAL_RESCUE_FULL_MESH_OR_XL_FALLBACK'
+  HANGAR_MODE: 'V7_FORCED_ENCLOSED_AIRCRAFT_HANGAR'
 
 jobs:
   build-publish-verify:
@@ -29,21 +29,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Hard gate Hangar v6 visual rescue
+      - name: Hard gate Hangar v7 enclosed runtime
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $mesh=Get-Content 'maps/hangar-exclusive-club/full-mesh.server.lua' -Raw
-          foreach($marker in @('FULL MESH authority v2.0','local WIDTH = 360','local DEPTH = 280','local WALL_H = 88','local CROWN_H = 126','HangarFullMeshReady','AIRCRAFT_HANGAR_XL','CreateEditableMesh','CreateMeshPartAsync')){
-            if($mesh -notmatch [regex]::Escape($marker)){throw "Missing Full Mesh marker: $marker"}
-          }
-          $rescue=Get-Content 'maps/hangar-exclusive-club/visual-rescue.server.lua' -Raw
-          foreach($marker in @('VISUAL RESCUE v1.0','Lighting.Brightness = 3.2','Lighting.ExposureCompensation = 0.72','XL_STRUCTURAL_FALLBACK_MESH_API_BLOCKED','HangarRuntimeVisualMode','HangarFloor_XL','MainStage_XL','Jet_A_XL_Fallback','Jet_B_XL_Fallback')){
-            if($rescue -notmatch [regex]::Escape($marker)){throw "Missing rescue marker: $marker"}
+          $src=Get-Content 'maps/hangar-exclusive-club/visual-rescue-v7.server.lua' -Raw
+          foreach($marker in @('RUNTIME VISUAL LOCK v7','local WIDTH = 360','local DEPTH = 280','local WALL_H = 88','local CROWN_H = 126','HangarNoGalaxySky','StarCount = 0','RoofPanel_','HangarV7EnclosedInterior','V7_FORCED_ENCLOSED_AIRCRAFT_HANGAR','HangarGalaxyRemoved','Jet_A_XL','Jet_B_XL')){
+            if($src -notmatch [regex]::Escape($marker)){throw "Missing v7 marker: $marker"}
           }
           $project=Get-Content 'maps/hangar-exclusive-club/default.project.json' -Raw
-          if($project -notmatch 'full-mesh.server.lua' -or $project -notmatch 'visual-rescue.server.lua'){throw 'Hangar authorities are not both mounted'}
-          Write-Host 'HANGAR_V6_VISUAL_RESCUE_SOURCE_GATE_PASS'
+          if($project -notmatch 'visual-rescue-v7.server.lua'){throw 'v7 runtime is not mounted'}
+          if($project -match 'full-mesh.server.lua' -or $project -match 'visual-rescue.server.lua'){throw 'Legacy full-mesh/rescue runtime still mounted'}
+          Write-Host 'HANGAR_V7_ENCLOSED_SOURCE_GATE_PASS'
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -51,7 +48,7 @@ jobs:
           $ErrorActionPreference='Stop'
           $cmd=Get-Command rojo -ErrorAction SilentlyContinue
           if($cmd){$rojo=$cmd.Source}else{
-            $d=Join-Path $env:RUNNER_TEMP 'hangar-v6-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-v6-rojo.zip'
+            $d=Join-Path $env:RUNNER_TEMP 'hangar-v7-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-v7-rojo.zip'
             if(Test-Path $d){Remove-Item $d -Recurse -Force};New-Item -ItemType Directory -Path $d -Force|Out-Null
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
             Expand-Archive -Path $z -DestinationPath $d -Force
@@ -64,7 +61,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-v6.rbxlx'
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-v7.rbxlx'
           & $env:ROJO_EXE build 'maps/hangar-exclusive-club/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
           if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 20000){throw 'Invalid Hangar RBXLX'}
@@ -72,7 +69,7 @@ jobs:
           "HANGAR_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_PLACE_SHA256=$hash"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V6_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
+          Write-Host "HANGAR_V7_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
 
       - name: Publish to Roblox
         shell: powershell
@@ -87,9 +84,9 @@ jobs:
           if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Roblox publish HTTP $($resp.StatusCode)"}
           $payload=$resp.Content|ConvertFrom-Json
           $version=[int]$payload.versionNumber
-          if($version -le 5){throw "Expected Roblox version >5, got $version"}
+          if($version -le 6){throw "Expected Roblox version >6, got $version"}
           "HANGAR_ROBLOX_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V6_PUBLISHED version=$version"
+          Write-Host "HANGAR_V7_PUBLISHED version=$version"
 
       - name: Persist verified receipt through GitHub API
         shell: powershell
@@ -113,22 +110,22 @@ jobs:
           }
           $text=$receipt|ConvertTo-Json -Depth 5
           $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
-          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v6-publisher'}
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v7-publisher'}
           $path='deploy-status/hangar-exclusive-club.json'
           $enc=(($path.Split('/')|ForEach-Object{[Uri]::EscapeDataString($_)}) -join '/')
           $u="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc"
           $sha=$null
           try{$old=Invoke-RestMethod -Headers $h -Uri ($u+'?ref=main');$sha=[string]$old.sha}catch{if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
-          $body=@{message="Record Hangar v$env:HANGAR_ROBLOX_VERSION visual rescue live [skip ci]";content=$b64;branch='main'}
+          $body=@{message="Record Hangar v$env:HANGAR_ROBLOX_VERSION enclosed interior live [skip ci]";content=$b64;branch='main'}
           if($sha){$body.sha=$sha}
           Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $u -Body ($body|ConvertTo-Json -Depth 4)|Out-Null
-          Write-Host "HANGAR_V6_RECEIPT_PERSISTED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
+          Write-Host "HANGAR_V7_RECEIPT_PERSISTED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
 
       - name: Enforce live publish variables
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([int]$env:HANGAR_ROBLOX_VERSION -le 5){throw 'Hangar version did not increment'}
+          if([int]$env:HANGAR_ROBLOX_VERSION -le 6){throw 'Hangar version did not increment'}
           if([int64]$env:HANGAR_PLACE_BYTES -lt 20000){throw 'Hangar place bytes invalid'}
           if($env:HANGAR_PLACE_SHA256 -notmatch '^[0-9a-f]{64}$'){throw 'Hangar SHA256 invalid'}
-          Write-Host "HANGAR_V6_LIVE_VERIFIED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
+          Write-Host "HANGAR_V7_LIVE_VERIFIED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
