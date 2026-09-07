@@ -1,17 +1,10 @@
-name: Publish Hangar Exclusive Club v8 Full Mesh
+name: Publish Hangar Exclusive Club v9 Static Full Mesh
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/hangar-exclusive-club-publish-v8.yml'
-      - 'maps/hangar-exclusive-club/full-mesh-v8.server.lua'
-      - 'maps/hangar-exclusive-club/ui-compact.client.lua'
-      - 'maps/hangar-exclusive-club/default.project.json'
   workflow_dispatch:
 
 concurrency:
-  group: hangar-exclusive-club-v8-live-publish
+  group: hangar-exclusive-club-v9-live-publish
   cancel-in-progress: false
 
 permissions:
@@ -20,52 +13,35 @@ permissions:
 env:
   HANGAR_UNIVERSE_ID: '10745364913'
   HANGAR_PLACE_ID: '76001567401911'
-  HANGAR_MODE: 'V8_FULL_MESH_HANGAR_CANDIDATE'
+  HANGAR_MODE: 'V9_STATIC_CLOUD_FULL_MESH'
 
 jobs:
   build-publish-verify:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 25
     steps:
-      - name: Checkout source
+      - name: Checkout canonical source
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Hard gate Hangar v8 full mesh
+      - name: Hard gate static cloud mesh authority
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $mesh=Get-Content 'maps/hangar-exclusive-club/full-mesh-v8.server.lua' -Raw
-          foreach($marker in @(
-            'FULL MESH v8',
-            'local WIDTH = 360',
-            'local DEPTH = 280',
-            'local WALL_H = 88',
-            'local CROWN_H = 126',
-            'Mesh_HangarShell_FULL',
-            'Mesh_HangarTrusses_FULL',
-            'Mesh_ClubArchitecture_FULL',
-            'Mesh_PrivateJet_A_FULL',
-            'Mesh_PrivateJet_B_FULL',
-            'Mesh_Helicopter_FULL',
-            'CreateEditableMesh',
-            'CreateMeshPartAsync',
-            'HangarFullMeshV8Ready',
-            'HangarVisibleGeometry',
-            'MESHPART_ONLY'
-          )){
-            if($mesh -notmatch [regex]::Escape($marker)){throw "Missing v8 marker: $marker"}
+          $runtime=Get-Content 'maps/hangar-exclusive-club/static-mesh-v9.server.lua' -Raw
+          foreach($marker in @('STATIC CLOUD FULL MESH v9','HANGAR_STATIC_MODEL_ASSET_ID','InsertService.LoadAsset','V9_STATIC_CLOUD_FULL_MESH','STATIC_CLOUD_MESHPART_ONLY','HangarGalaxyRemoved','local WIDTH = 360','local DEPTH = 280','local CROWN_H = 126')){
+            if($runtime -notmatch [regex]::Escape($marker)){throw "Missing v9 runtime marker: $marker"}
           }
-          $ui=Get-Content 'maps/hangar-exclusive-club/ui-compact.client.lua' -Raw
-          foreach($marker in @('compact mobile UI v2','DJCompactToggle','panel.Visible = false','CLOSED_POS')){
-            if($ui -notmatch [regex]::Escape($marker)){throw "Missing compact UI marker: $marker"}
-          }
+          $m=[regex]::Match($runtime,'local HANGAR_MODEL_ASSET_ID = (\d+) -- HANGAR_STATIC_MODEL_ASSET_ID')
+          if(-not $m.Success){throw 'Static model asset ID marker malformed'}
+          $asset=[int64]$m.Groups[1].Value
+          if($asset -le 0){throw 'Static model asset ID is not locked'}
+          "HANGAR_V9_MODEL_ASSET_ID=$asset" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           $project=Get-Content 'maps/hangar-exclusive-club/default.project.json' -Raw
-          foreach($marker in @('visual-rescue-v7.server.lua','full-mesh-v8.server.lua','ui-compact.client.lua')){
-            if($project -notmatch [regex]::Escape($marker)){throw "Manifest missing: $marker"}
-          }
-          Write-Host 'HANGAR_V8_FULL_MESH_SOURCE_GATE_PASS'
+          if($project -notmatch 'static-mesh-v9.server.lua'){throw 'v9 static runtime is not mounted'}
+          if($project -match 'full-mesh-v8.server.lua'){throw 'runtime EditableMesh v8 must not be mounted'}
+          Write-Host "HANGAR_V9_STATIC_SOURCE_GATE_PASS asset=$asset source=$env:GITHUB_SHA"
 
       - name: Prepare Rojo 7.7.0
         shell: powershell
@@ -73,31 +49,29 @@ jobs:
           $ErrorActionPreference='Stop'
           $cmd=Get-Command rojo -ErrorAction SilentlyContinue
           if($cmd){$rojo=$cmd.Source}else{
-            $d=Join-Path $env:RUNNER_TEMP 'hangar-v8-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-v8-rojo.zip'
+            $d=Join-Path $env:RUNNER_TEMP 'hangar-v9-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-v9-rojo.zip'
             if(Test-Path $d){Remove-Item $d -Recurse -Force};New-Item -ItemType Directory -Path $d -Force|Out-Null
             Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
             Expand-Archive -Path $z -DestinationPath $d -Force
-            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1
-            if(-not $e){throw 'rojo.exe missing'}
-            $rojo=$e.FullName
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo.exe missing'};$rojo=$e.FullName
           }
           & $rojo --version
           if($LASTEXITCODE -ne 0){throw 'Rojo failed'}
-          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Build Hangar v8 place
+      - name: Build Hangar v9 place
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $place=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-v8.rbxlx'
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-v9-static.rbxlx'
           & $env:ROJO_EXE build 'maps/hangar-exclusive-club/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
-          if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 30000){throw 'Invalid Hangar v8 RBXLX'}
+          if(-not(Test-Path $place) -or (Get-Item $place).Length -lt 30000){throw 'Invalid Hangar v9 RBXLX'}
           $hash=(Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
-          "HANGAR_PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_PLACE_SHA256=$hash"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V8_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
+          "HANGAR_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V9_BUILD_PASS bytes=$((Get-Item $place).Length) sha256=$hash"
 
       - name: Publish to Roblox
         shell: powershell
@@ -112,11 +86,11 @@ jobs:
           if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Roblox publish HTTP $($resp.StatusCode)"}
           $payload=$resp.Content|ConvertFrom-Json
           $version=[int]$payload.versionNumber
-          if($version -le 7){throw "Expected Roblox version >7, got $version"}
-          "HANGAR_ROBLOX_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V8_PUBLISHED version=$version"
+          if($version -le 8){throw "Expected Roblox version >8, got $version"}
+          "HANGAR_ROBLOX_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V9_PUBLISHED version=$version asset=$env:HANGAR_V9_MODEL_ASSET_ID"
 
-      - name: Persist publish receipt through GitHub API
+      - name: Persist verified receipt through GitHub API
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
@@ -129,32 +103,35 @@ jobs:
             placeId=$env:HANGAR_PLACE_ID
             sourceCommit=$env:GITHUB_SHA
             mode=$env:HANGAR_MODE
+            staticModelAssetId=[int64]$env:HANGAR_V9_MODEL_ASSET_ID
             robloxVersion=[int]$env:HANGAR_ROBLOX_VERSION
             placeBytes=[int64]$env:HANGAR_PLACE_BYTES
             sha256=$env:HANGAR_PLACE_SHA256
             publishRun=[int64]$env:GITHUB_RUN_ID
             publishedAt=(Get-Date).ToUniversalTime().ToString('o')
             runtimeVisualQC='PENDING_SCREENSHOT'
+            runtimeEditableMesh='DISABLED_FROM_MOUNT'
             previewUrl='https://www.roblox.com/games/76001567401911'
           }
           $text=$receipt|ConvertTo-Json -Depth 5
           $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
-          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v8-publisher'}
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v9-publisher'}
           $path='deploy-status/hangar-exclusive-club.json'
           $enc=(($path.Split('/')|ForEach-Object{[Uri]::EscapeDataString($_)}) -join '/')
           $u="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc"
           $sha=$null
           try{$old=Invoke-RestMethod -Headers $h -Uri ($u+'?ref=main');$sha=[string]$old.sha}catch{if([int]$_.Exception.Response.StatusCode -ne 404){throw}}
-          $body=@{message="Record Hangar v$env:HANGAR_ROBLOX_VERSION full mesh candidate [skip ci]";content=$b64;branch='main'}
+          $body=@{message="Record Hangar v$env:HANGAR_ROBLOX_VERSION static full mesh live [skip ci]";content=$b64;branch='main'}
           if($sha){$body.sha=$sha}
           Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $u -Body ($body|ConvertTo-Json -Depth 4)|Out-Null
-          Write-Host "HANGAR_V8_RECEIPT_PERSISTED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
+          Write-Host "HANGAR_V9_RECEIPT_PERSISTED version=$env:HANGAR_ROBLOX_VERSION asset=$env:HANGAR_V9_MODEL_ASSET_ID source=$env:GITHUB_SHA"
 
-      - name: Enforce live publish variables
+      - name: Enforce publish variables
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([int]$env:HANGAR_ROBLOX_VERSION -le 7){throw 'Hangar v8 version did not increment'}
-          if([int64]$env:HANGAR_PLACE_BYTES -lt 30000){throw 'Hangar v8 place bytes invalid'}
-          if($env:HANGAR_PLACE_SHA256 -notmatch '^[0-9a-f]{64}$'){throw 'Hangar v8 SHA256 invalid'}
-          Write-Host "HANGAR_V8_LIVE_PUBLISH_VERIFIED version=$env:HANGAR_ROBLOX_VERSION source=$env:GITHUB_SHA"
+          if([int]$env:HANGAR_ROBLOX_VERSION -le 8){throw 'Hangar version did not increment'}
+          if([int64]$env:HANGAR_V9_MODEL_ASSET_ID -le 0){throw 'Hangar static asset id invalid'}
+          if([int64]$env:HANGAR_PLACE_BYTES -lt 30000){throw 'Hangar place bytes invalid'}
+          if($env:HANGAR_PLACE_SHA256 -notmatch '^[0-9a-f]{64}$'){throw 'Hangar SHA256 invalid'}
+          Write-Host "HANGAR_V9_LIVE_VERIFIED version=$env:HANGAR_ROBLOX_VERSION asset=$env:HANGAR_V9_MODEL_ASSET_ID source=$env:GITHUB_SHA"

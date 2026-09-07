@@ -1,0 +1,141 @@
+name: Hangar v9 Static Mesh Ingest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/hangar-exclusive-club-static-mesh-v9-ingest.yml'
+      - 'scripts/hangar-full-mesh-v9-glb.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: hangar-exclusive-club-static-mesh-v9-ingest
+  cancel-in-progress: false
+
+env:
+  HANGAR_UNIVERSE_ID: '10745364913'
+  HANGAR_PLACE_ID: '76001567401911'
+
+jobs:
+  build-upload-lock:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 25
+    env:
+      ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build deterministic Hangar v9 GLB
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'hangar-exclusive-club-v9-static.glb'
+          node scripts/hangar-full-mesh-v9-glb.js $out
+          if($LASTEXITCODE -ne 0){throw 'Hangar v9 GLB generator failed'}
+          if(-not(Test-Path $out) -or (Get-Item $out).Length -lt 50000){throw 'Hangar v9 GLB invalid'}
+          "HANGAR_V9_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_V9_GLB_SHA256=$((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V9_GLB_BUILD_PASS bytes=$((Get-Item $out).Length)"
+
+      - name: Resolve Hangar Roblox creator
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){throw 'AM_STUDIO asset-write key missing'}
+          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:HANGAR_UNIVERSE_ID"
+          if(-not $meta.data -or $meta.data.Count -lt 1){throw 'Unable to resolve Hangar universe creator'}
+          $creator=$meta.data[0].creator
+          $type=[string]$creator.type
+          $id=[string]$creator.id
+          if($id -notmatch '^\d+$'){throw "Invalid creator id: $id"}
+          if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported creator type: $type"}
+          "HANGAR_CREATOR_FIELD=$field" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_CREATOR_RESOLVED type=$type id=$id"
+
+      - name: Upload Hangar static Model asset
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $creator=@{}
+          $creator[$env:HANGAR_CREATOR_FIELD]=$env:HANGAR_CREATOR_ID
+          $request=@{
+            assetType='Model'
+            displayName='Hangar Exclusive Club - Static Full Mesh v9'
+            description='Aircraft-scale Hangar Exclusive Club static mesh model for Universe 10745364913.'
+            creationContext=@{creator=$creator}
+          } | ConvertTo-Json -Depth 8 -Compress
+          $requestFile=Join-Path $env:RUNNER_TEMP 'hangar-v9-asset-request.json'
+          [System.IO.File]::WriteAllText($requestFile,$request,(New-Object System.Text.UTF8Encoding($false)))
+          try{
+            $args=@('--silent','--show-error','--location','--request','POST','--header',"x-api-key: $env:ROBLOX_API_KEY",'--form',"request=<$requestFile;type=application/json",'--form',"fileContent=@$env:HANGAR_V9_GLB;type=model/gltf-binary",'https://apis.roblox.com/assets/v1/assets')
+            $raw=& curl.exe @args
+          }finally{Remove-Item $requestFile -Force -ErrorAction SilentlyContinue}
+          if($LASTEXITCODE -ne 0){throw 'Roblox asset upload curl failed'}
+          try{$created=$raw|ConvertFrom-Json}catch{throw "Invalid asset response: $raw"}
+          if(-not $created.path){throw "Asset upload rejected: $raw"}
+          $operationId=([string]$created.path)-replace '^operations/',''
+          Write-Host "HANGAR_V9_UPLOAD_ACCEPTED operation=$operationId"
+          $assetId=$null
+          for($i=0;$i -lt 90;$i++){
+            Start-Sleep -Seconds 4
+            $opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_API_KEY" "https://apis.roblox.com/assets/v1/operations/$operationId"
+            if($LASTEXITCODE -ne 0){continue}
+            try{$op=$opRaw|ConvertFrom-Json}catch{continue}
+            if($op.done){
+              if($op.error){throw "Roblox asset operation failed: $($op.error|ConvertTo-Json -Compress -Depth 8)"}
+              $assetId=[string]$op.response.assetId
+              if($assetId -notmatch '^\d+$'){throw "Asset operation completed without assetId: $opRaw"}
+              Write-Host "HANGAR_V9_UPLOAD_DONE asset=$assetId moderation=$([string]$op.response.moderationResult.moderationState)"
+              break
+            }
+          }
+          if(-not $assetId){throw 'Timed out waiting for Hangar v9 asset operation'}
+          "HANGAR_V9_MODEL_ASSET_ID=$assetId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Lock asset ID into canonical runtime source
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v9-ingest'}
+          $path='maps/hangar-exclusive-club/static-mesh-v9.server.lua'
+          $enc=(($path.Split('/')|ForEach-Object{[Uri]::EscapeDataString($_)}) -join '/')
+          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc?ref=main"
+          $old=Invoke-RestMethod -Headers $headers -Uri $url
+          $text=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($old.content -replace '\s','')))
+          $pattern='local HANGAR_MODEL_ASSET_ID = \d+ -- HANGAR_STATIC_MODEL_ASSET_ID'
+          if($text -notmatch $pattern){throw 'Hangar v9 asset marker missing'}
+          $text=[regex]::Replace($text,$pattern,"local HANGAR_MODEL_ASSET_ID = $env:HANGAR_V9_MODEL_ASSET_ID -- HANGAR_STATIC_MODEL_ASSET_ID")
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
+          $put="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$enc"
+          $body=@{message="Hangar v9: lock static cloud model asset $env:HANGAR_V9_MODEL_ASSET_ID [skip ci]";content=$b64;sha=[string]$old.sha;branch='main'} | ConvertTo-Json -Depth 5
+          $updated=Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Uri $put -Body $body
+          $source=[string]$updated.commit.sha
+          if($source -notmatch '^[0-9a-f]{40}$'){throw 'Missing canonical lock commit'}
+          "HANGAR_V9_CANONICAL_SOURCE=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V9_ASSET_LOCK_PASS source=$source asset=$env:HANGAR_V9_MODEL_ASSET_ID"
+
+      - name: Dispatch v9 canonical publish
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='Hangar-v9-ingest'}
+          $body=@{ref='main'} | ConvertTo-Json -Compress
+          Invoke-RestMethod -Method Post -Uri 'https://api.github.com/repos/ardarawk-cloud/ACC-Roblox-maps/actions/workflows/hangar-exclusive-club-publish-v9.yml/dispatches' -Headers $headers -Body $body -ContentType 'application/json'
+          Write-Host "HANGAR_V9_PUBLISH_DISPATCHED source=$env:HANGAR_V9_CANONICAL_SOURCE asset=$env:HANGAR_V9_MODEL_ASSET_ID"
