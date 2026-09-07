@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.2
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.3 STAFF ACCESS LOCK
 -- Authority: persistent social level/XP, managed roles, custom cosmetic TITLE and overhead identity.
--- Official staff roles: OWNER / CO OWNER / ADMIN / MODERATOR / DJ / LEAD / MEDIA.
--- Revision v1.1 requested assignments are resolved through Roblox username authority before UserId persistence; no guessed IDs.
+-- Official staff roles: OWNER / CO OWNER / ADMIN / MODERATOR / DJ / LEAD / MEDIA / CREW.
+-- Staff roles get full venue/travel bypass; VIP remains guest-only and does not receive Staff Tower authority.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -13,12 +13,15 @@ local titleStore=DataStoreService:GetDataStore("BBYA_CUSTOM_TITLE_V1")
 local OWNER_USERNAME="nadmo97"
 local ADMIN_USERNAMES={
  ["styxraasoraaa"]=true,
+ ["arda_moron123"]=true,
 }
 local REQUESTED_ROLE_ASSIGNMENTS={
- ["arda_moron123"]={username="Arda_moron123",role="MEDIA"},
+ ["arda_moron123"]={username="Arda_moron123",role="ADMIN"},
+ ["gudangpet88"]={username="gudangpet88",role="MEDIA"},
  ["talonthedevil"]={username="Talonthedevil",role="LEAD"},
  ["ridhoomaukamu"]={username="Ridhoomaukamu",role="DJ"},
 }
+local REQUESTED_ROLE_COUNT=4
 local VALID_ROLES={VIP=true,CREW=true,COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,NONE=true}
 local LEVEL_MINUTES=10
 local TITLE_MAX=16
@@ -108,7 +111,7 @@ local function bootstrapRequestedRoles()
   if uid then persistRequestedResolved(req,uid,resolved);resolvedCount+=1 else ReplicatedStorage:SetAttribute("BBYARoleLock_"..req.username,"RESOLVE_FAILED");warn("[BBYA Roles] exact Roblox username resolution failed",req.username) end
  end
  ReplicatedStorage:SetAttribute("BBYARevisionRoleLocksResolved",resolvedCount)
- ReplicatedStorage:SetAttribute("BBYARevisionRoleLocksComplete",resolvedCount==3)
+ ReplicatedStorage:SetAttribute("BBYARevisionRoleLocksComplete",resolvedCount==REQUESTED_ROLE_COUNT)
 end
 local function requestedRoleForPlayer(player)
  local locked=requestedRoleByUserId[player.UserId]
@@ -239,6 +242,10 @@ local function grantFullAccess(player)
  player:SetAttribute("BBYAVIPBypass",true);player:SetAttribute("BBYARooftopBypass",true)
  player:SetAttribute("BBYASecretRoomBypass",true);player:SetAttribute("BBYATravelBypass",true)
 end
+local function grantStaffFullAccess(player)
+ player:SetAttribute("BBYAStaff",true)
+ grantFullAccess(player)
+end
 local function applyManagedAccess(player)
  local role=managedRole(player)
  clearManagedAccess(player)
@@ -247,15 +254,15 @@ local function applyManagedAccess(player)
  player:SetAttribute("BBYAHasMediaRole",role=="MEDIA")
  if isOwner(player) then
   player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAOwner",true);player:SetAttribute("BBYACoOwner",true);player:SetAttribute("BBYAQueen",true)
-  grantFullAccess(player)
+  grantStaffFullAccess(player)
  elseif role=="COOWNER" then
-  player:SetAttribute("BBYACoOwner",true);player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAStaff",true);grantFullAccess(player)
+  player:SetAttribute("BBYACoOwner",true);player:SetAttribute("BBYAAdmin",true);grantStaffFullAccess(player)
  elseif ADMIN_USERNAMES[usernameKey(player)]==true or role=="ADMIN" then
-  player:SetAttribute("BBYAAdmin",true);player:SetAttribute("BBYAStaff",true);grantFullAccess(player)
+  player:SetAttribute("BBYAAdmin",true);grantStaffFullAccess(player)
  elseif role=="MODERATOR" then
-  player:SetAttribute("BBYAModerator",true);player:SetAttribute("BBYAStaff",true);player:SetAttribute("BBYAVIPBypass",true);player:SetAttribute("BBYARooftopBypass",true)
- elseif role=="CREW" then
-  player:SetAttribute("BBYAStaff",true);player:SetAttribute("BBYAVIPBypass",true);player:SetAttribute("BBYARooftopBypass",true);player:SetAttribute("BBYASecretRoomBypass",true)
+  player:SetAttribute("BBYAModerator",true);grantStaffFullAccess(player)
+ elseif role=="CREW" or role=="DJ" or role=="LEAD" or role=="MEDIA" then
+  grantStaffFullAccess(player)
  elseif role=="VIP" then
   player:SetAttribute("BBYAVIPBypass",true)
  end
@@ -394,4 +401,4 @@ task.spawn(function()
  end
 end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end end)
-print("[BBYA] Player progression v5.2 online: persistent level/XP + exact-resolved locked MEDIA/LEAD/DJ revision assignments + custom TITLE")
+print("[BBYA] Player progression v5.3 online: Arda ADMIN + gudangpet88 MEDIA lock / staff full travel / VIP guest-only")
