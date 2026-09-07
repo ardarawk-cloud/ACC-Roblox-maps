@@ -55,7 +55,7 @@ jobs:
           $lighting=Get-Content 'maps/bbya-social-hub/28-lighting-ambience.server.lua' -Raw
           if($legacy -match '(?m)\.Volume\s*='){throw '81 volume ownership regression'}
           if($legacy -notmatch 'BBYALegacyVolumeWriterDisabled'){throw '81 disable marker missing'}
-          if($router -notmatch 'ROUTER_V9_EQ_ONLY' -or $router -notmatch 'BBYAFunkotHardGateV9'){throw 'Router v9 lock missing'}
+          if($router -notmatch 'ROUTER_V9_4_EQ_ONLY' -or $router -notmatch 'BBYAFunkotHardGateV9'){throw 'Router v9.4 lock missing'}
           if($ug -notmatch 'DARK_SAFE_V3'){throw 'Underground dark-safe marker missing'}
           if($ug -match 'GetService\("Lighting"\)'){throw 'Underground owns global Lighting'}
           if($dark -notmatch 'DARK_UNDERGROUND_V6_SLIGHT_LIFT'){throw 'Underground final dark lock missing'}
