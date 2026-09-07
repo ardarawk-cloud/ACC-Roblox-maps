@@ -1,42 +1,66 @@
 {
-  "status": "GRANTED_ALL",
+  "status": "PARTIAL_OR_FAILED",
   "universeId": "8116636513",
-  "source": "TARGETED_UNDERGROUND_MANUAL_8",
+  "source": "SKATE_PLAYLIST approvalState=APPROVED",
   "assets": [
     {
-      "title": "Kamu gak bakal tau",
-      "assetId": "128236218314957"
+      "title": "Untungnya Hidup Harus Tetap Berjalan",
+      "assetId": "101433831748471"
     },
     {
-      "title": "Surga",
-      "assetId": "73490528411091"
+      "title": "Vierra - Perih (Pop Punk Version)",
+      "assetId": "73111765506214"
     },
     {
-      "title": "Hati",
-      "assetId": "117969837722651"
+      "title": "Apa yang aku lakukan",
+      "assetId": "134467357340949"
     },
     {
-      "title": "Bintang jatuh",
-      "assetId": "82059974893640"
+      "title": "Cewek baru",
+      "assetId": "94716486418996"
     },
     {
-      "title": "Kapal tenggelam",
-      "assetId": "124813032756402"
+      "title": "Ke dalam",
+      "assetId": "137855682924521"
     },
     {
-      "title": "Pegangan",
-      "assetId": "131317518484469"
+      "title": "Jatuh",
+      "assetId": "100571973862831"
     },
     {
-      "title": "Dalu dalu",
-      "assetId": "112530372468543"
+      "title": "Gantian",
+      "assetId": "76764826294674"
     },
     {
-      "title": "Anak kampung",
-      "assetId": "128982389712711"
+      "title": "Panggung rock",
+      "assetId": "73605786993749"
+    },
+    {
+      "title": "Orang kuat",
+      "assetId": "122266407959894"
+    },
+    {
+      "title": "Orang agak kurang",
+      "assetId": "120903123891114"
+    },
+    {
+      "title": "Tak antemi",
+      "assetId": "85284576958779"
+    },
+    {
+      "title": "Bawa aku hidup",
+      "assetId": "114950574110478"
+    },
+    {
+      "title": "Halus",
+      "assetId": "77600449290121"
+    },
+    {
+      "title": "Saat hatimu berhenti",
+      "assetId": "106253638699689"
     }
   ],
-  "assetCount": 8,
+  "assetCount": 14,
   "keyDiagnostics": {
     "AM_STUDIO": {
       "present": true,
@@ -129,8 +153,8 @@
   },
   "results": [
     {
-      "title": "Kamu gak bakal tau",
-      "assetId": "128236218314957",
+      "title": "Untungnya Hidup Harus Tetap Berjalan",
+      "assetId": "101433831748471",
       "granted": true,
       "attempts": [
         {
@@ -138,11 +162,11 @@
           "attempted": true,
           "http": 200,
           "successAssetIds": [
-            "128236218314957"
+            "101433831748471"
           ],
           "response": {
             "successAssetIds": [
-              128236218314957
+              101433831748471
             ],
             "errors": []
           },
@@ -152,8 +176,8 @@
       "grantedBy": "AM_STUDIO"
     },
     {
-      "title": "Surga",
-      "assetId": "73490528411091",
+      "title": "Vierra - Perih (Pop Punk Version)",
+      "assetId": "73111765506214",
       "granted": true,
       "attempts": [
         {
@@ -161,11 +185,11 @@
           "attempted": true,
           "http": 200,
           "successAssetIds": [
-            "73490528411091"
+            "73111765506214"
           ],
           "response": {
             "successAssetIds": [
-              73490528411091
+              73111765506214
             ],
             "errors": []
           },
@@ -175,154 +199,479 @@
       "grantedBy": "AM_STUDIO"
     },
     {
-      "title": "Hati",
-      "assetId": "117969837722651",
-      "granted": true,
+      "title": "Apa yang aku lakukan",
+      "assetId": "134467357340949",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "117969837722651"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              117969837722651
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 134467357340949,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
     },
     {
-      "title": "Bintang jatuh",
-      "assetId": "82059974893640",
-      "granted": true,
+      "title": "Cewek baru",
+      "assetId": "94716486418996",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "82059974893640"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              82059974893640
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 94716486418996,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
     },
     {
-      "title": "Kapal tenggelam",
-      "assetId": "124813032756402",
-      "granted": true,
+      "title": "Ke dalam",
+      "assetId": "137855682924521",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "124813032756402"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              124813032756402
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 137855682924521,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
     },
     {
-      "title": "Pegangan",
-      "assetId": "131317518484469",
-      "granted": true,
+      "title": "Jatuh",
+      "assetId": "100571973862831",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "131317518484469"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              131317518484469
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 100571973862831,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
     },
     {
-      "title": "Dalu dalu",
-      "assetId": "112530372468543",
-      "granted": true,
+      "title": "Gantian",
+      "assetId": "76764826294674",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "112530372468543"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              112530372468543
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 76764826294674,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
     },
     {
-      "title": "Anak kampung",
-      "assetId": "128982389712711",
-      "granted": true,
+      "title": "Panggung rock",
+      "assetId": "73605786993749",
+      "granted": false,
       "attempts": [
         {
           "key": "AM_STUDIO",
           "attempted": true,
           "http": 200,
-          "successAssetIds": [
-            "128982389712711"
-          ],
+          "successAssetIds": [],
           "response": {
-            "successAssetIds": [
-              128982389712711
-            ],
-            "errors": []
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 73605786993749,
+                "code": "CannotManageAsset"
+              }
+            ]
           },
-          "ok": true
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
         }
-      ],
-      "grantedBy": "AM_STUDIO"
+      ]
+    },
+    {
+      "title": "Orang kuat",
+      "assetId": "122266407959894",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 122266407959894,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
+    },
+    {
+      "title": "Orang agak kurang",
+      "assetId": "120903123891114",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 120903123891114,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
+    },
+    {
+      "title": "Tak antemi",
+      "assetId": "85284576958779",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 85284576958779,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
+    },
+    {
+      "title": "Bawa aku hidup",
+      "assetId": "114950574110478",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 114950574110478,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
+    },
+    {
+      "title": "Halus",
+      "assetId": "77600449290121",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 77600449290121,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
+    },
+    {
+      "title": "Saat hatimu berhenti",
+      "assetId": "106253638699689",
+      "granted": false,
+      "attempts": [
+        {
+          "key": "AM_STUDIO",
+          "attempted": true,
+          "http": 200,
+          "successAssetIds": [],
+          "response": {
+            "successAssetIds": [],
+            "errors": [
+              {
+                "assetId": 106253638699689,
+                "code": "CannotManageAsset"
+              }
+            ]
+          },
+          "ok": false
+        },
+        {
+          "key": "ROBLOX_AUDIO_API_KEY",
+          "attempted": true,
+          "http": 403,
+          "successAssetIds": [],
+          "response": {
+            "errors": [
+              {
+                "code": 0,
+                "message": "Scope not authorized."
+              }
+            ]
+          },
+          "ok": false
+        }
+      ]
     }
   ],
   "grantedAssetIds": [
-    "128236218314957",
-    "73490528411091",
-    "117969837722651",
-    "82059974893640",
-    "124813032756402",
-    "131317518484469",
-    "112530372468543",
-    "128982389712711"
+    "101433831748471",
+    "73111765506214"
   ],
-  "grantedCount": 8,
-  "missingAssetIds": []
+  "grantedCount": 2,
+  "missingAssetIds": [
+    "134467357340949",
+    "94716486418996",
+    "137855682924521",
+    "100571973862831",
+    "76764826294674",
+    "73605786993749",
+    "122266407959894",
+    "120903123891114",
+    "85284576958779",
+    "114950574110478",
+    "77600449290121",
+    "106253638699689"
+  ]
 }
