@@ -26,6 +26,7 @@ jobs:
 
       - name: Grant existing Progressive audio to BBYA Universe
         env:
+          UPLOADER_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
           AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
           AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
           UNIVERSE_ID: '8116636513'
@@ -87,10 +88,19 @@ jobs:
           def can_permission(info):
               if not info.get('present') or info.get('http')!=200 or info.get('enabled') is False or info.get('expired') is True:
                   return False
-              return any(s.get('name')=='asset-permissions:write' for s in info.get('scopes',[]))
+              for scope in info.get('scopes',[]):
+                  name=scope.get('name')
+                  ops=scope.get('operations') or []
+                  if name=='asset-permissions:write' or (name=='asset-permissions' and 'write' in ops):
+                      return True
+              return False
 
           granted=set()
-          for label,key in [('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip())]:
+          for label,key in [
+              ('AMSTUDIO_AUDIO_UPLOADER_01',os.environ.get('UPLOADER_KEY','').strip()),
+              ('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),
+              ('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),
+          ]:
               info=introspect(key)
               attempt={'key':label,'keyInfo':info,'permissionAttempted':False}
               if not can_permission(info):
