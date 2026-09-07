@@ -1,14 +1,14 @@
 {
-  "status": "LIVE_PUBLISHED",
-  "ok": true,
-  "universeId": "10745364913",
-  "placeId": "76001567401911",
-  "sourceCommit": "7540aaedcc89808efbe144832d7820ceab8a2187",
-  "mode": "FULL_MESH_V2_AIRCRAFT_HANGAR_XL",
-  "robloxVersion": 5,
-  "placeBytes": 42079,
-  "sha256": "d702ce9bbf8f19c8fc1fd6cbe12b56a1c5806cad5593e40c5142d4ec35909125",
-  "publishRun": 34131351722,
-  "publishedAt": "2026-09-07T14:09:32Z",
-  "previewUrl": "https://www.roblox.com/games/76001567401911"
+    "status":  "LIVE_PUBLISHED",
+    "ok":  true,
+    "universeId":  "10745364913",
+    "placeId":  "76001567401911",
+    "sourceCommit":  "268c318199ec81b632af712c346da56aef87db4a",
+    "mode":  "V6_VISUAL_RESCUE_FULL_MESH_OR_XL_FALLBACK",
+    "robloxVersion":  6,
+    "placeBytes":  53337,
+    "sha256":  "8c77f5c28ffef2536985af429111fbdd57aceb0480cbf4e9e957cc031fd26394",
+    "publishRun":  34132252631,
+    "publishedAt":  "2026-09-07T14:19:11.2369811Z",
+    "previewUrl":  "https://www.roblox.com/games/76001567401911"
 }
