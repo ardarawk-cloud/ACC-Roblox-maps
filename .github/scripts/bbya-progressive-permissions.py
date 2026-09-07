@@ -61,7 +61,12 @@ def can_grant(info):
         return False
     if info.get('enabled') is False or info.get('expired') is True:
         return False
-    return any(s.get('name')=='asset-permissions:write' for s in info.get('scopes',[]))
+    for scope in info.get('scopes',[]):
+        name=scope.get('name')
+        ops=scope.get('operations') or []
+        if name=='asset-permissions:write' or (name=='asset-permissions' and 'write' in ops):
+            return True
+    return False
 
 
 def main():
@@ -83,6 +88,7 @@ def main():
 
     granted=set()
     candidates=[
+        ('AMSTUDIO_AUDIO_UPLOADER_01',os.environ.get('UPLOADER_KEY','').strip()),
         ('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),
         ('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),
     ]
