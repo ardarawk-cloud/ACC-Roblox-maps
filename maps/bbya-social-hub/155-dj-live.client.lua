@@ -1,8 +1,7 @@
--- BBYA SOCIAL HUB — DJ LIVE UI v6.1 MOBILE SAFE
--- Symmetric Deck A — Mixer — Deck B is preserved.
--- Venue row is isolated above decks, deck height follows the actual GUI content area (not camera viewport),
--- bottom controls stay inside a reserved safe inset, timeline stays real TimePosition/TimeLength,
--- and FX state is visible and bound to the v6.1 server authority.
+-- BBYA SOCIAL HUB — DJ LIVE UI v6.2 MOBILE PRECISION
+-- Symmetric Deck A — Mixer — Deck B preserved. Timeline behavior is frozen.
+-- CUE/PLAY/FX/SYNC are laid out from actual deck height and cannot overlap the timeline.
+-- The active DJ session remains usable through temporary role-attribute churn until LIVE STOP.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -19,60 +18,48 @@ local getState=remotes:WaitForChild("DJLiveGetState",20)
 local getLibrary=remotes:WaitForChild("DJLiveGetLibrary",20)
 if not action or not stateRemote or not getState or not getLibrary then return end
 
+local state={authorized=false,live=false,map="CLUB",crossfader=.5,operator=nil,operatorUserId=nil,notice="READY",decks={A={},B={}}}
 local QA={nadmo97=true,arda_moron123=true}
-local function allowed()
+local function baseAllowed()
  local n=string.lower(player.Name)
  return QA[n]==true or player:GetAttribute("BBYAOwner")==true or(player:GetAttribute("BBYAHasDJRole")==true and player:GetAttribute("BBYAManagedRole")=="DJ")or(game.CreatorType==Enum.CreatorType.User and player.UserId==game.CreatorId)
 end
+local function allowed()return baseAllowed()or(state.live==true and tonumber(state.operatorUserId)==player.UserId)end
 
 local old=pg:FindFirstChild("BBYADJLiveCleanUI");if old then old:Destroy()end
 local gui=Instance.new("ScreenGui")
 gui.Name="BBYADJLiveCleanUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=false;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Enabled=allowed();gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","DJ_LIVE_V6_1_MOBILE_SAFE")
-gui:SetAttribute("BBYALayoutLock","SYMMETRIC_A_MIXER_B_VENUE_ISOLATED_SAFE_V3")
-gui:SetAttribute("BBYATimelineAuthority","TIMEPOSITION_TIMELENGTH_NO_FAKE_WAVEFORM")
-gui:SetAttribute("BBYAFXAuthority","SERVER_V6_1_STRONG_STATE")
+gui:SetAttribute("BBYAUIAuthority","DJ_LIVE_V6_2_MOBILE_PRECISION")
+gui:SetAttribute("BBYALayoutLock","SYMMETRIC_A_MIXER_B_TIMELINE_CLEAR_SAFE_V4")
+gui:SetAttribute("BBYATimelineAuthority","TIMEPOSITION_TIMELENGTH_FROZEN")
+gui:SetAttribute("BBYAFXAuthority","SERVER_V6_2_STATE")
 
 local C={bg=Color3.fromRGB(7,7,10),panel=Color3.fromRGB(17,18,23),card=Color3.fromRGB(28,29,36),line=Color3.fromRGB(70,72,83),white=Color3.fromRGB(246,246,249),muted=Color3.fromRGB(155,158,170),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(73,207,235),gold=Color3.fromRGB(220,171,92),green=Color3.fromRGB(92,224,151),black=Color3.fromRGB(8,8,11)}
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,col,tr,th)local s=Instance.new("UIStroke");s.Color=col or C.line;s.Transparency=tr or .42;s.Thickness=th or 1;s.Parent=o;return s end
-local function frame(p,name,pos,size,col,tr,r,z)
- local f=Instance.new("Frame");f.Name=name;f.Position=pos or UDim2.new();f.Size=size or UDim2.new();f.BackgroundColor3=col or C.panel;f.BackgroundTransparency=tr or .12;f.BorderSizePixel=0;f.ZIndex=z or 1;f.Parent=p;corner(f,r or 10);stroke(f,C.line,.42);return f
-end
-local function label(p,name,value,pos,size,font,ts,col,align,z)
- local l=Instance.new("TextLabel");l.Name=name;l.BackgroundTransparency=1;l.Text=tostring(value or"");l.Position=pos or UDim2.new();l.Size=size or UDim2.new();l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 9;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextTruncate=Enum.TextTruncate.AtEnd;l.ZIndex=z or 2;l.Parent=p;return l
-end
-local function button(p,name,value,pos,size,col,z)
- local b=Instance.new("TextButton");b.Name=name;b.Text=value;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.06;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBlack;b.TextSize=9;b.AutoButtonColor=true;b.Active=true;b.ZIndex=z or 2;b.Parent=p;corner(b,8);stroke(b,C.line,.46);return b
-end
+local function frame(p,name,pos,size,col,tr,r,z)local f=Instance.new("Frame");f.Name=name;f.Position=pos or UDim2.new();f.Size=size or UDim2.new();f.BackgroundColor3=col or C.panel;f.BackgroundTransparency=tr or .12;f.BorderSizePixel=0;f.ZIndex=z or 1;f.Parent=p;corner(f,r or 10);stroke(f,C.line,.42);return f end
+local function label(p,name,value,pos,size,font,ts,col,align,z)local l=Instance.new("TextLabel");l.Name=name;l.BackgroundTransparency=1;l.Text=tostring(value or"");l.Position=pos or UDim2.new();l.Size=size or UDim2.new();l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 9;l.TextColor3=col or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextTruncate=Enum.TextTruncate.AtEnd;l.ZIndex=z or 2;l.Parent=p;return l end
+local function button(p,name,value,pos,size,col,z)local b=Instance.new("TextButton");b.Name=name;b.Text=value;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=col or C.card;b.BackgroundTransparency=.06;b.BorderSizePixel=0;b.TextColor3=C.white;b.Font=Enum.Font.GothamBlack;b.TextSize=9;b.AutoButtonColor=true;b.Active=true;b.ZIndex=z or 2;b.Parent=p;corner(b,8);stroke(b,C.line,.46);return b end
 local function activeButton(b,on,accent)b.BackgroundColor3=on and(accent or C.white)or C.card;b.TextColor3=on and C.black or C.white end
 local function menuVisible(v)local k=pg:FindFirstChild("BBYACommandMenuUI");local m=k and k:FindFirstChild("MenuButton",true);if m then m.Visible=v end end
 local function roleVisible(v)local g=pg:FindFirstChild("BBYARolePanelUI");local b=g and g:FindFirstChild("RolePanelOpen",true);if b then b.Visible=v end end
 local function fmt(sec)sec=math.max(0,math.floor(tonumber(sec)or 0));return string.format("%02d:%02d",math.floor(sec/60),sec%60)end
 
-local root=Instance.new("Frame")
-root.Name="DJLivePanel";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=C.bg;root.BackgroundTransparency=.18;root.BorderSizePixel=0;root.Visible=false;root.ClipsDescendants=true;root.Parent=gui
-
+local root=Instance.new("Frame");root.Name="DJLivePanel";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=C.bg;root.BackgroundTransparency=.18;root.BorderSizePixel=0;root.Visible=false;root.ClipsDescendants=true;root.Parent=gui
 local header=frame(root,"Header",UDim2.fromOffset(8,8),UDim2.new(1,-16,0,44),C.panel,.08,10,10)
 label(header,"Title","DJ LIVE",UDim2.fromOffset(14,1),UDim2.fromOffset(130,21),Enum.Font.GothamBlack,15,C.white,nil,11)
 local status=label(header,"Status","READY",UDim2.fromOffset(14,22),UDim2.new(1,-292,0,14),Enum.Font.GothamBold,7,C.muted,nil,11)
 local live=button(header,"Live","LIVE START",UDim2.new(1,-154,0,6),UDim2.fromOffset(100,31),C.card,11)
 local close=button(header,"Close","×",UDim2.new(1,-46,0,6),UDim2.fromOffset(36,31),C.card,11);close.TextSize=18
 
--- Dedicated venue strip: separate Z layer + fixed gap before deck content.
 local venueBar=frame(root,"VenueBar",UDim2.fromOffset(8,58),UDim2.new(1,-16,0,36),C.panel,.05,10,9)
 local mapButtons={}
-for i,n in ipairs({"CLUB","VIP","UNDERGROUND","FUNKOT"})do
- local b=button(venueBar,n,n,UDim2.new((i-1)/4,5,0,3),UDim2.new(.25,-10,0,30),C.card,10);b.TextSize=n=="UNDERGROUND"and 7 or 9;mapButtons[n]=b;b.Activated:Connect(function()action:FireServer("map",{value=n})end)
-end
+for i,n in ipairs({"CLUB","VIP","UNDERGROUND","FUNKOT"})do local b=button(venueBar,n,n,UDim2.new((i-1)/4,5,0,3),UDim2.new(.25,-10,0,30),C.card,10);b.TextSize=n=="UNDERGROUND"and 7 or 9;mapButtons[n]=b;b.Activated:Connect(function()action:FireServer("map",{value=n})end)end
 
-local content=Instance.new("Frame")
-content.Name="DeckArea";content.BackgroundTransparency=1;content.Position=UDim2.fromOffset(8,102);content.Size=UDim2.new(1,-16,1,-136);content.ClipsDescendants=true;content.Parent=root
+local content=Instance.new("Frame");content.Name="DeckArea";content.BackgroundTransparency=1;content.Position=UDim2.fromOffset(8,102);content.Size=UDim2.new(1,-16,1,-136);content.ClipsDescendants=true;content.Parent=root
 local horizontal=Instance.new("UIListLayout");horizontal.FillDirection=Enum.FillDirection.Horizontal;horizontal.HorizontalAlignment=Enum.HorizontalAlignment.Center;horizontal.VerticalAlignment=Enum.VerticalAlignment.Center;horizontal.Padding=UDim.new(0,8);horizontal.SortOrder=Enum.SortOrder.LayoutOrder;horizontal.Parent=content
 
-local state={authorized=false,live=false,map="CLUB",crossfader=.5,notice="READY",decks={A={},B={}}}
 local library={};local refs={};local dialog=nil;local deckFrames={};local timelineSegs={A={},B={}};local meterBars={A={},B={}}
-
 local function clearDialog()if dialog then dialog:Destroy();dialog=nil end end
 local function modal(titleText)
  clearDialog();local shade=Instance.new("Frame");shade.Name="DialogShade";shade.Size=UDim2.fromScale(1,1);shade.BackgroundColor3=C.black;shade.BackgroundTransparency=.30;shade.BorderSizePixel=0;shade.ZIndex=100;shade.Parent=root
@@ -80,7 +67,6 @@ local function modal(titleText)
  label(box,"DialogTitle",titleText,UDim2.fromOffset(16,8),UDim2.new(1,-62,0,28),Enum.Font.GothamBlack,15,C.white,nil,102)
  local x=button(box,"DialogClose","×",UDim2.new(1,-46,0,8),UDim2.fromOffset(32,30),C.card,103);x.Activated:Connect(clearDialog);dialog=shade;return box
 end
-
 local function openPlaylist(deck)
  local box=modal("PLAYLIST "..deck.." • "..tostring(state.map or"CLUB"))
  local search=Instance.new("TextBox");search.Name="Search";search.Position=UDim2.fromOffset(16,46);search.Size=UDim2.new(1,-32,0,34);search.BackgroundColor3=C.card;search.BorderSizePixel=0;search.PlaceholderText="Search track...";search.PlaceholderColor3=C.muted;search.Text="";search.TextColor3=C.white;search.Font=Enum.Font.Gotham;search.TextSize=10;search.ClearTextOnFocus=false;search.ZIndex=102;search.Parent=box;corner(search,8);stroke(search,C.line,.48)
@@ -94,17 +80,10 @@ local function openPlaylist(deck)
  end
  search:GetPropertyChangedSignal("Text"):Connect(render);render()
 end
-
 local function openFX(deck)
  local box=modal("DECK "..deck.." • FX")
  local names={"ECHO","FILTER","REVERB","FLANGER","HORN","AIRHORN","BRAKE","SIREN"};local d=type(state.decks)=="table"and state.decks[deck]or{};local active=type(d.fx)=="table"and d.fx or{}
- for i,name in ipairs(names)do
-  local col=(i-1)%2;local row=math.floor((i-1)/2);local isToggle=i<=4;local on=isToggle and active[name]==true
-  local txt=isToggle and(name..(on and" • ON"or" • OFF"))or name
-  local b=button(box,"FX"..name,txt,UDim2.new(col*.5,16-col*4,0,54+row*58),UDim2.new(.5,-20,0,50),C.card,103)
-  if isToggle then activeButton(b,on,deck=="A"and C.pink or C.cyan)end
-  b.Activated:Connect(function()if isToggle then action:FireServer("fx_toggle",{deck=deck,fx=name});task.delay(.18,function()if dialog then clearDialog();openFX(deck)end end)else action:FireServer("sample",{deck=deck,fx=name})end end)
- end
+ for i,name in ipairs(names)do local col=(i-1)%2;local row=math.floor((i-1)/2);local isToggle=i<=4;local on=isToggle and active[name]==true;local txt=isToggle and(name..(on and" • ON"or" • OFF"))or name;local b=button(box,"FX"..name,txt,UDim2.new(col*.5,16-col*4,0,54+row*58),UDim2.new(.5,-20,0,50),C.card,103);if isToggle then activeButton(b,on,deck=="A"and C.pink or C.cyan)end;b.Activated:Connect(function()if isToggle then action:FireServer("fx_toggle",{deck=deck,fx=name});task.delay(.18,function()if dialog then clearDialog();openFX(deck)end end)else action:FireServer("sample",{deck=deck,fx=name})end end)end
 end
 
 local function createTimeline(parent,deck,accent)
@@ -118,7 +97,6 @@ local function createTimeline(parent,deck,accent)
  local duration=label(w,"Duration","00:00",UDim2.new(1,-59,0,35),UDim2.fromOffset(52,13),Enum.Font.GothamBold,6,C.muted,Enum.TextXAlignment.Right)
  timelineSegs[deck]=segs;return{frame=w,strip=strip,playhead=playhead,elapsed=elapsed,duration=duration}
 end
-
 local function makeDeck(deck,order,accent)
  local f=frame(content,"Deck"..deck,nil,UDim2.new(0,300,1,0),C.panel,.10,11);f.LayoutOrder=order;f.ClipsDescendants=true;deckFrames[deck]=f
  local playlist=button(f,"Playlist","PLAYLIST "..deck,UDim2.fromOffset(10,8),UDim2.fromOffset(82,42),C.card);playlist.TextWrapped=true;stroke(playlist,accent,.22);playlist.Activated:Connect(function()openPlaylist(deck)end)
@@ -126,19 +104,17 @@ local function makeDeck(deck,order,accent)
  local artist=label(f,"Artist","",UDim2.fromOffset(102,28),UDim2.new(1,-176,0,15),Enum.Font.Gotham,7,C.muted)
  local bpm=label(f,"BPM","BPM ?",UDim2.new(1,-70,0,11),UDim2.fromOffset(60,18),Enum.Font.GothamBold,7,C.white,Enum.TextXAlignment.Right)
  local timeline=createTimeline(f,deck,accent)
- local jog=Instance.new("Frame");jog.Name="Jog";jog.AnchorPoint=Vector2.new(.5,.5);jog.Position=UDim2.new(.5,0,.52,0);jog.Size=UDim2.fromOffset(96,96);jog.BackgroundColor3=C.black;jog.BorderSizePixel=0;jog.Parent=f;corner(jog,54);local js=stroke(jog,accent,.10,2)
+ local jog=Instance.new("Frame");jog.Name="Jog";jog.AnchorPoint=Vector2.new(.5,.5);jog.Position=UDim2.fromOffset(150,156);jog.Size=UDim2.fromOffset(80,80);jog.BackgroundColor3=C.black;jog.BorderSizePixel=0;jog.Parent=f;corner(jog,54);local js=stroke(jog,accent,.10,2)
  local ring=Instance.new("Frame");ring.AnchorPoint=Vector2.new(.5,.5);ring.Position=UDim2.fromScale(.5,.5);ring.Size=UDim2.new(.60,0,.60,0);ring.BackgroundTransparency=1;ring.Parent=jog;corner(ring,100);stroke(ring,C.line,.20,2)
- local needle=Instance.new("Frame");needle.Name="Needle";needle.AnchorPoint=Vector2.new(.5,1);needle.Position=UDim2.fromScale(.5,.5);needle.Size=UDim2.fromOffset(3,32);needle.BackgroundColor3=accent;needle.BorderSizePixel=0;needle.Parent=jog;corner(needle,2)
+ local needle=Instance.new("Frame");needle.Name="Needle";needle.AnchorPoint=Vector2.new(.5,1);needle.Position=UDim2.fromScale(.5,.5);needle.Size=UDim2.fromOffset(3,26);needle.BackgroundColor3=accent;needle.BorderSizePixel=0;needle.Parent=jog;corner(needle,2)
  local center=Instance.new("Frame");center.AnchorPoint=Vector2.new(.5,.5);center.Position=UDim2.fromScale(.5,.5);center.Size=UDim2.fromOffset(9,9);center.BackgroundColor3=C.white;center.BorderSizePixel=0;center.Parent=jog;corner(center,5)
- -- Two fixed bottom rows, both inside the deck safe inset.
- local cue=button(f,"Cue","CUE",UDim2.new(0,10,1,-78),UDim2.fromOffset(76,31),C.card)
- local play=button(f,"Play","PLAY",UDim2.new(0,10,1,-40),UDim2.fromOffset(76,31),C.card)
- local fx=button(f,"FX","FX",UDim2.new(1,-86,1,-78),UDim2.fromOffset(76,31),C.card)
- local sync=button(f,"Sync","SYNC",UDim2.new(1,-86,1,-40),UDim2.fromOffset(76,31),C.card)
+ local cue=button(f,"Cue","CUE",UDim2.fromOffset(10,186),UDim2.fromOffset(76,29),C.card)
+ local play=button(f,"Play","PLAY",UDim2.fromOffset(10,222),UDim2.fromOffset(76,29),C.card)
+ local fx=button(f,"FX","FX",UDim2.new(1,-86,0,186),UDim2.fromOffset(76,29),C.card)
+ local sync=button(f,"Sync","SYNC",UDim2.new(1,-86,0,222),UDim2.fromOffset(76,29),C.card)
  stroke(play,accent,.24);stroke(sync,accent,.38)
  cue.Activated:Connect(function()action:FireServer("cue",{deck=deck})end);play.Activated:Connect(function()action:FireServer("play_toggle",{deck=deck})end);fx.Activated:Connect(function()openFX(deck)end);sync.Activated:Connect(function()action:FireServer("sync",{deck=deck})end)
- refs[deck]={title=title,artist=artist,bpm=bpm,play=play,cue=cue,fx=fx,sync=sync,jog=jog,needle=needle,jogStroke=js,accent=accent,rotation=0,timeline=timeline}
- return f
+ refs[deck]={frame=f,title=title,artist=artist,bpm=bpm,play=play,cue=cue,fx=fx,sync=sync,jog=jog,needle=needle,jogStroke=js,accent=accent,rotation=0,timeline=timeline};return f
 end
 
 local deckA=makeDeck("A",1,C.pink)
@@ -157,31 +133,16 @@ hit.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseBu
 UserInputService.InputChanged:Connect(function(i)if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then cross(i.Position.X)end end)
 UserInputService.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end end)
 
-local function deckSound(deck)
- for _,engineName in ipairs({"BBYADJLiveV61Engine","BBYADJLiveV6Engine"})do local e=SoundService:FindFirstChild(engineName);local s=e and e:FindFirstChild("Deck"..deck);if s and s:IsA("Sound")then return s end end
-end
-local function updateTimeline(deck,d)
- local r=refs[deck];if not r then return end;local t=r.timeline;local len=tonumber(d.timeLength)or 0;local pos=tonumber(d.timePosition)or 0;local p=len>0 and math.clamp(pos/len,0,1)or 0
- t.playhead.Position=UDim2.new(p,0,.5,0);t.elapsed.Text=fmt(pos);t.duration.Text=fmt(len);local segs=timelineSegs[deck];local played=math.floor(p*#segs+.5);for i,b in ipairs(segs)do b.BackgroundTransparency=i<=played and .16 or .78 end
-end
+local function deckSound(deck)for _,engineName in ipairs({"BBYADJLiveV61Engine","BBYADJLiveV6Engine"})do local e=SoundService:FindFirstChild(engineName);local s=e and e:FindFirstChild("Deck"..deck);if s and s:IsA("Sound")then return s end end end
+local function updateTimeline(deck,d)local r=refs[deck];if not r then return end;local t=r.timeline;local len=tonumber(d.timeLength)or 0;local pos=tonumber(d.timePosition)or 0;local p=len>0 and math.clamp(pos/len,0,1)or 0;t.playhead.Position=UDim2.new(p,0,.5,0);t.elapsed.Text=fmt(pos);t.duration.Text=fmt(len);local segs=timelineSegs[deck];local played=math.floor(p*#segs+.5);for i,b in ipairs(segs)do b.BackgroundTransparency=i<=played and .16 or .78 end end
 local function applyState(s)
  if type(s)~="table"or s.authorized~=true then return end
- state=s;local notice=tostring(s.notice or"READY");status.Text=(s.live and("LIVE • "..tostring(s.map))or"READY")..(notice~=""and(" • "..notice)or"");status.TextColor3=s.live and C.green or C.muted
+ state=s;gui.Enabled=allowed();local notice=tostring(s.notice or"READY");status.Text=(s.live and("LIVE • "..tostring(s.map))or"READY")..(notice~=""and(" • "..notice)or"");status.TextColor3=s.live and C.green or C.muted
  live.Text=s.live and"LIVE STOP"or"LIVE START";activeButton(live,s.live,C.green);thumb.Position=UDim2.new(math.clamp(tonumber(s.crossfader)or.5,0,1),0,.5,0)
  for n,b in pairs(mapButtons)do activeButton(b,n==s.map,n=="VIP"and C.gold or(n=="FUNKOT"and Color3.fromRGB(171,95,244)or(n=="UNDERGROUND"and C.cyan or C.pink)))end
- for _,deck in ipairs({"A","B"})do
-  local d=type(s.decks)=="table"and s.decks[deck]or{};local r=refs[deck];r.title.Text=tostring(d.title or"EMPTY");r.artist.Text=(d.assetId and tonumber(d.assetId)>0)and("ASSET "..tostring(d.assetId))or""
-  local bpm=tonumber(d.bpm)or 0;r.bpm.Text=bpm>0 and(string.format("%.0f BPM",bpm))or"BPM ?";r.bpm.TextColor3=bpm>0 and C.white or C.gold
-  r.play.Text=d.playing and"PAUSE"or"PLAY";activeButton(r.play,d.playing,r.accent);r.jogStroke.Color=d.playing and r.accent or C.line
-  local nfx=0;for _,name in ipairs({"ECHO","FILTER","REVERB","FLANGER"})do if type(d.fx)=="table"and d.fx[name]==true then nfx+=1 end end;r.fx.Text=nfx>0 and("FX • "..nfx.." ON")or"FX";activeButton(r.fx,nfx>0,r.accent);updateTimeline(deck,d)
- end
+ for _,deck in ipairs({"A","B"})do local d=type(s.decks)=="table"and s.decks[deck]or{};local r=refs[deck];r.title.Text=tostring(d.title or"EMPTY");r.artist.Text=(d.assetId and tonumber(d.assetId)>0)and("ASSET "..tostring(d.assetId))or"";local bpm=tonumber(d.bpm)or 0;r.bpm.Text=bpm>0 and(string.format("%.0f BPM",bpm))or"BPM ?";r.bpm.TextColor3=bpm>0 and C.white or C.gold;r.play.Text=d.playing and"PAUSE"or"PLAY";activeButton(r.play,d.playing,r.accent);r.jogStroke.Color=d.playing and r.accent or C.line;local nfx=0;for _,name in ipairs({"ECHO","FILTER","REVERB","FLANGER"})do if type(d.fx)=="table"and d.fx[name]==true then nfx+=1 end end;r.fx.Text=nfx>0 and("FX • "..nfx.." ON")or"FX";activeButton(r.fx,nfx>0,r.accent);updateTimeline(deck,d)end
 end
-local function refreshRemote()
- if not allowed()then gui.Enabled=false;root.Visible=false;return end;gui.Enabled=true
- local okS,s=pcall(function()return getState:InvokeServer()end);if okS and type(s)=="table"then applyState(s)end
- local okL,l=pcall(function()return getLibrary:InvokeServer()end);if okL and type(l)=="table"then library=l end
-end
-
+local function refreshRemote()if not allowed()then gui.Enabled=false;root.Visible=false;return end;gui.Enabled=true;local okS,s=pcall(function()return getState:InvokeServer()end);if okS and type(s)=="table"then applyState(s)end;local okL,l=pcall(function()return getLibrary:InvokeServer()end);if okL and type(l)=="table"then library=l end end
 live.Activated:Connect(function()if state.live then action:FireServer("live_stop",{})else action:FireServer("live_start",{})end end)
 close.Activated:Connect(function()clearDialog();root.Visible=false end)
 root:GetPropertyChangedSignal("Visible"):Connect(function()if root.Visible then menuVisible(false);roleVisible(false);refreshRemote()else clearDialog();menuVisible(true);roleVisible(true)end end)
@@ -190,25 +151,26 @@ stateRemote.OnClientEvent:Connect(function(s)if type(s)=="table"then applyState(
 local camera=workspace.CurrentCamera
 local function layout()
  camera=workspace.CurrentCamera or camera
- -- Use actual GuiObject sizes. Camera ViewportSize can be taller than the usable ScreenGui area on mobile.
  local rootW=math.max(430,root.AbsoluteSize.X);local contentH=math.max(260,content.AbsoluteSize.Y)
- local mixerW=math.clamp(math.floor(rootW*.13),88,118);local deckW=math.max(150,math.floor((rootW-16-mixerW-16)/2))
+ local mixerW=math.clamp(math.floor(rootW*.13),88,118);local deckW=math.max(150,math.floor((rootW-32-mixerW)/2))
  deckA.Size=UDim2.new(0,deckW,1,0);deckB.Size=UDim2.new(0,deckW,1,0);mixer.Size=UDim2.new(0,mixerW,1,0)
- local jogSize=math.clamp(math.floor(math.min(deckW*.29,contentH*.25)),70,104)
- for _,deck in ipairs({"A","B"})do local r=refs[deck];r.jog.Size=UDim2.fromOffset(jogSize,jogSize);r.needle.Size=UDim2.fromOffset(3,math.max(24,math.floor(jogSize*.32)))end
+ for _,deck in ipairs({"A","B"})do
+  local r=refs[deck];local deckH=math.max(250,r.frame.AbsoluteSize.Y>0 and r.frame.AbsoluteSize.Y or contentH)
+  local row2Y=math.max(154,deckH-38);local row1Y=math.max(118,row2Y-36)
+  if row1Y<116 then row1Y=116 end;if row2Y<row1Y+34 then row2Y=row1Y+34 end
+  r.cue.Position=UDim2.fromOffset(10,row1Y);r.fx.Position=UDim2.new(1,-86,0,row1Y);r.play.Position=UDim2.fromOffset(10,row2Y);r.sync.Position=UDim2.new(1,-86,0,row2Y)
+  local freeTop=116;local freeBottom=math.max(freeTop+72,row1Y-7);local available=math.max(68,freeBottom-freeTop)
+  local jogSize=math.clamp(math.floor(math.min(deckW*.29,available-6)),64,96);local centerY=freeTop+available*.5
+  r.jog.Position=UDim2.new(.5,0,0,centerY);r.jog.Size=UDim2.fromOffset(jogSize,jogSize);r.needle.Size=UDim2.fromOffset(3,math.max(20,math.floor(jogSize*.32)))
+ end
 end
-root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end)
-content:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end)
+root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end);content:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()task.defer(layout)end)end;task.defer(layout)end)
 
 local acc=0
-RunService.RenderStepped:Connect(function(dt)
- if not root.Visible then return end;acc+=dt;if acc<.08 then return end;acc=0
- for _,deck in ipairs({"A","B"})do local s=deckSound(deck);local loud=s and math.clamp((s.PlaybackLoudness or 0)/520,0,1)or 0;local r=refs[deck];if s and s.IsPlaying then r.rotation=(r.rotation+7)%360;r.needle.Rotation=r.rotation end;for i,b in ipairs(meterBars[deck])do b.BackgroundTransparency=i<=math.ceil(loud*#meterBars[deck])and.08 or.78 end;if s then updateTimeline(deck,{timePosition=s.TimePosition,timeLength=s.TimeLength})end end
-end)
-
+RunService.RenderStepped:Connect(function(dt)if not root.Visible then return end;acc+=dt;if acc<.08 then return end;acc=0;for _,deck in ipairs({"A","B"})do local s=deckSound(deck);local loud=s and math.clamp((s.PlaybackLoudness or 0)/520,0,1)or 0;local r=refs[deck];if s and s.IsPlaying then r.rotation=(r.rotation+7)%360;r.needle.Rotation=r.rotation end;for i,b in ipairs(meterBars[deck])do b.BackgroundTransparency=i<=math.ceil(loud*#meterBars[deck])and.08 or.78 end;if s then updateTimeline(deck,{timePosition=s.TimePosition,timeLength=s.TimeLength})end end end)
 local function authRefresh()gui.Enabled=allowed();if not gui.Enabled then root.Visible=false end end
 player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(authRefresh);player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(authRefresh);player:GetAttributeChangedSignal("BBYAOwner"):Connect(authRefresh)
 task.defer(function()task.wait();layout();refreshRemote();root.Visible=false end)
-print("[BBYA] DJ LIVE UI v6.1 online: isolated venue row / actual-GUI mobile sizing / bottom-safe controls / visible FX state")
+print("[BBYA] DJ LIVE UI v6.2 online: timeline-clear controls / mobile precision / session-safe auth")
