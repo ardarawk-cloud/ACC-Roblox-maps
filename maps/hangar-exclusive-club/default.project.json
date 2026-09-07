@@ -12,6 +12,9 @@
       },
       "HangarFullMeshV2": {
         "$path": "full-mesh.server.lua"
+      },
+      "HangarVisualRescue": {
+        "$path": "visual-rescue.server.lua"
       }
     },
     "StarterPlayer": {
