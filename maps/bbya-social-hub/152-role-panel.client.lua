@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — ROLE PANEL v11.3 MUSIC RESPONSIVE SHELL
--- Role logic unchanged. Shell now uses the exact Music responsive size rule and right-dock position.
--- Internal controls reflow inside 330–420px so close/action controls stay reachable on mobile.
+-- BBYA SOCIAL HUB — ROLE PANEL v11.4 MUSIC RESPONSIVE SHELL / HUB-SAFE LAUNCHER
+-- Role logic unchanged. Shell uses the exact Music responsive size rule and right-dock position.
+-- Launcher now stays hidden while the legacy BBYA HubPanel is open, including SUPPORT.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -11,7 +11,7 @@ local snapshotRemote=remotes:WaitForChild("RolePanelSnapshot",25)
 local actionRemote=remotes:WaitForChild("RolePanelAction",25)
 local ok,snapshot=pcall(function()return snapshotRemote:InvokeServer()end);if not ok or type(snapshot)~="table"or snapshot.authorized~=true then return end
 local old=pg:FindFirstChild("BBYARolePanelUI");if old then old:Destroy()end
-local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_3_MUSIC_RESPONSIVE_SHELL")
+local gui=Instance.new("ScreenGui");gui.Name="BBYARolePanelUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=245;gui.Parent=pg;gui:SetAttribute("BBYARolePanelAuthority","ROLE_PANEL_V11_4_MUSIC_RESPONSIVE_HUB_SAFE")
 local C={bg=Color3.fromRGB(10,10,14),panel=Color3.fromRGB(20,20,26),card=Color3.fromRGB(31,31,39),line=Color3.fromRGB(72,74,86),white=Color3.fromRGB(248,248,250),muted=Color3.fromRGB(185,187,197),pink=Color3.fromRGB(247,55,158),cyan=Color3.fromRGB(73,207,235),green=Color3.fromRGB(103,230,174),gold=Color3.fromRGB(235,184,74),red=Color3.fromRGB(235,91,104),purple=Color3.fromRGB(174,104,255),orange=Color3.fromRGB(255,151,78)}
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 9);c.Parent=o end
 local function stroke(o,col,tr)local s=Instance.new("UIStroke");s.Color=col or C.line;s.Transparency=tr or .4;s.Thickness=1;s.Parent=o end
@@ -34,25 +34,39 @@ local function render(snap)if type(snap)~="table"or snap.authorized~=true then r
 local function refresh()local good,s=pcall(function()return snapshotRemote:InvokeServer()end);if good then render(s)end end
 local function assign(role)if not selectedUserId or selectedLocked then return end;status.Text="Applying...";local good,r=pcall(function()return actionRemote:InvokeServer(selectedUserId,role)end);if not good or type(r)~="table"then status.Text="Role update failed.";return end;status.Text=tostring(r.message or"Updated.");if r.snapshot then render(r.snapshot)else refresh()end end;for key,b in pairs(roleButtons)do b.Activated:Connect(function()assign(key)end)end;remove.Activated:Connect(function()assign("NONE")end)
 local function menuVisible(v)local m=pg:FindFirstChild("BBYACommandMenuUI");local b=m and m:FindFirstChild("MenuButton",true);if b then b.Visible=v end end
-local function closePanel()panel.Visible=false;menuVisible(true);open.Visible=true end;open.Activated:Connect(function()panel.Visible=true;open.Visible=false;menuVisible(false);refresh()end);close.Activated:Connect(closePanel)
+local function closePanel()panel.Visible=false;menuVisible(true);task.defer(function()open.Visible=true end)end;open.Activated:Connect(function()panel.Visible=true;open.Visible=false;menuVisible(false);refresh()end);close.Activated:Connect(closePanel)
 local function danceVisible()local g=pg:FindFirstChild("BBYASocialHangoutUI");local p=g and g:FindFirstChild("DancePanel",true);return p and p:IsA("GuiObject")and p.Visible end
 local function commandDrawerVisible()
  local m=pg:FindFirstChild("BBYACommandMenuUI")
  local d=m and m:FindFirstChild("FeatureDrawer",true)
  return d and d:IsA("GuiObject")and d.Visible
 end
-local function syncLauncher()if panel.Visible then open.Visible=false;return end;open.Visible=not danceVisible() and not commandDrawerVisible()end
-local function bindCommandDrawer()
- local m=pg:FindFirstChild("BBYACommandMenuUI")
- local d=m and m:FindFirstChild("FeatureDrawer",true)
- if d and d:IsA("GuiObject")and d:GetAttribute("BBYARoleLauncherBound")~=true then
-  d:SetAttribute("BBYARoleLauncherBound",true)
+local function hubVisible()
+ local club=pg:FindFirstChild("BBYAClubUI")
+ local h=club and club:FindFirstChild("HubPanel",true)
+ return h and h:IsA("GuiObject")and h.Visible
+end
+local function syncLauncher()
+ if panel.Visible then open.Visible=false;return end
+ open.Visible=not danceVisible() and not commandDrawerVisible() and not hubVisible()
+end
+local function bindVisibilitySource(rootName,descName,attr)
+ local g=pg:FindFirstChild(rootName)
+ local d=g and g:FindFirstChild(descName,true)
+ if d and d:IsA("GuiObject")and d:GetAttribute(attr)~=true then
+  d:SetAttribute(attr,true)
   d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher)
  end
 end
+local function bindLaunchGuards()
+ bindVisibilitySource("BBYACommandMenuUI","FeatureDrawer","BBYARoleLauncherBound")
+ bindVisibilitySource("BBYAClubUI","HubPanel","BBYARoleHubGuardBound")
+ bindVisibilitySource("BBYASocialHangoutUI","DancePanel","BBYARoleDanceGuardBound")
+end
 pg.DescendantAdded:Connect(function(d)
- if d.Name=="DancePanel"and d:IsA("GuiObject")then d:GetPropertyChangedSignal("Visible"):Connect(syncLauncher);task.defer(syncLauncher)
- elseif d.Name=="FeatureDrawer"and d:IsA("GuiObject")then task.defer(function()bindCommandDrawer();syncLauncher()end) end
+ if(d.Name=="DancePanel"or d.Name=="FeatureDrawer"or d.Name=="HubPanel")and d:IsA("GuiObject")then
+  task.defer(function()bindLaunchGuards();syncLauncher()end)
+ end
 end)
 local cam=workspace.CurrentCamera
 local function layout()
@@ -73,5 +87,5 @@ local function layout()
 end
 if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()cam=workspace.CurrentCamera;if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(layout)end;layout()end)
-Players.PlayerAdded:Connect(function()if panel.Visible then task.delay(.3,refresh)end end);Players.PlayerRemoving:Connect(function()if panel.Visible then task.delay(.2,refresh)end end);task.spawn(function()while task.wait(.2)do bindCommandDrawer();syncLauncher()end end);task.defer(function()layout();render(snapshot);bindCommandDrawer();syncLauncher()end)
-print("[BBYA] Role Panel v11.3 online: exact Music responsive shell 330-420 / right dock / mobile-safe close")
+Players.PlayerAdded:Connect(function()if panel.Visible then task.delay(.3,refresh)end end);Players.PlayerRemoving:Connect(function()if panel.Visible then task.delay(.2,refresh)end end);task.spawn(function()while task.wait(.2)do bindLaunchGuards();syncLauncher()end end);task.defer(function()layout();render(snapshot);bindLaunchGuards();syncLauncher()end)
+print("[BBYA] Role Panel v11.4 online: Music responsive shell / launcher hidden while HubPanel SUPPORT is open")
