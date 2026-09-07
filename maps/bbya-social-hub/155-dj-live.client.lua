@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — DJ LIVE UI v6.2 MOBILE PRECISION
--- Symmetric Deck A — Mixer — Deck B preserved. Timeline behavior is frozen.
--- CUE/PLAY/FX/SYNC are laid out from actual deck height and cannot overlap the timeline.
--- The active DJ session remains usable through temporary role-attribute churn until LIVE STOP.
+-- BBYA SOCIAL HUB — DJ LIVE UI v6.3 MOBILE CONTROL VISIBILITY
+-- Symmetric Deck A — Mixer — Deck B and timeline behavior are preserved.
+-- QC only: remove mobile safe-inset double offset and keep CUE/PLAY/FX/SYNC inside the actual visible deck height.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -28,9 +27,9 @@ local function allowed()return baseAllowed()or(state.live==true and tonumber(sta
 
 local old=pg:FindFirstChild("BBYADJLiveCleanUI");if old then old:Destroy()end
 local gui=Instance.new("ScreenGui")
-gui.Name="BBYADJLiveCleanUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=false;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Enabled=allowed();gui.Parent=pg
-gui:SetAttribute("BBYAUIAuthority","DJ_LIVE_V6_2_MOBILE_PRECISION")
-gui:SetAttribute("BBYALayoutLock","SYMMETRIC_A_MIXER_B_TIMELINE_CLEAR_SAFE_V4")
+gui.Name="BBYADJLiveCleanUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Enabled=allowed();gui.Parent=pg
+gui:SetAttribute("BBYAUIAuthority","DJ_LIVE_V6_3_MOBILE_CONTROL_VISIBILITY")
+gui:SetAttribute("BBYALayoutLock","SYMMETRIC_A_MIXER_B_TIMELINE_CLEAR_SAFE_V5")
 gui:SetAttribute("BBYATimelineAuthority","TIMEPOSITION_TIMELENGTH_FROZEN")
 gui:SetAttribute("BBYAFXAuthority","SERVER_V6_2_STATE")
 
@@ -56,7 +55,7 @@ local venueBar=frame(root,"VenueBar",UDim2.fromOffset(8,58),UDim2.new(1,-16,0,36
 local mapButtons={}
 for i,n in ipairs({"CLUB","VIP","UNDERGROUND","FUNKOT"})do local b=button(venueBar,n,n,UDim2.new((i-1)/4,5,0,3),UDim2.new(.25,-10,0,30),C.card,10);b.TextSize=n=="UNDERGROUND"and 7 or 9;mapButtons[n]=b;b.Activated:Connect(function()action:FireServer("map",{value=n})end)end
 
-local content=Instance.new("Frame");content.Name="DeckArea";content.BackgroundTransparency=1;content.Position=UDim2.fromOffset(8,102);content.Size=UDim2.new(1,-16,1,-136);content.ClipsDescendants=true;content.Parent=root
+local content=Instance.new("Frame");content.Name="DeckArea";content.BackgroundTransparency=1;content.Position=UDim2.fromOffset(8,102);content.Size=UDim2.new(1,-16,1,-124);content.ClipsDescendants=true;content.Parent=root
 local horizontal=Instance.new("UIListLayout");horizontal.FillDirection=Enum.FillDirection.Horizontal;horizontal.HorizontalAlignment=Enum.HorizontalAlignment.Center;horizontal.VerticalAlignment=Enum.VerticalAlignment.Center;horizontal.Padding=UDim.new(0,8);horizontal.SortOrder=Enum.SortOrder.LayoutOrder;horizontal.Parent=content
 
 local library={};local refs={};local dialog=nil;local deckFrames={};local timelineSegs={A={},B={}};local meterBars={A={},B={}}
@@ -151,17 +150,18 @@ stateRemote.OnClientEvent:Connect(function(s)if type(s)=="table"then applyState(
 local camera=workspace.CurrentCamera
 local function layout()
  camera=workspace.CurrentCamera or camera
- local rootW=math.max(430,root.AbsoluteSize.X);local contentH=math.max(260,content.AbsoluteSize.Y)
+ local rootW=math.max(430,root.AbsoluteSize.X);local contentH=math.max(1,content.AbsoluteSize.Y)
  local mixerW=math.clamp(math.floor(rootW*.13),88,118);local deckW=math.max(150,math.floor((rootW-32-mixerW)/2))
  deckA.Size=UDim2.new(0,deckW,1,0);deckB.Size=UDim2.new(0,deckW,1,0);mixer.Size=UDim2.new(0,mixerW,1,0)
  for _,deck in ipairs({"A","B"})do
-  local r=refs[deck];local deckH=math.max(250,r.frame.AbsoluteSize.Y>0 and r.frame.AbsoluteSize.Y or contentH)
-  local row2Y=math.max(154,deckH-38);local row1Y=math.max(118,row2Y-36)
-  if row1Y<116 then row1Y=116 end;if row2Y<row1Y+34 then row2Y=row1Y+34 end
+  local r=refs[deck];local deckH=(r.frame.AbsoluteSize.Y>0 and r.frame.AbsoluteSize.Y or contentH)
+  local row2Y=math.max(148,deckH-66);local row1Y=math.max(114,row2Y-34)
+  if row2Y+29>deckH-8 then row2Y=math.max(148,deckH-37)end
+  if row1Y+29>row2Y-3 then row1Y=math.max(114,row2Y-32)end
   r.cue.Position=UDim2.fromOffset(10,row1Y);r.fx.Position=UDim2.new(1,-86,0,row1Y);r.play.Position=UDim2.fromOffset(10,row2Y);r.sync.Position=UDim2.new(1,-86,0,row2Y)
-  local freeTop=116;local freeBottom=math.max(freeTop+72,row1Y-7);local available=math.max(68,freeBottom-freeTop)
-  local jogSize=math.clamp(math.floor(math.min(deckW*.29,available-6)),64,96);local centerY=freeTop+available*.5
-  r.jog.Position=UDim2.new(.5,0,0,centerY);r.jog.Size=UDim2.fromOffset(jogSize,jogSize);r.needle.Size=UDim2.fromOffset(3,math.max(20,math.floor(jogSize*.32)))
+  local freeTop=112;local freeBottom=math.max(freeTop+54,row1Y+3);local available=math.max(54,freeBottom-freeTop)
+  local jogSize=math.clamp(math.floor(math.min(deckW*.29,available)),54,92);local centerY=freeTop+available*.5
+  r.jog.Position=UDim2.new(.5,0,0,centerY);r.jog.Size=UDim2.fromOffset(jogSize,jogSize);r.needle.Size=UDim2.fromOffset(3,math.max(18,math.floor(jogSize*.32)))
  end
 end
 root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end);content:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(layout)end)
@@ -173,4 +173,4 @@ RunService.RenderStepped:Connect(function(dt)if not root.Visible then return end
 local function authRefresh()gui.Enabled=allowed();if not gui.Enabled then root.Visible=false end end
 player:GetAttributeChangedSignal("BBYAHasDJRole"):Connect(authRefresh);player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(authRefresh);player:GetAttributeChangedSignal("BBYAOwner"):Connect(authRefresh)
 task.defer(function()task.wait();layout();refreshRemote();root.Visible=false end)
-print("[BBYA] DJ LIVE UI v6.2 online: timeline-clear controls / mobile precision / session-safe auth")
+print("[BBYA] DJ LIVE UI v6.3 online: lifted mobile panel / visible CUE PLAY FX SYNC / timeline preserved")
