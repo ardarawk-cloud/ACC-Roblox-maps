@@ -12,6 +12,9 @@
       },
       "HangarV7EnclosedInterior": {
         "$path": "visual-rescue-v7.server.lua"
+      },
+      "HangarFullMeshV8": {
+        "$path": "full-mesh-v8.server.lua"
       }
     },
     "StarterPlayer": {
@@ -19,6 +22,9 @@
       "StarterPlayerScripts": {
         "HangarClubClient": {
           "$path": "club.client.lua"
+        },
+        "HangarCompactUI": {
+          "$path": "ui-compact.client.lua"
         }
       }
     }
