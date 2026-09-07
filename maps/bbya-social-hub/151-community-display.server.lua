@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — COMMUNITY PHYSICAL DISPLAY v1.3 CLEAR SIGHTLINE
--- Owner/top-donor podium locations remain frozen. Physical avatars stay R15/root-anchored.
--- The obstructing opaque donor board is retired; the donor list is now a non-colliding neon
--- floating display above the donor zone so the walkway and camera sightline remain clear.
+-- BBYA SOCIAL HUB — COMMUNITY PHYSICAL DISPLAY v2 AVATAR ONLY
+-- Sole physical Owner/Top3 authority. Podium positions/heights/uplights are preserved.
+-- Visual policy: avatars + podiums only. No floating donor names, no donor list, no extra board.
 
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
@@ -11,7 +10,7 @@ local QUALIFIER_MIN=1001
 local STORE=DataStoreService:GetOrderedDataStore("BBYA_TOP_DONATOR_V1")
 local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")or Instance.new("Folder");root.Name="BBYA_ZERO_BUILD";root.Parent=Workspace
 for _,n in ipairs({"CommunityPhysicalAvatarsV1","CommunityPhysicalAvatarsV2","CommunityPhysicalAvatarsV3","CommunityPhysicalDisplayV1"})do local x=root:FindFirstChild(n);if x then x:Destroy()end end
-local runtime=Instance.new("Model");runtime.Name="CommunityPhysicalDisplayV1";runtime:SetAttribute("PhysicalAuthority","151_RIG_SAFE_V1_3_CLEAR_SIGHTLINE");runtime:SetAttribute("OwnerRenderPolicy","R15_BODY_FLOOR_ROOT_ANCHORED");runtime:SetAttribute("TopDonorCount",3);runtime:SetAttribute("DonorListPolicy","FLOATING_NEON_NO_BLOCKING_BOARD");runtime.Parent=root
+local runtime=Instance.new("Model");runtime.Name="CommunityPhysicalDisplayV1";runtime:SetAttribute("PhysicalAuthority","151_V2_AVATAR_ONLY");runtime:SetAttribute("OwnerRenderPolicy","R15_BODY_FLOOR_ROOT_ANCHORED");runtime:SetAttribute("TopDonorCount",3);runtime:SetAttribute("DonorVisualPolicy","PODIUM_HEIGHT_ONLY_NO_FLOATING_TEXT");runtime.Parent=root
 
 local FLOOR_Y=.62
 local OWNER_SPOT=Vector3.new(-54.5,FLOOR_Y,-50.6)
@@ -19,6 +18,7 @@ local OWNER_COLOR=Color3.fromRGB(247,55,158)
 local DONOR_COLOR=Color3.fromRGB(239,190,92)
 local DONOR_SPECS={{rank=1,pos=Vector3.new(54.5,FLOOR_Y,-50.6),height=.86},{rank=2,pos=Vector3.new(49.8,FLOOR_Y,-50.6),height=.56},{rank=3,pos=Vector3.new(59.2,FLOOR_Y,-50.6),height=.38}}
 local slots={OWNER=nil,D1=nil,D2=nil,D3=nil}
+
 local function part(parent,name,size,cf,color,material,tr)local p=Instance.new("Part");p.Name=name;p.Size=size;p.CFrame=cf;p.Color=color;p.Material=material or Enum.Material.Metal;p.Transparency=tr or 0;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=false;p.Parent=parent;return p end
 local function stage(name,pos,accent,height)
  local m=Instance.new("Model");m.Name=name.."Stage";m:SetAttribute("FrozenDisplayLocation",true);m:SetAttribute("Uplight",true);m.Parent=runtime;height=height or .34
@@ -33,19 +33,9 @@ end
 local ownerTop=stage("Owner",OWNER_SPOT,OWNER_COLOR,.34)
 local donorTop={};for i,s in ipairs(DONOR_SPECS)do donorTop[i]=stage("TopDonor"..i,s.pos,DONOR_COLOR,s.height)end
 
--- No opaque board: one tiny invisible anchor carries a readable neon BillboardGui.
-local listAnchor=part(runtime,"TopDonorNeonListAnchor",Vector3.new(.2,.2,.2),CFrame.new(54.5,9.4,-52.5),DONOR_COLOR,Enum.Material.SmoothPlastic,1)
-local boardGui=Instance.new("BillboardGui");boardGui.Name="TopDonorNeonListUI";boardGui.Adornee=listAnchor;boardGui.Size=UDim2.fromOffset(430,152);boardGui.AlwaysOnTop=false;boardGui.LightInfluence=0;boardGui.MaxDistance=95;boardGui.Parent=listAnchor
-local boardBg=Instance.new("Frame");boardBg.Size=UDim2.fromScale(1,1);boardBg.BackgroundColor3=Color3.fromRGB(9,9,13);boardBg.BackgroundTransparency=.34;boardBg.BorderSizePixel=0;boardBg.Parent=boardGui
-local bgCorner=Instance.new("UICorner");bgCorner.CornerRadius=UDim.new(0,14);bgCorner.Parent=boardBg
-local bgStroke=Instance.new("UIStroke");bgStroke.Color=DONOR_COLOR;bgStroke.Transparency=.20;bgStroke.Thickness=1.5;bgStroke.Parent=boardBg
-local function boardLabel(text,pos,size,font,ts,color,align)local l=Instance.new("TextLabel");l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size;l.Font=font;l.TextSize=ts;l.TextColor3=color;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextYAlignment=Enum.TextYAlignment.Center;l.TextTruncate=Enum.TextTruncate.AtEnd;l.TextStrokeColor3=Color3.fromRGB(20,14,5);l.TextStrokeTransparency=.28;l.Parent=boardBg;return l end
-boardLabel("TOP DONOR",UDim2.fromScale(.06,.04),UDim2.fromScale(.88,.22),Enum.Font.GothamBlack,24,DONOR_COLOR,Enum.TextXAlignment.Center)
-local donorRows={};for i=1,3 do donorRows[i]=boardLabel("#"..i.."  —",UDim2.fromScale(.08,.26+(i-1)*.23),UDim2.fromScale(.84,.19),Enum.Font.GothamBold,16,Color3.fromRGB(244,242,247))end
-
 local function accessoryAncestor(o)return o:FindFirstAncestorOfClass("Accessory")end
 local function hasRigJoints(model)
- local h=model:FindFirstChildOfClass("Humanoid");local rp=model:FindFirstChild("HumanoidRootPart",true);local head=model:FindFirstChild("Head",true);if not h or not rp or not rp:IsA("BasePart")or not head or not head:IsA("BasePart")then return false end
+ local h=model and model:FindFirstChildOfClass("Humanoid");local rp=model and model:FindFirstChild("HumanoidRootPart",true);local head=model and model:FindFirstChild("Head",true);if not h or not rp or not rp:IsA("BasePart")or not head or not head:IsA("BasePart")then return false end
  local motors=0;for _,d in ipairs(model:GetDescendants())do if d:IsA("Motor6D")then motors+=1 end end;return motors>=5
 end
 local function sanitizeRig(model)
@@ -56,30 +46,36 @@ local function sanitizeRig(model)
  end
  local rp=model:FindFirstChild("HumanoidRootPart",true);if rp and rp:IsA("BasePart")then rp.Anchored=true;rp.Massless=false;model.PrimaryPart=rp end
 end
-local function fromDescription(uid,rig)local okD,d=pcall(function()return Players:GetHumanoidDescriptionFromUserId(uid)end);if not okD or not d then return nil end;local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(d,rig)end);if ok and m then sanitizeRig(m);if hasRigJoints(m)then return m,"HUMANOID_DESCRIPTION_"..rig.Name end;m:Destroy()end end
-local function fromUserModel(uid)local ok,m=pcall(function()return Players:CreateHumanoidModelFromUserIdAsync(uid)end);if ok and m then sanitizeRig(m);if hasRigJoints(m)then return m,"ROBLOX_USER_MODEL"end;m:Destroy()end end
-local function makeAvatar(uid)local m,s=fromDescription(uid,Enum.HumanoidRigType.R15);if m then return m,s end;m,s=fromUserModel(uid);if m then return m,s end;m,s=fromDescription(uid,Enum.HumanoidRigType.R6);if m then return m,s end;return nil,"FAILED"end
+local function fromDescription(desc,rig)
+ if not desc then return nil end;local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,rig)end);if ok and m then sanitizeRig(m);if hasRigJoints(m)then return m,"HUMANOID_DESCRIPTION_"..rig.Name end;m:Destroy()end
+end
+local function makeAvatar(uid)
+ local online=Players:GetPlayerByUserId(uid);local hum=online and online.Character and online.Character:FindFirstChildOfClass("Humanoid")
+ if hum then local okD,d=pcall(function()return hum:GetAppliedDescription()end);if okD and d then local m,s=fromDescription(d,Enum.HumanoidRigType.R15);if m then return m,"LIVE_"..s end end end
+ local okD,d=pcall(function()return Players:GetHumanoidDescriptionFromUserId(uid)end);if okD and d then local m,s=fromDescription(d,Enum.HumanoidRigType.R15);if m then return m,s end end
+ local okM,m=pcall(function()return Players:CreateHumanoidModelFromUserIdAsync(uid)end);if okM and m then sanitizeRig(m);if hasRigJoints(m)then return m,"ROBLOX_USER_MODEL"end;m:Destroy()end
+ return nil,"FAILED"
+end
 local function bodyBottom(model)local minY=math.huge;for _,d in ipairs(model:GetDescendants())do if d:IsA("BasePart")and not accessoryAncestor(d)then minY=math.min(minY,d.Position.Y-d.Size.Y*.5)end end;return minY<math.huge and minY or nil end
 local function place(model,pos,topY)local target=CFrame.lookAt(Vector3.new(pos.X,4,pos.Z),Vector3.new(pos.X,4,pos.Z-10));model:PivotTo(target);local bottom=bodyBottom(model);if bottom then model:PivotTo(model:GetPivot()+Vector3.new(0,topY-bottom,0))end;local rp=model:FindFirstChild("HumanoidRootPart",true);if rp and rp:IsA("BasePart")then rp.Anchored=true end end
-local function labelAvatar(model,textValue,color)local head=model:FindFirstChild("Head",true);if not head or not head:IsA("BasePart")then return end;local g=Instance.new("BillboardGui");g.Name="DisplayLabel";g.Adornee=head;g.Size=UDim2.fromOffset(210,44);g.StudsOffset=Vector3.new(0,1.45,0);g.AlwaysOnTop=true;g.MaxDistance=75;g.LightInfluence=0;g.Parent=head;local t=Instance.new("TextLabel");t.Size=UDim2.fromScale(1,1);t.BackgroundTransparency=1;t.Text=textValue;t.TextColor3=color;t.TextStrokeTransparency=.28;t.Font=Enum.Font.GothamBlack;t.TextSize=12;t.Parent=g end
 local function clear(key)if slots[key]then slots[key]:Destroy();slots[key]=nil end end
-local function build(key,uid,pos,topY,textValue,color)
+local function build(key,uid,pos,topY)
  clear(key);local m,source=makeAvatar(uid);if not m then runtime:SetAttribute(key.."RenderStatus","FAILED");warn("[BBYA Display] avatar build failed",key,uid);return end
  m.Name=key.."PhysicalAvatar";m:SetAttribute("UserId",uid);m:SetAttribute("AvatarSource",source);m.Parent=runtime;place(m,pos,topY);if not hasRigJoints(m)then m:Destroy();runtime:SetAttribute(key.."RenderStatus","INVALID_RIG");return end
- labelAvatar(m,textValue,color);slots[key]=m;runtime:SetAttribute(key.."RenderStatus","OK");runtime:SetAttribute(key.."RenderSource",source)
+ slots[key]=m;runtime:SetAttribute(key.."RenderStatus","OK");runtime:SetAttribute(key.."RenderSource",source)
 end
+
 local ownerUid=nil
-local function refreshOwner()if not ownerUid then local ok,id=pcall(function()return Players:GetUserIdFromNameAsync(OWNER_USERNAME)end);if not ok then runtime:SetAttribute("OWNERRenderStatus","NAME_RESOLVE_FAILED");return end;ownerUid=id;runtime:SetAttribute("OwnerUserId",id)end;build("OWNER",ownerUid,OWNER_SPOT,ownerTop,"OWNER • @"..OWNER_USERNAME,OWNER_COLOR)end
-local function username(uid)local ok,n=pcall(function()return Players:GetNameFromUserIdAsync(uid)end);return ok and n or tostring(uid)end
+local function refreshOwner()if not ownerUid then local ok,id=pcall(function()return Players:GetUserIdFromNameAsync(OWNER_USERNAME)end);if not ok then runtime:SetAttribute("OWNERRenderStatus","NAME_RESOLVE_FAILED");return end;ownerUid=id;runtime:SetAttribute("OwnerUserId",id)end;build("OWNER",ownerUid,OWNER_SPOT,ownerTop)end
 local donorToken=0
 local function refreshDonors()
  donorToken+=1;local token=donorToken;task.spawn(function()
   local ok,pages=pcall(function()return STORE:GetSortedAsync(false,50)end);if not ok or token~=donorToken then runtime:SetAttribute("DonorReadStatus","FAILED");return end
   local chosen={};for _,e in ipairs(pages:GetCurrentPage())do local uid=tonumber(e.key);local total=math.max(0,math.floor(tonumber(e.value)or 0));if uid and total>=QUALIFIER_MIN then table.insert(chosen,{uid=uid,total=total});if #chosen>=3 then break end end end;if token~=donorToken then return end;runtime:SetAttribute("DonorReadStatus","OK")
-  for i=1,3 do local key="D"..i;local c=chosen[i];local spec=DONOR_SPECS[i];if c then local name=username(c.uid);build(key,c.uid,spec.pos,donorTop[i],"#"..i.." TOP DONOR • @"..name,DONOR_COLOR);runtime:SetAttribute("TopDonor"..i.."UserId",c.uid);runtime:SetAttribute("TopDonor"..i.."Total",c.total);donorRows[i].Text="#"..i.."  @"..name.."  •  "..tostring(c.total).." R$" else clear(key);runtime:SetAttribute("TopDonor"..i.."UserId",nil);runtime:SetAttribute("TopDonor"..i.."Total",nil);donorRows[i].Text="#"..i.."  —" end end
+  for i=1,3 do local key="D"..i;local c=chosen[i];local spec=DONOR_SPECS[i];if c then build(key,c.uid,spec.pos,donorTop[i]);runtime:SetAttribute("TopDonor"..i.."UserId",c.uid);runtime:SetAttribute("TopDonor"..i.."Total",c.total)else clear(key);runtime:SetAttribute("TopDonor"..i.."UserId",nil);runtime:SetAttribute("TopDonor"..i.."Total",nil)end end
  end)
 end
 local function wire(p)p.CharacterAdded:Connect(function()task.delay(1.2,function()if p.Parent then if p.UserId==ownerUid then refreshOwner()end;refreshDonors()end end)end);p:GetAttributeChangedSignal("BBYAActiveOutfitId"):Connect(function()task.delay(.5,function()if p.Parent then if p.UserId==ownerUid then refreshOwner()end;refreshDonors()end end)end)end
 for _,p in ipairs(Players:GetPlayers())do wire(p)end;Players.PlayerAdded:Connect(wire)
 refreshOwner();task.delay(1.5,refreshDonors);task.spawn(function()while task.wait(30)do refreshDonors()end end);task.spawn(function()while task.wait(180)do refreshOwner();refreshDonors()end end)
-print("[BBYA] Community Display v1.3 online: physical avatars preserved / blocking board retired / floating neon donor list")
+print("[BBYA] Community Display v2 online: sole Owner/Top3 authority / avatar + podium only / no floating donor text")
