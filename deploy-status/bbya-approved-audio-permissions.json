@@ -1,0 +1,176 @@
+{
+  "status": "PARTIAL_OR_FAILED",
+  "universeId": "8116636513",
+  "source": "maps/bbya-social-hub/104-venue-audio-groups.server.lua::SKATE_PLAYLIST approvalState=APPROVED",
+  "assets": [
+    {
+      "title": "Untungnya Hidup Harus Tetap Berjalan",
+      "assetId": "101433831748471"
+    },
+    {
+      "title": "Vierra - Perih (Pop Punk Version)",
+      "assetId": "73111765506214"
+    },
+    {
+      "title": "Apa yang aku lakukan",
+      "assetId": "134467357340949"
+    },
+    {
+      "title": "Cewek baru",
+      "assetId": "94716486418996"
+    },
+    {
+      "title": "Ke dalam",
+      "assetId": "137855682924521"
+    },
+    {
+      "title": "Jatuh",
+      "assetId": "100571973862831"
+    },
+    {
+      "title": "Gantian",
+      "assetId": "76764826294674"
+    },
+    {
+      "title": "Panggung rock",
+      "assetId": "73605786993749"
+    },
+    {
+      "title": "Orang kuat",
+      "assetId": "122266407959894"
+    },
+    {
+      "title": "Orang agak kurang",
+      "assetId": "120903123891114"
+    },
+    {
+      "title": "Tak antemi",
+      "assetId": "85284576958779"
+    },
+    {
+      "title": "Bawa aku hidup",
+      "assetId": "114950574110478"
+    },
+    {
+      "title": "Halus",
+      "assetId": "77600449290121"
+    },
+    {
+      "title": "Saat hatimu berhenti",
+      "assetId": "106253638699689"
+    }
+  ],
+  "assetCount": 14,
+  "attempts": [
+    {
+      "key": "ROBLOX_AUDIO_API_KEY",
+      "keyInfo": {
+        "present": true,
+        "http": 200,
+        "name": "ROBLOX_AUDIO_API_KEY",
+        "authorizedUserId": "8878884630",
+        "enabled": true,
+        "expired": false,
+        "scopes": [
+          {
+            "name": "asset",
+            "operations": [
+              "read",
+              "write"
+            ]
+          }
+        ]
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    },
+    {
+      "key": "AM_STUDIO",
+      "keyInfo": {
+        "present": true,
+        "http": 200,
+        "name": "AM_STUDIO",
+        "authorizedUserId": "4141352496",
+        "enabled": true,
+        "expired": false,
+        "scopes": [
+          {
+            "name": "asset",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "developer-product",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "game-pass",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe-places",
+            "operations": [
+              "write"
+            ]
+          },
+          {
+            "name": "universe.event",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place.instance",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.thumbnail",
+            "operations": [
+              "read",
+              "write"
+            ]
+          }
+        ]
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    }
+  ],
+  "grantedAssetIds": [],
+  "grantedCount": 0,
+  "missingAssetIds": [
+    "101433831748471",
+    "73111765506214",
+    "134467357340949",
+    "94716486418996",
+    "137855682924521",
+    "100571973862831",
+    "76764826294674",
+    "73605786993749",
+    "122266407959894",
+    "120903123891114",
+    "85284576958779",
+    "114950574110478",
+    "77600449290121",
+    "106253638699689"
+  ]
+}
