@@ -1,5 +1,5 @@
 {
-  "name": "HangarExclusiveClub",
+  "name": "HangarExclusiveClubLabV10",
   "tree": {
     "$className": "DataModel",
     "Workspace": {
@@ -10,11 +10,8 @@
       "HangarClubServer": {
         "$path": "club.server.lua"
       },
-      "HangarV7EnclosedInterior": {
-        "$path": "visual-rescue-v7.server.lua"
-      },
-      "HangarStaticFullMeshV9": {
-        "$path": "static-mesh-v9.server.lua"
+      "HangarLabReferenceLockV10": {
+        "$path": "lab-reference-lock-v10.server.lua"
       }
     },
     "StarterPlayer": {
