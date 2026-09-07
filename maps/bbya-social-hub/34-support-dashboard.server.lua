@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — COMMUNITY + OWNER + TOP 3 DONATOR v1.1
--- Clean entrance authority replacing the old dual honor-wall runtime.
--- Left: readable Live Community + Owner identity. Right: server-authoritative Top 3 Donator (> 1,000 R$).
--- No fake donors. Support totals persist server-side. Sultan contribution is counted only from a verified server attribute.
+-- BBYA SOCIAL HUB — COMMUNITY + OWNER + TOP 3 DONATOR v1.2 LIVE AVATAR HOOK
+-- Existing board geometry/layout is LOCKED and preserved.
+-- Server remains authoritative for ranking/totals; donor avatar slots expose the qualified user id so the client renderer can show the current in-session avatar.
 
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
@@ -21,11 +20,12 @@ end
 
 local model=Instance.new("Model")
 model.Name="CommunityOwnerDonorHub"
-model:SetAttribute("Pass","COMMUNITY_OWNER_TOP3_V1_1")
+model:SetAttribute("Pass","COMMUNITY_OWNER_TOP3_V1_2_LIVE_AVATAR_HOOK")
 model:SetAttribute("DonorEligibility",">1000")
 model:SetAttribute("FakeDonors",false)
 model:SetAttribute("ServerAuthoritative",true)
 model:SetAttribute("SultanContributionPolicy","VERIFIED_ATTRIBUTE_ONLY")
+model:SetAttribute("AvatarVisualAuthority","CLIENT_CURRENT_CHARACTER")
 model.Parent=root
 
 local C={
@@ -117,7 +117,7 @@ for i=1,3 do
  local card=frame(right,UDim2.fromScale(.045,y),UDim2.fromScale(.91,.165),C.PANEL2,.01,13);stroke(card,rankColors[i],i==1 and 2 or 1,.18)
  local badge=frame(card,UDim2.fromScale(.025,.16),UDim2.fromScale(.14,.68),C.BLACK,0,99);stroke(badge,rankColors[i],2,.08)
  label(badge,"#"..i,UDim2.fromScale(0,0),UDim2.fromScale(1,1),rankColors[i],Enum.Font.GothamBlack,26,Enum.TextXAlignment.Center)
- local av=image(card,UDim2.fromScale(.19,.18),UDim2.fromScale(.18,.64));local avStroke=av:FindFirstChildOfClass("UIStroke");if avStroke then avStroke.Color=rankColors[i] end
+ local av=image(card,UDim2.fromScale(.19,.18),UDim2.fromScale(.18,.64));av.Name="DonorAvatar"..i;av:SetAttribute("BBYADonorRank",i);local avStroke=av:FindFirstChildOfClass("UIStroke");if avStroke then avStroke.Color=rankColors[i] end
  local name=label(card,"QUALIFIER SLOT EMPTY",UDim2.fromScale(.40,.16),UDim2.fromScale(.56,.25),C.WHITE,Enum.Font.GothamBlack,18)
  local amount=label(card,"> 1.000 R$ required",UDim2.fromScale(.40,.47),UDim2.fromScale(.56,.18),C.MUTED,Enum.Font.GothamBold,16)
  local source=label(card,"WAITING FOR REAL CONTRIBUTION",UDim2.fromScale(.40,.68),UDim2.fromScale(.56,.12),rankColors[i],Enum.Font.GothamBold,11)
@@ -213,11 +213,13 @@ local function refreshRanking()
     ref.amount.Text=formatRobux(q.total)
     ref.source.Text="@"..username
     ref.avatar.Image=thumb
+    ref.avatar:SetAttribute("BBYADonorUserId",q.uid)
    else
     ref.name.Text="QUALIFIER SLOT EMPTY"
     ref.amount.Text="> 1.000 R$ required"
     ref.source.Text="WAITING FOR REAL CONTRIBUTION"
     ref.avatar.Image=""
+    ref.avatar:SetAttribute("BBYADonorUserId",nil)
    end
   end
   model:SetAttribute("QualifiedDonorCount",#qualifiers)
@@ -252,4 +254,4 @@ task.delay(2,refreshRanking)
 task.spawn(function()while task.wait(30) do refreshRanking() end end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do persistPlayer(p) end end)
 
-print("[BBYA] Community + Owner + Top 3 Donator v1.1 online: readable neon / real donor ranking / >1000 eligibility")
+print("[BBYA] Community + Owner + Top 3 Donator v1.2 online: locked board layout / live-avatar hook / real donor ranking")

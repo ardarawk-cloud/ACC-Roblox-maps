@@ -148,7 +148,8 @@
         "IdentityUIV1": {"$path": "142-identity-ui.client.lua"},
         "SaweriaLinkV1": {"$path": "143-saweria-link.client.lua"},
         "LeadDanceSyncClientV3": {"$path": "153-lead-dance-sync.client.lua"},
-        "AvatarSwitchClientV3": {"$path": "154-avatar-switch.client.lua"}
+        "AvatarSwitchClientV3": {"$path": "154-avatar-switch.client.lua"},
+        "DonorLiveAvatarClientV1": {"$path": "156-donor-live-avatar.client.lua"}
       }
     },
     "Lighting": {"$className": "Lighting", "$properties": {"Brightness": 2.35, "ClockTime": 21}}

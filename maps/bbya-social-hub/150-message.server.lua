@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — MESSAGE + MONETIZATION AUTHORITY v8.3 READABILITY
+-- BBYA SOCIAL HUB — MESSAGE + MONETIZATION AUTHORITY v8.4 QC TOTAL
 -- Exact Developer Product IDs and single receipt authority preserved.
 -- Purchased messages retain filtered text through notification and physical-wall playback.
+-- QC: paid MESSAGE receipts now carry a cumulative MESSAGE Robux total for the sender notification.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -19,9 +20,9 @@ local MESSAGE_IDS={[2]=3709047092,[5]=3711399029,[10]=3711399032,[25]=3711399033
 local SUPPORT_IDS={[10]=3709047095,[25]=3709047097,[50]=3709047101,[100]=3709047104,[250]=3709047106,[500]=3709047107,[1000]=3709047109,[2000]=3709048779}
 local MESSAGE_AMOUNTS={2,5,10,25,50,100,250,500,1000}
 local MESSAGE_BY_PRODUCT,SUPPORT_BY_PRODUCT={},{};for a,id in pairs(MESSAGE_IDS)do MESSAGE_BY_PRODUCT[id]=a end;for a,id in pairs(SUPPORT_IDS)do SUPPORT_BY_PRODUCT[id]=a end
-root:SetAttribute("BBYAMonetizationAuthority","MESSAGE_V8_3_READABILITY");root:SetAttribute("BBYAVerifiedProductIdsAuthoritative",true)
+root:SetAttribute("BBYAMonetizationAuthority","MESSAGE_V8_4_QC_TOTAL");root:SetAttribute("BBYAVerifiedProductIdsAuthoritative",true)
 
-local model=Instance.new("Model");model.Name="DJWallMessageSystem";model:SetAttribute("Pass","MESSAGE_V8_3_READABILITY");model.Parent=root
+local model=Instance.new("Model");model.Name="DJWallMessageSystem";model:SetAttribute("Pass","MESSAGE_V8_4_QC_TOTAL");model.Parent=root
 local function part(n,size,cf,color,mat,tr)local p=Instance.new("Part");p.Name=n;p.Size=size;p.CFrame=cf;p.Color=color;p.Material=mat or Enum.Material.Metal;p.Transparency=tr or 0;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=true;p.CastShadow=false;p.Parent=model;return p end
 local black=Color3.fromRGB(5,5,8);local pink=Color3.fromRGB(255,38,155);local cyan=Color3.fromRGB(0,210,238);local white=Color3.fromRGB(244,242,247);local gold=Color3.fromRGB(238,190,94);local muted=Color3.fromRGB(164,157,171)
 local wallCF=CFrame.new(3,10,46.34);part("WallRecess",Vector3.new(58.5,14.1,.32),wallCF*CFrame.new(0,0,.15),Color3.fromRGB(4,4,6),Enum.Material.Metal,0);local screen=part("PrestigeLED",Vector3.new(56.8,12.6,.12),wallCF*CFrame.new(0,0,-.10),Color3.fromRGB(7,6,10),Enum.Material.Glass,.02);part("TopTrim",Vector3.new(56.9,.10,.10),wallCF*CFrame.new(0,6.34,-.18),pink,Enum.Material.Neon,0);part("BottomTrim",Vector3.new(56.9,.08,.10),wallCF*CFrame.new(0,-6.34,-.18),cyan,Enum.Material.Neon,0)
@@ -35,7 +36,7 @@ local MAX_CHARS=80;local COOLDOWN=8;local MAX_QUEUE=20;local DISPLAY_SECONDS=12
 local CATEGORIES={BIRTHDAY="BIRTHDAY CELEBRATION",LOVE="LOVE MESSAGE",SHOUTOUT="SHOUTOUT",CUSTOM="LIVE MESSAGE"}
 local queue,pending,lastSubmit={},{},{};local showing=false;local queueSerial=0
 local function admin(p)return p:GetAttribute("BBYAAdmin")==true or p:GetAttribute("BBYAOwner")==true or(game.CreatorType==Enum.CreatorType.User and p.UserId==game.CreatorId)end
-local function config(p)local available={};for _,a in ipairs(MESSAGE_AMOUNTS)do available[a]=MESSAGE_IDS[a]~=nil end;return{tiers=MESSAGE_AMOUNTS,available=available,maxChars=MAX_CHARS,queue=#queue,admin=admin(p),cooldownSeconds=COOLDOWN,authority="MESSAGE_V8_3_READABILITY"}end
+local function config(p)local available={};for _,a in ipairs(MESSAGE_AMOUNTS)do available[a]=MESSAGE_IDS[a]~=nil end;return{tiers=MESSAGE_AMOUNTS,available=available,maxChars=MAX_CHARS,queue=#queue,admin=admin(p),cooldownSeconds=COOLDOWN,authority="MESSAGE_V8_4_QC_TOTAL"}end
 local function filter(p,raw)raw=tostring(raw or""):gsub("[%c\r\n]+"," "):gsub("%s+"," "):match("^%s*(.-)%s*$")or"";if #raw<2 then return nil,"Pesan terlalu pendek."end;if #raw>MAX_CHARS then raw=raw:sub(1,MAX_CHARS)end;local ok,out=pcall(function()return TextService:FilterStringAsync(raw,p.UserId):GetNonChatStringForBroadcastAsync()end);if not ok or not out or out==""then return nil,"Pesan tidak dapat difilter."end;return out end
 local function enqueue(e,paid)if #queue>=MAX_QUEUE and not paid then return false end;queueSerial+=1;e.queueId=queueSerial;table.insert(queue,e);return true end
 local function display(e)showing=true;idle.Visible=false;liveFrame.Visible=true;badge.Text="BBYA • "..(CATEGORIES[e.category]or CATEGORIES.CUSTOM);msg.Text=e.text;from.Text="FROM @"..e.from;task.wait(DISPLAY_SECONDS);liveFrame.Visible=false;idle.Visible=true;showing=false end
@@ -46,14 +47,14 @@ messageRemote.OnServerEvent:Connect(function(p,action,data)
  if action~="submit"or type(data)~="table"then return end
  local now=os.clock();local remain=COOLDOWN-(now-(lastSubmit[p.UserId]or 0));if remain>0 and not admin(p)then messageRemote:FireClient(p,"toast","Tunggu "..math.ceil(remain).." detik.");return end;if pending[p.UserId]then messageRemote:FireClient(p,"toast","Selesaikan purchase sebelumnya.");return end;if #queue>=MAX_QUEUE then messageRemote:FireClient(p,"toast","Antrean MESSAGE penuh.");return end
  messageRemote:FireClient(p,"processing",{message="Memeriksa pesan..."});local text,err=filter(p,data.text);if not text then messageRemote:FireClient(p,"toast",err);return end;local category=tostring(data.category or"CUSTOM"):upper();if not CATEGORIES[category]then category="CUSTOM"end;local amount=tonumber(data.amount)or 2;if not MESSAGE_IDS[amount]then messageRemote:FireClient(p,"toast","Tier MESSAGE tidak valid.");return end;lastSubmit[p.UserId]=now;local e={text=text,category=category,from=p.DisplayName,userId=p.UserId,amount=amount}
- if admin(p)then if enqueue(e,false)then messageRemote:FireClient(p,"queued",{position=#queue,amount=0,adminPreview=true,text=e.text,queueId=e.queueId})end;return end
+ if admin(p)then local total=tonumber(p:GetAttribute("BBYAMessageRobuxTotal"))or 0;if enqueue(e,false)then messageRemote:FireClient(p,"queued",{position=#queue,amount=0,total=total,adminPreview=true,text=e.text,queueId=e.queueId})end;return end
  e.productId=MESSAGE_IDS[amount];pending[p.UserId]=e;messageRemote:FireClient(p,"purchase",{amount=amount,productId=e.productId});local ok=pcall(function()MarketplaceService:PromptProductPurchase(p,e.productId)end);if not ok then pending[p.UserId]=nil;messageRemote:FireClient(p,"toast","Purchase Roblox gagal dibuka.")end
 end)
 moneyRemote.OnServerEvent:Connect(function(p,action,value)if action~="promptSupport"then return end;local amount=tonumber(value);local id=amount and SUPPORT_IDS[amount];if not id then moneyRemote:FireClient(p,"status",{amount=amount,ok=false,message="Support belum tersedia."});return end;moneyRemote:FireClient(p,"promptSupportLocal",{amount=amount,productId=id})end)
 MarketplaceService.ProcessReceipt=function(receipt)
- local product=tonumber(receipt.ProductId);local ma=MESSAGE_BY_PRODUCT[product];if ma then local e=pending[receipt.PlayerId];if e and e.productId==product then pending[receipt.PlayerId]=nil;if enqueue(e,true)then local p=Players:GetPlayerByUserId(receipt.PlayerId);if p then messageRemote:FireClient(p,"queued",{position=#queue,amount=ma,text=e.text,queueId=e.queueId})end end end;return Enum.ProductPurchaseDecision.PurchaseGranted end
+ local product=tonumber(receipt.ProductId);local ma=MESSAGE_BY_PRODUCT[product];if ma then local e=pending[receipt.PlayerId];if e and e.productId==product then pending[receipt.PlayerId]=nil;if enqueue(e,true)then local p=Players:GetPlayerByUserId(receipt.PlayerId);if p then local total=(tonumber(p:GetAttribute("BBYAMessageRobuxTotal"))or 0)+ma;p:SetAttribute("BBYAMessageRobuxTotal",total);messageRemote:FireClient(p,"queued",{position=#queue,amount=ma,total=total,text=e.text,queueId=e.queueId})end end end;return Enum.ProductPurchaseDecision.PurchaseGranted end
  local sa=SUPPORT_BY_PRODUCT[product];if sa then local p=Players:GetPlayerByUserId(receipt.PlayerId);if p then local total=(tonumber(p:GetAttribute("BBYASupportRobuxTotal"))or 0)+sa;p:SetAttribute("BBYASupportRobuxTotal",total);stateRemote:FireAllClients("supportReceived",{displayName=p.DisplayName,userId=p.UserId,amount=sa,total=total})end;return Enum.ProductPurchaseDecision.PurchaseGranted end
  return Enum.ProductPurchaseDecision.NotProcessedYet
 end
 Players.PlayerRemoving:Connect(function(p)pending[p.UserId]=nil;lastSubmit[p.UserId]=nil end)
-print("[BBYA] MESSAGE v8.3 online: readable wall message / 12s dwell / paid text + exact product IDs preserved")
+print("[BBYA] MESSAGE v8.4 online: paid-message cumulative total / exact product IDs / readable wall message")
