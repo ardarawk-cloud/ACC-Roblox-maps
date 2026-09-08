@@ -2,15 +2,18 @@
     "status":  "LIVE_PUBLISHED",
     "ok":  true,
     "project":  "HANGAR",
+    "phase":  "PHASE_2_ENVIRONMENT_VISUAL_POLISH",
     "universeId":  "10745364913",
     "placeId":  "76001567401911",
-    "sourceCommit":  "58cbfc82fbe2de6ebb4c485a3dc72b2a81829aa0",
-    "mode":  "HANGAR_V13_FRONT_Z_ALIGNED",
+    "sourceCommit":  "e3e0edeb8a4450542f1ee0c152c4c8030ff6920b",
+    "mode":  "HANGAR_V14_PHASE2_VISUAL_POLISH",
     "staticModelAssetId":  99386261031802,
-    "robloxVersion":  16,
+    "robloxVersion":  17,
     "spawn":  "ACTUAL_FRONT_PLUS_Z_FACE_CENTRAL_JET",
     "visibleFallback":  "NONE",
+    "lasers":  "DISABLED",
     "serversRestarted":  true,
-    "placeBytes":  11545,
-    "visualQC":  "PENDING_OWNER_IN_GAME"
+    "placeBytes":  13117,
+    "placeSha256":  "3c35d701e5150bf627145ae79cee53863253ded3bb5f47f10920aa78a0978a7e",
+    "visualQC":  "PENDING_OWNER_SCREENSHOT"
 }
