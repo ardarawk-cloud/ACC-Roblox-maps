@@ -13,10 +13,10 @@
       "HangarSpawnSafetyV1_2": {
         "$path": "server/spawn-safety.server.lua"
       },
-      "HangarPhase2VisualPolishV1_4": {
-        "$path": "server/visual-bootstrap-v1_4.server.lua"
+      "HangarEnvironmentRealismV2_0": {
+        "$path": "server/visual-bootstrap-v2_0.server.lua"
       },
-      "HangarRealtimeWITAV1": {
+      "HangarRealtimeWITAV1_1": {
         "$path": "server/wita-time.server.lua"
       }
     },
