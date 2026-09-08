@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v11
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v12
 -- Reliable server-authoritative travel with explicit client result events.
--- v11 hardens Mall Look Lab + Photo travel against the concurrent GLOW LAB / vertical-spacing build race.
+-- v12 keeps any late-rebuilt GLOW LAB on final Mall L2, resolves travel from live Look/Photo anchors,
+-- and rescues a player only if the destination floor disappears and they actually fall back to L1.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
@@ -26,8 +27,8 @@ end
 
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.new(78,24.2,369),
- LookLab=CFrame.new(61,24.2,361),
+ Photo=CFrame.new(57.7,24.1,373),
+ LookLab=CFrame.new(75.5,24.4,361.5),
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,27,2),
@@ -71,59 +72,103 @@ local function currentGlow()
  return mall,glow,floor
 end
 
-local function stabilizeGlowLab()
- -- 117 builds Tenant_glow at the legacy L2 height while 136 reflows Mall to 20-stud floors.
- -- Those server scripts run concurrently, so either one can win the race. Travel v11 is the
- -- final runtime safety: wait for v16 spacing, then keep the CURRENT Tenant_glow on final L2
- -- until the same model has remained stable long enough that a late replacement cannot strand us.
+local function alignGlow(glow)
+ if not glow or not glow:IsA("Model") then return nil end
+ local floor=glow:FindFirstChild("Floor")
+ if not floor or not floor:IsA("BasePart") then return nil end
+ local dy=GLOW_TARGET_FLOOR_Y-floor.Position.Y
+ if math.abs(dy)>.05 then
+  glow:PivotTo(CFrame.new(0,dy,0)*glow:GetPivot())
+  floor=glow:FindFirstChild("Floor") or floor
+ end
+ glow:SetAttribute("FinalVerticalAuthority","TRAVEL_V12_GLOW_REPLACEMENT_GUARD")
+ return floor
+end
+
+local function startGlowReplacementGuard()
+ task.spawn(function()
+  local root=Workspace:WaitForChild("BBYA_ZERO_BUILD",90)
+  local mall=root and root:WaitForChild("BBYAMall",90)
+  if not mall then return end
+
+  local function correct(child)
+   if child and child.Name=="Tenant_glow" and child:IsA("Model") then
+    task.spawn(function()
+     for _,delay in ipairs({0,.2,.7,1.5,3}) do
+      if delay>0 then task.wait(delay) end
+      if not child.Parent then return end
+      if mall:GetAttribute("FloorSpacingStuds")==20 then alignGlow(child) end
+     end
+    end)
+   end
+  end
+  mall.ChildAdded:Connect(correct)
+  correct(mall:FindFirstChild("Tenant_glow"))
+
+  while mall.Parent do
+   if mall:GetAttribute("FloorSpacingStuds")==20 then
+    local glow=mall:FindFirstChild("Tenant_glow")
+    if glow then alignGlow(glow) end
+    mall:SetAttribute("GlowLabTravelAlignedV12",true)
+   end
+   task.wait(.5)
+  end
+ end)
+end
+startGlowReplacementGuard()
+
+local function anchorFor(glow,key)
+ if not glow then return nil end
+ if key=="LookLab" then
+  return glow:FindFirstChild("LookLabInteract2",true) or glow:FindFirstChild("LookLabInteract1",true) or glow:FindFirstChild("LookLabInteract3",true)
+ end
+ return glow:FindFirstChild("MallPhotoInteract",true)
+end
+
+local function resolveGlowDestination(key)
+ if key~="LookLab" and key~="Photo" then return destinations[key] end
  local deadline=os.clock()+8
  local lastGlow=nil
  local stableSince=nil
- local bestMall,bestGlow,bestFloor=nil,nil,nil
  while os.clock()<deadline do
   local mall,glow,floor=currentGlow()
   if mall and glow and floor and floor:IsA("BasePart") then
-   bestMall,bestGlow,bestFloor=mall,glow,floor
    if mall:GetAttribute("FloorSpacingStuds")==20 then
-    if glow~=lastGlow then
-     lastGlow=glow
-     stableSince=os.clock()
-    end
-    local dy=GLOW_TARGET_FLOOR_Y-floor.Position.Y
-    if math.abs(dy)>.05 then
-     glow:PivotTo(CFrame.new(0,dy,0)*glow:GetPivot())
-     floor=glow:FindFirstChild("Floor") or floor
-     stableSince=os.clock()
-    end
-    if floor and math.abs(floor.Position.Y-GLOW_TARGET_FLOOR_Y)<=.08 and stableSince and os.clock()-stableSince>=1.25 then
-     glow:SetAttribute("FinalVerticalAuthority","TRAVEL_V11_GLOW_L2_STABILIZER")
-     mall:SetAttribute("GlowLabTravelAlignedV11",true)
-     return mall,glow,floor
+    floor=alignGlow(glow) or floor
+    if glow~=lastGlow then lastGlow=glow;stableSince=os.clock() end
+    local anchor=anchorFor(glow,key)
+    if anchor and anchor:IsA("BasePart") and stableSince and os.clock()-stableSince>=1.0 then
+     return CFrame.new(anchor.Position+Vector3.new(0,.65,0))
     end
    end
   end
   task.wait(.15)
  end
- -- Fallback still corrects the latest visible GLOW LAB even if the structural marker was late.
- if bestGlow and bestFloor and bestFloor:IsA("BasePart") then
-  local dy=GLOW_TARGET_FLOOR_Y-bestFloor.Position.Y
-  if math.abs(dy)>.05 then bestGlow:PivotTo(CFrame.new(0,dy,0)*bestGlow:GetPivot()) end
-  bestFloor=bestGlow:FindFirstChild("Floor") or bestFloor
-  bestGlow:SetAttribute("FinalVerticalAuthority","TRAVEL_V11_GLOW_L2_STABILIZER_FALLBACK")
-  if bestMall then bestMall:SetAttribute("GlowLabTravelAlignedV11",true) end
- end
- return bestMall,bestGlow,bestFloor
+ return destinations[key]
 end
 
-local function resolveGlowDestination(key)
- if key~="LookLab" and key~="Photo" then return destinations[key] end
- local _,glow,floor=stabilizeGlowLab()
- if glow and floor and floor:IsA("BasePart") then
-  local offset=(key=="LookLab") and Vector3.new(-9,2.5,-4) or Vector3.new(8,2.5,4)
-  local pos=floor.CFrame:PointToWorldSpace(offset)
-  return CFrame.new(pos)
- end
- return destinations[key]
+local function rescueGlowArrival(player,key)
+ if key~="LookLab" and key~="Photo" then return end
+ task.spawn(function()
+  local stop=os.clock()+5
+  while os.clock()<stop do
+   task.wait(.25)
+   local char=player and player.Character
+   local hrp=char and char:FindFirstChild("HumanoidRootPart")
+   local hum=char and char:FindFirstChildOfClass("Humanoid")
+   if not hrp or not hum or hum.Health<=0 then return end
+   local _,glow=currentGlow()
+   if glow then alignGlow(glow) end
+   if hrp.Position.Y<20.3 then
+    local cf=resolveGlowDestination(key)
+    hum.Sit=false
+    pcall(function()hum:ChangeState(Enum.HumanoidStateType.GettingUp)end)
+    hrp.CFrame=cf
+    hrp.AssemblyLinearVelocity=Vector3.zero
+    hrp.AssemblyAngularVelocity=Vector3.zero
+   end
+  end
+ end)
 end
 
 local function doTeleport(player,key)
@@ -138,6 +183,7 @@ local function doTeleport(player,key)
  hrp.CFrame=cf
  hrp.AssemblyLinearVelocity=Vector3.zero
  hrp.AssemblyAngularVelocity=Vector3.zero
+ rescueGlowArrival(player,key)
  return true,key.." ready"
 end
 local function owns(player,key)
@@ -201,4 +247,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)
  ownershipCache[player.UserId]=nil;debounce[player.UserId]=nil
 end)
-print("[BBYA] Travel v11 online: GLOW LAB L2 runtime stabilizer + Look/Photo travel + safe GettingUp arrival")
+print("[BBYA] Travel v12 online: GLOW LAB replacement guard + live Look/Photo anchors + fall rescue")
