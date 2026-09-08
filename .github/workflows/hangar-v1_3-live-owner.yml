@@ -1,0 +1,137 @@
+name: HANGAR v1.3 LIVE OWNER FULL MESH
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/hangar-v1_3-live-owner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  LIVE_UNIVERSE_ID: '10745364913'
+  LIVE_PLACE_ID: '76001567401911'
+  LIVE_CREATOR_USER_ID: '8878884630'
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Build full mesh GLB
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'hangar-v13.glb'
+          node scripts/aeroclub-hangar-v1_2-glb.js $out
+          if($LASTEXITCODE -ne 0 -or -not(Test-Path $out)){throw 'GLB build failed'}
+          $bytes=(Get-Item $out).Length
+          if($bytes -lt 300000){throw "GLB too small: $bytes"}
+          "HANGAR_GLB=$out"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_GLB_BYTES=$bytes"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload mesh as live creator
+        shell: powershell
+        env:
+          ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_KEY)){throw 'Roblox master key missing'}
+          $req=@{assetType='Model';displayName='HANGAR v1.3 Full Mesh';description='HANGAR live full mesh';creationContext=@{creator=@{userId=[int64]$env:LIVE_CREATOR_USER_ID}}}|ConvertTo-Json -Depth 8 -Compress
+          $rf=Join-Path $env:RUNNER_TEMP 'request.json'
+          [IO.File]::WriteAllText($rf,$req,(New-Object Text.UTF8Encoding($false)))
+          $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$env:HANGAR_GLB;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+          Remove-Item $rf -Force -ErrorAction SilentlyContinue
+          if($LASTEXITCODE -ne 0){throw 'Asset upload request failed'}
+          $created=$raw|ConvertFrom-Json
+          if(-not $created.path){throw "Live-owner asset upload rejected: $raw"}
+          $opId=([string]$created.path)-replace '^operations/',''
+          $assetId=$null;$moderation=$null
+          for($i=0;$i -lt 90;$i++){
+            Start-Sleep 4
+            $opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_KEY" "https://apis.roblox.com/assets/v1/operations/$opId"
+            try{$op=$opRaw|ConvertFrom-Json}catch{continue}
+            if($op.done){
+              if($op.error){throw ($op.error|ConvertTo-Json -Compress -Depth 8)}
+              $assetId=[string]$op.response.assetId
+              $moderation=[string]$op.response.moderationResult.moderationState
+              break
+            }
+          }
+          if($assetId -notmatch '^\d+$'){throw 'No valid asset id'}
+          "HANGAR_MODEL_ASSET_ID=$assetId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_MODEL_MODERATION=$moderation"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_OWNER_ASSET_OK asset=$assetId moderation=$moderation"
+
+      - name: Grant model use to live universe
+        shell: powershell
+        env:
+          ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $body=@{subjectType='Universe';subjectId=$env:LIVE_UNIVERSE_ID;action='Use';requests=@(@{assetId=[int64]$env:HANGAR_MODEL_ASSET_ID;grantToDependencies=$true})}|ConvertTo-Json -Depth 8 -Compress
+          $resp=Invoke-RestMethod -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body $body
+          $success=@($resp.successAssetIds|ForEach-Object{[string]$_})
+          if($success -notcontains [string]$env:HANGAR_MODEL_ASSET_ID){throw "Asset grant failed: $($resp|ConvertTo-Json -Compress -Depth 8)"}
+          Write-Host "HANGAR_PERMISSION_OK asset=$env:HANGAR_MODEL_ASSET_ID universe=$env:LIVE_UNIVERSE_ID"
+
+      - name: Inject asset and build place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/aeroclub-hangar/server/visual-bootstrap-v1_3.server.lua'
+          $text=Get-Content $path -Raw
+          $text=[regex]::Replace($text,'local MODEL_ASSET_ID = \d+ -- HANGAR_V13_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:HANGAR_MODEL_ASSET_ID -- HANGAR_V13_MODEL_ASSET_ID")
+          Set-Content $path $text -Encoding utf8
+          $d=Join-Path $env:RUNNER_TEMP 'rojo';$z=Join-Path $env:RUNNER_TEMP 'rojo.zip'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+          Expand-Archive $z $d -Force
+          $rojo=(Get-ChildItem $d -Filter rojo.exe -Recurse|Select-Object -First 1).FullName
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-v13.rbxlx'
+          & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=Get-Content $place -Raw
+          foreach($m in @('HangarSpawnSafetyV1_1','HangarFullMeshV1_3',$env:HANGAR_MODEL_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "Missing marker $m"}}
+          if($xml -match 'VisibleFailsafeV1'){throw 'Visible fallback leaked into place'}
+          "HANGAR_PLACE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish main HANGAR
+        shell: powershell
+        env:
+          ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published"
+          $version=$null
+          for($i=1;$i -le 6;$i++){
+            try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/xml' -InFile $env:HANGAR_PLACE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);break}catch{Start-Sleep -Seconds (3*$i)}
+          }
+          if(-not $version){throw 'Publish failed after retries'}
+          "HANGAR_LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Invoke-WebRequest -UseBasicParsing -Method Post -Uri "https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers" -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body '{}'|Out-Null
+          Write-Host "HANGAR_V13_LIVE_OK version=$version asset=$env:HANGAR_MODEL_ASSET_ID"
+
+      - name: Save receipt
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $obj=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_LIVE_OWNER_FULL_MESH';staticModelAssetId=[int64]$env:HANGAR_MODEL_ASSET_ID;modelModeration=$env:HANGAR_MODEL_MODERATION;robloxVersion=[int]$env:HANGAR_LIVE_VERSION;spawn='FAR_OUTDOOR_FACE_CENTRAL_JET';visibleFallback='NONE';visualQC='PENDING_OWNER_IN_GAME'}
+          $text=$obj|ConvertTo-Json -Depth 6;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR'}
+          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json";$sha=$null
+          try{$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$sha=[string]$old.sha}catch{}
+          $body=@{message='Record HANGAR v1.3 LIVE [skip ci]';content=$b64;branch=$env:GITHUB_REF_NAME};if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body ($body|ConvertTo-Json -Depth 5)|Out-Null
