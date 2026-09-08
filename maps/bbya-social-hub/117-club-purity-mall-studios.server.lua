@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v1
+-- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v2
 -- Keeps Floor 1 as a pure nightclub, grounds/declutters the DJ zone,
 -- and relocates Look Lab + Editorial Photo Studio into GLOW LAB on Mall Level 2.
+-- V2: Look Lab is prompt-only (no sticky auto-seat) and studio lights stay in-bounds.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -29,13 +30,15 @@ local old=root:FindFirstChild("ClubPurityMallStudiosV1")
 if old then old:Destroy() end
 local out=Instance.new("Model")
 out.Name="ClubPurityMallStudiosV1"
-out:SetAttribute("Pass","CLUB_PURITY_MALL_STUDIOS_V1")
+out:SetAttribute("Pass","CLUB_PURITY_MALL_STUDIOS_V2")
 out:SetAttribute("ClubPureNightclub",true)
 out:SetAttribute("DJGrounded",true)
 out:SetAttribute("DJLooseFurnitureRemoved",true)
 out:SetAttribute("SalonMovedToMall",true)
 out:SetAttribute("PhotoStudioMovedToMall",true)
 out:SetAttribute("MallLevel",2)
+out:SetAttribute("LookLabEntryMode","PROMPT_ONLY")
+out:SetAttribute("StudioSoftboxesInBounds",true)
 out.Parent=root
 
 local C={
@@ -213,7 +216,6 @@ end
 -- LOOK LAB section: three rounded styling stations facing illuminated mirrors.
 local lookSection=model("MallLookLab",lifestyle)
 textPlate(lookSection,"LookLabLabel",Vector3.new(.16,1.8,8.5),CFrame.new(92.10,Y+9.0,360),"LOOK LAB",C.warm,Enum.NormalId.Left)
-local touchDebounce={}
 local originalDescriptions={}
 local lookZ={355.5,361.5,367.5}
 for i,z in ipairs(lookZ) do
@@ -227,13 +229,17 @@ for i,z in ipairs(lookZ) do
  ball("ChairBack",Vector3.new(1.15,2.7,2.55),CFrame.new(81.55,Y+3.10,z),i==2 and Color3.fromRGB(80,57,75) or Color3.fromRGB(53,46,55),Enum.Material.Fabric,0,station,false)
  local seat=Instance.new("Seat");seat.Name="LookLabSeat"..i;seat.Size=Vector3.new(2.2,.45,2.0);seat.CFrame=CFrame.new(80.2,Y+2.26,z)*CFrame.Angles(0,math.rad(-90),0)
  seat.Transparency=1;seat.Anchored=true;seat.CanCollide=false;seat.CanTouch=false;seat.CanQuery=false;seat.Parent=station
- local trigger=part("AutoStyleTrigger"..i,Vector3.new(3.2,3.0,3.5),CFrame.new(77.7,Y+2.6,z),C.white,Enum.Material.SmoothPlastic,1,station,false);trigger.CanTouch=true
- trigger.Touched:Connect(function(hit)
-  local ch=hit and hit:FindFirstAncestorOfClass("Model");local hum=ch and ch:FindFirstChildOfClass("Humanoid");local plr=ch and Players:GetPlayerFromCharacter(ch)
-  if not hum or not plr or hum.Health<=0 or hum.Sit or seat.Occupant then return end
-  local now=os.clock();if (touchDebounce[plr] or 0)+2>now then return end;touchDebounce[plr]=now
-  seat:Sit(hum)
-  task.delay(.18,function()if plr.Parent and hum.Parent and hum.SeatPart==seat then lookRemote:FireClient(plr,"open",{station=i,mall=true}) end end)
+ local interact=part("LookLabInteract"..i,Vector3.new(1.25,2.8,2.8),CFrame.new(78.0,Y+2.8,z),C.white,Enum.Material.SmoothPlastic,1,station,false)
+ interact.CanTouch=false;interact.CanQuery=false
+ local sitPrompt=prompt(interact,"DUDUK / TRY ON","LOOK LAB",7,.12)
+ sitPrompt.Triggered:Connect(function(plr)
+  local hrp,hum=hrpHum(plr)
+  if not hrp or not hum or hum.Health<=0 or (hrp.Position-interact.Position).Magnitude>10 then return end
+  if seat.Occupant and seat.Occupant~=hum then return end
+  if hum.SeatPart~=seat then seat:Sit(hum) end
+  task.delay(.16,function()
+   if plr.Parent and hum.Parent and hum.SeatPart==seat then lookRemote:FireClient(plr,"open",{station=i,mall=true}) end
+  end)
  end)
 end
 -- Wash/refresh counter retained as a real salon function.
@@ -302,7 +308,7 @@ lookRemote.OnServerEvent:Connect(function(plr,action,payload)
  end
 end)
 
--- PHOTO STUDIO section: proper cove, softboxes, camera and the same multi-angle UI.
+-- PHOTO STUDIO section: proper cove, compact in-bounds softboxes, camera and multi-angle UI.
 local photoSection=model("MallPhotoStudio",lifestyle)
 textPlate(photoSection,"PhotoLabel",Vector3.new(.16,1.8,9.5),CFrame.new(92.08,Y+9.0,373.0),"PHOTO STUDIO",C.white,Enum.NormalId.Left)
 part("Backdrop",Vector3.new(.28,7.7,8.7),CFrame.new(90.5,Y+5.1,373.0),Color3.fromRGB(26,23,29),Enum.Material.Slate,0,photoSection,false)
@@ -311,14 +317,14 @@ wedge("Cove",Vector3.new(2.6,1.45,8.7),CFrame.new(89.0,Y+1.72,373.0)*CFrame.Angl
 local subject=Vector3.new(84.2,Y+2.25,373.0)
 local function softbox(name,pos,target,size,col)
  local m=model(name,photoSection);local look=CFrame.lookAt(pos,target)
- cylinder("StandBase",Vector3.new(.14,1.8,1.8),CFrame.new(pos.X,Y+.85,pos.Z)*CFrame.Angles(0,0,math.rad(90)),C.black,Enum.Material.Metal,0,m,false)
- part("Stand",Vector3.new(.16,5.0,.16),CFrame.new(pos.X,Y+3.2,pos.Z),C.metal,Enum.Material.Metal,0,m,false)
- local panel=part("Softbox",size,look,C.white,Enum.Material.Neon,.05,m,false)
- local light=Instance.new("SurfaceLight");light.Face=Enum.NormalId.Front;light.Color=col;light.Brightness=2.1;light.Range=24;light.Angle=115;light.Shadows=false;light.Parent=panel
+ cylinder("StandBase",Vector3.new(.14,1.55,1.55),CFrame.new(pos.X,Y+.85,pos.Z)*CFrame.Angles(0,0,math.rad(90)),C.black,Enum.Material.Metal,0,m,false)
+ part("Stand",Vector3.new(.14,4.4,.14),CFrame.new(pos.X,Y+2.9,pos.Z),C.metal,Enum.Material.Metal,0,m,false)
+ local panel=part("Softbox",size,look,C.white,Enum.Material.Neon,.10,m,false)
+ local light=Instance.new("SurfaceLight");light.Face=Enum.NormalId.Front;light.Color=col;light.Brightness=1.25;light.Range=16;light.Angle=95;light.Shadows=false;light.Parent=panel
 end
-softbox("KeySoftbox",Vector3.new(72,Y+6.3,368.4),subject,Vector3.new(4.6,3.2,.18),C.warm)
-softbox("FillSoftbox",Vector3.new(72,Y+5.7,377.2),subject,Vector3.new(4.1,3.0,.18),C.white)
-softbox("RimSoftbox",Vector3.new(87.0,Y+6.4,367.8),subject,Vector3.new(3.0,2.2,.16),C.cyan)
+softbox("KeySoftbox",Vector3.new(78.0,Y+5.8,369.2),subject,Vector3.new(3.6,2.5,.16),C.warm)
+softbox("FillSoftbox",Vector3.new(78.2,Y+5.5,376.2),subject,Vector3.new(3.4,2.4,.16),C.white)
+softbox("RimSoftbox",Vector3.new(87.0,Y+5.9,368.3),subject,Vector3.new(2.5,1.8,.14),C.cyan)
 -- Camera pedestal is grounded and unmistakably camera equipment.
 cylinder("CameraBase",Vector3.new(.16,2.0,2.0),CFrame.new(60.5,Y+.85,373)*CFrame.Angles(0,0,math.rad(90)),C.black,Enum.Material.Metal,0,photoSection,false)
 part("CameraStem",Vector3.new(.18,3.7,.18),CFrame.new(60.5,Y+2.65,373),C.metal,Enum.Material.Metal,0,photoSection,false)
@@ -349,6 +355,6 @@ feature.OnServerEvent:Connect(function(plr,action,arg)
  feature:FireClient(plr,"photoMode",{camera=camera,duration=7,label="GLOW LAB EDITORIAL · "..string.upper(angle)})
 end)
 
-Players.PlayerRemoving:Connect(function(plr)touchDebounce[plr]=nil;originalDescriptions[plr]=nil;photoCooldown[plr]=nil end)
+Players.PlayerRemoving:Connect(function(plr)originalDescriptions[plr]=nil;photoCooldown[plr]=nil end)
 
-print("[BBYA] Club Purity + Mall Studios v1 online: clean DJ, pure club, GLOW LAB Look Lab + Photo Studio")
+print("[BBYA] Club Purity + Mall Studios v2 online: prompt-only Look Lab + in-bounds Photo Studio softboxes")
