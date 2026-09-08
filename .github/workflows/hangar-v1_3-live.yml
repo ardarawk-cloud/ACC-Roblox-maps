@@ -68,21 +68,39 @@ jobs:
           "HANGAR_GLB_SHA256=$((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "HANGAR_V13_GLB_PASS bytes=$bytes"
 
-      - name: Resolve LIVE HANGAR creator only
+      - name: Resolve exact LIVE HANGAR creator
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
+
           $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:LIVE_UNIVERSE_ID"
           if(-not $meta.data -or $meta.data.Count -lt 1){throw 'LIVE universe metadata missing'}
-          $creator=$meta.data[0].creator
+          $game=$meta.data[0]
+          $creator=$game.creator
           $type=[string]$creator.type
           $id=[string]$creator.id
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw 'Invalid LIVE creator id'}
-          if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported creator type $type"}
+          $source='universe.creator.id'
+
+          # Some Roblox game metadata responses omit creator.id. Resolve builderId from the exact LIVE place.
+          if($id -notmatch '^\d+$' -or [int64]$id -le 0){
+            $placeMeta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games/multiget-place-details?placeIds=$env:LIVE_PLACE_ID"
+            if(-not $placeMeta -or $placeMeta.Count -lt 1){throw 'LIVE place metadata missing'}
+            $id=[string]$placeMeta[0].builderId
+            $source='place.builderId'
+            if([string]::IsNullOrWhiteSpace($type)){
+              $builderType=[string]$placeMeta[0].builderType
+              if(-not [string]::IsNullOrWhiteSpace($builderType)){$type=$builderType}
+            }
+          }
+
+          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id after exact-place fallback. universeCreator=$($creator|ConvertTo-Json -Compress -Depth 5)"}
+          if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported LIVE creator type '$type' id=$id source=$source"}
+
           "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_CREATOR_FIELD=$field" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_CREATOR_TYPE=$type" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V13_LIVE_CREATOR_PASS type=$type id=$id"
+          "HANGAR_CREATOR_SOURCE=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V13_LIVE_CREATOR_PASS type=$type id=$id source=$source universe=$env:LIVE_UNIVERSE_ID place=$env:LIVE_PLACE_ID"
 
       - name: Upload model under LIVE HANGAR creator
         shell: powershell
@@ -101,7 +119,7 @@ jobs:
           }finally{Remove-Item $requestFile -Force -ErrorAction SilentlyContinue}
           if($LASTEXITCODE -ne 0){throw 'Asset upload request failed'}
           try{$created=$raw|ConvertFrom-Json}catch{throw "Invalid asset upload response: $raw"}
-          if(-not $created.path){throw "Asset upload rejected: $raw"}
+          if(-not $created.path){throw "Asset upload rejected for LIVE creator $env:HANGAR_CREATOR_TYPE/$env:HANGAR_CREATOR_ID: $raw"}
           $operationId=([string]$created.path)-replace '^operations/',''
           $assetId=$null;$moderation=$null
           for($i=0;$i -lt 90;$i++){
@@ -198,6 +216,7 @@ jobs:
           ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: |
           $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_KEY)){throw 'Roblox Open Cloud key missing'}
           $url="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers"
           $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body '{}'
           if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Restart HTTP $($resp.StatusCode)"}
@@ -212,7 +231,7 @@ jobs:
           $receipt=[ordered]@{
             status='LIVE_PUBLISHED';ok=$true;project='HANGAR';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;
             sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_LIVE_CREATOR_FULL_MESH_NO_VISIBLE_FALLBACK';
-            liveCreatorType=$env:HANGAR_CREATOR_TYPE;liveCreatorId=[int64]$env:HANGAR_CREATOR_ID;
+            liveCreatorType=$env:HANGAR_CREATOR_TYPE;liveCreatorId=[int64]$env:HANGAR_CREATOR_ID;creatorSource=$env:HANGAR_CREATOR_SOURCE;
             staticModelAssetId=[int64]$env:HANGAR_MODEL_ASSET_ID;modelModeration=$env:HANGAR_MODEL_MODERATION;
             robloxVersion=[int]$env:HANGAR_LIVE_VERSION;glbBytes=[int64]$env:HANGAR_GLB_BYTES;glbSha256=$env:HANGAR_GLB_SHA256;
             placeBytes=[int64]$env:HANGAR_PLACE_BYTES;placeSha256=$env:HANGAR_PLACE_SHA256;publishRun=[int64]$env:GITHUB_RUN_ID;
