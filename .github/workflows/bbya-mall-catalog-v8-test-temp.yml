@@ -5,23 +5,27 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
+      - 'maps/bbya-social-hub/95-mall-live.client.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
+      - 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
       - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
-      - 'maps/bbya-social-hub/95-mall-live.client.lua'
-      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
   push:
     branches:
       - 'feat/bbya-mall-catalog-v8-reference-rebuild'
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
+      - 'maps/bbya-social-hub/95-mall-live.client.lua'
+      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
+      - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
+      - 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua'
       - 'maps/bbya-social-hub/133-mall-bottom-safe-50.client.lua'
       - 'maps/bbya-social-hub/133-mall-robux-commerce.server.lua'
       - 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua'
-      - 'maps/bbya-social-hub/95-mall-live.client.lua'
-      - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
 
 permissions:
   contents: read
@@ -52,13 +56,22 @@ jobs:
         shell: powershell
         run: |
           $a=Get-Content 'maps/bbya-social-hub/133-mall-robux-commerce.client.lua' -Raw
-          foreach($m in @('MALL CATALOG UI v8','CatalogLauncher','CATEGORIES','STORES','PRODUCTS','Keranjang Belanja','BBYAMallCatalogFocusMode')){
-            if(-not $a.Contains($m)){throw "Missing V8 marker: $m"}
+          foreach($m in @('MALL CATALOG UI v8','V13 SHOPPING FLOW','CatalogLauncher','CATEGORIES','STORES','PRODUCTS','Keranjang Belanja','BBYAMallCatalogFocusMode','TRY','BUY')){
+            if(-not $a.Contains($m)){throw "Missing Mall catalog marker: $m"}
           }
           if($a.Contains('MALL COMMERCE UI v7')){throw 'Old V7 giant panel source still present'}
           foreach($bad in @('GetService("Lighting")','SoundId','.Volume =')){
             if($a.Contains($bad)){throw "Forbidden Mall UI marker: $bad"}
           }
+          $look=Get-Content 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua' -Raw
+          foreach($m in @('LOOK LAB AVATAR EDITOR CLIENT v4','releaseLookSeat','BBYALookLabFocusMode')){
+            if(-not $look.Contains($m)){throw "Missing Look Lab exit marker: $m"}
+          }
+          $studio=Get-Content 'maps/bbya-social-hub/117-club-purity-mall-studios.server.lua' -Raw
+          foreach($m in @('MALL LIFESTYLE RELOCATION v2','PROMPT_ONLY','LookLabInteract','DUDUK / TRY ON','StudioSoftboxesInBounds','Brightness=1.25')){
+            if(-not $studio.Contains($m)){throw "Missing Mall studio marker: $m"}
+          }
+          if($studio.Contains('AutoStyleTrigger')){throw 'Sticky Look Lab auto-seat trigger still present'}
           $v=Get-Content 'maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua' -Raw
           foreach($m in @('MALL VERTICAL SPACING 20 + CINEMA v16','local LEVELS={1,21,41,61}','FloorSpacingStuds",20','VerticalAuthority","V16_20_STUD')){
             if(-not $v.Contains($m)){throw "Missing 20-stud vertical marker: $m"}
@@ -71,7 +84,7 @@ jobs:
             if(-not $g.Contains($m)){throw "Missing decor alignment marker: $m"}
           }
           if($g.Contains('d.Name=="LowerLanding" or d.Name=="UpperLanding"')){throw 'Late stair exit-landing patch still present'}
-          Write-Host 'BBYA_MALL_V8_STATIC_QC_PASS floorLevels=1,21,41,61 spacing=20 decor=aligned stairs=deep-mid-connection-only'
+          Write-Host 'BBYA_MALL_TEST_STATIC_QC_PASS catalog=V13 looklab=prompt-only studioLights=in-bounds floorLevels=1,21,41,61 spacing=20'
 
       - name: Enable third party sales in test build only
         shell: powershell
@@ -121,4 +134,4 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Publish failed'}
           $r=$resp|ConvertFrom-Json
           if(-not $r.versionNumber){throw 'versionNumber missing'}
-          Write-Host "BBYA_MALL_V8_TEST_PUBLISHED version=$($r.versionNumber) bytes=$bytes sha256=$sha source=$env:TARGET_SOURCE universe=10762005984 place=124607344716828"
+          Write-Host "BBYA_MALL_TEST_PUBLISHED version=$($r.versionNumber) bytes=$bytes sha256=$sha source=$env:TARGET_SOURCE universe=10762005984 place=124607344716828"
