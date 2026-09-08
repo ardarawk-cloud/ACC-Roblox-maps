@@ -4,12 +4,14 @@
     "project":  "HANGAR",
     "universeId":  "10745364913",
     "placeId":  "76001567401911",
-    "sourceCommit":  "ffe43eb622a6b20fdaf761e5f92754fc837e63d2",
-    "mode":  "HANGAR_V13_LIVE_OWNER_FULL_MESH",
+    "sourceCommit":  "138cd4f46043be1467f192e5b3cc3758e655120b",
+    "mode":  "HANGAR_V13_FIXED_ASSET_NO_BOM",
     "staticModelAssetId":  99386261031802,
-    "modelModeration":  "Approved",
-    "robloxVersion":  14,
+    "robloxVersion":  15,
     "spawn":  "FAR_OUTDOOR_FACE_CENTRAL_JET",
     "visibleFallback":  "NONE",
+    "serversRestarted":  true,
+    "placeBytes":  11588,
+    "placeSha256":  "c918587219e3ba63331f4efa4aabb69f275553961a8083617feecd1933b3cc1a",
     "visualQC":  "PENDING_OWNER_IN_GAME"
 }
