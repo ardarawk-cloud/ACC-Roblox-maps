@@ -81,7 +81,12 @@ jobs:
           & $env:ROJO_EXE build 'maps/aeroclub-hangar/default.project.json' -o $place
           if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
           $bytes=(Get-Item $place).Length
-          if($bytes -lt 12000){throw "Place unexpectedly small: $bytes"}
+          # Visual-QC place intentionally mounts one runtime only; 7–8 KB is expected.
+          if($bytes -lt 6500){throw "Place unexpectedly small: $bytes"}
+          $xml=Get-Content $place -Raw
+          foreach($m in @('VisualBootstrapV1_1','AeroClubVisualBootstrap','AeroClubBootFloor')){
+            if($xml -notmatch [regex]::Escape($m)){throw "Built place missing marker: $m"}
+          }
           "AEROCLUB_V11_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "AEROCLUB_V11_PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "AEROCLUB_V11_PLACE_SHA256=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
