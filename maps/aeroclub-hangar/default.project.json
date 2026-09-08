@@ -10,6 +10,9 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
+      "SpawnSafetyV1": {
+        "$path": "server/spawn-safety.server.lua"
+      },
       "VisualBootstrapV1_2": {
         "$path": "server/visual-bootstrap-v1_2.server.lua"
       }
