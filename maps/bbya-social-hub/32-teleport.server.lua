@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v10
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v11
 -- Reliable server-authoritative travel with explicit client result events.
--- Mall Look Lab + Photo destinations resolve from the live GLOW LAB floor so vertical-spacing passes cannot strand players on Daily Market.
+-- v11 hardens Mall Look Lab + Photo travel against the concurrent GLOW LAB / vertical-spacing build race.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
@@ -26,8 +26,8 @@ end
 
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.new(78,24,369), -- safe fallback for GLOW LAB after L2 vertical-spacing pass
- LookLab=CFrame.new(61,24,361), -- safe fallback for GLOW LAB after L2 vertical-spacing pass
+ Photo=CFrame.new(78,24.2,369),
+ LookLab=CFrame.new(61,24.2,361),
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,27,2),
@@ -62,15 +62,63 @@ local function send(player,ok,key,msg)
  if player and result then result:FireClient(player,ok==true,tostring(key or ""),tostring(msg or "")) end
 end
 
-local function resolveGlowDestination(key)
- if key~="LookLab" and key~="Photo" then return destinations[key] end
+local GLOW_TARGET_FLOOR_Y=21.70
+local function currentGlow()
  local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
  local mall=root and root:FindFirstChild("BBYAMall")
  local glow=mall and mall:FindFirstChild("Tenant_glow")
  local floor=glow and glow:FindFirstChild("Floor")
- if floor and floor:IsA("BasePart") then
-  -- Tenant_glow is moved upward by the Mall vertical-spacing authority after it is built.
-  -- Resolve from the live floor instead of retaining the original pre-move Y coordinate.
+ return mall,glow,floor
+end
+
+local function stabilizeGlowLab()
+ -- 117 builds Tenant_glow at the legacy L2 height while 136 reflows Mall to 20-stud floors.
+ -- Those server scripts run concurrently, so either one can win the race. Travel v11 is the
+ -- final runtime safety: wait for v16 spacing, then keep the CURRENT Tenant_glow on final L2
+ -- until the same model has remained stable long enough that a late replacement cannot strand us.
+ local deadline=os.clock()+8
+ local lastGlow=nil
+ local stableSince=nil
+ local bestMall,bestGlow,bestFloor=nil,nil,nil
+ while os.clock()<deadline do
+  local mall,glow,floor=currentGlow()
+  if mall and glow and floor and floor:IsA("BasePart") then
+   bestMall,bestGlow,bestFloor=mall,glow,floor
+   if mall:GetAttribute("FloorSpacingStuds")==20 then
+    if glow~=lastGlow then
+     lastGlow=glow
+     stableSince=os.clock()
+    end
+    local dy=GLOW_TARGET_FLOOR_Y-floor.Position.Y
+    if math.abs(dy)>.05 then
+     glow:PivotTo(CFrame.new(0,dy,0)*glow:GetPivot())
+     floor=glow:FindFirstChild("Floor") or floor
+     stableSince=os.clock()
+    end
+    if floor and math.abs(floor.Position.Y-GLOW_TARGET_FLOOR_Y)<=.08 and stableSince and os.clock()-stableSince>=1.25 then
+     glow:SetAttribute("FinalVerticalAuthority","TRAVEL_V11_GLOW_L2_STABILIZER")
+     mall:SetAttribute("GlowLabTravelAlignedV11",true)
+     return mall,glow,floor
+    end
+   end
+  end
+  task.wait(.15)
+ end
+ -- Fallback still corrects the latest visible GLOW LAB even if the structural marker was late.
+ if bestGlow and bestFloor and bestFloor:IsA("BasePart") then
+  local dy=GLOW_TARGET_FLOOR_Y-bestFloor.Position.Y
+  if math.abs(dy)>.05 then bestGlow:PivotTo(CFrame.new(0,dy,0)*bestGlow:GetPivot()) end
+  bestFloor=bestGlow:FindFirstChild("Floor") or bestFloor
+  bestGlow:SetAttribute("FinalVerticalAuthority","TRAVEL_V11_GLOW_L2_STABILIZER_FALLBACK")
+  if bestMall then bestMall:SetAttribute("GlowLabTravelAlignedV11",true) end
+ end
+ return bestMall,bestGlow,bestFloor
+end
+
+local function resolveGlowDestination(key)
+ if key~="LookLab" and key~="Photo" then return destinations[key] end
+ local _,glow,floor=stabilizeGlowLab()
+ if glow and floor and floor:IsA("BasePart") then
   local offset=(key=="LookLab") and Vector3.new(-9,2.5,-4) or Vector3.new(8,2.5,4)
   local pos=floor.CFrame:PointToWorldSpace(offset)
   return CFrame.new(pos)
@@ -153,4 +201,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)
  ownershipCache[player.UserId]=nil;debounce[player.UserId]=nil
 end)
-print("[BBYA] Travel v10 online: dynamic GLOW LAB Look/Photo destinations + safe GettingUp arrival + server acknowledgement")
+print("[BBYA] Travel v11 online: GLOW LAB L2 runtime stabilizer + Look/Photo travel + safe GettingUp arrival")
