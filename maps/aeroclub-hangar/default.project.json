@@ -10,23 +10,13 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "CoreServer": {
-        "$path": "server/core.server.lua"
-      },
-      "EnvironmentRuntime": {
-        "$path": "server/environment.server.lua"
+      "VisualBootstrapV1_1": {
+        "$path": "server/visual-bootstrap-v1_1.server.lua"
       }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
-      "StarterPlayerScripts": {
-        "Controllers": {
-          "$className": "Folder",
-          "ClientSettings": {
-            "$path": "client/client-settings.client.lua"
-          }
-        }
-      }
+      "StarterPlayerScripts": {}
     }
   }
 }
