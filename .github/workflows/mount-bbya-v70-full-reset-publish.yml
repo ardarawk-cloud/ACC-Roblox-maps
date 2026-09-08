@@ -1,0 +1,163 @@
+name: MOUNT BBYA v7.0 Full Reset Publish
+
+on:
+  push:
+    branches:
+      - 'mount-bbya/phase1-spawn-cp1'
+    paths:
+      - 'maps/mount-bbya/mount-bbya.phase1v67.environment.server.lua'
+      - 'maps/mount-bbya/mount-bbya.config.json'
+      - 'maps/mount-bbya/PROJECT_AUTHORITY.md'
+      - 'maps/registry.json'
+      - 'scripts/inject-mount-bbya-v70.js'
+      - 'scripts/publish-mount-bbya.js'
+      - '.github/workflows/mount-bbya-v70-full-reset-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mount-bbya-v70-full-reset-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: self-hosted
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact v7.0 reset source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Prove runner and target identity
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Write-Host "MOUNT_BBYA_V70_RUNNER_OK computer=$env:COMPUTERNAME sha=$env:GITHUB_SHA"
+          node --version
+          $cfg=Get-Content 'maps/mount-bbya/mount-bbya.config.json' -Raw | ConvertFrom-Json
+          if($cfg.sourceVersion -ne '7.0.0-full-map-reset'){throw "Source version mismatch: $($cfg.sourceVersion)"}
+          if($cfg.publishTarget.universeId -ne '4187755690'){throw 'Universe lock mismatch'}
+          if($cfg.publishTarget.placeId -ne '11832985967'){throw 'Place lock mismatch'}
+          if($cfg.phase.scope -ne 'FULL_MAP_SPAWN_TO_CP20'){throw 'Full map scope missing'}
+          if(-not $cfg.publish.enabled){throw 'Publish not authorized in config'}
+
+      - name: Build clean MOUNT BBYA v7.0 RBXLX
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          node scripts/inject-mount-bbya-v70.js
+          if($LASTEXITCODE -ne 0){throw 'MOUNT BBYA v7.0 injection failed'}
+          $place='maps/mount-bbya/place.rbxlx'
+          if(-not (Test-Path $place)){throw 'v7.0 place.rbxlx missing'}
+          if((Get-Item $place).Length -lt 20000){throw 'v7.0 place.rbxlx unexpectedly small'}
+          $text=Get-Content $place -Raw
+          try { [xml]$xml=$text } catch { throw "RBXLX XML parse failed: $($_.Exception.Message)" }
+          foreach($required in @(
+            'MOUNT_BBYA_V70_Bootstrap',
+            'MOUNT_BBYA_V70_FullMapAuthority',
+            'MOUNT_BBYA_V70_Release',
+            'MOUNT_BBYA_V70_QC',
+            '7.0.0-full-map-reset',
+            'VISUALIZER_20CP_WITA',
+            'Terrain:Clear()',
+            'CP 20 - PUNCAK GUNUNG NUSANTARA',
+            'SummitPhotoSpot_3142MDPL',
+            'WITA_OFFSET=8'
+          )){
+            if($text -notmatch [regex]::Escape($required)){throw "Missing v7.0 marker: $required"}
+          }
+          foreach($forbidden in @('ACC_Mountain_V64_Terrain','v6.4-phase1-multiscript-runtime','SPAWN_TO_CP1_ONLY')){
+            if($text -match [regex]::Escape($forbidden)){throw "Legacy/old-scope marker blocked: $forbidden"}
+          }
+          if($text -match 'Lighting\.Technology=Enum\.Technology\.Future'){throw 'Unsafe runtime Lighting.Technology assignment remains'}
+          if($text -notmatch '<token name="Technology">4</token>'){throw 'Future lighting serialization missing'}
+          $scriptCount=([regex]::Matches($text,'<Item class="Script"')).Count
+          if($scriptCount -ne 4){throw "Expected 4 server scripts, got $scriptCount"}
+          Write-Host "MOUNT_BBYA_V70_BUILD_PASS bytes=$((Get-Item $place).Length) scripts=$scriptCount"
+
+      - name: Publish v7.0 to MOUNT BBYA only
+        id: publish
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Continue'
+          $log=Join-Path $env:RUNNER_TEMP 'mount-bbya-v70-publish.log'
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          node scripts/publish-mount-bbya.js *> $log
+          $code=$LASTEXITCODE
+          $status=if($code -eq 0){'PUBLISHED'}else{'FAILED'}
+          $lines=@(
+            "status=$status",
+            'secret=AM_STUDIO',
+            'build=v7.0.0-full-map-reset',
+            "sourceCommit=$env:GITHUB_SHA",
+            'universeId=4187755690',
+            'placeId=11832985967',
+            'scope=SPAWN_CP1_CP20',
+            'summitMDPL=3142',
+            'wita=UTC+8',
+            "exitCode=$code"
+          )
+          if(Test-Path $log){$lines += (Get-Content $log | Select-Object -Last 15 | ForEach-Object {"log=$_"})}
+          $lines | Set-Content -Path $receipt -Encoding utf8
+          if(Test-Path $log){Get-Content $log}
+          if($code -ne 0){exit $code}
+
+      - name: Persist MOUNT BBYA v7.0 publish receipt to active branch
+        if: always()
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          if(-not (Test-Path $receipt)){
+            @(
+              'status=NO_RESULT',
+              'secret=AM_STUDIO',
+              'build=v7.0.0-full-map-reset',
+              "sourceCommit=$env:GITHUB_SHA",
+              'universeId=4187755690',
+              'placeId=11832985967',
+              'scope=SPAWN_CP1_CP20'
+            ) | Set-Content -Path $receipt -Encoding utf8
+          }
+          $headers=@{
+            Authorization="Bearer $env:GH_TOKEN"
+            Accept='application/vnd.github+json'
+            'X-GitHub-Api-Version'='2022-11-28'
+          }
+          $api="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/mountain-am-studio.txt"
+          $branch='mount-bbya/phase1-spawn-cp1'
+          $sha=$null
+          try {
+            $existing=Invoke-RestMethod -Headers $headers -Uri "$api`?ref=$([uri]::EscapeDataString($branch))" -Method Get
+            $sha=$existing.sha
+          } catch {
+            $statusCode=$_.Exception.Response.StatusCode.value__
+            if($statusCode -ne 404){throw}
+          }
+          $raw=Get-Content $receipt -Raw
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($raw))
+          $payload=@{message='Record MOUNT BBYA v7.0 publish receipt [skip ci]';content=$b64;branch=$branch}
+          if($sha){$payload.sha=$sha}
+          $body=$payload | ConvertTo-Json -Depth 5
+          $result=Invoke-RestMethod -Headers $headers -Uri $api -Method Put -ContentType 'application/json' -Body $body
+          Write-Host "MOUNT_BBYA_V70_RECEIPT_COMMIT=$($result.commit.sha)"
+
+      - name: Enforce publish success
+        if: always()
+        shell: powershell
+        run: |
+          $receipt=Join-Path $env:RUNNER_TEMP 'mountain-am-studio.txt'
+          if(-not (Test-Path $receipt)){throw 'MOUNT BBYA v7.0 receipt missing'}
+          $text=Get-Content $receipt -Raw
+          if($text -notmatch '(?m)^status=PUBLISHED\s*$'){throw 'MOUNT BBYA v7.0 publish not PUBLISHED'}
+          if($text -notmatch '(?m)^build=v7\.0\.0-full-map-reset\s*$'){throw 'MOUNT BBYA v7.0 receipt build mismatch'}
+          if($text -notmatch '(?m)^sourceCommit=[0-9a-f]{40}\s*$'){throw 'MOUNT BBYA v7.0 receipt source commit missing'}
+          Write-Host 'MOUNT_BBYA_V70_PUBLISH_PASS'
