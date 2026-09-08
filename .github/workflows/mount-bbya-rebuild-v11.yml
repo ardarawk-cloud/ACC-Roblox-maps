@@ -7,7 +7,7 @@ on:
       - 'maps/mount-bbya/mount-bbya.rebuild-v1.1.server.lua'
       - 'maps/mount-bbya/mount-bbya.config.json'
       - 'scripts/build-mount-bbya-rebuild-v11.js'
-      - 'scripts/publish-mount-bbya-rebuild-v1.js'
+      - 'scripts/publish-mount-bbya-rebuild-v11.js'
       - '.github/workflows/mount-bbya-rebuild-v11.yml'
   workflow_dispatch:
 
@@ -26,7 +26,8 @@ jobs:
       - name: Checkout exact rebuild candidate
         uses: actions/checkout@v4
         with:
-          ref: mount-bbya-rebuild-visual-lock-v1
+          ref: ${{ github.sha }}
+          clean: true
           persist-credentials: false
 
       - name: Runtime and target preflight
@@ -35,7 +36,7 @@ jobs:
           $ErrorActionPreference='Stop'
           node --version
           node --check scripts/build-mount-bbya-rebuild-v11.js
-          node --check scripts/publish-mount-bbya-rebuild-v1.js
+          node --check scripts/publish-mount-bbya-rebuild-v11.js
           $runtime=Get-Content 'maps/mount-bbya/mount-bbya.rebuild-v1.1.server.lua' -Raw
           foreach($required in @(
             'MOUNT_BBYA_REBUILD_V11',
@@ -82,8 +83,9 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Continue'
-          $log=Join-Path $env:RUNNER_TEMP 'mount-bbya-v11-publish.log'
-          node scripts/publish-mount-bbya-rebuild-v1.js *> $log
+          $log=Join-Path $env:RUNNER_TEMP 'mount-bbya-v11-publish-clean.log'
+          if(Test-Path $log){Remove-Item $log -Force}
+          node scripts/publish-mount-bbya-rebuild-v11.js *> $log
           $code=$LASTEXITCODE
           if(Test-Path $log){Get-Content $log}
           "PUBLISH_EXIT_CODE=$code" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -96,7 +98,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          $log=Join-Path $env:RUNNER_TEMP 'mount-bbya-v11-publish.log'
+          $log=Join-Path $env:RUNNER_TEMP 'mount-bbya-v11-publish-clean.log'
           $status=if($env:PUBLISH_EXIT_CODE -eq '0'){'PUBLISHED_CANDIDATE'}else{'FAILED'}
           $lines=@(
             "status=$status",
