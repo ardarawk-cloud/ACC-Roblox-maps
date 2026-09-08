@@ -1,0 +1,10 @@
+status=PUBLISHED_CANDIDATE
+build=runtime-rebuild-v1.3
+sourceCommit=18553651fc8a84e49409cbfda9bb0456a7283739
+branch=mount-bbya-runtime-rebuild-v13
+universeId=4187755690
+placeId=11832985967
+architecture=lowland-first-upper-async
+runtimeVisualQC=PENDING
+publishExitCode=0
+log=MOUNT BBYA v1.3 publish success { versionNumber: 26 }
