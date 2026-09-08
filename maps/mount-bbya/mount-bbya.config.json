@@ -1,8 +1,14 @@
 {
   "project": "MOUNT BBYA",
-  "sourceVersion": "7.0.0-full-map-reset",
-  "architecture": "VISUALIZER_20CP_WITA",
-  "resetOrderedAt": "2026-09-08",
+  "status": "STOPPED_DO_NOT_TOUCH",
+  "stopOrderedAt": "2026-09-08",
+  "stopReason": "Owner rejected runtime result after QC evidence: checkpoints were too close and route geometry appeared floating/disconnected.",
+  "lastPublishedSnapshot": {
+    "build": "v7.0.0-full-map-reset",
+    "robloxVersion": 23,
+    "sourceCommit": "9d544c5e02c51119b60f3a55a49e0c22c99df18f",
+    "runtimeQC": "FAIL_REJECTED"
+  },
   "publishTarget": {
     "universeId": "4187755690",
     "placeId": "11832985967"
@@ -13,23 +19,12 @@
     "placeId": "82661754996018"
   },
   "phase": {
-    "scope": "FULL_MAP_SPAWN_TO_CP20",
-    "terrainFrozenAfterCore": false,
-    "cp2PlusAllowed": true,
-    "checkpointCount": 20,
-    "locationCount": 21,
-    "summitMDPL": 3142,
-    "lakeCheckpoint": 15
-  },
-  "systems": {
-    "spawnSafety": true,
-    "checkpointSave": true,
-    "dayNightWITA": true,
-    "summitPhotoSpot": true,
-    "mobilePerformance": true
+    "scope": "NONE_PROJECT_STOPPED",
+    "checkpointCount": 0,
+    "locationCount": 0
   },
   "publish": {
-    "enabled": true,
-    "reason": "Arda explicitly ordered the existing MOUNT BBYA map reset and replacement with the full 20-checkpoint visualizer project on 2026-09-08"
+    "enabled": false,
+    "reason": "Arda explicitly stopped MOUNT BBYA on 2026-09-08. No build, publish, patch, or continuation is authorized until an explicit reopen order."
   }
 }
