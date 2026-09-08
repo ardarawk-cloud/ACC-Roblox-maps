@@ -1,0 +1,19 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V133_MINI_MART_VISUAL_POLISH",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "735e7c22e36a4829b3b8838985c44cfc2774ba56",
+    "baseLiveCommit":  "2f120100924b2b855b156ba518176323e295225d",
+    "qcRunId":  "34217837315",
+    "qcArtifactId":  10052536825,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  58,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  202852,
+    "placeSha256":  "9f071694b5979a8e680405a0fc32471ff3813c829d45af337e327d1aaeef2bb3",
+    "runId":  "34234163427",
+    "publishedAt":  "2026-09-08T13:48:00Z",
+    "note":  "Exact V1.3.3 Mini Mart visual product-display polish QC artifact published without rebuild. Four collectible products now use shaped physical displays and SurfaceGui price plates. Purchase, server-authoritative Inventory, DataStore ASC_PlayerProfile_v1 schema 2, BAG, and V1.3.2 music authority are preserved."
+}
