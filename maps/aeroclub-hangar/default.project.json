@@ -10,6 +10,9 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
+      "VisibleFailsafeV1": {
+        "$path": "server/failsafe-visible-hangar.server.lua"
+      },
       "SpawnSafetyV1": {
         "$path": "server/spawn-safety.server.lua"
       },
