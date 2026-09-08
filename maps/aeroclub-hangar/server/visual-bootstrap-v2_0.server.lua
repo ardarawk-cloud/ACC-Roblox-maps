@@ -1,6 +1,7 @@
 -- HANGAR — ENVIRONMENT REALISM REBUILD v2.1
 -- Runtime QC correction: solid collision for real scene objects, remove non-GDD service clutter,
--- and make the AFK baggage zone readable. WITA remains separate. No gameplay/UI/monetization/lasers.
+-- align walk surfaces to visible mesh tops, and keep floating QC billboards removed.
+-- WITA remains separate. No gameplay/UI/monetization/lasers.
 
 local InsertService = game:GetService("InsertService")
 local Lighting = game:GetService("Lighting")
@@ -20,6 +21,7 @@ Workspace:SetAttribute("HangarLaserQC", "DISABLED_REALISM_PASS")
 Workspace:SetAttribute("HangarCollisionAuthority", "V2_1_SOLID_SCENE_OBJECTS")
 Workspace:SetAttribute("HangarNonGDDClutter", "SERVICE_EQUIPMENT_HIDDEN")
 Workspace:SetAttribute("HangarZoneSignage", "FLOATING_QC_BILLBOARDS_REMOVED")
+Workspace:SetAttribute("HangarWalkSurfaceAlignment", "VISUAL_MESH_TOPS")
 
 local function ensureFolder(parent, name)
     local found = parent:FindFirstChild(name)
@@ -104,8 +106,9 @@ local function safetyFloor(name, size, cf)
     p.Size = size
     p.CFrame = cf
 end
-safetyFloor("HangarBootFloorIndoor", Vector3.new(420, 2, 380), CFrame.new(0, -1, 0))
-safetyFloor("HangarBootFloorOutdoor", Vector3.new(440, 2, 220), CFrame.new(0, -1, 285))
+-- Match the visible imported floor tops: indoor +0.40, outdoor +0.30.
+safetyFloor("HangarBootFloorIndoor", Vector3.new(420, 2, 380), CFrame.new(0, -0.60, 0))
+safetyFloor("HangarBootFloorOutdoor", Vector3.new(440, 2, 220), CFrame.new(0, -0.70, 285))
 
 local ok, loaded = pcall(InsertService.LoadAsset, InsertService, MODEL_ASSET_ID)
 if not ok or not loaded then
@@ -176,7 +179,6 @@ for _, d in ipairs(loaded:GetDescendants()) do
             d.Color = s[2]
         end
         if d.Name == "ServiceEquipmentMesh" then
-            -- Not in the locked GDD; remove this ambiguous crate/cart clutter from the scene.
             d.Transparency = 1
             d.CanCollide = false
             d.CanQuery = false
@@ -236,9 +238,10 @@ local function collider(name, size3, cf)
     p.Parent = collisions
 end
 
--- Architecture/floor collision.
-collider("HangarFloor", Vector3.new(410,3,370), CFrame.new(0,-1.5,0))
-collider("OutdoorFloor", Vector3.new(438,3,215), CFrame.new(0,-1.5,285))
+-- Walk surfaces use the exact authored visible top heights after GLB import.
+collider("HangarFloor", Vector3.new(410,3,370), CFrame.new(0,-1.10,0)) -- top +0.40
+collider("OutdoorFloor", Vector3.new(438,3,215), CFrame.new(0,-1.20,285)) -- top +0.30
+collider("DanceFloorWalkSurface", Vector3.new(156,1,100), CFrame.new(0,0.275,20)) -- top +0.775
 collider("LeftWall", Vector3.new(6,105,380), CFrame.new(-210,52,0))
 collider("RightWall", Vector3.new(6,105,380), CFrame.new(210,52,0))
 collider("BackWall", Vector3.new(420,105,6), CFrame.new(0,52,-190))
@@ -246,7 +249,7 @@ collider("JetVIPFloor", Vector3.new(12,1,42), CFrame.new(0,9,-74))
 collider("JetLeftWingStage", Vector3.new(38,2,20), CFrame.new(-39,11,-69))
 collider("JetRightWingStage", Vector3.new(38,2,20), CFrame.new(39,11,-69))
 
--- Guaranteed physical proxies for the objects the owner reported walking through.
+-- Guaranteed physical proxies for scene objects that must not be walk-through.
 -- Imported GLB mirrors authored Z, therefore authored -270/-70/-162 become +270/+70/+162 in runtime.
 collider("ClassicCarLeftAProxy", Vector3.new(15,7,32), CFrame.new(-132,3.5,270))
 collider("ClassicCarLeftBProxy", Vector3.new(15,7,32), CFrame.new(-92,3.5,270))
@@ -259,8 +262,7 @@ collider("BronzePedestalProxy", Vector3.new(15,9,15), CFrame.new(30,4.5,162))
 collider("DonorGateLeftPillarProxy", Vector3.new(10,56,10), CFrame.new(-92,28,186))
 collider("DonorGateRightPillarProxy", Vector3.new(10,56,10), CFrame.new(92,28,186))
 
--- Temporary floating QC labels were removed after owner visual review.
--- Final signage will be authored as part of the environment art, not screen-facing BillboardGui.
+-- Floating QC labels remain removed. Final signage belongs to authored environment art.
 
 local lights = Instance.new("Folder")
 lights.Name = "HangarPhase2Lights"
@@ -304,4 +306,4 @@ Workspace:SetAttribute("HangarSolidMeshCount", solidMeshCount)
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
 Workspace:SetAttribute("HangarSpawnSequence", "OUTDOOR_APRON_TO_OPEN_GATE_TO_DANCE_TO_JET")
 Workspace:SetAttribute("HangarEnvironmentDetail", "V2_1_SOLID_COLLISION_GDD_ZONES")
-print("[HANGAR V2.1] REALISM + SOLID COLLISION READY", MODEL_ASSET_ID, meshCount, solidMeshCount, size, boxCF.Position)
+print("[HANGAR V2.1] REALISM + SOLID COLLISION + WALK SURFACE ALIGNMENT READY", MODEL_ASSET_ID, meshCount, solidMeshCount, size, boxCF.Position)
