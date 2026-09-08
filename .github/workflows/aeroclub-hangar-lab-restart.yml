@@ -1,0 +1,44 @@
+name: AeroClub Hangar LAB Restart
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/aeroclub-hangar-lab-restart.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LAB_UNIVERSE_ID: '10762005984'
+  LIVE_UNIVERSE_ID: '10745364913'
+
+jobs:
+  restart-test-lab:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 10
+    steps:
+      - name: Hard block LIVE universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:LAB_UNIVERSE_ID -eq $env:LIVE_UNIVERSE_ID){throw 'LAB universe equals LIVE universe'}
+          Write-Host "AEROCLUB_RESTART_TARGET_PASS lab=$env:LAB_UNIVERSE_ID"
+
+      - name: Restart TEST LAB servers only
+        shell: powershell
+        env:
+          ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_KEY)){throw 'Roblox Open Cloud key missing'}
+          $url="https://apis.roblox.com/cloud/v2/universes/$env:LAB_UNIVERSE_ID`:restartServers"
+          try {
+            $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body '{}'
+            if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Restart HTTP $($resp.StatusCode)"}
+            Write-Host "AEROCLUB_TEST_LAB_RESTART_PASS status=$($resp.StatusCode)"
+          } catch {
+            Write-Host "AEROCLUB_TEST_LAB_RESTART_FAILED $($_.Exception.Message)"
+            throw
+          }
