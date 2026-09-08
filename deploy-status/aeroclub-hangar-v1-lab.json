@@ -1,0 +1,32 @@
+{
+    "status":  "LAB_PUBLISHED",
+    "ok":  true,
+    "liveUntouched":  true,
+    "branch":  "aeroclub-hangar-rebuild-v1-lab",
+    "sourceCommit":  "d2b07b5cd11f1e5cb0bd40cbaaff3b59b4cdfab4",
+    "universeId":  "10762005984",
+    "placeId":  "124607344716828",
+    "mode":  "AEROCLUB_RESET_FULL_MESH_V1_LAB",
+    "staticModelAssetId":  138364957741127,
+    "modelModeration":  "Approved",
+    "robloxVersion":  116,
+    "glbBytes":  569140,
+    "glbSha256":  "26448484815cbf06fcd40b07f486ef5aa10ac23b6a9c824d662c146b5f6973e5",
+    "placeBytes":  31483,
+    "placeSha256":  "2ecd9a8be6abd3c0cc13b872d8499d802d86e8ad00d17a0ae2e71cc8eaaf0b16",
+    "publishRun":  34199797252,
+    "visualQC":  "PENDING_SCREENSHOT",
+    "requiredQC":  [
+                       "HANGAR_SCALE",
+                       "PARTIAL_OPEN_DOOR",
+                       "POLISHED_CONCRETE",
+                       "CENTRAL_JET",
+                       "JET_WING_DJ_AND_LEAD_STAGE",
+                       "OUTDOOR_CAR_ZONES",
+                       "AFK_BAGGAGE_ZONE",
+                       "PHOTOBOOTHS",
+                       "DONOR_GATE",
+                       "NO_LEGACY_HANGAR_ARTIFACTS",
+                       "MOBILE_UI_NOT_BLOCKING"
+                   ]
+}
