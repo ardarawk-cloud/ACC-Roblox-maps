@@ -22,6 +22,7 @@ env:
   LIVE_UNIVERSE_ID: '10745364913'
   LIVE_PLACE_ID: '76001567401911'
   BRANCH_LOCK: 'aeroclub-hangar-rebuild-v1-lab'
+  LIVE_CREATOR_USERNAME_FALLBACK: 'RidhooMauKamu'
 
 jobs:
   build-upload-publish-live:
@@ -81,19 +82,24 @@ jobs:
           $id=[string]$creator.id
           $source='universe.creator.id'
 
-          # This legacy HANGAR universe reports User id=0. Resolve its exact username to a real UserId.
+          # Legacy HANGAR metadata masks creator as id=0/name=[UNKNOWN]. Owner-visible experience card identifies the creator username.
+          if($type -ieq 'User' -and ($name -eq '[UNKNOWN]' -or [string]::IsNullOrWhiteSpace($name))){
+            $name=$env:LIVE_CREATOR_USERNAME_FALLBACK
+            $source='ownerVerifiedCreatorUsername'
+          }
+
           if(($id -notmatch '^\d+$' -or [int64]$id -le 0) -and $type -ieq 'User' -and -not [string]::IsNullOrWhiteSpace($name)){
             $lookupBody=@{usernames=@($name);excludeBannedUsers=$false}|ConvertTo-Json -Depth 4 -Compress
             $lookup=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $lookupBody
             if($lookup.data -and $lookup.data.Count -gt 0){
               $exact=$lookup.data|Where-Object{[string]$_.name -ieq $name}|Select-Object -First 1
-              if(-not $exact){$exact=$lookup.data[0]}
+              if(-not $exact){throw "Username lookup returned no exact match for $name"}
               $id=[string]$exact.id
-              $source='users.usernameLookup'
+              $source='ownerUsername->users.usernameLookup'
             }
           }
 
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id. creator=$($creator|ConvertTo-Json -Compress -Depth 5)"}
+          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id. creator=$($creator|ConvertTo-Json -Compress -Depth 5) fallbackName=$name"}
           if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported LIVE creator type '$type' id=$id source=$source"}
 
           "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
