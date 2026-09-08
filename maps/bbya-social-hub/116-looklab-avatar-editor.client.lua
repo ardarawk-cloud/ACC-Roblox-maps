@@ -1,6 +1,5 @@
--- BBYA SOCIAL HUB — LOOK LAB AVATAR EDITOR CLIENT v3
--- Roblox-native catalog reliability: SearchCatalogAsync first, one bounded retry,
--- legacy method only as compatibility fallback, and no unnecessary inventory-read gate.
+-- BBYA SOCIAL HUB — LOOK LAB AVATAR EDITOR CLIENT v4
+-- Roblox-native catalog reliability + explicit seat-release exit.
 -- No fabricated catalog items are ever shown.
 
 local Players=game:GetService("Players")
@@ -143,10 +142,24 @@ end
 searchBtn.MouseButton1Click:Connect(runSearch)
 searchBox.FocusLost:Connect(function(enter)if enter then runSearch() end end)
 
-local function closePanel()visibleSession=false;panel.Visible=false;dim.Visible=false;searching=false end
-local function openPanel()visibleSession=true;panel.Visible=true;dim.Visible=true;lastSeatedAt=os.clock();task.defer(runSearch)end
-close.MouseButton1Click:Connect(closePanel)
-doneBtn.MouseButton1Click:Connect(function()local hum=player.Character and player.Character:FindFirstChildOfClass("Humanoid");if hum then hum.Sit=false end;closePanel()end)
+local function releaseLookSeat()
+ local hum=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if not hum then return end
+ local seat=hum.SeatPart
+ if seat and tostring(seat.Name):match("^LookLabSeat") then
+  hum.Sit=false
+  pcall(function()hum:ChangeState(Enum.HumanoidStateType.GettingUp)end)
+ end
+end
+local function closePanel(releaseSeat)
+ visibleSession=false;panel.Visible=false;dim.Visible=false;searching=false;player:SetAttribute("BBYALookLabFocusMode",false)
+ if releaseSeat then task.defer(releaseLookSeat) end
+end
+local function openPanel()
+ visibleSession=true;panel.Visible=true;dim.Visible=true;lastSeatedAt=os.clock();holder.CanvasPosition=Vector2.zero;player:SetAttribute("BBYALookLabFocusMode",true);task.defer(runSearch)
+end
+close.MouseButton1Click:Connect(function()closePanel(true)end)
+doneBtn.MouseButton1Click:Connect(function()closePanel(true)end)
 resetBtn.MouseButton1Click:Connect(function()setStatus("Resetting avatar…",C.gold);remote:FireServer("reset")end)
 saveBtn.MouseButton1Click:Connect(function()
  local hum=player.Character and player.Character:FindFirstChildOfClass("Humanoid");if not hum then return end
@@ -175,7 +188,7 @@ RunService.Heartbeat:Connect(function(dt)
  if not visibleSession then return end
  acc+=dt;if acc<.20 then return end;acc=0
  local hum=player.Character and player.Character:FindFirstChildOfClass("Humanoid");local seat=hum and hum.SeatPart
- if seat and tostring(seat.Name):match("^LookLabSeat") then lastSeatedAt=os.clock() elseif os.clock()-lastSeatedAt>1.25 then closePanel() end
+ if seat and tostring(seat.Name):match("^LookLabSeat") then lastSeatedAt=os.clock() elseif os.clock()-lastSeatedAt>1.25 then closePanel(false) end
 end)
-player.CharacterAdded:Connect(function()closePanel()end)
-print("[BBYA] Look Lab Avatar Editor client v3 online: direct Roblox catalog search + bounded retry + no fabricated fallback")
+player.CharacterAdded:Connect(function()closePanel(false)end)
+print("[BBYA] Look Lab Avatar Editor client v4 online: direct Roblox catalog + clean seat-release exit")
