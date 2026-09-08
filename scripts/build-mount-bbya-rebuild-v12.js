@@ -143,6 +143,7 @@ const out=path.join(root,target.file);fs.mkdirSync(path.dirname(out),{recursive:
 const bytes=fs.statSync(out).size;if(bytes<22000) throw new Error(`Generated place too small: ${bytes}`);
 const check=fs.readFileSync(out,'utf8');
 for(const marker of ['MOUNT_BBYA_V12_Bootstrap','MOUNT_BBYA_V12_World','MOUNT_BBYA_V12_Release','MOUNT_BBYA_V12_QC','MOUNT_BBYA_V12_MobileCamera','mobile-control-hotfix-v1.2','CharacterAutoLoads=true']) if(!check.includes(marker)) throw new Error(`RBXLX marker missing: ${marker}`);
-if(check.includes("Players.CharacterAutoLoads=false")) throw new Error('v1.2 must never disable CharacterAutoLoads');
+const disabledAutoloadMarker='Players.CharacterAutoLoads='+'false';
+if(check.includes(disabledAutoloadMarker)) throw new Error('v1.2 must never disable CharacterAutoLoads');
 if(check.includes('ACC_MountainSocial')) throw new Error('Legacy Mountain Social marker found in generated place');
 console.log(`[MOUNT BBYA] v1.2 RBXLX generated path=${target.file} bytes=${bytes}`);
