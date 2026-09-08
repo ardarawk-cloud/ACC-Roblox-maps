@@ -36,6 +36,35 @@ world = world.replace(
 if (world.includes('Lighting.Technology=Enum.Technology.Future')) {
   throw new Error('Runtime Lighting.Technology assignment was not neutralized');
 }
+
+// v7.0 night patch: keep realtime WITA, add a visible natural moon and stars.
+// The patch is applied at build time so the authoritative world source stays compatible
+// with the locked v7.0 config while the published RBXLX gets the night upgrade.
+const colorAnchor = 'local color=Instance.new("ColorCorrectionEffect");color.Name="MOUNT_BBYA_COLOR";color.Saturation=.04;color.Contrast=.06;color.Parent=Lighting';
+const colorMoonPatch = `${colorAnchor}\nlocal sky=Lighting:FindFirstChildOfClass("Sky")\nif not sky then sky=Instance.new("Sky");sky.Name="MOUNT_BBYA_SKY";sky.Parent=Lighting end\nsky.CelestialBodiesShown=true\nsky.MoonAngularSize=14\nsky.MoonTextureId="rbxasset://sky/moon.jpg"\nsky.SunAngularSize=11\nsky.SunTextureId="rbxasset://sky/sun.jpg"\nsky.StarCount=3000\nroot:SetAttribute("NightMoonPatch","v7.0.1-moon")`;
+world = world.replace(colorAnchor, colorMoonPatch);
+if (!world.includes('NightMoonPatch","v7.0.1-moon')) {
+  throw new Error('Moon sky patch injection failed');
+}
+
+// Reset brightness each WITA update, then make the night branch readable by moonlight
+// without turning mountain night into daytime.
+const witaAnchor = 'local function wita()\n local utc=os.date("!*t")';
+world = world.replace(
+  witaAnchor,
+  'local function wita()\n Lighting.Brightness=2.2;Lighting.ExposureCompensation=0;Lighting.ColorShift_Top=Color3.new(0,0,0);Lighting.ColorShift_Bottom=Color3.new(0,0,0)\n local utc=os.date("!*t")'
+);
+if (!world.includes('Lighting.ExposureCompensation=0')) {
+  throw new Error('WITA brightness reset patch injection failed');
+}
+
+const oldNight = 'else Lighting.Ambient=Color3.fromRGB(35,45,65);Lighting.OutdoorAmbient=Color3.fromRGB(42,52,72);atmos.Color=Color3.fromRGB(73,95,124);atmos.Decay=Color3.fromRGB(28,35,54);atmos.Density=.34 end';
+const newNight = 'else Lighting.Brightness=1.75;Lighting.ExposureCompensation=.16;Lighting.ColorShift_Top=Color3.fromRGB(15,24,45);Lighting.ColorShift_Bottom=Color3.fromRGB(5,9,18);Lighting.Ambient=Color3.fromRGB(52,64,88);Lighting.OutdoorAmbient=Color3.fromRGB(65,78,104);atmos.Color=Color3.fromRGB(82,105,137);atmos.Decay=Color3.fromRGB(30,39,59);atmos.Density=.28 end';
+world = world.replace(oldNight, newNight);
+if (!world.includes('Lighting.ExposureCompensation=.16')) {
+  throw new Error('Night moonlight visibility patch injection failed');
+}
+
 world = escapeCdata(world);
 
 const bootstrap = escapeCdata(`
@@ -117,13 +146,14 @@ task.delay(25,function()
   and root:GetAttribute('SummitMDPL')==3142
   and root:GetAttribute('WITARealtime')==true
   and root:GetAttribute('LakeCheckpoint')==15
+  and root:GetAttribute('NightMoonPatch')=='v7.0.1-moon'
   and cps~=nil and cps:FindFirstChild('SpawnDesa')~=nil and cps:FindFirstChild('CP20')~=nil
   and summit~=nil and summit:FindFirstChild('SummitPhotoSpot_3142MDPL')~=nil
   and village~=nil and village:FindFirstChild('MOUNT_BBYA_SPAWN')~=nil
   and workspace:GetAttribute('MOUNT_BBYA_V70_GATE')=='READY'
  workspace:SetAttribute('MOUNT_BBYA_V70_RUNTIME_QC',ok)
- workspace:SetAttribute('MOUNT_BBYA_BUILD','v7.0.0-full-map-reset')
- if ok then print('[MOUNT BBYA] v7.0 runtime structural QC PASS') else warn('[MOUNT BBYA] v7.0 runtime structural QC FAIL') end
+ workspace:SetAttribute('MOUNT_BBYA_BUILD','v7.0.0-full-map-reset+moon-v7.0.1')
+ if ok then print('[MOUNT BBYA] v7.0 + moon runtime structural QC PASS') else warn('[MOUNT BBYA] v7.0 + moon runtime structural QC FAIL') end
 end)
 `);
 
@@ -131,7 +161,7 @@ const scriptItem = (ref,name,src) => `<Item class="Script" referent="${ref}"><Pr
 
 const workspaceXml = `<Item class="Workspace" referent="W"><Properties><string name="Name">Workspace</string></Properties>
 <Item class="Part" referent="EB"><Properties><bool name="Anchored">true</bool><bool name="CanCollide">true</bool><CoordinateFrame name="CFrame"><X>0</X><Y>120</Y><Z>1750</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame><string name="Name">MOUNT_BBYA_EMERGENCY_BASE</string><Vector3 name="Size"><X>180</X><Y>8</Y><Z>180</Z></Vector3></Properties></Item>
-<Item class="SpawnLocation" referent="ES"><Properties><bool name="Anchored">true</bool><bool name="CanCollide">true</bool><bool name="Enabled">true</bool><CoordinateFrame name="CFrame"><X>0</X><Y>125</Y><Z>1750</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame><int name="Duration">0</int><string name="Name">MOUNT_BBYA_EMERGENCY_SPAWN</string><bool name="Neutral">true</bool><Vector3 name="Size"><X>16</X><Y>1</Y><Z>16</Z></Vector3></Properties></Item>
+<Item class="SpawnLocation" referent="ES"><Properties><bool name="Anchored">true</bool><bool name="CanCollide">true</bool><bool name="Enabled">true</bool><CoordinateFrame name="CFrame"><X>0</X><Y>125</Y><Z>1750</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame><int name="Duration">0</int><string name="Name">MOUNT_BBYA_EMERGENCY_SPAWN</string><bool name="Neutral">true</bool><Vector3 name="Size"><X>16</X><Y>1</Y><Z>16</Z></Vector3><float name="Transparency">0</float></Properties></Item>
 </Item>`;
 
 const scripts = [
@@ -146,4 +176,4 @@ const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="
 const outPath = path.join(root,target.file);
 fs.mkdirSync(path.dirname(outPath),{recursive:true});
 fs.writeFileSync(outPath,xml);
-console.log('[MOUNT BBYA] v7.0 RBXLX built',target.file,'bytes',Buffer.byteLength(xml));
+console.log('[MOUNT BBYA] v7.0 + moon RBXLX built',target.file,'bytes',Buffer.byteLength(xml));
