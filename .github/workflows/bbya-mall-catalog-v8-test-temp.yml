@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
+      - 'maps/bbya-social-hub/32-teleport.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
       - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
       - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
@@ -18,6 +19,7 @@ on:
       - 'feat/bbya-mall-catalog-v8-reference-rebuild'
     paths:
       - '.github/workflows/bbya-mall-catalog-v8-test-temp.yml'
+      - 'maps/bbya-social-hub/32-teleport.server.lua'
       - 'maps/bbya-social-hub/95-mall-live.client.lua'
       - 'maps/bbya-social-hub/97-mall-safe-security-override.server.lua'
       - 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua'
@@ -63,6 +65,10 @@ jobs:
           foreach($bad in @('GetService("Lighting")','SoundId','.Volume =')){
             if($a.Contains($bad)){throw "Forbidden Mall UI marker: $bad"}
           }
+          $travel=Get-Content 'maps/bbya-social-hub/32-teleport.server.lua' -Raw
+          foreach($m in @('TRAVEL / ONE-TIME ACCESS v10','resolveGlowDestination','Tenant_glow','PointToWorldSpace','LookLab=CFrame.new(61,24,361)','Photo=CFrame.new(78,24,369)','HumanoidStateType.GettingUp')){
+            if(-not $travel.Contains($m)){throw "Missing Mall travel marker: $m"}
+          }
           $look=Get-Content 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua' -Raw
           foreach($m in @('LOOK LAB AVATAR EDITOR CLIENT v4','releaseLookSeat','BBYALookLabFocusMode')){
             if(-not $look.Contains($m)){throw "Missing Look Lab exit marker: $m"}
@@ -84,7 +90,7 @@ jobs:
             if(-not $g.Contains($m)){throw "Missing decor alignment marker: $m"}
           }
           if($g.Contains('d.Name=="LowerLanding" or d.Name=="UpperLanding"')){throw 'Late stair exit-landing patch still present'}
-          Write-Host 'BBYA_MALL_TEST_STATIC_QC_PASS catalog=V13 looklab=prompt-only studioLights=in-bounds floorLevels=1,21,41,61 spacing=20'
+          Write-Host 'BBYA_MALL_TEST_STATIC_QC_PASS catalog=V13 travel=dynamic-glow-floor looklab=prompt-only studioLights=in-bounds floorLevels=1,21,41,61 spacing=20'
 
       - name: Enable third party sales in test build only
         shell: powershell
