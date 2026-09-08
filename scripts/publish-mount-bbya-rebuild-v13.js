@@ -1,0 +1,12 @@
+const fs=require('fs');
+const path=require('path');
+const apiKey=process.env.ROBLOX_API_KEY;if(!apiKey) throw new Error('Missing ROBLOX_API_KEY');
+const registry=JSON.parse(fs.readFileSync(path.join(process.cwd(),'maps/registry.json'),'utf8'));
+const target=registry.maps?.['mount-bbya'];if(!target) throw new Error('mount-bbya registry target missing');
+if(String(target.universeId)!=='4187755690'||String(target.placeId)!=='11832985967') throw new Error('MOUNT BBYA target lock mismatch');
+if(String(target.universeId)==='10744139279'||String(target.placeId)==='82661754996018') throw new Error('FORBIDDEN Mountain Social target');
+const place=path.join(process.cwd(),target.file);if(!fs.existsSync(place)) throw new Error(`place missing ${target.file}`);
+const body=fs.readFileSync(place);for(const m of ['MOUNT_BBYA_V13_World','runtime-rebuild-v1.3']) if(!body.includes(Buffer.from(m))) throw new Error(`place marker missing ${m}`);
+if(body.includes(Buffer.from('ACC_MountainSocial'))) throw new Error('legacy marker detected');
+const url=`https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
+(async()=>{const r=await fetch(url,{method:'POST',headers:{'x-api-key':apiKey,'Content-Type':'application/xml'},body});const text=await r.text();let payload;try{payload=JSON.parse(text)}catch{payload={raw:text}};if(!r.ok){console.error('MOUNT BBYA v1.3 publish failed',r.status,payload);process.exit(1)}console.log('MOUNT BBYA v1.3 publish success',payload)})();
