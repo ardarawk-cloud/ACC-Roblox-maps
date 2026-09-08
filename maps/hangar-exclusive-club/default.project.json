@@ -10,6 +10,9 @@
       "HangarClubServer": {
         "$path": "club.server.lua"
       },
+      "HangarLabVisualFirewallV10": {
+        "$path": "lab-visual-firewall-v10.server.lua"
+      },
       "HangarLabReferenceLockV10": {
         "$path": "lab-reference-lock-v10.server.lua"
       }
