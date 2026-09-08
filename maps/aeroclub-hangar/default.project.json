@@ -15,6 +15,9 @@
       },
       "HangarPhase2VisualPolishV1_4": {
         "$path": "server/visual-bootstrap-v1_4.server.lua"
+      },
+      "HangarRealtimeWITAV1": {
+        "$path": "server/wita-time.server.lua"
       }
     },
     "StarterPlayer": {
