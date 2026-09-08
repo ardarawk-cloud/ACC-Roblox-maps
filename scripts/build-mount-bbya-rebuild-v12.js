@@ -11,7 +11,7 @@ if (String(target.universeId) === '10744139279' || String(target.placeId) === '8
 const runtimePath='maps/mount-bbya/mount-bbya.rebuild-v1.1.server.lua';
 const runtimeAbs=path.join(root,runtimePath);
 if(!fs.existsSync(runtimeAbs)) throw new Error(`Runtime missing: ${runtimePath}`);
-const world=fs.readFileSync(runtimeAbs,'utf8');
+let world=fs.readFileSync(runtimeAbs,'utf8');
 for(const marker of ['MOUNT_BBYA_REBUILD_V11','visual-lock-rebuild-v1.1','FOUNDATION_CARVE_SUBGRADE_TRAIL','MOUNT_BBYA_READY','MinimumCheckpointSpacing']){
  if(!world.includes(marker)) throw new Error(`Runtime marker missing: ${marker}`);
 }
@@ -19,17 +19,40 @@ for(const forbidden of ['ACC_MountainSocial','10744139279','82661754996018']){
  if(world.includes(forbidden)) throw new Error(`Forbidden marker leaked into runtime: ${forbidden}`);
 }
 
+// Runtime failure found by physical mobile QC: giant Terrain FillBall operations can stall the
+// world script before village creation. Patch the embedded world to cheap, deterministic part masses.
+world = world.replace(
+ 'for _, name in ipairs({"Route","Village","Basecamp","Forest","Checkpoints","Valley","Cliff","HighCamp","Highland","Summit","Scenery"}) do',
+ 'for _, name in ipairs({"Route","Village","Basecamp","Forest","Checkpoints","Valley","Cliff","HighCamp","Highland","Summit","Scenery","GroundMass"}) do'
+);
+world = world.replace('groundParams.FilterDescendantsInstances={Terrain}','groundParams.FilterDescendantsInstances={Terrain,folders.GroundMass}');
+
+const terrainStart=world.indexOf('-- TERRAIN FIRST: broad mountain -> route carve -> guaranteed subgrade -> tread.');
+const trailFnStart=world.indexOf('local function trailWidth(i)',terrainStart);
+if(terrainStart<0||trailFnStart<0) throw new Error('Terrain patch markers missing');
+const fastFoundation=`-- TERRAIN FOUNDATION HOTFIX v1.3: no giant FillBall runtime work.\nTerrain:Clear()\nTerrain.WaterColor=Color3.fromRGB(55,105,112);Terrain.WaterTransparency=.25;Terrain.WaterWaveSize=.12;Terrain.WaterWaveSpeed=7\nroot:SetAttribute("RuntimeFoundationPatch","FAST_PART_MASS_V13")\n\n-- Three ground strips stay under Roblox Part size limits.\nfor _,g in ipairs({{0,-12,1380},{0,-12,0},{0,-12,-1380}}) do\n    mk("WorldGround",Vector3.new(1800,24,1380),CFrame.new(g[1],g[2],g[3]),Enum.Material.Grass,Color3.fromRGB(69,91,48),folders.GroundMass,true)\nend\n\n-- Overlapping ellipsoid masses follow the hiking elevation and make one continuous mountain.\nfor i=1,#route,3 do\n    local p=route[i]\n    local n=route[math.min(#route,i+1)]\n    local flat=Vector3.new(n.X-p.X,0,n.Z-p.Z)\n    local side=(flat.Magnitude>1) and Vector3.new(-flat.Z,0,flat.X).Unit or Vector3.new(1,0,0)\n    local h=math.clamp(110+p.Y*.50,120,600)\n    local w=math.clamp(520-p.Y*.16,300,520)\n    local d=math.clamp(500-p.Y*.08,330,500)\n    local high=p.Y>650\n    local mat=high and Enum.Material.Rock or Enum.Material.Grass\n    local col=high and color.stoneDark or Color3.fromRGB(63,91,48)\n    sphere("RidgeMass",Vector3.new(p.X,p.Y-h*.5-5,p.Z),Vector3.new(w,h,d),mat,col,folders.GroundMass,true)\n    if i%6==1 then\n        local fh=h*.72\n        sphere("FlankMassL",Vector3.new(p.X+side.X*w*.46,p.Y-fh*.5-18,p.Z+side.Z*w*.46),Vector3.new(w*.78,fh,d*.82),mat,col,folders.GroundMass,true)\n        sphere("FlankMassR",Vector3.new(p.X-side.X*w*.46,p.Y-fh*.5-18,p.Z-side.Z*w*.46),Vector3.new(w*.78,fh,d*.82),mat,col,folders.GroundMass,true)\n    end\nend\n\n-- Grounded arrival areas exist before any decorative village objects.\nmk("VillageGround",Vector3.new(680,18,430),CFrame.new(0,15,1510),Enum.Material.Grass,Color3.fromRGB(70,97,51),folders.GroundMass,true)\nmk("BasecampGround",Vector3.new(430,22,290),CFrame.new(-35,30,1190),Enum.Material.Grass,Color3.fromRGB(66,92,49),folders.GroundMass,true)\nroot:SetAttribute("FastFoundationReady",true)\n\n`;
+world=world.slice(0,terrainStart)+fastFoundation+world.slice(trailFnStart);
+
+const trailStart=world.indexOf('local trails={};local trailCount=0');
+const edgeStart=world.indexOf('for i=5,#route-2,2 do',trailStart);
+if(trailStart<0||edgeStart<0) throw new Error('Trail patch markers missing');
+const fastTrail=`local trails={};local trailCount=0\nfor i=1,#route-1 do\n    local a,b=route[i],route[i+1]\n    local w=trailWidth(i)\n    local material=i>=31 and Enum.Material.Slate or (i>=17 and Enum.Material.Mud or Enum.Material.Ground)\n    local col=i>=31 and color.stone or (i>=17 and color.mud or color.dirt)\n    local subMat=i>=31 and Enum.Material.Rock or Enum.Material.Ground\n    segment(string.format("Subgrade_%02d",i),a-Vector3.new(0,4.2,0),b-Vector3.new(0,4.2,0),w+11,8.8,subMat,i>=31 and color.stoneDark or Color3.fromRGB(88,76,58),folders.GroundMass,true)\n    local tread=segment(string.format("Trail_%02d",i),a+Vector3.new(0,.05,0),b+Vector3.new(0,.05,0),w,1.15,material,col,folders.Route,true)\n    if tread then tread:SetAttribute("RouteIndex",i);trails[i]=tread;trailCount+=1 end\nend\nroot:SetAttribute("TerrainArchitecture","PART_MASS_GROUNDED_TRAIL_V13")\nroot:SetAttribute("TrailFoundationReady",true)\n\n`;
+world=world.slice(0,trailStart)+fastTrail+world.slice(edgeStart);
+world=world.replace('root:SetAttribute("BuildVersion", BUILD)','root:SetAttribute("BuildVersion", BUILD)\nroot:SetAttribute("WrapperHotfix","mobile-control-plus-fast-foundation-v1.3")');
+if(!world.includes('FAST_PART_MASS_V13')||!world.includes('PART_MASS_GROUNDED_TRAIL_V13')) throw new Error('Fast foundation patch not embedded');
+
 const cdata=s=>s.replaceAll(']]>',']]]]><![CDATA[>');
 const serverItem=(ref,name,src)=>`<Item class="Script" referent="${ref}"><Properties><string name="Name">${name}</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(src)}]]></ProtectedString></Properties></Item>`;
 const clientItem=(ref,name,src)=>`<Item class="LocalScript" referent="${ref}"><Properties><string name="Name">${name}</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${cdata(src)}]]></ProtectedString></Properties></Item>`;
 
-// v1.2: NEVER disable CharacterAutoLoads. Mobile controls/camera must exist even while world is building.
+// Keep native mobile controls alive at all times.
 const bootstrap=`
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
 Players.CharacterAutoLoads=true
 Workspace:SetAttribute('MOUNT_BBYA_GATE','BUILDING')
 Workspace:SetAttribute('MOUNT_BBYA_BOOTSTRAP','mobile-control-hotfix-v1.2')
+Workspace:SetAttribute('MOUNT_BBYA_FOUNDATION_HOTFIX','fast-part-mass-v1.3')
 Workspace:SetAttribute('MOUNT_BBYA_CHARACTER_AUTOLOADS',true)
 local SAFE_CF=CFrame.new(0,75,1650)
 local base=Workspace:FindFirstChild('MOUNT_BBYA_EMERGENCY_BASE')
@@ -42,10 +65,7 @@ if not safeSpawn then
 end
 local function secure(plr,ch)
  local hrp=ch:FindFirstChild('HumanoidRootPart') or ch:WaitForChild('HumanoidRootPart',6)
- if not hrp then return end
- if Workspace:GetAttribute('MOUNT_BBYA_GATE')~='READY' then
-  ch:PivotTo(SAFE_CF);hrp.AssemblyLinearVelocity=Vector3.zero;hrp.AssemblyAngularVelocity=Vector3.zero
- end
+ if hrp and Workspace:GetAttribute('MOUNT_BBYA_GATE')~='READY' then ch:PivotTo(SAFE_CF);hrp.AssemblyLinearVelocity=Vector3.zero;hrp.AssemblyAngularVelocity=Vector3.zero end
 end
 local function bind(plr)
  plr.RespawnLocation=safeSpawn
@@ -55,23 +75,19 @@ end
 for _,plr in ipairs(Players:GetPlayers()) do bind(plr) end
 Players.PlayerAdded:Connect(bind)
 Workspace:SetAttribute('MOUNT_BBYA_BOOTSTRAP_OK',true)
-print('[MOUNT BBYA] v1.2 bootstrap ready; CharacterAutoLoads=true')
+print('[MOUNT BBYA] bootstrap ready; CharacterAutoLoads=true; fast foundation v1.3')
 `;
 
 const release=`
 local Players=game:GetService('Players')
 local Workspace=game:GetService('Workspace')
-local deadline=os.clock()+90
+local deadline=os.clock()+45
 local root,spawn
 repeat
  root=Workspace:FindFirstChild('MOUNT_BBYA_REBUILD_V11');spawn=root and root:FindFirstChild('MountBBYA_Spawn')
  if root and spawn and root:GetAttribute('RuntimeState')=='READY' and Workspace:GetAttribute('MOUNT_BBYA_READY')==true then break end
- if os.clock()>deadline then
-  Workspace:SetAttribute('MOUNT_BBYA_GATE','SAFE_PLAYABLE_TIMEOUT')
-  warn('[MOUNT BBYA] v1.2 world timeout; player remains controllable on emergency spawn')
-  return
- end
- task.wait(.25)
+ if os.clock()>deadline then Workspace:SetAttribute('MOUNT_BBYA_GATE','SAFE_PLAYABLE_TIMEOUT');warn('[MOUNT BBYA] world timeout; player remains controllable');return end
+ task.wait(.2)
 until false
 Workspace:SetAttribute('MOUNT_BBYA_GATE','READY')
 local function place(plr,ch)
@@ -86,12 +102,12 @@ local function bindReady(plr)
 end
 for _,plr in ipairs(Players:GetPlayers()) do bindReady(plr) end
 Players.PlayerAdded:Connect(bindReady)
-task.delay(5,function()
+task.delay(2,function()
  local s=Workspace:FindFirstChild('MOUNT_BBYA_EMERGENCY_SPAWN');if s then s:Destroy() end
  local b=Workspace:FindFirstChild('MOUNT_BBYA_EMERGENCY_BASE');if b then b:Destroy() end
 end)
 Workspace:SetAttribute('MOUNT_BBYA_RELEASE_OK',true)
-print('[MOUNT BBYA] v1.2 release ready')
+print('[MOUNT BBYA] release ready')
 `;
 
 const mobileCamera=`
@@ -109,29 +125,27 @@ local function attach(ch)
 end
 player.CharacterAdded:Connect(function(ch) task.wait(.15);attach(ch) end)
 if player.Character then task.spawn(attach,player.Character) end
--- Recovery guard: if Roblox starts with a nil/fixed subject, restore standard character camera.
 local elapsed=0
 RunService.RenderStepped:Connect(function(dt)
- elapsed+=dt
- if elapsed<1 then return end
- elapsed=0
+ elapsed+=dt;if elapsed<1 then return end;elapsed=0
  local ch=player.Character;local humanoid=ch and ch:FindFirstChildOfClass('Humanoid');camera=workspace.CurrentCamera or camera
- if camera and humanoid and (camera.CameraSubject~=humanoid or camera.CameraType~=Enum.CameraType.Custom) then
-  camera.CameraType=Enum.CameraType.Custom;camera.CameraSubject=humanoid
- end
+ if camera and humanoid and (camera.CameraSubject~=humanoid or camera.CameraType~=Enum.CameraType.Custom) then camera.CameraType=Enum.CameraType.Custom;camera.CameraSubject=humanoid end
 end)
 `;
 
 const qc=`
 local Workspace=game:GetService('Workspace')
-task.delay(15,function()
+task.delay(12,function()
  local r=Workspace:FindFirstChild('MOUNT_BBYA_REBUILD_V11')
  local structural=r~=nil and Workspace:GetAttribute('MOUNT_BBYA_READY')==true and r:GetAttribute('RuntimeState')=='READY'
+ local fast=r and r:GetAttribute('FastFoundationReady')==true and r:GetAttribute('TrailFoundationReady')==true and r:GetAttribute('TerrainArchitecture')=='PART_MASS_GROUNDED_TRAIL_V13'
  local controls=Workspace:GetAttribute('MOUNT_BBYA_CHARACTER_AUTOLOADS')==true and game:GetService('Players').CharacterAutoLoads==true
- Workspace:SetAttribute('MOUNT_BBYA_RUNTIME_QC',(structural and controls) and 'PASS_CANDIDATE_V12' or 'FAIL_V12')
+ Workspace:SetAttribute('MOUNT_BBYA_RUNTIME_QC',(structural and fast and controls) and 'PASS_CANDIDATE_V13' or 'FAIL_V13')
  Workspace:SetAttribute('MOUNT_BBYA_BUILD_WRAPPER','mobile-control-hotfix-v1.2')
- if not structural then warn('[MOUNT BBYA] v1.2 structural runtime not ready') end
- if not controls then warn('[MOUNT BBYA] v1.2 CharacterAutoLoads guard failed') end
+ Workspace:SetAttribute('MOUNT_BBYA_FOUNDATION_WRAPPER','fast-foundation-v1.3')
+ if not structural then warn('[MOUNT BBYA] structural runtime not ready') end
+ if not fast then warn('[MOUNT BBYA] fast foundation guard failed') end
+ if not controls then warn('[MOUNT BBYA] CharacterAutoLoads guard failed') end
 end)
 `;
 
@@ -142,8 +156,8 @@ const xml=`<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="ht
 const out=path.join(root,target.file);fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,xml);
 const bytes=fs.statSync(out).size;if(bytes<22000) throw new Error(`Generated place too small: ${bytes}`);
 const check=fs.readFileSync(out,'utf8');
-for(const marker of ['MOUNT_BBYA_V12_Bootstrap','MOUNT_BBYA_V12_World','MOUNT_BBYA_V12_Release','MOUNT_BBYA_V12_QC','MOUNT_BBYA_V12_MobileCamera','mobile-control-hotfix-v1.2','CharacterAutoLoads=true']) if(!check.includes(marker)) throw new Error(`RBXLX marker missing: ${marker}`);
+for(const marker of ['MOUNT_BBYA_V12_Bootstrap','MOUNT_BBYA_V12_World','MOUNT_BBYA_V12_Release','MOUNT_BBYA_V12_QC','MOUNT_BBYA_V12_MobileCamera','mobile-control-hotfix-v1.2','CharacterAutoLoads=true','FAST_PART_MASS_V13','PART_MASS_GROUNDED_TRAIL_V13']) if(!check.includes(marker)) throw new Error(`RBXLX marker missing: ${marker}`);
 const disabledAutoloadMarker='Players.CharacterAutoLoads='+'false';
-if(check.includes(disabledAutoloadMarker)) throw new Error('v1.2 must never disable CharacterAutoLoads');
+if(check.includes(disabledAutoloadMarker)) throw new Error('must never disable CharacterAutoLoads');
 if(check.includes('ACC_MountainSocial')) throw new Error('Legacy Mountain Social marker found in generated place');
-console.log(`[MOUNT BBYA] v1.2 RBXLX generated path=${target.file} bytes=${bytes}`);
+console.log(`[MOUNT BBYA] mobile + fast foundation RBXLX generated path=${target.file} bytes=${bytes}`);
