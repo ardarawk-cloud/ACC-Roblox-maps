@@ -1,13 +1,16 @@
 {
   "project": "MOUNT BBYA",
-  "status": "STOPPED_DO_NOT_TOUCH",
-  "stopOrderedAt": "2026-09-08",
-  "stopReason": "Owner rejected runtime result after QC evidence: checkpoints were too close and route geometry appeared floating/disconnected.",
-  "lastPublishedSnapshot": {
+  "status": "ACTIVE_REBUILD_VISUAL_LOCK",
+  "reopenedAt": "2026-09-08",
+  "reopenAuthority": "Arda explicit instruction: Ok lock.. Gas bikin jng mengecewakan",
+  "activeBuild": "visual-lock-rebuild-v1.1",
+  "activeBranch": "mount-bbya-rebuild-visual-lock-v1",
+  "visualLock": "Desa/Spawn -> Basecamp -> Hutan Tropis -> Pos 1 -> Lembah & Sungai -> Pos 2 -> Jalur Tebing -> Pos 3/High Camp -> Pegunungan Tinggi -> Jalur Summit -> Puncak",
+  "lastRejectedSnapshot": {
     "build": "v7.0.0-full-map-reset",
     "robloxVersion": 23,
     "sourceCommit": "9d544c5e02c51119b60f3a55a49e0c22c99df18f",
-    "runtimeQC": "FAIL_REJECTED"
+    "runtimeQC": "FAIL_REJECTED_NON_CONTINUATION"
   },
   "publishTarget": {
     "universeId": "4187755690",
@@ -16,15 +19,19 @@
   "forbiddenTarget": {
     "project": "Mountain Social",
     "universeId": "10744139279",
-    "placeId": "82661754996018"
+    "placeId": "82661754996018",
+    "policy": "DO_NOT_TOUCH"
   },
-  "phase": {
-    "scope": "NONE_PROJECT_STOPPED",
-    "checkpointCount": 0,
-    "locationCount": 0
+  "scope": {
+    "routeZones": 11,
+    "checkpointCount": 4,
+    "routeTargetStuds": 7000,
+    "groundingRule": "FOUNDATION_CARVE_SUBGRADE_TRAIL",
+    "physicalRuntimeQC": "PENDING"
   },
   "publish": {
-    "enabled": false,
-    "reason": "Arda explicitly stopped MOUNT BBYA on 2026-09-08. No build, publish, patch, or continuation is authorized until an explicit reopen order."
+    "enabled": true,
+    "mode": "ISOLATED_REBUILD_CANDIDATE",
+    "rule": "Publish only to MOUNT BBYA target; never infer runtime visual PASS from publish success."
   }
 }
