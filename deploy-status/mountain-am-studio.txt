@@ -1,11 +1,11 @@
 status=PUBLISHED
 secret=AM_STUDIO
 build=v7.0.0-full-map-reset
-sourceCommit=65490802a2c85e5cb35880cedc4a8757a2e439ab
+sourceCommit=9d544c5e02c51119b60f3a55a49e0c22c99df18f
 universeId=4187755690
 placeId=11832985967
 scope=SPAWN_CP1_CP20
 summitMDPL=3142
 wita=UTC+8
 exitCode=0
-log=MOUNT BBYA v7.0 publish success {"versionNumber":22}
+log=MOUNT BBYA v7.0 publish success {"versionNumber":23}
