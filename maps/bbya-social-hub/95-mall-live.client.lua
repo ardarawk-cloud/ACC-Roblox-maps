@@ -1,5 +1,6 @@
--- BBYA SOCIAL HUB — MALL LIVE CLIENT v3 / COMPACT HUD v7
--- Screenshot-driven mobile cleanup: centered compact Mall status instead of a large right-side card.
+-- BBYA SOCIAL HUB — MALL LIVE CLIENT v3 / COMPACT HUD v8
+-- Mall HUD only. Catalog preview camera is owned exclusively by 133-mall-robux-commerce.client.lua.
+-- HUD yields to Mall Catalog and BBYA Look Lab so large UI never overlaps.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -30,23 +31,12 @@ local C={
 local function corner(o,r)local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=o end
 local function stroke(o,c,t,tr)local s=Instance.new("UIStroke");s.Color=c or C.line;s.Thickness=t or 1;s.Transparency=tr or .55;s.Parent=o end
 local function label(parent,name,text,pos,size,font,ts,color,align)
- local l=Instance.new("TextLabel")
- l.Name=name;l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham
- l.TextSize=ts or 10;l.TextColor3=color or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left
- l.TextWrapped=true;l.Parent=parent;return l
+ local l=Instance.new("TextLabel");l.Name=name;l.BackgroundTransparency=1;l.Text=text;l.Position=pos;l.Size=size;l.Font=font or Enum.Font.Gotham;l.TextSize=ts or 10;l.TextColor3=color or C.white;l.TextXAlignment=align or Enum.TextXAlignment.Left;l.TextWrapped=true;l.Parent=parent;return l
 end
 
 local hud=Instance.new("Frame")
-hud.Name="MallHUD"
-hud.AnchorPoint=Vector2.new(.5,0)
-hud.Position=UDim2.new(.5,0,0,52)
-hud.Size=UDim2.fromOffset(330,60)
-hud.BackgroundColor3=C.bg
-hud.BackgroundTransparency=.08
-hud.BorderSizePixel=0
-hud.Visible=false
-hud.Parent=gui
-corner(hud,12);stroke(hud,C.gold,1,.48)
+hud.Name="MallHUD";hud.AnchorPoint=Vector2.new(.5,0);hud.Position=UDim2.new(.5,0,0,52);hud.Size=UDim2.fromOffset(330,60)
+hud.BackgroundColor3=C.bg;hud.BackgroundTransparency=.08;hud.BorderSizePixel=0;hud.Visible=false;hud.Parent=gui;corner(hud,12);stroke(hud,C.gold,1,.48)
 
 local brand=label(hud,"Brand","BBYA MALL",UDim2.fromOffset(14,8),UDim2.fromOffset(88,18),Enum.Font.GothamBlack,11,C.white)
 local location=label(hud,"Location","L1 • ARRIVAL",UDim2.fromOffset(102,8),UDim2.new(1,-116,0,18),Enum.Font.GothamBold,9,C.gold,Enum.TextXAlignment.Right)
@@ -56,151 +46,70 @@ local passportMeta=label(hud,"PassportMeta","0 / 5",UDim2.new(1,-58,0,27),UDim2.
 local pips=Instance.new("Frame")
 pips.Name="PassportPips";pips.Position=UDim2.fromOffset(14,45);pips.Size=UDim2.new(1,-28,0,7);pips.BackgroundTransparency=1;pips.Parent=hud
 local pipList={}
-for i=1,5 do
- local p=Instance.new("Frame")
- p.Name="Pip"..i;p.Size=UDim2.new(.2,-4,1,0);p.Position=UDim2.new((i-1)*.2,0,0,0)
- p.BackgroundColor3=Color3.fromRGB(53,55,61);p.BorderSizePixel=0;p.Parent=pips;corner(p,4);table.insert(pipList,p)
-end
+for i=1,5 do local p=Instance.new("Frame");p.Name="Pip"..i;p.Size=UDim2.new(.2,-4,1,0);p.Position=UDim2.new((i-1)*.2,0,0,0);p.BackgroundColor3=Color3.fromRGB(53,55,61);p.BorderSizePixel=0;p.Parent=pips;corner(p,4);table.insert(pipList,p)end
 
 local banner=Instance.new("Frame")
-banner.Name="PromoBanner";banner.AnchorPoint=Vector2.new(.5,0);banner.Position=UDim2.new(.5,0,0,118)
-banner.Size=UDim2.fromOffset(300,40);banner.BackgroundColor3=C.bg;banner.BackgroundTransparency=.08
-banner.BorderSizePixel=0;banner.Visible=false;banner.Parent=gui;corner(banner,10);stroke(banner,C.gold,1,.58)
+banner.Name="PromoBanner";banner.AnchorPoint=Vector2.new(.5,0);banner.Position=UDim2.new(.5,0,0,118);banner.Size=UDim2.fromOffset(300,40);banner.BackgroundColor3=C.bg;banner.BackgroundTransparency=.08;banner.BorderSizePixel=0;banner.Visible=false;banner.Parent=gui;corner(banner,10);stroke(banner,C.gold,1,.58)
 local bannerText=label(banner,"Body","",UDim2.fromOffset(12,6),UDim2.new(1,-24,1,-12),Enum.Font.GothamBold,8,C.white,Enum.TextXAlignment.Center)
 local bannerToken=0
-local function showBanner(title,body)
- bannerToken+=1;local token=bannerToken
- bannerText.Text=(title and title~="" and (title.." • ") or "")..tostring(body or "")
- banner.Visible=true;banner.BackgroundTransparency=.08
- task.delay(3.3,function()
-  if token~=bannerToken then return end
-  local tw=TweenService:Create(banner,TweenInfo.new(.2),{BackgroundTransparency=1});tw:Play();tw.Completed:Wait()
-  if token==bannerToken then banner.Visible=false end
- end)
+local inside=false
+
+local function lookLabVisible()
+ local look=pg:FindFirstChild("BBYALookLabAvatarUI")
+ if not look or not look:IsA("ScreenGui")or not look.Enabled then return false end
+ for _,d in ipairs(look:GetDescendants())do
+  if d:IsA("TextLabel")and d.Text=="BBYA LOOK LAB"then local panel=d.Parent;if panel and panel:IsA("GuiObject")and panel.Visible then return true end end
+ end
+ return false
+end
+local function catalogVisible()
+ if player:GetAttribute("BBYAMallCatalogFocusMode")==true then return true end
+ local mall=pg:FindFirstChild("BBYAMallRobuxCommerceUI");local root=mall and mall:FindFirstChild("CatalogRoot");return root and root:IsA("GuiObject")and root.Visible or false
+end
+local function overlayBusy()return catalogVisible()or lookLabVisible()end
+local function syncVisibility()
+ local busy=overlayBusy();hud.Visible=inside and not busy;if busy then banner.Visible=false end
 end
 
-local inside=false
-local function setProgress(n,total,complete,last)
- total=tonumber(total) or 5
- local count=math.clamp(tonumber(n) or 0,0,total)
- passportMeta.Text=complete and "DONE" or string.format("%d / %d",count,total)
- passportMeta.TextColor3=complete and C.green or C.muted
- for i,p in ipairs(pipList) do p.BackgroundColor3=i<=count and (complete and C.green or C.gold) or Color3.fromRGB(53,55,61) end
- if last then showBanner("PASSPORT",last.."  "..count.."/"..total) end
+local function showBanner(title,body)
+ if overlayBusy()then return end
+ bannerToken+=1;local token=bannerToken;bannerText.Text=(title and title~=""and(title.." • ")or"")..tostring(body or"");banner.Visible=true;banner.BackgroundTransparency=.08
+ task.delay(3.3,function()if token~=bannerToken or overlayBusy()then banner.Visible=false;return end;local tw=TweenService:Create(banner,TweenInfo.new(.2),{BackgroundTransparency=1});tw:Play();tw.Completed:Wait();if token==bannerToken then banner.Visible=false end end)
 end
-setProgress(player:GetAttribute("BBYAMallPassport") or 0,5,player:GetAttribute("BBYAMallPassportComplete")==true,nil)
+local function setProgress(n,total,complete,last)
+ total=tonumber(total)or 5;local count=math.clamp(tonumber(n)or 0,0,total);passportMeta.Text=complete and"DONE"or string.format("%d / %d",count,total);passportMeta.TextColor3=complete and C.green or C.muted
+ for i,p in ipairs(pipList)do p.BackgroundColor3=i<=count and(complete and C.green or C.gold)or Color3.fromRGB(53,55,61)end;if last then showBanner("PASSPORT",last.."  "..count.."/"..total)end
+end
+setProgress(player:GetAttribute("BBYAMallPassport")or 0,5,player:GetAttribute("BBYAMallPassportComplete")==true,nil)
 
 local function zoneFromPosition(pos)
- local level
- if pos.Y>=40 then level=4 elseif pos.Y>=26 then level=3 elseif pos.Y>=12 then level=2 else level=1 end
- local zone="RETAIL"
- if pos.Z<315 then zone="ARRIVAL"
- elseif math.abs(pos.X)<34 and pos.Z>336 and pos.Z<394 then zone="ATRIUM"
- elseif level==3 and pos.Z>396 then zone="FOOD • PLAY"
- elseif level==4 and pos.Z>396 then zone="CINEMA"
- elseif math.abs(pos.X)>48 then zone=pos.X<0 and "WEST" or "EAST" end
- return level,zone
+ local level;if pos.Y>=40 then level=4 elseif pos.Y>=26 then level=3 elseif pos.Y>=12 then level=2 else level=1 end
+ local zone="RETAIL";if pos.Z<315 then zone="ARRIVAL"elseif math.abs(pos.X)<34 and pos.Z>336 and pos.Z<394 then zone="ATRIUM"elseif level==3 and pos.Z>396 then zone="FOOD • PLAY"elseif level==4 and pos.Z>396 then zone="CINEMA"elseif math.abs(pos.X)>48 then zone=pos.X<0 and"WEST"or"EAST"end;return level,zone
 end
 
 local camera=workspace.CurrentCamera
 local function responsive()
- camera=workspace.CurrentCamera or camera
- local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
- local phone=UserInputService.TouchEnabled or vp.Y<800
- hud.Size=UDim2.fromOffset(phone and 276 or 330,phone and 56 or 60)
- hud.Position=UDim2.new(.5,0,0,phone and 46 or 52)
- banner.Size=UDim2.fromOffset(phone and math.min(270,math.floor(vp.X*.72)) or 300,38)
- banner.Position=UDim2.new(.5,0,0,phone and 106 or 118)
+ camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local phone=UserInputService.TouchEnabled or vp.Y<800
+ hud.Size=UDim2.fromOffset(phone and 276 or 330,phone and 56 or 60);hud.Position=UDim2.new(.5,0,0,phone and 46 or 52);banner.Size=UDim2.fromOffset(phone and math.min(270,math.floor(vp.X*.72))or 300,38);banner.Position=UDim2.new(.5,0,0,phone and 106 or 118)
 end
 task.defer(responsive)
-if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive) end
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
 
 event.OnClientEvent:Connect(function(mode,data)
- data=data or {}
- if mode=="presence" then
-  inside=data.inside==true;hud.Visible=inside
- elseif mode=="passport" then
-  setProgress(data.count,data.total,data.complete,data.last)
- elseif mode=="promo" then
-  showBanner(data.title,data.body)
- end
+ data=data or{};if mode=="presence"then inside=data.inside==true;syncVisibility()elseif mode=="passport"then setProgress(data.count,data.total,data.complete,data.last)elseif mode=="promo"then showBanner(data.title,data.body)end
 end)
+player:GetAttributeChangedSignal("BBYAInsideMall"):Connect(function()inside=player:GetAttribute("BBYAInsideMall")==true;syncVisibility()end)
+player:GetAttributeChangedSignal("BBYAMallPassport"):Connect(function()setProgress(player:GetAttribute("BBYAMallPassport")or 0,5,player:GetAttribute("BBYAMallPassportComplete")==true,nil)end)
+player:GetAttributeChangedSignal("BBYAMallCatalogFocusMode"):Connect(syncVisibility)
+pg.ChildAdded:Connect(function(ch)if ch.Name=="BBYAMallRobuxCommerceUI"or ch.Name=="BBYALookLabAvatarUI"then task.defer(syncVisibility)end end)
 
-player:GetAttributeChangedSignal("BBYAInsideMall"):Connect(function()
- inside=player:GetAttribute("BBYAInsideMall")==true;hud.Visible=inside
-end)
-player:GetAttributeChangedSignal("BBYAMallPassport"):Connect(function()
- setProgress(player:GetAttribute("BBYAMallPassport") or 0,5,player:GetAttribute("BBYAMallPassportComplete")==true,nil)
-end)
-
-task.spawn(function()
+ task.spawn(function()
  while gui.Parent do
   local hrp=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-  if hrp then
-   local pos=hrp.Position
-   local now=math.abs(pos.X)<=100 and pos.Z>=282 and pos.Z<=448 and pos.Y>=-2 and pos.Y<=66
-   if now~=inside then inside=now;hud.Visible=now end
-   if now then
-    local lvl,zone=zoneFromPosition(pos)
-    location.Text=string.format("L%d • %s",lvl,zone)
-    if player:GetAttribute("BBYAMallPassportComplete")==true then status.Text="EXPLORER";status.TextColor3=C.green
-    else status.Text="OPEN";status.TextColor3=C.muted end
-   end
-  end
-  task.wait(.4)
+  if hrp then local pos=hrp.Position;local now=math.abs(pos.X)<=100 and pos.Z>=282 and pos.Z<=448 and pos.Y>=-2 and pos.Y<=66;if now~=inside then inside=now end;if now then local lvl,zone=zoneFromPosition(pos);location.Text=string.format("L%d • %s",lvl,zone);if player:GetAttribute("BBYAMallPassportComplete")==true then status.Text="EXPLORER";status.TextColor3=C.green else status.Text="OPEN";status.TextColor3=C.muted end end end
+  syncVisibility();task.wait(.25)
  end
 end)
 
--- TEST Mall avatar viewport framing stabilizer.
--- 133 owns the Mall UI. This only corrects its camera using body parts, never accessory mesh bounds.
-local BODY_NAMES={
- Head=true,UpperTorso=true,LowerTorso=true,HumanoidRootPart=true,
- LeftUpperArm=true,LeftLowerArm=true,LeftHand=true,RightUpperArm=true,RightLowerArm=true,RightHand=true,
- LeftUpperLeg=true,LeftLowerLeg=true,LeftFoot=true,RightUpperLeg=true,RightLowerLeg=true,RightFoot=true,
- Torso=true,["Left Arm"]=true,["Right Arm"]=true,["Left Leg"]=true,["Right Leg"]=true,
-}
-local previewConnections={}
-local boundPreviewWorld=nil
-local function clearPreviewConnections()
- for _,c in ipairs(previewConnections)do c:Disconnect()end
- table.clear(previewConnections);boundPreviewWorld=nil
-end
-local function bodyBounds(model)
- local minV=Vector3.new(math.huge,math.huge,math.huge);local maxV=Vector3.new(-math.huge,-math.huge,-math.huge);local count=0
- for _,d in ipairs(model:GetDescendants())do
-  if d:IsA("BasePart")and BODY_NAMES[d.Name]then
-   local p=d.Position;local half=d.Size*.5
-   minV=Vector3.new(math.min(minV.X,p.X-half.X),math.min(minV.Y,p.Y-half.Y),math.min(minV.Z,p.Z-half.Z))
-   maxV=Vector3.new(math.max(maxV.X,p.X+half.X),math.max(maxV.Y,p.Y+half.Y),math.max(maxV.Z,p.Z+half.Z));count+=1
-  end
- end
- if count<3 then return nil end
- return (minV+maxV)*.5,maxV-minV
-end
-local function frameMallPreview(viewport,model)
- local cam=viewport and viewport.CurrentCamera;if not cam or not model then return end
- local center,size=bodyBounds(model);if not center or not size then return end
- local rootPart=model:FindFirstChild("HumanoidRootPart",true)
- local forward=rootPart and rootPart.CFrame.LookVector or Vector3.new(0,0,-1);forward=Vector3.new(forward.X,0,forward.Z)
- if forward.Magnitude<.01 then forward=Vector3.new(0,0,-1)else forward=forward.Unit end
- local h=math.clamp(size.Y,4.5,8.5);local w=math.clamp(math.max(size.X,size.Z),2.5,6);local target=center+Vector3.new(0,h*.01,0)
- cam.FieldOfView=34;cam.CFrame=CFrame.lookAt(target+forward*math.max(h*1.75,w*2),target,Vector3.yAxis)
-end
-local function bindMallPreview()
- clearPreviewConnections()
- local mall=pg:FindFirstChild("BBYAMallRobuxCommerceUI");local catalogRoot=mall and mall:FindFirstChild("CatalogRoot");local avatar=catalogRoot and catalogRoot:FindFirstChild("AvatarCard");local viewport=avatar and avatar:FindFirstChild("AvatarViewport");local world=viewport and viewport:FindFirstChildOfClass("WorldModel")
- if not viewport or not world then return end;boundPreviewWorld=world
- local function refresh()
-  if boundPreviewWorld~=world or not world.Parent then return end;local model=world:FindFirstChildOfClass("Model");if not model then return end
-  task.defer(function()if model.Parent==world then frameMallPreview(viewport,model)end end)
-  task.delay(.12,function()if model.Parent==world then frameMallPreview(viewport,model)end end)
-  task.delay(.35,function()if model.Parent==world then frameMallPreview(viewport,model)end end)
- end
- table.insert(previewConnections,world.ChildAdded:Connect(refresh));table.insert(previewConnections,world.DescendantAdded:Connect(function(d)if d:IsA("BasePart")then refresh()end end));table.insert(previewConnections,viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(refresh));refresh()
-end
-pg.ChildAdded:Connect(function(ch)if ch.Name=="BBYAMallRobuxCommerceUI"then task.delay(.1,bindMallPreview)end end)
-pg.ChildRemoved:Connect(function(ch)if ch.Name=="BBYAMallRobuxCommerceUI"then clearPreviewConnections()end end)
-task.defer(bindMallPreview)
-
-print("[BBYA] Mall Live Client v3 online: compact centered HUD v7 + stable avatar framing")
+print("[BBYA] Mall Live Client v3 online: compact HUD v8 + overlay-safe visibility; preview camera delegated to Mall Catalog")
