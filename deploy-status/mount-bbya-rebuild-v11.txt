@@ -1,6 +1,6 @@
 status=FAILED
 build=visual-lock-rebuild-v1.1
-sourceCommit=c678c19ff6d1cea322d6501db882033de7d03afe
+sourceCommit=6e8552aec28b7a76fadd7ec92e1a33bfb2e85d6b
 branch=mount-bbya-rebuild-visual-lock-v1
 universeId=4187755690
 placeId=11832985967
