@@ -19,6 +19,7 @@ Workspace:SetAttribute("HangarVisibleFallback", "NONE")
 Workspace:SetAttribute("HangarLaserQC", "DISABLED_REALISM_PASS")
 Workspace:SetAttribute("HangarCollisionAuthority", "V2_1_SOLID_SCENE_OBJECTS")
 Workspace:SetAttribute("HangarNonGDDClutter", "SERVICE_EQUIPMENT_HIDDEN")
+Workspace:SetAttribute("HangarZoneSignage", "FLOATING_QC_BILLBOARDS_REMOVED")
 
 local function ensureFolder(parent, name)
     local found = parent:FindFirstChild(name)
@@ -258,44 +259,8 @@ collider("BronzePedestalProxy", Vector3.new(15,9,15), CFrame.new(30,4.5,162))
 collider("DonorGateLeftPillarProxy", Vector3.new(10,56,10), CFrame.new(-92,28,186))
 collider("DonorGateRightPillarProxy", Vector3.new(10,56,10), CFrame.new(92,28,186))
 
--- Minimal physical signage so the locked GDD zones are readable while art is still under QC.
-local signs = Instance.new("Folder")
-signs.Name = "HangarZoneSigns"
-signs.Parent = environment
-local function zoneSign(name, text, pos, color)
-    local anchor = Instance.new("Part")
-    anchor.Name = name
-    anchor.Anchored = true
-    anchor.Transparency = 1
-    anchor.CanCollide = false
-    anchor.CanTouch = false
-    anchor.CanQuery = false
-    anchor.Size = Vector3.one
-    anchor.CFrame = CFrame.new(pos)
-    anchor.Parent = signs
-
-    local gui = Instance.new("BillboardGui")
-    gui.Name = "Label"
-    gui.AlwaysOnTop = false
-    gui.Size = UDim2.fromOffset(360, 64)
-    gui.StudsOffset = Vector3.new(0, 2, 0)
-    gui.MaxDistance = 120
-    gui.Parent = anchor
-
-    local label = Instance.new("TextLabel")
-    label.BackgroundTransparency = 0.22
-    label.BackgroundColor3 = Color3.fromRGB(12,14,20)
-    label.BorderSizePixel = 0
-    label.Size = UDim2.fromScale(1,1)
-    label.Font = Enum.Font.GothamBold
-    label.Text = text
-    label.TextColor3 = color
-    label.TextScaled = true
-    label.Parent = gui
-end
-zoneSign("BaggageClaimSign", "BAGGAGE CLAIM  •  AFK LOOP", Vector3.new(-132,16,70), Color3.fromRGB(190,210,240))
-zoneSign("CornerShopSign", "CORNER SHOP", Vector3.new(-132,24,315), Color3.fromRGB(255,190,120))
-zoneSign("PhotoboothSign", "PHOTOBOOTH", Vector3.new(142,26,70), Color3.fromRGB(224,150,255))
+-- Temporary floating QC labels were removed after owner visual review.
+-- Final signage will be authored as part of the environment art, not screen-facing BillboardGui.
 
 local lights = Instance.new("Folder")
 lights.Name = "HangarPhase2Lights"
