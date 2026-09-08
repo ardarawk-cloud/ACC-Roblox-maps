@@ -12,6 +12,9 @@
       "$className": "ServerScriptService",
       "CoreServer": {
         "$path": "server/core.server.lua"
+      },
+      "EnvironmentRuntime": {
+        "$path": "server/environment.server.lua"
       }
     },
     "StarterPlayer": {
