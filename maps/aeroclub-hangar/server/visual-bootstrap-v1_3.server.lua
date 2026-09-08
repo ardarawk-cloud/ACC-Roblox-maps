@@ -1,16 +1,17 @@
 -- HANGAR — FULL MESH RUNTIME v1.3
 -- Active environment authority. No visible Part fallback.
 -- Fixed approved asset is committed in source so publish no longer rewrites this script.
+-- Roblox GLB import mirrors authored Z, therefore runtime helpers use imported +Z front coordinates.
 
 local InsertService = game:GetService("InsertService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 
 local MODEL_ASSET_ID = 99386261031802 -- HANGAR_V13_MODEL_ASSET_ID
-local SPAWN_POS = Vector3.new(0, 6, -325)
-local JET_TARGET = Vector3.new(0, 10, 58)
+local SPAWN_POS = Vector3.new(0, 6, 325)
+local JET_TARGET = Vector3.new(0, 10, -58)
 
-Workspace:SetAttribute("HangarRuntime", "V1_3_FIXED_ASSET_NO_BOM")
+Workspace:SetAttribute("HangarRuntime", "V1_3_FIXED_ASSET_Z_ALIGNED")
 Workspace:SetAttribute("HangarEnvironmentReady", false)
 Workspace:SetAttribute("HangarVisualQC", "BOOTING")
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
@@ -73,7 +74,6 @@ bloom.Size = 22
 bloom.Threshold = 1.75
 bloom.Parent = Lighting
 
--- Real spawn marker; spawn-safety uses the exact same point.
 local spawn = Workspace:FindFirstChild("HangarSpawn")
 if not spawn then
     spawn = Instance.new("SpawnLocation")
@@ -103,7 +103,7 @@ local function safetyFloor(name, size, cf)
     p.CFrame = cf
 end
 safetyFloor("HangarBootFloorIndoor", Vector3.new(390,2,340), CFrame.new(0,-1,0))
-safetyFloor("HangarBootFloorOutdoor", Vector3.new(390,2,210), CFrame.new(0,-1,-270))
+safetyFloor("HangarBootFloorOutdoor", Vector3.new(390,2,210), CFrame.new(0,-1,270))
 
 local ok, loaded = pcall(InsertService.LoadAsset, InsertService, MODEL_ASSET_ID)
 if not ok or not loaded then
@@ -172,7 +172,6 @@ if math.abs(boxCF.Position.X) > 50 or math.abs(boxCF.Position.Z) > 110 then
     return
 end
 
--- Invisible collisions aligned to the GDD. They are physics only, not visual fallback art.
 local collisions = Instance.new("Folder")
 collisions.Name = "Collision"
 collisions.Parent = environment
@@ -189,15 +188,14 @@ local function collider(name, size3, cf)
     p.Parent = collisions
 end
 collider("HangarFloor", Vector3.new(382,3,332), CFrame.new(0,-1.5,0))
-collider("OutdoorFloor", Vector3.new(382,3,200), CFrame.new(0,-1.5,-270))
+collider("OutdoorFloor", Vector3.new(382,3,200), CFrame.new(0,-1.5,270))
 collider("LeftWall", Vector3.new(6,92,340), CFrame.new(-195,46,0))
 collider("RightWall", Vector3.new(6,92,340), CFrame.new(195,46,0))
-collider("BackWall", Vector3.new(390,92,6), CFrame.new(0,46,170))
-collider("JetVIPFloor", Vector3.new(10,1,46), CFrame.new(0,8,68))
-collider("JetLeftWingStage", Vector3.new(42,2,20), CFrame.new(-35,10,56))
-collider("JetRightWingStage", Vector3.new(42,2,20), CFrame.new(35,10,56))
+collider("BackWall", Vector3.new(390,92,6), CFrame.new(0,46,-170))
+collider("JetVIPFloor", Vector3.new(10,1,46), CFrame.new(0,8,-68))
+collider("JetLeftWingStage", Vector3.new(42,2,20), CFrame.new(-35,10,-56))
+collider("JetRightWingStage", Vector3.new(42,2,20), CFrame.new(35,10,-56))
 
--- Practical fill only. No fake laser bars.
 local lights = Instance.new("Folder")
 lights.Name = "HangarFillLights"
 lights.Parent = environment
@@ -219,20 +217,20 @@ local function fill(pos, color, brightness, range)
     l.Shadows = false
     l.Parent = a
 end
-for _, z in ipairs({-125,-55,20,85,135}) do
+for _, z in ipairs({125,55,-20,-85,-135}) do
     fill(Vector3.new(-115,72,z), Color3.fromRGB(190,210,255), 2.0, 95)
     fill(Vector3.new(115,72,z), Color3.fromRGB(190,210,255), 2.0, 95)
 end
-fill(Vector3.new(0,48,36), Color3.fromRGB(215,228,255), 3.2, 120)
-fill(Vector3.new(0,30,-30), Color3.fromRGB(120,220,255), 1.3, 80)
-fill(Vector3.new(-115,24,-235), Color3.fromRGB(255,190,145), 1.5, 78)
-fill(Vector3.new(115,24,-235), Color3.fromRGB(145,190,255), 1.5, 78)
-fill(Vector3.new(0,42,-150), Color3.fromRGB(225,230,255), 2.1, 90)
+fill(Vector3.new(0,48,-36), Color3.fromRGB(215,228,255), 3.2, 120)
+fill(Vector3.new(0,30,30), Color3.fromRGB(120,220,255), 1.3, 80)
+fill(Vector3.new(-115,24,235), Color3.fromRGB(255,190,145), 1.5, 78)
+fill(Vector3.new(115,24,235), Color3.fromRGB(145,190,255), 1.5, 78)
+fill(Vector3.new(0,42,150), Color3.fromRGB(225,230,255), 2.1, 90)
 
 Workspace:SetAttribute("HangarEnvironmentReady", true)
 Workspace:SetAttribute("HangarVisualQC", "READY_OWNER_RUNTIME_QC")
 Workspace:SetAttribute("HangarStaticMeshCount", meshCount)
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
-Workspace:SetAttribute("HangarSpawnSequence", "FAR_OUTDOOR_FACE_CENTRAL_JET")
+Workspace:SetAttribute("HangarSpawnSequence", "ACTUAL_FRONT_PLUS_Z_TO_CENTRAL_JET")
 Workspace:SetAttribute("HangarVisibleFallback", "NONE")
-print("[HANGAR V1.3] FULL MESH READY", MODEL_ASSET_ID, meshCount, size, boxCF.Position)
+print("[HANGAR V1.3] FULL MESH READY Z-ALIGNED", MODEL_ASSET_ID, meshCount, size, boxCF.Position)
