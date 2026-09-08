@@ -1,16 +1,22 @@
-# AEROCLUB HANGAR — MASTER GDD & TECHNICAL BLUEPRINT v1.1
+# HANGAR — MASTER GDD & TECHNICAL BLUEPRINT v1.2
 
 Status: ACTIVE / MAIN HANGAR DEVELOPMENT
 Owner / final authority: Arda
-Continuation authority: `maps/aeroclub-hangar/AEROCLUB-HANGAR-HANDOFF-v1.0.md`
+Continuation authority: `maps/aeroclub-hangar/HANGAR-HANDOFF-v1.1.md`
+
+## NAMING LOCK
+- Official project / experience name: **HANGAR**.
+- Do not use "AeroClub" as the project name in user-facing discussion or documentation.
+- Legacy internal identifiers containing `aeroclub-hangar` may remain temporarily only to avoid breaking branch/path/workflow references.
+- Continuation command: **HANGAR START**.
 
 This document supersedes every previous Hangar Exclusive Club foundation, v7/v8/v9/v10 runtime, visual fallback, geometry authority, and old publish workflow for the rebuilt experience.
 
 ## Release discipline
-- Main Hangar is now the active target by owner directive; do not use the old BBYA Test Lab for AeroClub.
+- Main HANGAR is now the active target by owner directive; do not use the old BBYA Test Lab for HANGAR.
 - One problem = one root cause. Do not stack rescue/failsafe scripts as the production architecture.
 - Visual/runtime QC must be owner-verified in-game before PASS.
-- No legacy Hangar geometry or scripts may be mounted in the AeroClub build.
+- No legacy Hangar geometry or scripts may be mounted in the HANGAR build.
 - No primitive fallback may be presented as final mesh art.
 - If runtime asset insertion is unreliable, bake/import the MeshParts directly into the published place artifact instead of adding more runtime rescue layers.
 
@@ -55,4 +61,4 @@ Server remains authoritative for permissions, filtering, carry validation, purch
 ## Current phase lock
 ENVIRONMENT RUNTIME ROOT-CAUSE FIX.
 
-Do not proceed to feature systems or polish until the actual AeroClub environment is visibly present in the published Main Hangar and Arda verifies it in-game.
+Do not proceed to feature systems or polish until the actual HANGAR environment is visibly present in the published Main Hangar and Arda verifies it in-game.
