@@ -75,32 +75,33 @@ jobs:
 
           $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:LIVE_UNIVERSE_ID"
           if(-not $meta.data -or $meta.data.Count -lt 1){throw 'LIVE universe metadata missing'}
-          $game=$meta.data[0]
-          $creator=$game.creator
+          $creator=$meta.data[0].creator
           $type=[string]$creator.type
+          $name=[string]$creator.name
           $id=[string]$creator.id
           $source='universe.creator.id'
 
-          # Some Roblox game metadata responses omit creator.id. Resolve builderId from the exact LIVE place.
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){
-            $placeMeta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games/multiget-place-details?placeIds=$env:LIVE_PLACE_ID"
-            if(-not $placeMeta -or $placeMeta.Count -lt 1){throw 'LIVE place metadata missing'}
-            $id=[string]$placeMeta[0].builderId
-            $source='place.builderId'
-            if([string]::IsNullOrWhiteSpace($type)){
-              $builderType=[string]$placeMeta[0].builderType
-              if(-not [string]::IsNullOrWhiteSpace($builderType)){$type=$builderType}
+          # This legacy HANGAR universe reports User id=0. Resolve its exact username to a real UserId.
+          if(($id -notmatch '^\d+$' -or [int64]$id -le 0) -and $type -ieq 'User' -and -not [string]::IsNullOrWhiteSpace($name)){
+            $lookupBody=@{usernames=@($name);excludeBannedUsers=$false}|ConvertTo-Json -Depth 4 -Compress
+            $lookup=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $lookupBody
+            if($lookup.data -and $lookup.data.Count -gt 0){
+              $exact=$lookup.data|Where-Object{[string]$_.name -ieq $name}|Select-Object -First 1
+              if(-not $exact){$exact=$lookup.data[0]}
+              $id=[string]$exact.id
+              $source='users.usernameLookup'
             }
           }
 
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id after exact-place fallback. universeCreator=$($creator|ConvertTo-Json -Compress -Depth 5)"}
+          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id. creator=$($creator|ConvertTo-Json -Compress -Depth 5)"}
           if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported LIVE creator type '$type' id=$id source=$source"}
 
           "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_CREATOR_FIELD=$field" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_CREATOR_TYPE=$type" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_CREATOR_NAME=$name" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_CREATOR_SOURCE=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V13_LIVE_CREATOR_PASS type=$type id=$id source=$source universe=$env:LIVE_UNIVERSE_ID place=$env:LIVE_PLACE_ID"
+          Write-Host "HANGAR_V13_LIVE_CREATOR_PASS type=$type name=$name id=$id source=$source universe=$env:LIVE_UNIVERSE_ID"
 
       - name: Upload model under LIVE HANGAR creator
         shell: powershell
@@ -231,7 +232,7 @@ jobs:
           $receipt=[ordered]@{
             status='LIVE_PUBLISHED';ok=$true;project='HANGAR';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;
             sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_LIVE_CREATOR_FULL_MESH_NO_VISIBLE_FALLBACK';
-            liveCreatorType=$env:HANGAR_CREATOR_TYPE;liveCreatorId=[int64]$env:HANGAR_CREATOR_ID;creatorSource=$env:HANGAR_CREATOR_SOURCE;
+            liveCreatorType=$env:HANGAR_CREATOR_TYPE;liveCreatorName=$env:HANGAR_CREATOR_NAME;liveCreatorId=[int64]$env:HANGAR_CREATOR_ID;creatorSource=$env:HANGAR_CREATOR_SOURCE;
             staticModelAssetId=[int64]$env:HANGAR_MODEL_ASSET_ID;modelModeration=$env:HANGAR_MODEL_MODERATION;
             robloxVersion=[int]$env:HANGAR_LIVE_VERSION;glbBytes=[int64]$env:HANGAR_GLB_BYTES;glbSha256=$env:HANGAR_GLB_SHA256;
             placeBytes=[int64]$env:HANGAR_PLACE_BYTES;placeSha256=$env:HANGAR_PLACE_SHA256;publishRun=[int64]$env:GITHUB_RUN_ID;
