@@ -1,6 +1,6 @@
--- HANGAR — ENVIRONMENT REALISM REBUILD v2.0
--- Full environment replacement: realistic silhouettes/detail pass for hangar, jet, vehicles and support zones.
--- Environment only. WITA authority remains separate. No gameplay/UI/monetization/lasers.
+-- HANGAR — ENVIRONMENT REALISM REBUILD v2.1
+-- Runtime QC correction: solid collision for real scene objects, remove non-GDD service clutter,
+-- and make the AFK baggage zone readable. WITA remains separate. No gameplay/UI/monetization/lasers.
 
 local InsertService = game:GetService("InsertService")
 local Lighting = game:GetService("Lighting")
@@ -10,13 +10,15 @@ local MODEL_ASSET_ID = 0 -- HANGAR_V20_REALISM_MODEL_ASSET_ID
 local SPAWN_POS = Vector3.new(0, 6, 325)
 local JET_TARGET = Vector3.new(0, 11, -66)
 
-Workspace:SetAttribute("HangarRuntime", "V2_0_ENVIRONMENT_REALISM_REBUILD")
+Workspace:SetAttribute("HangarRuntime", "V2_1_ENVIRONMENT_REALISM_SOLID_COLLISION")
 Workspace:SetAttribute("HangarPhase", "PHASE_2_ENVIRONMENT_REALISM_REBUILD")
 Workspace:SetAttribute("HangarEnvironmentReady", false)
 Workspace:SetAttribute("HangarVisualQC", "BOOTING")
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
 Workspace:SetAttribute("HangarVisibleFallback", "NONE")
 Workspace:SetAttribute("HangarLaserQC", "DISABLED_REALISM_PASS")
+Workspace:SetAttribute("HangarCollisionAuthority", "V2_1_SOLID_SCENE_OBJECTS")
+Workspace:SetAttribute("HangarNonGDDClutter", "SERVICE_EQUIPMENT_HIDDEN")
 
 local function ensureFolder(parent, name)
     local found = parent:FindFirstChild(name)
@@ -34,7 +36,6 @@ ensureFolder(Workspace, "LightingEquipment")
 ensureFolder(Workspace, "Statues")
 for _, child in ipairs(environment:GetChildren()) do child:Destroy() end
 
--- Neutral baseline only; realtime WITA script becomes final lighting authority after boot.
 Lighting.Brightness = 1.8
 Lighting.ExposureCompensation = 0.04
 Lighting.Ambient = Color3.fromRGB(60, 66, 82)
@@ -108,33 +109,18 @@ safetyFloor("HangarBootFloorOutdoor", Vector3.new(440, 2, 220), CFrame.new(0, -1
 local ok, loaded = pcall(InsertService.LoadAsset, InsertService, MODEL_ASSET_ID)
 if not ok or not loaded then
     Workspace:SetAttribute("HangarVisualQC", "REALISM_ASSET_LOAD_FAILED")
-    warn("[HANGAR V2.0] LoadAsset failed", MODEL_ASSET_ID, loaded)
+    warn("[HANGAR V2.1] LoadAsset failed", MODEL_ASSET_ID, loaded)
     return
 end
-loaded.Name = "HangarStaticMeshV2_0"
+loaded.Name = "HangarStaticMeshV2_1"
 
 local expected = {
-    HangarMesh=false,
-    HangarTrussMesh=false,
-    PolishedConcreteMesh=false,
-    OutdoorApronMesh=false,
-    ApronMarkingsMesh=false,
-    DanceFloorMesh=false,
-    JetPlaneMesh=false,
-    JetGlassAndTrimMesh=false,
-    JetEngineMesh=false,
-    JetLandingGearMesh=false,
-    JetVIPLoungeMesh=false,
-    JetWingStagesMesh=false,
-    ClassicCarLeftA=false,
-    ClassicCarLeftB=false,
-    HypercarRightA=false,
-    HypercarRightB=false,
-    BaggageClaimMesh=false,
-    PhotoboothMesh=false,
-    CornerShopMesh=false,
-    DonorGateAndPedestalsMesh=false,
-    ServiceEquipmentMesh=false,
+    HangarMesh=false, HangarTrussMesh=false, PolishedConcreteMesh=false, OutdoorApronMesh=false,
+    ApronMarkingsMesh=false, DanceFloorMesh=false, JetPlaneMesh=false, JetGlassAndTrimMesh=false,
+    JetEngineMesh=false, JetLandingGearMesh=false, JetVIPLoungeMesh=false, JetWingStagesMesh=false,
+    ClassicCarLeftA=false, ClassicCarLeftB=false, HypercarRightA=false, HypercarRightB=false,
+    BaggageClaimMesh=false, PhotoboothMesh=false, CornerShopMesh=false,
+    DonorGateAndPedestalsMesh=false, ServiceEquipmentMesh=false,
 }
 
 local style = {
@@ -149,14 +135,27 @@ local style = {
     JetLandingGearMesh={Enum.Material.Metal, Color3.fromRGB(36,40,48)},
     JetVIPLoungeMesh={Enum.Material.SmoothPlastic, Color3.fromRGB(42,46,56)},
     JetWingStagesMesh={Enum.Material.Metal, Color3.fromRGB(36,40,50)},
-    BaggageClaimMesh={Enum.Material.Metal, Color3.fromRGB(50,54,62)},
+    BaggageClaimMesh={Enum.Material.Metal, Color3.fromRGB(88,96,110)},
     PhotoboothMesh={Enum.Material.Metal, Color3.fromRGB(56,44,68)},
     CornerShopMesh={Enum.Material.Metal, Color3.fromRGB(58,48,42)},
     DonorGateAndPedestalsMesh={Enum.Material.Metal, Color3.fromRGB(54,60,74)},
     ServiceEquipmentMesh={Enum.Material.Metal, Color3.fromRGB(54,58,66)},
 }
 
+-- These are intentionally solid scene objects. Decorative lights/glass stay non-collidable.
+local solidMeshNames = {
+    JetPlaneMesh=true, JetEngineMesh=true, JetLandingGearMesh=true,
+    JetVIPLoungeMesh=true, JetWingStagesMesh=true,
+    ClassicCarLeftA=true, ClassicCarLeftB=true,
+    HypercarRightA=true, HypercarRightB=true,
+    BaggageClaimMesh=true, PhotoboothMesh=true, CornerShopMesh=true,
+    DonorGateAndPedestalsMesh=true,
+    GoldPedestalMesh=true, SilverPedestalMesh=true, BronzePedestalMesh=true,
+    PerimeterTrackMesh=true,
+}
+
 local meshCount = 0
+local solidMeshCount = 0
 for _, d in ipairs(loaded:GetDescendants()) do
     if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") or d:IsA("Sound") then
         d:Destroy()
@@ -164,7 +163,8 @@ for _, d in ipairs(loaded:GetDescendants()) do
         meshCount += 1
         if expected[d.Name] ~= nil then expected[d.Name] = true end
         d.Anchored = true
-        d.CanCollide = false
+        d.CanCollide = solidMeshNames[d.Name] == true
+        if d.CanCollide then solidMeshCount += 1 end
         d.CanTouch = false
         d.CanQuery = true
         d.CastShadow = true
@@ -174,16 +174,25 @@ for _, d in ipairs(loaded:GetDescendants()) do
             d.Material = s[1]
             d.Color = s[2]
         end
-        if string.find(d.Name, "Glass", 1, true) then
+        if d.Name == "ServiceEquipmentMesh" then
+            -- Not in the locked GDD; remove this ambiguous crate/cart clutter from the scene.
+            d.Transparency = 1
+            d.CanCollide = false
+            d.CanQuery = false
+            d.CastShadow = false
+        elseif string.find(d.Name, "Glass", 1, true) then
             d.Material = Enum.Material.Glass
             d.Transparency = math.max(d.Transparency, 0.12)
             d.CastShadow = false
+            d.CanCollide = false
         elseif string.find(d.Name, "Tires", 1, true) then
             d.Material = Enum.Material.Rubber
             d.Color = Color3.fromRGB(18,18,20)
+            d.CanCollide = false
         elseif string.find(d.Name, "Rims", 1, true) then
             d.Material = Enum.Material.Metal
             d.Color = Color3.fromRGB(112,122,138)
+            d.CanCollide = false
         end
     elseif d:IsA("BasePart") then
         d.Anchored = true
@@ -196,7 +205,7 @@ for name, found in pairs(expected) do
     if not found then
         loaded:Destroy()
         Workspace:SetAttribute("HangarVisualQC", "MISSING_" .. name)
-        warn("[HANGAR V2.0] required realism mesh missing", name)
+        warn("[HANGAR V2.1] required realism mesh missing", name)
         return
     end
 end
@@ -206,7 +215,7 @@ local boxCF, size = loaded:GetBoundingBox()
 if size.X < 410 or size.X > 470 or size.Z < 540 or size.Z > 640 or size.Y < 140 or size.Y > 190 then
     loaded:Destroy()
     Workspace:SetAttribute("HangarVisualQC", "REALISM_BOUNDS_REJECTED")
-    warn("[HANGAR V2.0] bounds rejected", size)
+    warn("[HANGAR V2.1] bounds rejected", size)
     return
 end
 
@@ -225,6 +234,8 @@ local function collider(name, size3, cf)
     p.CFrame = cf
     p.Parent = collisions
 end
+
+-- Architecture/floor collision.
 collider("HangarFloor", Vector3.new(410,3,370), CFrame.new(0,-1.5,0))
 collider("OutdoorFloor", Vector3.new(438,3,215), CFrame.new(0,-1.5,285))
 collider("LeftWall", Vector3.new(6,105,380), CFrame.new(-210,52,0))
@@ -233,6 +244,58 @@ collider("BackWall", Vector3.new(420,105,6), CFrame.new(0,52,-190))
 collider("JetVIPFloor", Vector3.new(12,1,42), CFrame.new(0,9,-74))
 collider("JetLeftWingStage", Vector3.new(38,2,20), CFrame.new(-39,11,-69))
 collider("JetRightWingStage", Vector3.new(38,2,20), CFrame.new(39,11,-69))
+
+-- Guaranteed physical proxies for the objects the owner reported walking through.
+-- Imported GLB mirrors authored Z, therefore authored -270/-70/-162 become +270/+70/+162 in runtime.
+collider("ClassicCarLeftAProxy", Vector3.new(15,7,32), CFrame.new(-132,3.5,270))
+collider("ClassicCarLeftBProxy", Vector3.new(15,7,32), CFrame.new(-92,3.5,270))
+collider("HypercarRightAProxy", Vector3.new(17,7,36), CFrame.new(92,3.5,270))
+collider("HypercarRightBProxy", Vector3.new(17,7,36), CFrame.new(136,3.5,270))
+collider("BaggageClaimProxy", Vector3.new(90,8,38), CFrame.new(-132,4,70))
+collider("GoldPedestalProxy", Vector3.new(16,12,16), CFrame.new(0,6,162))
+collider("SilverPedestalProxy", Vector3.new(15,10,15), CFrame.new(-30,5,162))
+collider("BronzePedestalProxy", Vector3.new(15,9,15), CFrame.new(30,4.5,162))
+collider("DonorGateLeftPillarProxy", Vector3.new(10,56,10), CFrame.new(-92,28,186))
+collider("DonorGateRightPillarProxy", Vector3.new(10,56,10), CFrame.new(92,28,186))
+
+-- Minimal physical signage so the locked GDD zones are readable while art is still under QC.
+local signs = Instance.new("Folder")
+signs.Name = "HangarZoneSigns"
+signs.Parent = environment
+local function zoneSign(name, text, pos, color)
+    local anchor = Instance.new("Part")
+    anchor.Name = name
+    anchor.Anchored = true
+    anchor.Transparency = 1
+    anchor.CanCollide = false
+    anchor.CanTouch = false
+    anchor.CanQuery = false
+    anchor.Size = Vector3.one
+    anchor.CFrame = CFrame.new(pos)
+    anchor.Parent = signs
+
+    local gui = Instance.new("BillboardGui")
+    gui.Name = "Label"
+    gui.AlwaysOnTop = false
+    gui.Size = UDim2.fromOffset(360, 64)
+    gui.StudsOffset = Vector3.new(0, 2, 0)
+    gui.MaxDistance = 120
+    gui.Parent = anchor
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 0.22
+    label.BackgroundColor3 = Color3.fromRGB(12,14,20)
+    label.BorderSizePixel = 0
+    label.Size = UDim2.fromScale(1,1)
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextColor3 = color
+    label.TextScaled = true
+    label.Parent = gui
+end
+zoneSign("BaggageClaimSign", "BAGGAGE CLAIM  •  AFK LOOP", Vector3.new(-132,16,70), Color3.fromRGB(190,210,240))
+zoneSign("CornerShopSign", "CORNER SHOP", Vector3.new(-132,24,315), Color3.fromRGB(255,190,120))
+zoneSign("PhotoboothSign", "PHOTOBOOTH", Vector3.new(142,26,70), Color3.fromRGB(224,150,255))
 
 local lights = Instance.new("Folder")
 lights.Name = "HangarPhase2Lights"
@@ -256,7 +319,6 @@ local function point(name, pos, color, brightness, range)
     l.Parent = anchor
 end
 
--- Architectural fills only. WITA scales these by time of day.
 for _, z in ipairs({145,80,15,-55,-125}) do
     point("LeftRoofFill", Vector3.new(-140,78,z), Color3.fromRGB(148,174,215), 0.40, 78)
     point("RightRoofFill", Vector3.new(140,78,z), Color3.fromRGB(148,174,215), 0.40, 78)
@@ -265,15 +327,16 @@ point("ApronWarm", Vector3.new(-120,22,270), Color3.fromRGB(255,174,120), 0.48, 
 point("ApronCool", Vector3.new(120,22,270), Color3.fromRGB(120,172,255), 0.48, 72)
 point("DanceCool", Vector3.new(-48,22,24), Color3.fromRGB(86,154,222), 0.42, 62)
 point("DancePink", Vector3.new(48,22,24), Color3.fromRGB(212,100,174), 0.36, 62)
--- Jet highlight intentionally restrained; preserve metal detail instead of blowing it white.
+point("BaggageRead", Vector3.new(-132,18,70), Color3.fromRGB(150,180,220), 0.42, 54)
 point("JetKeyLeft", Vector3.new(-34,30,-64), Color3.fromRGB(128,178,238), 0.48, 66)
 point("JetKeyRight", Vector3.new(34,30,-64), Color3.fromRGB(224,128,188), 0.38, 66)
 point("JetTop", Vector3.new(0,44,-92), Color3.fromRGB(200,214,238), 0.30, 56)
 
 Workspace:SetAttribute("HangarEnvironmentReady", true)
-Workspace:SetAttribute("HangarVisualQC", "READY_V2_REALISM_OWNER_QC")
+Workspace:SetAttribute("HangarVisualQC", "READY_V2_1_SOLID_COLLISION_OWNER_QC")
 Workspace:SetAttribute("HangarStaticMeshCount", meshCount)
+Workspace:SetAttribute("HangarSolidMeshCount", solidMeshCount)
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
 Workspace:SetAttribute("HangarSpawnSequence", "OUTDOOR_APRON_TO_OPEN_GATE_TO_DANCE_TO_JET")
-Workspace:SetAttribute("HangarEnvironmentDetail", "V2_JET_CARS_APRON_ZONES_REALISM")
-print("[HANGAR V2.0] ENVIRONMENT REALISM READY", MODEL_ASSET_ID, meshCount, size, boxCF.Position)
+Workspace:SetAttribute("HangarEnvironmentDetail", "V2_1_SOLID_COLLISION_GDD_ZONES")
+print("[HANGAR V2.1] REALISM + SOLID COLLISION READY", MODEL_ASSET_ID, meshCount, solidMeshCount, size, boxCF.Position)
