@@ -1,16 +1,16 @@
 -- HANGAR — FULL MESH RUNTIME v1.3
 -- Active environment authority. No visible Part fallback.
--- The model asset is uploaded under the LIVE HANGAR creator by the v1.3 pipeline.
+-- Fixed approved asset is committed in source so publish no longer rewrites this script.
 
 local InsertService = game:GetService("InsertService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 
-local MODEL_ASSET_ID = 0 -- HANGAR_V13_MODEL_ASSET_ID
+local MODEL_ASSET_ID = 99386261031802 -- HANGAR_V13_MODEL_ASSET_ID
 local SPAWN_POS = Vector3.new(0, 6, -325)
 local JET_TARGET = Vector3.new(0, 10, 58)
 
-Workspace:SetAttribute("HangarRuntime", "V1_3_LIVE_CREATOR_FULL_MESH")
+Workspace:SetAttribute("HangarRuntime", "V1_3_FIXED_ASSET_NO_BOM")
 Workspace:SetAttribute("HangarEnvironmentReady", false)
 Workspace:SetAttribute("HangarVisualQC", "BOOTING")
 Workspace:SetAttribute("HangarModelAssetId", MODEL_ASSET_ID)
@@ -32,7 +32,7 @@ ensureFolder(Workspace, "Statues")
 
 for _, child in ipairs(environment:GetChildren()) do child:Destroy() end
 
--- Readable night-club lighting for mobile QC.
+-- Readable night-club lighting for mobile QC. This executes before any asset call.
 Lighting.ClockTime = 0.35
 Lighting.Brightness = 3.25
 Lighting.ExposureCompensation = 0.48
@@ -105,15 +105,9 @@ end
 safetyFloor("HangarBootFloorIndoor", Vector3.new(390,2,340), CFrame.new(0,-1,0))
 safetyFloor("HangarBootFloorOutdoor", Vector3.new(390,2,210), CFrame.new(0,-1,-270))
 
-if MODEL_ASSET_ID <= 0 then
-    Workspace:SetAttribute("HangarVisualQC", "ASSET_ID_NOT_INJECTED")
-    warn("[HANGAR V1.3] model asset id not injected")
-    return
-end
-
 local ok, loaded = pcall(InsertService.LoadAsset, InsertService, MODEL_ASSET_ID)
 if not ok or not loaded then
-    Workspace:SetAttribute("HangarVisualQC", "LIVE_CREATOR_ASSET_LOAD_FAILED")
+    Workspace:SetAttribute("HangarVisualQC", "FULL_MESH_ASSET_LOAD_FAILED")
     warn("[HANGAR V1.3] LoadAsset failed", MODEL_ASSET_ID, loaded)
     return
 end
