@@ -1,0 +1,9 @@
+status=FAILED
+build=mobile-control-hotfix-v1.2
+sourceCommit=f9cbbc0045aebac427794bd5c3555f732c8df233
+branch=mount-bbya-rebuild-visual-lock-v1
+universeId=4187755690
+placeId=11832985967
+fix=character-autoload-plus-mobile-custom-camera
+runtimeVisualQC=PENDING
+publishExitCode=
