@@ -1,0 +1,102 @@
+name: AeroClub Hangar v1.1 Visual LAB
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/aeroclub-hangar-v1_1-visual-lab.yml'
+      - 'maps/aeroclub-hangar/default.project.json'
+      - 'maps/aeroclub-hangar/server/visual-bootstrap-v1_1.server.lua'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aeroclub-hangar-v1-1-visual-lab
+  cancel-in-progress: true
+
+env:
+  LAB_UNIVERSE_ID: '10762005984'
+  LAB_PLACE_ID: '124607344716828'
+  LIVE_UNIVERSE_ID: '10745364913'
+  LIVE_PLACE_ID: '76001567401911'
+  BRANCH_LOCK: 'aeroclub-hangar-rebuild-v1-lab'
+
+jobs:
+  build-publish-visual-lab:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout visual candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Hard block LIVE target
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:GITHUB_REF_NAME -ne $env:BRANCH_LOCK){throw "Wrong branch: $env:GITHUB_REF_NAME"}
+          if($env:LAB_UNIVERSE_ID -eq $env:LIVE_UNIVERSE_ID){throw 'LAB universe equals LIVE universe'}
+          if($env:LAB_PLACE_ID -eq $env:LIVE_PLACE_ID){throw 'LAB place equals LIVE place'}
+          Write-Host "AEROCLUB_V11_LIVE_BLOCK_PASS lab=$env:LAB_UNIVERSE_ID/$env:LAB_PLACE_ID"
+
+      - name: Static visual QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $runtime=Get-Content 'maps/aeroclub-hangar/server/visual-bootstrap-v1_1.server.lua' -Raw
+          foreach($m in @('138364957741127','READY_FOR_SCREENSHOT','size.Z < 430','AeroClubSpawn','AeroClubBootFloor')){
+            if($runtime -notmatch [regex]::Escape($m)){throw "Missing v1.1 marker: $m"}
+          }
+          $project=Get-Content 'maps/aeroclub-hangar/default.project.json' -Raw
+          if($project -notmatch 'visual-bootstrap-v1_1.server.lua'){throw 'Visual bootstrap not mounted'}
+          if($project -match 'environment.server.lua'){throw 'Old environment runtime still mounted'}
+          if($project -match 'core.server.lua'){throw 'Core systems must stay isolated during visual QC'}
+          Write-Host 'AEROCLUB_V11_STATIC_QC_PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'aeroclub-v11-rojo';$z=Join-Path $env:RUNNER_TEMP 'aeroclub-v11-rojo.zip'
+            if(Test-Path $d){Remove-Item $d -Recurse -Force}
+            New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive -Path $z -DestinationPath $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1
+            if(-not $e){throw 'rojo.exe missing'}
+            $rojo=$e.FullName
+          }
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build visual LAB place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'aeroclub-hangar-v1-1-visual-lab.rbxlx'
+          & $env:ROJO_EXE build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 12000){throw "Place unexpectedly small: $bytes"}
+          "AEROCLUB_V11_PLACE_FILE=$place" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "AEROCLUB_V11_PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "AEROCLUB_V11_PLACE_SHA256=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "AEROCLUB_V11_BUILD_PASS bytes=$bytes"
+
+      - name: Publish TEST LAB only
+        shell: powershell
+        env:
+          ROBLOX_PUBLISH_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_PUBLISH_KEY)){throw 'Publish key missing'}
+          if($env:LAB_UNIVERSE_ID -eq $env:LIVE_UNIVERSE_ID -or $env:LAB_PLACE_ID -eq $env:LIVE_PLACE_ID){throw 'LIVE publish blocked'}
+          $url="https://apis.roblox.com/universes/v1/$env:LAB_UNIVERSE_ID/places/$env:LAB_PLACE_ID/versions?versionType=Published"
+          $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_PUBLISH_KEY} -ContentType 'application/xml' -InFile $env:AEROCLUB_V11_PLACE_FILE
+          if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "LAB publish HTTP $($resp.StatusCode)"}
+          $version=[int](($resp.Content|ConvertFrom-Json).versionNumber)
+          Write-Host "AEROCLUB_V11_LAB_PUBLISHED version=$version"
