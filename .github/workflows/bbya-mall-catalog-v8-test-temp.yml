@@ -66,7 +66,7 @@ jobs:
             if($a.Contains($bad)){throw "Forbidden Mall UI marker: $bad"}
           }
           $travel=Get-Content 'maps/bbya-social-hub/32-teleport.server.lua' -Raw
-          foreach($m in @('TRAVEL / ONE-TIME ACCESS v10','resolveGlowDestination','Tenant_glow','PointToWorldSpace','LookLab=CFrame.new(61,24,361)','Photo=CFrame.new(78,24,369)','HumanoidStateType.GettingUp')){
+          foreach($m in @('TRAVEL / ONE-TIME ACCESS v11','stabilizeGlowLab','GLOW_TARGET_FLOOR_Y=21.70','FinalVerticalAuthority','GlowLabTravelAlignedV11','resolveGlowDestination','Tenant_glow','PointToWorldSpace','LookLab=CFrame.new(61,24.2,361)','Photo=CFrame.new(78,24.2,369)','HumanoidStateType.GettingUp')){
             if(-not $travel.Contains($m)){throw "Missing Mall travel marker: $m"}
           }
           $look=Get-Content 'maps/bbya-social-hub/116-looklab-avatar-editor.client.lua' -Raw
@@ -90,7 +90,7 @@ jobs:
             if(-not $g.Contains($m)){throw "Missing decor alignment marker: $m"}
           }
           if($g.Contains('d.Name=="LowerLanding" or d.Name=="UpperLanding"')){throw 'Late stair exit-landing patch still present'}
-          Write-Host 'BBYA_MALL_TEST_STATIC_QC_PASS catalog=V13 travel=dynamic-glow-floor looklab=prompt-only studioLights=in-bounds floorLevels=1,21,41,61 spacing=20'
+          Write-Host 'BBYA_MALL_TEST_STATIC_QC_PASS catalog=V13 travel=glow-l2-stabilized looklab=prompt-only studioLights=in-bounds floorLevels=1,21,41,61 spacing=20'
 
       - name: Enable third party sales in test build only
         shell: powershell
