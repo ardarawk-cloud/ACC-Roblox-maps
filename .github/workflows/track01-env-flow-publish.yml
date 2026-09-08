@@ -1,0 +1,169 @@
+name: Publish TRACK 01 Environment Flow QC
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/track01-env-flow-publish.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: track01-live-publish
+  cancel-in-progress: false
+
+env:
+  TRACK01_SOURCE_SHA: bcca140db5188f83cf3b8f140908e04bee8faf3d
+  TRACK01_VERSION: 4.2.1
+  TRACK01_UNIVERSE_ID: '10745349805'
+  TRACK01_PLACE_ID: '79748872921213'
+  TRACK01_MODE: ENV_FLOW_LOBBY_TICKET_SECURITY_PLATFORM01
+  TRACK01_AUDIO_BLOB: b5911788b475fb99521e95ff18c619fc6ae4c7f0
+
+jobs:
+  build-publish-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout receipt branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout exact TRACK 01 environment source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRACK01_SOURCE_SHA }}
+          path: source
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate exact source, target, scope and preserved audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git -C source rev-parse HEAD)"
+          test "$actual" = "$TRACK01_SOURCE_SHA"
+          test "$(git -C source hash-object maps/track-01/music-runtime.server.lua)" = "$TRACK01_AUDIO_BLOB"
+          test -s source/maps/track-01/lobby-flow-cleanup.server.lua
+          grep -q 'TRACK01_LobbyFlowCleanup_v1' source/maps/track-01/lobby-flow-cleanup.server.lua
+          grep -q 'Scope: lobby/ticket/security/platform approach only' source/maps/track-01/lobby-flow-cleanup.server.lua
+          node - <<'NODE'
+          const c=require('./source/maps/track-01/track01.config.json');
+          if(String(c.universeId)!==process.env.TRACK01_UNIVERSE_ID) throw new Error('Wrong Universe ID');
+          if(String(c.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Wrong Place ID');
+          if(String(c.version)!==process.env.TRACK01_VERSION) throw new Error('Wrong TRACK 01 version');
+          if(!c.enabled) throw new Error('TRACK 01 target disabled');
+          console.log('TRACK 01 environment source/target/audio lock PASS');
+          NODE
+
+      - name: Build TRACK 01 place from exact source
+        working-directory: source
+        run: node scripts/build-track01-v42.js
+
+      - name: Validate environment patch is embedded
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          test -s "$place"
+          test "$(wc -c < "$place")" -gt 220000
+          grep -q 'TRACK01_LobbyFlowCleanup_v1' "$place"
+          grep -q 'TRACK01_MusicAutoDJ' "$place"
+          grep -q 'EmitterCenter' "$place"
+          if grep -q 'Z_OFFSETS' "$place"; then echo 'Legacy Z_OFFSETS leaked into place' >&2; exit 1; fi
+          if grep -q 'Emitter_%02d' "$place"; then echo 'Legacy numbered emitter fan-out leaked into place' >&2; exit 1; fi
+          echo 'TRACK 01 environment + preserved audio validation PASS'
+
+      - name: Record place metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          echo "bytes=$(wc -c < "$place" | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$place" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish exact environment source to Roblox
+        id: publish
+        continue-on-error: true
+        working-directory: source
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: node scripts/publish-track01-direct.js
+
+      - name: Build environment publish receipt
+        if: always()
+        env:
+          PLACE_BYTES: ${{ steps.meta.outputs.bytes }}
+          PLACE_SHA256: ${{ steps.meta.outputs.sha256 }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          node - <<'NODE'
+          const fs=require('fs');
+          const path='source/deploy-status/track01-direct.json';
+          let raw={ok:false,httpStatus:'NO_RESULT',payload:null,at:new Date().toISOString()};
+          if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
+          const robloxVersion=Number(raw?.payload?.versionNumber);
+          const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>32;
+          const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
+          const receipt={
+            status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
+            ok: success,
+            httpStatus: raw.httpStatus,
+            universeId: process.env.TRACK01_UNIVERSE_ID,
+            placeId: process.env.TRACK01_PLACE_ID,
+            trackVersion: process.env.TRACK01_VERSION,
+            sourceCommit: process.env.TRACK01_SOURCE_SHA,
+            mode: process.env.TRACK01_MODE,
+            robloxVersion: Number.isInteger(robloxVersion)?robloxVersion:null,
+            placeBytes: Number(process.env.PLACE_BYTES)||null,
+            sha256: process.env.PLACE_SHA256||null,
+            publishRun: Number(process.env.RUN_ID)||null,
+            publishedAt: raw.at||new Date().toISOString(),
+            previewUrl: 'https://www.roblox.com/games/79748872921213',
+            payload: raw.payload??null
+          };
+          fs.writeFileSync('deploy-status/track01-env-flow-attempt.json',JSON.stringify(receipt,null,2)+'\n');
+          if(success) fs.writeFileSync('deploy-status/track01-env-flow.json',JSON.stringify(receipt,null,2)+'\n');
+          console.log(receipt);
+          NODE
+
+      - name: Persist environment publish receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf source
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/track01-env-flow-attempt.json
+          if [ -f deploy-status/track01-env-flow.json ]; then git add deploy-status/track01-env-flow.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record TRACK 01 environment flow publish receipt [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Enforce verified LIVE environment receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const r=JSON.parse(fs.readFileSync('deploy-status/track01-env-flow-attempt.json','utf8'));
+          if(r.status!=='LIVE_PUBLISHED' || !r.ok) throw new Error('TRACK 01 environment publish did not verify LIVE');
+          if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
+          if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=32) throw new Error('Roblox version did not increment beyond v32');
+          console.log('TRACK 01 ENVIRONMENT FLOW LIVE VERIFIED', r);
+          NODE
