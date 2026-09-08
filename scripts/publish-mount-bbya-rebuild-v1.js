@@ -11,7 +11,8 @@ if (String(target.universeId) === '10744139279' || String(target.placeId) === '8
 const placePath = path.join(process.cwd(),target.file);
 if (!fs.existsSync(placePath)) throw new Error(`Place missing: ${target.file}`);
 const body = fs.readFileSync(placePath);
-if (!body.includes(Buffer.from('MOUNT_BBYA_Rebuild_World'))) throw new Error('Rebuild marker absent from generated place');
+if (!body.includes(Buffer.from('MOUNT_BBYA_V11_World'))) throw new Error('MOUNT BBYA v1.1 world marker absent from generated place');
+if (!body.includes(Buffer.from('visual-lock-rebuild-v1.1'))) throw new Error('MOUNT BBYA v1.1 build marker absent from generated place');
 if (body.includes(Buffer.from('ACC_MountainSocial'))) throw new Error('Legacy Mountain Social marker detected');
 const url=`https://apis.roblox.com/universes/v1/${target.universeId}/places/${target.placeId}/versions?versionType=Published`;
 (async()=>{
