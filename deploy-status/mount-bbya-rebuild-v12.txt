@@ -1,10 +1,10 @@
 status=PUBLISHED_CANDIDATE
 build=mobile-control-hotfix-v1.2
-sourceCommit=222c84b0b84e17216517d8da76ca89c3876eb27d
+sourceCommit=c0681d0ac76e05544f055484214f1828c886491b
 branch=mount-bbya-rebuild-visual-lock-v1
 universeId=4187755690
 placeId=11832985967
 fix=character-autoload-plus-mobile-custom-camera
 runtimeVisualQC=PENDING
 publishExitCode=0
-log=MOUNT BBYA v1.2 publish success { versionNumber: 25 }
+log=MOUNT BBYA v1.2 publish success { versionNumber: 27 }
