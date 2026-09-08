@@ -1,0 +1,237 @@
+name: Publish After School City V1.3.3 Mini Mart Visual Polish
+
+on:
+  push:
+    branches:
+      - after-school-city/v133-mini-mart-visual-polish
+    paths:
+      - '.github/workflows/after-school-city-v133-mini-mart-visual-polish-publish.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SOURCE: '735e7c22e36a4829b3b8838985c44cfc2774ba56'
+      BASE_LIVE_SOURCE: '2f120100924b2b855b156ba518176323e295225d'
+      EXPECTED_QC_RUN: '34217837315'
+      EXPECTED_ARTIFACT: 'after-school-city-v133-mini-mart-visual-polish-qc-735e7c22e36a4829b3b8838985c44cfc2774ba56'
+      EXPECTED_ARTIFACT_ID: '10052536825'
+      EXPECTED_ARTIFACT_DIGEST: 'edaef72d203e9a66518c50dc2ddc770b29dffe0b96ed97b19356538f333dae9e'
+      EXPECTED_BYTES: '202852'
+      EXPECTED_SHA256: '9f071694b5979a8e680405a0fc32471ff3813c829d45af337e327d1aaeef2bb3'
+      EXPECTED_PREVIOUS_VERSION: '57'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+
+    steps:
+      - name: Checkout publish branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact Mini Mart candidate and production-scope gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected Mini Mart QC source commit unavailable' }
+          $mergeBase = (git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head is not descended from exact Mini Mart QC source: $mergeBase" }
+
+          $after = @(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production source changed after exact Mini Mart QC source: $($after -join ', ')" }
+
+          $expected = @('maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua')
+          $prod = @(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          if($prod.Count -ne $expected.Count){ throw "Unexpected Mini Mart production delta count: $($prod.Count) => $($prod -join ', ')" }
+          foreach($path in $expected){ if($prod -notcontains $path){ throw "Expected Mini Mart production file missing: $path" } }
+          foreach($path in $prod){ if($expected -notcontains $path){ throw "Unexpected Mini Mart production file: $path" } }
+
+          $protected = @(
+            'maps/after-school-city/default.project.json',
+            'maps/after-school-city/after-school-city.student-row-shop-interiors.server.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua'
+          )
+          foreach($path in $protected){
+            git diff --quiet $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- $path
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed in Mini Mart candidate: $path" }
+          }
+          Write-Host "EXACT MINI MART SOURCE GATE PASS source=$env:EXPECTED_SOURCE files=$($prod.Count)"
+
+      - name: Verify latest production receipt is still v57
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main receipts' }
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxPath = ''
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $raw = (git show "origin/main:$path" | Out-String)
+              $j = $raw | ConvertFrom-Json
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxPath = $path; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale publish base: latest receipt v$maxVersion path=$maxPath source=$maxSource" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "Latest v57 source mismatch: $maxSource" }
+          Write-Host "LIVE RECEIPT GATE PASS v$maxVersion source=$maxSource"
+
+      - name: Download exact Mini Mart QC artifact without rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.EXPECTED_ARTIFACT }}
+          path: publish-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.EXPECTED_QC_RUN }}
+
+      - name: Verify exact Mini Mart QC artifact
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $places = @(Get-ChildItem 'publish-input' -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){ throw "Expected exactly one RBXL; got $($places.Count)" }
+          $place = $places[0]
+          $bytes = $place.Length
+          $hash = (Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:EXPECTED_BYTES){ throw "RBXL byte mismatch: $bytes" }
+          if($hash -ne $env:EXPECTED_SHA256){ throw "RBXL SHA mismatch: $hash" }
+
+          $receiptFile = Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
+          if(-not $receiptFile){ throw 'QC receipt missing from exact Mini Mart artifact' }
+          $receipt = Get-Content $receiptFile.FullName -Raw
+          foreach($token in @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=MINI_MART_VISUAL_PRODUCT_DISPLAY_POLISH',
+            'LIVE_ROBLOX_VERSION=57',
+            "LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            'ROJO_VERSION=7.7.0',
+            "RBXL_BYTES=$env:EXPECTED_BYTES",
+            "SHA256=$env:EXPECTED_SHA256",
+            'PRODUCTS=NOTEBOOK_STICKER_PACK_KEYCHAIN_TOTE_SHAPED',
+            'LABELS=PHYSICAL_SURFACE_LABELS',
+            'ECONOMY_AUTHORITY=PRESERVED',
+            'DATASTORE_AUTHORITY=UNCHANGED',
+            'MUSIC_V57=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          )){
+            if($receipt -notmatch [regex]::Escape($token)){ throw "Exact Mini Mart QC receipt token missing: $token" }
+          }
+
+          "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT MINI MART QC ARTIFACT PASS id=$env:EXPECTED_ARTIFACT_ID bytes=$bytes sha256=$hash NO_REBUILD"
+
+      - name: Recheck LIVE receipt immediately before publish
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxSource = [string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
+          Write-Host 'FINAL PRE-PUBLISH LIVE GATE PASS'
+
+      - name: Publish exact Mini Mart QC artifact to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact Mini Mart QC RBXL missing at publish step' }
+          $url = "https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success = $false
+          $responsePath = Join-Path $env:RUNNER_TEMP 'asc-v133-mini-mart-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp = Join-Path $env:RUNNER_TEMP "asc-v133-mini-mart-publish-$attempt.json"
+            $http = & curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body = if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              $success = $true
+              break
+            }
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp = Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version = [int]$resp.versionNumber
+          if($version -le [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Invalid published version: $version" }
+          $publishedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH SUCCESS version=$version source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
+
+      - name: Persist exact Mini Mart LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          git switch -C receipt-main origin/main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to switch to refreshed main for receipt' }
+          $receiptPath = 'deploy-status/after-school-city-publish-v133-mini-mart-visual-polish.json'
+          $obj = [ordered]@{
+            status = 'LIVE_PUBLISHED'
+            project = 'AFTER SCHOOL CITY'
+            mode = 'V133_MINI_MART_VISUAL_POLISH'
+            sourceRepo = 'ardarawk-cloud/ACC-Roblox-maps'
+            sourceCommit = $env:EXPECTED_SOURCE
+            baseLiveCommit = $env:BASE_LIVE_SOURCE
+            qcRunId = $env:EXPECTED_QC_RUN
+            qcArtifactId = [int64]$env:EXPECTED_ARTIFACT_ID
+            universeId = $env:UNIVERSE_ID
+            placeId = $env:PLACE_ID
+            versionNumber = [int]$env:PUBLISHED_VERSION
+            rojoVersion = '7.7.0'
+            placeBytes = [int64]$env:PLACE_BYTES
+            placeSha256 = $env:PLACE_SHA256
+            runId = $env:GITHUB_RUN_ID
+            publishedAt = $env:PUBLISHED_AT
+            note = 'Exact V1.3.3 Mini Mart visual product-display polish QC artifact published without rebuild. Four collectible products now use shaped physical displays and SurfaceGui price plates. Purchase, server-authoritative Inventory, DataStore ASC_PlayerProfile_v1 schema 2, BAG, and V1.3.2 music authority are preserved.'
+          }
+          $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+          git config user.name 'After School City Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add $receiptPath
+          git commit -m "Record After School City V1.3.3 Mini Mart Visual Polish LIVE v$env:PUBLISHED_VERSION [skip ci]"
+          if($LASTEXITCODE -ne 0){ throw 'Receipt commit failed' }
+          git push origin HEAD:main
+          if($LASTEXITCODE -ne 0){ throw 'Receipt push failed after Roblox publish; DO NOT RERUN PUBLISHER' }
+          Write-Host "MINI MART LIVE RECEIPT PASS version=$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID"
