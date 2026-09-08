@@ -1,0 +1,92 @@
+name: HANGAR v1.3 FRONT FIX LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/hangar-v1_3-front-fix-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-v1-3-front-fix-live
+  cancel-in-progress: true
+
+env:
+  LIVE_UNIVERSE_ID: '10745364913'
+  LIVE_PLACE_ID: '76001567401911'
+  FIXED_MODEL_ASSET_ID: '99386261031802'
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Verify corrected front authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $runtime=[IO.File]::ReadAllText('maps/aeroclub-hangar/server/visual-bootstrap-v1_3.server.lua')
+          $spawn=[IO.File]::ReadAllText('maps/aeroclub-hangar/server/spawn-safety.server.lua')
+          foreach($m in @('V1_3_FIXED_ASSET_Z_ALIGNED','Vector3.new(0, 6, 325)','Vector3.new(0, 10, -58)')){if($runtime -notmatch [regex]::Escape($m)){throw "runtime missing $m"}}
+          foreach($m in @('V1_2_GLTF_Z_ALIGNED_FRONT','Vector3.new(0, 6, 325)','Vector3.new(0, 10, -58)')){if($spawn -notmatch [regex]::Escape($m)){throw "spawn missing $m"}}
+          Write-Host 'HANGAR_FRONT_AUTHORITY_PASS'
+
+      - name: Prepare Rojo
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $d=Join-Path $env:RUNNER_TEMP 'rojo-front';$z=Join-Path $env:RUNNER_TEMP 'rojo-front.zip'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+          Expand-Archive -Path $z -DestinationPath $d -Force
+          $rojo=(Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1).FullName
+          if(-not $rojo){throw 'rojo.exe missing'}
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build corrected HANGAR place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-front-fix.rbxlx'
+          & $env:ROJO_EXE build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place)
+          foreach($m in @('HangarSpawnSafetyV1_1','HangarFullMeshV1_3',$env:FIXED_MODEL_ASSET_ID,'V1_3_FIXED_ASSET_Z_ALIGNED','Vector3.new(0, 6, 325)','Vector3.new(0, 10, -58)')){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}}
+          "HANGAR_PLACE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "HANGAR_PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart
+        shell: powershell
+        env:
+          ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published"
+          $version=$null
+          for($i=1;$i -le 6;$i++){
+            try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/xml' -InFile $env:HANGAR_PLACE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);break}catch{Start-Sleep -Seconds ([math]::Min(30,3*$i))}
+          }
+          if(-not $version){throw 'publish failed'}
+          "HANGAR_LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Invoke-WebRequest -UseBasicParsing -Method Post -Uri "https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers" -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body '{}'|Out-Null
+          Write-Host "HANGAR_FRONT_FIX_LIVE version=$version"
+
+      - name: Save receipt
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $obj=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_FRONT_Z_ALIGNED';staticModelAssetId=[int64]$env:FIXED_MODEL_ASSET_ID;robloxVersion=[int]$env:HANGAR_LIVE_VERSION;spawn='ACTUAL_FRONT_PLUS_Z_FACE_CENTRAL_JET';visibleFallback='NONE';serversRestarted=$true;placeBytes=[int64]$env:HANGAR_PLACE_BYTES;visualQC='PENDING_OWNER_IN_GAME'}
+          $text=$obj|ConvertTo-Json -Depth 5;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-FRONT'}
+          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json";$sha=$null
+          try{$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$sha=[string]$old.sha}catch{}
+          $body=@{message='Record HANGAR front-fix LIVE [skip ci]';content=$b64;branch=$env:GITHUB_REF_NAME};if($sha){$body.sha=$sha}
+          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body ($body|ConvertTo-Json -Depth 5)|Out-Null
