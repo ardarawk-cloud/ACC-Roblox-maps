@@ -10,8 +10,8 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "VisualBootstrapV1_1": {
-        "$path": "server/visual-bootstrap-v1_1.server.lua"
+      "VisualBootstrapV1_2": {
+        "$path": "server/visual-bootstrap-v1_2.server.lua"
       }
     },
     "StarterPlayer": {
