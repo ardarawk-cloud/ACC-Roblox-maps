@@ -1,5 +1,5 @@
 {
-  "name": "AeroClubHangarLab",
+  "name": "HANGAR",
   "tree": {
     "$className": "DataModel",
     "Workspace": {
@@ -10,14 +10,11 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "VisibleFailsafeV1": {
-        "$path": "server/failsafe-visible-hangar.server.lua"
-      },
-      "SpawnSafetyV1": {
+      "HangarSpawnSafetyV1_1": {
         "$path": "server/spawn-safety.server.lua"
       },
-      "VisualBootstrapV1_2": {
-        "$path": "server/visual-bootstrap-v1_2.server.lua"
+      "HangarFullMeshV1_3": {
+        "$path": "server/visual-bootstrap-v1_3.server.lua"
       }
     },
     "StarterPlayer": {
