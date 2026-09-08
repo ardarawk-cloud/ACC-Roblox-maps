@@ -1,10 +1,11 @@
--- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v9
+-- BBYA SOCIAL HUB — TRAVEL / ONE-TIME ACCESS v10
 -- Reliable server-authoritative travel with explicit client result events.
--- Photo Studio + Look Lab now point to their current Mall Level 2 locations.
+-- Mall Look Lab + Photo destinations resolve from the live GLOW LAB floor so vertical-spacing passes cannot strand players on Daily Market.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
+local Workspace=game:GetService("Workspace")
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -25,8 +26,8 @@ end
 
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.new(78,18,369), -- GLOW LAB photo side, Mall L2
- LookLab=CFrame.new(61,18,361), -- GLOW LAB styling side, Mall L2
+ Photo=CFrame.new(78,24,369), -- safe fallback for GLOW LAB after L2 vertical-spacing pass
+ LookLab=CFrame.new(61,24,361), -- safe fallback for GLOW LAB after L2 vertical-spacing pass
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,27,2),
@@ -60,14 +61,32 @@ local function toast(player,msg)if state and state:IsA("RemoteEvent") then state
 local function send(player,ok,key,msg)
  if player and result then result:FireClient(player,ok==true,tostring(key or ""),tostring(msg or "")) end
 end
+
+local function resolveGlowDestination(key)
+ if key~="LookLab" and key~="Photo" then return destinations[key] end
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+ local mall=root and root:FindFirstChild("BBYAMall")
+ local glow=mall and mall:FindFirstChild("Tenant_glow")
+ local floor=glow and glow:FindFirstChild("Floor")
+ if floor and floor:IsA("BasePart") then
+  -- Tenant_glow is moved upward by the Mall vertical-spacing authority after it is built.
+  -- Resolve from the live floor instead of retaining the original pre-move Y coordinate.
+  local offset=(key=="LookLab") and Vector3.new(-9,2.5,-4) or Vector3.new(8,2.5,4)
+  local pos=floor.CFrame:PointToWorldSpace(offset)
+  return CFrame.new(pos)
+ end
+ return destinations[key]
+end
+
 local function doTeleport(player,key)
- local cf=destinations[key]
+ local cf=resolveGlowDestination(key)
  if not cf then return false,"Unknown destination" end
  local char=player and player.Character
  local hrp=char and char:FindFirstChild("HumanoidRootPart")
  local hum=char and char:FindFirstChildOfClass("Humanoid")
  if not hrp or not hum or hum.Health<=0 then return false,"Character belum siap" end
  hum.Sit=false
+ pcall(function()hum:ChangeState(Enum.HumanoidStateType.GettingUp)end)
  hrp.CFrame=cf
  hrp.AssemblyLinearVelocity=Vector3.zero
  hrp.AssemblyAngularVelocity=Vector3.zero
@@ -134,4 +153,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)
  ownershipCache[player.UserId]=nil;debounce[player.UserId]=nil
 end)
-print("[BBYA] Travel v9 online: reliable touch result + Mall L2 Photo/Look destinations + server acknowledgement")
+print("[BBYA] Travel v10 online: dynamic GLOW LAB Look/Photo destinations + safe GettingUp arrival + server acknowledgement")
