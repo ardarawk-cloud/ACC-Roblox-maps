@@ -1,0 +1,29 @@
+{
+  "name": "AeroClubHangarLab",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "CoreServer": {
+        "$path": "server/core.server.lua"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "Controllers": {
+          "$className": "Folder",
+          "ClientSettings": {
+            "$path": "client/client-settings.client.lua"
+          }
+        }
+      }
+    }
+  }
+}
