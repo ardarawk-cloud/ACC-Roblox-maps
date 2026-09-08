@@ -1,0 +1,15 @@
+{
+    "status":  "LIVE_PUBLISHED",
+    "ok":  true,
+    "project":  "HANGAR",
+    "universeId":  "10745364913",
+    "placeId":  "76001567401911",
+    "sourceCommit":  "ffe43eb622a6b20fdaf761e5f92754fc837e63d2",
+    "mode":  "HANGAR_V13_LIVE_OWNER_FULL_MESH",
+    "staticModelAssetId":  99386261031802,
+    "modelModeration":  "Approved",
+    "robloxVersion":  14,
+    "spawn":  "FAR_OUTDOOR_FACE_CENTRAL_JET",
+    "visibleFallback":  "NONE",
+    "visualQC":  "PENDING_OWNER_IN_GAME"
+}
