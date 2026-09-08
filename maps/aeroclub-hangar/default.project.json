@@ -10,11 +10,11 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "HangarSpawnSafetyV1_1": {
+      "HangarSpawnSafetyV1_2": {
         "$path": "server/spawn-safety.server.lua"
       },
-      "HangarFullMeshV1_3": {
-        "$path": "server/visual-bootstrap-v1_3.server.lua"
+      "HangarPhase2VisualPolishV1_4": {
+        "$path": "server/visual-bootstrap-v1_4.server.lua"
       }
     },
     "StarterPlayer": {
