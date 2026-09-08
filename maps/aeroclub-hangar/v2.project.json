@@ -1,0 +1,28 @@
+{
+  "name": "HANGAR",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "HangarSpawnSafetyV1_2": {
+        "$path": "server/spawn-safety.server.lua"
+      },
+      "HangarEnvironmentRealismV2_0": {
+        "$path": "server/visual-bootstrap-v2_0.server.lua"
+      },
+      "HangarRealtimeWITAV1_1": {
+        "$path": "server/wita-time.server.lua"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {}
+    }
+  }
+}
