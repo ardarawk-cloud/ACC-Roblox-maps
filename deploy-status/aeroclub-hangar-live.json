@@ -1,0 +1,15 @@
+{
+    "status":  "LIVE_PUBLISHED",
+    "ok":  true,
+    "universeId":  "10745364913",
+    "placeId":  "76001567401911",
+    "sourceCommit":  "d48c1fa0f4386e415f1ca66b4db0d9c93cb56a74",
+    "mode":  "AEROCLUB_V12_LAYOUT_READABILITY_MAIN_HANGAR",
+    "staticModelAssetId":  89579886424411,
+    "robloxVersion":  10,
+    "placeBytes":  9580,
+    "placeSha256":  "d3f67f62e494de2b6d94dc8575c7462220be17d67eea4d515238659a145cf0ec",
+    "publishRun":  34216619902,
+    "ownerDirective":  "USE_MAIN_HANGAR_NO_MORE_TEST",
+    "visualQC":  "PENDING_OWNER_IN_GAME"
+}
