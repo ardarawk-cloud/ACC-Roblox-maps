@@ -1,4 +1,4 @@
-name: HANGAR v1.3 LIVE CREATOR FULL MESH
+name: HANGAR v1.3 FULL MESH UNIVERSE GRANT
 
 on:
   push:
@@ -22,10 +22,10 @@ env:
   LIVE_UNIVERSE_ID: '10745364913'
   LIVE_PLACE_ID: '76001567401911'
   BRANCH_LOCK: 'aeroclub-hangar-rebuild-v1-lab'
-  LIVE_CREATOR_USERNAME_FALLBACK: 'RidhooMauKamu'
+  ASSET_OWNER_USER_ID: '4141352496'
 
 jobs:
-  build-upload-publish-live:
+  build-upload-grant-publish-live:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 30
     steps:
@@ -69,55 +69,20 @@ jobs:
           "HANGAR_GLB_SHA256=$((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant())" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "HANGAR_V13_GLB_PASS bytes=$bytes"
 
-      - name: Resolve exact LIVE HANGAR creator
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-
-          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:LIVE_UNIVERSE_ID"
-          if(-not $meta.data -or $meta.data.Count -lt 1){throw 'LIVE universe metadata missing'}
-          $creator=$meta.data[0].creator
-          $type=[string]$creator.type
-          $name=[string]$creator.name
-          $id=[string]$creator.id
-          $source='universe.creator.id'
-
-          # Legacy HANGAR metadata masks creator as id=0/name=[UNKNOWN]. Owner-visible experience card identifies the creator username.
-          if($type -ieq 'User' -and ($name -eq '[UNKNOWN]' -or [string]::IsNullOrWhiteSpace($name))){
-            $name=$env:LIVE_CREATOR_USERNAME_FALLBACK
-            $source='ownerVerifiedCreatorUsername'
-          }
-
-          if(($id -notmatch '^\d+$' -or [int64]$id -le 0) -and $type -ieq 'User' -and -not [string]::IsNullOrWhiteSpace($name)){
-            $lookupBody=@{usernames=@($name);excludeBannedUsers=$false}|ConvertTo-Json -Depth 4 -Compress
-            $lookup=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $lookupBody
-            if($lookup.data -and $lookup.data.Count -gt 0){
-              $exact=$lookup.data|Where-Object{[string]$_.name -ieq $name}|Select-Object -First 1
-              if(-not $exact){throw "Username lookup returned no exact match for $name"}
-              $id=[string]$exact.id
-              $source='ownerUsername->users.usernameLookup'
-            }
-          }
-
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "Invalid LIVE creator id. creator=$($creator|ConvertTo-Json -Compress -Depth 5) fallbackName=$name"}
-          if($type -ieq 'Group'){$field='groupId'}elseif($type -ieq 'User'){$field='userId'}else{throw "Unsupported LIVE creator type '$type' id=$id source=$source"}
-
-          "HANGAR_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_CREATOR_FIELD=$field" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_CREATOR_TYPE=$type" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_CREATOR_NAME=$name" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "HANGAR_CREATOR_SOURCE=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V13_LIVE_CREATOR_PASS type=$type name=$name id=$id source=$source universe=$env:LIVE_UNIVERSE_ID"
-
-      - name: Upload model under LIVE HANGAR creator
+      - name: Upload HANGAR model under authorized asset owner
         shell: powershell
         env:
           ROBLOX_ASSET_KEY: ${{ secrets.AM_STUDIO }}
         run: |
           $ErrorActionPreference='Stop'
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_ASSET_KEY)){throw 'AM_STUDIO asset key missing'}
-          $creator=@{};$creator[$env:HANGAR_CREATOR_FIELD]=[int64]$env:HANGAR_CREATOR_ID
-          $request=@{assetType='Model';displayName='HANGAR v1.3 LIVE Full Mesh';description='HANGAR full-mesh environment owned by the LIVE experience creator.';creationContext=@{creator=$creator}}|ConvertTo-Json -Depth 8 -Compress
+          if($env:ASSET_OWNER_USER_ID -notmatch '^\d+$' -or [int64]$env:ASSET_OWNER_USER_ID -le 0){throw 'Invalid asset owner'}
+          $request=@{
+            assetType='Model'
+            displayName='HANGAR v1.3 Full Mesh'
+            description='HANGAR full-mesh environment. Explicitly granted to the HANGAR live universe.'
+            creationContext=@{creator=@{userId=[int64]$env:ASSET_OWNER_USER_ID}}
+          }|ConvertTo-Json -Depth 8 -Compress
           $requestFile=Join-Path $env:RUNNER_TEMP 'hangar-v13-asset-request.json'
           [System.IO.File]::WriteAllText($requestFile,$request,(New-Object System.Text.UTF8Encoding($false)))
           try{
@@ -126,7 +91,7 @@ jobs:
           }finally{Remove-Item $requestFile -Force -ErrorAction SilentlyContinue}
           if($LASTEXITCODE -ne 0){throw 'Asset upload request failed'}
           try{$created=$raw|ConvertFrom-Json}catch{throw "Invalid asset upload response: $raw"}
-          if(-not $created.path){throw "Asset upload rejected for LIVE creator $env:HANGAR_CREATOR_TYPE/$env:HANGAR_CREATOR_ID: $raw"}
+          if(-not $created.path){throw "Asset upload rejected: $raw"}
           $operationId=([string]$created.path)-replace '^operations/',''
           $assetId=$null;$moderation=$null
           for($i=0;$i -lt 90;$i++){
@@ -141,12 +106,43 @@ jobs:
               break
             }
           }
-          if($assetId -notmatch '^\d+$' -or [int64]$assetId -le 0){throw 'No valid LIVE creator model asset ID'}
+          if($assetId -notmatch '^\d+$' -or [int64]$assetId -le 0){throw 'No valid HANGAR model asset ID'}
           "HANGAR_MODEL_ASSET_ID=$assetId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "HANGAR_MODEL_MODERATION=$moderation" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_V13_UPLOAD_PASS asset=$assetId moderation=$moderation creator=$env:HANGAR_CREATOR_TYPE/$env:HANGAR_CREATOR_ID"
+          Write-Host "HANGAR_V13_UPLOAD_PASS asset=$assetId moderation=$moderation owner=$env:ASSET_OWNER_USER_ID"
 
-      - name: Inject LIVE creator asset
+      - name: Grant model and dependencies to LIVE HANGAR universe
+        shell: powershell
+        env:
+          ROBLOX_ASSET_KEY: ${{ secrets.AM_STUDIO }}
+          ROBLOX_MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $body=@{
+            subjectType='Universe'
+            subjectId=$env:LIVE_UNIVERSE_ID
+            action='Use'
+            requests=@(@{assetId=[int64]$env:HANGAR_MODEL_ASSET_ID;grantToDependencies=$true})
+          }|ConvertTo-Json -Depth 8 -Compress
+          $url='https://apis.roblox.com/asset-permissions-api/v1/assets/permissions'
+          $granted=$false
+          foreach($key in @($env:ROBLOX_ASSET_KEY,$env:ROBLOX_MASTER_KEY)){
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{
+              $resp=Invoke-RestMethod -Method Patch -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body $body
+              $success=@($resp.successAssetIds|ForEach-Object{[string]$_})
+              $errors=@($resp.errors)
+              if($success -contains [string]$env:HANGAR_MODEL_ASSET_ID -and $errors.Count -eq 0){$granted=$true;break}
+              Write-Warning "Asset grant response did not confirm success: $($resp|ConvertTo-Json -Compress -Depth 8)"
+            }catch{
+              Write-Warning "Asset grant key attempt failed: $($_.Exception.Message)"
+            }
+          }
+          if(-not $granted){throw "Unable to grant asset $env:HANGAR_MODEL_ASSET_ID Use permission to universe $env:LIVE_UNIVERSE_ID"}
+          "HANGAR_ASSET_GRANT=UNIVERSE_USE_WITH_DEPENDENCIES" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V13_PERMISSION_PASS asset=$env:HANGAR_MODEL_ASSET_ID universe=$env:LIVE_UNIVERSE_ID dependencies=true"
+
+      - name: Inject universe-granted model asset
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
@@ -204,13 +200,8 @@ jobs:
           for($attempt=1;$attempt -le 6;$attempt++){
             try{
               $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_PUBLISH_KEY} -ContentType 'application/xml' -InFile $env:HANGAR_PLACE_FILE
-              if([int]$resp.StatusCode -ge 200 -and [int]$resp.StatusCode -lt 300){
-                $version=[int](($resp.Content|ConvertFrom-Json).versionNumber)
-                break
-              }
-            }catch{
-              Write-Warning "Publish attempt $attempt failed: $($_.Exception.Message)"
-            }
+              if([int]$resp.StatusCode -ge 200 -and [int]$resp.StatusCode -lt 300){$version=[int](($resp.Content|ConvertFrom-Json).versionNumber);break}
+            }catch{Write-Warning "Publish attempt $attempt failed: $($_.Exception.Message)"}
             Start-Sleep -Seconds ([math]::Min(30,3*$attempt))
           }
           if(-not $version){throw 'HANGAR publish failed after retries'}
@@ -223,7 +214,6 @@ jobs:
           ROBLOX_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:ROBLOX_KEY)){throw 'Roblox Open Cloud key missing'}
           $url="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers"
           $resp=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_KEY} -ContentType 'application/json' -Body '{}'
           if([int]$resp.StatusCode -lt 200 -or [int]$resp.StatusCode -ge 300){throw "Restart HTTP $($resp.StatusCode)"}
@@ -237,9 +227,8 @@ jobs:
           $ErrorActionPreference='Stop'
           $receipt=[ordered]@{
             status='LIVE_PUBLISHED';ok=$true;project='HANGAR';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;
-            sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_LIVE_CREATOR_FULL_MESH_NO_VISIBLE_FALLBACK';
-            liveCreatorType=$env:HANGAR_CREATOR_TYPE;liveCreatorName=$env:HANGAR_CREATOR_NAME;liveCreatorId=[int64]$env:HANGAR_CREATOR_ID;creatorSource=$env:HANGAR_CREATOR_SOURCE;
-            staticModelAssetId=[int64]$env:HANGAR_MODEL_ASSET_ID;modelModeration=$env:HANGAR_MODEL_MODERATION;
+            sourceCommit=$env:GITHUB_SHA;mode='HANGAR_V13_FULL_MESH_UNIVERSE_GRANTED_NO_VISIBLE_FALLBACK';
+            assetOwnerUserId=[int64]$env:ASSET_OWNER_USER_ID;staticModelAssetId=[int64]$env:HANGAR_MODEL_ASSET_ID;modelModeration=$env:HANGAR_MODEL_MODERATION;assetPermission=$env:HANGAR_ASSET_GRANT;
             robloxVersion=[int]$env:HANGAR_LIVE_VERSION;glbBytes=[int64]$env:HANGAR_GLB_BYTES;glbSha256=$env:HANGAR_GLB_SHA256;
             placeBytes=[int64]$env:HANGAR_PLACE_BYTES;placeSha256=$env:HANGAR_PLACE_SHA256;publishRun=[int64]$env:GITHUB_RUN_ID;
             spawn='FAR_OUTDOOR_FACE_CENTRAL_JET';visibleFallback='NONE';serversRestarted=$true;visualQC='PENDING_OWNER_IN_GAME'
