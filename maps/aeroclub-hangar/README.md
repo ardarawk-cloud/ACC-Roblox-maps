@@ -1,22 +1,22 @@
-# AEROCLUB HANGAR — MASTER GDD & TECHNICAL BLUEPRINT v1.0
+# AEROCLUB HANGAR — MASTER GDD & TECHNICAL BLUEPRINT v1.1
 
-Status: ACTIVE / RESET FROM ZERO / LAB ONLY
+Status: ACTIVE / MAIN HANGAR DEVELOPMENT
 Owner / final authority: Arda
+Continuation authority: `maps/aeroclub-hangar/AEROCLUB-HANGAR-HANDOFF-v1.0.md`
 
-This document supersedes every previous Hangar Exclusive Club foundation, v7/v8/v9/v10 runtime, visual fallback, geometry authority, laser/no-laser lock, and publish workflow for the rebuilt experience.
+This document supersedes every previous Hangar Exclusive Club foundation, v7/v8/v9/v10 runtime, visual fallback, geometry authority, and old publish workflow for the rebuilt experience.
 
 ## Release discipline
-- Build and publish to TEST LAB first.
-- Visual/runtime QC must PASS before any live publish.
+- Main Hangar is now the active target by owner directive; do not use the old BBYA Test Lab for AeroClub.
+- One problem = one root cause. Do not stack rescue/failsafe scripts as the production architecture.
+- Visual/runtime QC must be owner-verified in-game before PASS.
 - No legacy Hangar geometry or scripts may be mounted in the AeroClub build.
-- No primitive fallback is allowed to masquerade as final mesh art.
-- Live Hangar target remains untouched until explicit owner approval.
+- No primitive fallback may be presented as final mesh art.
+- If runtime asset insertion is unreliable, bake/import the MeshParts directly into the published place artifact instead of adding more runtime rescue layers.
 
-Current targets:
-- TEST LAB Universe: 10762005984
-- TEST LAB Place: 124607344716828
-- Existing LIVE Hangar Universe: 10745364913
-- Existing LIVE Hangar Place: 76001567401911
+Current LIVE target:
+- Universe: 10745364913
+- Place: 76001567401911
 
 ## Concept lock
 Luxury commercial/business-jet hangar converted into a cyberpunk-industrial social club. Partially open steel hangar door reveals a starry night exterior. Interior uses polished concrete PBR, Future lighting, subtle volumetric fog, moving-head/spotlight/laser show equipment, and audio-reactive neon accents.
@@ -51,3 +51,8 @@ StarterGui/MainHUD
 - CarryRequestEvent
 
 Server remains authoritative for permissions, filtering, carry validation, purchases, donation data, and effect control.
+
+## Current phase lock
+ENVIRONMENT RUNTIME ROOT-CAUSE FIX.
+
+Do not proceed to feature systems or polish until the actual AeroClub environment is visibly present in the published Main Hangar and Arda verifies it in-game.
