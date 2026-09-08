@@ -1,0 +1,195 @@
+name: After School City V1.3 Mini Mart Visual Polish QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v133-mini-mart-visual-polish
+    paths:
+      - '.github/workflows/after-school-city-v133-mini-mart-visual-polish-qc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SOURCE: '735e7c22e36a4829b3b8838985c44cfc2774ba56'
+      LIVE_SOURCE: '2f120100924b2b855b156ba518176323e295225d'
+      LIVE_VERSION: '57'
+      PLACE_ID: '121603385909425'
+      UNIVERSE_ID: '10745359869'
+
+    steps:
+      - name: Checkout exact Mini Mart visual source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.EXPECTED_SOURCE }}
+
+      - name: Verify exact source lineage and narrow production scope
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = (git rev-parse HEAD).Trim()
+          if($source -ne $env:EXPECTED_SOURCE){ throw "Unexpected checkout source: $source" }
+          git cat-file -e "$env:LIVE_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'LIVE source commit unavailable' }
+          $mergeBase = (git merge-base $env:LIVE_SOURCE $source).Trim()
+          if($mergeBase -ne $env:LIVE_SOURCE){ throw "Visual candidate is not descended from LIVE source: $mergeBase" }
+
+          $productionDelta = @(git diff --name-only $env:LIVE_SOURCE $source -- 'maps/after-school-city')
+          $expected = @('maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua')
+          if($productionDelta.Count -ne 1 -or $productionDelta[0] -ne $expected[0]){ throw "Unexpected production delta: $($productionDelta -join ', ')" }
+
+          foreach($path in @(
+            'maps/after-school-city/default.project.json',
+            'maps/after-school-city/after-school-city.student-row-shop-interiors.server.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua'
+          )){
+            git diff --quiet $env:LIVE_SOURCE $source -- $path
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed: $path" }
+          }
+
+          "SOURCE_SHA=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SOURCE SCOPE PASS source=$source"
+
+      - name: Verify current LIVE authority is still v57
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if($LASTEXITCODE -ne 0){ throw 'Unable to refresh main receipts' }
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          $maxPath = ''
+          foreach($path in $paths){
+            try {
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v = [int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion = $v; $maxSource = [string]$j.sourceCommit; $maxPath = $path }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:LIVE_VERSION){ throw "Stale LIVE version: v$maxVersion path=$maxPath" }
+          if($maxSource -ne $env:LIVE_SOURCE){ throw "LIVE source mismatch: $maxSource" }
+          Write-Host "LIVE AUTHORITY PASS v$maxVersion source=$maxSource"
+
+      - name: Mini Mart visual and economy preservation contract QC
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = 'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua'
+          $src = Get-Content $path -Raw
+
+          foreach($token in @(
+            'local VISUAL_VERSION = "1.3.3-mini-mart-product-display-1"',
+            'CAMPUS_NOTEBOOK = buildNotebook',
+            'CITY_STICKER_PACK = buildStickerPack',
+            'ASC_KEYCHAIN = buildKeychain',
+            'STUDENT_TOTE = buildTote',
+            'DisplayPad_',
+            'PricePlate_',
+            'PriceAccent_',
+            'ASC_ShapedProductDisplay',
+            'SurfaceGui',
+            'GameplayService.PurchaseItem(player, item.Id, item.Price, item.MaxOwned, item.DisplayName)',
+            'GameplayService.CanUseCooldown(player, "V130_PURCHASE", EconomyConfig.PurchaseCooldownSeconds)',
+            'if not state.Persistent then',
+            'prompt.ActionText = "BUY"',
+            'prompt.MaxActivationDistance = shopConfig.MaxActivationDistance',
+            'miniMart:SetAttribute("ASC_V130PurchaseAuthority", true)',
+            'root:SetAttribute("ASC_EconomyReady", true)'
+          )){
+            if($src -notmatch [regex]::Escape($token)){ throw "Required Mini Mart contract missing: $token" }
+          }
+
+          foreach($forbidden in @('MarketplaceService','PromptProductPurchase','PromptGamePassPurchase','DeveloperProduct')){
+            if($src -match [regex]::Escape($forbidden)){ throw "Forbidden monetization authority introduced: $forbidden" }
+          }
+
+          $promptCount = ([regex]::Matches($src, 'local prompt = Instance\.new\("ProximityPrompt"\)')).Count
+          if($promptCount -ne 1){ throw "Unexpected prompt construction count in source loop: $promptCount" }
+          Write-Host 'MINI MART CONTRACT PASS - shaped products + physical labels; purchase/data authority preserved'
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cmd = Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe = $cmd.Source
+          } else {
+            $dir = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+            $zip = Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe = Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){ throw 'rojo.exe not found' }
+            $rojoExe = $exe.FullName
+          }
+          $version = (& $rojoExe --version | Out-String).Trim()
+          if($version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$rojoExe" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ROJO_VERSION=7.7.0" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO PASS version=$version"
+
+      - name: Build exact Mini Mart visual candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'asc-mini-mart-visual-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place = Join-Path $outDir 'after-school-city-v133-mini-mart-visual-polish.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){ throw "Rojo build failed: $LASTEXITCODE" }
+          if(-not (Test-Path $place)){ throw 'Generated RBXL missing' }
+          $bytes = (Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes" }
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+
+          @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=MINI_MART_VISUAL_PRODUCT_DISPLAY_POLISH',
+            "LIVE_ROBLOX_VERSION=$env:LIVE_VERSION",
+            "LIVE_SOURCE=$env:LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:SOURCE_SHA",
+            "ROJO_VERSION=$env:ROJO_VERSION",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'PRODUCTS=NOTEBOOK_STICKER_PACK_KEYCHAIN_TOTE_SHAPED',
+            'LABELS=PHYSICAL_SURFACE_LABELS',
+            'ECONOMY_AUTHORITY=PRESERVED',
+            'DATASTORE_AUTHORITY=UNCHANGED',
+            'MUSIC_V57=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          ) | Set-Content (Join-Path $outDir 'qc-receipt.txt') -Encoding utf8
+
+          "RBXL_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ARTIFACT_PATH=$outDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS source=$env:SOURCE_SHA bytes=$bytes sha256=$hash"
+
+      - name: Upload exact Mini Mart visual artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v133-mini-mart-visual-polish-qc-${{ env.SOURCE_SHA }}
+          path: ${{ env.ARTIFACT_PATH }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: QC summary
+        shell: powershell
+        run: |
+          Write-Host "QC_COMPLETE source=$env:SOURCE_SHA rojo=$env:ROJO_VERSION bytes=$env:RBXL_BYTES sha256=$env:RBXL_SHA256 runtime=PENDING publish=NO"
