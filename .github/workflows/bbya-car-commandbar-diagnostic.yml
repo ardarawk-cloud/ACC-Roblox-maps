@@ -1,0 +1,97 @@
+name: BBYA Car Command Bar Diagnostic
+
+on:
+  push:
+    branches: [fix/bbya-car-static-bake-v1]
+    paths:
+      - '.github/workflows/bbya-car-commandbar-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 8
+    steps:
+      - name: Open MAIN Studio and execute non-saving car loader diagnostic
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class BBYAFocus {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+'@
+
+          $roots=@(
+            (Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),
+            'C:\Program Files\Roblox\Versions',
+            'C:\Program Files (x86)\Roblox\Versions'
+          ) | Where-Object {$_ -and (Test-Path $_)}
+          $studioExe=$null
+          foreach($r in $roots){
+            $c=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if($c){$studioExe=$c.FullName;break}
+          }
+          if(-not $studioExe){throw 'RobloxStudioBeta.exe not found'}
+          Write-Host "STUDIO_EXE=$studioExe"
+
+          Start-Process -FilePath $studioExe -ArgumentList '--task','EditPlace','--placeId','131894120482837','--universeId','8116636513' | Out-Null
+
+          $deadline=(Get-Date).AddMinutes(3)
+          $proc=$null;$root=$null;$edit=$null;$run=$null
+          while((Get-Date) -lt $deadline){
+            Start-Sleep -Seconds 2
+            $procs=Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0}
+            foreach($p in $procs){
+              try{
+                $r=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$p.MainWindowHandle)
+                $editCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'commandBarScriptEditor')
+                $runCond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,'multiLineRunButtonContainer.commandBarRunButton')
+                $e=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$editCond)
+                $b=$r.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$runCond)
+                if($e -and $b){$proc=$p;$root=$r;$edit=$e;$run=$b;break}
+              }catch{}
+            }
+            if($edit -and $run){break}
+          }
+          if(-not $edit -or -not $run){throw 'Studio Command Bar UI not found'}
+
+          [BBYAFocus]::SetForegroundWindow([IntPtr]$proc.MainWindowHandle)|Out-Null
+          Start-Sleep -Milliseconds 400
+
+          $cmd=@'
+local I=game:GetService("InsertService");local A=game:GetService("AssetService");local function s(tag,o) local n=0;local v=0;local min=Vector3.new(math.huge,math.huge,math.huge);local max=Vector3.new(-math.huge,-math.huge,-math.huge);for _,d in ipairs(o:GetDescendants()) do if d:IsA("BasePart") then n+=1;if d.Transparency<.97 then v+=1;local p=d.Position;local h=d.Size*.5;min=Vector3.new(math.min(min.X,p.X-h.X),math.min(min.Y,p.Y-h.Y),math.min(min.Z,p.Z-h.Z));max=Vector3.new(math.max(max.X,p.X+h.X),math.max(max.Y,p.Y+h.Y),math.max(max.Z,p.Z+h.Z)) end end end;local span=max-min;print(tag.." PARTS="..n.." VISIBLE="..v.." SPAN="..tostring(span)) end;print("BBYA_CAR_DIAG_BEGIN PLACE="..game.PlaceId.." GAME="..game.GameId.." CREATOR="..game.CreatorId.." TYPE="..tostring(game.CreatorType));for _,id in ipairs({97052038046118,91172120786409}) do local ok,m=pcall(I.LoadAsset,I,id);print("BBYA_CAR_INSERT ID="..id.." OK="..tostring(ok).." RES="..tostring(m));if ok and m then s("BBYA_CAR_INSERT_MODEL ID="..id,m);m:Destroy() end;local ok2,m2=pcall(A.LoadAssetAsync,A,id);print("BBYA_CAR_ASSET ID="..id.." OK="..tostring(ok2).." RES="..tostring(m2));if ok2 and m2 then s("BBYA_CAR_ASSET_MODEL ID="..id,m2);m2:Destroy() end end;print("BBYA_CAR_DIAG_DONE")
+'@
+          $cmd=($cmd -replace "`r?`n",' ')
+
+          $vp=$edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+          $vp.SetValue($cmd)
+          Start-Sleep -Milliseconds 500
+          $ip=$run.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+          $ip.Invoke()
+
+          $logDeadline=(Get-Date).AddSeconds(45)
+          $matches=@()
+          while((Get-Date) -lt $logDeadline){
+            Start-Sleep -Seconds 2
+            $logs=Get-ChildItem 'C:\Users\Administrator\AppData\Local\Roblox\logs' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 12
+            $all=New-Object System.Collections.Generic.List[string]
+            foreach($log in $logs){
+              $ms=Select-String -Path $log.FullName -Pattern 'BBYA_CAR_' -SimpleMatch -ErrorAction SilentlyContinue
+              foreach($m in $ms){$all.Add("$($log.Name):$($m.LineNumber):$($m.Line)")}
+            }
+            $matches=@($all)
+            if(($matches -join "`n") -match 'BBYA_CAR_DIAG_DONE'){break}
+          }
+          if($matches.Count -gt 0){$matches | Select-Object -Unique | ForEach-Object {Write-Host $_}}
+          $text=($matches -join "`n")
+          if($text -notmatch 'BBYA_CAR_DIAG_DONE'){throw 'Car diagnostic completion marker not found in Studio logs'}
+          if($text -notmatch 'PLACE=131894120482837'){throw 'Diagnostic did not run against MAIN place'}
+          Write-Host 'BBYA_CAR_COMMANDBAR_DIAGNOSTIC_PASS'
