@@ -1,49 +1,38 @@
--- HANGAR — SHOWCASE FLEET v2.0
--- Owner-directed layout: full Drive GLB car fleet in front of donor statues and around/under the jet.
--- No generated image/art fallback. Existing HANGAR shell remains unchanged.
+-- HANGAR — OWNER QC STAGING v3.0
+-- Current owner lock: only 2 patrol cars in front of donor statues + 1 large Dodge behind donor statues facing the jet.
+-- Jet enlarged/repositioned; visible landing-gear wheels added so aircraft does not read as floating.
+-- No generated images. No extra car fleet until owner approves this layout.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
 local JET_ASSET_ID = 135410789803386 -- HANGAR_SKETCHFAB_JET_ASSET_ID
-
-local CAR01_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR01_ASSET_ID
-local CAR02_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR02_ASSET_ID
-local CAR03_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR03_ASSET_ID
-local CAR04_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR04_ASSET_ID
-local CAR05_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR05_ASSET_ID
-local CAR06_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR06_ASSET_ID
-local CAR07_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR07_ASSET_ID
-local CAR08_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR08_ASSET_ID
-local CAR09_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR09_ASSET_ID
-local CAR10_ASSET_ID = 0 -- HANGAR_SHOWCASE_CAR10_ASSET_ID
+local PATROL_MCLAREN_ASSET_ID = 0 -- HANGAR_PATROL_MCLAREN_ASSET_ID
+local PATROL_PORSCHE_ASSET_ID = 0 -- HANGAR_PATROL_PORSCHE_ASSET_ID
+local DODGE_FF8_ASSET_ID = 0 -- HANGAR_DODGE_FF8_ASSET_ID
 
 local OUTDOOR_SURFACE_Y = 0.30
 local INDOOR_SURFACE_Y = 0.40
 
 local placements = {
-    {name="PrivateJetSketchfab", asset=JET_ASSET_ID, target=96, pos=Vector3.new(0, INDOOR_SURFACE_Y, -66), yaw=0, kind="jet"},
+    -- Central jet: larger, centered, with explicit wheel clearance.
+    {name="PrivateJetSketchfab", asset=JET_ASSET_ID, target=118, pos=Vector3.new(0, INDOOR_SURFACE_Y, -58), yaw=0, kind="jet", zone="JET"},
 
-    -- Donor-gate showcase. Center aisle remains open to the statues / hangar entrance.
-    {name="Fleet_R34_Brian", asset=CAR01_ASSET_ID, target=18, pos=Vector3.new(-135, OUTDOOR_SURFACE_Y, 205), yaw=15, kind="car", zone="DONOR_FRONT"},
-    {name="Fleet_DodgeCharger1970", asset=CAR02_ASSET_ID, target=19, pos=Vector3.new(-90, OUTDOOR_SURFACE_Y, 198), yaw=8, kind="car", zone="DONOR_FRONT"},
-    {name="Fleet_SupraMKIV", asset=CAR03_ASSET_ID, target=18, pos=Vector3.new(-45, OUTDOOR_SURFACE_Y, 194), yaw=5, kind="car", zone="DONOR_FRONT"},
-    {name="Fleet_Murcielago", asset=CAR04_ASSET_ID, target=18, pos=Vector3.new(45, OUTDOOR_SURFACE_Y, 194), yaw=-5, kind="car", zone="DONOR_FRONT"},
-    {name="Fleet_Eclipse1995", asset=CAR05_ASSET_ID, target=18, pos=Vector3.new(90, OUTDOOR_SURFACE_Y, 198), yaw=-8, kind="car", zone="DONOR_FRONT"},
-    {name="Fleet_S2000", asset=CAR06_ASSET_ID, target=18, pos=Vector3.new(135, OUTDOOR_SURFACE_Y, 205), yaw=-15, kind="car", zone="DONOR_FRONT"},
+    -- ONLY these two cars are allowed in front of the donor-statue visual area for this QC pass.
+    {name="Patrol_McLarenF1LM", asset=PATROL_MCLAREN_ASSET_ID, target=18.5, pos=Vector3.new(-38, OUTDOOR_SURFACE_Y, 258), yaw=12, kind="car", zone="DONOR_FRONT"},
+    {name="Patrol_PorscheCarreraGT", asset=PATROL_PORSCHE_ASSET_ID, target=18.5, pos=Vector3.new(38, OUTDOOR_SURFACE_Y, 258), yaw=-12, kind="car", zone="DONOR_FRONT"},
 
-    -- Jet showcase. Cars use the empty wing-side floor without blocking the fuselage / VIP path.
-    {name="Fleet_EclipseSpyder", asset=CAR07_ASSET_ID, target=18, pos=Vector3.new(-130, INDOOR_SURFACE_Y, -45), yaw=90, kind="car", zone="JET_FLOOR"},
-    {name="Fleet_BRZRocketBunny", asset=CAR08_ASSET_ID, target=18, pos=Vector3.new(-85, INDOOR_SURFACE_Y, -105), yaw=90, kind="car", zone="JET_FLOOR"},
-    {name="Fleet_SkylineR34CWest", asset=CAR09_ASSET_ID, target=18, pos=Vector3.new(85, INDOOR_SURFACE_Y, -105), yaw=-90, kind="car", zone="JET_FLOOR"},
-    {name="Fleet_DodgeChargerFF8", asset=CAR10_ASSET_ID, target=19, pos=Vector3.new(130, INDOOR_SURFACE_Y, -45), yaw=-90, kind="car", zone="JET_FLOOR"},
+    -- Biggest Dodge: behind donor statues, centered, facing toward the aircraft.
+    {name="DodgeChargerFF8_Hero", asset=DODGE_FF8_ASSET_ID, target=20.5, pos=Vector3.new(0, OUTDOOR_SURFACE_Y, 178), yaw=180, kind="car", zone="DONOR_BACK"},
 }
 
-Workspace:SetAttribute("HangarSketchfabVehicles", "BOOTING_SHOWCASE_FLEET_V2")
-Workspace:SetAttribute("HangarSketchfabSource", "OWNER_DRIVE_GLB_FLEET")
-Workspace:SetAttribute("HangarVehicleScaleAuthority", "HUMAN_SCALE_SHOWCASE_V2")
-Workspace:SetAttribute("HangarFleetLayout", "DONOR_FRONT_6_PLUS_JET_FLOOR_4")
-Workspace:SetAttribute("HangarFleetRequestedCarCount", 10)
+Workspace:SetAttribute("HangarSketchfabVehicles", "BOOTING_OWNER_QC_STAGING_V3")
+Workspace:SetAttribute("HangarSketchfabSource", "OWNER_DRIVE_GLB_STAGING")
+Workspace:SetAttribute("HangarVehicleScaleAuthority", "OWNER_QC_V3")
+Workspace:SetAttribute("HangarFleetLayout", "PATROL_FRONT_2_DODGE_BACK_1")
+Workspace:SetAttribute("HangarFleetRequestedCarCount", 3)
+Workspace:SetAttribute("HangarJetTargetStuds", 118)
+Workspace:SetAttribute("HangarFurniturePolicy", "NO_TABLE_SOFA_CHAIR")
 
 local deadline = os.clock() + 35
 while os.clock() < deadline and Workspace:GetAttribute("HangarEnvironmentReady") ~= true do
@@ -53,19 +42,34 @@ end
 local environment = Workspace:FindFirstChild("Environment")
 if not environment or Workspace:GetAttribute("HangarEnvironmentReady") ~= true then
     Workspace:SetAttribute("HangarSketchfabVehicles", "ENVIRONMENT_NOT_READY")
-    warn("[HANGAR FLEET] environment not ready")
+    warn("[HANGAR STAGING] environment not ready")
     return
 end
 
-local oldReplacement = environment:FindFirstChild("SketchfabVehicleDisplayV1")
-if oldReplacement then oldReplacement:Destroy() end
-local oldFleet = environment:FindFirstChild("HangarShowcaseFleetV2")
-if oldFleet then oldFleet:Destroy() end
+-- Owner direction: club floor should be vehicle-led, not table/sofa seating-led.
+for _, d in ipairs(environment:GetDescendants()) do
+    local n = string.lower(d.Name)
+    local remove = string.find(n, "sofa", 1, true)
+        or string.find(n, "couch", 1, true)
+        or string.find(n, "chair", 1, true)
+        or string.find(n, "coffee_table", 1, true)
+        or string.find(n, "coffee table", 1, true)
+        or string.find(n, "lounge_table", 1, true)
+        or string.find(n, "lounge table", 1, true)
+    if remove and (d:IsA("Model") or d:IsA("BasePart")) then
+        d:Destroy()
+    end
+end
+
+for _, oldName in ipairs({"SketchfabVehicleDisplayV1", "HangarShowcaseFleetV2", "HangarOwnerQCStagingV3"}) do
+    local old = environment:FindFirstChild(oldName)
+    if old then old:Destroy() end
+end
 
 local replacement = Instance.new("Model")
-replacement.Name = "HangarShowcaseFleetV2"
+replacement.Name = "HangarOwnerQCStagingV3"
 replacement:SetAttribute("DisplayOnly", true)
-replacement:SetAttribute("Source", "OWNER_DRIVE_GLB_FLEET")
+replacement:SetAttribute("Source", "OWNER_DRIVE_GLB_STAGING")
 replacement.Parent = environment
 
 local collisionRoot = environment:FindFirstChild("Collision")
@@ -76,7 +80,10 @@ if not collisionRoot then
 end
 
 for _, child in ipairs(collisionRoot:GetChildren()) do
-    if child:GetAttribute("HangarFleetCollision") == true or string.find(child.Name, "_DisplayCollision", 1, true) then
+    if child:GetAttribute("HangarFleetCollision") == true
+        or child:GetAttribute("HangarDanceSurface") == true
+        or string.find(child.Name, "_DisplayCollision", 1, true)
+    then
         child:Destroy()
     end
 end
@@ -107,7 +114,7 @@ local function sanitize(model)
     return parts
 end
 
-local function makeBlocker(name, cf, size)
+local function makeInvisibleCollision(name, cf, size, danceSurface)
     local p = Instance.new("Part")
     p.Name = name
     p.Anchored = true
@@ -118,8 +125,62 @@ local function makeBlocker(name, cf, size)
     p.Size = size
     p.CFrame = cf
     p:SetAttribute("HangarFleetCollision", true)
+    if danceSurface then p:SetAttribute("HangarDanceSurface", true) end
     p.Parent = collisionRoot
     return p
+end
+
+local function makeWheel(parent, name, position, lateral, diameter, width)
+    local tire = Instance.new("Part")
+    tire.Name = name .. "_Tire"
+    tire.Shape = Enum.PartType.Cylinder
+    tire.Material = Enum.Material.Rubber
+    tire.Color = Color3.fromRGB(18, 18, 18)
+    tire.Anchored = true
+    tire.CanCollide = false
+    tire.CanTouch = false
+    tire.CanQuery = true
+    tire.Size = Vector3.new(width, diameter, diameter)
+    tire.CFrame = CFrame.fromMatrix(position, lateral.Unit, Vector3.yAxis)
+    tire.Parent = parent
+
+    local rim = Instance.new("Part")
+    rim.Name = name .. "_Rim"
+    rim.Shape = Enum.PartType.Cylinder
+    rim.Material = Enum.Material.Metal
+    rim.Color = Color3.fromRGB(120, 125, 132)
+    rim.Anchored = true
+    rim.CanCollide = false
+    rim.CanTouch = false
+    rim.CanQuery = true
+    rim.Size = Vector3.new(width + 0.05, diameter * 0.48, diameter * 0.48)
+    rim.CFrame = tire.CFrame
+    rim.Parent = parent
+end
+
+local function addJetLandingGearVisual(boxCF, boxSize)
+    local gear = Instance.new("Model")
+    gear.Name = "JetLandingGearWheelFill"
+    gear:SetAttribute("OwnerRequestedWheelFill", true)
+    gear.Parent = replacement
+
+    local longX = boxSize.X >= boxSize.Z
+    local long = math.max(boxSize.X, boxSize.Z)
+    local short = math.min(boxSize.X, boxSize.Z)
+    local forward = longX and boxCF.RightVector or boxCF.LookVector
+    local lateral = longX and boxCF.LookVector or boxCF.RightVector
+    local center = Vector3.new(boxCF.Position.X, INDOOR_SURFACE_Y + 1.15, boxCF.Position.Z)
+    local wheelDiameter = 2.3
+    local wheelWidth = 0.75
+
+    local nose = center + forward * (long * 0.31)
+    local main = center - forward * (long * 0.10)
+    local spread = math.max(5.5, short * 0.15)
+
+    makeWheel(gear, "NoseL", nose - lateral * 0.62, lateral, wheelDiameter * 0.78, wheelWidth * 0.75)
+    makeWheel(gear, "NoseR", nose + lateral * 0.62, lateral, wheelDiameter * 0.78, wheelWidth * 0.75)
+    makeWheel(gear, "MainL", main - lateral * spread, lateral, wheelDiameter, wheelWidth)
+    makeWheel(gear, "MainR", main + lateral * spread, lateral, wheelDiameter, wheelWidth)
 end
 
 local function normalizeAndPlace(model, spec)
@@ -128,36 +189,37 @@ local function normalizeAndPlace(model, spec)
     if horizontal <= 0.01 then error("invalid model bounds for " .. spec.name) end
 
     local scale = spec.target / horizontal
-    if scale < 0.001 or scale > 500 then
-        error(string.format("unsafe scale %.5f for %s", scale, spec.name))
-    end
+    if scale < 0.001 or scale > 500 then error(string.format("unsafe scale %.5f for %s", scale, spec.name)) end
     model:ScaleTo(model:GetScale() * scale)
     model:PivotTo(CFrame.new(spec.pos.X, 0, spec.pos.Z) * CFrame.Angles(0, math.rad(spec.yaw), 0))
 
     local boxCF, boxSize = model:GetBoundingBox()
     local bottomY = boxCF.Position.Y - boxSize.Y * 0.5
-    model:PivotTo(model:GetPivot() + Vector3.new(0, spec.pos.Y - bottomY, 0))
+    local clearance = spec.kind == "jet" and 2.15 or 0
+    model:PivotTo(model:GetPivot() + Vector3.new(0, spec.pos.Y + clearance - bottomY, 0))
 
     boxCF, boxSize = model:GetBoundingBox()
     local rotationOnly = boxCF - boxCF.Position
 
     if spec.kind == "car" then
-        local bs = Vector3.new(
-            math.max(4, boxSize.X * 0.84),
-            math.max(2.3, boxSize.Y * 0.58),
-            math.max(4, boxSize.Z * 0.84)
-        )
-        local floorY = spec.zone == "DONOR_FRONT" and OUTDOOR_SURFACE_Y or INDOOR_SURFACE_Y
-        makeBlocker(spec.name .. "_DisplayCollision", CFrame.new(boxCF.Position.X, floorY + bs.Y * 0.5, boxCF.Position.Z) * rotationOnly, bs)
+        -- Body blocker + roof dance deck so players can climb and dance on the cars.
+        local bodyH = math.max(2.1, boxSize.Y * 0.50)
+        local bodySize = Vector3.new(math.max(4, boxSize.X * 0.84), bodyH, math.max(4, boxSize.Z * 0.84))
+        makeInvisibleCollision(spec.name .. "_DisplayCollision", CFrame.new(boxCF.Position.X, spec.pos.Y + bodyH * 0.5, boxCF.Position.Z) * rotationOnly, bodySize, false)
+
+        local deckSize = Vector3.new(math.max(4, boxSize.X * 0.72), 0.45, math.max(4, boxSize.Z * 0.72))
+        local deckY = boxCF.Position.Y + boxSize.Y * 0.44
+        makeInvisibleCollision(spec.name .. "_DanceDeck", CFrame.new(boxCF.Position.X, deckY, boxCF.Position.Z) * rotationOnly, deckSize, true)
     else
         local long = math.max(boxSize.X, boxSize.Z)
         local xLong = boxSize.X >= boxSize.Z
         local fuselageLength = long * 0.72
         local fuselageWidth = math.max(8, math.min(boxSize.X, boxSize.Z) * 0.18)
         local bs = xLong
-            and Vector3.new(fuselageLength, math.max(7, boxSize.Y * 0.52), fuselageWidth)
-            or Vector3.new(fuselageWidth, math.max(7, boxSize.Y * 0.52), fuselageLength)
-        makeBlocker("SketchfabJetBodyProxy", CFrame.new(boxCF.Position.X, INDOOR_SURFACE_Y + bs.Y * 0.5, boxCF.Position.Z) * rotationOnly, bs)
+            and Vector3.new(fuselageLength, math.max(7, boxSize.Y * 0.46), fuselageWidth)
+            or Vector3.new(fuselageWidth, math.max(7, boxSize.Y * 0.46), fuselageLength)
+        makeInvisibleCollision("SketchfabJetBodyProxy", CFrame.new(boxCF.Position.X, INDOOR_SURFACE_Y + 2.15 + bs.Y * 0.5, boxCF.Position.Z) * rotationOnly, bs, false)
+        addJetLandingGearVisual(boxCF, boxSize)
     end
 
     model:SetAttribute("FinalSizeX", boxSize.X)
@@ -168,28 +230,22 @@ end
 local function loadOne(spec)
     if spec.asset <= 0 then error("asset id missing for " .. spec.name) end
     local ok, loaded = pcall(InsertService.LoadAsset, InsertService, spec.asset)
-    if not ok or not loaded then
-        error("LoadAsset failed for " .. spec.name .. ": " .. tostring(loaded))
-    end
+    if not ok or not loaded then error("LoadAsset failed for " .. spec.name .. ": " .. tostring(loaded)) end
+
     loaded.Name = spec.name
     loaded:SetAttribute("RobloxAssetId", spec.asset)
     loaded:SetAttribute("DisplayOnly", true)
-    loaded:SetAttribute("Source", "OWNER_DRIVE_GLB_FLEET")
+    loaded:SetAttribute("Source", "OWNER_DRIVE_GLB_STAGING")
     loaded:SetAttribute("ShowcaseZone", spec.zone or "JET")
     local partCount = sanitize(loaded)
-    if partCount < 1 then
-        loaded:Destroy()
-        error("no renderable parts for " .. spec.name)
-    end
+    if partCount < 1 then loaded:Destroy(); error("no renderable parts for " .. spec.name) end
     loaded:SetAttribute("PartCount", partCount)
     loaded.Parent = replacement
     normalizeAndPlace(loaded, spec)
 end
 
 local ok, err = pcall(function()
-    for _, spec in ipairs(placements) do
-        loadOne(spec)
-    end
+    for _, spec in ipairs(placements) do loadOne(spec) end
 end)
 
 if not ok then
@@ -197,13 +253,13 @@ if not ok then
     for _, child in ipairs(collisionRoot:GetChildren()) do
         if child:GetAttribute("HangarFleetCollision") == true then child:Destroy() end
     end
-    Workspace:SetAttribute("HangarSketchfabVehicles", "SHOWCASE_FLEET_LOAD_FAILED")
+    Workspace:SetAttribute("HangarSketchfabVehicles", "OWNER_QC_STAGING_LOAD_FAILED")
     Workspace:SetAttribute("HangarProceduralVehicles", "RETAINED_FAILSAFE")
-    warn("[HANGAR FLEET] transactional fleet load failed", err)
+    warn("[HANGAR STAGING] transactional load failed", err)
     return
 end
 
--- Replace all old procedural vehicle/aircraft art only after the full fleet is loaded.
+-- Hide old procedural aircraft/cars only after the requested 4-object staging set is ready.
 local hideNames = {
     JetPlaneMesh=true,
     JetGlassAndTrimMesh=true,
@@ -224,8 +280,9 @@ for _, d in ipairs(environment:GetDescendants()) do
     end
 end
 
-Workspace:SetAttribute("HangarSketchfabVehicles", "READY_SHOWCASE_FLEET_V2_OWNER_QC")
-Workspace:SetAttribute("HangarProceduralVehicles", "HIDDEN_FULL_FLEET_SWAP")
-Workspace:SetAttribute("HangarVehicleArt", "OWNER_DRIVE_REAL_MODELS_SHOWCASE_V2")
-Workspace:SetAttribute("HangarVehicleCountReal", 11) -- 1 jet + 10 cars
-print("[HANGAR FLEET] JET + 10 REAL CARS READY", JET_ASSET_ID)
+Workspace:SetAttribute("HangarSketchfabVehicles", "READY_OWNER_QC_STAGING_V3")
+Workspace:SetAttribute("HangarProceduralVehicles", "HIDDEN_OWNER_STAGING_SWAP")
+Workspace:SetAttribute("HangarVehicleArt", "OWNER_DRIVE_PATROL_DODGE_JET_V3")
+Workspace:SetAttribute("HangarVehicleCountReal", 4) -- 1 jet + 2 patrol + 1 Dodge
+Workspace:SetAttribute("HangarDanceOnCars", true)
+print("[HANGAR STAGING] BIG JET + 2 PATROL FRONT + DODGE BACK READY", JET_ASSET_ID)
