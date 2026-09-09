@@ -33,10 +33,41 @@
     {
       "key": "AMSTUDIO_AUDIO_UPLOADER_01",
       "keyInfo": {
+        "present": false
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    },
+    {
+      "key": "ROBLOX_AUDIO_API_KEY",
+      "keyInfo": {
         "present": true,
         "http": 200,
-        "name": "AMSTUDIO_AUDIO_UPLOADER_01",
-        "authorizedUserId": "9296030038",
+        "name": "ROBLOX_AUDIO_API_KEY",
+        "authorizedUserId": "8878884630",
+        "enabled": true,
+        "expired": false,
+        "scopes": [
+          {
+            "name": "asset",
+            "operations": [
+              "read",
+              "write"
+            ]
+          }
+        ],
+        "authorizedUsername": "RidhooMauKamu"
+      },
+      "permissionAttempted": false,
+      "result": "NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE"
+    },
+    {
+      "key": "AM_STUDIO",
+      "keyInfo": {
+        "present": true,
+        "http": 200,
+        "name": "AM_STUDIO",
+        "authorizedUserId": "4141352496",
         "enabled": true,
         "expired": false,
         "scopes": [
@@ -52,9 +83,57 @@
               "read",
               "write"
             ]
+          },
+          {
+            "name": "developer-product",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "game-pass",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe-places",
+            "operations": [
+              "write"
+            ]
+          },
+          {
+            "name": "universe.event",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place.instance",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.place",
+            "operations": [
+              "read",
+              "write"
+            ]
+          },
+          {
+            "name": "universe.thumbnail",
+            "operations": [
+              "read",
+              "write"
+            ]
           }
         ],
-        "authorizedUsername": "GudangPet88"
+        "authorizedUsername": "Arda_Moron123"
       },
       "permissionAttempted": true,
       "http": 200,
