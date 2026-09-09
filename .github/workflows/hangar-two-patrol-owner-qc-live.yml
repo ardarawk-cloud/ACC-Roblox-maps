@@ -1,0 +1,79 @@
+name: HANGAR Two Patrol Owner QC LIVE
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-two-patrol-owner-qc-live.yml']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 40
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      UNIVERSE_ID: '10745364913'
+      PLACE_ID: '76001567401911'
+      CREATOR_ID: '4141352496'
+      PORSCHE_DRIVE_ID: '1eaz41Mjidqp7YZN-JjoH2YptPmjeraey'
+      ENV_ASSET_ID: '76797254008026'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Porsche Patrol
+        shell: powershell
+        run: |
+          $out=Join-Path $env:RUNNER_TEMP 'porsche.glb'
+          Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$env:PORSCHE_DRIVE_ID&export=download&confirm=t" -OutFile $out -MaximumRedirection 12
+          $b=[IO.File]::ReadAllBytes($out)
+          if($b.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($b,0,4) -ne 'glTF'){throw 'invalid GLB'}
+          "PORSCHE_GLB=$out"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Upload Porsche Patrol
+        shell: powershell
+        run: |
+          $req=@{assetType='Model';displayName='HANGAR Porsche Carrera GT Patrol';description='Owner-supplied HANGAR patrol vehicle.';creationContext=@{creator=@{userId=[int64]$env:CREATOR_ID}}}|ConvertTo-Json -Depth 8 -Compress
+          $rf=Join-Path $env:RUNNER_TEMP 'req.json';[IO.File]::WriteAllText($rf,$req,(New-Object Text.UTF8Encoding($false)))
+          $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ASSET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$env:PORSCHE_GLB;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+          $o=$raw|ConvertFrom-Json
+          if(-not $o.path){throw "upload rejected $raw"}
+          "PORSCHE_OP=$(([string]$o.path)-replace '^operations/','')"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Wait Porsche
+        shell: powershell
+        run: |
+          $id=$null
+          for($i=0;$i -lt 300;$i++){
+            $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:PORSCHE_OP"
+            try{$o=$raw|ConvertFrom-Json}catch{$o=$null}
+            if($o -and $o.done){if($o.error){throw ($o.error|ConvertTo-Json -Compress)};$id=[string]$o.response.assetId;break}
+            Start-Sleep -Seconds 3
+          }
+          if($id -notmatch '^\d+$'){throw 'Porsche moderation timeout'}
+          "PORSCHE_ASSET=$id"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "PORSCHE_READY asset=$id"
+      - name: Build two patrol HANGAR
+        shell: powershell
+        run: |
+          $src='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
+          $t=[IO.File]::ReadAllText($src)
+          $t=[regex]::Replace($t,'local PATROL_PORSCHE_ASSET_ID = \d+ -- HANGAR_PATROL_PORSCHE_ASSET_ID',"local PATROL_PORSCHE_ASSET_ID = $env:PORSCHE_ASSET -- HANGAR_PATROL_PORSCHE_ASSET_ID")
+          [IO.File]::WriteAllText($src,$t,(New-Object Text.UTF8Encoding($false)))
+          $v='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua'
+          $x=[IO.File]::ReadAllText($v)
+          $x=[regex]::Replace($x,'local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID")
+          [IO.File]::WriteAllText($v,$x,(New-Object Text.UTF8Encoding($false)))
+          $rojo=(Get-Command rojo -ErrorAction SilentlyContinue).Source
+          if(-not $rojo){throw 'rojo missing on runner'}
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-two-patrol.rbxlx'
+          & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'rojo build failed'}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Publish MAIN HANGAR
+        shell: powershell
+        run: |
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $version=$null
+          foreach($key in @($env:ASSET_KEY,$env:MASTER_KEY)){
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);if($version){break}}catch{}
+          }
+          if(-not $version){throw 'publish failed'}
+          Write-Host "HANGAR_TWO_PATROL_LIVE version=$version porscheAsset=$env:PORSCHE_ASSET"
