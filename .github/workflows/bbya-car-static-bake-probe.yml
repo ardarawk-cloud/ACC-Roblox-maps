@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Probe asset metadata and all supported delivery routes
+      - name: Resolve approved models and download exact CDN payloads
         shell: bash
         run: |
           set -euo pipefail
@@ -33,45 +33,49 @@ jobs:
             local slot="$1" id="$2"
             echo "=== BBYA CAR $slot asset=$id ==="
 
-            for spec in "AM:$AM_STUDIO_KEY" "MASTER:$MASTER_V2_KEY"; do
-              label="${spec%%:*}"; key="${spec#*:}"
-              [ -n "$key" ] || continue
-              meta="/tmp/bbya-car-bake/meta-${slot}-${label}.json"
-              code=$(curl --silent --show-error --location \
-                --header "x-api-key: $key" \
-                --write-out '%{http_code}' \
-                --output "$meta" \
-                "https://apis.roblox.com/assets/v1/assets/$id" || true)
-              echo "METADATA_${slot}_${label}_HTTP=$code"
-              if [ "$code" = "200" ]; then cat "$meta"; echo; fi
-
-              out="/tmp/bbya-car-bake/BBYA-Car-${slot}-${label}.rbxm"
-              code=$(curl --silent --show-error --location \
-                --header "x-api-key: $key" \
-                --write-out '%{http_code}' \
-                --output "$out" \
-                "https://apis.roblox.com/asset-delivery-api/v1/assetId/$id" || true)
-              echo "OPENCLOUD_DELIVERY_${slot}_${label}_HTTP=$code"
-              if [ "$code" != "200" ]; then rm -f "$out"; fi
-            done
-
-            out="/tmp/bbya-car-bake/BBYA-Car-${slot}-PUBLIC.rbxm"
+            meta="/tmp/bbya-car-bake/meta-${slot}.json"
             code=$(curl --silent --show-error --location \
-              --write-out '%{http_code}' \
-              --output "$out" \
-              "https://assetdelivery.roblox.com/v2/assetId/$id" || true)
-            echo "PUBLIC_DELIVERY_${slot}_HTTP=$code"
-            if [ "$code" != "200" ]; then rm -f "$out"; fi
+              --header "x-api-key: $AM_STUDIO_KEY" \
+              --write-out '%{http_code}' --output "$meta" \
+              "https://apis.roblox.com/assets/v1/assets/$id" || true)
+            echo "METADATA_${slot}_HTTP=$code"
+            test "$code" = "200"
+            cat "$meta"; echo
+            python3 - "$meta" <<'PY'
+          import json,sys
+          m=json.load(open(sys.argv[1],encoding='utf-8'))
+          assert m.get('assetType')=='Model', m
+          assert m.get('moderationResult',{}).get('moderationState')=='Approved', m
+          assert m.get('state')=='Active', m
+          print('ASSET_APPROVED_ACTIVE')
+          PY
 
-            chosen=$(find /tmp/bbya-car-bake -maxdepth 1 -type f -name "BBYA-Car-${slot}-*.rbxm" -size +1024c | head -n 1 || true)
-            if [ -n "$chosen" ]; then
-              cp "$chosen" "/tmp/bbya-car-bake/BBYA-Car-${slot}.rbxm"
-              echo "DELIVERY_${slot}_PASS source=$(basename "$chosen") bytes=$(stat -c%s "$chosen") sha256=$(sha256sum "$chosen" | awk '{print $1}')"
-              file "$chosen" || true
-              echo "FIRST32_${slot}=$(xxd -p -l 32 "$chosen" | tr -d '\n')"
-            else
-              echo "DELIVERY_${slot}_FAIL no binary model route succeeded"
-            fi
+            manifest="/tmp/bbya-car-bake/public-${slot}.json"
+            code=$(curl --silent --show-error --location \
+              --write-out '%{http_code}' --output "$manifest" \
+              "https://assetdelivery.roblox.com/v2/assetId/$id" || true)
+            echo "PUBLIC_MANIFEST_${slot}_HTTP=$code"
+            test "$code" = "200"
+            cat "$manifest"; echo
+
+            cdn=$(python3 - "$manifest" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          locs=d.get('locations') or []
+          if not locs: raise SystemExit('asset delivery manifest has no locations')
+          print(locs[0]['location'])
+          PY
+            )
+            test -n "$cdn"
+            out="/tmp/bbya-car-bake/BBYA-Car-${slot}.rbxm"
+            code=$(curl --silent --show-error --location \
+              --write-out '%{http_code}' --output "$out" "$cdn" || true)
+            echo "CDN_DELIVERY_${slot}_HTTP=$code"
+            test "$code" = "200"
+            test -s "$out"
+            echo "DELIVERY_${slot}_PASS bytes=$(stat -c%s "$out") sha256=$(sha256sum "$out" | awk '{print $1}')"
+            file "$out" || true
+            echo "FIRST32_${slot}=$(xxd -p -l 32 "$out" | tr -d '\n')"
           }
 
           probe 01 "$CAR01_ASSET_ID"
@@ -85,7 +89,6 @@ jobs:
           from pathlib import Path
           for slot in ('01','02'):
               p=Path(f'/tmp/bbya-car-bake/BBYA-Car-{slot}.rbxm')
-              if not p.exists(): raise SystemExit(f'{p.name}: missing')
               b=p.read_bytes()
               if len(b) < 1024: raise SystemExit(f'{p.name}: too small')
               lead=b[:128].lstrip()
