@@ -73,7 +73,8 @@
       "ASC_ActivitiesV110": {"$path": "after-school-city.activities.server.lua"},
       "ASC_SchoolLifeGameplayV120": {"$path": "after-school-city.school-life-gameplay-v120.server.lua"},
       "ASC_EconomyV130": {"$path": "after-school-city.economy-first-shop-v130.server.lua"},
-      "ASC_SportsAssetsV134": {"$path": "after-school-city.sports-assets-v134.server.lua"}
+      "ASC_SportsAssetsV134": {"$path": "after-school-city.sports-assets-v134.server.lua"},
+      "ASC_BasketballExternalV135": {"$path": "after-school-city.basketball-external-v135.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
