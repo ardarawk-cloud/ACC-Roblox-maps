@@ -1,0 +1,80 @@
+name: HANGAR AM_STUDIO Key Probe
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/hangar-amstudio-key-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      ROBLOX_KEY: ${{ secrets.AM_STUDIO }}
+      CREATOR_USERNAME: 'arda_moron123'
+      TEST_DRIVE_ID: '18gDfmunCasempT3SMqjT1RtirFB6w28E'
+    steps:
+      - name: Resolve arda_moron123
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_KEY)){throw 'AM_STUDIO secret missing'}
+          $body=@{usernames=@($env:CREATOR_USERNAME);excludeBannedUsers=$false}|ConvertTo-Json -Compress
+          $r=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $body
+          if(-not $r.data -or $r.data.Count -lt 1){throw 'username not resolved'}
+          $id=[string]$r.data[0].id
+          if($id -notmatch '^\d+$'){throw 'invalid user id'}
+          "CREATOR_USER_ID=$id"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "CREATOR_OK username=$env:CREATOR_USERNAME id=$id"
+
+      - name: Download smallest required patrol GLB
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'hangar-amstudio-probe-mclaren.glb'
+          Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$env:TEST_DRIVE_ID&export=download&confirm=t" -OutFile $out -MaximumRedirection 12
+          $bytes=[IO.File]::ReadAllBytes($out)
+          if($bytes.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($bytes,0,4) -ne 'glTF'){throw 'invalid GLB'}
+          "PROBE_GLB=$out"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "GLB_OK bytes=$($bytes.Length)"
+
+      - name: Test AM_STUDIO model upload
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $request=@{assetType='Model';displayName='HANGAR McLaren F1 LM Patrol';description='Owner-supplied HANGAR patrol vehicle.';creationContext=@{creator=@{userId=[int64]$env:CREATOR_USER_ID}}}|ConvertTo-Json -Depth 8 -Compress
+          $rf=Join-Path $env:RUNNER_TEMP 'hangar-amstudio-probe-request.json'
+          [IO.File]::WriteAllText($rf,$request,(New-Object Text.UTF8Encoding($false)))
+          $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$env:PROBE_GLB;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+          if($LASTEXITCODE -ne 0){throw 'curl upload failed'}
+          Write-Host "UPLOAD_RESPONSE=$raw"
+          $o=$raw|ConvertFrom-Json
+          if(-not $o.path){throw "AM_STUDIO_UPLOAD_REJECTED $raw"}
+          $op=([string]$o.path)-replace '^operations/',''
+          "PROBE_OPERATION=$op"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "AM_STUDIO_UPLOAD_ACCEPTED operation=$op"
+
+      - name: Wait for asset result
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          for($i=0;$i -lt 180;$i++){
+            $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_KEY" "https://apis.roblox.com/assets/v1/operations/$env:PROBE_OPERATION"
+            if($LASTEXITCODE -eq 0){
+              try{$o=$raw|ConvertFrom-Json}catch{$o=$null}
+              if($o -and $o.done){
+                if($o.error){throw "AM_STUDIO_OPERATION_FAILED $($o.error|ConvertTo-Json -Compress -Depth 8)"}
+                $asset=[string]$o.response.assetId
+                if($asset -notmatch '^\d+$'){throw 'completed without asset id'}
+                Write-Host "AM_STUDIO_KEY_PASS creator=$env:CREATOR_USERNAME userId=$env:CREATOR_USER_ID assetId=$asset"
+                exit 0
+              }
+            }
+            Start-Sleep -Seconds 3
+          }
+          throw 'AM_STUDIO moderation timeout'
