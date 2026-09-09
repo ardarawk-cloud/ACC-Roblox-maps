@@ -5,10 +5,10 @@
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
-local JET_ASSET_ID = 93181879112651 -- HANGAR_SKETCHFAB_JET_ASSET_ID
-local STARLET_ASSET_ID = 82774667248179 -- HANGAR_SKETCHFAB_STARLET_ASSET_ID
-local BUGATTI_ASSET_ID = 0 -- HANGAR_SKETCHFAB_BUGATTI_ASSET_ID
-local LAMBO_ASSET_ID = 0 -- HANGAR_SKETCHFAB_LAMBO_ASSET_ID
+local JET_ASSET_ID = 134086153147334 -- HANGAR_SKETCHFAB_JET_ASSET_ID
+local STARLET_ASSET_ID = 138146762993175 -- HANGAR_SKETCHFAB_STARLET_ASSET_ID
+local BUGATTI_ASSET_ID = 132221995654437 -- HANGAR_SKETCHFAB_BUGATTI_ASSET_ID
+local LAMBO_ASSET_ID = 98880805686599 -- HANGAR_SKETCHFAB_LAMBO_ASSET_ID
 
 local OUTDOOR_SURFACE_Y = 0.30
 local INDOOR_SURFACE_Y = 0.40
@@ -24,7 +24,7 @@ local placements = {
 Workspace:SetAttribute("HangarSketchfabVehicles", "BOOTING_V1_2_APPROVED_PARTIAL")
 Workspace:SetAttribute("HangarSketchfabSource", "OWNER_SUPPLIED_CC_MODELS")
 Workspace:SetAttribute("HangarVehicleScaleAuthority", "HUMAN_SCALE_V1_2")
-Workspace:SetAttribute("HangarHypercarReplacement", "PENDING_ROBLOX_MODERATION")
+Workspace:SetAttribute("HangarHypercarReplacement", "ROCKET_RACOON_ALL_ASSETS_READY")
 
 local deadline = os.clock() + 35
 while os.clock() < deadline and Workspace:GetAttribute("HangarEnvironmentReady") ~= true do task.wait(0.25) end
