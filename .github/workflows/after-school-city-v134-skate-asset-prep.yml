@@ -1,0 +1,112 @@
+name: After School City V1.3.4 Skate Asset Prep
+
+on:
+  push:
+    branches:
+      - after-school-city/v134-sports-assets
+    paths:
+      - '.github/workflows/after-school-city-v134-skate-asset-prep.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prep:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      DRIVE_FILE_ID: '1UYrKDbhHDeZfFz260tXypDRH589EU3nc'
+      SOURCE_BYTES: '61885708'
+      SOURCE_SHA256: 'f99dd0996291b5cf824f3aeb0475d89ad8d8b703da0962e89f61ff277281a130'
+      OPT_BYTES: '7213828'
+      OPT_SHA256: '4271b51b14de57a434c4bb1e5c24330014cca78ac76f9d4bdea38d29c1955a19'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pinned tooling
+        shell: powershell
+        run: |
+          python -m pip install --disable-pip-version-check --no-input 'Pillow==12.3.0' 'gdown==5.2.0'
+          if($LASTEXITCODE -ne 0){ throw 'Dependency install failed' }
+
+      - name: Download exact Drive source
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'asc-v134-skate-prep'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $source=Join-Path $dir 'skateboarding_props_pack.glb'
+          python -m gdown --id $env:DRIVE_FILE_ID -O $source
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $source)){ throw 'Drive download failed' }
+          $bytes=(Get-Item $source).Length
+          $hash=(Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:SOURCE_BYTES){ throw "Source bytes mismatch: $bytes" }
+          if($hash -ne $env:SOURCE_SHA256){ throw "Source SHA mismatch: $hash" }
+          "ASC_SOURCE_GLB=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_PREP_DIR=$dir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SOURCE PASS bytes=$bytes sha256=$hash"
+
+      - name: Verify embedded CC BY 4.0 attribution
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $gate=Join-Path $env:ASC_PREP_DIR 'license_gate.py'
+          @'
+import json,struct,sys
+p=sys.argv[1]
+d=open(p,'rb').read(); assert d[:4]==b'glTF'
+o=12; j=None
+while o<len(d):
+    n,t=struct.unpack_from('<II',d,o); o+=8
+    c=d[o:o+n]; o+=n
+    if t==0x4E4F534A:
+        j=json.loads(c.decode('utf-8').rstrip(' \t\r\n\x00')); break
+assert j is not None
+blob=json.dumps((j.get('asset') or {}).get('extras') or {},ensure_ascii=False).lower()
+assert ('cc-by-4.0' in blob or 'creativecommons.org/licenses/by/4.0' in blob)
+assert 'arsen ismailov' in blob
+print('LICENSE PASS CC-BY-4.0 / Arsen Ismailov')
+'@ | Set-Content $gate -Encoding utf8
+          python $gate $env:ASC_SOURCE_GLB
+          if($LASTEXITCODE -ne 0){ throw 'License gate failed' }
+
+      - name: Optimize embedded textures for mobile
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:ASC_PREP_DIR 'skateboarding_props_pack_roblox_mobile.glb'
+          python '.github/scripts/asc_optimize_glb.py' $env:ASC_SOURCE_GLB $out 1024
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){ throw 'Optimization failed' }
+          $bytes=(Get-Item $out).Length
+          $hash=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:OPT_BYTES){ throw "Optimized bytes mismatch: $bytes" }
+          if($hash -ne $env:OPT_SHA256){ throw "Optimized SHA mismatch: $hash" }
+          @(
+            'STATUS=ASSET_PREP_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=V134_SKATEBOARD_PROPS',
+            "SOURCE_BYTES=$env:SOURCE_BYTES",
+            "SOURCE_SHA256=$env:SOURCE_SHA256",
+            "OPT_BYTES=$bytes",
+            "OPT_SHA256=$hash",
+            'LICENSE=CC-BY-4.0',
+            'AUTHOR=Arsen_Ismailov',
+            'BASKETBALL=LICENSE_HOLD',
+            'PLACE_PUBLISH=NOT_PERFORMED'
+          ) | Set-Content (Join-Path $env:ASC_PREP_DIR 'asset-prep-receipt.txt') -Encoding utf8
+          "ASC_OPT_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "OPTIMIZATION PASS bytes=$bytes sha256=$hash"
+
+      - name: Upload exact optimized asset artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asc-v134-skateboard-mobile-glb
+          path: |
+            ${{ env.ASC_OPT_GLB }}
+            ${{ env.ASC_PREP_DIR }}/asset-prep-receipt.txt
+          if-no-files-found: error
+          retention-days: 14
