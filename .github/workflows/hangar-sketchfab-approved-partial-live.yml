@@ -1,0 +1,127 @@
+name: HANGAR Sketchfab Approved Partial LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/hangar-sketchfab-approved-partial-live.yml'
+      - 'maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-sketchfab-approved-partial-live
+  cancel-in-progress: true
+
+env:
+  LIVE_UNIVERSE_ID: '10745364913'
+  LIVE_PLACE_ID: '76001567401911'
+  STABLE_ENV_ASSET_ID: '76797254008026'
+  JET_ASSET_ID: '93181879112651'
+  STARLET_ASSET_ID: '82774667248179'
+
+jobs:
+  publish-approved:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      ROBLOX_MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      ROBLOX_ASSET_KEY: ${{ secrets.AM_STUDIO }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Verify approved partial authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=[IO.File]::ReadAllText('maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua')
+          foreach($m in @('SKETCHFAB VEHICLE REPLACEMENT v1.2','93181879112651','82774667248179','READY_APPROVED_JET_STARLET_OWNER_QC','HYPERCARS_RETAINED')){if($src -notmatch [regex]::Escape($m)){throw "missing $m"}}
+          Write-Host 'HANGAR_APPROVED_PARTIAL_AUTHORITY_PASS'
+
+      - name: Grant approved assets to HANGAR universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $ids=@([int64]$env:JET_ASSET_ID,[int64]$env:STARLET_ASSET_ID)
+          $body=@{subjectType='Universe';subjectId=$env:LIVE_UNIVERSE_ID;action='Use';requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})}|ConvertTo-Json -Depth 8 -Compress
+          $url='https://apis.roblox.com/asset-permissions-api/v1/assets/permissions'
+          $granted=$false
+          foreach($key in @($env:ROBLOX_ASSET_KEY,$env:ROBLOX_MASTER_KEY)){
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{
+              $r=Invoke-RestMethod -Method Patch -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body $body
+              $success=@($r.successAssetIds|ForEach-Object{[string]$_})
+              $missing=@($ids|Where-Object{$success -notcontains [string]$_})
+              if($missing.Count -eq 0 -and @($r.errors).Count -eq 0){$granted=$true;break}
+            }catch{Write-Warning $_.Exception.Message}
+          }
+          if(-not $granted){throw 'approved asset universe grant failed'}
+          Write-Host 'HANGAR_APPROVED_ASSET_GRANT_PASS'
+
+      - name: Inject stable environment asset
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua'
+          $text=[IO.File]::ReadAllText($path)
+          $pattern='local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID'
+          if($text -notmatch $pattern){throw 'environment marker missing'}
+          $text=[regex]::Replace($text,$pattern,"local MODEL_ASSET_ID = $env:STABLE_ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID")
+          [IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
+
+      - name: Prepare Rojo
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'hangar-approved-rojo';$z=Join-Path $env:RUNNER_TEMP 'hangar-approved-rojo.zip'
+            New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName
+          }
+          "ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build HANGAR approved partial
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-approved-partial.rbxlx'
+          & $env:ROJO_EXE build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place)
+          foreach($m in @('HangarSketchfabVehiclesV1','93181879112651','82774667248179',$env:STABLE_ENV_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published"
+          $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_MASTER_KEY} -ContentType 'application/xml' -InFile $env:PLACE_FILE
+          $version=[int](($r.Content|ConvertFrom-Json).versionNumber)
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers"
+          Invoke-WebRequest -UseBasicParsing -Method Post -Uri $restart -Headers @{'x-api-key'=$env:ROBLOX_MASTER_KEY} -ContentType 'application/json' -Body '{}'|Out-Null
+          Write-Host "HANGAR_APPROVED_PARTIAL_LIVE version=$version"
+
+      - name: Save LIVE receipt
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $obj=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='SKETCHFAB_APPROVED_PARTIAL';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:GITHUB_SHA;robloxVersion=[int]$env:LIVE_VERSION;realJetAssetId=[int64]$env:JET_ASSET_ID;realStarletAssetId=[int64]$env:STARLET_ASSET_ID;realVehicleCount=3;hypercarStatus='PROCEDURAL_RETAINED_PENDING_MODERATION';serversRestarted=$true;visualQC='PENDING_OWNER_SCREENSHOT'}
+          $text=$obj|ConvertTo-Json -Depth 8
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-APPROVED-PARTIAL'}
+          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)
+          $body=@{message='Record HANGAR approved Sketchfab partial LIVE [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5
+          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body|Out-Null
