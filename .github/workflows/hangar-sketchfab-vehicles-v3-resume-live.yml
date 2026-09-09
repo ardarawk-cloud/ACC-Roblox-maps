@@ -17,7 +17,8 @@ concurrency:
 env:
   LIVE_UNIVERSE_ID: '10745364913'
   LIVE_PLACE_ID: '76001567401911'
-  ROCKET_USERNAME: 'rocket_racoon111'
+  ROCKET_USERNAME: 'RidhooMauKamu'
+  ROCKET_USER_ID_FIXED: '8878884630'
   STABLE_ENV_ASSET_ID: '76797254008026'
   JET_ASSET_FIXED: '135410789803386'
 
@@ -56,17 +57,14 @@ jobs:
           if([string]::IsNullOrWhiteSpace($env:ROBLOX_ROCKET_KEY)){throw 'RocketRacoon Roblox key unavailable'}
           Write-Host 'HANGAR_SHOWCASE_FLEET_AUTHORITY_PASS'
 
-      - name: Resolve RocketRacoon creator
+      - name: Resolve asset creator matching key
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $body=@{usernames=@($env:ROCKET_USERNAME);excludeBannedUsers=$false}|ConvertTo-Json -Compress
-          $r=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $body
-          if(-not $r.data -or $r.data.Count -lt 1){throw "RocketRacoon username not found: $env:ROCKET_USERNAME"}
-          $id=[string]$r.data[0].id
-          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "invalid RocketRacoon user id: $id"}
+          $id=[string]$env:ROCKET_USER_ID_FIXED
+          if($id -notmatch '^\d+$' -or [int64]$id -le 0){throw "invalid creator user id: $id"}
           "ROCKET_USER_ID=$id"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "ROCKET_RACOON_CREATOR_OK username=$($r.data[0].name) id=$id"
+          Write-Host "ASSET_CREATOR_OK username=$env:ROCKET_USERNAME id=$id"
 
       - name: Download all ten GLB cars from owner Drive
         shell: powershell
@@ -75,17 +73,13 @@ jobs:
           $dir=Join-Path $env:RUNNER_TEMP 'hangar-showcase-fleet'
           if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
           New-Item -ItemType Directory -Path $dir -Force|Out-Null
-
           function GetGlb([string]$Label,[string]$Id){
             $out=Join-Path $dir ($Label.ToLowerInvariant()+'.glb')
             Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$Id&export=download&confirm=t" -OutFile $out -MaximumRedirection 12
             $bytes=[IO.File]::ReadAllBytes($out)
             if($bytes.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($bytes,0,4) -ne 'glTF'){throw "invalid GLB $Label id=$Id"}
-            $sha=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
-            Write-Host "GLB_OK label=$Label id=$Id bytes=$($bytes.Length) sha256=$sha"
             "$($Label)_GLB=$out"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           }
-
           1..10 | ForEach-Object {
             $label=('CAR{0:D2}' -f $_)
             $id=[Environment]::GetEnvironmentVariable($label+'_DRIVE_ID')
@@ -93,11 +87,10 @@ jobs:
             GetGlb $label $id
           }
 
-      - name: Upload ten showcase cars as RocketRacoon
+      - name: Upload ten showcase cars
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-
           $names=@{
             CAR01='HANGAR Nissan R34 Brian'
             CAR02='HANGAR Dodge Charger RT 1970'
@@ -110,7 +103,6 @@ jobs:
             CAR09='HANGAR Nissan Skyline R34 C-West'
             CAR10='HANGAR Dodge Charger FF8'
           }
-
           function StartUpload([string]$File,[string]$Name){
             $request=@{assetType='Model';displayName=$Name;description='Owner-supplied HANGAR showcase vehicle model.';creationContext=@{creator=@{userId=[int64]$env:ROCKET_USER_ID}}}|ConvertTo-Json -Depth 8 -Compress
             $rf=Join-Path $env:RUNNER_TEMP ("fleet-req-"+[guid]::NewGuid().ToString('N')+'.json')
@@ -120,26 +112,19 @@ jobs:
                 $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_ROCKET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$File;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
                 if($LASTEXITCODE -eq 0){
                   try{$created=$raw|ConvertFrom-Json}catch{$created=$null}
-                  if($created -and $created.path){
-                    return (([string]$created.path)-replace '^operations/','')
-                  }
+                  if($created -and $created.path){return (([string]$created.path)-replace '^operations/','')}
                   if($raw -match 'User is moderated'){throw "Roblox rejected $Name : User is moderated"}
                 }
                 if($attempt -lt 6){Start-Sleep -Seconds (4*$attempt)}
               }
               throw "upload rejected $Name : $raw"
-            } finally {
-              Remove-Item $rf -Force -ErrorAction SilentlyContinue
-            }
+            } finally {Remove-Item $rf -Force -ErrorAction SilentlyContinue}
           }
-
           foreach($i in 1..10){
             $label=('CAR{0:D2}' -f $i)
             $file=[Environment]::GetEnvironmentVariable($label+'_GLB')
-            if(-not(Test-Path $file)){throw "GLB path missing for $label"}
             $op=StartUpload $file $names[$label]
             "$($label)_OP=$op"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-            Write-Host "UPLOAD_ACCEPTED label=$label operation=$op name=$($names[$label])"
             Start-Sleep -Seconds 2
           }
 
@@ -147,7 +132,6 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-
           function Probe([string]$Op,[string]$Label){
             $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_ROCKET_KEY" "https://apis.roblox.com/assets/v1/operations/$Op"
             if($LASTEXITCODE -ne 0){return $null}
@@ -156,17 +140,14 @@ jobs:
             if($o.error){throw "$Label failed: $($o.error|ConvertTo-Json -Compress -Depth 8)"}
             $id=[string]$o.response.assetId
             if($id -notmatch '^\d+$'){throw "$Label completed without assetId"}
-            Write-Host "$Label READY asset=$id moderation=$($o.response.moderationResult.moderationState)"
             return $id
           }
-
           $ids=@{}
           for($poll=0;$poll -lt 1200;$poll++){
             foreach($i in 1..10){
               $label=('CAR{0:D2}' -f $i)
               if(-not $ids.ContainsKey($label)){
-                $op=[Environment]::GetEnvironmentVariable($label+'_OP')
-                $id=Probe $op $label
+                $id=Probe ([Environment]::GetEnvironmentVariable($label+'_OP')) $label
                 if($id){$ids[$label]=$id}
               }
             }
@@ -174,131 +155,59 @@ jobs:
             Start-Sleep -Seconds 3
           }
           if($ids.Count -ne 10){throw "asset moderation timeout approved=$($ids.Count)/10"}
-          foreach($i in 1..10){
-            $label=('CAR{0:D2}' -f $i)
-            "$($label)_ASSET=$($ids[$label])"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          }
+          foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);"$($label)_ASSET=$($ids[$label])"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append}
 
       - name: Best effort HANGAR universe asset permission
         shell: powershell
         continue-on-error: true
         run: |
-          $ErrorActionPreference='Stop'
-          $ids=@()
-          foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);$ids += [int64][Environment]::GetEnvironmentVariable($label+'_ASSET')}
+          $ids=@();foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);$ids += [int64][Environment]::GetEnvironmentVariable($label+'_ASSET')}
           $body=@{subjectType='Universe';subjectId=$env:LIVE_UNIVERSE_ID;action='Use';requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})}|ConvertTo-Json -Depth 8 -Compress
-          $url='https://apis.roblox.com/asset-permissions-api/v1/assets/permissions'
-          $r=Invoke-RestMethod -Method Patch -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_ROCKET_KEY} -ContentType 'application/json' -Body $body
-          Write-Host "HANGAR_FLEET_PERMISSION_RESULT $($r|ConvertTo-Json -Compress -Depth 8)"
+          Invoke-RestMethod -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:ROBLOX_ROCKET_KEY} -ContentType 'application/json' -Body $body|Out-Null
 
       - name: Lock fleet assets into HANGAR runtime
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
-          $text=[IO.File]::ReadAllText($path)
+          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua';$text=[IO.File]::ReadAllText($path)
           foreach($i in 1..10){
-            $label=('CAR{0:D2}' -f $i)
-            $asset=[Environment]::GetEnvironmentVariable($label+'_ASSET')
-            $marker='HANGAR_SHOWCASE_'+$label+'_ASSET_ID'
-            $pattern="local $($label)_ASSET_ID = \d+ -- $marker"
+            $label=('CAR{0:D2}' -f $i);$asset=[Environment]::GetEnvironmentVariable($label+'_ASSET');$marker='HANGAR_SHOWCASE_'+$label+'_ASSET_ID';$pattern="local $($label)_ASSET_ID = \d+ -- $marker"
             if($text -notmatch $pattern){throw "runtime marker missing $marker"}
             $text=[regex]::Replace($text,$pattern,"local $($label)_ASSET_ID = $asset -- $marker")
           }
           [IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
-
           $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-SHOWCASE-FLEET'}
-          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
-          $old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)
-          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text))
-          $body=@{message='HANGAR: lock 10-car Drive showcase fleet [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5
-          $put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body
-          $source=[string]$put.commit.sha
-          "CANONICAL_SOURCE=$source"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_FLEET_ASSET_LOCK_PASS source=$source"
+          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)
+          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text));$body=@{message='HANGAR: lock 10-car Drive showcase fleet [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5
+          $put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body;"CANONICAL_SOURCE=$([string]$put.commit.sha)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build HANGAR showcase fleet
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $path='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua'
-          $text=[IO.File]::ReadAllText($path)
-          $pattern='local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID'
-          if($text -notmatch $pattern){throw 'environment marker missing'}
-          $text=[regex]::Replace($text,$pattern,"local MODEL_ASSET_ID = $env:STABLE_ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID")
-          [IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
-
+          $path='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua';$text=[IO.File]::ReadAllText($path);$pattern='local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID'
+          if($text -notmatch $pattern){throw 'environment marker missing'};$text=[regex]::Replace($text,$pattern,"local MODEL_ASSET_ID = $env:STABLE_ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID");[IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
           $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){$rojo=$cmd.Source}else{
-            $d=Join-Path $env:RUNNER_TEMP 'rojo-fleet';$z=Join-Path $env:RUNNER_TEMP 'rojo-fleet.zip'
-            New-Item -ItemType Directory -Path $d -Force|Out-Null
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
-            Expand-Archive $z $d -Force
-            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1
-            if(-not $e){throw 'rojo missing'}
-            $rojo=$e.FullName
-          }
-
-          $place=Join-Path $env:RUNNER_TEMP 'hangar-showcase-fleet.rbxlx'
-          & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place
-          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
-          $xml=[IO.File]::ReadAllText($place)
-          foreach($m in @('HangarSketchfabVehiclesV1','SHOWCASE FLEET v2.0','DONOR_FRONT_6_PLUS_JET_FLOOR_4',$env:JET_ASSET_FIXED,$env:STABLE_ENV_ASSET_ID)){
-            if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}
-          }
-          foreach($i in 1..10){
-            $label=('CAR{0:D2}' -f $i);$asset=[Environment]::GetEnvironmentVariable($label+'_ASSET')
-            if($xml -notmatch [regex]::Escape([string]$asset)){throw "built place missing $label asset=$asset"}
-          }
-          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_SHOWCASE_FLEET_BUILD_PASS bytes=$((Get-Item $place).Length)"
+          if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-fleet';$z=Join-Path $env:RUNNER_TEMP 'rojo-fleet.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName}
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-showcase-fleet.rbxlx';& $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place);foreach($m in @('HangarSketchfabVehiclesV1','SHOWCASE FLEET v2.0','DONOR_FRONT_6_PLUS_JET_FLOOR_4',$env:JET_ASSET_FIXED,$env:STABLE_ENV_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}}
+          foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);$asset=[Environment]::GetEnvironmentVariable($label+'_ASSET');if($xml -notmatch [regex]::Escape([string]$asset)){throw "built place missing $label asset=$asset"}}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Publish MAIN HANGAR and restart servers
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published"
-          $version=$null
-          foreach($key in @($env:ROBLOX_ROCKET_KEY,$env:ROBLOX_MASTER_KEY)){
-            if([string]::IsNullOrWhiteSpace($key)){continue}
-            try{
-              $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE
-              $version=[int](($r.Content|ConvertFrom-Json).versionNumber)
-              if($version){break}
-            }catch{Write-Warning $_.Exception.Message}
-          }
-          if(-not $version){throw 'MAIN HANGAR publish failed'}
-          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-
-          $restart="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers"
-          $restarted=$false
-          foreach($key in @($env:ROBLOX_ROCKET_KEY,$env:ROBLOX_MASTER_KEY)){
-            if([string]::IsNullOrWhiteSpace($key)){continue}
-            try{Invoke-WebRequest -UseBasicParsing -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{Write-Warning $_.Exception.Message}
-          }
+          $url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published";$version=$null
+          foreach($key in @($env:ROBLOX_ROCKET_KEY,$env:ROBLOX_MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);if($version){break}}catch{Write-Warning $_.Exception.Message}}
+          if(-not $version){throw 'MAIN HANGAR publish failed'};"LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers";$restarted=$false
+          foreach($key in @($env:ROBLOX_ROCKET_KEY,$env:ROBLOX_MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{Invoke-WebRequest -UseBasicParsing -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{Write-Warning $_.Exception.Message}}
           if(-not $restarted){throw 'server restart failed'}
-          Write-Host "HANGAR_SHOWCASE_FLEET_LIVE version=$version"
 
       - name: Save LIVE receipt
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          $assets=[ordered]@{}
-          foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);$assets[$label]=[int64][Environment]::GetEnvironmentVariable($label+'_ASSET')}
-          $obj=[ordered]@{
-            status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='DRIVE_SHOWCASE_FLEET_V2';
-            universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:CANONICAL_SOURCE;
-            robloxVersion=[int]$env:LIVE_VERSION;assetOwnerUsername=$env:ROCKET_USERNAME;assetOwnerUserId=[int64]$env:ROCKET_USER_ID;
-            jetAssetId=[int64]$env:JET_ASSET_FIXED;carAssets=$assets;realCarCount=10;realVehicleCount=11;
-            layout='DONOR_FRONT_6_PLUS_JET_FLOOR_4';environmentAssetId=[int64]$env:STABLE_ENV_ASSET_ID;
-            placeBytes=[int64]$env:PLACE_BYTES;placeSha256=$env:PLACE_SHA;serversRestarted=$true;visualQC='PENDING_OWNER_SCREENSHOT'
-          }
-          $text=$obj|ConvertTo-Json -Depth 10
-          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"))
-          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-SHOWCASE-FLEET'}
-          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json"
-          $old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)
-          $body=@{message='Record HANGAR 10-car showcase fleet LIVE [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5
-          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body|Out-Null
+          $assets=[ordered]@{};foreach($i in 1..10){$label=('CAR{0:D2}' -f $i);$assets[$label]=[int64][Environment]::GetEnvironmentVariable($label+'_ASSET')}
+          $obj=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='DRIVE_SHOWCASE_FLEET_V2';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:CANONICAL_SOURCE;robloxVersion=[int]$env:LIVE_VERSION;assetOwnerUsername=$env:ROCKET_USERNAME;assetOwnerUserId=[int64]$env:ROCKET_USER_ID;jetAssetId=[int64]$env:JET_ASSET_FIXED;carAssets=$assets;realCarCount=10;realVehicleCount=11;layout='DONOR_FRONT_6_PLUS_JET_FLOOR_4';environmentAssetId=[int64]$env:STABLE_ENV_ASSET_ID;placeBytes=[int64]$env:PLACE_BYTES;placeSha256=$env:PLACE_SHA;serversRestarted=$true;visualQC='PENDING_OWNER_SCREENSHOT'}
+          $text=$obj|ConvertTo-Json -Depth 10;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"));$h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-SHOWCASE-FLEET'};$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$body=@{message='Record HANGAR 10-car showcase fleet LIVE [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body|Out-Null
