@@ -1,20 +1,18 @@
--- HANGAR — SKETCHFAB VEHICLE REPLACEMENT v1.1
--- Replaces procedural jet/cars with owner-supplied Sketchfab GLBs.
--- Keeps the HANGAR shell and other Phase 2 zones intact. No generated fallback art.
+-- HANGAR — SKETCHFAB VEHICLE REPLACEMENT v1.2
+-- Publishes approved owner-supplied Sketchfab art immediately.
+-- Jet + Starlet are mandatory; hypercars stay procedural until their Roblox assets are approved.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
-local JET_ASSET_ID = 0 -- HANGAR_SKETCHFAB_JET_ASSET_ID
-local STARLET_ASSET_ID = 0 -- HANGAR_SKETCHFAB_STARLET_ASSET_ID
+local JET_ASSET_ID = 93181879112651 -- HANGAR_SKETCHFAB_JET_ASSET_ID
+local STARLET_ASSET_ID = 82774667248179 -- HANGAR_SKETCHFAB_STARLET_ASSET_ID
 local BUGATTI_ASSET_ID = 0 -- HANGAR_SKETCHFAB_BUGATTI_ASSET_ID
 local LAMBO_ASSET_ID = 0 -- HANGAR_SKETCHFAB_LAMBO_ASSET_ID
 
 local OUTDOOR_SURFACE_Y = 0.30
 local INDOOR_SURFACE_Y = 0.40
 
--- Human-scale calibration. target = longest horizontal model dimension in studs.
--- Jet model is wing-span dominant, so 96 studs gives a medium business-jet footprint.
 local placements = {
     jet = {name="PrivateJetSketchfab", asset=JET_ASSET_ID, target=96, pos=Vector3.new(0, INDOOR_SURFACE_Y, -66), yaw=0, kind="jet"},
     starletA = {name="ToyotaStarletKP61_A", asset=STARLET_ASSET_ID, target=16, pos=Vector3.new(-132, OUTDOOR_SURFACE_Y, 270), yaw=0, kind="car"},
@@ -23,45 +21,32 @@ local placements = {
     lambo = {name="LamborghiniSestoElemento", asset=LAMBO_ASSET_ID, target=18, pos=Vector3.new(136, OUTDOOR_SURFACE_Y, 270), yaw=90, kind="car"},
 }
 
-Workspace:SetAttribute("HangarSketchfabVehicles", "BOOTING_V1_1")
+Workspace:SetAttribute("HangarSketchfabVehicles", "BOOTING_V1_2_APPROVED_PARTIAL")
 Workspace:SetAttribute("HangarSketchfabSource", "OWNER_SUPPLIED_CC_MODELS")
-Workspace:SetAttribute("HangarProceduralVehicles", "ACTIVE_UNTIL_TRANSACTIONAL_SWAP")
-Workspace:SetAttribute("HangarVehicleScaleAuthority", "HUMAN_SCALE_V1_1")
+Workspace:SetAttribute("HangarVehicleScaleAuthority", "HUMAN_SCALE_V1_2")
+Workspace:SetAttribute("HangarHypercarReplacement", "PENDING_ROBLOX_MODERATION")
 
 local deadline = os.clock() + 35
-while os.clock() < deadline and Workspace:GetAttribute("HangarEnvironmentReady") ~= true do
-    task.wait(0.25)
-end
+while os.clock() < deadline and Workspace:GetAttribute("HangarEnvironmentReady") ~= true do task.wait(0.25) end
 
 local environment = Workspace:FindFirstChild("Environment")
 if not environment or Workspace:GetAttribute("HangarEnvironmentReady") ~= true then
     Workspace:SetAttribute("HangarSketchfabVehicles", "ENVIRONMENT_NOT_READY")
-    warn("[HANGAR SKETCHFAB] environment not ready")
     return
 end
 
 local oldReplacement = environment:FindFirstChild("SketchfabVehicleDisplayV1")
 if oldReplacement then oldReplacement:Destroy() end
-
 local replacement = Instance.new("Model")
 replacement.Name = "SketchfabVehicleDisplayV1"
 replacement:SetAttribute("DisplayOnly", true)
 replacement:SetAttribute("Source", "SKETCHFAB_OWNER_SUPPLIED")
 replacement.Parent = environment
 
-local collisionRoot = environment:FindFirstChild("Collision")
-if not collisionRoot then
-    collisionRoot = Instance.new("Folder")
-    collisionRoot.Name = "Collision"
-    collisionRoot.Parent = environment
-end
-
--- Remove obsolete procedural-car blockers; replacement blockers are sized from the real models.
-for _, name in ipairs({
-    "ClassicCarLeftAProxy", "ClassicCarLeftBProxy", "HypercarRightAProxy", "HypercarRightBProxy",
-    "SketchfabJetBodyProxy", "ToyotaStarletKP61_A_DisplayCollision", "ToyotaStarletKP61_B_DisplayCollision",
-    "BugattiChiron_DisplayCollision", "LamborghiniSestoElemento_DisplayCollision",
-}) do
+local collisionRoot = environment:FindFirstChild("Collision") or Instance.new("Folder")
+collisionRoot.Name = "Collision"
+collisionRoot.Parent = environment
+for _, name in ipairs({"ClassicCarLeftAProxy","ClassicCarLeftBProxy","SketchfabJetBodyProxy","ToyotaStarletKP61_A_DisplayCollision","ToyotaStarletKP61_B_DisplayCollision","BugattiChiron_DisplayCollision","LamborghiniSestoElemento_DisplayCollision"}) do
     local old = collisionRoot:FindFirstChild(name)
     if old then old:Destroy() end
 end
@@ -88,26 +73,6 @@ local function sanitize(model)
     return parts
 end
 
-local function normalizeAndPlace(model, targetHorizontal, pos, yaw)
-    local _, size = model:GetBoundingBox()
-    local horizontal = math.max(size.X, size.Z)
-    if horizontal <= 0.01 then error("invalid model bounds") end
-
-    local scale = targetHorizontal / horizontal
-    if scale < 0.001 or scale > 500 then
-        error(string.format("unsafe scale %.4f from size %s", scale, tostring(size)))
-    end
-    model:ScaleTo(model:GetScale() * scale)
-    model:PivotTo(CFrame.new(pos.X, 0, pos.Z) * CFrame.Angles(0, math.rad(yaw), 0))
-
-    local boxCF, boxSize = model:GetBoundingBox()
-    local bottomY = boxCF.Position.Y - boxSize.Y * 0.5
-    model:PivotTo(model:GetPivot() + Vector3.new(0, pos.Y - bottomY, 0))
-
-    local finalCF, finalSize = model:GetBoundingBox()
-    return finalCF, finalSize
-end
-
 local function makeBlocker(name, cf, size)
     local p = Instance.new("Part")
     p.Name = name
@@ -119,104 +84,81 @@ local function makeBlocker(name, cf, size)
     p.Size = size
     p.CFrame = cf
     p.Parent = collisionRoot
-    return p
 end
 
-local function addPhysicalProxy(spec, boxCF, boxSize)
+local function normalizeAndPlace(model, spec)
+    local _, size = model:GetBoundingBox()
+    local horizontal = math.max(size.X, size.Z)
+    if horizontal <= 0.01 then error("invalid model bounds") end
+    local scale = spec.target / horizontal
+    if scale < 0.001 or scale > 500 then error("unsafe model scale") end
+    model:ScaleTo(model:GetScale() * scale)
+    model:PivotTo(CFrame.new(spec.pos.X, 0, spec.pos.Z) * CFrame.Angles(0, math.rad(spec.yaw), 0))
+    local boxCF, boxSize = model:GetBoundingBox()
+    local bottomY = boxCF.Position.Y - boxSize.Y * 0.5
+    model:PivotTo(model:GetPivot() + Vector3.new(0, spec.pos.Y - bottomY, 0))
+    boxCF, boxSize = model:GetBoundingBox()
     local rotationOnly = boxCF - boxCF.Position
     if spec.kind == "car" then
-        local blockerSize = Vector3.new(
-            math.max(4, boxSize.X * 0.84),
-            math.max(2.3, boxSize.Y * 0.55),
-            math.max(4, boxSize.Z * 0.84)
-        )
-        local y = OUTDOOR_SURFACE_Y + blockerSize.Y * 0.5
-        makeBlocker(spec.name .. "_DisplayCollision", CFrame.new(boxCF.Position.X, y, boxCF.Position.Z) * rotationOnly, blockerSize)
-    elseif spec.kind == "jet" then
-        -- Fuselage-only blocker; wing stages remain separately walkable from environment runtime.
-        local long = math.max(boxSize.X, boxSize.Z)
+        local bs = Vector3.new(math.max(4,boxSize.X*.84), math.max(2.3,boxSize.Y*.55), math.max(4,boxSize.Z*.84))
+        makeBlocker(spec.name.."_DisplayCollision", CFrame.new(boxCF.Position.X, OUTDOOR_SURFACE_Y+bs.Y*.5, boxCF.Position.Z)*rotationOnly, bs)
+    else
+        local long = math.max(boxSize.X,boxSize.Z)
         local xLong = boxSize.X >= boxSize.Z
-        local fuselageLength = long * 0.72
-        local fuselageWidth = math.max(8, math.min(boxSize.X, boxSize.Z) * 0.18)
-        local bodySize
-        if xLong then
-            bodySize = Vector3.new(fuselageLength, math.max(7, boxSize.Y * 0.52), fuselageWidth)
-        else
-            bodySize = Vector3.new(fuselageWidth, math.max(7, boxSize.Y * 0.52), fuselageLength)
-        end
-        local y = INDOOR_SURFACE_Y + bodySize.Y * 0.5
-        makeBlocker("SketchfabJetBodyProxy", CFrame.new(boxCF.Position.X, y, boxCF.Position.Z) * rotationOnly, bodySize)
+        local bodyLength = long*.72
+        local bodyWidth = math.max(8, math.min(boxSize.X,boxSize.Z)*.18)
+        local bs = xLong and Vector3.new(bodyLength,math.max(7,boxSize.Y*.52),bodyWidth) or Vector3.new(bodyWidth,math.max(7,boxSize.Y*.52),bodyLength)
+        makeBlocker("SketchfabJetBodyProxy", CFrame.new(boxCF.Position.X,INDOOR_SURFACE_Y+bs.Y*.5,boxCF.Position.Z)*rotationOnly, bs)
     end
 end
 
 local function loadOne(spec)
-    if spec.asset <= 0 then error("asset id not injected for " .. spec.name) end
+    if spec.asset <= 0 then return nil end
     local ok, loaded = pcall(InsertService.LoadAsset, InsertService, spec.asset)
-    if not ok or not loaded then error("LoadAsset failed for " .. spec.name .. ": " .. tostring(loaded)) end
+    if not ok or not loaded then error("LoadAsset failed for "..spec.name..": "..tostring(loaded)) end
     loaded.Name = spec.name
     loaded:SetAttribute("RobloxAssetId", spec.asset)
     loaded:SetAttribute("DisplayOnly", true)
     loaded:SetAttribute("Source", "SKETCHFAB_OWNER_SUPPLIED")
-    local partCount = sanitize(loaded)
-    if partCount < 1 then
-        loaded:Destroy()
-        error("no renderable parts for " .. spec.name)
-    end
+    if sanitize(loaded) < 1 then loaded:Destroy(); error("no renderable parts for "..spec.name) end
     loaded.Parent = replacement
-    local boxCF, size = normalizeAndPlace(loaded, spec.target, spec.pos, spec.yaw)
-    addPhysicalProxy(spec, boxCF, size)
-    loaded:SetAttribute("PartCount", partCount)
-    loaded:SetAttribute("FinalSizeX", size.X)
-    loaded:SetAttribute("FinalSizeY", size.Y)
-    loaded:SetAttribute("FinalSizeZ", size.Z)
+    normalizeAndPlace(loaded, spec)
     return loaded
 end
 
-local loadedModels = {}
-local ok, err = pcall(function()
-    loadedModels.jet = loadOne(placements.jet)
-    loadedModels.starletA = loadOne(placements.starletA)
-    loadedModels.starletB = loadOne(placements.starletB)
-    loadedModels.bugatti = loadOne(placements.bugatti)
-    loadedModels.lambo = loadOne(placements.lambo)
+-- Mandatory approved swap. If either approved asset fails to load, keep all procedural art.
+local mandatoryOk, mandatoryErr = pcall(function()
+    loadOne(placements.jet)
+    loadOne(placements.starletA)
+    loadOne(placements.starletB)
 end)
-
-if not ok then
+if not mandatoryOk then
     replacement:Destroy()
-    for _, n in ipairs({"SketchfabJetBodyProxy", "ToyotaStarletKP61_A_DisplayCollision", "ToyotaStarletKP61_B_DisplayCollision", "BugattiChiron_DisplayCollision", "LamborghiniSestoElemento_DisplayCollision"}) do
-        local p = collisionRoot:FindFirstChild(n)
-        if p then p:Destroy() end
-    end
-    Workspace:SetAttribute("HangarSketchfabVehicles", "LOAD_FAILED_PROCEDURAL_RETAINED")
+    for _, n in ipairs({"SketchfabJetBodyProxy","ToyotaStarletKP61_A_DisplayCollision","ToyotaStarletKP61_B_DisplayCollision"}) do local p=collisionRoot:FindFirstChild(n); if p then p:Destroy() end end
+    Workspace:SetAttribute("HangarSketchfabVehicles", "APPROVED_ASSET_LOAD_FAILED")
     Workspace:SetAttribute("HangarProceduralVehicles", "RETAINED_FAILSAFE")
-    warn("[HANGAR SKETCHFAB] transactional load failed; procedural vehicles retained", err)
+    warn("[HANGAR SKETCHFAB] approved swap failed", mandatoryErr)
     return
 end
 
--- Hide procedural vehicle/aircraft art only after every real replacement is loaded.
--- Wing stages stay visible because they are part of the locked club layout.
+local replaced = {jet=true, classic=true, bugatti=false, lambo=false}
+if BUGATTI_ASSET_ID > 0 then replaced.bugatti = pcall(function() loadOne(placements.bugatti) end) end
+if LAMBO_ASSET_ID > 0 then replaced.lambo = pcall(function() loadOne(placements.lambo) end) end
+
 local hideNames = {
-    JetPlaneMesh=true,
-    JetGlassAndTrimMesh=true,
-    JetEngineMesh=true,
-    JetLandingGearMesh=true,
-    JetVIPLoungeMesh=true,
-    ClassicCarLeftA=true,
-    ClassicCarLeftB=true,
-    HypercarRightA=true,
-    HypercarRightB=true,
+    JetPlaneMesh=true, JetGlassAndTrimMesh=true, JetEngineMesh=true, JetLandingGearMesh=true, JetVIPLoungeMesh=true,
+    ClassicCarLeftA=true, ClassicCarLeftB=true,
 }
+if replaced.bugatti then hideNames.HypercarRightA=true end
+if replaced.lambo then hideNames.HypercarRightB=true end
 for _, d in ipairs(environment:GetDescendants()) do
     if d:IsA("MeshPart") and hideNames[d.Name] and not d:IsDescendantOf(replacement) then
-        d.Transparency = 1
-        d.CastShadow = false
-        d.CanCollide = false
-        d.CanQuery = false
+        d.Transparency=1; d.CastShadow=false; d.CanCollide=false; d.CanQuery=false
     end
 end
 
-Workspace:SetAttribute("HangarSketchfabVehicles", "READY_OWNER_VISUAL_QC_V1_1")
-Workspace:SetAttribute("HangarProceduralVehicles", "HIDDEN_TRANSACTIONAL_SWAP")
-Workspace:SetAttribute("HangarVehicleArt", "SKETCHFAB_REAL_MODELS_V1_1")
-Workspace:SetAttribute("HangarVehicleCount", 5)
-print("[HANGAR SKETCHFAB] REAL JET + CARS READY V1.1", JET_ASSET_ID, STARLET_ASSET_ID, BUGATTI_ASSET_ID, LAMBO_ASSET_ID)
+Workspace:SetAttribute("HangarSketchfabVehicles", "READY_APPROVED_JET_STARLET_OWNER_QC")
+Workspace:SetAttribute("HangarProceduralVehicles", "JET_CLASSIC_HIDDEN_HYPERCARS_RETAINED")
+Workspace:SetAttribute("HangarVehicleArt", "SKETCHFAB_APPROVED_PARTIAL_V1_2")
+Workspace:SetAttribute("HangarVehicleCountReal", 3 + (replaced.bugatti and 1 or 0) + (replaced.lambo and 1 or 0))
+print("[HANGAR SKETCHFAB] APPROVED JET + STARLETS READY V1.2", JET_ASSET_ID, STARLET_ASSET_ID)
