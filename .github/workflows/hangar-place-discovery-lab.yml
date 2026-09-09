@@ -18,7 +18,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo 'HANGAR_PLACE_DISCOVERY_BEGIN'
-          curl --fail --silent --show-error 'https://develop.roblox.com/v1/universes/10745364913/places?limit=100&sortOrder=Asc'
-          echo
-          echo 'HANGAR_PLACE_DISCOVERY_END'
+          curl --fail --silent --show-error 'https://develop.roblox.com/v1/universes/10745364913/places?limit=100&sortOrder=Asc' > hangar-places.json
+          cat hangar-places.json
+      - name: Upload discovery result
+        uses: actions/upload-artifact@v4
+        with:
+          name: hangar-place-discovery
+          path: hangar-places.json
+          if-no-files-found: error
