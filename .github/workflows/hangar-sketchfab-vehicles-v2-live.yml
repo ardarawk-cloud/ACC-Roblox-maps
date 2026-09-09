@@ -1,0 +1,134 @@
+name: HANGAR Sketchfab Vehicles v2 LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths:
+      - '.github/workflows/hangar-sketchfab-vehicles-v2-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-sketchfab-vehicles-v2-live
+  cancel-in-progress: false
+
+env:
+  LIVE_UNIVERSE_ID: '10745364913'
+  LIVE_PLACE_ID: '76001567401911'
+  ASSET_OWNER_USER_ID: '4141352496'
+  STABLE_ENV_ASSET_ID: '76797254008026'
+  DRIVE_JET_ID: '1ecOS-UYuxG49parelZFX6I-c6SbV0vWJ'
+  DRIVE_STARLET_ID: '1fT1s3knyVTWEgkKtyFh3Xg-r3G6LrVA8'
+  DRIVE_BUGATTI_ID: '1if6mirv95M2N0SqnXC77JGAf-hlp4iBk'
+  DRIVE_LAMBO_ID: '1HkZp5B1UMysNGyOCo71mi5EGHncfRRvX'
+  SHA_JET: '690fb83b3c77b72b13b1365546ccabe00c20a38fc19ca71fb0882c1a4e3cf62b'
+  SHA_STARLET: 'b2c4d8b20cd508367d8623c2a58bd2b669ceeb984c77e0c63d09fe3f229919a4'
+  SHA_BUGATTI: '1bfdfec08cb993defde3b1d9fccaab886bbf25e7967eeda45f2dbbc65beb568f'
+  SHA_LAMBO: '6c389c29a04315bd3d446d88c82271344ad4f6930fe63be1d8c1358ae49c7781'
+
+jobs:
+  ingest-publish:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 40
+    env:
+      ROBLOX_ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      ROBLOX_MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Verify source authority
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=[IO.File]::ReadAllText('maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua')
+          foreach($m in @('HANGAR_SKETCHFAB_JET_ASSET_ID','HANGAR_SKETCHFAB_STARLET_ASSET_ID','HANGAR_SKETCHFAB_BUGATTI_ASSET_ID','HANGAR_SKETCHFAB_LAMBO_ASSET_ID','SKETCHFAB_REAL_MODELS_V1')){if($src -notmatch [regex]::Escape($m)){throw "missing $m"}}
+          $project=[IO.File]::ReadAllText('maps/aeroclub-hangar/default.project.json')
+          if($project -notmatch 'HangarSketchfabVehiclesV1'){throw 'runtime not mounted'}
+          if(-not $env:ROBLOX_ASSET_KEY -or -not $env:ROBLOX_MASTER_KEY){throw 'Roblox key missing'}
+          Write-Host "HANGAR_SKETCHFAB_V2_AUTHORITY_PASS owner=$env:ASSET_OWNER_USER_ID"
+
+      - name: Download and verify owner GLBs
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'hangar-sketchfab-v2';New-Item -ItemType Directory -Path $dir -Force|Out-Null
+          function GetGlb([string]$Id,[string]$Out,[string]$Sha){
+            Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$Id&export=download&confirm=t" -OutFile $Out -MaximumRedirection 12
+            $bytes=[IO.File]::ReadAllBytes($Out)
+            if($bytes.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($bytes,0,4) -ne 'glTF'){throw "invalid GLB id=$Id"}
+            $got=(Get-FileHash $Out -Algorithm SHA256).Hash.ToLowerInvariant();if($got -ne $Sha){throw "SHA mismatch id=$Id got=$got"}
+            Write-Host "GLB_VERIFIED id=$Id bytes=$($bytes.Length)"
+          }
+          $jet=Join-Path $dir 'private-jet.glb';$starlet=Join-Path $dir 'starlet.glb';$bugatti=Join-Path $dir 'bugatti.glb';$lambo=Join-Path $dir 'lambo.glb'
+          GetGlb $env:DRIVE_JET_ID $jet $env:SHA_JET;GetGlb $env:DRIVE_STARLET_ID $starlet $env:SHA_STARLET;GetGlb $env:DRIVE_BUGATTI_ID $bugatti $env:SHA_BUGATTI;GetGlb $env:DRIVE_LAMBO_ID $lambo $env:SHA_LAMBO
+          "JET_GLB=$jet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"STARLET_GLB=$starlet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"BUGATTI_GLB=$bugatti"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"LAMBO_GLB=$lambo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload Sketchfab models to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function UploadModel([string]$File,[string]$Name,[string]$Description){
+            $request=@{assetType='Model';displayName=$Name;description=$Description;creationContext=@{creator=@{userId=[int64]$env:ASSET_OWNER_USER_ID}}}|ConvertTo-Json -Depth 8 -Compress
+            $rf=Join-Path $env:RUNNER_TEMP ("req-"+[guid]::NewGuid().ToString('N')+'.json');[IO.File]::WriteAllText($rf,$request,(New-Object Text.UTF8Encoding($false)))
+            try{$raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_ASSET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$File;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'}finally{Remove-Item $rf -Force -ErrorAction SilentlyContinue}
+            if($LASTEXITCODE -ne 0){throw "curl failed $Name"};try{$created=$raw|ConvertFrom-Json}catch{throw "bad response $Name : $raw"};if(-not $created.path){throw "upload rejected $Name : $raw"}
+            $opid=([string]$created.path)-replace '^operations/','';Write-Host "UPLOAD_ACCEPTED name=$Name operation=$opid"
+            for($i=0;$i -lt 120;$i++){Start-Sleep -Seconds 3;$opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$opid";if($LASTEXITCODE -ne 0){continue};try{$op=$opRaw|ConvertFrom-Json}catch{continue};if($op.done){if($op.error){throw "operation failed $Name : $($op.error|ConvertTo-Json -Compress -Depth 8)"};$id=[string]$op.response.assetId;if($id -notmatch '^\d+$'){throw "no asset id $Name"};Write-Host "UPLOAD_DONE name=$Name asset=$id moderation=$($op.response.moderationResult.moderationState)";return $id}}
+            throw "timeout $Name"
+          }
+          $jet=UploadModel $env:JET_GLB 'HANGAR Private Jet' 'Private Jet by Marco Fischer (a2e), Sketchfab CC BY.'
+          $starlet=UploadModel $env:STARLET_GLB 'HANGAR Toyota Starlet KP61' 'Toyota Starlet KP61 by Wideopenthrottle, Sketchfab CC BY.'
+          $bugatti=UploadModel $env:BUGATTI_GLB 'HANGAR Bugatti Chiron' 'Free Bugatti Chiron by ALIEEEN, Sketchfab CC BY.'
+          $lambo=UploadModel $env:LAMBO_GLB 'HANGAR Lamborghini Sesto Elemento' 'Free Lamborghini Sesto Elemento by ALIEEEN, Sketchfab CC BY.'
+          "JET_ASSET=$jet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"STARLET_ASSET=$starlet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"BUGATTI_ASSET=$bugatti"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"LAMBO_ASSET=$lambo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Grant all four assets to HANGAR universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $ids=@([int64]$env:JET_ASSET,[int64]$env:STARLET_ASSET,[int64]$env:BUGATTI_ASSET,[int64]$env:LAMBO_ASSET)
+          $body=@{subjectType='Universe';subjectId=$env:LIVE_UNIVERSE_ID;action='Use';requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})}|ConvertTo-Json -Depth 8 -Compress
+          $url='https://apis.roblox.com/asset-permissions-api/v1/assets/permissions';$ok=$false
+          foreach($key in @($env:ROBLOX_ASSET_KEY,$env:ROBLOX_MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{$r=Invoke-RestMethod -Method Patch -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body $body;$success=@($r.successAssetIds|ForEach-Object{[string]$_});$missing=@($ids|Where-Object{$success -notcontains [string]$_});if($missing.Count -eq 0 -and @($r.errors).Count -eq 0){$ok=$true;break}}catch{Write-Warning $_.Exception.Message}}
+          if(-not $ok){throw 'unable to grant all Sketchfab assets to HANGAR universe'}
+          Write-Host "HANGAR_SKETCHFAB_GRANT_PASS ids=$($ids -join ',')"
+
+      - name: Lock asset IDs locally and remotely
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua';$text=[IO.File]::ReadAllText($path)
+          $pairs=@(@('JET_ASSET_ID',$env:JET_ASSET,'HANGAR_SKETCHFAB_JET_ASSET_ID'),@('STARLET_ASSET_ID',$env:STARLET_ASSET,'HANGAR_SKETCHFAB_STARLET_ASSET_ID'),@('BUGATTI_ASSET_ID',$env:BUGATTI_ASSET,'HANGAR_SKETCHFAB_BUGATTI_ASSET_ID'),@('LAMBO_ASSET_ID',$env:LAMBO_ASSET,'HANGAR_SKETCHFAB_LAMBO_ASSET_ID'))
+          foreach($p in $pairs){$pattern="local $($p[0]) = \d+ -- $($p[2])";if($text -notmatch $pattern){throw "marker missing $($p[2])"};$text=[regex]::Replace($text,$pattern,"local $($p[0]) = $($p[1]) -- $($p[2])")}
+          [IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-SKETCHFAB-V2'};$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text));$body=@{message='HANGAR: lock Sketchfab real vehicle asset IDs [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;$put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body;$source=[string]$put.commit.sha;"CANONICAL_SOURCE=$source"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;Write-Host "ASSET_IDS_LOCKED source=$source"
+
+      - name: Inject stable environment asset
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$path='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua';$text=[IO.File]::ReadAllText($path);$pattern='local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID';if($text -notmatch $pattern){throw 'env marker missing'};$text=[regex]::Replace($text,$pattern,"local MODEL_ASSET_ID = $env:STABLE_ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID");[IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
+
+      - name: Prepare Rojo
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$cmd=Get-Command rojo -ErrorAction SilentlyContinue;if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-v2';$z=Join-Path $env:RUNNER_TEMP 'rojo-v2.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName};"ROJO_EXE=$rojo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact HANGAR place
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$place=Join-Path $env:RUNNER_TEMP 'hangar-real-vehicles.rbxlx';& $env:ROJO_EXE build 'maps/aeroclub-hangar/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'};$xml=[IO.File]::ReadAllText($place);foreach($m in @('HangarSketchfabVehiclesV1','SKETCHFAB_REAL_MODELS_V1',$env:JET_ASSET,$env:STARLET_ASSET,$env:BUGATTI_ASSET,$env:LAMBO_ASSET,$env:STABLE_ENV_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}};"PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;Write-Host "HANGAR_REAL_VEHICLES_BUILD_PASS bytes=$((Get-Item $place).Length)"
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$url="https://apis.roblox.com/universes/v1/$env:LIVE_UNIVERSE_ID/places/$env:LIVE_PLACE_ID/versions?versionType=Published";$version=$null;for($i=1;$i -le 6;$i++){try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$env:ROBLOX_MASTER_KEY} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);break}catch{Write-Warning $_.Exception.Message;Start-Sleep -Seconds (3*$i)}};if(-not $version){throw 'publish failed'};"LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;$restart="https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers";$rr=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $restart -Headers @{'x-api-key'=$env:ROBLOX_MASTER_KEY} -ContentType 'application/json' -Body '{}';if([int]$rr.StatusCode -lt 200 -or [int]$rr.StatusCode -ge 300){throw 'restart failed'};Write-Host "HANGAR_REAL_VEHICLES_LIVE version=$version"
+
+      - name: Save LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop';$obj=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='PHASE_2_REAL_ASSET_VEHICLE_REPLACEMENT';universeId=$env:LIVE_UNIVERSE_ID;placeId=$env:LIVE_PLACE_ID;sourceCommit=$env:CANONICAL_SOURCE;mode='HANGAR_SKETCHFAB_REAL_JET_CARS_V1';staticModelAssetId=[int64]$env:STABLE_ENV_ASSET_ID;jetAssetId=[int64]$env:JET_ASSET;starletAssetId=[int64]$env:STARLET_ASSET;bugattiAssetId=[int64]$env:BUGATTI_ASSET;lamboAssetId=[int64]$env:LAMBO_ASSET;robloxVersion=[int]$env:LIVE_VERSION;placeBytes=[int64]$env:PLACE_BYTES;placeSha256=$env:PLACE_SHA;vehicleSource='OWNER_SUPPLIED_SKETCHFAB_CC_BY';proceduralVehicleArt='HIDDEN_AFTER_TRANSACTIONAL_LOAD';wita='REALTIME_UTC_PLUS_8';lasers='DISABLED';serversRestarted=$true;visualQC='PENDING_OWNER_SCREENSHOT'};$text=$obj|ConvertTo-Json -Depth 8;$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text+"`n"));$h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-SKETCHFAB-V2'};$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/deploy-status/hangar-live.json";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$body=@{message='Record HANGAR real jet and cars LIVE [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body|Out-Null
