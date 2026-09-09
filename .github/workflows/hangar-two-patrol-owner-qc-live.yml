@@ -20,6 +20,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Grant patrol assets to HANGAR universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ASSET_KEY)){throw 'AM_STUDIO asset key missing'}
+          $ids=@([int64]$env:MCLAREN_ASSET_ID,[int64]$env:PORSCHE_ASSET_ID)
+          $body=@{
+            subjectType='Universe'
+            subjectId=$env:UNIVERSE_ID
+            action='Use'
+            requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})
+          }|ConvertTo-Json -Depth 8 -Compress
+          Invoke-RestMethod -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:ASSET_KEY} -ContentType 'application/json' -Body $body|Out-Null
+          Write-Host "HANGAR_PATROL_USE_GRANTED mclaren=$env:MCLAREN_ASSET_ID porsche=$env:PORSCHE_ASSET_ID universe=$env:UNIVERSE_ID"
+
       - name: Build two patrol HANGAR
         shell: powershell
         run: |
