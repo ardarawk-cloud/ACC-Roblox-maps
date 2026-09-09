@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: bbya-ddiaz-entrance-cars-test
+  group: bbya-ddiaz-entrance-cars-test-v2
   cancel-in-progress: false
 
 jobs:
@@ -32,6 +32,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Static source QC
         shell: powershell
         run: |
@@ -47,19 +51,18 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $dir=Join-Path $env:RUNNER_TEMP 'bbya-ddiaz-cars'
+          python -m pip install --disable-pip-version-check --quiet gdown
+          if($LASTEXITCODE -ne 0){throw 'gdown install failed'}
+          $dir=Join-Path $env:RUNNER_TEMP 'bbya-ddiaz-cars-v2'
           if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
           New-Item -ItemType Directory -Path $dir -Force | Out-Null
           $lambo=Join-Path $dir '2021_vorsteiner_lamborghini_huracan_evo_2wd.glb'
           $mazda=Join-Path $dir '2004_veilside_d1-gt_mazda_rx-8_tokyo_drift.glb'
 
-          function Download-Drive([string]$id,[string]$out){
-            $url="https://drive.usercontent.google.com/download?id=$id&export=download&confirm=t"
-            Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $out
-            if(-not (Test-Path $out)){throw "Drive download missing: $id"}
-          }
-          Download-Drive $env:LAMBO_DRIVE_ID $lambo
-          Download-Drive $env:MAZDA_DRIVE_ID $mazda
+          python -m gdown $env:LAMBO_DRIVE_ID -O $lambo
+          if($LASTEXITCODE -ne 0){throw 'Lamborghini Drive download failed'}
+          python -m gdown $env:MAZDA_DRIVE_ID -O $mazda
+          if($LASTEXITCODE -ne 0){throw 'Mazda Drive download failed'}
 
           $lh=(Get-FileHash $lambo -Algorithm SHA256).Hash.ToLowerInvariant()
           $mh=(Get-FileHash $mazda -Algorithm SHA256).Hash.ToLowerInvariant()
