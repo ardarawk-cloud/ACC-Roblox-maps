@@ -1,0 +1,106 @@
+name: HANGAR v7 Measured Vehicles LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-v7-measured-vehicles-live.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-v7-measured-vehicles-live
+  cancel-in-progress: true
+
+env:
+  UNIVERSE_ID: '10745364913'
+  PLACE_ID: '76001567401911'
+  ENV_ASSET_ID: '76797254008026'
+
+jobs:
+  publish-v7:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify v7 measured authority and build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src='maps/aeroclub-hangar/server/sketchfab-vehicles-v7.server.lua'
+          $t=[IO.File]::ReadAllText($src)
+          foreach($m in @('OWNER VEHICLE LAYOUT v7.0','V7_MEASURED_TWO_SIDE_ROWS_PATROL_WELCOME','MEASURED_24_TO_26_STUD_DISPLAY','AUTO_NOSE_DETECT_FACE_OUTDOOR_PLUS_Z','ORIENTED_WHEEL_BOTTOM_WITH_VISIBLE_FALLBACK','REMOVE_FLAT_HELPER_PADS','ZERO_INVISIBLE_JET_COLLISION_OWNER_QC')){if($t -notmatch [regex]::Escape($m)){throw "v7 marker missing $m"}}
+          $proj=[IO.File]::ReadAllText('maps/aeroclub-hangar/default.project.json')
+          if($proj -notmatch 'sketchfab-vehicles-v7.server.lua'){throw 'project not switched to v7'}
+          $v='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua'
+          $x=[IO.File]::ReadAllText($v)
+          $x=[regex]::Replace($x,'local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID")
+          [IO.File]::WriteAllText($v,$x,(New-Object Text.UTF8Encoding($false)))
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'rojo-hangar-v7';$z=Join-Path $env:RUNNER_TEMP 'rojo-hangar-v7.zip'
+            New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1
+            if(-not $e){throw 'rojo missing'}
+            $rojo=$e.FullName
+          }
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-v7-measured-vehicles.rbxlx'
+          & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place)
+          foreach($m in @('HangarSketchfabVehiclesV7','V7_MEASURED_TWO_SIDE_ROWS_PATROL_WELCOME','AUTO_NOSE_DETECT_FACE_OUTDOOR_PLUS_Z','99964942308635','90377117635780')){if($xml -notmatch [regex]::Escape($m)){throw "built place missing $m"}}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $version=$null;$publisher=''
+          foreach($entry in @(@('AM_STUDIO',$env:ASSET_KEY),@('MASTER_V2',$env:MASTER_KEY))){
+            $name=$entry[0];$key=$entry[1]
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{
+              $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE
+              $version=[int](($r.Content|ConvertFrom-Json).versionNumber);$publisher=$name
+              if($version){break}
+            }catch{Write-Warning "$name publish failed: $($_.Exception.Message)"}
+          }
+          if(-not $version){throw 'MAIN HANGAR publish failed'}
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHER=$publisher"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:UNIVERSE_ID`:restartServers";$restarted=$false
+          foreach($key in @($env:ASSET_KEY,$env:MASTER_KEY)){
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{Invoke-RestMethod -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{}
+          }
+          "RESTARTED=$restarted"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V7_MEASURED_VEHICLES_LIVE version=$version publisher=$publisher restarted=$restarted"
+
+      - name: Save v7 LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-V7-MEASURED'}
+          $receipt=[ordered]@{
+            status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='OWNER_QC_V7_MEASURED_SCALE_ORIENTATION_GROUNDING';
+            universeId=$env:UNIVERSE_ID;placeId=$env:PLACE_ID;sourceCommit=$env:GITHUB_SHA;robloxVersion=[int]$env:LIVE_VERSION;publisherKey=$env:PUBLISHER;
+            totalCars=13;layout='V7_MEASURED_TWO_SIDE_ROWS_PATROL_WELCOME';carScale='MEASURED_24_TO_26_STUD_DISPLAY';orientation='AUTO_NOSE_DETECT_FACE_OUTDOOR_PLUS_Z';grounding='ORIENTED_WHEEL_BOTTOM_WITH_VISIBLE_FALLBACK';importCleanup='REMOVE_FLAT_HELPER_PADS';jetCollision='ZERO_INVISIBLE_JET_COLLISION_OWNER_QC';
+            placeSha256=$env:PLACE_SHA;placeBytes=[int64]$env:PLACE_BYTES;serversRestarted=([bool]::Parse($env:RESTARTED));visualQC='PENDING_OWNER_SCREENSHOT'
+          }
+          $path='deploy-status/hangar-live.json';$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+          $old=$null;try{$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)}catch{}
+          $body=@{message='HANGAR: save v7 measured live receipt [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($receipt|ConvertTo-Json -Depth 8)));branch=$env:GITHUB_REF_NAME}
+          if($old){$body.sha=[string]$old.sha}
+          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body ($body|ConvertTo-Json -Depth 5)|Out-Null
+          Write-Host "HANGAR_V7_RECEIPT_SAVED version=$env:LIVE_VERSION"
