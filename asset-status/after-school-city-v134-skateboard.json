@@ -1,0 +1,18 @@
+﻿{
+    "status":  "ASSET_INGESTED_QC_PENDING",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V134_SPORTS_ASSETS",
+    "liveSource":  "735e7c22e36a4829b3b8838985c44cfc2774ba56",
+    "liveRobloxVersion":  58,
+    "prepRunId":  34305810070,
+    "prepArtifactId":  10086603748,
+    "prepArtifactDigest":  "bb1138a320877be01229ee0482fa1f50095fc56935af9bdbc13af276d49acc00",
+    "optimizedBytes":  7208740,
+    "optimizedSha256":  "8fd29c509eee478d5a06d2282536ed6e955790b68339fea746c47c896ba410c2",
+    "robloxAssetId":  111060043204479,
+    "moderationState":  "Approved",
+    "license":  "CC-BY-4.0",
+    "author":  "Arsen Ismailov",
+    "basketballStatus":  "LICENSE_HOLD",
+    "placePublished":  false
+}

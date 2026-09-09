@@ -1,4 +1,4 @@
--- AFTER SCHOOL CITY — V1.3.4 Sports Asset Integration
+﻿-- AFTER SCHOOL CITY â€” V1.3.4 Sports Asset Integration
 -- External asset layer only. Existing Skate Line, legacy skate geometry, basketball court,
 -- gameplay, economy, persistence, music, dedication, and monetization remain authoritative.
 
@@ -6,7 +6,7 @@ local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
 local VERSION = "1.3.4-sports-assets-1"
-local SKATEBOARD_PACK_ASSET_ID = 0 -- ASC_WORKFLOW_SKATEBOARD_ASSET_ID
+local SKATEBOARD_PACK_ASSET_ID = 111060043204479 -- ASC_WORKFLOW_SKATEBOARD_ASSET_ID
 local BASKETBALL_COURT_ASSET_ID = 0 -- LICENSE_HOLD: do not activate until rights are verified.
 
 local function waitForAttribute(name, timeoutSeconds)
@@ -215,3 +215,4 @@ if importedCount == 4 then
 else
     warn(string.format("[ASC V134 SportsAssets] partial skateboard import; expected=4 actual=%d", importedCount))
 end
+
