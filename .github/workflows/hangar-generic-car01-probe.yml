@@ -1,0 +1,69 @@
+name: HANGAR Generic CAR01 Probe
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-generic-car01-probe.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hangar-generic-car01-probe
+  cancel-in-progress: true
+
+env:
+  CREATOR_ID: '4141352496'
+  DRIVE_ID: '1jqtOcoijz1Qp4T2M12ZWEjTIyKPD7J7R'
+
+jobs:
+  car01:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 45
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+    steps:
+      - name: Download CAR 01
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $file=Join-Path $env:RUNNER_TEMP 'CAR01.glb'
+          Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$env:DRIVE_ID&export=download&confirm=t" -OutFile $file -MaximumRedirection 12
+          $b=[IO.File]::ReadAllBytes($file)
+          if($b.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($b,0,4) -ne 'glTF'){throw 'invalid CAR01 GLB'}
+          "CAR01_FILE=$file"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "CAR01_FILE_OK bytes=$($b.Length)"
+
+      - name: Upload CAR 01 generic
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $req=@{assetType='Model';displayName='CAR 01';description='HANGAR vehicle model.';creationContext=@{creator=@{userId=[int64]$env:CREATOR_ID}}}|ConvertTo-Json -Depth 8 -Compress
+          $rf=Join-Path $env:RUNNER_TEMP 'car01-request.json'
+          [IO.File]::WriteAllText($rf,$req,(New-Object Text.UTF8Encoding($false)))
+          $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ASSET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$env:CAR01_FILE;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+          if($LASTEXITCODE -ne 0){throw 'CAR01 upload request failed'}
+          $o=$raw|ConvertFrom-Json
+          if(-not $o.path){throw "CAR01 upload rejected: $raw"}
+          $op=(([string]$o.path)-replace '^operations/','')
+          "CAR01_OP=$op"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "CAR01_GENERIC_UPLOAD_ACCEPTED op=$op"
+
+      - name: Wait CAR 01 moderation only
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          for($i=0;$i -lt 180;$i++){
+            $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR01_OP"
+            if($LASTEXITCODE -eq 0){
+              try{$o=$raw|ConvertFrom-Json}catch{$o=$null}
+              if($o -and $o.done){
+                if($o.error){throw "CAR01_GENERIC_MODERATION_FAILED: $($o.error|ConvertTo-Json -Compress -Depth 6)"}
+                $id=[string]$o.response.assetId
+                if($id -match '^\d+$'){Write-Host "CAR01_GENERIC_READY asset=$id";exit 0}
+              }
+            }
+            Start-Sleep -Seconds 10
+          }
+          throw 'CAR01_GENERIC_STILL_PENDING_AFTER_30_MIN'
