@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v3
+-- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v3 (supersedes MALL LIFESTYLE RELOCATION v2)
 -- Keeps Floor 1 as a pure nightclub, grounds/declutters the DJ zone,
 -- and relocates Look Lab + Editorial Photo Studio into GLOW LAB on Mall Level 2.
 -- V3: GLOW LAB waits for final 20-stud Mall spacing and is authored directly at final L2.
