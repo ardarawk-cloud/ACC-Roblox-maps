@@ -1,0 +1,24 @@
+name: HANGAR Place Discovery LAB
+
+on:
+  push:
+    branches: [hangar-vehicle-manual-lock-lab]
+    paths:
+      - '.github/workflows/hangar-place-discovery-lab.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: List existing HANGAR universe places (read only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'HANGAR_PLACE_DISCOVERY_BEGIN'
+          curl --fail --silent --show-error 'https://develop.roblox.com/v1/universes/10745364913/places?limit=100&sortOrder=Asc'
+          echo
+          echo 'HANGAR_PLACE_DISCOVERY_END'
