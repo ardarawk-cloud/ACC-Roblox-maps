@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — DDIAZ PREMIUM VALET ARRIVAL v8
+-- BBYA SOCIAL HUB — BBYA CAR PAIR v9
 -- Canonical entrance-car authority: two creator-permitted Ddiaz Design display cars.
--- Runtime hardening: third-party load first uses AssetService, then InsertService fallback.
+-- Runtime display names are intentionally generic: BBYA Car 01 / BBYA Car 02.
 -- IMPORTANT: procedural street cars remain visible unless BOTH premium models load, place,
 -- and pass visible-geometry validation. This prevents an empty entrance in production.
 -- Display only; scripts/audio/prompts/effects are stripped and every part is anchored.
@@ -14,8 +14,8 @@ local AssetService = game:GetService("AssetService")
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
-local HURACAN_ASSET_ID = 97052038046118
-local RX8_ASSET_ID = 91172120786409
+local CAR_01_ASSET_ID = 97052038046118
+local CAR_02_ASSET_ID = 91172120786409
 local ROAD_SURFACE_Y = 0.52
 local ROAD_Z = -75.5
 local TARGET_CAR_LENGTH = 13.8
@@ -25,8 +25,6 @@ if not root then return end
 local scene = root:WaitForChild("EntranceStreetScene", 30)
 if not scene then return end
 
--- EntranceStreetScene is created by the street authority and its fallback cars are built
--- immediately after the model itself. Give that script time to finish before any swap.
 task.wait(1.0)
 
 local function stripForDisplay(instance)
@@ -134,13 +132,11 @@ local function addDisplayCollision(model)
 end
 
 local function fetchAsset(assetId)
-	-- Modern loader supports third-party public assets when the experience allows them.
 	local okModern, modern = pcall(AssetService.LoadAssetAsync, AssetService, assetId)
 	if okModern and modern then
 		return modern, "AssetService.LoadAssetAsync"
 	end
 
-	-- Legacy fallback still works for assets already accessible to the experience creator.
 	local okLegacy, legacy = pcall(InsertService.LoadAsset, InsertService, assetId)
 	if okLegacy and legacy then
 		return legacy, "InsertService.LoadAsset"
@@ -152,14 +148,14 @@ end
 local function loadDisplay(assetId, name, x, yawDegrees, sourceUrl)
 	local loaded, loader = fetchAsset(assetId)
 	if not loaded then
-		warn(string.format("[BBYA] Ddiaz car load failed asset=%s error=%s", tostring(assetId), tostring(loader)))
+		warn(string.format("[BBYA] car load failed asset=%s error=%s", tostring(assetId), tostring(loader)))
 		return nil
 	end
 
 	stripForDisplay(loaded)
 	if countParts(loaded) < 1 then
 		loaded:Destroy()
-		warn(string.format("[BBYA] Ddiaz car asset=%s contains no BaseParts", tostring(assetId)))
+		warn(string.format("[BBYA] car asset=%s contains no BaseParts", tostring(assetId)))
 		return nil
 	end
 
@@ -175,14 +171,14 @@ local function loadDisplay(assetId, name, x, yawDegrees, sourceUrl)
 	local placed, err = pcall(normalizeAndPlace, loaded, x, yawDegrees)
 	if not placed then
 		loaded:Destroy()
-		warn(string.format("[BBYA] Ddiaz car placement failed asset=%s error=%s", tostring(assetId), tostring(err)))
+		warn(string.format("[BBYA] car placement failed asset=%s error=%s", tostring(assetId), tostring(err)))
 		return nil
 	end
 
 	local valid, geometry = visibleGeometryLooksLikeVehicle(loaded)
 	if not valid then
 		loaded:Destroy()
-		warn(string.format("[BBYA] Ddiaz car visual validation failed asset=%s detail=%s", tostring(assetId), tostring(geometry)))
+		warn(string.format("[BBYA] car visual validation failed asset=%s detail=%s", tostring(assetId), tostring(geometry)))
 		return nil
 	end
 	loaded:SetAttribute("VisualValidation", geometry)
@@ -192,37 +188,33 @@ local function loadDisplay(assetId, name, x, yawDegrees, sourceUrl)
 end
 
 local pending = Instance.new("Model")
-pending.Name = "DdiazPremiumValetV8"
-pending:SetAttribute("Pass", "DDIAZ_PREMIUM_VALET_V8")
-pending:SetAttribute("EntranceCarAuthority", "DDIAZ_PREMIUM_VALET_V8")
+pending.Name = "BBYACarPairV9"
+pending:SetAttribute("Pass", "BBYA_CAR_PAIR_V9")
+pending:SetAttribute("EntranceCarAuthority", "BBYA_CAR_PAIR_V9")
 pending:SetAttribute("TargetVehicleCount", 2)
 pending:SetAttribute("CenterAccessKeptOpen", true)
 pending:SetAttribute("DisplayOnly", true)
 pending:SetAttribute("AttributionRequired", true)
 pending:SetAttribute("FallbackRemovalRequiresValidatedPair", true)
 
-local huracan = loadDisplay(HURACAN_ASSET_ID, "Ddiaz_Huracan_EVO", -15, 8, "https://skfb.ly/pFsG9")
-local rx8 = loadDisplay(RX8_ASSET_ID, "Ddiaz_VeilSide_RX8", 15, 172, "https://skfb.ly/pKzpM")
+local car01 = loadDisplay(CAR_01_ASSET_ID, "BBYA Car 01", -15, 8, "https://skfb.ly/pFsG9")
+local car02 = loadDisplay(CAR_02_ASSET_ID, "BBYA Car 02", 15, 172, "https://skfb.ly/pKzpM")
 
-if not huracan or not rx8 then
-	if huracan then huracan:Destroy() end
-	if rx8 then rx8:Destroy() end
+if not car01 or not car02 then
+	if car01 then car01:Destroy() end
+	if car02 then car02:Destroy() end
 	pending:Destroy()
-	-- HARD FAILSAFE: do not remove CloudCarSlot_Red / CloudCarSlot_Blue.
-	-- The entrance must never become visually empty just because a remote asset fails.
 	scene:SetAttribute("EntranceCarsQuarantined", true)
 	scene:SetAttribute("EntranceCarAuthority", "FALLBACK_STREET_CARS_FAILSAFE_V2")
 	scene:SetAttribute("FallbackCarsRetained", true)
-	warn("[BBYA] Premium valet unavailable; retaining guaranteed procedural street cars")
+	warn("[BBYA] BBYA Car pair unavailable; retaining guaranteed procedural street cars")
 	return
 end
 
-huracan.Parent = pending
-rx8.Parent = pending
+car01.Parent = pending
+car02.Parent = pending
 pending.Parent = scene
 
--- Transactional swap: remove previous premium authority only after BOTH new cars have
--- passed load + placement + visible-geometry validation and are parented into the scene.
 for _, name in ipairs({
 	"PremiumCarPairV1",
 	"PremiumCarPairV2",
@@ -232,6 +224,7 @@ for _, name in ipairs({
 	"PremiumValetGalleryV6",
 	"PremiumArrivalPolishV6",
 	"DdiazPremiumValetV7",
+	"DdiazPremiumValetV8",
 }) do
 	local old = scene:FindFirstChild(name)
 	if old then old:Destroy() end
@@ -265,16 +258,19 @@ local function floorLight(name, x)
 	light.Parent = base
 end
 
-floorLight("HuracanDisplayLight", -15)
-floorLight("RX8DisplayLight", 15)
+floorLight("BBYACar01DisplayLight", -15)
+floorLight("BBYACar02DisplayLight", 15)
 
 scene:SetAttribute("FallbackCarsRemoved", true)
 scene:SetAttribute("FallbackCarsRetained", false)
 scene:SetAttribute("EntranceCarsQuarantined", false)
-scene:SetAttribute("EntranceCarAuthority", "DDIAZ_PREMIUM_VALET_V8")
+scene:SetAttribute("EntranceCarAuthority", "BBYA_CAR_PAIR_V9")
 scene:SetAttribute("EntranceCarSource", "DDIAZ_DESIGN_CREATOR_PERMISSION")
-scene:SetAttribute("EntranceCarHuracanAssetId", HURACAN_ASSET_ID)
-scene:SetAttribute("EntranceCarRX8AssetId", RX8_ASSET_ID)
+scene:SetAttribute("EntranceCar01AssetId", CAR_01_ASSET_ID)
+scene:SetAttribute("EntranceCar02AssetId", CAR_02_ASSET_ID)
+-- Legacy compatibility attributes retained for any older diagnostics.
+scene:SetAttribute("EntranceCarHuracanAssetId", CAR_01_ASSET_ID)
+scene:SetAttribute("EntranceCarRX8AssetId", CAR_02_ASSET_ID)
 scene:SetAttribute("EntranceCarCredit", "Ddiaz Design | CC BY-NC-SA 4.0 | creator permission")
 
-print("[BBYA] Ddiaz Premium Valet v8 online: validated pair active; fallback cars retired")
+print("[BBYA] BBYA Car Pair v9 online: BBYA Car 01 + BBYA Car 02 active")
