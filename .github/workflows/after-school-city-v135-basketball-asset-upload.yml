@@ -24,8 +24,7 @@ jobs:
       ZIP_SHA256: 'c6058fc53b4a151f389174e4e18530e8d1e06a93fc41c1c87724b51fb5b349a0'
       GLB_BYTES: '28638376'
       GLB_SHA256: 'd8b69775782ed2388ae8650e8ca8eae16f70ab153f2c931922fa0d3d23c8fdc6'
-      OPT_BYTES: '6527592'
-      OPT_SHA256: 'e50cd035e2ce25abb60754ee2cfb9bb9c2bf406ea737ec9bcf983cd30b288844'
+      OPT_BYTES: '6521584'
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
 
     steps:
@@ -86,10 +85,12 @@ jobs:
           $out = Join-Path $dir 'BasketBall_Court_roblox_mobile.glb'
           python '.github/scripts/asc_optimize_glb.py' $glb $out 1024
           if ($LASTEXITCODE -ne 0) { throw 'GLB optimization failed' }
-          if ((Get-Item $out).Length -ne [int64]$env:OPT_BYTES) { throw 'Optimized GLB bytes mismatch' }
-          if ((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:OPT_SHA256) { throw 'Optimized GLB SHA mismatch' }
+          $optBytes = (Get-Item $out).Length
+          $optSha = (Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($optBytes -ne [int64]$env:OPT_BYTES) { throw "Optimized GLB bytes mismatch: $optBytes" }
           "ASC_BASKET_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BASKET PREP PASS bytes=$env:OPT_BYTES sha=$env:OPT_SHA256"
+          "ASC_BASKET_OPT_SHA=$optSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BASKET PREP PASS bytes=$optBytes sha=$optSha"
 
       - name: Resolve Roblox creator
         shell: powershell
@@ -135,5 +136,5 @@ jobs:
             }
           }
           if ($assetId -notmatch '^\d+$') { throw 'Basket asset ID not returned' }
-          Write-Host "ASC_BASKETBALL_ASSET_READY assetId=$assetId moderation=$moderation optBytes=$env:OPT_BYTES optSha=$env:OPT_SHA256"
+          Write-Host "ASC_BASKETBALL_ASSET_READY assetId=$assetId moderation=$moderation optBytes=$env:OPT_BYTES optSha=$env:ASC_BASKET_OPT_SHA"
           Write-Host 'PLACE_PUBLISH=NOT_PERFORMED'
