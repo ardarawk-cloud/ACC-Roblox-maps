@@ -35,7 +35,7 @@ env:
 jobs:
   resume-full-fleet:
     runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 40
+    timeout-minutes: 360
     env:
       ASSET_KEY: ${{ secrets.AM_STUDIO }}
       MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
@@ -53,7 +53,7 @@ jobs:
             CAR07=$env:CAR07_OP;CAR08=$env:CAR08_OP;CAR09=$env:CAR09_OP;CAR10=$env:CAR10_OP;CAR11=$env:CAR11_OP
           }
           $ids=@{};$failed=@{}
-          for($round=0;$round -lt 180;$round++){
+          for($round=0;$round -lt 340;$round++){
             foreach($k in @($ops.Keys)){
               if($ids.ContainsKey($k) -or $failed.ContainsKey($k)){continue}
               $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$($ops[$k])"
@@ -65,7 +65,7 @@ jobs:
               }
             }
             if(($ids.Count+$failed.Count)-eq 11){break}
-            Start-Sleep -Seconds 10
+            Start-Sleep -Seconds 60
           }
           if($failed.Count -gt 0){throw "Roblox moderation failed for: $($failed.Keys -join ',')"}
           if($ids.Count -ne 11){throw "Roblox moderation still pending: ready=$($ids.Count)/11"}
