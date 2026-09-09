@@ -1,11 +1,11 @@
--- AFTER SCHOOL CITY — V1.3.5 Basketball External Asset
+﻿-- AFTER SCHOOL CITY â€” V1.3.5 Basketball External Asset
 -- Visual replacement layer only. Native SportsField geometry remains as the gameplay/collision authority.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
 local VERSION = "1.3.5-basketball-external-1"
-local BASKETBALL_COURT_ASSET_ID = 0 -- ASC_WORKFLOW_BASKETBALL_ASSET_ID
+local BASKETBALL_COURT_ASSET_ID = 113057298365947 -- ASC_WORKFLOW_BASKETBALL_ASSET_ID
 
 local function waitForAttribute(name, timeoutSeconds)
     local deadline = os.clock() + (timeoutSeconds or 60)
@@ -134,7 +134,7 @@ if initialSize.X <= 0.01 or initialSize.Z <= 0.01 then
     return
 end
 
--- Source court is longer on local Z. Rotate 90° so it follows the existing ASC court's long X axis.
+-- Source court is longer on local Z. Rotate 90Â° so it follows the existing ASC court's long X axis.
 local fitScale = math.min(
     (court.Size.X * 0.94) / initialSize.Z,
     (court.Size.Z * 0.94) / initialSize.X
@@ -198,3 +198,4 @@ print(string.format(
     finalBoxCFrame.Position.Y,
     finalBoxCFrame.Position.Z
 ))
+
