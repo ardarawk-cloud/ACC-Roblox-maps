@@ -1,0 +1,130 @@
+name: HANGAR Full Owner Fleet v4 RESUME LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-full-owner-fleet-v4-resume-live.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-full-owner-fleet-v4-resume-live
+  cancel-in-progress: true
+
+env:
+  UNIVERSE_ID: '10745364913'
+  PLACE_ID: '76001567401911'
+  ENV_ASSET_ID: '76797254008026'
+  JET_ASSET_ID: '135410789803386'
+  PATROL_MCLAREN_ASSET_ID: '128438812070025'
+  PATROL_PORSCHE_ASSET_ID: '108398505977253'
+  CAR01_OP: '3f7c7739-6177-4034-aabe-4f3c0ea1f2b0'
+  CAR02_OP: 'a40cef64-77f8-4c88-b2cc-5f98384783d2'
+  CAR03_OP: '8484e194-9371-4e0b-a272-7c280f33e12c'
+  CAR04_OP: 'a9597e70-6561-4838-afe6-d0a74ed14fb6'
+  CAR05_OP: '7f30b255-4424-47c6-985a-f7c24a8935aa'
+  CAR06_OP: '33026510-f155-41c2-8204-f8fead613845'
+  CAR07_OP: '09f60a20-e9b9-452e-8a7e-8c62af35249d'
+  CAR08_OP: 'f7af5bcc-3cfe-4a9f-99f3-fd15003c22a1'
+  CAR09_OP: '2bad9866-b306-410e-9cd7-5cc933a32611'
+  CAR10_OP: 'bcfde21c-26b0-4b20-9ed0-682f9912dd3c'
+  CAR11_OP: '985fb0dc-3e0a-4dba-9012-20f9fb4294ca'
+
+jobs:
+  resume-full-fleet:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 40
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect existing Roblox asset IDs in parallel rounds
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ASSET_KEY)){throw 'AM_STUDIO key missing'}
+          $ops=[ordered]@{
+            CAR01=$env:CAR01_OP;CAR02=$env:CAR02_OP;CAR03=$env:CAR03_OP;CAR04=$env:CAR04_OP;CAR05=$env:CAR05_OP;CAR06=$env:CAR06_OP;
+            CAR07=$env:CAR07_OP;CAR08=$env:CAR08_OP;CAR09=$env:CAR09_OP;CAR10=$env:CAR10_OP;CAR11=$env:CAR11_OP
+          }
+          $ids=@{};$failed=@{}
+          for($round=0;$round -lt 180;$round++){
+            foreach($k in @($ops.Keys)){
+              if($ids.ContainsKey($k) -or $failed.ContainsKey($k)){continue}
+              $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$($ops[$k])"
+              if($LASTEXITCODE -ne 0){continue}
+              try{$o=$raw|ConvertFrom-Json}catch{continue}
+              if($o -and $o.done){
+                if($o.error){$failed[$k]=($o.error|ConvertTo-Json -Compress -Depth 6);Write-Warning "$k MODERATION_FAILED"}
+                else{$id=[string]$o.response.assetId;if($id -match '^\d+$'){$ids[$k]=$id;Write-Host "$k READY asset=$id"}}
+              }
+            }
+            if(($ids.Count+$failed.Count)-eq 11){break}
+            Start-Sleep -Seconds 10
+          }
+          if($failed.Count -gt 0){throw "Roblox moderation failed for: $($failed.Keys -join ',')"}
+          if($ids.Count -ne 11){throw "Roblox moderation still pending: ready=$($ids.Count)/11"}
+          foreach($k in $ops.Keys){"$($k)_ASSET=$($ids[$k])"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append}
+          Write-Host 'FULL_FLEET_ALL_11_ASSETS_READY'
+
+      - name: Grant all owner cars to HANGAR universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $ids=@([int64]$env:PATROL_MCLAREN_ASSET_ID,[int64]$env:PATROL_PORSCHE_ASSET_ID)
+          foreach($k in 'CAR01','CAR02','CAR03','CAR04','CAR05','CAR06','CAR07','CAR08','CAR09','CAR10','CAR11'){$ids+=[int64][Environment]::GetEnvironmentVariable($k+'_ASSET')}
+          $body=@{subjectType='Universe';subjectId=$env:UNIVERSE_ID;action='Use';requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})}|ConvertTo-Json -Depth 8 -Compress
+          Invoke-RestMethod -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:ASSET_KEY} -ContentType 'application/json' -Body $body|Out-Null
+          Write-Host "FULL_FLEET_USE_GRANTED count=$($ids.Count)"
+
+      - name: Build exact owner full fleet
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
+          $t=[IO.File]::ReadAllText($src)
+          foreach($m in @('OWNER VEHICLE LAYOUT v4.0','FULL_FLEET_2_PATROL_FRONT_11_JET_FLOOR','NOSE_TO_OUTDOOR_PLUS_Z')){if($t -notmatch [regex]::Escape($m)){throw "owner marker missing $m"}}
+          $markers=@{
+            CAR01='HANGAR_CAR01_NISSAN_R34_BRIAN';CAR02='HANGAR_CAR02_DODGE_CHARGER_1970';CAR03='HANGAR_CAR03_TOYOTA_SUPRA_MK4';CAR04='HANGAR_CAR04_LAMBORGHINI_MURCIELAGO';CAR05='HANGAR_CAR05_MITSUBISHI_ECLIPSE_1995';CAR06='HANGAR_CAR06_HONDA_S2000';CAR07='HANGAR_CAR07_ECLIPSE_SPYDER';CAR08='HANGAR_CAR08_SUBARU_BRZ';CAR09='HANGAR_CAR09_NISSAN_SKYLINE_CWEST';CAR10='HANGAR_CAR10_CHEVY_CAMARO';CAR11='HANGAR_CAR11_DELOREAN'
+          }
+          foreach($k in $markers.Keys){$id=[Environment]::GetEnvironmentVariable($k+'_ASSET');$pattern="local $($k)_ASSET_ID = \d+ -- $($markers[$k])";if($t -notmatch $pattern){throw "runtime marker missing $($markers[$k])"};$t=[regex]::Replace($t,$pattern,"local $($k)_ASSET_ID = $id -- $($markers[$k])")}
+          [IO.File]::WriteAllText($src,$t,(New-Object Text.UTF8Encoding($false)))
+          $v='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua';$x=[IO.File]::ReadAllText($v);$x=[regex]::Replace($x,'local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID");[IO.File]::WriteAllText($v,$x,(New-Object Text.UTF8Encoding($false)))
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-hangar-resume';$z=Join-Path $env:RUNNER_TEMP 'rojo-hangar-resume.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName}
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-full-owner-fleet-v4-resume.rbxlx'; & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place);foreach($m in @('FULL_FLEET_2_PATROL_FRONT_11_JET_FLOOR','NOSE_TO_OUTDOOR_PLUS_Z',$env:JET_ASSET_ID,$env:PATROL_MCLAREN_ASSET_ID,$env:PATROL_PORSCHE_ASSET_ID,$env:CAR01_ASSET,$env:CAR11_ASSET,$env:ENV_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published";$version=$null;$publisher=''
+          foreach($entry in @(@('AM_STUDIO',$env:ASSET_KEY),@('MASTER_V2',$env:MASTER_KEY))){$name=$entry[0];$key=$entry[1];if([string]::IsNullOrWhiteSpace($key)){continue};try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);$publisher=$name;if($version){break}}catch{Write-Warning "$name publish failed: $($_.Exception.Message)"}}
+          if(-not $version){throw 'MAIN HANGAR publish failed'}
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PUBLISHER=$publisher"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:UNIVERSE_ID`:restartServers";$restarted=$false
+          foreach($key in @($env:ASSET_KEY,$env:MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{Invoke-RestMethod -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{}}
+          "RESTARTED=$restarted"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_FULL_FLEET_LIVE version=$version publisher=$publisher restarted=$restarted"
+
+      - name: Persist exact asset IDs and LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-FULL-FLEET-RESUME'}
+          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua';$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$remote=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$old.content -replace '\s','')))
+          $markers=@{CAR01='HANGAR_CAR01_NISSAN_R34_BRIAN';CAR02='HANGAR_CAR02_DODGE_CHARGER_1970';CAR03='HANGAR_CAR03_TOYOTA_SUPRA_MK4';CAR04='HANGAR_CAR04_LAMBORGHINI_MURCIELAGO';CAR05='HANGAR_CAR05_MITSUBISHI_ECLIPSE_1995';CAR06='HANGAR_CAR06_HONDA_S2000';CAR07='HANGAR_CAR07_ECLIPSE_SPYDER';CAR08='HANGAR_CAR08_SUBARU_BRZ';CAR09='HANGAR_CAR09_NISSAN_SKYLINE_CWEST';CAR10='HANGAR_CAR10_CHEVY_CAMARO';CAR11='HANGAR_CAR11_DELOREAN'}
+          foreach($k in $markers.Keys){$id=[Environment]::GetEnvironmentVariable($k+'_ASSET');$remote=[regex]::Replace($remote,"local $($k)_ASSET_ID = \d+ -- $($markers[$k])","local $($k)_ASSET_ID = $id -- $($markers[$k])")}
+          $body=@{message='HANGAR: lock full owner fleet asset IDs [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($remote));sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;$put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body
+          $receipt=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='FULL_OWNER_FLEET_V4';universeId=$env:UNIVERSE_ID;placeId=$env:PLACE_ID;sourceCommit=[string]$put.commit.sha;robloxVersion=[int]$env:LIVE_VERSION;publisherKey=$env:PUBLISHER;jetAssetId=[int64]$env:JET_ASSET_ID;patrolMcLarenAssetId=[int64]$env:PATROL_MCLAREN_ASSET_ID;patrolPorscheAssetId=[int64]$env:PATROL_PORSCHE_ASSET_ID;newOwnerCars=11;totalCars=13;dodgeFF8='SKIPPED_72MB_API_LIMIT';jetOrientation='NOSE_TO_OUTDOOR_PLUS_Z';jetTargetStuds=118;layout='FULL_FLEET_2_PATROL_FRONT_11_JET_FLOOR';placeSha256=$env:PLACE_SHA;placeBytes=[int64]$env:PLACE_BYTES;serversRestarted=([bool]::Parse($env:RESTARTED));visualQC='PENDING_OWNER_SCREENSHOT'}
+          $rpath='deploy-status/hangar-live.json';$rurl="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$rpath";$rold=$null;try{$rold=Invoke-RestMethod -Headers $h -Uri ($rurl+'?ref='+$env:GITHUB_REF_NAME)}catch{};$rb=@{message='HANGAR: save full owner fleet live receipt [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($receipt|ConvertTo-Json -Depth 8)));branch=$env:GITHUB_REF_NAME};if($rold){$rb.sha=[string]$rold.sha};Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $rurl -Body ($rb|ConvertTo-Json -Depth 5)|Out-Null
+          Write-Host "HANGAR_FULL_FLEET_RECEIPT_SAVED version=$env:LIVE_VERSION"
