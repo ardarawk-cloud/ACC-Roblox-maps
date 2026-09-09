@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v2
+-- BBYA SOCIAL HUB — CLUB PURITY + MALL LIFESTYLE RELOCATION v3
 -- Keeps Floor 1 as a pure nightclub, grounds/declutters the DJ zone,
 -- and relocates Look Lab + Editorial Photo Studio into GLOW LAB on Mall Level 2.
--- V2: Look Lab is prompt-only (no sticky auto-seat) and studio lights stay in-bounds.
+-- V3: GLOW LAB waits for final 20-stud Mall spacing and is authored directly at final L2.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -15,7 +15,7 @@ local front=root:WaitForChild("Floor1FrontPremium",45)
 local luxury=root:WaitForChild("Floor1LuxuryFinish",45)
 local ultra=root:WaitForChild("Floor1UltraPremium",45)
 local features=root:WaitForChild("Floor1Features",45)
-local oldLookRuntime=root:WaitForChild("LookLabAvatarEditorV1",45)
+local oldLookRuntime=root:FindFirstChild("LookLabAvatarEditorV1")
 local mall=root:WaitForChild("BBYAMall",60)
 if not club or not front or not luxury or not ultra or not features or not mall then
  warn("[BBYA Club Purity] prerequisite build unavailable")
@@ -23,14 +23,22 @@ if not club or not front or not luxury or not ultra or not features or not mall 
 end
 local mallLive=mall:WaitForChild("MallLiveUpgradeV2",60)
 if not mallLive then warn("[BBYA Club Purity] MallLiveUpgradeV2 unavailable");return end
--- Let the other mall dressing passes finish before the targeted tenant replacement.
-task.wait(2)
+
+-- Structural Mall authority must finish before GLOW LAB is replaced.
+-- This removes the old race where v117 could rebuild Tenant_glow at legacy Y=15
+-- after the vertical reflow had already completed.
+local verticalDeadline=os.clock()+150
+while mall:GetAttribute("FloorSpacingStuds")~=20 and os.clock()<verticalDeadline do task.wait(.20) end
+if mall:GetAttribute("FloorSpacingStuds")~=20 then
+ warn("[BBYA Club Purity] final Mall vertical spacing unavailable; GLOW LAB not rebuilt")
+ return
+end
 
 local old=root:FindFirstChild("ClubPurityMallStudiosV1")
 if old then old:Destroy() end
 local out=Instance.new("Model")
 out.Name="ClubPurityMallStudiosV1"
-out:SetAttribute("Pass","CLUB_PURITY_MALL_STUDIOS_V2")
+out:SetAttribute("Pass","CLUB_PURITY_MALL_STUDIOS_V3_FINAL_L2")
 out:SetAttribute("ClubPureNightclub",true)
 out:SetAttribute("DJGrounded",true)
 out:SetAttribute("DJLooseFurnitureRemoved",true)
@@ -39,6 +47,7 @@ out:SetAttribute("PhotoStudioMovedToMall",true)
 out:SetAttribute("MallLevel",2)
 out:SetAttribute("LookLabEntryMode","PROMPT_ONLY")
 out:SetAttribute("StudioSoftboxesInBounds",true)
+out:SetAttribute("GlowLabFinalVerticalAuthority",true)
 out.Parent=root
 
 local C={
@@ -181,7 +190,9 @@ lifestyle:SetAttribute("TenantName","GLOW LAB")
 lifestyle:SetAttribute("Department","LOOK_LAB_AND_PHOTO_STUDIO")
 lifestyle:SetAttribute("Floor",2)
 lifestyle:SetAttribute("Functional",true)
-local Y=15
+lifestyle:SetAttribute("FinalVerticalAuthority","CLUB_PURITY_MALL_STUDIOS_V3")
+lifestyle:SetAttribute("FinalFloorY",21.70)
+local Y=21
 part("Floor",Vector3.new(46,.35,26),CFrame.new(70,Y+.70,365),Color3.fromRGB(204,199,197),Enum.Material.Marble,0,lifestyle,true)
 part("BackWall",Vector3.new(.65,11.5,25),CFrame.new(92.55,Y+6.3,365),C.charcoal,Enum.Material.Slate,0,lifestyle,true)
 part("SideWallA",Vector3.new(45,11.5,.55),CFrame.new(70,Y+6.3,352.35),C.ink,Enum.Material.Slate,0,lifestyle,true)
@@ -357,4 +368,4 @@ end)
 
 Players.PlayerRemoving:Connect(function(plr)originalDescriptions[plr]=nil;photoCooldown[plr]=nil end)
 
-print("[BBYA] Club Purity + Mall Studios v2 online: prompt-only Look Lab + in-bounds Photo Studio softboxes")
+print("[BBYA] Club Purity + Mall Studios v3 online: deterministic final-L2 GLOW LAB + prompt-only Look Lab + in-bounds Photo Studio")
