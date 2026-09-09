@@ -1,0 +1,146 @@
+name: HANGAR Generic Fleet Sequential LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-generic-fleet-sequential-live.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-generic-fleet-sequential-live
+  cancel-in-progress: true
+
+env:
+  UNIVERSE_ID: '10745364913'
+  PLACE_ID: '76001567401911'
+  ENV_ASSET_ID: '76797254008026'
+  JET_ASSET_ID: '135410789803386'
+  PATROL_MCLAREN_ASSET_ID: '128438812070025'
+  PATROL_PORSCHE_ASSET_ID: '108398505977253'
+  CREATOR_ID: '4141352496'
+  CAR01_ASSET: '99964942308635'
+
+jobs:
+  sequential-generic-fleet:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 180
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload CAR 02 to CAR 11 one by one with generic names
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ASSET_KEY)){throw 'AM_STUDIO key missing'}
+          $cars=@(
+            @{K='CAR02';N='CAR 02';D='1K7NNquy3EapuqeyYrKZ2Ni09F7YleIpM'},
+            @{K='CAR03';N='CAR 03';D='1DJk0UyAXlYM-uxh2r62zUSXmMUcR0pfU'},
+            @{K='CAR04';N='CAR 04';D='1jNz6HFW7zOU0qNYZ47N-LrrLXmUhV-kz'},
+            @{K='CAR05';N='CAR 05';D='1I-o5DElsbimj-bjP5kgdidrZu-zOreoz'},
+            @{K='CAR06';N='CAR 06';D='1uuiXGUbYhqMrAAll28CVJYDcKDg36kFx'},
+            @{K='CAR07';N='CAR 07';D='1kQBu4JSTye_qhPzB5GP1CXihFBq9k-NV'},
+            @{K='CAR08';N='CAR 08';D='1kxyEPKjCw7GwHrmGBLV01R0B14CPT3SZ'},
+            @{K='CAR09';N='CAR 09';D='1u5ZKaHSMxaBLMoY1xLnMDxZDoIxS8_T9'},
+            @{K='CAR10';N='CAR 10';D='1tFlfZz1L386UzkwIsL6zAklKnWtras1i'},
+            @{K='CAR11';N='CAR 11';D='1cRgNRI2RBUINnyJbkUfMeUv9OHW4KNiT'}
+          )
+          $ids=@{CAR01=[string]$env:CAR01_ASSET}
+          foreach($c in $cars){
+            Write-Host "=== $($c.K) START ==="
+            $file=Join-Path $env:RUNNER_TEMP ($c.K+'.glb')
+            Invoke-WebRequest -UseBasicParsing -Uri ("https://drive.usercontent.google.com/download?id="+$c.D+"&export=download&confirm=t") -OutFile $file -MaximumRedirection 12
+            $b=[IO.File]::ReadAllBytes($file)
+            if($b.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($b,0,4) -ne 'glTF'){throw "$($c.K) invalid GLB"}
+            Write-Host "$($c.K)_FILE_OK bytes=$($b.Length)"
+            $req=@{assetType='Model';displayName=$c.N;description='HANGAR vehicle model.';creationContext=@{creator=@{userId=[int64]$env:CREATOR_ID}}}|ConvertTo-Json -Depth 8 -Compress
+            $rf=Join-Path $env:RUNNER_TEMP ($c.K+'-request.json')
+            [IO.File]::WriteAllText($rf,$req,(New-Object Text.UTF8Encoding($false)))
+            $raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ASSET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$file;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+            if($LASTEXITCODE -ne 0){throw "$($c.K) upload request failed"}
+            $o=$raw|ConvertFrom-Json
+            if(-not $o.path){throw "$($c.K) upload rejected: $raw"}
+            $op=(([string]$o.path)-replace '^operations/','')
+            Write-Host "$($c.K)_UPLOAD_ACCEPTED op=$op"
+            $ready=$null
+            for($i=0;$i -lt 120;$i++){
+              $sraw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$op"
+              if($LASTEXITCODE -eq 0){
+                try{$so=$sraw|ConvertFrom-Json}catch{$so=$null}
+                if($so -and $so.done){
+                  if($so.error){throw "$($c.K)_MODERATION_FAILED: $($so.error|ConvertTo-Json -Compress -Depth 6)"}
+                  $id=[string]$so.response.assetId
+                  if($id -match '^\d+$'){$ready=$id;break}
+                }
+              }
+              Start-Sleep -Seconds 10
+            }
+            if(-not $ready){throw "$($c.K)_STILL_PENDING_AFTER_20_MIN"}
+            $ids[$c.K]=$ready
+            Write-Host "$($c.K)_READY asset=$ready"
+            Remove-Item $file,$rf -Force -ErrorAction SilentlyContinue
+          }
+          foreach($k in 'CAR01','CAR02','CAR03','CAR04','CAR05','CAR06','CAR07','CAR08','CAR09','CAR10','CAR11'){"$($k)_ASSET=$($ids[$k])"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append}
+          Write-Host 'GENERIC_FLEET_ALL_11_READY'
+
+      - name: Grant all 13 cars to HANGAR universe
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $ids=@([int64]$env:PATROL_MCLAREN_ASSET_ID,[int64]$env:PATROL_PORSCHE_ASSET_ID)
+          foreach($k in 'CAR01','CAR02','CAR03','CAR04','CAR05','CAR06','CAR07','CAR08','CAR09','CAR10','CAR11'){$ids+=[int64][Environment]::GetEnvironmentVariable($k+'_ASSET')}
+          $body=@{subjectType='Universe';subjectId=$env:UNIVERSE_ID;action='Use';requests=@($ids|ForEach-Object{@{assetId=$_;grantToDependencies=$true}})}|ConvertTo-Json -Depth 8 -Compress
+          Invoke-RestMethod -Method Patch -Uri 'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions' -Headers @{'x-api-key'=$env:ASSET_KEY} -ContentType 'application/json' -Body $body|Out-Null
+          Write-Host "GENERIC_FLEET_USE_GRANTED count=$($ids.Count)"
+
+      - name: Build exact owner full fleet
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
+          $t=[IO.File]::ReadAllText($src)
+          foreach($m in @('OWNER VEHICLE LAYOUT v4.0','FULL_FLEET_2_PATROL_FRONT_11_JET_FLOOR','NOSE_TO_OUTDOOR_PLUS_Z')){if($t -notmatch [regex]::Escape($m)){throw "owner marker missing $m"}}
+          $markers=@{
+            CAR01='HANGAR_CAR01_NISSAN_R34_BRIAN';CAR02='HANGAR_CAR02_DODGE_CHARGER_1970';CAR03='HANGAR_CAR03_TOYOTA_SUPRA_MK4';CAR04='HANGAR_CAR04_LAMBORGHINI_MURCIELAGO';CAR05='HANGAR_CAR05_MITSUBISHI_ECLIPSE_1995';CAR06='HANGAR_CAR06_HONDA_S2000';CAR07='HANGAR_CAR07_ECLIPSE_SPYDER';CAR08='HANGAR_CAR08_SUBARU_BRZ';CAR09='HANGAR_CAR09_NISSAN_SKYLINE_CWEST';CAR10='HANGAR_CAR10_CHEVY_CAMARO';CAR11='HANGAR_CAR11_DELOREAN'
+          }
+          foreach($k in $markers.Keys){$id=[Environment]::GetEnvironmentVariable($k+'_ASSET');$pattern="local $($k)_ASSET_ID = \d+ -- $($markers[$k])";if($t -notmatch $pattern){throw "runtime marker missing $($markers[$k])"};$t=[regex]::Replace($t,$pattern,"local $($k)_ASSET_ID = $id -- $($markers[$k])")}
+          [IO.File]::WriteAllText($src,$t,(New-Object Text.UTF8Encoding($false)))
+          $v='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua';$x=[IO.File]::ReadAllText($v);$x=[regex]::Replace($x,'local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID");[IO.File]::WriteAllText($v,$x,(New-Object Text.UTF8Encoding($false)))
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-hangar-generic';$z=Join-Path $env:RUNNER_TEMP 'rojo-hangar-generic.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName}
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-generic-fleet-live.rbxlx'; & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published";$version=$null;$publisher=''
+          foreach($entry in @(@('AM_STUDIO',$env:ASSET_KEY),@('MASTER_V2',$env:MASTER_KEY))){$name=$entry[0];$key=$entry[1];if([string]::IsNullOrWhiteSpace($key)){continue};try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);$publisher=$name;if($version){break}}catch{Write-Warning "$name publish failed: $($_.Exception.Message)"}}
+          if(-not $version){throw 'MAIN HANGAR publish failed'}
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PUBLISHER=$publisher"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:UNIVERSE_ID`:restartServers";$restarted=$false
+          foreach($key in @($env:ASSET_KEY,$env:MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{Invoke-RestMethod -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{}}
+          "RESTARTED=$restarted"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_GENERIC_FLEET_LIVE version=$version publisher=$publisher restarted=$restarted"
+
+      - name: Persist exact generic asset IDs and LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-GENERIC-FLEET'}
+          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua';$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$remote=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$old.content -replace '\s','')))
+          $markers=@{CAR01='HANGAR_CAR01_NISSAN_R34_BRIAN';CAR02='HANGAR_CAR02_DODGE_CHARGER_1970';CAR03='HANGAR_CAR03_TOYOTA_SUPRA_MK4';CAR04='HANGAR_CAR04_LAMBORGHINI_MURCIELAGO';CAR05='HANGAR_CAR05_MITSUBISHI_ECLIPSE_1995';CAR06='HANGAR_CAR06_HONDA_S2000';CAR07='HANGAR_CAR07_ECLIPSE_SPYDER';CAR08='HANGAR_CAR08_SUBARU_BRZ';CAR09='HANGAR_CAR09_NISSAN_SKYLINE_CWEST';CAR10='HANGAR_CAR10_CHEVY_CAMARO';CAR11='HANGAR_CAR11_DELOREAN'}
+          foreach($k in $markers.Keys){$id=[Environment]::GetEnvironmentVariable($k+'_ASSET');$remote=[regex]::Replace($remote,"local $($k)_ASSET_ID = \d+ -- $($markers[$k])","local $($k)_ASSET_ID = $id -- $($markers[$k])")}
+          $body=@{message='HANGAR: lock generic full fleet asset IDs [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($remote));sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;$put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body
+          $receipt=[ordered]@{status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='GENERIC_FULL_OWNER_FLEET_V4';universeId=$env:UNIVERSE_ID;placeId=$env:PLACE_ID;sourceCommit=[string]$put.commit.sha;robloxVersion=[int]$env:LIVE_VERSION;publisherKey=$env:PUBLISHER;jetAssetId=[int64]$env:JET_ASSET_ID;patrolMcLarenAssetId=[int64]$env:PATROL_MCLAREN_ASSET_ID;patrolPorscheAssetId=[int64]$env:PATROL_PORSCHE_ASSET_ID;newOwnerCars=11;totalCars=13;assetNaming='CAR_01_TO_CAR_11_GENERIC';dodgeFF8='SKIPPED_72MB_API_LIMIT';jetOrientation='NOSE_TO_OUTDOOR_PLUS_Z';jetTargetStuds=118;layout='FULL_FLEET_2_PATROL_FRONT_11_JET_FLOOR';placeSha256=$env:PLACE_SHA;placeBytes=[int64]$env:PLACE_BYTES;serversRestarted=([bool]::Parse($env:RESTARTED));visualQC='PENDING_OWNER_SCREENSHOT'}
+          $rpath='deploy-status/hangar-live.json';$rurl="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$rpath";$rold=$null;try{$rold=Invoke-RestMethod -Headers $h -Uri ($rurl+'?ref='+$env:GITHUB_REF_NAME)}catch{};$rb=@{message='HANGAR: save generic full fleet live receipt [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($receipt|ConvertTo-Json -Depth 8)));branch=$env:GITHUB_REF_NAME};if($rold){$rb.sha=[string]$rold.sha};Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $rurl -Body ($rb|ConvertTo-Json -Depth 5)|Out-Null
+          Write-Host "HANGAR_GENERIC_FLEET_RECEIPT_SAVED version=$env:LIVE_VERSION"
