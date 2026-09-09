@@ -1,0 +1,71 @@
+name: BBYA Car Static Bake Probe
+
+on:
+  push:
+    branches: [fix/bbya-car-static-bake-v1]
+    paths:
+      - '.github/workflows/bbya-car-static-bake-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      CAR01_ASSET_ID: '97052038046118'
+      CAR02_ASSET_ID: '91172120786409'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact Roblox model assets with Open Cloud Asset Delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ROBLOX_API_KEY"
+          mkdir -p /tmp/bbya-car-bake
+          for pair in "01:$CAR01_ASSET_ID" "02:$CAR02_ASSET_ID"; do
+            slot="${pair%%:*}"
+            id="${pair##*:}"
+            out="/tmp/bbya-car-bake/BBYA-Car-${slot}.rbxm"
+            hdr="/tmp/bbya-car-bake/BBYA-Car-${slot}.headers"
+            curl --fail-with-body --silent --show-error --location \
+              --header "x-api-key: $ROBLOX_API_KEY" \
+              --dump-header "$hdr" \
+              "https://apis.roblox.com/asset-delivery-api/v1/assetId/$id" \
+              --output "$out"
+            test -s "$out"
+            echo "BBYA_CAR_${slot}_BYTES=$(stat -c%s "$out")"
+            echo "BBYA_CAR_${slot}_SHA256=$(sha256sum "$out" | awk '{print $1}')"
+            file "$out" || true
+            echo "FIRST32_${slot}=$(xxd -p -l 32 "$out" | tr -d '\n')"
+            grep -iE '^(content-type|content-length|content-disposition|location):' "$hdr" || true
+          done
+
+      - name: Verify delivered files are not JSON/error pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          for slot in ('01','02'):
+              p=Path(f'/tmp/bbya-car-bake/BBYA-Car-{slot}.rbxm')
+              b=p.read_bytes()
+              if len(b) < 1024:
+                  raise SystemExit(f'{p.name}: unexpectedly small ({len(b)})')
+              lead=b[:128].lstrip()
+              if lead.startswith(b'{') or lead.startswith(b'[') or lead.startswith(b'<!DOCTYPE') or lead.startswith(b'<html'):
+                  raise SystemExit(f'{p.name}: delivery returned text/error payload: {lead[:80]!r}')
+              print(f'{p.name}: binary payload accepted, bytes={len(b)}')
+          PY
+
+      - name: Upload immutable delivered model binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-car-static-bake-source-models
+          path: /tmp/bbya-car-bake/*.rbxm
+          if-no-files-found: error
+          retention-days: 7
