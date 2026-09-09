@@ -1,0 +1,97 @@
+name: After School City V1.3.5 Basketball Asset Prep
+
+on:
+  push:
+    branches:
+      - after-school-city/v135-basketball-external-asset
+    paths:
+      - '.github/workflows/after-school-city-v135-basketball-asset-prep.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prep:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      DRIVE_FILE_ID: '1Ltt5fmpnBCN9pmS27Au8pSzqsKxBix3T'
+      ZIP_BYTES: '62414902'
+      ZIP_SHA256: 'c6058fc53b4a151f389174e4e18530e8d1e06a93fc41c1c87724b51fb5b349a0'
+      SOURCE_GLB_BYTES: '28638376'
+      SOURCE_GLB_SHA256: 'd8b69775782ed2388ae8650e8ca8eae16f70ab153f2c931922fa0d3d23c8fdc6'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pinned tooling
+        shell: powershell
+        run: |
+          python -m pip install --disable-pip-version-check --no-input 'Pillow==12.3.0' 'gdown==5.2.0'
+          if($LASTEXITCODE -ne 0){ throw 'Dependency install failed' }
+
+      - name: Download exact Drive basketball source ZIP
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'asc-v135-basket-prep'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $zip=Join-Path $dir 'basket-ball-court-game-ready-asset.zip'
+          python -m gdown $env:DRIVE_FILE_ID -O $zip
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)){ throw 'Drive download failed' }
+          $bytes=(Get-Item $zip).Length
+          $hash=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:ZIP_BYTES){ throw "ZIP bytes mismatch: $bytes" }
+          if($hash -ne $env:ZIP_SHA256){ throw "ZIP SHA mismatch: $hash" }
+          Write-Host "ZIP SOURCE PASS bytes=$bytes sha256=$hash"
+          $extract=Join-Path $dir 'extracted'
+          Expand-Archive -Path $zip -DestinationPath $extract -Force
+          $source=Join-Path $extract 'source/BasketBall_Court.glb'
+          if(-not (Test-Path $source)){ throw 'BasketBall_Court.glb missing inside ZIP' }
+          $gbytes=(Get-Item $source).Length
+          $ghash=(Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($gbytes -ne [int64]$env:SOURCE_GLB_BYTES){ throw "GLB bytes mismatch: $gbytes" }
+          if($ghash -ne $env:SOURCE_GLB_SHA256){ throw "GLB SHA mismatch: $ghash" }
+          "ASC_SOURCE_GLB=$source" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "ASC_PREP_DIR=$dir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "GLB SOURCE PASS bytes=$gbytes sha256=$ghash"
+
+      - name: Optimize basketball textures for mobile
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:ASC_PREP_DIR 'basketball_court_roblox_mobile.glb'
+          python '.github/scripts/asc_optimize_glb.py' $env:ASC_SOURCE_GLB $out 1024
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){ throw 'Optimization failed' }
+          $bytes=(Get-Item $out).Length
+          $hash=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -lt 1000000 -or $bytes -ge [int64]$env:SOURCE_GLB_BYTES){ throw "Optimized GLB size outside safe bounds: $bytes" }
+          @(
+            'STATUS=ASSET_PREP_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=V135_BASKETBALL_EXTERNAL_ASSET',
+            "ZIP_BYTES=$env:ZIP_BYTES",
+            "ZIP_SHA256=$env:ZIP_SHA256",
+            "SOURCE_GLB_BYTES=$env:SOURCE_GLB_BYTES",
+            "SOURCE_GLB_SHA256=$env:SOURCE_GLB_SHA256",
+            "OPT_BYTES=$bytes",
+            "OPT_SHA256=$hash",
+            'TEXTURE_MAX_DIM=1024',
+            'LICENSE_STATUS=USER_AUTHORIZED_SOURCE_UNVERIFIED',
+            'PLACE_PUBLISH=NOT_PERFORMED'
+          ) | Set-Content (Join-Path $env:ASC_PREP_DIR 'asset-prep-receipt.txt') -Encoding utf8
+          "ASC_OPT_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "OPTIMIZATION PASS bytes=$bytes sha256=$hash"
+
+      - name: Upload exact optimized basketball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asc-v135-basketball-mobile-glb
+          path: |
+            ${{ env.ASC_OPT_GLB }}
+            ${{ env.ASC_PREP_DIR }}/asset-prep-receipt.txt
+          if-no-files-found: error
+          retention-days: 14
