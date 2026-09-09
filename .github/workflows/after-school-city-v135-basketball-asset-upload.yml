@@ -285,3 +285,7 @@ end
           if($LASTEXITCODE -ne 0){ throw 'Basketball integration push failed; Place remains unchanged' }
           $source=(git rev-parse HEAD).Trim()
           Write-Host "BASKETBALL INTEGRATION SOURCE PASS source=$source asset=$env:BASKETBALL_ASSET_ID placePublish=NO"
+
+      - name: Completion marker
+        shell: powershell
+        run: Write-Host 'ASC V1.3.5 BASKETBALL ASSET UPLOAD + SOURCE INTEGRATION COMPLETE; PLACE PUBLISH NOT PERFORMED'
