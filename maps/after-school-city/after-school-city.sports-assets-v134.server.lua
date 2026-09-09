@@ -1,13 +1,13 @@
-﻿-- AFTER SCHOOL CITY â€” V1.3.4 Sports Asset Integration
--- External asset layer only. Existing Skate Line, legacy skate geometry, basketball court,
+-- AFTER SCHOOL CITY — V1.3.5 Sports External Asset Integration
+-- External visual layer only. Existing Skate Line, legacy skate geometry, SportsField court,
 -- gameplay, economy, persistence, music, dedication, and monetization remain authoritative.
 
 local InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
 
-local VERSION = "1.3.4-sports-assets-1"
+local VERSION = "1.3.5-basketball-external-asset-1"
 local SKATEBOARD_PACK_ASSET_ID = 111060043204479 -- ASC_WORKFLOW_SKATEBOARD_ASSET_ID
-local BASKETBALL_COURT_ASSET_ID = 0 -- LICENSE_HOLD: do not activate until rights are verified.
+local BASKETBALL_COURT_ASSET_ID = 119323680316690 -- ASC_WORKFLOW_BASKETBALL_ASSET_ID
 
 local function waitForAttribute(name, timeoutSeconds)
     local deadline = os.clock() + (timeoutSeconds or 45)
@@ -17,7 +17,7 @@ local function waitForAttribute(name, timeoutSeconds)
         end
         task.wait(0.1)
     until os.clock() >= deadline
-    warn("[ASC V134 SportsAssets] completion attribute timeout: " .. name)
+    warn("[ASC V135 SportsAssets] completion attribute timeout: " .. name)
     return false
 end
 
@@ -27,11 +27,11 @@ end
 
 local root = Workspace:WaitForChild("AfterSchoolCity", 20)
 if not root then
-    warn("[ASC V134 SportsAssets] AfterSchoolCity root missing")
+    warn("[ASC V135 SportsAssets] AfterSchoolCity root missing")
     return
 end
 
-if root:FindFirstChild("V134_SportsAssets") then
+if root:FindFirstChild("V135_SportsAssets") then
     return
 end
 
@@ -43,11 +43,11 @@ local sports = districts and districts:FindFirstChild("SportsField")
 local basketballCourt = sports and sports:FindFirstChild("BasketballCourt")
 
 if not skate or not deck or not deck:IsA("BasePart") or not skateGround or not skateGround:IsA("BasePart") then
-    warn("[ASC V134 SportsAssets] protected SkatePark authority missing")
+    warn("[ASC V135 SportsAssets] protected SkatePark authority missing")
     return
 end
 if not sports or not basketballCourt or not basketballCourt:IsA("BasePart") then
-    warn("[ASC V134 SportsAssets] protected SportsField authority missing")
+    warn("[ASC V135 SportsAssets] protected SportsField authority missing")
     return
 end
 
@@ -64,17 +64,21 @@ local protected = {
 }
 
 local layer = Instance.new("Model")
-layer.Name = "V134_SportsAssets"
+layer.Name = "V135_SportsAssets"
 layer:SetAttribute("ASC_Layer", "SPORTS_EXTERNAL_ASSETS")
 layer:SetAttribute("ASC_Version", VERSION)
 layer:SetAttribute("ASC_SkateboardPackLicense", "CC-BY-4.0")
 layer:SetAttribute("ASC_SkateboardPackAuthor", "Arsen Ismailov")
-layer:SetAttribute("ASC_BasketballAssetStatus", "LICENSE_HOLD")
+layer:SetAttribute("ASC_BasketballAssetStatus", "ENABLED")
 layer.Parent = root
 
 local skateLayer = Instance.new("Model")
 skateLayer.Name = "SkateparkImportedProps"
 skateLayer.Parent = layer
+
+local basketLayer = Instance.new("Model")
+basketLayer.Name = "BasketballImportedCourt"
+basketLayer.Parent = layer
 
 local function normalize(value)
     return string.lower((value or ""):gsub("[^%w]", ""))
@@ -147,8 +151,8 @@ local function placeProp(source, name, localX, localZ, yawDegrees, targetLongest
     return prop
 end
 
-local importedCount = 0
-local pack, loadError = loadAsset(SKATEBOARD_PACK_ASSET_ID)
+local skateImportedCount = 0
+local pack, skateLoadError = loadAsset(SKATEBOARD_PACK_ASSET_ID)
 if pack then
     local placements = {
         {Key = "InclineRamp", Name = "ImportedInclineRamp", X = -25, Z = -43, Yaw = 0, Longest = 20},
@@ -160,30 +164,95 @@ if pack then
     for _, placement in ipairs(placements) do
         local source = findImportedPart(pack, placement.Key)
         if source then
-            local prop = placeProp(
-                source,
-                placement.Name,
-                placement.X,
-                placement.Z,
-                placement.Yaw,
-                placement.Longest
-            )
+            local prop = placeProp(source, placement.Name, placement.X, placement.Z, placement.Yaw, placement.Longest)
             if prop then
-                importedCount += 1
+                skateImportedCount += 1
             end
         else
-            warn("[ASC V134 SportsAssets] imported mesh not found: " .. placement.Key)
+            warn("[ASC V135 SportsAssets] imported skate mesh not found: " .. placement.Key)
         end
     end
     pack:Destroy()
 else
-    warn("[ASC V134 SportsAssets] skateboard asset unavailable: " .. tostring(loadError))
+    warn("[ASC V135 SportsAssets] skateboard asset unavailable: " .. tostring(skateLoadError))
 end
 
--- Basketball source has been optimized and evaluated separately, but intentionally remains
--- disabled until its redistribution/use license is positively verified. Existing court stays live.
-if BASKETBALL_COURT_ASSET_ID > 0 then
-    warn("[ASC V134 SportsAssets] basketball asset ID present unexpectedly while LICENSE_HOLD is active")
+local function placeBasketballCourt(container)
+    if not container then
+        return false, 0
+    end
+
+    for _, child in ipairs(container:GetChildren()) do
+        child.Parent = basketLayer
+    end
+    container:Destroy()
+
+    local partCount = 0
+    for _, descendant in ipairs(basketLayer:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            partCount += 1
+            descendant.Anchored = true
+            descendant.CanTouch = false
+            descendant.CanQuery = true
+            descendant.CastShadow = true
+            descendant:SetAttribute("ASC_ExternalAsset", true)
+            descendant:SetAttribute("ASC_AssetSource", "BASKETBALL_COURT_GAME_READY_ASSET")
+            if descendant:IsA("MeshPart") then
+                pcall(function()
+                    descendant.CollisionFidelity = Enum.CollisionFidelity.PreciseConvexDecomposition
+                end)
+            end
+        end
+    end
+
+    if partCount == 0 then
+        return false, 0
+    end
+
+    local bboxCF, bboxSize = basketLayer:GetBoundingBox()
+    if bboxSize.X <= 0.01 or bboxSize.Z <= 0.01 then
+        return false, partCount
+    end
+
+    local targetLong = math.max(8, basketballCourt.Size.X - 4)
+    local targetShort = math.max(8, basketballCourt.Size.Z - 4)
+    local sourceLong = math.max(bboxSize.X, bboxSize.Z)
+    local sourceShort = math.min(bboxSize.X, bboxSize.Z)
+    local scale = math.min(targetLong / sourceLong, targetShort / sourceShort)
+    scale = math.clamp(scale, 0.05, 20)
+    basketLayer:ScaleTo(scale)
+
+    local scaledCF, scaledSize = basketLayer:GetBoundingBox()
+    local rotate90 = scaledSize.Z > scaledSize.X
+    local courtTop = basketballCourt.Position.Y + basketballCourt.Size.Y * 0.5
+    local targetCF = basketballCourt.CFrame
+        * CFrame.new(0, scaledSize.Y * 0.5 + basketballCourt.Size.Y * 0.5 + 0.06, 0)
+        * CFrame.Angles(0, rotate90 and math.rad(90) or 0, 0)
+
+    local delta = targetCF * scaledCF:Inverse()
+    for _, descendant in ipairs(basketLayer:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            descendant.CFrame = delta * descendant.CFrame
+        end
+    end
+
+    basketLayer:SetAttribute("ASC_BasketballAssetId", BASKETBALL_COURT_ASSET_ID)
+    basketLayer:SetAttribute("ASC_ImportedPartCount", partCount)
+    basketLayer:SetAttribute("ASC_FittedToProtectedCourt", true)
+    basketLayer:SetAttribute("ASC_ProtectedCourtTopY", courtTop)
+    return true, partCount
+end
+
+local basketballReady = false
+local basketballPartCount = 0
+local basketPack, basketLoadError = loadAsset(BASKETBALL_COURT_ASSET_ID)
+if basketPack then
+    basketballReady, basketballPartCount = placeBasketballCourt(basketPack)
+    if not basketballReady then
+        warn("[ASC V135 SportsAssets] basketball asset loaded but placement failed")
+    end
+else
+    warn("[ASC V135 SportsAssets] basketball asset unavailable: " .. tostring(basketLoadError))
 end
 
 local protectedUnchanged = deck.Parent == protected.DeckParent
@@ -197,22 +266,25 @@ local protectedUnchanged = deck.Parent == protected.DeckParent
     and basketballCourt.Size == protected.CourtSize
 
 if not protectedUnchanged then
-    warn("[ASC V134 SportsAssets] HARD LOCK FAILED: protected skate/court geometry changed")
+    warn("[ASC V135 SportsAssets] HARD LOCK FAILED: protected skate/court geometry changed")
     layer:Destroy()
     return
 end
 
-layer:SetAttribute("ASC_SkateImportedPropCount", importedCount)
+layer:SetAttribute("ASC_SkateImportedPropCount", skateImportedCount)
 layer:SetAttribute("ASC_SkateboardPackAssetId", SKATEBOARD_PACK_ASSET_ID)
+layer:SetAttribute("ASC_BasketballAssetId", BASKETBALL_COURT_ASSET_ID)
+layer:SetAttribute("ASC_BasketballImportedPartCount", basketballPartCount)
 layer:SetAttribute("ASC_ProtectedGeometryUnchanged", true)
-root:SetAttribute("ASC_SportsAssetsV134", VERSION)
-root:SetAttribute("ASC_SkateExternalPropsReady", importedCount == 4)
-root:SetAttribute("ASC_BasketballExternalAssetEnabled", false)
-Workspace:SetAttribute("ASC_SportsAssetsV134", VERSION)
+root:SetAttribute("ASC_SportsAssetsV134", "1.3.4-compatible")
+root:SetAttribute("ASC_SportsAssetsV135", VERSION)
+root:SetAttribute("ASC_SkateExternalPropsReady", skateImportedCount == 4)
+root:SetAttribute("ASC_BasketballExternalAssetEnabled", basketballReady)
+Workspace:SetAttribute("ASC_SportsAssetsV134", "1.3.4-compatible")
+Workspace:SetAttribute("ASC_SportsAssetsV135", VERSION)
 
-if importedCount == 4 then
-    print(string.format("[AFTER SCHOOL CITY] V1.3.4 sports assets ready; skateboardProps=%d basketball=LICENSE_HOLD protectedUnchanged=true", importedCount))
+if skateImportedCount == 4 and basketballReady then
+    print(string.format("[AFTER SCHOOL CITY] V1.3.5 sports assets ready; skateboardProps=%d basketballParts=%d protectedUnchanged=true", skateImportedCount, basketballPartCount))
 else
-    warn(string.format("[ASC V134 SportsAssets] partial skateboard import; expected=4 actual=%d", importedCount))
+    warn(string.format("[ASC V135 SportsAssets] partial external integration; skateboard=%d/4 basketballReady=%s basketballParts=%d", skateImportedCount, tostring(basketballReady), basketballPartCount))
 end
-
