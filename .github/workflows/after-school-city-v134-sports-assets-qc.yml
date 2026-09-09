@@ -1,0 +1,227 @@
+name: After School City V1.3.4 Sports Assets QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v134-sports-assets
+    paths:
+      - '.github/workflows/after-school-city-v134-sports-assets-qc.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: after-school-city-v134-sports-assets-qc
+  cancel-in-progress: false
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      LIVE_SOURCE: '735e7c22e36a4829b3b8838985c44cfc2774ba56'
+      LIVE_VERSION: '58'
+      EXPECTED_SOURCE: '4a5b0acd02299399b4118b707ea22ad8751537f1'
+      SKATEBOARD_ASSET_ID: '111060043204479'
+      SKATEBOARD_ASSET_MODERATION: 'Approved'
+      OPT_BYTES: '7208740'
+      OPT_SHA256: '8fd29c509eee478d5a06d2282536ed6e955790b68339fea746c47c896ba410c2'
+      PREP_RUN_ID: '34305810070'
+      PREP_ARTIFACT_ID: '10086603748'
+      PLACE_ID: '121603385909425'
+
+    steps:
+      - name: Checkout QC branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fresh LIVE authority and exact-source gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected V1.3.4 source unavailable' }
+          $mergeBase=(git merge-base $env:EXPECTED_SOURCE HEAD).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "QC workflow head is not descended from exact candidate: $mergeBase" }
+          $after=@(git diff --name-only $env:EXPECTED_SOURCE HEAD -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production maps changed after exact candidate: $($after -join ', ')" }
+
+          git fetch origin main
+          $paths=@(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion=-1; $maxSource=''; $maxPath=''
+          foreach($path in $paths){
+            try {
+              $j=((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v=[int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion=$v; $maxSource=[string]$j.sourceCommit; $maxPath=$path }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:LIVE_VERSION){ throw "LIVE changed: v$maxVersion path=$maxPath" }
+          if($maxSource -ne $env:LIVE_SOURCE){ throw "LIVE source changed: $maxSource" }
+          Write-Host "LIVE + EXACT SOURCE GATE PASS live=v$maxVersion candidate=$env:EXPECTED_SOURCE"
+
+      - name: Verify isolated production scope and protected authorities
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $prod=@(git diff --name-only $env:LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          $expected=@(
+            'maps/after-school-city/after-school-city.sports-assets-v134.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          if($prod.Count -ne $expected.Count){ throw "Unexpected production delta count: $($prod.Count) => $($prod -join ', ')" }
+          foreach($p in $expected){ if($prod -notcontains $p){ throw "Expected production file missing: $p" } }
+          foreach($p in $prod){ if($expected -notcontains $p){ throw "Unexpected production file: $p" } }
+
+          $protected=@(
+            'maps/after-school-city/after-school-city.world.server.lua',
+            'maps/after-school-city/after-school-city.activities.server.lua',
+            'maps/after-school-city/after-school-city.skatepark-approach-micro-cleanup.server.lua',
+            'maps/after-school-city/after-school-city.skatepark-light-clearance-v112.server.lua',
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua',
+            'maps/after-school-city/after-school-city.gameplay-hud.client.lua',
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua'
+          )
+          foreach($p in $protected){
+            git diff --quiet $env:LIVE_SOURCE $env:EXPECTED_SOURCE -- $p
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed: $p" }
+          }
+          Write-Host "PRODUCTION SCOPE PASS files=$($prod.Count); protected authorities unchanged"
+
+      - name: Verify V1.3.4 asset contract and receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=(git show "$env:EXPECTED_SOURCE`:maps/after-school-city/after-school-city.sports-assets-v134.server.lua" | Out-String)
+          foreach($token in @(
+            'local VERSION = "1.3.4-sports-assets-1"',
+            "local SKATEBOARD_PACK_ASSET_ID = $env:SKATEBOARD_ASSET_ID -- ASC_WORKFLOW_SKATEBOARD_ASSET_ID",
+            'local BASKETBALL_COURT_ASSET_ID = 0 -- LICENSE_HOLD',
+            'InsertService:LoadAsset(assetId)',
+            'ImportedInclineRamp',
+            'ImportedDoubleRamp',
+            'ImportedStraightRail',
+            'ImportedCurvedRail',
+            'ASC_SkateboardPackLicense',
+            'CC-BY-4.0',
+            'ASC_SkateboardPackAuthor',
+            'Arsen Ismailov',
+            'ASC_BasketballAssetStatus',
+            'LICENSE_HOLD',
+            'ASC_ProtectedGeometryUnchanged',
+            'ASC_SkateExternalPropsReady'
+          )){
+            if($src -notmatch [regex]::Escape($token)){ throw "Sports source contract missing: $token" }
+          }
+
+          $project=(git show "$env:EXPECTED_SOURCE`:maps/after-school-city/default.project.json" | Out-String)
+          if($project -notmatch [regex]::Escape('"ASC_SportsAssetsV134": {"$path": "after-school-city.sports-assets-v134.server.lua"}')){
+            throw 'Rojo V1.3.4 mapping missing'
+          }
+
+          $receipt=(git show "$env:EXPECTED_SOURCE`:asset-status/after-school-city-v134-skateboard.json" | Out-String | ConvertFrom-Json)
+          if($receipt.status -ne 'ASSET_INGESTED_QC_PENDING'){ throw "Unexpected asset receipt status: $($receipt.status)" }
+          if([string]$receipt.liveSource -ne $env:LIVE_SOURCE -or [int]$receipt.liveRobloxVersion -ne [int]$env:LIVE_VERSION){ throw 'Asset receipt LIVE authority mismatch' }
+          if([int64]$receipt.prepRunId -ne [int64]$env:PREP_RUN_ID -or [int64]$receipt.prepArtifactId -ne [int64]$env:PREP_ARTIFACT_ID){ throw 'Asset prep lineage mismatch' }
+          if([int64]$receipt.optimizedBytes -ne [int64]$env:OPT_BYTES -or [string]$receipt.optimizedSha256 -ne $env:OPT_SHA256){ throw 'Optimized GLB receipt mismatch' }
+          if([int64]$receipt.robloxAssetId -ne [int64]$env:SKATEBOARD_ASSET_ID){ throw 'Roblox asset ID receipt mismatch' }
+          if([string]$receipt.moderationState -ne $env:SKATEBOARD_ASSET_MODERATION){ throw 'Roblox moderation receipt mismatch' }
+          if($receipt.license -ne 'CC-BY-4.0' -or $receipt.author -ne 'Arsen Ismailov'){ throw 'Attribution receipt mismatch' }
+          if($receipt.basketballStatus -ne 'LICENSE_HOLD' -or [bool]$receipt.placePublished){ throw 'Basketball hold/place publish gate mismatch' }
+          Write-Host "ASSET CONTRACT PASS asset=$env:SKATEBOARD_ASSET_ID moderation=$env:SKATEBOARD_ASSET_MODERATION basketball=LICENSE_HOLD"
+
+      - name: Checkout exact candidate source for build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git checkout --detach $env:EXPECTED_SOURCE
+          if($LASTEXITCODE -ne 0){ throw 'Unable to checkout exact candidate source' }
+          $head=(git rev-parse HEAD).Trim()
+          if($head -ne $env:EXPECTED_SOURCE){ throw "Exact source checkout mismatch: $head" }
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){ throw 'rojo.exe not found' }
+            $rojoExe=$exe.FullName
+          }
+          $version=(& $rojoExe --version | Out-String).Trim()
+          if($version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$rojoExe" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROJO PASS version=$version"
+
+      - name: Build exact V1.3.4 candidate and receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $outDir=Join-Path $env:RUNNER_TEMP 'asc-v134-sports-assets-qc'
+          if(Test-Path $outDir){ Remove-Item $outDir -Recurse -Force }
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $place=Join-Path $outDir 'after-school-city-v134-sports-assets.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){ throw "Rojo build failed: $LASTEXITCODE" }
+          if(-not (Test-Path $place)){ throw 'Generated RBXL missing' }
+          $bytes=(Get-Item $place).Length
+          if($bytes -lt 1024){ throw "Generated RBXL suspiciously small: $bytes" }
+          $hash=(Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=V134_SPORTS_EXTERNAL_ASSETS',
+            "LIVE_ROBLOX_VERSION=$env:LIVE_VERSION",
+            "LIVE_SOURCE=$env:LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            'ROJO_VERSION=7.7.0',
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            "SKATEBOARD_ASSET_ID=$env:SKATEBOARD_ASSET_ID",
+            "SKATEBOARD_ASSET_MODERATION=$env:SKATEBOARD_ASSET_MODERATION",
+            "SKATEBOARD_OPT_BYTES=$env:OPT_BYTES",
+            "SKATEBOARD_OPT_SHA256=$env:OPT_SHA256",
+            'SKATEBOARD_LICENSE=CC-BY-4.0',
+            'SKATEBOARD_AUTHOR=Arsen_Ismailov',
+            'BASKETBALL_ASSET=LICENSE_HOLD_NOT_ENABLED',
+            'SKATE_LINE_AUTHORITY=UNCHANGED',
+            'SPORTS_FIELD_AUTHORITY=UNCHANGED',
+            'ECONOMY_DATA_MUSIC_DEDICATION=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          ) | Set-Content (Join-Path $outDir 'qc-receipt.txt') -Encoding utf8
+          Copy-Item 'asset-status/after-school-city-v134-skateboard.json' (Join-Path $outDir 'asset-receipt.json') -Force
+          "ARTIFACT_DIR=$outDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BUILD PASS source=$env:EXPECTED_SOURCE bytes=$bytes sha256=$hash"
+
+      - name: Upload exact V1.3.4 QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v134-sports-assets-qc-${{ env.EXPECTED_SOURCE }}
+          path: ${{ env.ARTIFACT_DIR }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Final QC summary
+        shell: powershell
+        run: |
+          Write-Host "V134 QC PASS source=$env:EXPECTED_SOURCE asset=$env:SKATEBOARD_ASSET_ID bytes=$env:RBXL_BYTES sha256=$env:RBXL_SHA256 publish=NO runtime=PENDING basketball=LICENSE_HOLD"
