@@ -19,8 +19,8 @@
       "HangarRealtimeWITAV1_1": {
         "$path": "server/wita-time.server.lua"
       },
-      "HangarSketchfabVehiclesV1": {
-        "$path": "server/sketchfab-vehicles-v1.server.lua"
+      "HangarSketchfabVehiclesV5": {
+        "$path": "server/sketchfab-vehicles-v5.server.lua"
       }
     },
     "StarterPlayer": {
