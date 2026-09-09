@@ -33,7 +33,7 @@ jobs:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 60
     env:
-      ROBLOX_ASSET_KEY: ${{ secrets.ROCKET_RACOON_PUBLISH }}
+      ROBLOX_ASSET_KEY: ${{ secrets.ROCKET_RACOON_PUBLISH || secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
       ROBLOX_MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -45,7 +45,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:ROBLOX_ASSET_KEY)){throw 'ROCKET_RACOON_PUBLISH missing'}
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_ASSET_KEY)){throw 'No Roblox asset-capable key available'}
           $body=@{usernames=@($env:ROCKET_USERNAME);excludeBannedUsers=$false}|ConvertTo-Json -Compress
           $r=Invoke-RestMethod -Method Post -Uri 'https://users.roblox.com/v1/usernames/users' -ContentType 'application/json' -Body $body
           if(-not $r.data -or $r.data.Count -lt 1){throw "RocketRacoon username not found: $env:ROCKET_USERNAME"}
@@ -59,104 +59,58 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $dir=Join-Path $env:RUNNER_TEMP 'hangar-rocket-full'
-          if(Test-Path $dir){Remove-Item $dir -Recurse -Force}
-          New-Item -ItemType Directory -Path $dir -Force|Out-Null
+          if(Test-Path $dir){Remove-Item $dir -Recurse -Force};New-Item -ItemType Directory -Path $dir -Force|Out-Null
           function GetGlb([string]$Id,[string]$Out,[string]$Sha){
             Invoke-WebRequest -UseBasicParsing -Uri "https://drive.usercontent.google.com/download?id=$Id&export=download&confirm=t" -OutFile $Out -MaximumRedirection 12
-            $bytes=[IO.File]::ReadAllBytes($Out)
-            if($bytes.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($bytes,0,4) -ne 'glTF'){throw "invalid GLB id=$Id"}
-            $got=(Get-FileHash $Out -Algorithm SHA256).Hash.ToLowerInvariant()
-            if($got -ne $Sha){throw "SHA mismatch id=$Id got=$got"}
-            Write-Host "GLB_OK id=$Id bytes=$($bytes.Length)"
+            $b=[IO.File]::ReadAllBytes($Out);if($b.Length -lt 100000 -or [Text.Encoding]::ASCII.GetString($b,0,4) -ne 'glTF'){throw "invalid GLB id=$Id"}
+            $got=(Get-FileHash $Out -Algorithm SHA256).Hash.ToLowerInvariant();if($got -ne $Sha){throw "SHA mismatch id=$Id got=$got"}
           }
-          $jet=Join-Path $dir 'private-jet.glb';$starlet=Join-Path $dir 'starlet.glb';$bugatti=Join-Path $dir 'bugatti.glb';$lambo=Join-Path $dir 'lambo.glb'
-          GetGlb $env:DRIVE_JET_ID $jet $env:SHA_JET
-          GetGlb $env:DRIVE_STARLET_ID $starlet $env:SHA_STARLET
-          GetGlb $env:DRIVE_BUGATTI_ID $bugatti $env:SHA_BUGATTI
-          GetGlb $env:DRIVE_LAMBO_ID $lambo $env:SHA_LAMBO
-          "JET_GLB=$jet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "STARLET_GLB=$starlet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "BUGATTI_GLB=$bugatti"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "LAMBO_GLB=$lambo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $jet=Join-Path $dir 'jet.glb';$starlet=Join-Path $dir 'starlet.glb';$bugatti=Join-Path $dir 'bugatti.glb';$lambo=Join-Path $dir 'lambo.glb'
+          GetGlb $env:DRIVE_JET_ID $jet $env:SHA_JET;GetGlb $env:DRIVE_STARLET_ID $starlet $env:SHA_STARLET;GetGlb $env:DRIVE_BUGATTI_ID $bugatti $env:SHA_BUGATTI;GetGlb $env:DRIVE_LAMBO_ID $lambo $env:SHA_LAMBO
+          "JET_GLB=$jet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"STARLET_GLB=$starlet"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"BUGATTI_GLB=$bugatti"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"LAMBO_GLB=$lambo"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Upload four models with RocketRacoon key
+      - name: Upload four models as RocketRacoon
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           function StartUpload([string]$File,[string]$Name,[string]$Description){
             $request=@{assetType='Model';displayName=$Name;description=$Description;creationContext=@{creator=@{userId=[int64]$env:ASSET_OWNER_USER_ID}}}|ConvertTo-Json -Depth 8 -Compress
-            $rf=Join-Path $env:RUNNER_TEMP ("rocket-req-"+[guid]::NewGuid().ToString('N')+'.json')
-            [IO.File]::WriteAllText($rf,$request,(New-Object Text.UTF8Encoding($false)))
+            $rf=Join-Path $env:RUNNER_TEMP ("req-"+[guid]::NewGuid().ToString('N')+'.json');[IO.File]::WriteAllText($rf,$request,(New-Object Text.UTF8Encoding($false)))
             try{$raw=& curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_ASSET_KEY" --form "request=<$rf;type=application/json" --form "fileContent=@$File;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'}finally{Remove-Item $rf -Force -ErrorAction SilentlyContinue}
-            if($LASTEXITCODE -ne 0){throw "curl failed $Name"}
-            try{$created=$raw|ConvertFrom-Json}catch{throw "bad response $Name : $raw"}
-            if(-not $created.path){throw "upload rejected $Name : $raw"}
-            $op=([string]$created.path)-replace '^operations/',''
-            Write-Host "UPLOAD_ACCEPTED name=$Name operation=$op"
-            return $op
+            if($LASTEXITCODE -ne 0){throw "curl failed $Name"};try{$c=$raw|ConvertFrom-Json}catch{throw "bad response $Name : $raw"};if(-not $c.path){throw "upload rejected $Name : $raw"};return (([string]$c.path)-replace '^operations/','')
           }
           $jetOp=StartUpload $env:JET_GLB 'HANGAR Private Jet' 'Private Jet by Marco Fischer (a2e), Sketchfab CC BY.'
           $starletOp=StartUpload $env:STARLET_GLB 'HANGAR Toyota Starlet KP61' 'Toyota Starlet KP61 by Wideopenthrottle, Sketchfab CC BY.'
           $bugattiOp=StartUpload $env:BUGATTI_GLB 'HANGAR Bugatti Chiron' 'Free Bugatti Chiron by ALIEEEN, Sketchfab CC BY.'
           $lamboOp=StartUpload $env:LAMBO_GLB 'HANGAR Lamborghini Sesto Elemento' 'Free Lamborghini Sesto Elemento by ALIEEEN, Sketchfab CC BY.'
-          "JET_OP=$jetOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "STARLET_OP=$starletOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "BUGATTI_OP=$bugattiOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "LAMBO_OP=$lamboOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "JET_OP=$jetOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"STARLET_OP=$starletOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"BUGATTI_OP=$bugattiOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"LAMBO_OP=$lamboOp"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Wait for all four Roblox asset operations
+      - name: Wait for all four asset IDs
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          function ReadAsset([string]$Op,[string]$Label){
-            $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$Op"
-            if($LASTEXITCODE -ne 0){return $null}
-            try{$o=$raw|ConvertFrom-Json}catch{return $null}
-            if(-not $o.done){return $null}
-            if($o.error){throw "$Label failed: $($o.error|ConvertTo-Json -Compress -Depth 8)"}
-            $id=[string]$o.response.assetId
-            if($id -notmatch '^\d+$'){throw "$Label completed without assetId"}
-            Write-Host "$Label READY asset=$id moderation=$($o.response.moderationResult.moderationState)"
-            return $id
-          }
+          function ReadAsset([string]$Op,[string]$Label){$raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$Op";if($LASTEXITCODE -ne 0){return $null};try{$o=$raw|ConvertFrom-Json}catch{return $null};if(-not $o.done){return $null};if($o.error){throw "$Label failed: $($o.error|ConvertTo-Json -Compress -Depth 8)"};$id=[string]$o.response.assetId;if($id -notmatch '^\d+$'){throw "$Label completed without assetId"};Write-Host "$Label READY asset=$id moderation=$($o.response.moderationResult.moderationState)";return $id}
           $jetId=$null;$starletId=$null;$bugattiId=$null;$lamboId=$null
-          for($i=0;$i -lt 800;$i++){
-            if(-not $jetId){$jetId=ReadAsset $env:JET_OP 'JET'}
-            if(-not $starletId){$starletId=ReadAsset $env:STARLET_OP 'STARLET'}
-            if(-not $bugattiId){$bugattiId=ReadAsset $env:BUGATTI_OP 'BUGATTI'}
-            if(-not $lamboId){$lamboId=ReadAsset $env:LAMBO_OP 'LAMBO'}
-            if($jetId -and $starletId -and $bugattiId -and $lamboId){break}
-            Start-Sleep -Seconds 3
-          }
+          for($i=0;$i -lt 800;$i++){if(-not $jetId){$jetId=ReadAsset $env:JET_OP 'JET'};if(-not $starletId){$starletId=ReadAsset $env:STARLET_OP 'STARLET'};if(-not $bugattiId){$bugattiId=ReadAsset $env:BUGATTI_OP 'BUGATTI'};if(-not $lamboId){$lamboId=ReadAsset $env:LAMBO_OP 'LAMBO'};if($jetId -and $starletId -and $bugattiId -and $lamboId){break};Start-Sleep -Seconds 3}
           if(-not $jetId -or -not $starletId -or -not $bugattiId -or -not $lamboId){throw "moderation timeout jet=$jetId starlet=$starletId bugatti=$bugattiId lambo=$lamboId"}
-          "JET_ASSET=$jetId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "STARLET_ASSET=$starletId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "BUGATTI_ASSET=$bugattiId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "LAMBO_ASSET=$lamboId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "JET_ASSET=$jetId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"STARLET_ASSET=$starletId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"BUGATTI_ASSET=$bugattiId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"LAMBO_ASSET=$lamboId"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Lock RocketRacoon asset IDs into runtime
+      - name: Lock asset IDs into runtime
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua'
-          $text=[IO.File]::ReadAllText($path)
+          $path='maps/aeroclub-hangar/server/sketchfab-vehicles-v1.server.lua';$text=[IO.File]::ReadAllText($path)
           $pairs=@(@('JET_ASSET_ID',$env:JET_ASSET,'HANGAR_SKETCHFAB_JET_ASSET_ID'),@('STARLET_ASSET_ID',$env:STARLET_ASSET,'HANGAR_SKETCHFAB_STARLET_ASSET_ID'),@('BUGATTI_ASSET_ID',$env:BUGATTI_ASSET,'HANGAR_SKETCHFAB_BUGATTI_ASSET_ID'),@('LAMBO_ASSET_ID',$env:LAMBO_ASSET,'HANGAR_SKETCHFAB_LAMBO_ASSET_ID'))
           foreach($p in $pairs){$pattern="local $($p[0]) = \d+ -- $($p[2])";if($text -notmatch $pattern){throw "marker missing $($p[2])"};$text=[regex]::Replace($text,$pattern,"local $($p[0]) = $($p[1]) -- $($p[2])")}
-          $text=$text -replace 'PENDING_ROBLOX_MODERATION','ROCKET_RACOON_ALL_ASSETS_READY'
-          [IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
-          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-ROCKET'}
-          $url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)
-          $b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text));$body=@{message='HANGAR: lock RocketRacoon Sketchfab assets [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5
-          $put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body
-          "CANONICAL_SOURCE=$([string]$put.commit.sha)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $text=$text -replace 'PENDING_ROBLOX_MODERATION','ROCKET_RACOON_ALL_ASSETS_READY';[IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-ROCKET'};$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path";$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME);$b64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($text));$body=@{message='HANGAR: lock RocketRacoon Sketchfab assets [skip ci]';content=$b64;sha=[string]$old.sha;branch=$env:GITHUB_REF_NAME}|ConvertTo-Json -Depth 5;$put=Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body $body;"CANONICAL_SOURCE=$([string]$put.commit.sha)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build HANGAR
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
           $path='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua';$text=[IO.File]::ReadAllText($path);$pattern='local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID';if($text -notmatch $pattern){throw 'env marker missing'};$text=[regex]::Replace($text,$pattern,"local MODEL_ASSET_ID = $env:STABLE_ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID");[IO.File]::WriteAllText($path,$text,(New-Object Text.UTF8Encoding($false)))
-          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
-          if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-rocket';$z=Join-Path $env:RUNNER_TEMP 'rojo-rocket.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName}
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue;if($cmd){$rojo=$cmd.Source}else{$d=Join-Path $env:RUNNER_TEMP 'rojo-rocket';$z=Join-Path $env:RUNNER_TEMP 'rojo-rocket.zip';New-Item -ItemType Directory -Path $d -Force|Out-Null;Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z;Expand-Archive $z $d -Force;$e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1;if(-not $e){throw 'rojo missing'};$rojo=$e.FullName}
           $place=Join-Path $env:RUNNER_TEMP 'hangar-rocket-full.rbxlx';& $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place;if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
           $xml=[IO.File]::ReadAllText($place);foreach($m in @('HangarSketchfabVehiclesV1',$env:JET_ASSET,$env:STARLET_ASSET,$env:BUGATTI_ASSET,$env:LAMBO_ASSET,$env:STABLE_ENV_ASSET_ID)){if($xml -notmatch [regex]::Escape([string]$m)){throw "built place missing $m"}}
           "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;"PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
@@ -169,8 +123,7 @@ jobs:
           foreach($key in @($env:ROBLOX_ASSET_KEY,$env:ROBLOX_MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{$r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE;$version=[int](($r.Content|ConvertFrom-Json).versionNumber);if($version -gt 0){break}}catch{Write-Warning $_.Exception.Message}}
           if(-not $version){throw 'HANGAR publish failed'}
           foreach($key in @($env:ROBLOX_ASSET_KEY,$env:ROBLOX_MASTER_KEY)){if([string]::IsNullOrWhiteSpace($key)){continue};try{Invoke-WebRequest -UseBasicParsing -Method Post -Uri "https://apis.roblox.com/cloud/v2/universes/$env:LIVE_UNIVERSE_ID`:restartServers" -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;break}catch{}}
-          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "HANGAR_ROCKET_FULL_LIVE version=$version"
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append;Write-Host "HANGAR_ROCKET_FULL_LIVE version=$version"
 
       - name: Save LIVE receipt
         shell: powershell
