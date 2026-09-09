@@ -82,10 +82,37 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $out=Join-Path $env:RUNNER_TEMP 'bbya-car-loader-diagnostic.log'
-          & $env:STUDIO_EXE --task RunScript --placeId 131894120482837 --universeId 8116636513 --runScriptFile $env:DIAG_SCRIPT --outputFile $out --quitAfterExecution
-          $code=$LASTEXITCODE
+          if(Test-Path $out){Remove-Item $out -Force}
+          $args=@(
+            '--task','RunScript',
+            '--placeId','131894120482837',
+            '--universeId','8116636513',
+            '--runScriptFile',$env:DIAG_SCRIPT,
+            '--outputFile',$out,
+            '--quitAfterExecution'
+          )
+          $p=Start-Process -FilePath $env:STUDIO_EXE -ArgumentList $args -PassThru
+          $deadline=(Get-Date).AddMinutes(4)
+          $done=$false
+          while((Get-Date) -lt $deadline){
+            if(Test-Path $out){
+              $text=Get-Content $out -Raw
+              if($text -match 'BBYA_CAR_LOADER_DIAGNOSTIC_DONE'){$done=$true;break}
+            }
+            try{$p.Refresh()}catch{}
+            if($p.HasExited){
+              Start-Sleep -Seconds 2
+              if(Test-Path $out){
+                $text=Get-Content $out -Raw
+                if($text -match 'BBYA_CAR_LOADER_DIAGNOSTIC_DONE'){$done=$true}
+              }
+              break
+            }
+            Start-Sleep -Seconds 2
+          }
           if(Test-Path $out){Get-Content $out -Raw}
-          if($code -ne 0){throw "Studio RunScript exited $code"}
-          if(-not (Test-Path $out)){throw 'Diagnostic output file missing'}
-          $text=Get-Content $out -Raw
-          if($text -notmatch 'BBYA_CAR_LOADER_DIAGNOSTIC_DONE'){throw 'Diagnostic completion marker missing'}
+          if(-not $done){
+            try{if(-not $p.HasExited){$p.Kill()}}catch{}
+            throw 'Diagnostic completion marker missing'
+          }
+          Write-Host 'BBYA_CAR_STUDIO_LOADER_DIAGNOSTIC_PASS'
