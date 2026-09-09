@@ -1,0 +1,91 @@
+name: BBYA Car Runtime Loader Diagnostic
+
+on:
+  push:
+    branches: [fix/bbya-car-static-bake-v1]
+    paths:
+      - '.github/workflows/bbya-car-runtime-loader-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Locate Roblox Studio
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $roots=@(
+            (Join-Path $env:LOCALAPPDATA 'Roblox\Versions'),
+            (Join-Path $env:ProgramFiles 'Roblox'),
+            (Join-Path ${env:ProgramFiles(x86)} 'Roblox')
+          ) | Where-Object {$_ -and (Test-Path $_)}
+          $exe=$null
+          foreach($r in $roots){
+            $exe=Get-ChildItem $r -Filter RobloxStudioBeta.exe -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if($exe){break}
+          }
+          if(-not $exe){throw 'RobloxStudioBeta.exe not found'}
+          "STUDIO_EXE=$($exe.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "STUDIO_FOUND=$($exe.FullName)"
+
+      - name: Write exact loader diagnostic script
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $script=Join-Path $env:RUNNER_TEMP 'bbya-car-loader-diagnostic.luau'
+          @'
+          local InsertService=game:GetService("InsertService")
+          local AssetService=game:GetService("AssetService")
+          local ids={97052038046118,91172120786409}
+          print("BBYA_DIAG_GAME creatorId="..tostring(game.CreatorId).." creatorType="..tostring(game.CreatorType).." placeId="..tostring(game.PlaceId).." gameId="..tostring(game.GameId))
+          local function inspect(tag,obj)
+              if not obj then print(tag.." NIL"); return end
+              local bp,visible=0,0
+              local classes={}
+              for _,d in ipairs(obj:GetDescendants()) do
+                  classes[d.ClassName]=(classes[d.ClassName] or 0)+1
+                  if d:IsA("BasePart") then
+                      bp+=1
+                      if d.Transparency<0.97 then visible+=1 end
+                  end
+              end
+              local size="NO_BBOX"
+              local ok,cf,sz=pcall(function() local c,s=obj:GetBoundingBox(); return c,s end)
+              if ok then size=string.format("%.3f,%.3f,%.3f",sz.X,sz.Y,sz.Z) end
+              local ct={};for k,v in pairs(classes) do table.insert(ct,k.."="..v) end;table.sort(ct)
+              print(tag.." OK name="..obj.Name.." baseparts="..bp.." visible="..visible.." bbox="..size.." classes="..table.concat(ct,","))
+          end
+          for _,id in ipairs(ids) do
+              local ok1,res1=pcall(InsertService.LoadAsset,InsertService,id)
+              print("BBYA_DIAG_INSERT id="..id.." success="..tostring(ok1).." result="..tostring(res1))
+              if ok1 then inspect("BBYA_DIAG_INSERT_MODEL id="..id,res1);res1:Destroy() end
+              local ok2,res2=pcall(AssetService.LoadAssetAsync,AssetService,id)
+              print("BBYA_DIAG_ASSET id="..id.." success="..tostring(ok2).." result="..tostring(res2))
+              if ok2 then inspect("BBYA_DIAG_ASSET_MODEL id="..id,res2);res2:Destroy() end
+              local ok3,res3=pcall(function() return game:GetObjects("rbxassetid://"..id) end)
+              print("BBYA_DIAG_GETOBJECTS id="..id.." success="..tostring(ok3).." count="..tostring(ok3 and #res3 or 0).." result="..tostring(res3))
+              if ok3 then for i,o in ipairs(res3) do inspect("BBYA_DIAG_GETOBJECTS_MODEL id="..id.." i="..i,o);o:Destroy() end end
+          end
+          print("BBYA_CAR_LOADER_DIAGNOSTIC_DONE")
+          '@ | Set-Content -Path $script -Encoding utf8
+          "DIAG_SCRIPT=$script" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Run diagnostic against MAIN place without saving
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'bbya-car-loader-diagnostic.log'
+          & $env:STUDIO_EXE --task RunScript --placeId 131894120482837 --universeId 8116636513 --runScriptFile $env:DIAG_SCRIPT --outputFile $out --quitAfterExecution
+          $code=$LASTEXITCODE
+          if(Test-Path $out){Get-Content $out -Raw}
+          if($code -ne 0){throw "Studio RunScript exited $code"}
+          if(-not (Test-Path $out)){throw 'Diagnostic output file missing'}
+          $text=Get-Content $out -Raw
+          if($text -notmatch 'BBYA_CAR_LOADER_DIAGNOSTIC_DONE'){throw 'Diagnostic completion marker missing'}
