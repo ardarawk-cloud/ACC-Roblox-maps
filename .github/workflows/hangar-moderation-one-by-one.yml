@@ -1,0 +1,101 @@
+name: HANGAR Moderation One-by-One
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-moderation-one-by-one.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hangar-moderation-one-by-one
+  cancel-in-progress: true
+
+env:
+  CAR01_OP: '3f7c7739-6177-4034-aabe-4f3c0ea1f2b0'
+  CAR02_OP: 'a40cef64-77f8-4c88-b2cc-5f98384783d2'
+  CAR03_OP: '8484e194-9371-4e0b-a272-7c280f33e12c'
+  CAR04_OP: 'a9597e70-6561-4838-afe6-d0a74ed14fb6'
+  CAR05_OP: '7f30b255-4424-47c6-985a-f7c24a8935aa'
+  CAR06_OP: '33026510-f155-41c2-8204-f8fead613845'
+  CAR07_OP: '09f60a20-e9b9-452e-8a7e-8c62af35249d'
+  CAR08_OP: 'f7af5bcc-3cfe-4a9f-99f3-fd15003c22a1'
+  CAR09_OP: '2bad9866-b306-410e-9cd7-5cc933a32611'
+  CAR10_OP: 'bcfde21c-26b0-4b20-9ed0-682f9912dd3c'
+  CAR11_OP: '985fb0dc-3e0a-4dba-9012-20f9fb4294ca'
+
+jobs:
+  check-one-by-one:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+    steps:
+      - name: Check CAR01 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR01_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR01 FAILED"}else{Write-Host "CAR01 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR01 PENDING"}
+      - name: Check CAR02 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR02_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR02 FAILED"}else{Write-Host "CAR02 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR02 PENDING"}
+      - name: Check CAR03 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR03_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR03 FAILED"}else{Write-Host "CAR03 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR03 PENDING"}
+      - name: Check CAR04 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR04_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR04 FAILED"}else{Write-Host "CAR04 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR04 PENDING"}
+      - name: Check CAR05 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR05_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR05 FAILED"}else{Write-Host "CAR05 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR05 PENDING"}
+      - name: Check CAR06 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR06_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR06 FAILED"}else{Write-Host "CAR06 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR06 PENDING"}
+      - name: Check CAR07 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR07_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR07 FAILED"}else{Write-Host "CAR07 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR07 PENDING"}
+      - name: Check CAR08 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR08_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR08 FAILED"}else{Write-Host "CAR08 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR08 PENDING"}
+      - name: Check CAR09 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR09_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR09 FAILED"}else{Write-Host "CAR09 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR09 PENDING"}
+      - name: Check CAR10 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR10_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR10 FAILED"}else{Write-Host "CAR10 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR10 PENDING"}
+      - name: Check CAR11 only
+        shell: powershell
+        run: |
+          $raw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ASSET_KEY" "https://apis.roblox.com/assets/v1/operations/$env:CAR11_OP"
+          $o=$raw|ConvertFrom-Json
+          if($o.done){if($o.error){Write-Host "CAR11 FAILED"}else{Write-Host "CAR11 READY asset=$($o.response.assetId)"}}else{Write-Host "CAR11 PENDING"}
