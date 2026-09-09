@@ -125,7 +125,7 @@ jobs:
             if($src -notmatch [regex]::Escape($token)){ throw "Basketball source contract missing: $token" }
           }
 
-          if($src -match 'court\.CFrame\s*=' -or $src -match 'court\.Size\s*=' -or $src -match 'court\.CanCollide\s*='){
+          if($src -match 'court\.CFrame\s*=(?!=)' -or $src -match 'court\.Size\s*=(?!=)' -or $src -match 'court\.CanCollide\s*=(?!=)'){
             throw 'Native BasketballCourt authority mutation detected'
           }
 
