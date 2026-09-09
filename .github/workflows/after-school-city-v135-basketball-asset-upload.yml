@@ -8,16 +8,12 @@ on:
       - '.github/workflows/after-school-city-v135-basketball-asset-upload.yml'
 
 permissions:
-  contents: write
-
-concurrency:
-  group: after-school-city-v135-basketball-asset-upload
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  upload-integrate:
+  upload:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     env:
       LIVE_SOURCE: '4a5b0acd02299399b4118b707ea22ad8751537f1'
       LIVE_VERSION: '59'
@@ -33,259 +29,111 @@ jobs:
       ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
 
     steps:
-      - name: Checkout V1.3.5 branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fresh verify LIVE v59 authority
+      - name: Verify production source and current LIVE receipt
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
+          $ErrorActionPreference = 'Stop'
           git cat-file -e "$env:LIVE_SOURCE^{commit}"
-          if($LASTEXITCODE -ne 0){ throw 'LIVE source unavailable' }
-          $mergeBase=(git merge-base $env:LIVE_SOURCE HEAD).Trim()
-          if($mergeBase -ne $env:LIVE_SOURCE){ throw "Branch is not descended from exact LIVE source: $mergeBase" }
-          $prod=@(git diff --name-only $env:LIVE_SOURCE HEAD -- 'maps/after-school-city')
-          if($prod.Count -ne 0){ throw "Production map changed before basketball ingest: $($prod -join ', ')" }
+          if ($LASTEXITCODE -ne 0) { throw 'LIVE source unavailable' }
+          $prod = @(git diff --name-only $env:LIVE_SOURCE HEAD -- 'maps/after-school-city')
+          if ($prod.Count -ne 0) { throw "Production map changed before basketball upload: $($prod -join ', ')" }
           git fetch origin main
-          $paths=@(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
-          $maxVersion=-1; $maxSource=''; $maxPath=''
-          foreach($path in $paths){
+          $paths = @(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion = -1
+          $maxSource = ''
+          foreach ($path in $paths) {
             try {
-              $j=((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
-              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
-                $v=[int]$j.versionNumber
-                if($v -gt $maxVersion){ $maxVersion=$v; $maxSource=[string]$j.sourceCommit; $maxPath=$path }
+              $j = ((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if ($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID) {
+                $v = [int]$j.versionNumber
+                if ($v -gt $maxVersion) { $maxVersion = $v; $maxSource = [string]$j.sourceCommit }
               }
             } catch {}
           }
-          if($maxVersion -ne [int]$env:LIVE_VERSION -or $maxSource -ne $env:LIVE_SOURCE){ throw "LIVE changed: v$maxVersion source=$maxSource path=$maxPath" }
-          Write-Host "LIVE AUTHORITY PASS v$maxVersion source=$maxSource"
+          if ($maxVersion -ne [int]$env:LIVE_VERSION -or $maxSource -ne $env:LIVE_SOURCE) { throw "LIVE changed: v$maxVersion source=$maxSource" }
+          Write-Host "LIVE GATE PASS v$maxVersion source=$maxSource"
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - name: Install pinned asset tooling
+      - name: Install tooling
         shell: powershell
         run: |
           python -m pip install --disable-pip-version-check --no-input 'Pillow==12.3.0' 'gdown==5.2.0'
-          if($LASTEXITCODE -ne 0){ throw 'Dependency install failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency install failed' }
 
-      - name: Download exact Drive basketball package
+      - name: Download and optimize basketball GLB
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          $dir=Join-Path $env:RUNNER_TEMP 'asc-v135-basket'
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'asc-v135-basket'
           New-Item -ItemType Directory -Path $dir -Force | Out-Null
-          $zip=Join-Path $dir 'basket-ball-court-game-ready-asset.zip'
+          $zip = Join-Path $dir 'basket.zip'
           python -m gdown $env:DRIVE_FILE_ID -O $zip
-          if($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)){ throw 'Drive basketball download failed' }
-          $bytes=(Get-Item $zip).Length
-          $hash=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($bytes -ne [int64]$env:ZIP_BYTES){ throw "Basket ZIP bytes mismatch: $bytes" }
-          if($hash -ne $env:ZIP_SHA256){ throw "Basket ZIP SHA mismatch: $hash" }
+          if ($LASTEXITCODE -ne 0) { throw 'Drive download failed' }
+          if ((Get-Item $zip).Length -ne [int64]$env:ZIP_BYTES) { throw 'ZIP bytes mismatch' }
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:ZIP_SHA256) { throw 'ZIP SHA mismatch' }
           Expand-Archive -LiteralPath $zip -DestinationPath (Join-Path $dir 'unpacked') -Force
-          $glb=Join-Path $dir 'unpacked/source/BasketBall_Court.glb'
-          if(-not (Test-Path $glb)){ throw 'BasketBall_Court.glb missing from exact package' }
-          $gbytes=(Get-Item $glb).Length
-          $ghash=(Get-FileHash $glb -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($gbytes -ne [int64]$env:GLB_BYTES -or $ghash -ne $env:GLB_SHA256){ throw "Basket GLB identity mismatch bytes=$gbytes sha=$ghash" }
-          "ASC_BASKET_DIR=$dir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "ASC_BASKET_GLB=$glb" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BASKET SOURCE PASS zip=$bytes glb=$gbytes sha256=$ghash"
+          $glb = Join-Path $dir 'unpacked/source/BasketBall_Court.glb'
+          if ((Get-Item $glb).Length -ne [int64]$env:GLB_BYTES) { throw 'GLB bytes mismatch' }
+          if ((Get-FileHash $glb -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:GLB_SHA256) { throw 'GLB SHA mismatch' }
+          $out = Join-Path $dir 'BasketBall_Court_roblox_mobile.glb'
+          python '.github/scripts/asc_optimize_glb.py' $glb $out 1024
+          if ($LASTEXITCODE -ne 0) { throw 'GLB optimization failed' }
+          if ((Get-Item $out).Length -ne [int64]$env:OPT_BYTES) { throw 'Optimized GLB bytes mismatch' }
+          if ((Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:OPT_SHA256) { throw 'Optimized GLB SHA mismatch' }
+          "ASC_BASKET_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "BASKET PREP PASS bytes=$env:OPT_BYTES sha=$env:OPT_SHA256"
 
-      - name: Optimize embedded textures for mobile
+      - name: Resolve Roblox creator
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          $out=Join-Path $env:ASC_BASKET_DIR 'BasketBall_Court_roblox_mobile.glb'
-          python '.github/scripts/asc_optimize_glb.py' $env:ASC_BASKET_GLB $out 1024
-          if($LASTEXITCODE -ne 0 -or -not (Test-Path $out)){ throw 'Basket optimization failed' }
-          $bytes=(Get-Item $out).Length
-          $hash=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($bytes -ne [int64]$env:OPT_BYTES){ throw "Optimized basket bytes mismatch: $bytes" }
-          if($hash -ne $env:OPT_SHA256){ throw "Optimized basket SHA mismatch: $hash" }
-          "ASC_BASKET_OPT_GLB=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BASKET OPTIMIZATION PASS bytes=$bytes sha256=$hash"
-
-      - name: Resolve AFTER SCHOOL CITY Roblox creator
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $meta=Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:UNIVERSE_ID"
-          if(-not $meta.data -or $meta.data.Count -lt 1){ throw 'Unable to resolve AFTER SCHOOL CITY creator' }
-          $creator=$meta.data[0].creator
-          $type=[string]$creator.type
-          $id=[string]$creator.id
-          if($id -notmatch '^\d+$'){ throw "Invalid creator id: $id" }
-          if($type -ieq 'Group'){
-            "ASC_CREATOR_FIELD=groupId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          } elseif($type -ieq 'User'){
-            "ASC_CREATOR_FIELD=userId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          } else { throw "Unsupported creator type: $type" }
+          $ErrorActionPreference = 'Stop'
+          $meta = Invoke-RestMethod -Method Get -Uri "https://games.roblox.com/v1/games?universeIds=$env:UNIVERSE_ID"
+          $creator = $meta.data[0].creator
+          $type = [string]$creator.type
+          $id = [string]$creator.id
+          if ($id -notmatch '^\d+$') { throw 'Invalid creator id' }
+          if ($type -ieq 'Group') { "ASC_CREATOR_FIELD=groupId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append }
+          elseif ($type -ieq 'User') { "ASC_CREATOR_FIELD=userId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append }
+          else { throw "Unsupported creator type: $type" }
           "ASC_CREATOR_ID=$id" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "ASC CREATOR RESOLVED type=$type id=$id"
+          Write-Host "CREATOR PASS type=$type id=$id"
 
-      - name: Upload prepared basketball court as Roblox Model asset
+      - name: Upload basketball model to Roblox
         shell: powershell
         run: |
-          $ErrorActionPreference='Stop'
-          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
-          $creator=@{}
-          $creator[$env:ASC_CREATOR_FIELD]=$env:ASC_CREATOR_ID
-          $request=@{
-            assetType='Model'
-            displayName='ASC Basketball Court - Mobile'
-            description='Basketball court model supplied for AFTER SCHOOL CITY; textures optimized to 1024px for mobile runtime.'
-            creationContext=@{ creator=$creator }
-          } | ConvertTo-Json -Depth 8 -Compress
-          $requestFile=Join-Path $env:RUNNER_TEMP 'asc-v135-basket-request.json'
-          [System.IO.File]::WriteAllText($requestFile,$request,(New-Object System.Text.UTF8Encoding($false)))
-          try {
-            $args=@(
-              '--silent','--show-error','--location','--request','POST',
-              '--header',"x-api-key: $env:ROBLOX_API_KEY",
-              '--form',"request=<$requestFile;type=application/json",
-              '--form',"fileContent=@$env:ASC_BASKET_OPT_GLB;type=model/gltf-binary",
-              'https://apis.roblox.com/assets/v1/assets'
-            )
-            $raw=& curl.exe @args
-          } finally { Remove-Item $requestFile -Force -ErrorAction SilentlyContinue }
-          if($LASTEXITCODE -ne 0){ throw 'Roblox basketball asset upload curl failed' }
-          try { $created=$raw | ConvertFrom-Json } catch { throw "Invalid Roblox asset response: $raw" }
-          if(-not $created.path){ throw "Roblox basketball upload rejected: $raw" }
-          $operationId=([string]$created.path) -replace '^operations/',''
-          Write-Host "BASKET ASSET UPLOAD ACCEPTED operation=$operationId"
-
-          $assetId=''; $moderation='UNKNOWN'
-          for($i=0;$i -lt 90;$i++){
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)) { throw 'Roblox API key unavailable' }
+          $creator = @{}
+          $creator[$env:ASC_CREATOR_FIELD] = $env:ASC_CREATOR_ID
+          $payload = @{ assetType='Model'; displayName='ASC Basketball Court - Mobile'; description='Basketball court model for AFTER SCHOOL CITY, mobile texture optimization.'; creationContext=@{ creator=$creator } } | ConvertTo-Json -Depth 8 -Compress
+          $requestFile = Join-Path $env:RUNNER_TEMP 'basket-request.json'
+          [System.IO.File]::WriteAllText($requestFile, $payload, (New-Object System.Text.UTF8Encoding($false)))
+          $raw = & curl.exe --silent --show-error --location --request POST --header "x-api-key: $env:ROBLOX_API_KEY" --form "request=<$requestFile;type=application/json" --form "fileContent=@$env:ASC_BASKET_GLB;type=model/gltf-binary" 'https://apis.roblox.com/assets/v1/assets'
+          if ($LASTEXITCODE -ne 0) { throw 'Roblox asset upload request failed' }
+          $created = $raw | ConvertFrom-Json
+          if (-not $created.path) { throw "Roblox upload rejected: $raw" }
+          $operationId = ([string]$created.path) -replace '^operations/',''
+          $assetId = ''
+          $moderation = 'UNKNOWN'
+          for ($i=0; $i -lt 90; $i++) {
             Start-Sleep -Seconds 4
-            $opRaw=& curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_API_KEY" "https://apis.roblox.com/assets/v1/operations/$operationId"
-            if($LASTEXITCODE -ne 0){ continue }
-            try { $op=$opRaw | ConvertFrom-Json } catch { continue }
-            if($op.done){
-              if($op.error){ throw "Roblox basket asset operation failed: $($op.error | ConvertTo-Json -Compress -Depth 8)" }
-              $assetId=[string]$op.response.assetId
-              if($assetId -notmatch '^\d+$'){ throw "Basket asset operation completed without assetId: $opRaw" }
-              $moderation=[string]$op.response.moderationResult.moderationState
+            $opRaw = & curl.exe --silent --show-error --location --header "x-api-key: $env:ROBLOX_API_KEY" "https://apis.roblox.com/assets/v1/operations/$operationId"
+            try { $op = $opRaw | ConvertFrom-Json } catch { continue }
+            if ($op.done) {
+              if ($op.error) { throw "Roblox asset operation failed: $opRaw" }
+              $assetId = [string]$op.response.assetId
+              $moderation = [string]$op.response.moderationResult.moderationState
               break
             }
           }
-          if($assetId -notmatch '^\d+$'){ throw 'Timed out waiting for Roblox basketball asset operation' }
-          "BASKETBALL_ASSET_ID=$assetId" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          "BASKETBALL_MODERATION=$moderation" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "BASKET ASSET UPLOAD DONE asset=$assetId moderation=$moderation"
-
-      - name: Integrate basketball asset into isolated source
-        shell: powershell
-        run: |
-          $ErrorActionPreference='Stop'
-          $path='maps/after-school-city/after-school-city.sports-assets-v134.server.lua'
-          $text=Get-Content $path -Raw
-          $old="local BASKETBALL_COURT_ASSET_ID = 0 -- LICENSE_HOLD: do not activate until rights are verified."
-          if(-not $text.Contains($old)){ throw 'Expected basketball hold marker missing' }
-          $text=$text.Replace($old,"local BASKETBALL_COURT_ASSET_ID = $env:BASKETBALL_ASSET_ID -- ASC_WORKFLOW_BASKETBALL_ASSET_ID")
-          $text=$text.Replace('layer:SetAttribute("ASC_BasketballAssetStatus", "LICENSE_HOLD")','layer:SetAttribute("ASC_BasketballAssetStatus", "ENABLED")')
-          $oldBlock=@'
--- Basketball source has been optimized and evaluated separately, but intentionally remains
--- disabled until its redistribution/use license is positively verified. Existing court stays live.
-if BASKETBALL_COURT_ASSET_ID > 0 then
-    warn("[ASC V134 SportsAssets] basketball asset ID present unexpectedly while LICENSE_HOLD is active")
-end
-'@
-          $newBlock=@'
-local basketLayer = Instance.new("Model")
-basketLayer.Name = "BasketballImportedCourt"
-basketLayer.Parent = layer
-
-local basketballImportedCount = 0
-local basketballPack, basketballLoadError = loadAsset(BASKETBALL_COURT_ASSET_ID)
-if basketballPack then
-    basketballPack.Name = "ImportedBasketballCourt"
-    local sourceFloor = findImportedPart(basketballPack, "CourtFloor")
-    if sourceFloor then
-        local sourceLong = math.max(sourceFloor.Size.X, sourceFloor.Size.Z)
-        local sourceShort = math.min(sourceFloor.Size.X, sourceFloor.Size.Z)
-        local targetLong = math.max(basketballCourt.Size.X, basketballCourt.Size.Z) * 0.97
-        local targetShort = math.min(basketballCourt.Size.X, basketballCourt.Size.Z) * 0.97
-        local scale = math.min(targetLong / sourceLong, targetShort / sourceShort)
-        basketballPack:ScaleTo(scale)
-
-        sourceFloor = findImportedPart(basketballPack, "CourtFloor")
-        local yaw = 0
-        if sourceFloor and sourceFloor.Size.Z > sourceFloor.Size.X then
-            yaw = 90
-        end
-
-        if sourceFloor then
-            local courtTop = basketballCourt.Position.Y + basketballCourt.Size.Y * 0.5
-            local targetFloor = CFrame.new(
-                basketballCourt.Position.X,
-                courtTop + sourceFloor.Size.Y * 0.5 + 0.06,
-                basketballCourt.Position.Z
-            ) * CFrame.Angles(0, math.rad(yaw), 0)
-            local delta = targetFloor * sourceFloor.CFrame:Inverse()
-            basketballPack:PivotTo(delta * basketballPack:GetPivot())
-        end
-
-        for _, descendant in ipairs(basketballPack:GetDescendants()) do
-            if descendant:IsA("BasePart") then
-                descendant.Anchored = true
-                descendant.CanTouch = false
-                descendant.CanQuery = true
-                descendant.CastShadow = true
-                descendant:SetAttribute("ASC_ExternalAsset", true)
-                descendant:SetAttribute("ASC_AssetSource", "BASKETBALL_COURT_PACK")
-                basketballImportedCount += 1
-            end
-        end
-        basketballPack.Parent = basketLayer
-    else
-        warn("[ASC V135 SportsAssets] basketball Court_Floor mesh missing")
-        basketballPack:Destroy()
-    end
-else
-    warn("[ASC V135 SportsAssets] basketball asset unavailable: " .. tostring(basketballLoadError))
-end
-'@
-          if(-not $text.Contains($oldBlock)){ throw 'Expected basketball hold block missing' }
-          $text=$text.Replace($oldBlock,$newBlock)
-          $text=$text.Replace('root:SetAttribute("ASC_BasketballExternalAssetEnabled", false)','root:SetAttribute("ASC_BasketballExternalAssetEnabled", basketballImportedCount > 0)')
-          $text=$text.Replace('print(string.format("[AFTER SCHOOL CITY] V1.3.4 sports assets ready; skateboardProps=%d basketball=LICENSE_HOLD protectedUnchanged=true", importedCount))','print(string.format("[AFTER SCHOOL CITY] V1.3.5 sports assets ready; skateboardProps=%d basketballParts=%d protectedUnchanged=true", importedCount, basketballImportedCount))')
-          Set-Content -Path $path -Value $text -Encoding utf8
-
-          New-Item -ItemType Directory -Path 'asset-status' -Force | Out-Null
-          $receipt=[ordered]@{
-            status='BASKETBALL_ASSET_INGESTED_QC_PENDING'
-            project='AFTER SCHOOL CITY'
-            mode='V135_BASKETBALL_EXTERNAL_ASSET'
-            liveSource=$env:LIVE_SOURCE
-            liveRobloxVersion=[int]$env:LIVE_VERSION
-            sourceZipBytes=[int64]$env:ZIP_BYTES
-            sourceZipSha256=$env:ZIP_SHA256
-            sourceGlbBytes=[int64]$env:GLB_BYTES
-            sourceGlbSha256=$env:GLB_SHA256
-            optimizedBytes=[int64]$env:OPT_BYTES
-            optimizedSha256=$env:OPT_SHA256
-            robloxAssetId=[int64]$env:BASKETBALL_ASSET_ID
-            moderationState=$env:BASKETBALL_MODERATION
-            textureMaxDimension=1024
-            placePublished=$false
-          }
-          $receipt | ConvertTo-Json -Depth 5 | Set-Content 'asset-status/after-school-city-v135-basketball.json' -Encoding utf8
-          git config user.name 'After School City Asset Ingest'
-          git config user.email 'actions@users.noreply.github.com'
-          git add $path 'asset-status/after-school-city-v135-basketball.json'
-          git diff --cached --check
-          git commit -m 'ASC: integrate V1.3.5 basketball external asset [skip ci]'
-          if($LASTEXITCODE -ne 0){ throw 'Basketball integration commit failed' }
-          git push origin HEAD:after-school-city/v135-basketball-asset
-          if($LASTEXITCODE -ne 0){ throw 'Basketball integration push failed; Place remains unchanged' }
-          $source=(git rev-parse HEAD).Trim()
-          Write-Host "BASKETBALL INTEGRATION SOURCE PASS source=$source asset=$env:BASKETBALL_ASSET_ID placePublish=NO"
-
-      - name: Completion marker
-        shell: powershell
-        run: Write-Host 'ASC V1.3.5 BASKETBALL ASSET UPLOAD + SOURCE INTEGRATION COMPLETE; PLACE PUBLISH NOT PERFORMED'
+          if ($assetId -notmatch '^\d+$') { throw 'Basket asset ID not returned' }
+          Write-Host "ASC_BASKETBALL_ASSET_READY assetId=$assetId moderation=$moderation optBytes=$env:OPT_BYTES optSha=$env:OPT_SHA256"
+          Write-Host 'PLACE_PUBLISH=NOT_PERFORMED'
