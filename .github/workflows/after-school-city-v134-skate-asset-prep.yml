@@ -54,24 +54,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $gate=Join-Path $env:ASC_PREP_DIR 'license_gate.py'
-          @'
-import json,struct,sys
-p=sys.argv[1]
-d=open(p,'rb').read(); assert d[:4]==b'glTF'
-o=12; j=None
-while o<len(d):
-    n,t=struct.unpack_from('<II',d,o); o+=8
-    c=d[o:o+n]; o+=n
-    if t==0x4E4F534A:
-        j=json.loads(c.decode('utf-8').rstrip(' \t\r\n\x00')); break
-assert j is not None
-blob=json.dumps((j.get('asset') or {}).get('extras') or {},ensure_ascii=False).lower()
-assert ('cc-by-4.0' in blob or 'creativecommons.org/licenses/by/4.0' in blob)
-assert 'arsen ismailov' in blob
-print('LICENSE PASS CC-BY-4.0 / Arsen Ismailov')
-'@ | Set-Content $gate -Encoding utf8
-          python $gate $env:ASC_SOURCE_GLB
+          python '.github/scripts/asc_check_glb_license.py' $env:ASC_SOURCE_GLB
           if($LASTEXITCODE -ne 0){ throw 'License gate failed' }
 
       - name: Optimize embedded textures for mobile
