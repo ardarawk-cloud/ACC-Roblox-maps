@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   ingest:
-    runs-on: self-hosted
+    runs-on: windows-latest
     timeout-minutes: 30
     env:
       ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
