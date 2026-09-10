@@ -1,0 +1,82 @@
+name: BBYA TalonTheAngel Funkot22 Upload
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  upload-funkot22:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL FUNKOT22 UPLOAD RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+      MAX_MODERATION_WAIT_SECONDS: '0'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AUDIO_KEY:-}" || { echo 'TALONTHEANGEL_SECRET_MISSING'; exit 10; }
+          echo 'TALONTHEANGEL_SECRET_PRESENT=YES'
+
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl
+          python3 -m pip install --quiet 'gdown==6.1.0'
+
+      - name: Prepare Funkot22 batch
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/funkot22.json" <<'JSON'
+          [
+            {"drive_file_id":"1IqS-aucCT-_j0Kew4tOcAq7T091zmAzB","title":"Bbya Funkot 01"},
+            {"drive_file_id":"1gvaKsQYAexMqRnIhghf88CHrItQdwpBH","title":"Bbya Funkot 02"},
+            {"drive_file_id":"1QPlsTGdjjRGDzCszOLZQn4uAnYYC-nns","title":"Bbya Funkot 03"},
+            {"drive_file_id":"1MGboSxZvl9i_IuAr-fJtvIfmFtC6bBU6","title":"Bbya Funkot 04"},
+            {"drive_file_id":"1Pu7aSz0F1llbG4uNKEMu-uV8Rw7VEqs8","title":"Bbya Funkot 05"},
+            {"drive_file_id":"1gwf_mxK2TyQncPFLcWTHutmdJrb62pOH","title":"Bbya Funkot 06"},
+            {"drive_file_id":"1ndlMT-0YXYluCwvvEd02HsiyFwpICPay","title":"Bbya Funkot 07"},
+            {"drive_file_id":"1Tl2bg56WjRWB7JgTUbrvTBGXTs6dtz4w","title":"Bbya Funkot 08"},
+            {"drive_file_id":"1xlnTLarY6zu7-BXXn1MF7MYZ3tQWuZob","title":"Bbya Funkot 09"},
+            {"drive_file_id":"131Ee6bdi5KXzeWRX3jvkao8DsIRxKUJS","title":"Bbya Funkot 010"},
+            {"drive_file_id":"1ZgwnGMjO-uNKwh_qisUP3vt2PT4Ouqv4","title":"Bbya Funkot 011"},
+            {"drive_file_id":"1IXjzRbsNcrIB2suPrm_FL27xpvxlhb8A","title":"Bbya Funkot 012"},
+            {"drive_file_id":"14nAtXu41ljgN8_fcN6KGNVWKWZkQxgPa","title":"Bbya Funkot 013"},
+            {"drive_file_id":"1_S-Kryu5K6veb2g5xLHOV6DoqvFuHPDb","title":"Bbya Funkot 014"},
+            {"drive_file_id":"1tCLRFguUgKTUT9qZEHWMqN2qw9cxpeZN","title":"Bbya Funkot 015"},
+            {"drive_file_id":"1qis462-bM-gMQOyQuOkjLgrfNye7lzQH","title":"Bbya Funkot 016"},
+            {"drive_file_id":"1BNNrO-L5IUZEkbDeaLmO69DoYvSphk_X","title":"Bbya Funkot 017"},
+            {"drive_file_id":"1Ls3d3O91nIRp5TTgCyZRZBUqhv1CQrtW","title":"Bbya Funkot 018"},
+            {"drive_file_id":"1uiZ9Vxx3HEjvXRAgwe4HL65VhUBOdMlM","title":"Bbya Funkot 019"},
+            {"drive_file_id":"1PnDpUVl5nmGPSb43awamQakRa8jCKFuX","title":"Bbya Funkot 020"},
+            {"drive_file_id":"1xibmVvkx3vjzYghtj6S52fwueFfB_TQ9","title":"Bbya Funkot 021"},
+            {"drive_file_id":"1vCqaZWxLrKDNd3_BVrWg61_vv4iNFSUm","title":"Bbya Funkot 022"}
+          ]
+          JSON
+
+      - name: Upload Funkot22 at 1.75x
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/bbya-music-simple-upload-v13.py \
+            --batch "$RUNNER_TEMP/funkot22.json" \
+            --result talontheangel-funkot22-result.json \
+            --moderation-wait-seconds 0
+
+      - name: Preserve result
+        if: always() && hashFiles('talontheangel-funkot22-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: talontheangel-funkot22-${{ github.run_id }}
+          path: talontheangel-funkot22-result.json
+          retention-days: 30
