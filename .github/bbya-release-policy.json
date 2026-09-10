@@ -1,6 +1,7 @@
 {
-  "version": 2,
+  "version": 3,
   "goldenBaselineBranch": "bbya-golden-baseline",
+  "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "protectedRoots": [
     "maps/bbya-social-hub/",
     "maps/bbya-social-hub-client/",
@@ -8,7 +9,6 @@
   ],
   "governedExactPaths": [
     ".github/workflows/bbya-release-gate.yml",
-    ".github/workflows/bbya-runtime-qc-stage.yml",
     ".github/bbya-release-policy.json",
     "scripts/bbya-scope-guard.py",
     "maps/registry.json"
@@ -16,7 +16,6 @@
   "scopes": {
     "baseline-recovery": [
       ".github/workflows/bbya-release-gate.yml",
-      ".github/workflows/bbya-runtime-qc-stage.yml",
       ".github/bbya-release-policy.json",
       "scripts/bbya-scope-guard.py",
       "maps/registry.json"
