@@ -1,0 +1,25 @@
+name: Release Queue Drain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-queue-drain.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Emergency one-shot drain for a stale pre-gate BBYA rescue run.
+# The old rescue workflow used this exact push concurrency group.
+concurrency:
+  group: bbya-live-rescue-windows-push
+  cancel-in-progress: true
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Drain stale rescue queue only
+        run: echo 'BBYA stale rescue queue drained; no publish action performed.'
