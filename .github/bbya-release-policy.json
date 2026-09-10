@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "protectedRoots": [
     "maps/bbya-social-hub/",
@@ -8,14 +8,18 @@
   ],
   "governedExactPaths": [
     ".github/workflows/bbya-release-gate.yml",
+    ".github/workflows/bbya-runtime-qc-stage.yml",
     ".github/bbya-release-policy.json",
-    "scripts/bbya-scope-guard.py"
+    "scripts/bbya-scope-guard.py",
+    "maps/registry.json"
   ],
   "scopes": {
     "baseline-recovery": [
       ".github/workflows/bbya-release-gate.yml",
+      ".github/workflows/bbya-runtime-qc-stage.yml",
       ".github/bbya-release-policy.json",
-      "scripts/bbya-scope-guard.py"
+      "scripts/bbya-scope-guard.py",
+      "maps/registry.json"
     ],
     "identity": [
       "maps/bbya-social-hub/92-player-progression.server.lua",
