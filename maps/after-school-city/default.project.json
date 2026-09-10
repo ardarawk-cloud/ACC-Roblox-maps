@@ -4,12 +4,24 @@
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "ASCConfig": {"$path": "after-school-city.config.lua"},
-      "ASCMusicConfig": {"$path": "after-school-city.music-config.lua"},
-      "ASCGameplayConfig": {"$path": "after-school-city.gameplay-config.lua"},
-      "ASCActivityConfig": {"$path": "after-school-city.activity-config.lua"},
-      "ASCSchoolLifeConfig": {"$path": "after-school-city.school-life-config.lua"},
-      "ASCEconomyConfig": {"$path": "after-school-city.economy-config.lua"}
+      "ASCConfig": {
+        "$path": "after-school-city.config.lua"
+      },
+      "ASCMusicConfig": {
+        "$path": "after-school-city.music-config.lua"
+      },
+      "ASCGameplayConfig": {
+        "$path": "after-school-city.gameplay-config.lua"
+      },
+      "ASCActivityConfig": {
+        "$path": "after-school-city.activity-config.lua"
+      },
+      "ASCSchoolLifeConfig": {
+        "$path": "after-school-city.school-life-config.lua"
+      },
+      "ASCEconomyConfig": {
+        "$path": "after-school-city.economy-config.lua"
+      }
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
