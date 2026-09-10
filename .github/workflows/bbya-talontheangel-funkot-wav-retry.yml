@@ -1,0 +1,32 @@
+name: BBYA TalonTheAngel Funkot WAV Retry
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  retry:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL FUNKOT WAV RETRY RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install audio tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl
+          python3 -m pip install --quiet 'gdown==6.1.0'
+      - name: Retry 013 and 022
+        run: python3 scripts/bbya-funkot-wav-retry-temp.py
+      - name: Preserve result
+        if: always() && hashFiles('funkot-wav-retry-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: funkot-wav-retry-${{ github.run_id }}
+          path: funkot-wav-retry-result.json
+          retention-days: 30
