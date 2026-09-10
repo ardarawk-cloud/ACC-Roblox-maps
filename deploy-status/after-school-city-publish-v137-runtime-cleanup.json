@@ -1,0 +1,29 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V137_RUNTIME_CLEANUP_BATCH",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "5e107062864b63559510f66e1497358f2a4eda64",
+    "baseLiveCommit":  "aaa477d85a2501d56f42824f5785a0a2f3aea5f4",
+    "qcRunId":  "34430424088",
+    "qcArtifactId":  10134274986,
+    "qcArtifactDigest":  "b4502a80ad3f5ab0d41d87cadbf0ba247d1928120d940d86abecd0617146626f",
+    "skateboardAssetId":  111060043204479,
+    "basketballAssetId":  119323680316690,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  61,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  213197,
+    "placeSha256":  "ccfffabb5d2b513ac1a728d7b51dca47b894033f6eeccd38010c84ca96537901",
+    "runId":  "34444496504",
+    "publishedAt":  "2026-09-10T06:17:12Z",
+    "runtimeStatus":  "PENDING",
+    "fixes":  [
+                  "duplicate basketball hoops removed",
+                  "basketball entrance fence made passable",
+                  "Student Tote rebuilt as recognizable open tote while preserving purchase prompt",
+                  "malformed loose imported skate rails removed"
+              ],
+    "note":  "Exact V1.3.7 runtime-cleanup QC artifact published without rebuild. Economy, persistence/BAG authority, music, quests, dedication, and unrelated map systems unchanged."
+}
