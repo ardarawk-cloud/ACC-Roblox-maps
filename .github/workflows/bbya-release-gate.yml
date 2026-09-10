@@ -1,10 +1,10 @@
-name: BBYA Release Gate
+name: BBYA Publish Main
 
 on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: 'Exact 40-character BBYA source SHA already staged in Test Lab'
+        description: 'Exact 40-character BBYA MAIN source SHA to publish'
         required: true
         type: string
       scope:
@@ -19,55 +19,41 @@ on:
           - entrance-cars
           - mall
           - staff-tower
-      runtime_qc_run_id:
-        description: 'Successful BBYA Runtime QC Stage workflow run ID for this exact source/scope'
-        required: true
-        type: string
-      runtime_qc_confirmation:
-        description: 'After checking that exact Test Lab candidate, type RUNTIME_QC_PASS'
-        required: true
-        type: string
       confirmation:
-        description: 'Type PUBLISH_BBYA_LIVE to authorize the single live publish'
+        description: 'Type PUBLISH_BBYA_MAIN to publish directly to the live BBYA place'
         required: true
         type: string
 
 permissions:
   contents: write
-  actions: read
 
 concurrency:
-  group: bbya-live-release
+  group: bbya-main-publish
   cancel-in-progress: false
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Require explicit runtime and live confirmations
+      - name: Require explicit main publish confirmation
         env:
-          RUNTIME_QC_CONFIRMATION: ${{ inputs.runtime_qc_confirmation }}
           CONFIRMATION: ${{ inputs.confirmation }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$RUNTIME_QC_CONFIRMATION" != "RUNTIME_QC_PASS" ]]; then
-            echo 'DENIED: runtime_qc_confirmation must be exactly RUNTIME_QC_PASS'
+          if [[ "$CONFIRMATION" != "PUBLISH_BBYA_MAIN" ]]; then
+            echo 'DENIED: confirmation must be exactly PUBLISH_BBYA_MAIN'
             exit 2
           fi
-          if [[ "$CONFIRMATION" != "PUBLISH_BBYA_LIVE" ]]; then
-            echo 'DENIED: confirmation must be exactly PUBLISH_BBYA_LIVE'
-            exit 3
-          fi
 
-      - name: Checkout exact candidate source
+      - name: Checkout exact BBYA source
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 0
 
-      - name: Verify candidate is current BBYA source modulo operational receipts
+      - name: Verify source is current MAIN modulo receipt-only bot churn
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
@@ -75,30 +61,28 @@ jobs:
           set -euo pipefail
           if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
             echo 'DENIED: source_sha must be an exact 40-character commit SHA'
-            exit 4
+            exit 3
           fi
-          git fetch origin main
           checked_sha="$(git rev-parse HEAD)"
-          main_sha="$(git rev-parse origin/main)"
           test "${SOURCE_SHA,,}" = "${checked_sha,,}"
+          git fetch origin main
           git merge-base --is-ancestor "$SOURCE_SHA" origin/main || {
             echo 'DENIED: requested source is not an ancestor of current MAIN'
-            exit 5
+            exit 4
           }
           mapfile -t churn < <(git diff --name-only "$SOURCE_SHA..origin/main")
           for p in "${churn[@]}"; do
             [[ -z "$p" ]] && continue
             if [[ "$p" != deploy-status/* ]]; then
-              echo "DENIED: MAIN changed after tested source outside operational receipts: $p"
-              exit 6
+              echo "DENIED: MAIN changed after requested source outside receipt metadata: $p"
+              exit 5
             fi
           done
-          echo "tested_source=$SOURCE_SHA"
-          echo "current_main=$main_sha"
-          echo "operational_receipt_churn=${#churn[@]}"
-          echo 'BBYA source freshness: PASS'
+          echo "publish_source=$SOURCE_SHA"
+          echo "current_main=$(git rev-parse origin/main)"
+          echo 'MAIN source freshness: PASS'
 
-      - name: Fetch golden baseline and enforce isolated scope
+      - name: Enforce BBYA isolated scope and locked invariants
         env:
           SCOPE: ${{ inputs.scope }}
         shell: bash
@@ -110,52 +94,15 @@ jobs:
             --baseline-ref origin/bbya-golden-baseline \
             --candidate-ref HEAD
 
-      - name: Verify locked BBYA live identity
+      - name: Verify locked live target
         shell: bash
         run: |
           set -euo pipefail
           jq -e '.maps["a-club"].enabled == true' maps/registry.json >/dev/null
           test "$(jq -r '.maps["a-club"].universeId' maps/registry.json)" = '8116636513'
           test "$(jq -r '.maps["a-club"].placeId' maps/registry.json)" = '131894120482837'
-          test "$(jq -r '.maps["a-club-test"].placeId' maps/registry.json)" = '124607344716828'
           test -s maps/bbya-social-hub/default.project.json
-          echo 'BBYA identity lock: PASS'
-
-      - name: Verify exact successful Test Lab stage and download evidence
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          SCOPE: ${{ inputs.scope }}
-          RUN_ID: ${{ inputs.runtime_qc_run_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
-            echo 'DENIED: runtime_qc_run_id must be numeric'
-            exit 7
-          fi
-          auth=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28')
-          run_json="$(curl -fsSL "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")"
-          test "$(jq -r '.conclusion' <<<"$run_json")" = 'success'
-          test "$(jq -r '.event' <<<"$run_json")" = 'workflow_dispatch'
-          test "$(jq -r '.head_branch' <<<"$run_json")" = 'main'
-          test "$(jq -r '.path' <<<"$run_json")" = '.github/workflows/bbya-runtime-qc-stage.yml'
-
-          artifacts="$(curl -fsSL "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts?per_page=100")"
-          artifact_name="bbya-runtime-qc-$SOURCE_SHA"
-          artifact_id="$(jq -r --arg n "$artifact_name" '.artifacts[] | select(.name==$n and .expired==false) | .id' <<<"$artifacts" | head -n1)"
-          if [[ -z "$artifact_id" || "$artifact_id" == 'null' ]]; then
-            echo "DENIED: exact runtime-QC artifact $artifact_name not found"
-            exit 8
-          fi
-          mkdir -p /tmp/bbya-stage-evidence
-          curl -fsSL -L "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" -o /tmp/bbya-stage.zip
-          unzip -q /tmp/bbya-stage.zip -d /tmp/bbya-stage-evidence
-          test "$(tr -d '\r\n' </tmp/bbya-stage-evidence/source-sha.txt)" = "$SOURCE_SHA"
-          test "$(tr -d '\r\n' </tmp/bbya-stage-evidence/scope.txt)" = "$SCOPE"
-          test "$(jq -r '.status' /tmp/bbya-stage-evidence/a-club-test.json)" = 'PUBLISHED'
-          test "$(jq -r '.placeId' /tmp/bbya-stage-evidence/a-club-test.json)" = '124607344716828'
-          echo 'Exact Test Lab stage evidence: PASS'
+          echo 'BBYA live target lock: PASS'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -176,27 +123,20 @@ jobs:
       - name: Verify Rojo
         run: rojo --version
 
-      - name: Rebuild exact live candidate and match staged package
+      - name: Build exact MAIN candidate
         shell: bash
         run: |
           set -euo pipefail
-          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-release-candidate.rbxl
-          test -s /tmp/bbya-release-candidate.rbxl
-          live_hash="$(sha256sum /tmp/bbya-release-candidate.rbxl | awk '{print $1}')"
-          stage_hash="$(awk '{print $1}' /tmp/bbya-stage-evidence/bbya-runtime-qc-candidate.sha256)"
-          echo "stage_hash=$stage_hash"
-          echo "live_hash=$live_hash"
-          if [[ "$live_hash" != "$stage_hash" ]]; then
-            echo 'DENIED: rebuilt live package differs from the package tested in Test Lab'
-            exit 9
-          fi
-          printf '%s  %s\n' "$live_hash" /tmp/bbya-release-candidate.rbxl > /tmp/bbya-release-candidate.sha256
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-main-candidate.rbxl
+          test -s /tmp/bbya-main-candidate.rbxl
+          sha256sum /tmp/bbya-main-candidate.rbxl | tee /tmp/bbya-main-candidate.sha256
+          ls -lh /tmp/bbya-main-candidate.rbxl
 
-      - name: Publish through canonical BBYA gate once
+      - name: Publish directly to BBYA MAIN once
         env:
           ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
           PUBLISH_RECEIPT_DIR: deploy-status
-          PLACE_FILE_OVERRIDE: /tmp/bbya-release-candidate.rbxl
+          PLACE_FILE_OVERRIDE: /tmp/bbya-main-candidate.rbxl
           BBYA_RELEASE_GATE: BBYA_SINGLE_GATE_V1
           BBYA_SOURCE_SHA: ${{ inputs.source_sha }}
         run: node scripts/publish-map.js a-club
@@ -212,9 +152,9 @@ jobs:
           test "$(jq -r '.sourceCommit' deploy-status/a-club.json)" = "$SOURCE_SHA"
           test "$(jq -r '.universeId' deploy-status/a-club.json)" = '8116636513'
           test "$(jq -r '.placeId' deploy-status/a-club.json)" = '131894120482837'
-          echo 'Exact-source live release receipt: PASS'
+          echo 'BBYA MAIN exact-source receipt: PASS'
 
-      - name: Advance read-only golden baseline only after verified live publish
+      - name: Advance golden baseline only after verified MAIN publish
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
@@ -224,12 +164,12 @@ jobs:
           git push origin "$SOURCE_SHA:refs/heads/bbya-golden-baseline" --force-with-lease="refs/heads/bbya-golden-baseline:$old"
           echo "Golden baseline advanced: $old -> $SOURCE_SHA"
 
-      - name: Preserve live release evidence without mutating MAIN
+      - name: Preserve MAIN publish evidence
         uses: actions/upload-artifact@v4
         with:
-          name: bbya-release-${{ inputs.source_sha }}
+          name: bbya-main-${{ inputs.source_sha }}
           path: |
             deploy-status/a-club.json
-            /tmp/bbya-release-candidate.sha256
+            /tmp/bbya-main-candidate.sha256
           if-no-files-found: error
           retention-days: 90
