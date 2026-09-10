@@ -1,0 +1,102 @@
+name: BBYA TalonTheAngel Progressive Verify Permission
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-permission:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL PROGRESSIVE VERIFY PERMISSION RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+      UNIVERSE_ID: '8116636513'
+    steps:
+      - name: Verify moderation and grant PROD permission to approved assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AUDIO_KEY:-}" || { echo 'TALONTHEANGEL_SECRET_MISSING'; exit 10; }
+          python3 - <<'PY'
+          import json, os, pathlib, urllib.request, urllib.error
+          tracks = [
+            ('Matamu','111582942633303'),
+            ('Araarai','138836589311383'),
+            ('Sivici','99545738795998'),
+            ('Konsido','93245585442878'),
+            ('Dansa','91809723842173'),
+            ('Hantuuu','103905707256183'),
+            ('Mikir jalan','129758504404323'),
+            ('Bingung','136097078637707'),
+            ('Rumah','90011355891550'),
+            ('Puter','71303652287437'),
+          ]
+          key=os.environ['AUDIO_KEY'].strip(); universe=os.environ['UNIVERSE_ID']
+          def req(url, method='GET', payload=None, headers=None):
+              data=None if payload is None else json.dumps(payload).encode()
+              r=urllib.request.Request(url,data=data,headers=headers or {},method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=30) as resp:
+                      raw=resp.read().decode('utf-8','replace')
+                      return resp.status, json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try: body=json.loads(raw) if raw.strip() else {}
+                  except Exception: body={'raw':raw[-2000:]}
+                  return e.code,body
+          def cls(state):
+              u=str(state or '').upper()
+              if 'APPROVED' in u: return 'APPROVED'
+              if any(w in u for w in ('REJECTED','DENIED','FAILED')): return 'REJECTED'
+              return 'PENDING'
+          report={'pipeline':'BBYA_PROGRESSIVE_VERIFY_PERMISSION_V1','universeId':universe,'tracks':[]}
+          for title,aid in tracks:
+              state=''; code=None; body={}
+              for url in [f'https://apis.roblox.com/assets/v1/assets/{aid}?readMask=moderationResult,state,displayName',f'https://apis.roblox.com/assets/v1/assets/{aid}']:
+                  code,body=req(url,headers={'x-api-key':key})
+                  state=str((body.get('moderationResult') or {}).get('moderationState') or '') if isinstance(body,dict) else ''
+                  if state: break
+              report['tracks'].append({'title':title,'assetId':aid,'moderationHttp':code,'moderationState':state,'moderation':cls(state)})
+          approved=[r['assetId'] for r in report['tracks'] if r['moderation']=='APPROVED']
+          rejected=[r['assetId'] for r in report['tracks'] if r['moderation']=='REJECTED']
+          pending=[r['assetId'] for r in report['tracks'] if r['moderation']=='PENDING']
+          report['approvedCount']=len(approved); report['rejectedCount']=len(rejected); report['pendingCount']=len(pending)
+          code,info=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key},{'Content-Type':'application/json'})
+          report['introspectHttp']=code
+          report['authorizedUserId']=str(info.get('authorizedUserId')) if isinstance(info,dict) and info.get('authorizedUserId') is not None else None
+          scopes=[{'name':s.get('name'),'operations':s.get('operations') or []} for s in (info.get('scopes') or [])] if isinstance(info,dict) else []
+          report['scopes']=scopes
+          can_write=any(s.get('name')=='asset-permissions:write' for s in scopes)
+          report['hasAssetPermissionsWrite']=can_write
+          report['permissionAttempted']=False
+          if approved and code==200 and can_write:
+              payload={'subjectType':'Universe','subjectId':universe,'action':'Use','requests':[{'assetId':int(x)} for x in approved]}
+              pcode,pbody=req('https://apis.roblox.com/asset-permissions-api/v1/assets/permissions','PATCH',payload,{'x-api-key':key,'Content-Type':'application/json-patch+json'})
+              report['permissionAttempted']=True; report['permissionHttp']=pcode; report['permissionResponse']=pbody
+              success=[str(x) for x in (pbody.get('successAssetIds') or [])] if isinstance(pbody,dict) else []
+              report['permissionSuccessAssetIds']=success; report['permissionSuccessCount']=len(success)
+          else:
+              report['permissionSuccessAssetIds']=[]; report['permissionSuccessCount']=0
+          pathlib.Path('bbya-progressive-verify-permission.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps({
+            'approved':report['approvedCount'],'rejected':report['rejectedCount'],'pending':report['pendingCount'],
+            'introspectHttp':report['introspectHttp'],'hasAssetPermissionsWrite':report['hasAssetPermissionsWrite'],
+            'permissionAttempted':report['permissionAttempted'],'permissionHttp':report.get('permissionHttp'),
+            'permissionSuccessCount':report['permissionSuccessCount']
+          }))
+          for r in report['tracks']:
+              print(r['title'],r['assetId'],r['moderation'],r['moderationState'])
+          PY
+
+      - name: Preserve verification result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-progressive-verify-permission-${{ github.run_id }}
+          path: bbya-progressive-verify-permission.json
+          if-no-files-found: error
+          retention-days: 30
