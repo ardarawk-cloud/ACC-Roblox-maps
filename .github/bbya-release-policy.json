@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "goldenBaselineBranch": "bbya-golden-baseline",
+  "protectedRoots": [
+    "maps/bbya-social-hub/",
+    "maps/bbya-social-hub-client/",
+    "shared/"
+  ],
+  "governedExactPaths": [
+    ".github/workflows/bbya-release-gate.yml",
+    ".github/bbya-release-policy.json",
+    "scripts/bbya-scope-guard.py"
+  ],
+  "scopes": {
+    "baseline-recovery": [
+      ".github/workflows/bbya-release-gate.yml",
+      ".github/bbya-release-policy.json",
+      "scripts/bbya-scope-guard.py"
+    ],
+    "identity": [
+      "maps/bbya-social-hub/92-player-progression.server.lua",
+      "maps/bbya-social-hub/142-identity-ui.client.lua"
+    ],
+    "underground": [
+      "maps/bbya-social-hub/85-basement-autodj.server.lua",
+      "maps/bbya-social-hub/83-audio-health-guard.server.lua",
+      "maps/bbya-social-hub/81-basement-audio-ui.client.lua",
+      "maps/bbya-social-hub/148-venue-audio-router.client.lua"
+    ],
+    "funkot": [
+      "maps/bbya-social-hub/92-funkot-club.server.lua",
+      "maps/bbya-social-hub/93-funkot-music.server.lua",
+      "maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua",
+      "maps/bbya-social-hub/33-runtime-qc.server.lua"
+    ],
+    "entrance-cars": [
+      "maps/bbya-social-hub/77-entrance-car-cleanup.server.lua",
+      "maps/bbya-social-hub/default.project.json",
+      "maps/bbya-social-hub-assets/cars/**"
+    ],
+    "mall": [
+      "maps/bbya-social-hub/94-mall.server.lua",
+      "maps/bbya-social-hub/94-mall-polish.server.lua",
+      "maps/bbya-social-hub/95-mall-live-upgrade.server.lua",
+      "maps/bbya-social-hub/95-mall-live.client.lua",
+      "maps/bbya-social-hub/97-mall-safe-security-override.server.lua",
+      "maps/bbya-social-hub/101-district-promenade.server.lua",
+      "maps/bbya-social-hub/133-mall-robux-commerce.server.lua",
+      "maps/bbya-social-hub/133-mall-robux-commerce.client.lua",
+      "maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua",
+      "maps/bbya-social-hub/149-mall-music.server.lua"
+    ],
+    "staff-tower": [
+      "maps/bbya-social-hub/148-staff-tower.server.lua",
+      "maps/bbya-social-hub/156-staff-tower-role-travel.client.lua"
+    ]
+  },
+  "invariants": {
+    "identity": {
+      "path": "maps/bbya-social-hub/92-player-progression.server.lua",
+      "mustContain": [
+        "BBYAIdentityTag",
+        "player.DisplayName",
+        "Players.PlayerAdded:Connect(loadPlayer)"
+      ]
+    },
+    "underground": {
+      "path": "maps/bbya-social-hub/85-basement-autodj.server.lua",
+      "mustContain": [
+        "BBYABasementDeckA",
+        "BBYABasementDeckB",
+        "BasementMusic",
+        "PLAYLIST={"
+      ]
+    },
+    "funkotCleanEntry": {
+      "path": "maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua",
+      "mustContain": [
+        "FUNKOT CLEAN ENTRY",
+        "DiskotikArrivalV2",
+        "ArrivalDebrisRetired"
+      ]
+    },
+    "canonicalProject": {
+      "path": "maps/bbya-social-hub/default.project.json",
+      "mustContain": [
+        "PlayerProgressionV1",
+        "BasementIndoAutoDJ",
+        "AdminNextEditorHotfixV1",
+        "EntranceCarCleanup"
+      ]
+    }
+  },
+  "entranceCars": {
+    "requiredSourcePath": "maps/bbya-social-hub-assets/cars/BBYABakedCarsSourceV10.rbxmx",
+    "requiredProjectTokens": [
+      "ServerStorage",
+      "bbya-social-hub-assets/cars/BBYABakedCarsSourceV10.rbxmx"
+    ]
+  }
+}
