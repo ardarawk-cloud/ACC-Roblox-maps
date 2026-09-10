@@ -1,0 +1,106 @@
+name: HANGAR v8 Semantic Calibration LIVE
+
+on:
+  push:
+    branches: [aeroclub-hangar-rebuild-v1-lab]
+    paths: ['.github/workflows/hangar-v8-semantic-calibration-live.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hangar-v8-semantic-calibration-live
+  cancel-in-progress: true
+
+env:
+  UNIVERSE_ID: '10745364913'
+  PLACE_ID: '76001567401911'
+  ENV_ASSET_ID: '76797254008026'
+
+jobs:
+  publish-v8:
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 20
+    env:
+      ASSET_KEY: ${{ secrets.AM_STUDIO }}
+      MASTER_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify v8 semantic authority and build
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $src='maps/aeroclub-hangar/server/sketchfab-vehicles-v8.server.lua'
+          $t=[IO.File]::ReadAllText($src)
+          foreach($m in @('OWNER VEHICLE LAYOUT v8.0','V8_SEMANTIC_WHEEL_CALIBRATED_SIDE_ROWS','WHEELBASE_CALIBRATED_PER_ASSET','SEMANTIC_FRONT_REAR_HIERARCHY_FACE_PLUS_Z','SEMANTIC_WHEEL_BOTTOM','ENVIRONMENT_JET_COMPONENTS_DESTROYED_NOT_HIDDEN','CENTER_LANE_CLEAR_FOR_GUESTS_AND_FUTURE_HELICOPTER')){if($t -notmatch [regex]::Escape($m)){throw "v8 marker missing $m"}}
+          $proj=[IO.File]::ReadAllText('maps/aeroclub-hangar/default.project.json')
+          if($proj -notmatch 'sketchfab-vehicles-v8.server.lua'){throw 'project not switched to v8'}
+          $v='maps/aeroclub-hangar/server/visual-bootstrap-v2_0.server.lua'
+          $x=[IO.File]::ReadAllText($v)
+          $x=[regex]::Replace($x,'local MODEL_ASSET_ID = \d+ -- HANGAR_V20_REALISM_MODEL_ASSET_ID',"local MODEL_ASSET_ID = $env:ENV_ASSET_ID -- HANGAR_V20_REALISM_MODEL_ASSET_ID")
+          [IO.File]::WriteAllText($v,$x,(New-Object Text.UTF8Encoding($false)))
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){$rojo=$cmd.Source}else{
+            $d=Join-Path $env:RUNNER_TEMP 'rojo-hangar-v8';$z=Join-Path $env:RUNNER_TEMP 'rojo-hangar-v8.zip'
+            New-Item -ItemType Directory -Path $d -Force|Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $z
+            Expand-Archive $z $d -Force
+            $e=Get-ChildItem $d -Filter rojo.exe -File -Recurse|Select-Object -First 1
+            if(-not $e){throw 'rojo missing'}
+            $rojo=$e.FullName
+          }
+          $place=Join-Path $env:RUNNER_TEMP 'hangar-v8-semantic-calibration.rbxlx'
+          & $rojo build 'maps/aeroclub-hangar/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0){throw 'Rojo build failed'}
+          $xml=[IO.File]::ReadAllText($place)
+          foreach($m in @('HangarSketchfabVehiclesV8','V8_SEMANTIC_WHEEL_CALIBRATED_SIDE_ROWS','WHEELBASE_CALIBRATED_PER_ASSET','99964942308635','90377117635780')){if($xml -notmatch [regex]::Escape($m)){throw "built place missing $m"}}
+          "PLACE_FILE=$place"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA=$((Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant())"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$((Get-Item $place).Length)"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish MAIN HANGAR and restart servers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $version=$null;$publisher=''
+          foreach($entry in @(@('AM_STUDIO',$env:ASSET_KEY),@('MASTER_V2',$env:MASTER_KEY))){
+            $name=$entry[0];$key=$entry[1]
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{
+              $r=Invoke-WebRequest -UseBasicParsing -Method Post -Uri $url -Headers @{'x-api-key'=$key} -ContentType 'application/xml' -InFile $env:PLACE_FILE
+              $version=[int](($r.Content|ConvertFrom-Json).versionNumber);$publisher=$name
+              if($version){break}
+            }catch{Write-Warning "$name publish failed: $($_.Exception.Message)"}
+          }
+          if(-not $version){throw 'MAIN HANGAR publish failed'}
+          "LIVE_VERSION=$version"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHER=$publisher"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $restart="https://apis.roblox.com/cloud/v2/universes/$env:UNIVERSE_ID`:restartServers";$restarted=$false
+          foreach($key in @($env:ASSET_KEY,$env:MASTER_KEY)){
+            if([string]::IsNullOrWhiteSpace($key)){continue}
+            try{Invoke-RestMethod -Method Post -Uri $restart -Headers @{'x-api-key'=$key} -ContentType 'application/json' -Body '{}'|Out-Null;$restarted=$true;break}catch{}
+          }
+          "RESTARTED=$restarted"|Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "HANGAR_V8_SEMANTIC_CALIBRATION_LIVE version=$version publisher=$publisher restarted=$restarted"
+
+      - name: Save v8 LIVE receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='HANGAR-V8-SEMANTIC'}
+          $receipt=[ordered]@{
+            status='LIVE_PUBLISHED';ok=$true;project='HANGAR';phase='OWNER_QC_V8_SEMANTIC_WHEEL_CALIBRATION';
+            universeId=$env:UNIVERSE_ID;placeId=$env:PLACE_ID;sourceCommit=$env:GITHUB_SHA;robloxVersion=[int]$env:LIVE_VERSION;publisherKey=$env:PUBLISHER;
+            totalCars=13;layout='V8_SEMANTIC_WHEEL_CALIBRATED_SIDE_ROWS';scale='WHEELBASE_CALIBRATED_PER_ASSET';orientation='SEMANTIC_FRONT_REAR_HIERARCHY_FACE_PLUS_Z';grounding='SEMANTIC_WHEEL_BOTTOM';jet='ONE_OWNER_JET_MANUAL_YAW_NO_GHOST_COLLISION';entrance='CENTER_LANE_CLEAR';
+            placeSha256=$env:PLACE_SHA;placeBytes=[int64]$env:PLACE_BYTES;serversRestarted=([bool]::Parse($env:RESTARTED));visualQC='PENDING_OWNER_SCREENSHOT'
+          }
+          $path='deploy-status/hangar-live.json';$url="https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+          $old=$null;try{$old=Invoke-RestMethod -Headers $h -Uri ($url+'?ref='+$env:GITHUB_REF_NAME)}catch{}
+          $body=@{message='HANGAR: save v8 semantic calibration live receipt [skip ci]';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($receipt|ConvertTo-Json -Depth 8)));branch=$env:GITHUB_REF_NAME}
+          if($old){$body.sha=[string]$old.sha}
+          Invoke-RestMethod -Method Put -Headers $h -ContentType 'application/json' -Uri $url -Body ($body|ConvertTo-Json -Depth 5)|Out-Null
+          Write-Host "HANGAR_V8_RECEIPT_SAVED version=$env:LIVE_VERSION"
