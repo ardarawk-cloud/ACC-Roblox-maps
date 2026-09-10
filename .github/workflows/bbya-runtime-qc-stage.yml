@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_sha }}
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Verify candidate is exact current MAIN
         env:
@@ -63,7 +63,7 @@ jobs:
             echo 'DENIED: source_sha must be an exact 40-character commit SHA'
             exit 3
           fi
-          git fetch origin main --depth=1
+          git fetch origin main
           checked_sha="$(git rev-parse HEAD)"
           main_sha="$(git rev-parse origin/main)"
           test "${SOURCE_SHA,,}" = "${checked_sha,,}"
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin bbya-golden-baseline:refs/remotes/origin/bbya-golden-baseline --depth=200
+          git fetch origin bbya-golden-baseline:refs/remotes/origin/bbya-golden-baseline
           python3 scripts/bbya-scope-guard.py \
             --scope "$SCOPE" \
             --baseline-ref origin/bbya-golden-baseline \
