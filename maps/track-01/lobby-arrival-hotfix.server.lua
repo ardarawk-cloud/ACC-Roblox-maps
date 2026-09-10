@@ -2,7 +2,7 @@ local Workspace=game:GetService("Workspace")
 local Players=game:GetService("Players")
 
 -- TRACK 01 lobby-arrival correction.
--- First arrival belongs inside the old-station lobby and faces the actual ticket counter.
+-- First arrival belongs inside the old-station lobby and faces the forward ticket validator.
 local deadline=os.clock()+30
 local root
 local spawn
@@ -18,10 +18,10 @@ if not (root and spawn and spawn:IsA("BasePart")) then
     return
 end
 
--- Inner lobby, clear of the counter. The player's first view now points at the real
--- TICKETS • TRACK 01 counter instead of an unrelated freestanding machine.
+-- Inner lobby, clear of the route. First view points forward toward the compact ticket
+-- validator, then naturally continues to security and Platform 01 without backtracking.
 local LOBBY_POS=Vector3.new(-38,2.05,-123)
-local TICKETING_LOOK=Vector3.new(-54,5.2,-134)
+local TICKETING_LOOK=Vector3.new(-31.5,4.2,-121.0)
 local LOBBY_CF=CFrame.lookAt(LOBBY_POS,TICKETING_LOOK)
 
 spawn.CFrame=LOBBY_CF
@@ -51,8 +51,8 @@ end
 for _,plr in ipairs(Players:GetPlayers()) do bind(plr) end
 Players.PlayerAdded:Connect(bind)
 
-root:SetAttribute("LobbyArrivalVersion","3.7.2")
+root:SetAttribute("LobbyArrivalVersion","3.7.3")
 root:SetAttribute("LobbySpawnX",LOBBY_POS.X)
 root:SetAttribute("LobbySpawnZ",LOBBY_POS.Z)
 Workspace:SetAttribute("ACC_TRACK01_LOBBY_ARRIVAL_READY",true)
-print("[TRACK 01] lobby arrival faces ticket counter",LOBBY_POS)
+print("[TRACK 01] lobby arrival faces forward ticket validator",LOBBY_POS)
