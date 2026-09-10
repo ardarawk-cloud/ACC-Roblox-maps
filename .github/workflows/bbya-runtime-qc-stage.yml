@@ -117,7 +117,8 @@ jobs:
           set -euo pipefail
           rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-runtime-qc-candidate.rbxl
           test -s /tmp/bbya-runtime-qc-candidate.rbxl
-          sha256sum /tmp/bbya-runtime-qc-candidate.rbxl | tee /tmp/bbya-runtime-qc-candidate.sha256
+          sha256sum /tmp/bbya-runtime-qc-candidate.rbxl > /tmp/bbya-runtime-qc-candidate.sha256
+          cat /tmp/bbya-runtime-qc-candidate.sha256
           ls -lh /tmp/bbya-runtime-qc-candidate.rbxl
 
       - name: Publish candidate to Test Lab only
@@ -127,7 +128,7 @@ jobs:
           PLACE_FILE_OVERRIDE: /tmp/bbya-runtime-qc-candidate.rbxl
         run: node scripts/publish-map.js a-club-test
 
-      - name: Verify Test Lab receipt
+      - name: Verify Test Lab receipt and assemble immutable stage evidence
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
           SCOPE: ${{ inputs.scope }}
@@ -138,18 +139,18 @@ jobs:
           test "$(jq -r '.status' deploy-status/a-club-test.json)" = 'PUBLISHED'
           test "$(jq -r '.universeId' deploy-status/a-club-test.json)" = '10762005984'
           test "$(jq -r '.placeId' deploy-status/a-club-test.json)" = '124607344716828'
-          printf '%s\n' "$SOURCE_SHA" > /tmp/source-sha.txt
-          printf '%s\n' "$SCOPE" > /tmp/scope.txt
+          out=/tmp/bbya-stage-evidence-out
+          mkdir -p "$out"
+          cp deploy-status/a-club-test.json "$out/a-club-test.json"
+          cp /tmp/bbya-runtime-qc-candidate.sha256 "$out/bbya-runtime-qc-candidate.sha256"
+          printf '%s\n' "$SOURCE_SHA" > "$out/source-sha.txt"
+          printf '%s\n' "$SCOPE" > "$out/scope.txt"
           echo 'Test Lab stage: PASS — live place was not touched'
 
       - name: Preserve runtime-QC stage evidence
         uses: actions/upload-artifact@v4
         with:
           name: bbya-runtime-qc-${{ inputs.source_sha }}
-          path: |
-            deploy-status/a-club-test.json
-            /tmp/bbya-runtime-qc-candidate.sha256
-            /tmp/source-sha.txt
-            /tmp/scope.txt
+          path: /tmp/bbya-stage-evidence-out/
           if-no-files-found: error
           retention-days: 90
