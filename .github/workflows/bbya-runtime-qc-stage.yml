@@ -1,0 +1,155 @@
+name: BBYA Runtime QC Stage
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: 'Exact 40-character MAIN commit SHA to stage in BBYA Test Lab'
+        required: true
+        type: string
+      scope:
+        description: 'Only this BBYA dependency scope may differ from the golden baseline'
+        required: true
+        type: choice
+        options:
+          - baseline-recovery
+          - identity
+          - underground
+          - funkot
+          - entrance-cars
+          - mall
+          - staff-tower
+      confirmation:
+        description: 'Type STAGE_BBYA_TEST to build/publish the Test Lab candidate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbya-runtime-qc-stage
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Require explicit Test Lab confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMATION" != "STAGE_BBYA_TEST" ]]; then
+            echo 'DENIED: confirmation must be exactly STAGE_BBYA_TEST'
+            exit 2
+          fi
+
+      - name: Checkout exact candidate source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify candidate is exact current MAIN
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo 'DENIED: source_sha must be an exact 40-character commit SHA'
+            exit 3
+          fi
+          git fetch origin main --depth=1
+          checked_sha="$(git rev-parse HEAD)"
+          main_sha="$(git rev-parse origin/main)"
+          test "${SOURCE_SHA,,}" = "${checked_sha,,}"
+          test "${SOURCE_SHA,,}" = "${main_sha,,}"
+          echo "Exact MAIN source: $SOURCE_SHA"
+
+      - name: Fetch golden baseline and enforce isolated scope
+        env:
+          SCOPE: ${{ inputs.scope }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin bbya-golden-baseline:refs/remotes/origin/bbya-golden-baseline --depth=200
+          python3 scripts/bbya-scope-guard.py \
+            --scope "$SCOPE" \
+            --baseline-ref origin/bbya-golden-baseline \
+            --candidate-ref HEAD
+
+      - name: Verify locked BBYA Test Lab identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(jq -r '.maps["a-club-test"].universeId' maps/registry.json)" = '10762005984'
+          test "$(jq -r '.maps["a-club-test"].placeId' maps/registry.json)" = '124607344716828'
+          test "$(jq -r '.maps["a-club"].placeId' maps/registry.json)" = '131894120482837'
+          test -s maps/bbya-social-hub/default.project.json
+          echo 'Test Lab target lock: PASS'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install canonical Roblox serializer
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Build exact runtime-QC candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-runtime-qc-candidate.rbxl
+          test -s /tmp/bbya-runtime-qc-candidate.rbxl
+          sha256sum /tmp/bbya-runtime-qc-candidate.rbxl | tee /tmp/bbya-runtime-qc-candidate.sha256
+          ls -lh /tmp/bbya-runtime-qc-candidate.rbxl
+
+      - name: Publish candidate to Test Lab only
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-runtime-qc-candidate.rbxl
+        run: node scripts/publish-map.js a-club-test
+
+      - name: Verify Test Lab receipt
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          SCOPE: ${{ inputs.scope }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s deploy-status/a-club-test.json
+          test "$(jq -r '.status' deploy-status/a-club-test.json)" = 'PUBLISHED'
+          test "$(jq -r '.universeId' deploy-status/a-club-test.json)" = '10762005984'
+          test "$(jq -r '.placeId' deploy-status/a-club-test.json)" = '124607344716828'
+          printf '%s\n' "$SOURCE_SHA" > /tmp/source-sha.txt
+          printf '%s\n' "$SCOPE" > /tmp/scope.txt
+          echo 'Test Lab stage: PASS — live place was not touched'
+
+      - name: Preserve runtime-QC stage evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-runtime-qc-${{ inputs.source_sha }}
+          path: |
+            deploy-status/a-club-test.json
+            /tmp/bbya-runtime-qc-candidate.sha256
+            /tmp/source-sha.txt
+            /tmp/scope.txt
+          if-no-files-found: error
+          retention-days: 90
