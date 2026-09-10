@@ -1,0 +1,30 @@
+name: BBYA Funkot 013 022 Recheck
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event.issue.title == 'BBYA FUNKOT 013 022 RECHECK RUN'
+    runs-on: ubuntu-latest
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+    steps:
+      - name: Check moderation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request
+          key=os.environ['AUDIO_KEY']
+          tracks=[('Bbya Funkot 013','71841168589434'),('Bbya Funkot 022','102506625796393')]
+          for title,aid in tracks:
+              r=urllib.request.Request(f'https://apis.roblox.com/assets/v1/assets/{aid}?readMask=moderationResult,state,displayName',headers={'x-api-key':key})
+              with urllib.request.urlopen(r,timeout=30) as x:
+                  b=json.loads(x.read().decode() or '{}')
+              print(json.dumps({'track':title,'assetId':aid,'moderationState':(b.get('moderationResult') or {}).get('moderationState','')}),flush=True)
+          PY
