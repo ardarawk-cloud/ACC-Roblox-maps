@@ -1,6 +1,18 @@
 name: BBYA Publish Main
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'maps/bbya-social-hub/**'
+      - 'maps/bbya-social-hub-client/**'
+      - 'maps/bbya-social-hub-assets/cars/**'
+      - 'shared/**'
+      - '.github/workflows/bbya-release-gate.yml'
+      - '.github/bbya-release-policy.json'
+      - 'scripts/bbya-scope-guard.py'
+      - 'scripts/publish-map.js'
+      - 'maps/registry.json'
   workflow_dispatch:
     inputs:
       source_sha:
@@ -35,8 +47,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SOURCE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.sha }}
     steps:
-      - name: Require explicit main publish confirmation
+      - name: Require confirmation only for manual publish
+        if: github.event_name == 'workflow_dispatch'
         env:
           CONFIRMATION: ${{ inputs.confirmation }}
         shell: bash
@@ -50,31 +65,29 @@ jobs:
       - name: Checkout exact BBYA source
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: ${{ env.SOURCE_SHA }}
           fetch-depth: 0
 
       - name: Verify source is current MAIN modulo receipt-only bot churn
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo 'DENIED: source_sha must be an exact 40-character commit SHA'
+            echo 'DENIED: source SHA must be an exact 40-character commit SHA'
             exit 3
           fi
           checked_sha="$(git rev-parse HEAD)"
           test "${SOURCE_SHA,,}" = "${checked_sha,,}"
           git fetch origin main
           git merge-base --is-ancestor "$SOURCE_SHA" origin/main || {
-            echo 'DENIED: requested source is not an ancestor of current MAIN'
+            echo 'DENIED: source is not an ancestor of current MAIN'
             exit 4
           }
           mapfile -t churn < <(git diff --name-only "$SOURCE_SHA..origin/main")
           for p in "${churn[@]}"; do
             [[ -z "$p" ]] && continue
             if [[ "$p" != deploy-status/* ]]; then
-              echo "DENIED: MAIN changed after requested source outside receipt metadata: $p"
+              echo "DENIED: MAIN changed after source outside receipt metadata: $p"
               exit 5
             fi
           done
@@ -82,13 +95,51 @@ jobs:
           echo "current_main=$(git rev-parse origin/main)"
           echo 'MAIN source freshness: PASS'
 
-      - name: Enforce BBYA isolated scope and locked invariants
-        env:
-          SCOPE: ${{ inputs.scope }}
+      - name: Fetch golden baseline
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin bbya-golden-baseline:refs/remotes/origin/bbya-golden-baseline
+          echo "golden=$(git rev-parse origin/bbya-golden-baseline)"
+
+      - name: Resolve exactly one isolated scope
+        id: scope
+        env:
+          MANUAL_SCOPE: ${{ inputs.scope }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            scope="$MANUAL_SCOPE"
+          else
+            pass=()
+            for candidate in baseline-recovery identity underground funkot entrance-cars mall staff-tower; do
+              if python3 scripts/bbya-scope-guard.py \
+                --scope "$candidate" \
+                --baseline-ref origin/bbya-golden-baseline \
+                --candidate-ref HEAD >"/tmp/bbya-guard-${candidate}.log" 2>&1; then
+                pass+=("$candidate")
+              fi
+            done
+            if [[ ${#pass[@]} -ne 1 ]]; then
+              echo "DENIED: expected exactly one BBYA scope to pass; got ${#pass[@]}: ${pass[*]:-none}"
+              for candidate in baseline-recovery identity underground funkot entrance-cars mall staff-tower; do
+                echo "----- $candidate -----"
+                cat "/tmp/bbya-guard-${candidate}.log" || true
+              done
+              exit 6
+            fi
+            scope="${pass[0]}"
+          fi
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          echo "Resolved BBYA scope: $scope"
+
+      - name: Enforce BBYA isolated scope and locked invariants
+        env:
+          SCOPE: ${{ steps.scope.outputs.scope }}
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 scripts/bbya-scope-guard.py \
             --scope "$SCOPE" \
             --baseline-ref origin/bbya-golden-baseline \
@@ -138,12 +189,10 @@ jobs:
           PUBLISH_RECEIPT_DIR: deploy-status
           PLACE_FILE_OVERRIDE: /tmp/bbya-main-candidate.rbxl
           BBYA_RELEASE_GATE: BBYA_SINGLE_GATE_V1
-          BBYA_SOURCE_SHA: ${{ inputs.source_sha }}
+          BBYA_SOURCE_SHA: ${{ env.SOURCE_SHA }}
         run: node scripts/publish-map.js a-club
 
       - name: Verify exact-source live receipt
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -155,8 +204,6 @@ jobs:
           echo 'BBYA MAIN exact-source receipt: PASS'
 
       - name: Advance golden baseline only after verified MAIN publish
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -167,7 +214,7 @@ jobs:
       - name: Preserve MAIN publish evidence
         uses: actions/upload-artifact@v4
         with:
-          name: bbya-main-${{ inputs.source_sha }}
+          name: bbya-main-${{ env.SOURCE_SHA }}
           path: |
             deploy-status/a-club.json
             /tmp/bbya-main-candidate.sha256

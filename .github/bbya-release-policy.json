@@ -1,16 +1,19 @@
 {
-  "version": 3,
+  "version": 4,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
+  "autoPublishOnMain": true,
   "protectedRoots": [
     "maps/bbya-social-hub/",
     "maps/bbya-social-hub-client/",
+    "maps/bbya-social-hub-assets/cars/",
     "shared/"
   ],
   "governedExactPaths": [
     ".github/workflows/bbya-release-gate.yml",
     ".github/bbya-release-policy.json",
     "scripts/bbya-scope-guard.py",
+    "scripts/publish-map.js",
     "maps/registry.json"
   ],
   "scopes": {
@@ -18,6 +21,7 @@
       ".github/workflows/bbya-release-gate.yml",
       ".github/bbya-release-policy.json",
       "scripts/bbya-scope-guard.py",
+      "scripts/publish-map.js",
       "maps/registry.json"
     ],
     "identity": [
