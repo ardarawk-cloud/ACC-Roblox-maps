@@ -45,6 +45,16 @@ local PLAYLIST={
  {title="5A - 131 - High Revolution - Studio 51 (So-1",id="102620964808698",style="progressive"},
  {title="11A - 130 - RUN AWAY - Unknown Artist",id="99998363156285",style="progressive"},
  {title="5B - 128 - ,Astrix & Jerome Isma Ae - Never Fear ( George Acosta Mashup ) WWW.HOUSESLBEAT.COM 3",id="88925775968276",style="progressive"},
+-- MAIN_APPROVED_MODERATION_20260911_BEGIN
+ {title="Matamu",id="111582942633303",style="progressive"},
+ {title="Sivici",id="99545738795998",style="progressive"},
+ {title="Konsido",id="93245585442878",style="progressive"},
+ {title="Dansa",id="91809723842173",style="progressive"},
+ {title="Hantuuu",id="103905707256183",style="progressive"},
+ {title="Bingung",id="136097078637707",style="progressive"},
+ {title="Rumah",id="90011355891550",style="progressive"},
+ {title="Puter",id="71303652287437",style="progressive"},
+-- MAIN_APPROVED_MODERATION_20260911_END
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
