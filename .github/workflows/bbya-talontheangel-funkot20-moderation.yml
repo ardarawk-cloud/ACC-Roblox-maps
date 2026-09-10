@@ -1,4 +1,4 @@
-name: BBYA TalonTheAngel Funkot20 Moderation
+name: BBYA TalonTheAngel Funkot22 Final Moderation
 
 on:
   issues:
@@ -9,12 +9,12 @@ permissions:
 
 jobs:
   check:
-    if: github.event.issue.title == 'BBYA TALONTHEANGEL FUNKOT20 MODERATION RUN'
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL FUNKOT22 FINAL MODERATION RUN'
     runs-on: ubuntu-latest
     env:
       AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
     steps:
-      - name: Check 20 Asset IDs
+      - name: Check 22 Asset IDs
         shell: bash
         run: |
           set -euo pipefail
@@ -22,9 +22,8 @@ jobs:
           python3 - <<'PY'
           import json,os,pathlib,urllib.request,urllib.error
           tracks=[
-          ('01','123373946100598'),('02','74820372557070'),('03','129766042926151'),('04','71813754013031'),('05','100016584788711'),('06','99816785099938'),('07','81043438944964'),('08','86909888091389'),('09','73235337855180'),('010','97838388220371'),('011','108716094654373'),('012','124258279552326'),('014','115949536250644'),('015','91798866659111'),('016','80455182993028'),('017','73466999474312'),('018','126095451248910'),('019','80576985088308'),('020','138159857843385'),('021','92667857246372')]
-          key=os.environ['AUDIO_KEY']
-          out=[]
+          ('01','123373946100598'),('02','74820372557070'),('03','129766042926151'),('04','71813754013031'),('05','100016584788711'),('06','99816785099938'),('07','81043438944964'),('08','86909888091389'),('09','73235337855180'),('010','97838388220371'),('011','108716094654373'),('012','124258279552326'),('013','71841168589434'),('014','115949536250644'),('015','91798866659111'),('016','80455182993028'),('017','73466999474312'),('018','126095451248910'),('019','80576985088308'),('020','138159857843385'),('021','92667857246372'),('022','102506625796393')]
+          key=os.environ['AUDIO_KEY']; out=[]
           for n,aid in tracks:
               state=''; http=None
               for url in [f'https://apis.roblox.com/assets/v1/assets/{aid}?readMask=moderationResult,state,displayName',f'https://apis.roblox.com/assets/v1/assets/{aid}']:
@@ -39,11 +38,11 @@ jobs:
               u=state.upper(); status='APPROVED' if 'APPROVED' in u else ('REJECTED' if any(w in u for w in ['REJECTED','DENIED','FAILED']) else 'PENDING')
               row={'track':'Bbya Funkot '+n,'assetId':aid,'moderation':status,'moderationState':state,'http':http}; out.append(row); print(json.dumps(row),flush=True)
           summary={k:sum(1 for r in out if r['moderation']==k) for k in ['APPROVED','REJECTED','PENDING']}; print(json.dumps(summary),flush=True)
-          pathlib.Path('funkot20-moderation.json').write_text(json.dumps({'tracks':out,'summary':summary},indent=2)+'\n')
+          pathlib.Path('funkot22-final-moderation.json').write_text(json.dumps({'tracks':out,'summary':summary},indent=2)+'\n')
           PY
       - name: Preserve
         uses: actions/upload-artifact@v4
         with:
-          name: funkot20-moderation-${{ github.run_id }}
-          path: funkot20-moderation.json
+          name: funkot22-final-moderation-${{ github.run_id }}
+          path: funkot22-final-moderation.json
           retention-days: 30
