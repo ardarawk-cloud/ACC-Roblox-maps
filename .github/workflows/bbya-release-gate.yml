@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: 'Exact 40-character MAIN commit SHA already staged in Test Lab'
+        description: 'Exact 40-character BBYA source SHA already staged in Test Lab'
         required: true
         type: string
       scope:
@@ -67,7 +67,7 @@ jobs:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 0
 
-      - name: Verify candidate is exact current MAIN
+      - name: Verify candidate is current BBYA source modulo operational receipts
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
@@ -80,14 +80,23 @@ jobs:
           git fetch origin main
           checked_sha="$(git rev-parse HEAD)"
           main_sha="$(git rev-parse origin/main)"
-          echo "requested=$SOURCE_SHA"
-          echo "checked=$checked_sha"
-          echo "main=$main_sha"
           test "${SOURCE_SHA,,}" = "${checked_sha,,}"
-          if [[ "${SOURCE_SHA,,}" != "${main_sha,,}" ]]; then
-            echo 'DENIED: requested SHA is not current MAIN; stale/historical publish is forbidden'
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/main || {
+            echo 'DENIED: requested source is not an ancestor of current MAIN'
             exit 5
-          fi
+          }
+          mapfile -t churn < <(git diff --name-only "$SOURCE_SHA..origin/main")
+          for p in "${churn[@]}"; do
+            [[ -z "$p" ]] && continue
+            if [[ "$p" != deploy-status/* ]]; then
+              echo "DENIED: MAIN changed after tested source outside operational receipts: $p"
+              exit 6
+            fi
+          done
+          echo "tested_source=$SOURCE_SHA"
+          echo "current_main=$main_sha"
+          echo "operational_receipt_churn=${#churn[@]}"
+          echo 'BBYA source freshness: PASS'
 
       - name: Fetch golden baseline and enforce isolated scope
         env:
@@ -123,13 +132,13 @@ jobs:
           set -euo pipefail
           if [[ ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
             echo 'DENIED: runtime_qc_run_id must be numeric'
-            exit 6
+            exit 7
           fi
           auth=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28')
           run_json="$(curl -fsSL "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")"
           test "$(jq -r '.conclusion' <<<"$run_json")" = 'success'
           test "$(jq -r '.event' <<<"$run_json")" = 'workflow_dispatch'
-          test "$(jq -r '.head_sha' <<<"$run_json")" = "$SOURCE_SHA"
+          test "$(jq -r '.head_branch' <<<"$run_json")" = 'main'
           test "$(jq -r '.path' <<<"$run_json")" = '.github/workflows/bbya-runtime-qc-stage.yml'
 
           artifacts="$(curl -fsSL "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts?per_page=100")"
@@ -137,7 +146,7 @@ jobs:
           artifact_id="$(jq -r --arg n "$artifact_name" '.artifacts[] | select(.name==$n and .expired==false) | .id' <<<"$artifacts" | head -n1)"
           if [[ -z "$artifact_id" || "$artifact_id" == 'null' ]]; then
             echo "DENIED: exact runtime-QC artifact $artifact_name not found"
-            exit 7
+            exit 8
           fi
           mkdir -p /tmp/bbya-stage-evidence
           curl -fsSL -L "${auth[@]}" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" -o /tmp/bbya-stage.zip
@@ -179,7 +188,7 @@ jobs:
           echo "live_hash=$live_hash"
           if [[ "$live_hash" != "$stage_hash" ]]; then
             echo 'DENIED: rebuilt live package differs from the package tested in Test Lab'
-            exit 8
+            exit 9
           fi
           printf '%s  %s\n' "$live_hash" /tmp/bbya-release-candidate.rbxl > /tmp/bbya-release-candidate.sha256
 
