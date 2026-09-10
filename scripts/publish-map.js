@@ -1,4 +1,4 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.6
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.7
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -45,8 +45,8 @@ function enforceBbyaReleaseGate() {
   const eventName = process.env.GITHUB_EVENT_NAME || '';
   const gateToken = process.env.BBYA_RELEASE_GATE || '';
 
-  if (eventName !== 'workflow_dispatch') {
-    failGate(`event must be workflow_dispatch, got ${eventName || 'empty'}`);
+  if (!['workflow_dispatch', 'push'].includes(eventName)) {
+    failGate(`event must be workflow_dispatch or push, got ${eventName || 'empty'}`);
   }
   if (gateToken !== 'BBYA_SINGLE_GATE_V1') {
     failGate('missing canonical gate token');
