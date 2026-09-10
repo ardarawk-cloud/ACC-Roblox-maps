@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -99,10 +99,23 @@
     }
   },
   "entranceCars": {
-    "requiredSourcePath": "maps/bbya-social-hub-assets/cars/BBYABakedCarsSourceV10.rbxmx",
-    "requiredProjectTokens": [
-      "ServerStorage",
-      "bbya-social-hub-assets/cars/BBYABakedCarsSourceV10.rbxmx"
+    "mode": "LOCKED_RUNTIME_ASSETS",
+    "authorityPath": "maps/bbya-social-hub/77-entrance-car-cleanup.server.lua",
+    "requiredAssetIds": [
+      "97052038046118",
+      "91172120786409"
+    ],
+    "requiredTokens": [
+      "AssetService.LoadAssetAsync",
+      "InsertService.LoadAsset",
+      "BBYA Car 01",
+      "BBYA Car 02",
+      "visibleGeometryLooksLikeVehicle",
+      "CreatorPermission",
+      "Ddiaz Design"
+    ],
+    "forbiddenTokens": [
+      "BAKED_DDIAZ_CARS_V10_SOURCE_MISSING"
     ]
   }
 }
