@@ -1,4 +1,4 @@
-// ACC Roblox Open Cloud publisher + deploy receipt writer v1.5
+// ACC Roblox Open Cloud publisher + deploy receipt writer v1.6
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -31,6 +31,47 @@ if (!/^\d+$/.test(String(target.universeId)) || !/^\d+$/.test(String(target.plac
   console.error(`Map ${mapId} has invalid Universe ID or Place ID.`);
   process.exit(1);
 }
+
+function failGate(message) {
+  console.error(`BBYA RELEASE GATE DENIED: ${message}`);
+  process.exit(1);
+}
+
+function enforceBbyaReleaseGate() {
+  if (mapId !== 'a-club') return;
+
+  const sourceSha = process.env.BBYA_SOURCE_SHA || '';
+  const workflowRef = process.env.GITHUB_WORKFLOW_REF || '';
+  const eventName = process.env.GITHUB_EVENT_NAME || '';
+  const gateToken = process.env.BBYA_RELEASE_GATE || '';
+
+  if (eventName !== 'workflow_dispatch') {
+    failGate(`event must be workflow_dispatch, got ${eventName || 'empty'}`);
+  }
+  if (gateToken !== 'BBYA_SINGLE_GATE_V1') {
+    failGate('missing canonical gate token');
+  }
+  if (!workflowRef.includes('/.github/workflows/bbya-release-gate.yml@')) {
+    failGate(`unauthorized workflow: ${workflowRef || 'empty'}`);
+  }
+  if (!/^[0-9a-f]{40}$/i.test(sourceSha)) {
+    failGate('BBYA_SOURCE_SHA must be an exact 40-character commit SHA');
+  }
+  if (String(target.universeId) !== '8116636513' || String(target.placeId) !== '131894120482837') {
+    failGate('registry target does not match locked BBYA Universe/Place identity');
+  }
+
+  const head = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' });
+  if (head.error || head.status !== 0) {
+    failGate('cannot resolve checked-out source commit');
+  }
+  const checkedOutSha = (head.stdout || '').trim();
+  if (checkedOutSha.toLowerCase() !== sourceSha.toLowerCase()) {
+    failGate(`checked-out SHA ${checkedOutSha} does not equal approved source SHA ${sourceSha}`);
+  }
+}
+
+enforceBbyaReleaseGate();
 
 const selectedFile = placeOverride || target.file;
 const placePath = path.isAbsolute(selectedFile) ? selectedFile : path.join(process.cwd(), selectedFile);
@@ -67,7 +108,7 @@ function writeReceipt(payload, status) {
     name: target.name,
     universeId: String(target.universeId),
     placeId: String(target.placeId),
-    sourceCommit: process.env.GITHUB_SHA || '',
+    sourceCommit: mapId === 'a-club' ? (process.env.BBYA_SOURCE_SHA || '') : (process.env.GITHUB_SHA || ''),
     publishedAt: new Date().toISOString(),
     publishedFile: selectedFile,
     response: safePayload(payload),
