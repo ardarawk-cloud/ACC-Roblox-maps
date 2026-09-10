@@ -23,12 +23,10 @@
     "recoveredAssetIds": 2
   },
   "finalModeration": {
-    "runId": "34514151629",
-    "jobId": "102995296950",
-    "artifactId": "10166978043",
-    "approvedCount": 9,
-    "rejectedCount": 11,
-    "pendingCount": 2
+    "runId": "34515206856",
+    "approvedCount": 10,
+    "rejectedCount": 12,
+    "pendingCount": 0
   },
   "tracks": [
     {"track":"Bbya Funkot 01","assetId":"123373946100598","moderation":"REJECTED"},
@@ -43,7 +41,7 @@
     {"track":"Bbya Funkot 010","assetId":"97838388220371","moderation":"APPROVED"},
     {"track":"Bbya Funkot 011","assetId":"108716094654373","moderation":"REJECTED"},
     {"track":"Bbya Funkot 012","assetId":"124258279552326","moderation":"APPROVED"},
-    {"track":"Bbya Funkot 013","assetId":"71841168589434","moderation":"PENDING"},
+    {"track":"Bbya Funkot 013","assetId":"71841168589434","moderation":"APPROVED"},
     {"track":"Bbya Funkot 014","assetId":"115949536250644","moderation":"APPROVED"},
     {"track":"Bbya Funkot 015","assetId":"91798866659111","moderation":"REJECTED"},
     {"track":"Bbya Funkot 016","assetId":"80455182993028","moderation":"APPROVED"},
@@ -52,6 +50,6 @@
     {"track":"Bbya Funkot 019","assetId":"80576985088308","moderation":"REJECTED"},
     {"track":"Bbya Funkot 020","assetId":"138159857843385","moderation":"APPROVED"},
     {"track":"Bbya Funkot 021","assetId":"92667857246372","moderation":"REJECTED"},
-    {"track":"Bbya Funkot 022","assetId":"102506625796393","moderation":"PENDING"}
+    {"track":"Bbya Funkot 022","assetId":"102506625796393","moderation":"REJECTED"}
   ]
 }
