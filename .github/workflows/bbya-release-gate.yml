@@ -1,0 +1,140 @@
+name: BBYA Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: 'Exact 40-character MAIN commit SHA to publish'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type PUBLISH_BBYA_LIVE to authorize the release'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbya-live-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require explicit release confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMATION" != "PUBLISH_BBYA_LIVE" ]]; then
+            echo 'DENIED: confirmation must be exactly PUBLISH_BBYA_LIVE'
+            exit 2
+          fi
+
+      - name: Checkout exact candidate source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify candidate is exact current MAIN
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo 'DENIED: source_sha must be an exact 40-character commit SHA'
+            exit 3
+          fi
+
+          git fetch origin main --depth=1
+          checked_sha="$(git rev-parse HEAD)"
+          main_sha="$(git rev-parse origin/main)"
+
+          echo "requested=$SOURCE_SHA"
+          echo "checked=$checked_sha"
+          echo "main=$main_sha"
+
+          if [[ "${SOURCE_SHA,,}" != "${checked_sha,,}" ]]; then
+            echo 'DENIED: checked-out source differs from requested SHA'
+            exit 4
+          fi
+          if [[ "${SOURCE_SHA,,}" != "${main_sha,,}" ]]; then
+            echo 'DENIED: requested SHA is not current MAIN; historical snapshot publish is forbidden'
+            exit 5
+          fi
+
+      - name: Verify locked BBYA identity and canonical project
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '.maps["a-club"].enabled == true' maps/registry.json >/dev/null
+          test "$(jq -r '.maps["a-club"].universeId' maps/registry.json)" = '8116636513'
+          test "$(jq -r '.maps["a-club"].placeId' maps/registry.json)" = '131894120482837'
+          test -s maps/bbya-social-hub/default.project.json
+          echo 'BBYA identity lock: PASS'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Rojo binary
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install canonical Roblox serializer
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Verify Rojo
+        run: rojo --version
+
+      - name: Build exact BBYA release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rojo build maps/bbya-social-hub/default.project.json -o /tmp/bbya-release-candidate.rbxl
+          test -s /tmp/bbya-release-candidate.rbxl
+          sha256sum /tmp/bbya-release-candidate.rbxl | tee /tmp/bbya-release-candidate.sha256
+          ls -lh /tmp/bbya-release-candidate.rbxl
+
+      - name: Publish through canonical BBYA gate only
+        env:
+          ROBLOX_API_KEY: ${{ secrets.AM_STUDIO }}
+          PUBLISH_RECEIPT_DIR: deploy-status
+          PLACE_FILE_OVERRIDE: /tmp/bbya-release-candidate.rbxl
+          BBYA_RELEASE_GATE: BBYA_SINGLE_GATE_V1
+          BBYA_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: node scripts/publish-map.js a-club
+
+      - name: Verify exact-source receipt
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s deploy-status/a-club.json
+          test "$(jq -r '.status' deploy-status/a-club.json)" = 'PUBLISHED'
+          test "$(jq -r '.sourceCommit' deploy-status/a-club.json)" = "$SOURCE_SHA"
+          test "$(jq -r '.universeId' deploy-status/a-club.json)" = '8116636513'
+          test "$(jq -r '.placeId' deploy-status/a-club.json)" = '131894120482837'
+          echo 'Exact-source release receipt: PASS'
+
+      - name: Preserve release evidence without mutating MAIN
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-release-${{ inputs.source_sha }}
+          path: |
+            deploy-status/a-club.json
+            /tmp/bbya-release-candidate.sha256
+          if-no-files-found: error
+          retention-days: 90
