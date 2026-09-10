@@ -1,0 +1,57 @@
+{
+  "project": "BBYA SOCIAL HUB",
+  "bank": "FUNKOT_UPLOAD_BATCH",
+  "sourceFolder": "1610nVjTYlDt4LdwCxpFsYhXmWm1x9Dap",
+  "uploaderSecretContract": "TALONTHEANGEL_AUDIO_PUBLISHER",
+  "speedFactor": 1.75,
+  "playbackSpeed": 0.5714285714,
+  "bankInjected": false,
+  "mapPublished": false,
+  "mainUpload": {
+    "runId": "34512824837",
+    "jobId": "102990904226",
+    "artifactId": "10166735187",
+    "initialAssetIds": 20,
+    "initialNoAssetId": 2
+  },
+  "retry013022": {
+    "runId": "34513876643",
+    "jobId": "102994396151",
+    "artifactId": "10166930255",
+    "format": "WAV",
+    "speedFactor": 1.75,
+    "recoveredAssetIds": 2
+  },
+  "finalModeration": {
+    "runId": "34514151629",
+    "jobId": "102995296950",
+    "artifactId": "10166978043",
+    "approvedCount": 9,
+    "rejectedCount": 11,
+    "pendingCount": 2
+  },
+  "tracks": [
+    {"track":"Bbya Funkot 01","assetId":"123373946100598","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 02","assetId":"74820372557070","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 03","assetId":"129766042926151","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 04","assetId":"71813754013031","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 05","assetId":"100016584788711","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 06","assetId":"99816785099938","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 07","assetId":"81043438944964","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 08","assetId":"86909888091389","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 09","assetId":"73235337855180","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 010","assetId":"97838388220371","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 011","assetId":"108716094654373","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 012","assetId":"124258279552326","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 013","assetId":"71841168589434","moderation":"PENDING"},
+    {"track":"Bbya Funkot 014","assetId":"115949536250644","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 015","assetId":"91798866659111","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 016","assetId":"80455182993028","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 017","assetId":"73466999474312","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 018","assetId":"126095451248910","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 019","assetId":"80576985088308","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 020","assetId":"138159857843385","moderation":"APPROVED"},
+    {"track":"Bbya Funkot 021","assetId":"92667857246372","moderation":"REJECTED"},
+    {"track":"Bbya Funkot 022","assetId":"102506625796393","moderation":"PENDING"}
+  ]
+}
