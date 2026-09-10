@@ -1,0 +1,69 @@
+name: BBYA TalonTheAngel Progressive Remaining 9
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  upload-progressive-remaining9:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL PROGRESSIVE REMAINING9 RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+      MAX_MODERATION_WAIT_SECONDS: '0'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AUDIO_KEY:-}" || { echo 'TALONTHEANGEL_SECRET_MISSING'; exit 10; }
+          echo 'TALONTHEANGEL_SECRET_PRESENT=YES'
+
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl
+          python3 -m pip install --quiet 'gdown==6.1.0'
+
+      - name: Prepare remaining Progressive batch
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/progressive-remaining9.json" <<'JSON'
+          [
+            {"drive_file_id":"1ahlq9wiA2A5nYLGgD4lPQBpBCqlfXOC6","title":"Araarai"},
+            {"drive_file_id":"1vPfAOyDcQZmYbnvhzN0Q9yL0DsMtM8PJ","title":"Sivici"},
+            {"drive_file_id":"1OYOTqY1qDtGKithsAPuzHfxiJ23vFG3Y","title":"Konsido"},
+            {"drive_file_id":"19Yksq00eM8vnQcy0MkoaRt283ex-qyHD","title":"Dansa"},
+            {"drive_file_id":"1m3NdCsrlfmh3q-IC3uFrPiF23lSH-XkJ","title":"Hantuuu"},
+            {"drive_file_id":"1xo--Gj79nikxr5rfy42he740t24l3TOW","title":"Mikir jalan"},
+            {"drive_file_id":"1URCROeyw4yPhLWkqY2Q_lbQkK13Z_XEm","title":"Bingung"},
+            {"drive_file_id":"16KctmMUGxXmlI-pWaS5XWaaSkmIS-Kwe","title":"Rumah"},
+            {"drive_file_id":"1_IqvNJhmTkqfjoB56oCWnTggftAZFlAB","title":"Puter"}
+          ]
+          JSON
+
+      - name: Upload remaining 9 at 1.75x
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/bbya-music-simple-upload-v13.py \
+            --batch "$RUNNER_TEMP/progressive-remaining9.json" \
+            --result talontheangel-progressive-remaining9-result.json \
+            --moderation-wait-seconds 0
+
+      - name: Preserve result
+        if: always() && hashFiles('talontheangel-progressive-remaining9-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: talontheangel-progressive-remaining9-${{ github.run_id }}
+          path: talontheangel-progressive-remaining9-result.json
+          retention-days: 30
