@@ -6,10 +6,9 @@ on:
       map:
         description: Map to publish
         required: true
-        default: a-club
+        default: bbyavatar
         type: choice
         options:
-          - a-club
           - bbyavatar
           - becak-e-bike
           - all
@@ -41,6 +40,12 @@ jobs:
           publish_one() {
             local key="$1"
             local enabled universe place file name ctype response code body
+
+            # BBYA is governed exclusively by .github/workflows/bbya-release-gate.yml.
+            if [[ "$key" == "a-club" ]]; then
+              echo "DENIED: BBYA Social Hub cannot be published from the generic publisher."
+              return 3
+            fi
 
             enabled="$(jq -r --arg k "$key" '.maps[$k].enabled // false' maps/registry.json)"
             universe="$(jq -r --arg k "$key" '.maps[$k].universeId // empty' maps/registry.json)"
@@ -99,7 +104,7 @@ jobs:
             failed=0
             while IFS= read -r key; do
               publish_one "$key" || failed=1
-            done < <(jq -r '.maps | to_entries[] | select(.value.enabled == true) | .key' maps/registry.json)
+            done < <(jq -r '.maps | to_entries[] | select(.value.enabled == true and .key != "a-club") | .key' maps/registry.json)
             exit "$failed"
           else
             publish_one "$SELECTED_MAP"
