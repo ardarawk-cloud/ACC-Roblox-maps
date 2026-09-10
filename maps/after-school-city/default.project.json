@@ -4,24 +4,12 @@
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "ASCConfig": {
-        "$path": "after-school-city.config.lua"
-      },
-      "ASCMusicConfig": {
-        "$path": "after-school-city.music-config.lua"
-      },
-      "ASCGameplayConfig": {
-        "$path": "after-school-city.gameplay-config.lua"
-      },
-      "ASCActivityConfig": {
-        "$path": "after-school-city.activity-config.lua"
-      },
-      "ASCSchoolLifeConfig": {
-        "$path": "after-school-city.school-life-config.lua"
-      },
-      "ASCEconomyConfig": {
-        "$path": "after-school-city.economy-config.lua"
-      }
+      "ASCConfig": {"$path": "after-school-city.config.lua"},
+      "ASCMusicConfig": {"$path": "after-school-city.music-config.lua"},
+      "ASCGameplayConfig": {"$path": "after-school-city.gameplay-config.lua"},
+      "ASCActivityConfig": {"$path": "after-school-city.activity-config.lua"},
+      "ASCSchoolLifeConfig": {"$path": "after-school-city.school-life-config.lua"},
+      "ASCEconomyConfig": {"$path": "after-school-city.economy-config.lua"}
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
@@ -74,7 +62,8 @@
       "ASC_SchoolLifeGameplayV120": {"$path": "after-school-city.school-life-gameplay-v120.server.lua"},
       "ASC_EconomyV130": {"$path": "after-school-city.economy-first-shop-v130.server.lua"},
       "ASC_SportsAssetsV134": {"$path": "after-school-city.sports-assets-v134.server.lua"},
-      "ASC_RuntimeCleanupV137": {"$path": "after-school-city.runtime-cleanup-v137.server.lua"}
+      "ASC_RuntimeCleanupV137": {"$path": "after-school-city.runtime-cleanup-v137.server.lua"},
+      "ASC_RuntimeCorrectionV138": {"$path": "after-school-city.runtime-correction-v138.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
