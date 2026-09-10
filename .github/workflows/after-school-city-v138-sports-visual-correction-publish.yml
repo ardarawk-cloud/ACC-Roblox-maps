@@ -1,0 +1,241 @@
+name: Publish After School City V1.3.8 Sports Visual Correction
+
+on:
+  push:
+    branches:
+      - after-school-city/v138-sports-visual-correction
+    paths:
+      - '.github/workflows/after-school-city-v138-sports-visual-correction-publish.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: after-school-city-live-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SOURCE: '27661bd1c3eda0d78e6e63d9dcde2e7f99b7f21c'
+      BASE_LIVE_SOURCE: '5e107062864b63559510f66e1497358f2a4eda64'
+      EXPECTED_QC_RUN: '34497928006'
+      EXPECTED_ARTIFACT: 'after-school-city-v138-sports-visual-correction-qc-27661bd1c3eda0d78e6e63d9dcde2e7f99b7f21c'
+      EXPECTED_ARTIFACT_ID: '10160592264'
+      EXPECTED_ARTIFACT_DIGEST: '5cc163a1e40937c30ccab419cad7cb3df80c8fbdb9f41ea0dbfb3f6ab49bdfea'
+      EXPECTED_BYTES: '215222'
+      EXPECTED_SHA256: '539a6f5b73e579bf15b578577a79ef3d3ded289e02e5723f02fa7ce103aed380'
+      EXPECTED_PREVIOUS_VERSION: '61'
+      SKATEBOARD_ASSET_ID: '111060043204479'
+      BASKETBALL_ASSET_ID: '119323680316690'
+      UNIVERSE_ID: '10745359869'
+      PLACE_ID: '121603385909425'
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+
+    steps:
+      - name: Checkout publish branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact source and production scope gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected V1.3.8 source unavailable' }
+          $mergeBase=(git merge-base $env:EXPECTED_SOURCE $env:GITHUB_SHA).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "Publisher head not descended from exact candidate: $mergeBase" }
+          $after=@(git diff --name-only $env:EXPECTED_SOURCE $env:GITHUB_SHA -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production maps changed after QC source: $($after -join ', ')" }
+          $prod=@(git diff --name-only $env:BASE_LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          $expected=@(
+            'maps/after-school-city/after-school-city.runtime-correction-v138.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+          $a=@($prod | Sort-Object); $b=@($expected | Sort-Object)
+          if(($a -join '|') -ne ($b -join '|')){ throw "Unexpected production delta: $($prod -join ', ')" }
+          Write-Host 'SOURCE SCOPE PASS'
+
+      - name: Fresh LIVE receipt gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git fetch origin main
+          $paths=@(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion=-1; $maxSource=''; $maxPath=''
+          foreach($path in $paths){
+            try {
+              $j=((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v=[int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion=$v; $maxSource=[string]$j.sourceCommit; $maxPath=$path }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Stale LIVE base v$maxVersion path=$maxPath" }
+          if($maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE source mismatch: $maxSource" }
+          Write-Host "LIVE GATE PASS v$maxVersion source=$maxSource"
+
+      - name: Verify exact QC artifact metadata
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $headers=@{ Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28' }
+          $a=Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$env:EXPECTED_ARTIFACT_ID" -Headers $headers
+          if([string]$a.name -ne $env:EXPECTED_ARTIFACT){ throw "Artifact name mismatch: $($a.name)" }
+          if([bool]$a.expired){ throw 'QC artifact expired' }
+          $digest=([string]$a.digest) -replace '^sha256:',''
+          if($digest -ne $env:EXPECTED_ARTIFACT_DIGEST){ throw "Artifact digest mismatch: $digest" }
+          if([int64]$a.workflow_run.id -ne [int64]$env:EXPECTED_QC_RUN){ throw "Artifact run mismatch: $($a.workflow_run.id)" }
+          Write-Host "ARTIFACT META PASS id=$env:EXPECTED_ARTIFACT_ID"
+
+      - name: Download exact QC artifact without rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.EXPECTED_ARTIFACT }}
+          path: publish-input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.EXPECTED_QC_RUN }}
+
+      - name: Verify exact QC bytes hash and receipt
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $places=@(Get-ChildItem 'publish-input' -Filter '*.rbxl' -File -Recurse)
+          if($places.Count -ne 1){ throw "Expected one RBXL, got $($places.Count)" }
+          $place=$places[0]
+          $bytes=$place.Length
+          $hash=(Get-FileHash $place.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($bytes -ne [int64]$env:EXPECTED_BYTES){ throw "RBXL byte mismatch: $bytes" }
+          if($hash -ne $env:EXPECTED_SHA256){ throw "RBXL hash mismatch: $hash" }
+          $receiptFile=Get-ChildItem 'publish-input' -Filter 'qc-receipt.txt' -File -Recurse | Select-Object -First 1
+          if(-not $receiptFile){ throw 'QC receipt missing' }
+          $receipt=Get-Content $receiptFile.FullName -Raw
+          foreach($token in @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'SCOPE=V138_SPORTS_VISUAL_CORRECTION',
+            "LIVE_ROBLOX_VERSION=$env:EXPECTED_PREVIOUS_VERSION",
+            "LIVE_SOURCE=$env:BASE_LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            "RBXL_BYTES=$env:EXPECTED_BYTES",
+            "SHA256=$env:EXPECTED_SHA256",
+            'RESTORE_IMPORTED_BASKET_FENCE=YES',
+            'REMOVE_GRAY_NATIVE_SPORTS_OBSTRUCTION=YES',
+            'REMOVE_PROTOTYPE_BLEACHERS=YES',
+            'FIX_REVERSED_ACTIVITY_BENCHES=YES',
+            'PROTECTED_AUTHORITIES=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED'
+          )){
+            if($receipt -notmatch [regex]::Escape($token)){ throw "QC receipt token missing: $token" }
+          }
+          "PLACE_FILE=$($place.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PLACE_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "EXACT QC ARTIFACT PASS bytes=$bytes sha256=$hash NO_REBUILD"
+
+      - name: Recheck LIVE immediately before upload
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git fetch origin main
+          $paths=@(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion=-1; $maxSource=''
+          foreach($path in $paths){
+            try {
+              $j=((git show "origin/main:$path" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v=[int]$j.versionNumber
+                if($v -gt $maxVersion){ $maxVersion=$v; $maxSource=[string]$j.sourceCommit }
+              }
+            } catch {}
+          }
+          if($maxVersion -ne [int]$env:EXPECTED_PREVIOUS_VERSION -or $maxSource -ne $env:BASE_LIVE_SOURCE){ throw "LIVE changed before upload: v$maxVersion source=$maxSource" }
+          Write-Host 'FINAL LIVE GATE PASS'
+
+      - name: Publish exact V1.3.8 QC artifact to Roblox
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:ROBLOX_API_KEY)){ throw 'ROBLOX_OPEN_CLOUD_MASTER_V2 unavailable' }
+          if(-not (Test-Path $env:PLACE_FILE)){ throw 'Exact QC RBXL missing' }
+          $url="https://apis.roblox.com/universes/v1/$env:UNIVERSE_ID/places/$env:PLACE_ID/versions?versionType=Published"
+          $success=$false
+          $responsePath=Join-Path $env:RUNNER_TEMP 'asc-v138-publish-response.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            $tmp=Join-Path $env:RUNNER_TEMP "asc-v138-publish-$attempt.json"
+            $http=& curl.exe -sS --http1.1 --location --connect-timeout 30 --max-time 180 -o $tmp -w '%{http_code}' -X POST $url -H "x-api-key: $env:ROBLOX_API_KEY" -H 'Content-Type: application/octet-stream' --data-binary "@$env:PLACE_FILE"
+            $body=if(Test-Path $tmp){ Get-Content $tmp -Raw } else { '' }
+            if($http -match '^2\d\d$'){
+              Copy-Item $tmp $responsePath -Force
+              $success=$true
+              Write-Host "ROBLOX UPLOAD PASS attempt=$attempt http=$http"
+              break
+            }
+            Write-Host ("ROBLOX UPLOAD attempt={0} HTTP {1}: {2}" -f $attempt,$http,$body)
+            if($body -notmatch 'Request upload was interrupted before completion'){ throw "Non-transient Roblox publish error HTTP $http" }
+            Start-Sleep -Seconds ($attempt * 3)
+          }
+          if(-not $success){ throw 'Roblox upload failed after retries' }
+          $resp=Get-Content $responsePath -Raw | ConvertFrom-Json
+          $version=[int]$resp.versionNumber
+          if($version -le [int]$env:EXPECTED_PREVIOUS_VERSION){ throw "Invalid published version: $version" }
+          $publishedAt=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          "PUBLISHED_VERSION=$version" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "PUBLISHED_AT=$publishedAt" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "ROBLOX PUBLISH SUCCESS version=$version"
+
+      - name: Persist V1.3.8 LIVE receipt to main
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          $receiptPath='deploy-status/after-school-city-publish-v138-sports-visual-correction.json'
+          for($attempt=1; $attempt -le 4; $attempt++){
+            git fetch origin main
+            git switch -C receipt-main origin/main
+            $obj=[ordered]@{
+              status='LIVE_PUBLISHED'
+              project='AFTER SCHOOL CITY'
+              mode='V138_SPORTS_VISUAL_CORRECTION'
+              sourceRepo='ardarawk-cloud/ACC-Roblox-maps'
+              sourceCommit=$env:EXPECTED_SOURCE
+              baseLiveCommit=$env:BASE_LIVE_SOURCE
+              qcRunId=$env:EXPECTED_QC_RUN
+              qcArtifactId=[int64]$env:EXPECTED_ARTIFACT_ID
+              qcArtifactDigest=$env:EXPECTED_ARTIFACT_DIGEST
+              skateboardAssetId=[int64]$env:SKATEBOARD_ASSET_ID
+              basketballAssetId=[int64]$env:BASKETBALL_ASSET_ID
+              universeId=$env:UNIVERSE_ID
+              placeId=$env:PLACE_ID
+              versionNumber=[int]$env:PUBLISHED_VERSION
+              rojoVersion='7.7.0'
+              placeBytes=[int64]$env:PLACE_BYTES
+              placeSha256=$env:PLACE_SHA256
+              runId=$env:GITHUB_RUN_ID
+              publishedAt=$env:PUBLISHED_AT
+              runtimeStatus='PENDING'
+              fixes=@('imported basketball chain-link fence restored','legacy gray sports fence removed','prototype Bleachers obstruction removed','skate and sports benches rotated 180 degrees to face activity areas')
+              note='Exact V1.3.8 sports visual-correction QC artifact published without rebuild. Basketball hoops/imported court, skate ramps, economy, persistence/BAG authority, music, quests, dedication, gameplay, monetization, and unrelated map systems unchanged.'
+            }
+            $obj | ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding utf8
+            git add -- $receiptPath
+            git commit -m "receipt(asc): publish V1.3.8 sports visual correction v$env:PUBLISHED_VERSION"
+            if($LASTEXITCODE -ne 0){ throw 'Unable to commit LIVE receipt' }
+            git push origin HEAD:main
+            if($LASTEXITCODE -eq 0){ Write-Host "LIVE RECEIPT PUSH PASS attempt=$attempt"; exit 0 }
+            Start-Sleep -Seconds ($attempt * 2)
+          }
+          throw 'Unable to persist LIVE receipt after retries'
+
+      - name: Final publish summary
+        shell: powershell
+        run: |
+          Write-Host "ASC V1.3.8 LIVE v$env:PUBLISHED_VERSION source=$env:EXPECTED_SOURCE artifact=$env:EXPECTED_ARTIFACT_ID bytes=$env:PLACE_BYTES sha256=$env:PLACE_SHA256 runtime=PENDING"
