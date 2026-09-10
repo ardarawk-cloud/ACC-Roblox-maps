@@ -1,0 +1,183 @@
+name: Publish TRACK 01 v4.2.2 Audio Stability + Ticket Flow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/track01-v422-audio-ticket-publish.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: track01-live-publish
+  cancel-in-progress: false
+
+env:
+  TRACK01_SOURCE_SHA: 3f2f76f8b279d0ad510e77b4c7a3a8cc71f44a8b
+  TRACK01_VERSION: 4.2.2
+  TRACK01_UNIVERSE_ID: '10745349805'
+  TRACK01_PLACE_ID: '79748872921213'
+  TRACK01_MODE: AUDIO_STABILITY_VOLUME_TICKET_FORWARD_FLOW
+
+jobs:
+  build-publish-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout receipt branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout exact TRACK 01 v4.2.2 source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRACK01_SOURCE_SHA }}
+          path: source
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate exact source target and scoped hotfixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git -C source rev-parse HEAD)"
+          test "$actual" = "$TRACK01_SOURCE_SHA"
+          node - <<'NODE'
+          const fs=require('fs');
+          const c=require('./source/maps/track-01/track01.config.json');
+          if(String(c.universeId)!==process.env.TRACK01_UNIVERSE_ID) throw new Error('Wrong Universe ID');
+          if(String(c.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Wrong Place ID');
+          if(String(c.version)!==process.env.TRACK01_VERSION) throw new Error('Wrong TRACK 01 version');
+          if(!c.enabled) throw new Error('TRACK 01 target disabled');
+          const audio=fs.readFileSync('./source/maps/track-01/music-runtime-v422.server.lua','utf8');
+          const rows=[...audio.matchAll(/\{id="(\d+)",source="(PROGRESSIVE|UNDERGROUND|FUNKOT|ROOFTOP)"\}/g)];
+          if(rows.length!==62) throw new Error(`Expected 62 permissioned tracks, got ${rows.length}`);
+          if(new Set(rows.map(x=>x[1])).size!==62) throw new Error('Duplicate TRACK 01 music asset ID');
+          for(const marker of ['local VERSION="4.2.2"','local MASTER_DEFAULT=1.00','EmitterCenter','math.cos(a*math.pi*0.5)','math.sin(a*math.pi*0.5)','PRELOAD_EQUAL_POWER_RECOVERY']) if(!audio.includes(marker)) throw new Error(`Missing audio marker: ${marker}`);
+          if(audio.includes('Z_OFFSETS') || audio.includes('Emitter_%02d')) throw new Error('Legacy multi-emitter topology leaked into v4.2.2');
+          const ticket=fs.readFileSync('./source/maps/track-01/ticket-flow-hotfix-v11.server.lua','utf8');
+          for(const marker of ['TicketForwardValidator','FORWARD_VALIDATOR','-31.5,2.65,-121.0','TICKET ISSUED  •  SECURITY →']) if(!ticket.includes(marker)) throw new Error(`Missing ticket marker: ${marker}`);
+          const arrival=fs.readFileSync('./source/maps/track-01/lobby-arrival-hotfix.server.lua','utf8');
+          if(!arrival.includes('Vector3.new(-31.5,4.2,-121.0)') || !arrival.includes('LobbyArrivalVersion","3.7.3')) throw new Error('Forward-facing lobby arrival lock missing');
+          console.log('TRACK 01 v4.2.2 scoped source validation PASS');
+          NODE
+
+      - name: Build exact TRACK 01 v4.2.2 place
+        working-directory: source
+        run: node scripts/build-track01-v42.js
+
+      - name: Validate built place
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          test -s "$place"
+          test "$(wc -c < "$place")" -gt 220000
+          grep -q 'TRACK01_MusicAutoDJ' "$place"
+          grep -q 'v4.2.2 — AUDIO STABILITY / LEVEL HOTFIX' "$place"
+          grep -q 'PRELOAD_EQUAL_POWER_RECOVERY' "$place"
+          grep -q 'TRACK01_LobbyFlowCleanup' "$place"
+          grep -q 'TRACK01_TicketFlowHotfixV11' "$place"
+          grep -q 'TicketForwardValidator' "$place"
+          grep -q 'LobbyArrivalVersion' "$place"
+          grep -q '3.7.3' "$place"
+          if grep -q 'Z_OFFSETS' "$place"; then echo 'Legacy Z_OFFSETS leaked into place' >&2; exit 1; fi
+          if grep -q 'Emitter_%02d' "$place"; then echo 'Legacy numbered emitter fan-out leaked into place' >&2; exit 1; fi
+          echo 'TRACK 01 v4.2.2 built-place validation PASS'
+
+      - name: Record place metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          place='source/maps/track-01/place.rbxlx'
+          echo "bytes=$(wc -c < "$place" | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$place" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish exact v4.2.2 source to Roblox
+        id: publish
+        continue-on-error: true
+        working-directory: source
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+        run: node scripts/publish-track01-direct.js
+
+      - name: Build v4.2.2 publish receipt
+        if: always()
+        env:
+          PLACE_BYTES: ${{ steps.meta.outputs.bytes }}
+          PLACE_SHA256: ${{ steps.meta.outputs.sha256 }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-status
+          node - <<'NODE'
+          const fs=require('fs');
+          const path='source/deploy-status/track01-direct.json';
+          let raw={ok:false,httpStatus:'NO_RESULT',payload:null,at:new Date().toISOString()};
+          if(fs.existsSync(path)) raw=JSON.parse(fs.readFileSync(path,'utf8'));
+          const robloxVersion=Number(raw?.payload?.versionNumber);
+          const idsOk=String(raw.universeId)===process.env.TRACK01_UNIVERSE_ID && String(raw.placeId)===process.env.TRACK01_PLACE_ID;
+          const versionOk=Number.isInteger(robloxVersion) && robloxVersion>33;
+          const success=raw.ok===true && Number(raw.httpStatus)>=200 && Number(raw.httpStatus)<300 && idsOk && versionOk;
+          const receipt={
+            status: success?'LIVE_PUBLISHED':'PUBLISH_FAILED',
+            ok: success,
+            httpStatus: raw.httpStatus,
+            universeId: process.env.TRACK01_UNIVERSE_ID,
+            placeId: process.env.TRACK01_PLACE_ID,
+            trackVersion: process.env.TRACK01_VERSION,
+            sourceCommit: process.env.TRACK01_SOURCE_SHA,
+            mode: process.env.TRACK01_MODE,
+            robloxVersion: Number.isInteger(robloxVersion)?robloxVersion:null,
+            placeBytes: Number(process.env.PLACE_BYTES)||null,
+            sha256: process.env.PLACE_SHA256||null,
+            publishRun: Number(process.env.RUN_ID)||null,
+            publishedAt: raw.at||new Date().toISOString(),
+            previewUrl: 'https://www.roblox.com/games/79748872921213',
+            payload: raw.payload??null
+          };
+          fs.writeFileSync('deploy-status/track01-v422-audio-ticket-attempt.json',JSON.stringify(receipt,null,2)+'\n');
+          if(success) fs.writeFileSync('deploy-status/track01-v422-audio-ticket.json',JSON.stringify(receipt,null,2)+'\n');
+          console.log(receipt);
+          NODE
+
+      - name: Persist v4.2.2 publish receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf source
+          git config user.name 'ACC Roblox Deploy Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add deploy-status/track01-v422-audio-ticket-attempt.json
+          if [ -f deploy-status/track01-v422-audio-ticket.json ]; then git add deploy-status/track01-v422-audio-ticket.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record TRACK 01 v4.2.2 audio-ticket publish receipt [skip ci]'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Enforce verified LIVE v4.2.2 receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const r=JSON.parse(fs.readFileSync('deploy-status/track01-v422-audio-ticket-attempt.json','utf8'));
+          if(r.status!=='LIVE_PUBLISHED' || !r.ok) throw new Error('TRACK 01 v4.2.2 publish did not verify LIVE');
+          if(r.sourceCommit!==process.env.TRACK01_SOURCE_SHA) throw new Error('Source SHA receipt mismatch');
+          if(r.trackVersion!==process.env.TRACK01_VERSION) throw new Error('Version receipt mismatch');
+          if(String(r.universeId)!==process.env.TRACK01_UNIVERSE_ID || String(r.placeId)!==process.env.TRACK01_PLACE_ID) throw new Error('Target receipt mismatch');
+          if(!Number.isInteger(r.robloxVersion) || r.robloxVersion<=33) throw new Error('Roblox version did not increment beyond v33');
+          if(!Number.isInteger(r.placeBytes) || r.placeBytes<=220000) throw new Error('Place bytes receipt invalid');
+          if(!/^[0-9a-f]{64}$/.test(String(r.sha256))) throw new Error('Place SHA256 receipt invalid');
+          console.log('TRACK 01 v4.2.2 AUDIO + TICKET LIVE VERIFIED',r);
+          NODE
