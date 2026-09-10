@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: 'Exact 40-character MAIN commit SHA to stage in BBYA Test Lab'
+        description: 'Exact 40-character BBYA source SHA to stage in Test Lab'
         required: true
         type: string
       scope:
@@ -53,7 +53,7 @@ jobs:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 0
 
-      - name: Verify candidate is exact current MAIN
+      - name: Verify candidate is current BBYA source modulo operational receipts
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
         shell: bash
@@ -67,8 +67,22 @@ jobs:
           checked_sha="$(git rev-parse HEAD)"
           main_sha="$(git rev-parse origin/main)"
           test "${SOURCE_SHA,,}" = "${checked_sha,,}"
-          test "${SOURCE_SHA,,}" = "${main_sha,,}"
-          echo "Exact MAIN source: $SOURCE_SHA"
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/main || {
+            echo 'DENIED: requested source is not an ancestor of current MAIN'
+            exit 4
+          }
+          mapfile -t churn < <(git diff --name-only "$SOURCE_SHA..origin/main")
+          for p in "${churn[@]}"; do
+            [[ -z "$p" ]] && continue
+            if [[ "$p" != deploy-status/* ]]; then
+              echo "DENIED: MAIN changed after requested source outside operational receipts: $p"
+              exit 5
+            fi
+          done
+          echo "candidate=$SOURCE_SHA"
+          echo "current_main=$main_sha"
+          echo "operational_receipt_churn=${#churn[@]}"
+          echo 'BBYA source freshness: PASS'
 
       - name: Fetch golden baseline and enforce isolated scope
         env:
