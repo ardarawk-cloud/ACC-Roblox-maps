@@ -8,6 +8,15 @@ local PLAYLIST={
  {title="Zinyo Funkytone - Siapa Benar - Garam Cina 2025.mp3",id="128141893547516",style="funkot"},
  {title="Zinyo Funky Tone_ Hatiku Bagai Terpenjara 2025.mp3",id="98536948000407",style="funkot"},
  {title="Space Melody '23 _ Dj Deri Rmx • Qiu-Qiu™️.mp3",id="128567852049551",style="funkot"},
+ {title="Funkot 05",id="100016584788711",style="funkot"},
+ {title="Funkot 08",id="86909888091389",style="funkot"},
+ {title="Funkot 09",id="73235337855180",style="funkot"},
+ {title="Funkot 010",id="97838388220371",style="funkot"},
+ {title="Funkot 012",id="124258279552326",style="funkot"},
+ {title="Funkot 014",id="115949536250644",style="funkot"},
+ {title="Funkot 016",id="80455182993028",style="funkot"},
+ {title="Funkot 018",id="126095451248910",style="funkot"},
+ {title="Funkot 020",id="138159857843385",style="funkot"},
 }
 if #PLAYLIST==0 then return end
 
