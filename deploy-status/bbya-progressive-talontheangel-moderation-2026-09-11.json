@@ -1,0 +1,38 @@
+{
+  "project": "BBYA SOCIAL HUB",
+  "bank": "PROGRESSIVE",
+  "universeId": "8116636513",
+  "uploaderSecretContract": "TALONTHEANGEL_AUDIO_PUBLISHER",
+  "speedFactor": 1.75,
+  "playbackSpeed": 0.5714285714,
+  "moderation": {
+    "approvedCount": 8,
+    "rejectedCount": 2,
+    "pendingCount": 0,
+    "approved": [
+      {"title":"Matamu","assetId":"111582942633303"},
+      {"title":"Sivici","assetId":"99545738795998"},
+      {"title":"Konsido","assetId":"93245585442878"},
+      {"title":"Dansa","assetId":"91809723842173"},
+      {"title":"Hantuuu","assetId":"103905707256183"},
+      {"title":"Bingung","assetId":"136097078637707"},
+      {"title":"Rumah","assetId":"90011355891550"},
+      {"title":"Puter","assetId":"71303652287437"}
+    ],
+    "rejected": [
+      {"title":"Araarai","assetId":"138836589311383"},
+      {"title":"Mikir jalan","assetId":"129758504404323"}
+    ]
+  },
+  "permission": {
+    "targetUniverseId": "8116636513",
+    "attempted": false,
+    "reason": "TALONTHEANGEL_AUDIO_PUBLISHER lacks asset-permissions:write scope",
+    "prodPermissionVerified": false
+  },
+  "bankInjected": false,
+  "mapPublished": false,
+  "verificationRunId": "34512378841",
+  "verificationJobId": "102989414622",
+  "artifactId": "10166285874"
+}
