@@ -61,11 +61,22 @@ jobs:
           go-version: '1.24.x'
           cache: false
 
-      - name: Install Rojo and rbxmk
+      - name: Cache Rojo
+        id: rojo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/rojo
+          key: rojo-7.7.0-${{ runner.os }}
+
+      - name: Install Rojo
+        if: steps.rojo-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: cargo install rojo --version 7.7.0 --locked
+
+      - name: Install rbxmk
         shell: bash
         run: |
           set -euo pipefail
-          cargo install rojo --version 7.7.0 --locked
           go install github.com/anaminus/rbxmk/rbxmk@v0.9.1
           echo "$HOME/go/bin" >> "$GITHUB_PATH"
           rojo --version
@@ -82,19 +93,41 @@ jobs:
       - name: Download approved Roblox Model assets
         shell: bash
         env:
-          ROBLOX_ASSET_KEY: ${{ secrets.AM_STUDIO }}
+          ROBLOX_ASSET_KEY_PRIMARY: ${{ secrets.AM_STUDIO }}
+          ROBLOX_ASSET_KEY_MASTER: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
         run: |
           set -euo pipefail
-          test -n "${ROBLOX_ASSET_KEY:-}"
+          test -n "${ROBLOX_ASSET_KEY_PRIMARY:-}"
+          test -n "${ROBLOX_ASSET_KEY_MASTER:-}"
+
+          request_location(){
+            local id="$1"
+            local key="$2"
+            local label="$3"
+            local meta="/tmp/asset-${id}-${label}.json"
+            local code
+            code="$(curl --silent --show-error --location -o "$meta" -w '%{http_code}' \
+              -H "x-api-key: ${key}" \
+              "https://apis.roblox.com/asset-delivery-api/v1/assetId/${id}" || true)"
+            if [ "$code" != "200" ]; then
+              echo "ASSET_DELIVERY_KEY_REJECTED id=${id} key=${label} http=${code}"
+              return 1
+            fi
+            node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(!j.location)process.exit(2);process.stdout.write(j.location)' "$meta"
+          }
+
           download_asset(){
             local id="$1"
             local out="$2"
-            local meta="/tmp/asset-${id}.json"
-            curl --fail --silent --show-error --location \
-              -H "x-api-key: ${ROBLOX_ASSET_KEY}" \
-              "https://apis.roblox.com/asset-delivery-api/v1/assetId/${id}" > "$meta"
-            local location
-            location="$(node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(!j.location)process.exit(2);process.stdout.write(j.location)' "$meta")"
+            local location=''
+            if location="$(request_location "$id" "$ROBLOX_ASSET_KEY_PRIMARY" primary)"; then
+              echo "ASSET_DELIVERY_AUTH_PASS id=${id} key=primary"
+            elif location="$(request_location "$id" "$ROBLOX_ASSET_KEY_MASTER" master)"; then
+              echo "ASSET_DELIVERY_AUTH_PASS id=${id} key=master"
+            else
+              echo "No configured Open Cloud key can read Roblox Model asset ${id}" >&2
+              exit 1
+            fi
             test -n "$location"
             curl --fail --silent --show-error --location "$location" -o "$out"
             test -s "$out"
@@ -104,6 +137,7 @@ jobs:
             fi
             echo "ASSET_DOWNLOAD_PASS id=${id} bytes=$(stat -c%s "$out") sha256=$(sha256sum "$out" | awk '{print $1}')"
           }
+
           download_asset "$CAR_01_ASSET_ID" /tmp/bbya-car-01.rbxm
           download_asset "$CAR_02_ASSET_ID" /tmp/bbya-car-02.rbxm
 
