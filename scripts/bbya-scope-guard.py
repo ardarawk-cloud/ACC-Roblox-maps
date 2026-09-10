@@ -66,24 +66,28 @@ def verify_invariants(policy: dict) -> None:
 
 def verify_entrance_car_reproducibility(policy: dict) -> None:
     car = policy.get("entranceCars", {})
-    rel = car.get("requiredSourcePath")
+    mode = car.get("mode")
+    if mode != "LOCKED_RUNTIME_ASSETS":
+        fail(f"entranceCars.mode must be LOCKED_RUNTIME_ASSETS, got {mode!r}")
+
+    rel = car.get("authorityPath")
     if not rel:
-        fail("entranceCars.requiredSourcePath is not configured")
+        fail("entranceCars.authorityPath is not configured")
     source = ROOT / rel
     if not source.is_file() or source.stat().st_size == 0:
-        fail(
-            "entrance-cars release blocked: baked Ddiaz source is not source-controlled "
-            f"at {rel}. Do not publish a Rojo build that would silently drop the two cars."
-        )
-    project = ROOT / "maps/bbya-social-hub/default.project.json"
-    text = project.read_text(encoding="utf-8", errors="replace")
-    missing = [t for t in car.get("requiredProjectTokens", []) if t not in text]
+        fail(f"entrance-cars release blocked: missing runtime authority {rel}")
+
+    text = source.read_text(encoding="utf-8", errors="replace")
+    required = [str(v) for v in car.get("requiredAssetIds", [])] + list(car.get("requiredTokens", []))
+    missing = [token for token in required if token not in text]
     if missing:
-        fail(
-            "entrance-cars release blocked: canonical project does not map the baked car source; "
-            f"missing tokens: {missing}"
-        )
-    print("INVARIANT PASS: entrance cars are reproducible from canonical source")
+        fail(f"entrance-cars release blocked: runtime authority lost locked tokens: {missing}")
+
+    forbidden = [token for token in car.get("forbiddenTokens", []) if token in text]
+    if forbidden:
+        fail(f"entrance-cars release blocked: stale baked-only failure path still present: {forbidden}")
+
+    print("INVARIANT PASS: entrance cars use locked runtime assets with exact IDs")
 
 
 def main() -> int:
@@ -98,11 +102,9 @@ def main() -> int:
     if args.scope not in scopes:
         fail(f"unknown scope {args.scope!r}; allowed={sorted(scopes)}")
 
-    # Ensure the comparison is real and cannot be bypassed with a missing ref.
     git("rev-parse", "--verify", args.baseline_ref)
     git("rev-parse", "--verify", args.candidate_ref)
     if git("merge-base", "--is-ancestor", args.baseline_ref, args.candidate_ref) != "":
-        # merge-base --is-ancestor normally emits no stdout; git() already fails on nonzero.
         pass
 
     diff = git(
