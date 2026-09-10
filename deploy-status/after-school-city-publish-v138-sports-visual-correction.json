@@ -1,0 +1,29 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V138_SPORTS_VISUAL_CORRECTION",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "27661bd1c3eda0d78e6e63d9dcde2e7f99b7f21c",
+    "baseLiveCommit":  "5e107062864b63559510f66e1497358f2a4eda64",
+    "qcRunId":  "34497928006",
+    "qcArtifactId":  10160592264,
+    "qcArtifactDigest":  "5cc163a1e40937c30ccab419cad7cb3df80c8fbdb9f41ea0dbfb3f6ab49bdfea",
+    "skateboardAssetId":  111060043204479,
+    "basketballAssetId":  119323680316690,
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  62,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  215222,
+    "placeSha256":  "539a6f5b73e579bf15b578577a79ef3d3ded289e02e5723f02fa7ce103aed380",
+    "runId":  "34510888022",
+    "publishedAt":  "2026-09-10T17:53:13Z",
+    "runtimeStatus":  "PENDING",
+    "fixes":  [
+                  "imported basketball chain-link fence restored",
+                  "legacy gray sports fence removed",
+                  "prototype Bleachers obstruction removed",
+                  "skate and sports benches rotated 180 degrees to face activity areas"
+              ],
+    "note":  "Exact V1.3.8 sports visual-correction QC artifact published without rebuild. Basketball hoops/imported court, skate ramps, economy, persistence/BAG authority, music, quests, dedication, gameplay, monetization, and unrelated map systems unchanged."
+}
