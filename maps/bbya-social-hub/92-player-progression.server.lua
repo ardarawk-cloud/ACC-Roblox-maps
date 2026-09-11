@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.3 STAFF ACCESS LOCK
+-- BBYA SOCIAL HUB — PLAYER PROGRESSION + IDENTITY v5.4 OVERHEAD RECOVERY
 -- Authority: persistent social level/XP, managed roles, custom cosmetic TITLE and overhead identity.
 -- Official staff roles: OWNER / CO OWNER / ADMIN / MODERATOR / DJ / LEAD / MEDIA / CREW.
 -- Staff roles get full venue/travel bypass; VIP remains guest-only and does not receive Staff Tower authority.
+-- v5.4 binds identity before DataStore waits and self-heals a missing BBYAIdentityTag after spawn/avatar reload.
 local Players=game:GetService("Players")
 local DataStoreService=game:GetService("DataStoreService")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -31,6 +32,7 @@ local loadedRoles={}
 local loadedTitles={}
 local lastLevel={}
 local requestedRoleByUserId={}
+local identityBound={}
 
 local remotes=ReplicatedStorage:FindFirstChild("BBYAClubRemotes") or Instance.new("Folder")
 remotes.Name="BBYAClubRemotes";remotes.Parent=ReplicatedStorage
@@ -197,8 +199,9 @@ local function effectiveRole(player)
 end
 local function makeTag(player)
  local character=player.Character
- local head=character and character:FindFirstChild("Head")
- if not head then return end
+ if not character then return false end
+ local head=character:FindFirstChild("Head") or character:WaitForChild("Head",5)
+ if not head then return false end
  clearTag(character)
  local level=player:GetAttribute("BBYALevel") or 1
  local rank,rankColor=rankFor(level)
@@ -212,7 +215,7 @@ local function makeTag(player)
 
  local gui=Instance.new("BillboardGui")
  gui.Name="BBYAIdentityTag";gui.Adornee=head;gui.Size=UDim2.fromOffset(230,custom and 66 or 50);gui.StudsOffset=Vector3.new(0,2.75,0)
- gui.AlwaysOnTop=true;gui.MaxDistance=72;gui.LightInfluence=0;gui.Parent=head
+ gui.Enabled=true;gui.AlwaysOnTop=true;gui.MaxDistance=120;gui.LightInfluence=0;gui.Parent=head
  local holder=Instance.new("Frame");holder.Size=UDim2.fromScale(1,1);holder.BackgroundTransparency=1;holder.Parent=gui
  local name=Instance.new("TextLabel");name.BackgroundTransparency=1;name.Position=UDim2.fromOffset(0,3);name.Size=UDim2.new(1,0,0,18)
  name.Text=player.DisplayName;name.TextColor3=Color3.fromRGB(248,248,250);name.TextStrokeTransparency=.45;name.Font=Enum.Font.GothamSemibold;name.TextSize=13;name.Parent=holder
@@ -222,6 +225,7 @@ local function makeTag(player)
   local t=Instance.new("TextLabel");t.BackgroundTransparency=1;t.Position=UDim2.fromOffset(0,37);t.Size=UDim2.new(1,0,0,16)
   t.Text=custom;t.TextColor3=customColor or COLORS.Newbie;t.TextStrokeTransparency=.45;t.Font=Enum.Font.GothamBold;t.TextSize=11;t.Parent=holder
  end
+ return true
 end
 
 local function clearManagedAccess(player)
@@ -269,6 +273,7 @@ local function applyManagedAccess(player)
  player:SetAttribute("BBYAEffectiveRole",effectiveRole(player))
 end
 local function applyIdentity(player)
+ if not player or not player.Parent then return 1 end
  local total=(loadedMinutes[player.UserId] or 0)+(sessionMinutes[player.UserId] or 0)
  local level=levelFromMinutes(total)
  player:SetAttribute("BBYALevel",level)
@@ -279,6 +284,26 @@ local function applyIdentity(player)
  player:SetAttribute("BBYALevelXPRequired",LEVEL_MINUTES)
  applyManagedAccess(player);applyTitleAttributes(player);makeTag(player)
  return level
+end
+
+local function bindIdentityLifecycle(player)
+ if identityBound[player] then return end
+ identityBound[player]=true
+ local function repair(character)
+  task.spawn(function()
+   if character then character:WaitForChild("Head",10) end
+   for _,delaySeconds in ipairs({0,.25,1,3}) do
+    if delaySeconds>0 then task.wait(delaySeconds) end
+    if not player.Parent or (character and player.Character~=character) then return end
+    applyIdentity(player)
+    local head=player.Character and player.Character:FindFirstChild("Head")
+    if head and head:FindFirstChild("BBYAIdentityTag") then return end
+   end
+  end)
+ end
+ player.CharacterAdded:Connect(repair)
+ player.CharacterAppearanceLoaded:Connect(repair)
+ if player.Character then repair(player.Character) end
 end
 
 local function loadRole(player)
@@ -314,6 +339,7 @@ local function persistTitle(uid,data)
 end
 
 local function loadPlayer(player)
+ bindIdentityLifecycle(player)
  local value=0
  local ok,data=pcall(function()return levelStore:GetAsync("u_"..player.UserId)end)
  if ok and type(data)=="number" then value=math.max(0,math.floor(data)) end
@@ -321,7 +347,6 @@ local function loadPlayer(player)
  loadRole(player);loadTitle(player)
  lastLevel[player.UserId]=applyIdentity(player)
  player:GetAttributeChangedSignal("BBYAManagedRole"):Connect(function()task.defer(function()applyIdentity(player)end)end)
- player.CharacterAdded:Connect(function(char)char:WaitForChild("Head",10);task.wait(.4);applyIdentity(player)end)
 end
 local function savePlayer(player)
  local uid=player.UserId;local total=(loadedMinutes[uid] or 0)+(sessionMinutes[uid] or 0)
@@ -385,8 +410,22 @@ end
 for _,p in ipairs(Players:GetPlayers()) do task.spawn(loadPlayer,p) end
 Players.PlayerAdded:Connect(loadPlayer)
 Players.PlayerRemoving:Connect(function(p)
- savePlayer(p);loadedMinutes[p.UserId]=nil;sessionMinutes[p.UserId]=nil;loadedRoles[p.UserId]=nil;loadedTitles[p.UserId]=nil;lastLevel[p.UserId]=nil
+ savePlayer(p);loadedMinutes[p.UserId]=nil;sessionMinutes[p.UserId]=nil;loadedRoles[p.UserId]=nil;loadedTitles[p.UserId]=nil;lastLevel[p.UserId]=nil;identityBound[p]=nil
 end)
+
+task.spawn(function()
+ while task.wait(4) do
+  for _,p in ipairs(Players:GetPlayers()) do
+   local character=p.Character
+   local head=character and character:FindFirstChild("Head")
+   local tag=head and head:FindFirstChild("BBYAIdentityTag")
+   if head and (not tag or not tag:IsA("BillboardGui") or not tag.Enabled) then
+    task.defer(function()if p.Parent then applyIdentity(p) end end)
+   end
+  end
+ end
+end)
+
 task.spawn(function()
  while task.wait(60) do
   for _,p in ipairs(Players:GetPlayers()) do
@@ -401,4 +440,4 @@ task.spawn(function()
  end
 end)
 game:BindToClose(function()for _,p in ipairs(Players:GetPlayers()) do savePlayer(p) end end)
-print("[BBYA] Player progression v5.3 online: Arda ADMIN + gudangpet88 MEDIA lock / staff full travel / VIP guest-only")
+print("[BBYA] Player progression v5.4 online: overhead identity lifecycle + self-heal / staff access lock preserved")
