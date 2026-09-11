@@ -29,6 +29,7 @@ on:
           - main-club
           - underground
           - funkot
+          - travel
           - entrance-cars
           - mall
           - staff-tower
@@ -114,7 +115,7 @@ jobs:
             scope="$MANUAL_SCOPE"
           else
             pass=()
-            for candidate in baseline-recovery identity main-club underground funkot entrance-cars mall staff-tower; do
+            for candidate in baseline-recovery identity main-club underground funkot travel entrance-cars mall staff-tower; do
               if python3 scripts/bbya-scope-guard.py \
                 --scope "$candidate" \
                 --baseline-ref origin/bbya-golden-baseline \
@@ -124,7 +125,7 @@ jobs:
             done
             if [[ ${#pass[@]} -ne 1 ]]; then
               echo "DENIED: expected exactly one BBYA scope to pass; got ${#pass[@]}: ${pass[*]:-none}"
-              for candidate in baseline-recovery identity main-club underground funkot entrance-cars mall staff-tower; do
+              for candidate in baseline-recovery identity main-club underground funkot travel entrance-cars mall staff-tower; do
                 echo "----- $candidate -----"
                 cat "/tmp/bbya-guard-${candidate}.log" || true
               done
