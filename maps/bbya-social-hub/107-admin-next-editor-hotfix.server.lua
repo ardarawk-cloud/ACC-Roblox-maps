@@ -1,7 +1,8 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8.1 OWNER-ONLY EDIT VISIBILITY
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8.2 FUNKOT RUNTIME REPAIR
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
 -- Runtime EDIT is visible only for arda_moron123; all other staff/admin accounts remain hidden.
 -- Community Wall neon geometry remains owned only by 34-support-dashboard.server.lua.
+-- Funkot repair keeps 93-funkot-music.server.lua as the only playback authority and permanently retires old entry debris.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -160,11 +161,71 @@ musicRemote.OnServerEvent:Connect(function(player,action)
  toast(player,"NEXT • skip diproses")
 end)
 
--- FUNKOT CLEAN ENTRY v1 --------------------------------------------------------
--- The large blackout box is retired. Remove only the small arrival debris that its
--- follow-up passes still recreate: queue posts/rope/sconces/header and the v2.1
--- portal/lens/plaque model. The original Funkot venue, sign, stage, dance floor,
--- lights, bar, audio and paid-zone/travel authority remain untouched.
+-- FUNKOT AUDIO AUTHORITY REPAIR v1 --------------------------------------------
+-- 92-funkot-club.server.lua is a visual/geometry legacy pass but still creates a
+-- retired BBYAFunkotClubFeed + zero-volume BBYAFunkotMaster. That races the real
+-- v7 AutoMix engine in 93-funkot-music.server.lua and can silence the venue.
+-- Keep v7 as the single playback authority by retiring the legacy feed and
+-- rebinding both v7 decks to the live Funkot master after startup races settle.
+local function stabilizeFunkotAudioAuthority()
+ local legacy=SoundService:FindFirstChild("BBYAFunkotClubFeed")
+ if legacy and legacy:IsA("Sound") then
+  pcall(function()legacy:Stop()end)
+  legacy:Destroy()
+ end
+
+ local group=SoundService:FindFirstChild("BBYAFunkotMaster")
+ if not group or not group:IsA("SoundGroup") then return false end
+ group.Volume=1
+ group:SetAttribute("Venue","FUNKOT")
+ group:SetAttribute("AudioEngine","FUNKOT_DUAL_DECK_V7")
+ group:SetAttribute("LegacyClubFeedRetired",true)
+
+ local rebound=0
+ for _,name in ipairs({"BBYAFunkotDeckA","BBYAFunkotDeckB"}) do
+  local deck=SoundService:FindFirstChild(name)
+  if deck and deck:IsA("Sound") then
+   if deck.SoundGroup~=group then deck.SoundGroup=group end
+   rebound+=1
+  end
+ end
+ group:SetAttribute("BoundAutoMixDecks",rebound)
+ return rebound>0
+end
+
+task.spawn(function()
+ for _,delaySeconds in ipairs({2,4,7,12,20,35,60}) do
+  task.delay(delaySeconds,stabilizeFunkotAudioAuthority)
+ end
+end)
+
+-- FUNKOT CLEAN ENTRY v2 --------------------------------------------------------
+-- The retired entrance/lobby box and its follow-up arrival identity must never
+-- return. Remove the known model roots plus orphaned pieces from older passes,
+-- then watch descendants so late RuntimeQC construction cannot recreate them.
+local RETIRED_ENTRY_EXACT={
+ DiskotikArrivalV2=true,
+ FunkotDiskotikIdentityV21=true,
+ OpenEntryIdentityV21=true,
+ EntryHeader=true,
+ QueueRope=true,
+ PortalHeader=true,
+ PortalLeft=true,
+ PortalRight=true,
+ DiskotikIdentityPlaque=true,
+}
+
+local function isRetiredFunkotEntryObject(obj)
+ if not obj then return false end
+ if RETIRED_ENTRY_EXACT[obj.Name] then return true end
+ if string.match(obj.Name,"^EntrySconce") or string.match(obj.Name,"^QueuePost") or string.match(obj.Name,"^GuideLens") then return true end
+ local n=string.lower(obj.Name)
+ if string.find(n,"blackout",1,true) or string.find(n,"baffle",1,true) or string.find(n,"vestibule",1,true) or string.find(n,"arrivalbox",1,true) then return true end
+ return false
+end
+
+local watchedFunkotClub=nil
+local funkotAddedConnection=nil
 local function cleanFunkotEntryDebris()
  local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
  local club=root and root:FindFirstChild("FunkotClub")
@@ -179,16 +240,37 @@ local function cleanFunkotEntryDebris()
  local identity=club:FindFirstChild("FunkotDiskotikIdentityV21")
  if identity then identity:Destroy() end
 
- club:SetAttribute("CleanEntryProfile","NO_BLACKOUT_NO_DEBRIS_V1")
+ for _,obj in ipairs(club:GetDescendants()) do
+  if isRetiredFunkotEntryObject(obj) and obj.Parent then
+   obj:Destroy()
+  end
+ end
+
+ if watchedFunkotClub~=club then
+  if funkotAddedConnection then funkotAddedConnection:Disconnect() end
+  watchedFunkotClub=club
+  funkotAddedConnection=club.DescendantAdded:Connect(function(obj)
+   if isRetiredFunkotEntryObject(obj) then
+    task.defer(function()
+     if obj and obj.Parent and isRetiredFunkotEntryObject(obj) then obj:Destroy() end
+    end)
+   end
+  end)
+ end
+
+ club:SetAttribute("CleanEntryProfile","NO_BLACKOUT_NO_DEBRIS_V2")
  club:SetAttribute("ArrivalDebrisRetired",true)
+ club:SetAttribute("ArrivalDebrisGuardActive",true)
  return true
 end
 
 task.spawn(function()
- -- RuntimeQC may build the retired arrival passes late; re-sweep only during startup.
- for _,delaySeconds in ipairs({1,3,6,10,18,30,45,60}) do
-  task.delay(delaySeconds,cleanFunkotEntryDebris)
+ for _,delaySeconds in ipairs({1,3,6,10,18,30,45,60,90,120}) do
+  task.delay(delaySeconds,function()
+   cleanFunkotEntryDebris()
+   stabilizeFunkotAudioAuthority()
+  end)
  end
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v8.1 online: EDIT visible only for arda_moron123; all other staff hidden")
+print("[BBYA] Admin NEXT + editor hotfix v8.2 online: Funkot audio authority repaired / retired lobby debris guarded")
