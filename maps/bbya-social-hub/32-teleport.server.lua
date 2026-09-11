@@ -1,6 +1,7 @@
--- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.2 STAFF TOWER STAFF-ONLY GATE
+-- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.3 GLOW LAB ARRIVAL FIX
 -- Server-authoritative destination pricing, purchase locking, purchase result, teleport completion,
 -- and staff-only Staff Tower access resolved from the live StaffTowerV1 geometry authority.
+-- Photo Studio and LookLab arrivals follow their current Glow Lab / Mall Level 2 geometry.
 
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local MarketplaceService=game:GetService("MarketplaceService")
@@ -28,8 +29,8 @@ end
 
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.new(78,18,369),
- LookLab=CFrame.new(61,18,361),
+ Photo=CFrame.lookAt(Vector3.new(57.7,18,373),Vector3.new(84.2,18,373)),
+ LookLab=CFrame.lookAt(Vector3.new(76,18,361.5),Vector3.new(80.2,18,361.5)),
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,32,2),
@@ -257,4 +258,4 @@ Players.PlayerRemoving:Connect(function(player)
  pending[player.UserId]=nil
 end)
 
-print("[BBYA] Travel v10.2 online: staff full bypass compatible / Staff Tower staff-only / VIP excluded")
+print("[BBYA] Travel v10.3 online: Glow Lab Photo/LookLab arrivals corrected / staff access locks preserved")
