@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -26,7 +26,9 @@
     ],
     "identity": [
       "maps/bbya-social-hub/92-player-progression.server.lua",
-      "maps/bbya-social-hub/142-identity-ui.client.lua"
+      "maps/bbya-social-hub/142-identity-ui.client.lua",
+      "maps/bbya-social-hub/157-overhead-identity.client.lua",
+      "maps/bbya-social-hub/default.project.json"
     ],
     "main-club": [
       "maps/bbya-social-hub/30-club-systems.server.lua"
