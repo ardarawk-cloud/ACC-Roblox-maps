@@ -146,6 +146,7 @@
         "AFKDetectorClient": {"$path": "139-afk.client.lua"},
         "PhotoFreecamV1": {"$path": "140-photo-freecam.client.lua"},
         "IdentityUIV1": {"$path": "142-identity-ui.client.lua"},
+        "OverheadIdentityClientV2": {"$path": "157-overhead-identity.client.lua"},
         "SaweriaLinkV1": {"$path": "143-saweria-link.client.lua"},
         "LeadDanceSyncClientV3": {"$path": "153-lead-dance-sync.client.lua"},
         "AvatarSwitchClientV3": {"$path": "154-avatar-switch.client.lua"},
