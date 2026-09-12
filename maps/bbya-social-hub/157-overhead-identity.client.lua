@@ -57,8 +57,6 @@ local function render(player)
  local head=character and character:FindFirstChild("Head")
  if not head then return false end
 
- -- The older server tag can remain as a data-side fallback, but hide it on this
- -- client so two labels never stack on top of one another.
  local serverTag=head:FindFirstChild("BBYAIdentityTag")
  if serverTag and serverTag:IsA("BillboardGui") then serverTag.Enabled=false end
 
@@ -69,8 +67,7 @@ local function render(player)
  local level=tonumber(player:GetAttribute("BBYALevel")) or 1
  local rank=tostring(player:GetAttribute("BBYARank") or "NEWBIE")
  local statusText=role or string.format("LV %d • %s",level,rank)
- local statusColor=role and (ROLE_COLORS[role] or RANK_COLORS.NEWBBIE) or (RANK_COLORS[rank] or RANK_COLORS.NEWBIE)
- if not statusColor then statusColor=RANK_COLORS.NEWBIE end
+ local statusColor=role and (ROLE_COLORS[role] or RANK_COLORS.NEWBIE) or (RANK_COLORS[rank] or RANK_COLORS.NEWBIE)
 
  local custom=nil
  if player:GetAttribute("BBYACustomTitleEquipped")==true then
@@ -167,7 +164,6 @@ for _,player in ipairs(Players:GetPlayers()) do bind(player) end
 Players.PlayerAdded:Connect(bind)
 Players.PlayerRemoving:Connect(function(player)bound[player]=nil end)
 
--- Self-heal protects against avatar reloads and late server/UI cleanup passes.
 task.spawn(function()
  while task.wait(2) do
   for _,player in ipairs(Players:GetPlayers()) do
