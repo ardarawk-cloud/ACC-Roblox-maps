@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8.2 FUNKOT RUNTIME REPAIR
+-- BBYA SOCIAL HUB — ADMIN NEXT + EDITOR HOTFIX v8.3 FUNKOT ROOT CLEANUP
 -- Makes admin NEXT effective for primary AutoDJ and recovery/fallback audio.
 -- Runtime EDIT is visible only for arda_moron123; all other staff/admin accounts remain hidden.
 -- Community Wall neon geometry remains owned only by 34-support-dashboard.server.lua.
@@ -114,8 +114,6 @@ local function stopRecovery(v)
  return false
 end
 
--- Hard visibility policy: only arda_moron123 can see/use EDIT.
--- This intentionally overrides the retired "hide for everyone" behavior from this hotfix.
 local function syncEditorVisibility(player)
  if not player then return end
  local owner=isEditorOwner(player)
@@ -136,8 +134,6 @@ Players.PlayerAdded:Connect(function(p)
  end)
 end)
 
--- Observe the existing Music remote. Existing engine handlers still own normal playback.
--- This late guard only handles cases where NEXT previously appeared dead.
 musicRemote.OnServerEvent:Connect(function(player,action)
  if action~="next" or not isAdmin(player) then return end
  local v=venue(player)
@@ -148,8 +144,6 @@ musicRemote.OnServerEvent:Connect(function(player,action)
   return
  end
 
- -- Existing engine receives the same RemoteEvent and attempts its normal transition.
- -- Retry once after preload time if the first attempt did not have a ready standby.
  task.delay(1.0,function()
   if not player.Parent then return end
   if v=="UNDERGROUND" then
@@ -162,11 +156,8 @@ musicRemote.OnServerEvent:Connect(function(player,action)
 end)
 
 -- FUNKOT AUDIO AUTHORITY REPAIR v1 --------------------------------------------
--- 92-funkot-club.server.lua is a visual/geometry legacy pass but still creates a
--- retired BBYAFunkotClubFeed + zero-volume BBYAFunkotMaster. That races the real
--- v7 AutoMix engine in 93-funkot-music.server.lua and can silence the venue.
--- Keep v7 as the single playback authority by retiring the legacy feed and
--- rebinding both v7 decks to the live Funkot master after startup races settle.
+-- Do not change the approved Funkot music authority. This only prevents the old
+-- visual club pass from muting/replacing the already-working v7 AutoMix decks.
 local function stabilizeFunkotAudioAuthority()
  local legacy=SoundService:FindFirstChild("BBYAFunkotClubFeed")
  if legacy and legacy:IsA("Sound") then
@@ -199,10 +190,7 @@ task.spawn(function()
  end
 end)
 
--- FUNKOT CLEAN ENTRY v2 --------------------------------------------------------
--- The retired entrance/lobby box and its follow-up arrival identity must never
--- return. Remove the known model roots plus orphaned pieces from older passes,
--- then watch descendants so late RuntimeQC construction cannot recreate them.
+-- FUNKOT CLEAN ENTRY v3 --------------------------------------------------------
 local RETIRED_ENTRY_EXACT={
  DiskotikArrivalV2=true,
  FunkotDiskotikIdentityV21=true,
@@ -226,6 +214,45 @@ end
 
 local watchedFunkotClub=nil
 local funkotAddedConnection=nil
+local watchedRoot=nil
+local rootAddedConnection=nil
+
+local function isRetiredRootBarrier(obj)
+ if not obj then return false end
+ if obj.Name=="FunkotClosedSouthWall" then return true end
+ if obj.Name=="PaidZonePortalsV1" then
+  if obj:GetAttribute("Pass")=="FUNKOT_CLOSED_WALL_V2" then return true end
+  if obj:FindFirstChild("FunkotClosedSouthWall",true) then return true end
+ end
+ return false
+end
+
+local function cleanFunkotRootDebris()
+ local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
+ if not root then return false end
+
+ -- This is the visible 24x30 wall/box created outside FunkotClub by the retired
+ -- closed-wall pass. The invisible PaidZoneHardSealV1 remains untouched.
+ for _,obj in ipairs(root:GetChildren()) do
+  if isRetiredRootBarrier(obj) then obj:Destroy() end
+ end
+ local direct=root:FindFirstChild("FunkotClosedSouthWall")
+ if direct then direct:Destroy() end
+
+ if watchedRoot~=root then
+  if rootAddedConnection then rootAddedConnection:Disconnect() end
+  watchedRoot=root
+  rootAddedConnection=root.ChildAdded:Connect(function(obj)
+   task.defer(function()
+    task.wait(.05)
+    if obj and obj.Parent==root and isRetiredRootBarrier(obj) then obj:Destroy() end
+   end)
+  end)
+ end
+ root:SetAttribute("FunkotClosedWallRetired",true)
+ return true
+end
+
 local function cleanFunkotEntryDebris()
  local root=Workspace:FindFirstChild("BBYA_ZERO_BUILD")
  local club=root and root:FindFirstChild("FunkotClub")
@@ -241,9 +268,7 @@ local function cleanFunkotEntryDebris()
  if identity then identity:Destroy() end
 
  for _,obj in ipairs(club:GetDescendants()) do
-  if isRetiredFunkotEntryObject(obj) and obj.Parent then
-   obj:Destroy()
-  end
+  if isRetiredFunkotEntryObject(obj) and obj.Parent then obj:Destroy() end
  end
 
  if watchedFunkotClub~=club then
@@ -258,19 +283,21 @@ local function cleanFunkotEntryDebris()
   end)
  end
 
- club:SetAttribute("CleanEntryProfile","NO_BLACKOUT_NO_DEBRIS_V2")
+ club:SetAttribute("CleanEntryProfile","NO_BLACKOUT_NO_DEBRIS_V3")
  club:SetAttribute("ArrivalDebrisRetired",true)
  club:SetAttribute("ArrivalDebrisGuardActive",true)
  return true
 end
 
 task.spawn(function()
+ cleanFunkotRootDebris()
  for _,delaySeconds in ipairs({1,3,6,10,18,30,45,60,90,120}) do
   task.delay(delaySeconds,function()
+   cleanFunkotRootDebris()
    cleanFunkotEntryDebris()
    stabilizeFunkotAudioAuthority()
   end)
  end
 end)
 
-print("[BBYA] Admin NEXT + editor hotfix v8.2 online: Funkot audio authority repaired / retired lobby debris guarded")
+print("[BBYA] Admin NEXT + editor hotfix v8.3 online: Funkot music preserved / root closed-wall debris retired / lobby debris guarded")
