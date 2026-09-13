@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -22,8 +22,7 @@
       ".github/bbya-release-policy.json",
       "scripts/bbya-scope-guard.py",
       "scripts/publish-map.js",
-      "maps/registry.json",
-      "maps/bbya-social-hub/96-paid-zone-portals.server.lua"
+      "maps/registry.json"
     ],
     "identity": [
       "maps/bbya-social-hub/92-player-progression.server.lua",
