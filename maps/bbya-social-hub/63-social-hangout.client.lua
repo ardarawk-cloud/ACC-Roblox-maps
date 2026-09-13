@@ -1,8 +1,8 @@
--- BBYA SOCIAL HANGOUT CORE v6 — DANCE FALLBACK GUARD
+-- BBYA SOCIAL HANGOUT CORE v7 — DANCE R6 RIG + FALLBACK GUARD
 -- Compatibility marker for preview CI: SOCIAL HANGOUT SHELL v4
 -- FUNCTION ONLY. UI KERNEL v1 owns all outer geometry/placement/visibility coordination.
 -- 92-freecam.client.lua owns the 212-entry Dance catalog content.
--- This client only guarantees a usable fallback when a catalog animation is blocked/unavailable.
+-- This client filters R6-only dance buttons on R15 avatars and preserves fallback for blocked/unavailable assets.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -20,7 +20,7 @@ local function text(parent,value,pos,size,font,ts,color)local l=Instance.new("Te
 local function button(parent,value,pos,size,color)local b=Instance.new("TextButton");b.Text=value;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=color or C.card;b.BorderSizePixel=0;b.Font=Enum.Font.GothamSemibold;b.TextSize=12;b.TextColor3=C.white;b.AutoButtonColor=true;b.Parent=parent;corner(b,10);return b end
 
 local gui=Instance.new("ScreenGui");gui.Name="BBYASocialHangoutUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=44;gui.Parent=pg
-gui:SetAttribute("BBYADanceShellAuthority","MAIN_V6_FUNCTION_ONLY");gui:SetAttribute("BBYADanceCatalogCount",212)
+gui:SetAttribute("BBYADanceShellAuthority","MAIN_V7_FUNCTION_ONLY");gui:SetAttribute("BBYADanceCatalogCount",212)
 local danceLauncher=button(gui,"DANCE",UDim2.new(1,40,0,0),UDim2.fromOffset(58,40),Color3.fromRGB(76,27,59));danceLauncher.Name="DanceLauncher";danceLauncher.Visible=false
 local carryLauncher=button(gui,"CARRY",UDim2.new(1,40,0,44),UDim2.fromOffset(58,40),Color3.fromRGB(22,58,68));carryLauncher.Name="CarryLauncher";carryLauncher.Visible=false
 
@@ -77,11 +77,11 @@ remote.OnClientEvent:Connect(function(kind,data)
  end
 end)
 
--- DANCE FALLBACK GUARD ---------------------------------------------------------
--- The 212 catalog contains public/event/branded animation IDs whose permissions can
--- change independently of this experience. The catalog still tries the requested
--- animation first. If no Action-priority dance is actually running shortly after the
--- tap, fall back transparently to one of Roblox's classic public dance animations.
+-- DANCE R6 RIG + FALLBACK GUARD ----------------------------------------------
+-- The final eight catalog entries are explicitly R6-only. R15 avatars must not be
+-- offered those buttons because an R6 animation can load without producing a usable
+-- R15 dance. Real R6 avatars keep those entries. Other blocked assets still fall back
+-- to one of Roblox's classic public dance animations.
 local SAFE_DANCES={
  {name="Dance",id=507771019},
  {name="Dance 2",id=507776043},
@@ -93,6 +93,37 @@ local fallbackCursor=0
 local function currentHumanoid()
  local ch=player.Character
  return ch and ch:FindFirstChildOfClass("Humanoid")
+end
+
+local function isR6OnlyButton(obj)
+ if not obj or not obj:IsA("TextButton") or not string.match(obj.Name,"^Dance_%d+$") then return false end
+ return string.match(string.upper(tostring(obj.Text or "")),"^R6[%s%-]")~=nil
+end
+
+local function rigAllowsButton(obj)
+ if not isR6OnlyButton(obj) then return true end
+ local hum=currentHumanoid()
+ return hum~=nil and hum.RigType==Enum.HumanoidRigType.R6
+end
+
+local function applyRigVisibility(obj)
+ if not obj or not obj:IsA("TextButton") or not string.match(obj.Name,"^Dance_%d+$") then return end
+ local r6Only=isR6OnlyButton(obj)
+ local compatible=rigAllowsButton(obj)
+ obj:SetAttribute("BBYAR6Only",r6Only)
+ obj:SetAttribute("BBYARigCompatible",compatible)
+ obj.Visible=compatible
+ obj.Active=compatible
+ obj.AutoButtonColor=compatible
+end
+
+local function refreshRigVisibility()
+ for _,obj in ipairs(dancePanel:GetDescendants()) do
+  applyRigVisibility(obj)
+ end
+ local hum=currentHumanoid()
+ dancePanel:SetAttribute("BBYACurrentRig",hum and hum.RigType.Name or "UNKNOWN")
+ dancePanel:SetAttribute("BBYAR6RigGuard","R6_ONLY_ON_R6_V1")
 end
 
 local function hasActionDance(hum)
@@ -148,9 +179,16 @@ local function startFallback(requestedName)
 end
 
 local function bindDanceButton(obj)
- if boundDanceButtons[obj] or not obj:IsA("TextButton") or not string.match(obj.Name,"^Dance_%d+$") then return end
+ if not obj:IsA("TextButton") or not string.match(obj.Name,"^Dance_%d+$") then return end
+ applyRigVisibility(obj)
+ if boundDanceButtons[obj] then return end
  boundDanceButtons[obj]=true
  obj.Activated:Connect(function()
+  if not rigAllowsButton(obj) then
+   danceStatus("R6 ONLY • avatar kamu bukan R6",C.gold)
+   applyRigVisibility(obj)
+   return
+  end
   local requested=obj.Text
   task.delay(1.15,function()
    if not obj.Parent then return end
@@ -163,8 +201,9 @@ end
 
 local function bindDanceCatalog()
  for _,obj in ipairs(dancePanel:GetDescendants()) do bindDanceButton(obj) end
- dancePanel.DescendantAdded:Connect(function(obj)task.defer(bindDanceButton,obj)end)
- dancePanel:SetAttribute("BBYADanceFallbackGuard","SAFE_CLASSIC_V1")
+ dancePanel.DescendantAdded:Connect(function(obj)task.defer(function()bindDanceButton(obj);applyRigVisibility(obj)end)end)
+ dancePanel:SetAttribute("BBYADanceFallbackGuard","SAFE_CLASSIC_V2")
+ refreshRigVisibility()
 end
 
 task.spawn(function()
@@ -176,4 +215,9 @@ task.spawn(function()
  bindDanceCatalog()
 end)
 
-print("[BBYA] Social Hangout core v6 online: Dance blocked-asset fallback guard active / carry unchanged")
+player.CharacterAdded:Connect(function(ch)
+ local hum=ch:WaitForChild("Humanoid",10)
+ if hum then task.defer(refreshRigVisibility) end
+end)
+
+print("[BBYA] Social Hangout core v7 online: R6-only dances filtered by rig / blocked-asset fallback active / carry unchanged")
