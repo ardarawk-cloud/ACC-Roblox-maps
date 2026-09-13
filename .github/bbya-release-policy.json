@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -43,7 +43,8 @@
       "maps/bbya-social-hub/92-funkot-club.server.lua",
       "maps/bbya-social-hub/93-funkot-music.server.lua",
       "maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua",
-      "maps/bbya-social-hub/33-runtime-qc.server.lua"
+      "maps/bbya-social-hub/33-runtime-qc.server.lua",
+      "maps/bbya-social-hub/96-paid-zone-portals.server.lua"
     ],
     "travel": [
       "maps/bbya-social-hub/32-teleport.server.lua"
