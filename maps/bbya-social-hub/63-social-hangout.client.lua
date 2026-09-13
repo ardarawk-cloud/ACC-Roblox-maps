@@ -1,7 +1,8 @@
--- BBYA MUSIC UI TEST — SOCIAL HANGOUT CORE v5
+-- BBYA SOCIAL HANGOUT CORE v6 — DANCE FALLBACK GUARD
 -- Compatibility marker for preview CI: SOCIAL HANGOUT SHELL v4
 -- FUNCTION ONLY. UI KERNEL v1 owns all outer geometry/placement/visibility coordination.
 -- 92-freecam.client.lua owns the 212-entry Dance catalog content.
+-- This client only guarantees a usable fallback when a catalog animation is blocked/unavailable.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -19,7 +20,7 @@ local function text(parent,value,pos,size,font,ts,color)local l=Instance.new("Te
 local function button(parent,value,pos,size,color)local b=Instance.new("TextButton");b.Text=value;b.Position=pos or UDim2.new();b.Size=size or UDim2.new();b.BackgroundColor3=color or C.card;b.BorderSizePixel=0;b.Font=Enum.Font.GothamSemibold;b.TextSize=12;b.TextColor3=C.white;b.AutoButtonColor=true;b.Parent=parent;corner(b,10);return b end
 
 local gui=Instance.new("ScreenGui");gui.Name="BBYASocialHangoutUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=44;gui.Parent=pg
-gui:SetAttribute("BBYADanceShellAuthority","TEST_V5_FUNCTION_ONLY");gui:SetAttribute("BBYADanceCatalogCount",212)
+gui:SetAttribute("BBYADanceShellAuthority","MAIN_V6_FUNCTION_ONLY");gui:SetAttribute("BBYADanceCatalogCount",212)
 local danceLauncher=button(gui,"DANCE",UDim2.new(1,40,0,0),UDim2.fromOffset(58,40),Color3.fromRGB(76,27,59));danceLauncher.Name="DanceLauncher";danceLauncher.Visible=false
 local carryLauncher=button(gui,"CARRY",UDim2.new(1,40,0,44),UDim2.fromOffset(58,40),Color3.fromRGB(22,58,68));carryLauncher.Name="CarryLauncher";carryLauncher.Visible=false
 
@@ -75,4 +76,104 @@ remote.OnClientEvent:Connect(function(kind,data)
   no.Activated:Connect(function()remote:FireServer("declineCarry",data.carrierUserId);modal:Destroy()end);yes.Activated:Connect(function()remote:FireServer("acceptCarry",data.carrierUserId);modal:Destroy()end);task.delay(15,function()if modal.Parent then modal:Destroy()end end)
  end
 end)
-print("[BBYA TEST] Social Hangout core v5 online: function-only, UI Kernel owns shell")
+
+-- DANCE FALLBACK GUARD ---------------------------------------------------------
+-- The 212 catalog contains public/event/branded animation IDs whose permissions can
+-- change independently of this experience. The catalog still tries the requested
+-- animation first. If no Action-priority dance is actually running shortly after the
+-- tap, fall back transparently to one of Roblox's classic public dance animations.
+local SAFE_DANCES={
+ {name="Dance",id=507771019},
+ {name="Dance 2",id=507776043},
+ {name="Dance 3 Classic",id=507777268},
+}
+local boundDanceButtons=setmetatable({},{__mode="k"})
+local fallbackCursor=0
+
+local function currentHumanoid()
+ local ch=player.Character
+ return ch and ch:FindFirstChildOfClass("Humanoid")
+end
+
+local function hasActionDance(hum)
+ if not hum then return false end
+ local animator=hum:FindFirstChildOfClass("Animator")
+ if not animator then return false end
+ for _,track in ipairs(animator:GetPlayingAnimationTracks()) do
+  if track.IsPlaying and track.Priority==Enum.AnimationPriority.Action then return true end
+ end
+ return false
+end
+
+local function danceStatus(message,color)
+ local catalog=dancePanel:FindFirstChild("BBYADanceCatalogV1")
+ local status=catalog and catalog:FindFirstChild("DanceStatus",true)
+ if status and status:IsA("TextLabel") then
+  status.Text=message
+  status.TextColor3=color or C.gold
+ end
+end
+
+local function startFallback(requestedName)
+ local hum=currentHumanoid()
+ if not hum or hum.Health<=0 or hum.MoveDirection.Magnitude>.05 or hasActionDance(hum) then return false end
+ local animator=hum:FindFirstChildOfClass("Animator")
+ if not animator then animator=Instance.new("Animator");animator.Parent=hum end
+
+ for attempt=1,#SAFE_DANCES do
+  fallbackCursor=(fallbackCursor%#SAFE_DANCES)+1
+  local fallback=SAFE_DANCES[fallbackCursor]
+  local anim=Instance.new("Animation")
+  anim.AnimationId="rbxassetid://"..tostring(fallback.id)
+  local ok,track=pcall(function()return animator:LoadAnimation(anim)end)
+  anim:Destroy()
+  if ok and track then
+   local played=pcall(function()
+    track.Priority=Enum.AnimationPriority.Action
+    track.Looped=true
+    track:Play(.12)
+   end)
+   if played then
+    task.wait(.18)
+    if track.IsPlaying then
+     danceStatus("FALLBACK • "..tostring(requestedName).." → "..fallback.name,C.gold)
+     return true
+    end
+   end
+   pcall(function()track:Stop(.05);track:Destroy()end)
+  end
+ end
+ danceStatus("DANCE UNAVAILABLE • "..tostring(requestedName),Color3.fromRGB(217,72,93))
+ return false
+end
+
+local function bindDanceButton(obj)
+ if boundDanceButtons[obj] or not obj:IsA("TextButton") or not string.match(obj.Name,"^Dance_%d+$") then return end
+ boundDanceButtons[obj]=true
+ obj.Activated:Connect(function()
+  local requested=obj.Text
+  task.delay(1.15,function()
+   if not obj.Parent then return end
+   local hum=currentHumanoid()
+   if not hum or hum.Health<=0 or hum.MoveDirection.Magnitude>.05 then return end
+   if not hasActionDance(hum) then startFallback(requested) end
+  end)
+ end)
+end
+
+local function bindDanceCatalog()
+ for _,obj in ipairs(dancePanel:GetDescendants()) do bindDanceButton(obj) end
+ dancePanel.DescendantAdded:Connect(function(obj)task.defer(bindDanceButton,obj)end)
+ dancePanel:SetAttribute("BBYADanceFallbackGuard","SAFE_CLASSIC_V1")
+end
+
+task.spawn(function()
+ local deadline=os.clock()+50
+ repeat
+  if dancePanel:FindFirstChild("BBYADanceCatalogV1") then break end
+  task.wait(.2)
+ until os.clock()>=deadline
+ bindDanceCatalog()
+end)
+
+print("[BBYA] Social Hangout core v6 online: Dance blocked-asset fallback guard active / carry unchanged")
