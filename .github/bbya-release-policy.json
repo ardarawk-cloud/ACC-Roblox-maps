@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -40,6 +40,8 @@
       "maps/bbya-social-hub/148-venue-audio-router.client.lua"
     ],
     "funkot": [
+      ".github/workflows/bbya-release-gate.yml",
+      ".github/bbya-release-policy.json",
       "maps/bbya-social-hub/92-funkot-club.server.lua",
       "maps/bbya-social-hub/93-funkot-music.server.lua",
       "maps/bbya-social-hub/107-admin-next-editor-hotfix.server.lua",
