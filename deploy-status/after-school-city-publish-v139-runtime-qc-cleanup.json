@@ -1,0 +1,29 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V139_RUNTIME_QC_CLEANUP",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "ece625d1bac0ce851829e1ad08e93d95466e1a75",
+    "baseLiveCommit":  "27661bd1c3eda0d78e6e63d9dcde2e7f99b7f21c",
+    "qcRunId":  "34750701320",
+    "qcArtifactId":  10315508979,
+    "qcArtifactDigest":  "b0654765e6000ecde8cb0642bf4dc6b018b73c4a9f466dc8c93c248b6afece6e",
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  63,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  220865,
+    "placeSha256":  "7cb3377a2e7c2b79c87f522d9507e94a1e6b5f035187c8592dacfd12857754b0",
+    "runId":  "34762857278",
+    "publishedAt":  "2026-09-13T14:30:54Z",
+    "runtimeStatus":  "PENDING",
+    "fixes":  [
+                  "NPC nameplates occluded and range-limited",
+                  "Bike Parking frontage compacted and rebuilt as U-racks",
+                  "tree ground grates and street/skate bin clutter removed",
+                  "loose cylinder debris removed from sports/skate footprints",
+                  "flat sports and basketball collision safety surfaces added",
+                  "V1.3.8 restored basketball chain-link fence preserved"
+              ],
+    "note":  "Exact V1.3.9 runtime-QC cleanup artifact published without rebuild. Economy, persistence/BAG authority, music, quests, dedication, monetization, basketball fence/hoops, approved imported court visuals, skate gameplay, and unrelated map systems unchanged."
+}
