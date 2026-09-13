@@ -1,4 +1,4 @@
--- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.4 LIVE GLOW LAB RESOLVER
+-- BBYA SOCIAL HUB — TRAVEL / PAID ACCESS v10.5 GLOW LAB SAFE ARRIVALS
 -- Server-authoritative destination pricing, purchase locking, purchase result, teleport completion,
 -- and staff-only Staff Tower access resolved from the live StaffTowerV1 geometry authority.
 -- Photo Studio and LookLab arrivals resolve from the actual current GLOW LAB parts at travel time.
@@ -27,11 +27,10 @@ if passModule and passModule:IsA("ModuleScript") then
  if ok and type(data)=="table" then PASSES=data end
 end
 
--- Static values are safe fallbacks only. Photo / LookLab prefer the live geometry resolver below.
 local destinations={
  Arrival=CFrame.new(0,4,-58),
- Photo=CFrame.lookAt(Vector3.new(54.5,18,373),Vector3.new(84.2,18,373)),
- LookLab=CFrame.lookAt(Vector3.new(74.5,18,361.5),Vector3.new(80.2,18,361.5)),
+ Photo=CFrame.lookAt(Vector3.new(60.2,18,373),Vector3.new(84.2,18,373)),
+ LookLab=CFrame.lookAt(Vector3.new(75.9,18,361.5),Vector3.new(80.2,18,361.5)),
  MainClub=CFrame.new(3,3,11),
  Toilet=CFrame.new(43,3,-13),
  VIP=CFrame.new(46,32,2),
@@ -97,13 +96,13 @@ local function liveGlowLab()
  return glow
 end
 
-local function approachCFrame(anchor,target,backoff)
+local function offsetToward(anchor,target,studs)
  if not anchor or not anchor:IsA("BasePart") or not target or not target:IsA("BasePart") then return nil end
  local delta=target.Position-anchor.Position
  local flat=Vector3.new(delta.X,0,delta.Z)
  if flat.Magnitude<.1 then return anchor.CFrame*CFrame.new(0,2.5,0) end
  local forward=flat.Unit
- local pos=anchor.Position-forward*(backoff or 3.2)+Vector3.new(0,.4,0)
+ local pos=anchor.Position+forward*(studs or 0)+Vector3.new(0,.4,0)
  local look=Vector3.new(target.Position.X,pos.Y,target.Position.Z)
  return CFrame.lookAt(pos,look)
 end
@@ -114,11 +113,13 @@ local function resolveGlowLabArrival(key)
  if key=="Photo" then
   local anchor=glow:FindFirstChild("MallPhotoInteract",true)
   local target=glow:FindFirstChild("Backdrop",true)
-  return approachCFrame(anchor,target,3.2)
+  -- Move inward from the storefront interaction anchor instead of backwards outside the studio.
+  return offsetToward(anchor,target,2.5)
  elseif key=="LookLab" then
   local anchor=glow:FindFirstChild("AutoStyleTrigger2",true)
   local target=glow:FindFirstChild("LookLabSeat2",true)
-  return approachCFrame(anchor,target,3.2)
+  -- Stop just before the auto-seat trigger so Travel does not force-seat the player.
+  return offsetToward(anchor,target,-1.8)
  end
  return nil
 end
@@ -295,4 +296,4 @@ Players.PlayerRemoving:Connect(function(player)
  pending[player.UserId]=nil
 end)
 
-print("[BBYA] Travel v10.4 online: Photo/LookLab resolve from live GLOW LAB anchors / staff access locks preserved")
+print("[BBYA] Travel v10.5 online: Photo arrives inside studio / LookLab arrives before style trigger / staff access locks preserved")
