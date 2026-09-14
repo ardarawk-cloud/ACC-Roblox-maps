@@ -1,7 +1,6 @@
--- BBYA SOCIAL HUB — MALL CATALOG UI v8 / V13 SHOPPING FLOW
--- TEST CANDIDATE ONLY. One Mall catalog authority: tenant kiosk + live Marketplace + preview + cart/save/buy.
--- Static workflow markers retained: CatalogLauncher / CATEGORIES / STORES / PRODUCTS / Keranjang Belanja.
--- GAMEPLAY LOCK: physical tenant determines catalog scope. Directory teleports only; shopping starts from an indoor display.
+-- BBYA SOCIAL HUB — MALL CATALOG UI v14 / RELIABLE COMPACT SHOP
+-- Mall-only client authority: kiosk opens the panel immediately; Marketplace/avatar work runs after.
+-- Compact KATALOG / TOKO / CART / SAVE panels. Native Roblox checkout only.
 
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -14,32 +13,33 @@ local player=Players.LocalPlayer
 local pg=player:WaitForChild("PlayerGui")
 local remotes=ReplicatedStorage:WaitForChild("BBYAClubRemotes")
 local remote=remotes:WaitForChild("MallRobuxCommerce")
-local mallAction=remotes:WaitForChild("MallAction")
 
-local OLD=pg:FindFirstChild("BBYAMallRobuxCommerceUI")
-if OLD then OLD:Destroy() end
+local old=pg:FindFirstChild("BBYAMallRobuxCommerceUI")
+if old then old:Destroy() end
 
 local C={
- dark=Color3.fromRGB(22,23,27),panel=Color3.fromRGB(34,35,40),panel2=Color3.fromRGB(43,44,50),line=Color3.fromRGB(72,73,82),
- white=Color3.fromRGB(246,246,247),muted=Color3.fromRGB(172,173,180),cyan=Color3.fromRGB(61,201,230),green=Color3.fromRGB(75,235,125),
- pink=Color3.fromRGB(231,44,212),orange=Color3.fromRGB(255,117,84),yellow=Color3.fromRGB(244,183,77),blue=Color3.fromRGB(61,181,229),red=Color3.fromRGB(233,73,89),
- purple=Color3.fromRGB(178,75,235)
+ bg=Color3.fromRGB(20,21,25),panel=Color3.fromRGB(31,32,37),card=Color3.fromRGB(42,43,49),line=Color3.fromRGB(72,73,82),
+ white=Color3.fromRGB(246,246,247),muted=Color3.fromRGB(169,171,179),cyan=Color3.fromRGB(61,201,230),green=Color3.fromRGB(75,235,125),
+ yellow=Color3.fromRGB(244,183,77),red=Color3.fromRGB(233,73,89),pink=Color3.fromRGB(231,74,184),orange=Color3.fromRGB(241,127,72),
+ blue=Color3.fromRGB(78,135,225),purple=Color3.fromRGB(176,91,224),
 }
-local function corner(o,r)local x=Instance.new("UICorner");x.CornerRadius=UDim.new(0,r or 10);x.Parent=o end
-local function stroke(o,col,tr)local x=Instance.new("UIStroke");x.Color=col or C.line;x.Thickness=1;x.Transparency=tr or .35;x.Parent=o end
-local function txt(p,s,pos,size,font,ts,col,align)
- local x=Instance.new("TextLabel");x.BackgroundTransparency=1;x.Text=s;x.Position=pos;x.Size=size;x.Font=font or Enum.Font.Gotham;x.TextSize=ts or 12;x.TextColor3=col or C.white;x.TextXAlignment=align or Enum.TextXAlignment.Left;x.TextYAlignment=Enum.TextYAlignment.Center;x.TextWrapped=true;x.Parent=p;return x
+local function corner(o,r)local x=Instance.new("UICorner");x.CornerRadius=UDim.new(0,r or 9);x.Parent=o end
+local function stroke(o,col,tr)local x=Instance.new("UIStroke");x.Color=col or C.line;x.Thickness=1;x.Transparency=tr or .45;x.Parent=o end
+local function label(p,text,pos,size,font,ts,col,align)
+ local x=Instance.new("TextLabel");x.BackgroundTransparency=1;x.Text=text;x.Position=pos;x.Size=size;x.Font=font or Enum.Font.Gotham;x.TextSize=ts or 10
+ x.TextColor3=col or C.white;x.TextXAlignment=align or Enum.TextXAlignment.Left;x.TextYAlignment=Enum.TextYAlignment.Center;x.TextWrapped=true;x.Parent=p;return x
 end
-local function btn(p,s,pos,size,bg)
- local x=Instance.new("TextButton");x.Text=s;x.Position=pos;x.Size=size;x.BackgroundColor3=bg or C.panel2;x.TextColor3=C.white;x.Font=Enum.Font.GothamBold;x.TextSize=12;x.BorderSizePixel=0;x.AutoButtonColor=true;x.Active=true;x.Parent=p;corner(x,9);return x
+local function button(p,text,pos,size,bg)
+ local x=Instance.new("TextButton");x.Text=text;x.Position=pos;x.Size=size;x.BackgroundColor3=bg or C.card;x.TextColor3=C.white;x.Font=Enum.Font.GothamBold;x.TextSize=9
+ x.BorderSizePixel=0;x.AutoButtonColor=true;x.Active=true;x.Parent=p;corner(x,8);return x
 end
-local function idOf(it)return tonumber(it and (it.Id or it.AssetId or it.id))end
-local function itemTypeOf(it)local s=tostring(it and (it.ItemType or it.Type) or "Asset"):gsub("Enum%.AvatarItemType%.","");return s=="Bundle" and "Bundle" or "Asset"end
-local function thumb(it)local id=idOf(it);if not id then return""end;return string.format("rbxthumb://type=%s&id=%d&w=420&h=420",itemTypeOf(it),id)end
-local function nameOf(it)return tostring(it and(it.Name or it.name)or"Item")end
-local function priceOf(it)return tonumber(it and(it.Price or it.LowestPrice or it.price))end
-local function priceText(it)local p=priceOf(it);return p~=nil and("R$ "..tostring(p))or"OFFSALE"end
+local function idOf(it)return tonumber(it and(it.Id or it.AssetId or it.id))end
+local function itemTypeOf(it)local s=tostring(it and(it.ItemType or it.Type)or"Asset"):gsub("Enum%.AvatarItemType%.","");return s=="Bundle"and"Bundle"or"Asset"end
+local function itemName(it)return tostring(it and(it.Name or it.name)or"Item")end
+local function itemPrice(it)return tonumber(it and(it.Price or it.LowestPrice or it.price))end
+local function priceText(it)local p=itemPrice(it);return p and("R$ "..math.floor(p))or"OFFSALE"end
 local function itemKey(it)return itemTypeOf(it)..":"..tostring(idOf(it)or 0)end
+local function thumb(it)local id=idOf(it);if not id then return""end;return string.format("rbxthumb://type=%s&id=%d&w=420&h=420",itemTypeOf(it),id)end
 
 local TYPES={
  CLOTHES={Enum.AvatarAssetType.Shirt,Enum.AvatarAssetType.TShirt,Enum.AvatarAssetType.Pants,Enum.AvatarAssetType.TShirtAccessory,Enum.AvatarAssetType.ShirtAccessory,Enum.AvatarAssetType.JacketAccessory,Enum.AvatarAssetType.SweaterAccessory,Enum.AvatarAssetType.PantsAccessory,Enum.AvatarAssetType.ShortsAccessory,Enum.AvatarAssetType.DressSkirtAccessory},
@@ -47,281 +47,195 @@ local TYPES={
  BEAUTY={Enum.AvatarAssetType.HairAccessory,Enum.AvatarAssetType.Head,Enum.AvatarAssetType.Face,Enum.AvatarAssetType.DynamicHead,Enum.AvatarAssetType.FaceAccessory,Enum.AvatarAssetType.EyebrowAccessory,Enum.AvatarAssetType.EyelashAccessory,Enum.AvatarAssetType.FaceMakeup,Enum.AvatarAssetType.LipMakeup,Enum.AvatarAssetType.EyeMakeup},
 }
 local STORE={
- FASHION={tenant="luma",title="LUMA FASHION",catalog="PAKAIAN",short="PAKAIAN",assetTypes=TYPES.CLOTHES,keyword="",fallback="",accent=C.pink},
- SHOES={tenant="stride",title="STRIDE SNEAKERS",catalog="SEPATU",short="SEPATU",assetTypes=TYPES.ACCESSORY,keyword="sneakers",fallback="shoes",accent=C.orange},
- BYTE={tenant="byte",title="BYTE TECH",catalog="TECH ACCESSORIES",short="TECH",assetTypes=TYPES.ACCESSORY,keyword="cyber",fallback="tech",accent=C.cyan},
- DAILY={tenant="daily",title="DAILY MARKET",catalog="FOOD & FUN",short="FOOD & FUN",assetTypes=TYPES.ACCESSORY,keyword="food",fallback="snack",accent=C.green},
- MONO={tenant="mono",title="MONO HOME",catalog="LIFESTYLE",short="LIFESTYLE",assetTypes=TYPES.ACCESSORY,keyword="backpack",fallback="bag",accent=C.yellow},
- BEAUTY={tenant="muse",title="MUSE BEAUTY",catalog="HAIR • FACE • BEAUTY",short="BEAUTY",assetTypes=TYPES.BEAUTY,keyword="",fallback="hair",accent=C.purple},
- NORTH={tenant="north",title="NORTH LABEL",catalog="AKSESORI",short="AKSESORI",assetTypes=TYPES.ACCESSORY,keyword="street",fallback="accessory",accent=C.blue},
- STREETWEAR={tenant="street",title="STREET UNIT",catalog="STREETWEAR",short="STREETWEAR",assetTypes=TYPES.CLOTHES,keyword="streetwear",fallback="street",accent=C.red},
- BOOKS={tenant="page",title="PAGE & CO",catalog="BOOK ACCESSORIES",short="BOOKS",assetTypes=TYPES.ACCESSORY,keyword="book",fallback="reading",accent=C.yellow},
- GLOW={tenant="glow",title="GLOW LAB",catalog="GLOW & BEAUTY",short="GLOW",assetTypes=TYPES.BEAUTY,keyword="makeup",fallback="beauty",accent=C.pink},
- SOUND={tenant="sound",title="SOUND ROOM",catalog="MUSIC ACCESSORIES",short="MUSIC",assetTypes=TYPES.ACCESSORY,keyword="headphones",fallback="music",accent=C.cyan},
- FIT={tenant="fit",title="FIT DISTRICT",catalog="SPORTSWEAR",short="SPORTS",assetTypes=TYPES.CLOTHES,keyword="sport",fallback="sportswear",accent=C.green},
+ FASHION={title="LUMA FASHION",short="PAKAIAN",types=TYPES.CLOTHES,keyword="",fallback="",accent=C.pink},
+ SHOES={title="STRIDE SNEAKERS",short="SEPATU",types=TYPES.ACCESSORY,keyword="sneakers",fallback="shoes",accent=C.orange},
+ BYTE={title="BYTE TECH",short="TECH",types=TYPES.ACCESSORY,keyword="cyber",fallback="tech",accent=C.cyan},
+ DAILY={title="DAILY MARKET",short="FOOD & FUN",types=TYPES.ACCESSORY,keyword="food",fallback="snack",accent=C.green},
+ MONO={title="MONO HOME",short="LIFESTYLE",types=TYPES.ACCESSORY,keyword="backpack",fallback="bag",accent=C.yellow},
+ BEAUTY={title="MUSE BEAUTY",short="BEAUTY",types=TYPES.BEAUTY,keyword="",fallback="hair",accent=C.purple},
+ NORTH={title="NORTH LABEL",short="AKSESORI",types=TYPES.ACCESSORY,keyword="street",fallback="accessory",accent=C.blue},
+ STREETWEAR={title="STREET UNIT",short="STREETWEAR",types=TYPES.CLOTHES,keyword="streetwear",fallback="street",accent=C.red},
+ BOOKS={title="PAGE & CO",short="BOOKS",types=TYPES.ACCESSORY,keyword="book",fallback="reading",accent=C.yellow},
+ GLOW={title="GLOW LAB",short="GLOW",types=TYPES.BEAUTY,keyword="makeup",fallback="beauty",accent=C.pink},
+ SOUND={title="SOUND ROOM",short="MUSIC",types=TYPES.ACCESSORY,keyword="headphones",fallback="music",accent=C.cyan},
+ FIT={title="FIT DISTRICT",short="SPORTS",types=TYPES.CLOTHES,keyword="sport",fallback="sportswear",accent=C.green},
 }
+local STORE_ORDER={"FASHION","SHOES","BYTE","DAILY","MONO","BEAUTY","NORTH","STREETWEAR","BOOKS","GLOW","SOUND","FIT"}
 local REMOTE_ALIAS={STREET="NORTH"}
-local TENANTS={
- {id="luma",name="LUMA FASHION",cat="Fashion",floor=1,key="FASHION"},{id="stride",name="STRIDE SNEAKERS",cat="Sneakers",floor=1,key="SHOES"},{id="byte",name="BYTE TECH",cat="Electronics / UGC Tech",floor=1,key="BYTE"},{id="daily",name="DAILY MARKET",cat="Food / Fun UGC",floor=1,key="DAILY"},{id="mono",name="MONO HOME",cat="Lifestyle UGC",floor=1,key="MONO"},{id="muse",name="MUSE BEAUTY",cat="Hair / Face / Beauty",floor=1,key="BEAUTY"},
- {id="north",name="NORTH LABEL",cat="Accessories",floor=2,key="NORTH"},{id="street",name="STREET UNIT",cat="Streetwear",floor=2,key="STREETWEAR"},{id="page",name="PAGE & CO",cat="Book Accessories",floor=2,key="BOOKS"},{id="glow",name="GLOW LAB",cat="Glow / Makeup",floor=2,key="GLOW"},{id="sound",name="SOUND ROOM",cat="Music Accessories",floor=2,key="SOUND"},{id="fit",name="FIT DISTRICT",cat="Sportswear",floor=2,key="FIT"},
- {id="food",name="BBYA FOOD HALL",cat="Food Court",floor=3},{id="cafe",name="SKYLINE CAFE",cat="Cafe",floor=3},{id="arcade",name="PIXEL ARCADE",cat="Arcade",floor=3},{id="kids",name="LITTLE CITY",cat="Family",floor=3},{id="cinema",name="BBYA CINEMA",cat="Cinema",floor=4},{id="lounge",name="SKY LOUNGE",cat="Lounge / Events",floor=4},
-}
-
-local ACCESSORY_MAP={Hat="Hat",HairAccessory="Hair",FaceAccessory="Face",NeckAccessory="Neck",ShoulderAccessory="Shoulder",FrontAccessory="Front",BackAccessory="Back",WaistAccessory="Waist",TShirtAccessory="TShirt",ShirtAccessory="Shirt",SweaterAccessory="Sweater",JacketAccessory="Jacket",PantsAccessory="Pants",ShortsAccessory="Shorts",DressSkirtAccessory="DressSkirt",LeftShoeAccessory="LeftShoe",RightShoeAccessory="RightShoe",EyebrowAccessory="Eyebrow",EyelashAccessory="Eyelash"}
-local DIRECT_DESC={Head="Head",Face="Face",Torso="Torso",RightArm="RightArm",LeftArm="LeftArm",LeftLeg="LeftLeg",RightLeg="RightLeg",ClimbAnimation="ClimbAnimation",FallAnimation="FallAnimation",IdleAnimation="IdleAnimation",JumpAnimation="JumpAnimation",RunAnimation="RunAnimation",SwimAnimation="SwimAnimation",WalkAnimation="WalkAnimation",MoodAnimation="MoodAnimation"}
-local TYPE_BY_VALUE={};for _,e in ipairs(Enum.AvatarAssetType:GetEnumItems())do TYPE_BY_VALUE[e.Value]=e.Name end
-local ASSET_TYPE_CACHE={}
 
 local gui=Instance.new("ScreenGui");gui.Name="BBYAMallRobuxCommerceUI";gui.ResetOnSpawn=false;gui.IgnoreGuiInset=true;gui.DisplayOrder=260;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=pg
-gui:SetAttribute("BBYAMallCatalogAuthority","V13_SHOPPING_FLOW")
-local root=Instance.new("Frame");root.Name="CatalogRoot";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=C.dark;root.BackgroundTransparency=.03;root.BorderSizePixel=0;root.Visible=false;root.Parent=gui
-local shell=Instance.new("Frame");shell.Name="PreciseShell";shell.BackgroundTransparency=1;shell.Parent=root
+gui:SetAttribute("BBYAMallCatalogAuthority","V14_RELIABLE_COMPACT_SHOP")
+local root=Instance.new("Frame");root.Name="CatalogRoot";root.Size=UDim2.fromScale(1,1);root.BackgroundColor3=Color3.new(0,0,0);root.BackgroundTransparency=.32;root.BorderSizePixel=0;root.Visible=false;root.Parent=gui
+local shell=Instance.new("Frame");shell.Name="CompactShop";shell.AnchorPoint=Vector2.new(.5,.5);shell.BackgroundColor3=C.bg;shell.BorderSizePixel=0;shell.Parent=root;corner(shell,12);stroke(shell,C.line,.25)
+local top=Instance.new("Frame");top.BackgroundColor3=C.panel;top.BorderSizePixel=0;top.Parent=shell;corner(top,10)
+local tabs={}
+for _,spec in ipairs({{"KATALOG","PRODUCTS"},{"TOKO","STORES"},{"CART","CART"},{"SAVE","SAVED"}})do local b=button(top,spec[1],UDim2.new(),UDim2.new(),C.card);tabs[spec[2]]=b end
+local close=button(top,"×",UDim2.new(),UDim2.new(),C.card);close.TextSize=18
 
-local top=Instance.new("Frame");top.Name="CatalogLauncher";top.BackgroundColor3=C.dark;top.BackgroundTransparency=.12;top.BorderSizePixel=0;top.Parent=shell;corner(top,10);stroke(top,C.line,.55)
-local catBtn=btn(top,"Katalog",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));catBtn.TextSize=15
-local storeBtn=btn(top,"Toko",UDim2.new(),UDim2.new(),Color3.fromRGB(55,74,84));storeBtn.TextSize=15
-local closeBtn=btn(top,"×",UDim2.new(),UDim2.new(),C.panel2);closeBtn.TextSize=19
-local roomTitle=txt(top,"RUANG GANTI • drag avatar untuk rotasi 360°",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,11,C.white,Enum.TextXAlignment.Center);roomTitle.Visible=false
-local roomBack=btn(top,"‹ KATALOG",UDim2.new(),UDim2.new(),C.panel2);roomBack.TextColor3=C.cyan;roomBack.Visible=false
-
-local avatar=Instance.new("Frame");avatar.Name="AvatarCard";avatar.BackgroundColor3=C.panel;avatar.BorderSizePixel=0;avatar.Parent=shell;corner(avatar,12);stroke(avatar,C.line,.18)
-local viewport=Instance.new("ViewportFrame");viewport.Name="AvatarViewport";viewport.BackgroundColor3=Color3.fromRGB(24,25,30);viewport.BorderSizePixel=0;viewport.Ambient=Color3.fromRGB(235,235,235);viewport.LightColor=Color3.fromRGB(255,252,245);viewport.LightDirection=Vector3.new(-1,-1,-1);viewport.Active=true;viewport.Parent=avatar;corner(viewport,9)
+local preview=Instance.new("Frame");preview.Name="AvatarPreview";preview.BackgroundColor3=C.panel;preview.BorderSizePixel=0;preview.Parent=shell;corner(preview,10);stroke(preview,C.line,.42)
+local viewport=Instance.new("ViewportFrame");viewport.BackgroundColor3=Color3.fromRGB(23,24,28);viewport.BorderSizePixel=0;viewport.Ambient=Color3.fromRGB(225,225,225);viewport.LightColor=Color3.fromRGB(255,250,242);viewport.LightDirection=Vector3.new(-1,-1,-1);viewport.Parent=preview;corner(viewport,8)
 local world=Instance.new("WorldModel");world.Parent=viewport
-local vcam=Instance.new("Camera");vcam.Parent=viewport;viewport.CurrentCamera=vcam
-local selectedLabel=txt(avatar,"Avatar saat ini",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,11,C.white,Enum.TextXAlignment.Center)
-local selectedPrice=txt(avatar,"",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.yellow,Enum.TextXAlignment.Center)
-local orbitHint=txt(avatar,"DRAG = ROTATE • + − = ZOOM",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,8,C.muted,Enum.TextXAlignment.Center);orbitHint.Visible=false
-local avatarTools=Instance.new("Frame");avatarTools.BackgroundTransparency=1;avatarTools.Parent=avatar
-local toolLayout=Instance.new("UIListLayout");toolLayout.FillDirection=Enum.FillDirection.Horizontal;toolLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center;toolLayout.Padding=UDim.new(0,4);toolLayout.Parent=avatarTools
-local homeTool=btn(avatarTools,"HOME",UDim2.new(),UDim2.new(),C.panel2);homeTool.TextSize=8
-local cartTool=btn(avatarTools,"CART",UDim2.new(),UDim2.new(),C.panel2);cartTool.TextSize=8
-local saveTool=btn(avatarTools,"SAVE",UDim2.new(),UDim2.new(),C.panel2);saveTool.TextSize=8
-local resetTool=btn(avatarTools,"RESET",UDim2.new(),UDim2.new(),C.panel2);resetTool.TextSize=8
-local rotateLeft=btn(avatarTools,"↶",UDim2.new(),UDim2.new(),C.panel2);rotateLeft.TextSize=14;rotateLeft.Visible=false
-local rotateRight=btn(avatarTools,"↷",UDim2.new(),UDim2.new(),C.panel2);rotateRight.TextSize=14;rotateRight.Visible=false
-local zoomOut=btn(avatarTools,"−",UDim2.new(),UDim2.new(),C.panel2);zoomOut.TextSize=14;zoomOut.Visible=false
-local zoomIn=btn(avatarTools,"+",UDim2.new(),UDim2.new(),C.panel2);zoomIn.TextSize=14;zoomIn.Visible=false
+local vcam=Instance.new("Camera");vcam.FieldOfView=34;vcam.Parent=viewport;viewport.CurrentCamera=vcam
+local previewName=label(preview,"Avatar saat ini",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,9,C.white,Enum.TextXAlignment.Center)
+local previewPrice=label(preview,"",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,8,C.yellow,Enum.TextXAlignment.Center)
+local reset=button(preview,"RESET",UDim2.new(),UDim2.new(),C.card);reset.TextSize=8
+local saveLook=button(preview,"SAVE AVATAR",UDim2.new(),UDim2.new(),C.green);saveLook.TextSize=8;saveLook.TextColor3=Color3.new(0,0,0)
 
-local host=Instance.new("Frame");host.Name="ModuleHost";host.BackgroundColor3=C.panel;host.BorderSizePixel=0;host.Parent=shell;corner(host,12);stroke(host,C.line,.18)
-local hostPad=Instance.new("UIPadding");hostPad.PaddingLeft=UDim.new(0,8);hostPad.PaddingRight=UDim.new(0,8);hostPad.PaddingTop=UDim.new(0,8);hostPad.PaddingBottom=UDim.new(0,8);hostPad.Parent=host
+local content=Instance.new("Frame");content.Name="PanelHost";content.BackgroundColor3=C.panel;content.BorderSizePixel=0;content.Parent=shell;corner(content,10);stroke(content,C.line,.42)
 local modules={}
-local function module(name)local f=Instance.new("Frame");f.Name=name;f.Size=UDim2.fromScale(1,1);f.BackgroundTransparency=1;f.Visible=false;f.Parent=host;modules[name]=f;return f end
-local categories=module("CATEGORIES")
-local stores=module("STORES")
-local products=module("PRODUCTS")
-local cartView=module("CART")
-local savedView=module("SAVED")
-local function showModule(name)for n,f in pairs(modules)do f.Visible=n==name end end
+local function module(name)local f=Instance.new("Frame");f.Name=name;f.Size=UDim2.fromScale(1,1);f.BackgroundTransparency=1;f.Visible=false;f.Parent=content;modules[name]=f;return f end
+local products=module("PRODUCTS");local stores=module("STORES");local cartView=module("CART");local savedView=module("SAVED")
+local function show(name)for n,f in pairs(modules)do f.Visible=n==name end end
 
-local backProducts=btn(products,"‹ KEMBALI",UDim2.new(),UDim2.new(),C.panel2);backProducts.TextColor3=C.cyan
-local productTitle=txt(products,"Katalog",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,14,C.white);productTitle.TextWrapped=false;productTitle.TextTruncate=Enum.TextTruncate.AtEnd
-local search=Instance.new("TextBox");search.PlaceholderText="Cari di toko..";search.Text="";search.ClearTextOnFocus=false;search.BackgroundColor3=C.panel2;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=10;search.BorderSizePixel=0;search.Parent=products;corner(search,8)
-local go=btn(products,"GO",UDim2.new(),UDim2.new(),C.panel2);go.TextSize=10
-local status=txt(products,"",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,9,C.muted)
-local retry=btn(products,"RETRY",UDim2.new(),UDim2.new(),C.red);retry.Visible=false;retry.TextSize=8
+local shopTitle=label(products,"Katalog",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,13,C.white)
+local search=Instance.new("TextBox");search.PlaceholderText="Cari produk..";search.Text="";search.ClearTextOnFocus=false;search.BackgroundColor3=C.card;search.TextColor3=C.white;search.PlaceholderColor3=C.muted;search.Font=Enum.Font.Gotham;search.TextSize=10;search.BorderSizePixel=0;search.Parent=products;corner(search,8)
+local go=button(products,"GO",UDim2.new(),UDim2.new(),C.card)
+local status=label(products,"",UDim2.new(),UDim2.new(),Enum.Font.GothamMedium,8,C.muted)
+local retry=button(products,"RETRY",UDim2.new(),UDim2.new(),C.red);retry.TextSize=7;retry.Visible=false
 local productList=Instance.new("ScrollingFrame");productList.BackgroundTransparency=1;productList.BorderSizePixel=0;productList.ScrollBarThickness=3;productList.AutomaticCanvasSize=Enum.AutomaticSize.Y;productList.CanvasSize=UDim2.new();productList.ScrollingDirection=Enum.ScrollingDirection.Y;productList.Parent=products
-local grid=Instance.new("UIGridLayout");grid.CellPadding=UDim2.fromOffset(8,8);grid.SortOrder=Enum.SortOrder.LayoutOrder;grid.Parent=productList
+local productGrid=Instance.new("UIGridLayout");productGrid.CellPadding=UDim2.fromOffset(7,7);productGrid.SortOrder=Enum.SortOrder.LayoutOrder;productGrid.Parent=productList
 
-local storeTitle=txt(stores,"MALL DIRECTORY • 18 DESTINATIONS",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,12,C.white,Enum.TextXAlignment.Center);storeTitle.BackgroundTransparency=.08;storeTitle.BackgroundColor3=C.dark;corner(storeTitle,9);stroke(storeTitle,C.line,.45)
-local storeGrid=Instance.new("ScrollingFrame");storeGrid.Name="TenantDirectory";storeGrid.BackgroundTransparency=1;storeGrid.BorderSizePixel=0;storeGrid.AutomaticCanvasSize=Enum.AutomaticSize.Y;storeGrid.CanvasSize=UDim2.new();storeGrid.ScrollBarThickness=3;storeGrid.Parent=stores
-local sg=Instance.new("UIGridLayout");sg.CellPadding=UDim2.fromOffset(8,8);sg.SortOrder=Enum.SortOrder.LayoutOrder;sg.Parent=storeGrid
+local storesTitle=label(stores,"PILIH TOKO • 12 RETAIL TENANTS",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,12,C.white,Enum.TextXAlignment.Center)
+local storeList=Instance.new("ScrollingFrame");storeList.BackgroundTransparency=1;storeList.BorderSizePixel=0;storeList.ScrollBarThickness=3;storeList.AutomaticCanvasSize=Enum.AutomaticSize.Y;storeList.CanvasSize=UDim2.new();storeList.Parent=stores
+local storeGrid=Instance.new("UIGridLayout");storeGrid.CellPadding=UDim2.fromOffset(7,7);storeGrid.SortOrder=Enum.SortOrder.LayoutOrder;storeGrid.Parent=storeList
 
-local cartTitle=txt(cartView,"Keranjang Belanja",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,18,C.white)
-local cartClose=btn(cartView,"×",UDim2.new(),UDim2.new(),C.panel2);cartClose.TextSize=19
-local cartList=Instance.new("ScrollingFrame");cartList.BackgroundTransparency=1;cartList.BorderSizePixel=0;cartList.AutomaticCanvasSize=Enum.AutomaticSize.Y;cartList.CanvasSize=UDim2.new();cartList.ScrollBarThickness=3;cartList.Parent=cartView
-local cl=Instance.new("UIListLayout");cl.Padding=UDim.new(0,7);cl.Parent=cartList
-local cartStatus=txt(cartView,"Keranjang kosong.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,10,C.muted)
-local checkout=btn(cartView,"BELI ITEM PERTAMA",UDim2.new(),UDim2.new(),C.green);checkout.TextColor3=Color3.new(0,0,0);checkout.TextSize=8
+local cartTitle=label(cartView,"CART",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,15,C.white)
+local cartMeta=label(cartView,"Keranjang kosong.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,9,C.muted)
+local cartList=Instance.new("ScrollingFrame");cartList.BackgroundTransparency=1;cartList.BorderSizePixel=0;cartList.ScrollBarThickness=3;cartList.AutomaticCanvasSize=Enum.AutomaticSize.Y;cartList.CanvasSize=UDim2.new();cartList.Parent=cartView
+local cartLayout=Instance.new("UIListLayout");cartLayout.Padding=UDim.new(0,6);cartLayout.Parent=cartList
+local savedTitle=label(savedView,"SAVED",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,15,C.white)
+local savedMeta=label(savedView,"Belum ada item tersimpan.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,9,C.muted)
+local savedList=Instance.new("ScrollingFrame");savedList.BackgroundTransparency=1;savedList.BorderSizePixel=0;savedList.ScrollBarThickness=3;savedList.AutomaticCanvasSize=Enum.AutomaticSize.Y;savedList.CanvasSize=UDim2.new();savedList.Parent=savedView
+local savedGrid=Instance.new("UIGridLayout");savedGrid.CellPadding=UDim2.fromOffset(7,7);savedGrid.SortOrder=Enum.SortOrder.LayoutOrder;savedGrid.Parent=savedList
 
-local savedTitle=txt(savedView,"Item Tersimpan",UDim2.new(),UDim2.new(),Enum.Font.GothamBold,18,C.white)
-local savedClose=btn(savedView,"×",UDim2.new(),UDim2.new(),C.panel2);savedClose.TextSize=19
-local saveCurrent=btn(savedView,"SIMPAN LOOK SAAT INI",UDim2.new(),UDim2.new(),C.green);saveCurrent.TextColor3=Color3.new(0,0,0);saveCurrent.TextSize=8
-local savedNote=txt(savedView,"Belum ada item tersimpan.",UDim2.new(),UDim2.new(),Enum.Font.Gotham,10,C.muted)
-local savedList=Instance.new("ScrollingFrame");savedList.BackgroundTransparency=1;savedList.BorderSizePixel=0;savedList.AutomaticCanvasSize=Enum.AutomaticSize.Y;savedList.CanvasSize=UDim2.new();savedList.ScrollBarThickness=3;savedList.Parent=savedView
-local sl=Instance.new("UIGridLayout");sl.CellPadding=UDim2.fromOffset(8,8);sl.Parent=savedList
-
-local baseDescription=nil;local previewDescription=nil
-local cart={};local saved={};local activeStore="FASHION";local searchToken=0;local catalogPages=nil;local loadingPage=false;local exhausted=false;local loadedCount=0;local loadedKeys={}
-local focusSaved={};local focusConn=nil;local camera=workspace.CurrentCamera;local dressingMode=false
-local orbitTarget=Vector3.zero;local orbitDistance=11;local orbitYaw=0;local orbitPitch=0;local orbitBaseYaw=0;local orbitModel=nil;local dragInput=nil;local lastDrag=nil
-
-local function hideOtherUI()
- for _,g in ipairs(pg:GetChildren())do if g:IsA("ScreenGui")and g~=gui then if focusSaved[g]==nil then focusSaved[g]=g.Enabled end;g.Enabled=false end end end
- if focusConn then focusConn:Disconnect()end
- focusConn=pg.ChildAdded:Connect(function(g)if root.Visible and g:IsA("ScreenGui")and g~=gui then task.defer(function()if g.Parent then focusSaved[g]=g.Enabled;g.Enabled=false end end)end end)
-end
-local function restoreUI()if focusConn then focusConn:Disconnect();focusConn=nil end;for g,enabled in pairs(focusSaved)do if g and g.Parent then g.Enabled=enabled end end;table.clear(focusSaved)end
-
-local BODY_NAMES={Head=true,UpperTorso=true,LowerTorso=true,HumanoidRootPart=true,LeftUpperArm=true,LeftLowerArm=true,LeftHand=true,RightUpperArm=true,RightLowerArm=true,RightHand=true,LeftUpperLeg=true,LeftLowerLeg=true,LeftFoot=true,RightUpperLeg=true,RightLowerLeg=true,RightFoot=true,Torso=true,["Left Arm"]=true,["Right Arm"]=true,["Left Leg"]=true,["Right Leg"]=true}
-local function bodyBounds(model)
- local minV=Vector3.new(math.huge,math.huge,math.huge);local maxV=Vector3.new(-math.huge,-math.huge,-math.huge);local count=0
- for _,d in ipairs(model:GetDescendants())do if d:IsA("BasePart")and BODY_NAMES[d.Name]then local p=d.Position;local h=d.Size*.5;minV=Vector3.new(math.min(minV.X,p.X-h.X),math.min(minV.Y,p.Y-h.Y),math.min(minV.Z,p.Z-h.Z));maxV=Vector3.new(math.max(maxV.X,p.X+h.X),math.max(maxV.Y,p.Y+h.Y),math.max(maxV.Z,p.Z+h.Z));count+=1 end end
- if count<3 then return nil end;return(minV+maxV)*.5,maxV-minV
-end
-local function updateOrbitCamera()
- if not orbitModel then return end;local yaw=orbitBaseYaw+orbitYaw;local cp=math.cos(orbitPitch);local dir=Vector3.new(math.sin(yaw)*cp,math.sin(orbitPitch),math.cos(yaw)*cp)
- vcam.FieldOfView=dressingMode and 31 or 34;vcam.CFrame=CFrame.lookAt(orbitTarget+dir*orbitDistance,orbitTarget,Vector3.yAxis)
-end
-local function cleanModel(m)for _,d in ipairs(m:GetDescendants())do if d:IsA("Script")or d:IsA("LocalScript")then d:Destroy()elseif d:IsA("BasePart")then d.Anchored=true;d.CanCollide=false;d.CanTouch=false;d.CanQuery=false end end end
-local function framePreviewModel(m,keepOrbit)
- if not m then return false end;local incoming=m.Parent~=world;cleanModel(m);local center,size=bodyBounds(m);if not center or not size then if incoming then m:Destroy()end;return false end
- if incoming then world:ClearAllChildren();m.Parent=world end;orbitModel=m;orbitTarget=center
- local rp=m:FindFirstChild("HumanoidRootPart",true);local forward=rp and rp.CFrame.LookVector or Vector3.new(0,0,-1);forward=Vector3.new(forward.X,0,forward.Z);if forward.Magnitude<.01 then forward=Vector3.new(0,0,-1)else forward=forward.Unit end
- orbitBaseYaw=math.atan2(forward.X,forward.Z);local h=math.clamp(size.Y,4.5,8.5);local w=math.clamp(math.max(size.X,size.Z),2.5,6);orbitDistance=math.max(h*(dressingMode and 1.35 or 1.72),w*(dressingMode and 1.55 or 1.95));if not keepOrbit then orbitYaw=0;orbitPitch=0 end;updateOrbitCamera();return true
-end
+local currentStore="FASHION";local cart={};local saved={};local searchToken=0;local pages=nil;local loadingPage=false;local exhausted=false;local loaded={};local loadedCount=0;local previewDescription=nil
+local TYPE_BY_VALUE={};for _,e in ipairs(Enum.AvatarAssetType:GetEnumItems())do TYPE_BY_VALUE[e.Value]=e.Name end
+local function clearDynamic(parent)for _,ch in ipairs(parent:GetChildren())do if not ch:IsA("UIGridLayout")and not ch:IsA("UIListLayout")and not ch:IsA("UIPadding")then ch:Destroy()end end end
+local function uniqueAdd(list,it)local k=itemKey(it);for _,v in ipairs(list)do if itemKey(v)==k then return false end end;table.insert(list,it);return true end
 local function getDescription()
  local ch=player.Character;local hum=ch and ch:FindFirstChildOfClass("Humanoid");if hum then local ok,d=pcall(function()return hum:GetAppliedDescription()end);if ok and d then return d end end
  local ok,d=pcall(function()return Players:GetHumanoidDescriptionFromUserId(player.UserId)end);if ok then return d end
 end
-local function render(desc,keepOrbit)if not desc then return false end;local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);if not ok or not m then return false end;return framePreviewModel(m,keepOrbit)end
-local function renderLiveCharacter()local ch=player.Character;if not ch then return false end;local old=ch.Archivable;ch.Archivable=true;local ok,m=pcall(function()return ch:Clone()end);ch.Archivable=old;if not ok or not m then return false end;return framePreviewModel(m,false)end
-local function resetPreview()baseDescription=getDescription();previewDescription=baseDescription and baseDescription:Clone()or nil;if not renderLiveCharacter()then render(previewDescription,false)end;selectedLabel.Text="Avatar saat ini";selectedPrice.Text=""end
-
-local function typeNameFromRaw(raw)local t=nil;if typeof(raw)=="EnumItem"then t=raw.Name elseif tonumber(raw)then t=TYPE_BY_VALUE[tonumber(raw)]else t=tostring(raw or""):gsub("Enum%.AvatarAssetType%.","")end;if t==""or t=="Unknown"or tonumber(t)then return nil end;return t end
-local function supportedAssetType(t)return t and(t=="Shirt"or t=="TShirt"or t=="Pants"or DIRECT_DESC[t]~=nil or ACCESSORY_MAP[t]~=nil)end
-local function resolveAssetType(raw,id)
- id=tonumber(id);if id and ASSET_TYPE_CACHE[id]then return ASSET_TYPE_CACHE[id]end
- if id then local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end);local t=ok and info and TYPE_BY_VALUE[tonumber(info.AssetTypeId)]or nil;if supportedAssetType(t)then ASSET_TYPE_CACHE[id]=t;return t end end
- local t=typeNameFromRaw(raw);if supportedAssetType(t)then if id then ASSET_TYPE_CACHE[id]=t end;return t end
- if id then local ok,details=pcall(function()return AvatarEditorService:GetItemDetails(id,Enum.AvatarItemType.Asset)end);t=ok and details and typeNameFromRaw(details.AssetType or details.AssetTypeId)or nil;if supportedAssetType(t)then ASSET_TYPE_CACHE[id]=t;return t end end
+local BODY={Head=true,UpperTorso=true,LowerTorso=true,HumanoidRootPart=true,LeftUpperArm=true,LeftLowerArm=true,LeftHand=true,RightUpperArm=true,RightLowerArm=true,RightHand=true,LeftUpperLeg=true,LeftLowerLeg=true,LeftFoot=true,RightUpperLeg=true,RightLowerLeg=true,RightFoot=true,Torso=true,["Left Arm"]=true,["Right Arm"]=true,["Left Leg"]=true,["Right Leg"]=true}
+local function frameModel(m)
+ if not m then return false end
+ for _,d in ipairs(m:GetDescendants())do if d:IsA("Script")or d:IsA("LocalScript")then d:Destroy()elseif d:IsA("BasePart")then d.Anchored=true;d.CanCollide=false;d.CanTouch=false;d.CanQuery=false end end
+ local minV=Vector3.new(math.huge,math.huge,math.huge);local maxV=Vector3.new(-math.huge,-math.huge,-math.huge);local count=0
+ for _,d in ipairs(m:GetDescendants())do if d:IsA("BasePart")and BODY[d.Name]then local h=d.Size*.5;local p=d.Position;minV=Vector3.new(math.min(minV.X,p.X-h.X),math.min(minV.Y,p.Y-h.Y),math.min(minV.Z,p.Z-h.Z));maxV=Vector3.new(math.max(maxV.X,p.X+h.X),math.max(maxV.Y,p.Y+h.Y),math.max(maxV.Z,p.Z+h.Z));count=count+1 end end
+ if count<3 then m:Destroy();return false end
+ local center=(minV+maxV)*.5;local size=maxV-minV;local h=math.clamp(size.Y,4.5,8.5);local w=math.clamp(math.max(size.X,size.Z),2.5,6)
+ world:ClearAllChildren();m.Parent=world;vcam.CFrame=CFrame.lookAt(center+Vector3.new(0,h*.02,math.max(h*1.72,w*1.9)),center+Vector3.new(0,h*.02,0));return true
 end
-local function applyAssetToDescription(d,id,t)
- if not d or not id or not t then return false end;if t=="Shirt"then d.Shirt=id;return true elseif t=="TShirt"then d.GraphicTShirt=id;return true elseif t=="Pants"then d.Pants=id;return true end
- local prop=DIRECT_DESC[t];if prop then return pcall(function()d[prop]=id end)end;local mapped=ACCESSORY_MAP[t];if not mapped then return false end;local ok,accType=pcall(function()return Enum.AccessoryType[mapped]end);if not ok or not accType then return false end
- local ok2,list=pcall(function()return d:GetAccessories(true)end);if not ok2 then return false end;if mapped=="Hair"or mapped=="LeftShoe"or mapped=="RightShoe"then for i=#list,1,-1 do if list[i].AccessoryType==accType then table.remove(list,i)end end end;table.insert(list,{AssetId=id,AccessoryType=accType,Order=#list+1});return pcall(function()d:SetAccessories(list,true)end)
+local function renderDescription(desc)local ok,m=pcall(function()return Players:CreateHumanoidModelFromDescription(desc,Enum.HumanoidRigType.R15)end);return ok and m and frameModel(m)or false end
+local function resetPreview()previewDescription=getDescription();if previewDescription then previewDescription=previewDescription:Clone();renderDescription(previewDescription)end;previewName.Text="Avatar saat ini";previewPrice.Text=""end
+local function typeName(raw,id)
+ local t=typeof(raw)=="EnumItem"and raw.Name or tostring(raw or""):gsub("Enum%.AvatarAssetType%.","");if t~=""and t~="nil"then return t end
+ if id then local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end);if ok and info then return TYPE_BY_VALUE[tonumber(info.AssetTypeId)]end end
 end
+local DIRECT={Head="Head",Face="Face",Torso="Torso",RightArm="RightArm",LeftArm="LeftArm",LeftLeg="LeftLeg",RightLeg="RightLeg"}
 local function applyItem(it)
- if not it then return false end;if not previewDescription then previewDescription=getDescription()end;local d=previewDescription and previewDescription:Clone();if not d then return false end;local id=idOf(it);if not id or itemTypeOf(it)=="Bundle"then return false end
- local changed=applyAssetToDescription(d,id,resolveAssetType(it.AssetType,id));if not changed or not render(d,dressingMode)then return false end;previewDescription=d;selectedLabel.Text="TRY • "..nameOf(it);selectedPrice.Text=priceText(it);return true
-end
-local function promptBuy(it)
- if not it then return end;local id=idOf(it);if not id then return end;if itemTypeOf(it)=="Bundle"then pcall(function()MarketplaceService:PromptBundlePurchase(player,id)end)else pcall(function()MarketplaceService:PromptPurchase(player,id,true,Enum.CurrencyType.Default)end)end
-end
-local function addUnique(list,it)
- local k=itemKey(it);for _,v in ipairs(list)do if itemKey(v)==k then return false end end;table.insert(list,it);return true
-end
-
-local function clearGui(container,keep)for _,x in ipairs(container:GetChildren())do if not keep[x]and not x:IsA("UIGridLayout")and not x:IsA("UIListLayout")and not x:IsA("UIPadding")then x:Destroy()end end end
-local function setDressing(on)end
-local function tryItem(it)
- if not it then return end;selectedLabel.Text=nameOf(it);selectedPrice.Text=priceText(it);local ok=applyItem(it);if ok then status.Text="TRY ON aktif • putar avatar 360°";status.TextColor3=C.green;setDressing(true)else status.Text="Item ini belum bisa TRY ON.";status.TextColor3=C.red end
-end
-local function addCart(it)if not it then return end;if addUnique(cart,it)then status.Text="Masuk CART • "..nameOf(it)else status.Text="Item sudah ada di CART"end;status.TextColor3=C.green end
-local function addSaved(it)if not it then return end;if addUnique(saved,it)then status.Text="Disimpan • "..nameOf(it)else status.Text="Item sudah tersimpan"end;status.TextColor3=C.green end
-
-local function makeActionRow(card,it,y)
- local row=Instance.new("Frame");row.Position=UDim2.new(0,5,0,y);row.Size=UDim2.new(1,-10,0,27);row.BackgroundTransparency=1;row.Parent=card
- local layout=Instance.new("UIListLayout");layout.FillDirection=Enum.FillDirection.Horizontal;layout.Padding=UDim.new(0,3);layout.Parent=row
- local t=btn(row,"TRY",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel2);t.TextSize=7;t.TextColor3=C.cyan
- local c=btn(row,"CART",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel2);c.TextSize=7
- local s=btn(row,"SAVE",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel2);s.TextSize=7
- local b=btn(row,"BUY",UDim2.new(),UDim2.new(.25,-3,1,0),C.green);b.TextSize=7;b.TextColor3=Color3.new(0,0,0)
- t.Activated:Connect(function()tryItem(it)end);c.Activated:Connect(function()addCart(it)end);s.Activated:Connect(function()addSaved(it)end);b.Activated:Connect(function()promptBuy(it)end)
-end
-local function productCard(parent,it)
- local id=idOf(it);if not id then return end;local card=Instance.new("Frame");card.Name="Item_"..itemKey(it):gsub(":","_");card.BackgroundColor3=C.panel2;card.BorderSizePixel=0;card.Parent=parent;corner(card,9);stroke(card,C.line,.48)
- local im=Instance.new("ImageButton");im.Position=UDim2.fromOffset(5,5);im.Size=UDim2.new(1,-10,0,88);im.BackgroundColor3=Color3.fromRGB(35,36,42);im.BorderSizePixel=0;im.Image=thumb(it);im.ScaleType=Enum.ScaleType.Crop;im.AutoButtonColor=true;im.Parent=card;corner(im,7);im.Activated:Connect(function()tryItem(it)end)
- local nm=txt(card,nameOf(it),UDim2.fromOffset(6,98),UDim2.new(1,-12,0,24),Enum.Font.GothamMedium,8,C.white,Enum.TextXAlignment.Center);nm.TextTruncate=Enum.TextTruncate.AtEnd
- txt(card,priceText(it),UDim2.fromOffset(6,122),UDim2.new(1,-12,0,14),Enum.Font.GothamBold,8,C.yellow,Enum.TextXAlignment.Center)
- makeActionRow(card,it,140)
-end
-
-local function renderCart()
- clearGui(cartList,{[cl]=true});local total=0
- for _,it in ipairs(cart)do total+=priceOf(it)or 0;local row=Instance.new("Frame");row.Size=UDim2.new(1,-4,0,66);row.BackgroundColor3=C.panel2;row.BorderSizePixel=0;row.Parent=cartList;corner(row,9)
-  local im=Instance.new("ImageLabel");im.Position=UDim2.fromOffset(5,5);im.Size=UDim2.fromOffset(56,56);im.BackgroundColor3=C.dark;im.BorderSizePixel=0;im.Image=thumb(it);im.ScaleType=Enum.ScaleType.Crop;im.Parent=row;corner(im,7)
-  local nm=txt(row,nameOf(it),UDim2.fromOffset(68,6),UDim2.new(1,-210,0,28),Enum.Font.GothamBold,9,C.white);nm.TextTruncate=Enum.TextTruncate.AtEnd
-  txt(row,priceText(it),UDim2.fromOffset(68,34),UDim2.new(1,-210,0,18),Enum.Font.GothamBold,8,C.yellow)
-  local buy=btn(row,"BUY",UDim2.new(1,-136,.5,-14),UDim2.fromOffset(58,28),C.green);buy.TextSize=8;buy.TextColor3=Color3.new(0,0,0);buy.Activated:Connect(function()promptBuy(it)end)
-  local rm=btn(row,"HAPUS",UDim2.new(1,-72,.5,-14),UDim2.fromOffset(64,28),C.red);rm.TextSize=7;rm.Activated:Connect(function()local k=itemKey(it);for i=#cart,1,-1 do if itemKey(cart[i])==k then table.remove(cart,i)break end end;renderCart()end)
+ if itemTypeOf(it)=="Bundle"then return false end;local id=idOf(it);if not id then return false end
+ if not previewDescription then previewDescription=getDescription()end;local d=previewDescription and previewDescription:Clone();if not d then return false end;local t=typeName(it.AssetType,id)
+ if t=="Shirt"then d.Shirt=id elseif t=="TShirt"then d.GraphicTShirt=id elseif t=="Pants"then d.Pants=id
+ elseif DIRECT[t]then local ok=pcall(function()d[DIRECT[t]]=id end);if not ok then return false end
+ else
+  local okEnum,enumItem=pcall(function()return Enum.AvatarAssetType[t]end);if not okEnum or not enumItem then return false end
+  local okType,accessoryType=pcall(function()return AvatarEditorService:GetAccessoryType(enumItem)end);if not okType or not accessoryType or accessoryType==Enum.AccessoryType.Unknown then return false end
+  local okList,list=pcall(function()return d:GetAccessories(true)end);if not okList then return false end
+  if accessoryType==Enum.AccessoryType.Hair or accessoryType==Enum.AccessoryType.LeftShoe or accessoryType==Enum.AccessoryType.RightShoe then for i=#list,1,-1 do if list[i].AccessoryType==accessoryType then table.remove(list,i)end end end
+  table.insert(list,{AssetId=id,AccessoryType=accessoryType,Order=#list+1});if not pcall(function()d:SetAccessories(list,true)end)then return false end
  end
- cartStatus.Text=#cart==0 and"Keranjang kosong."or string.format("%d item • R$ %d",#cart,total)
+ if not renderDescription(d)then return false end;previewDescription=d;previewName.Text="TRY • "..itemName(it);previewPrice.Text=priceText(it);return true
 end
-local function renderSaved()
- clearGui(savedList,{[sl]=true});for _,it in ipairs(saved)do productCard(savedList,it)end;savedNote.Text=#saved==0 and"Belum ada item tersimpan."or(tostring(#saved).." item tersimpan")
-end
+local function promptBuy(it)local id=idOf(it);if not id then return end;if itemTypeOf(it)=="Bundle"then pcall(function()MarketplaceService:PromptBundlePurchase(player,id)end)else pcall(function()MarketplaceService:PromptPurchase(player,id,true,Enum.CurrencyType.Default)end)end end
 
-local function querySpec()local d=STORE[activeStore]or STORE.FASHION;return{assetTypes=d.assetTypes,keyword=d.keyword or"",fallback=d.fallback or"",title=d.catalog}end
-local function renderPage(token,pages)
- if token~=searchToken or not pages then return 0 end;local ok,items=pcall(function()return pages:GetCurrentPage()end);if not ok or type(items)~="table"then return 0 end;local added=0
- for _,it in ipairs(items)do local k=itemKey(it);if not loadedKeys[k]then loadedKeys[k]=true;productCard(productList,it);loadedCount+=1;added+=1 end end
- exhausted=pages.IsFinished;status.Text=string.format("%d produk live%s",loadedCount,exhausted and""or" • scroll untuk lainnya");status.TextColor3=loadedCount>0 and C.green or C.muted;return added
+local renderCart,renderSaved
+local function makeProductCard(parent,it)
+ if not idOf(it)then return end;local card=Instance.new("Frame");card.BackgroundColor3=C.card;card.BorderSizePixel=0;card.Parent=parent;corner(card,8);stroke(card,C.line,.55)
+ local im=Instance.new("ImageButton");im.Position=UDim2.fromOffset(5,5);im.Size=UDim2.new(1,-10,0,78);im.BackgroundColor3=C.panel;im.BorderSizePixel=0;im.Image=thumb(it);im.ScaleType=Enum.ScaleType.Crop;im.Parent=card;corner(im,7)
+ local nm=label(card,itemName(it),UDim2.fromOffset(6,86),UDim2.new(1,-12,0,25),Enum.Font.GothamMedium,8,C.white,Enum.TextXAlignment.Center);nm.TextTruncate=Enum.TextTruncate.AtEnd
+ label(card,priceText(it),UDim2.fromOffset(6,111),UDim2.new(1,-12,0,14),Enum.Font.GothamBold,8,C.yellow,Enum.TextXAlignment.Center)
+ local row=Instance.new("Frame");row.BackgroundTransparency=1;row.Position=UDim2.fromOffset(5,128);row.Size=UDim2.new(1,-10,0,25);row.Parent=card;local lay=Instance.new("UIListLayout");lay.FillDirection=Enum.FillDirection.Horizontal;lay.Padding=UDim.new(0,3);lay.Parent=row
+ local try=button(row,"TRY",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel);try.TextSize=7;try.TextColor3=C.cyan
+ local add=button(row,"CART",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel);add.TextSize=7
+ local keep=button(row,"SAVE",UDim2.new(),UDim2.new(.25,-3,1,0),C.panel);keep.TextSize=7
+ local buy=button(row,"BUY",UDim2.new(),UDim2.new(.25,-3,1,0),C.green);buy.TextSize=7;buy.TextColor3=Color3.new(0,0,0)
+ local function tryNow()if applyItem(it)then status.Text="TRY ON aktif";status.TextColor3=C.green else status.Text="TRY ON tidak tersedia untuk item ini";status.TextColor3=C.red end end
+ im.Activated:Connect(tryNow);try.Activated:Connect(tryNow)
+ add.Activated:Connect(function()status.Text=uniqueAdd(cart,it)and("Masuk CART • "..itemName(it))or"Sudah ada di CART";status.TextColor3=C.green end)
+ keep.Activated:Connect(function()status.Text=uniqueAdd(saved,it)and("Disimpan • "..itemName(it))or"Sudah tersimpan";status.TextColor3=C.green end)
+ buy.Activated:Connect(function()promptBuy(it)end)
 end
-local function searchPages(spec,q)
- local params=CatalogSearchParams.new();params.IncludeOffSale=false;params.Limit=30;params.AssetTypes=spec.assetTypes;if q and q~=""then params.SearchKeyword=q end;return AvatarEditorService:SearchCatalogAsync(params)
+renderCart=function()
+ clearDynamic(cartList);local total=0
+ for _,it in ipairs(cart)do total=total+(itemPrice(it)or 0);local row=Instance.new("Frame");row.Size=UDim2.new(1,-4,0,58);row.BackgroundColor3=C.card;row.BorderSizePixel=0;row.Parent=cartList;corner(row,8)
+  local im=Instance.new("ImageLabel");im.Position=UDim2.fromOffset(5,5);im.Size=UDim2.fromOffset(48,48);im.BackgroundColor3=C.panel;im.BorderSizePixel=0;im.Image=thumb(it);im.ScaleType=Enum.ScaleType.Crop;im.Parent=row;corner(im,6)
+  local nm=label(row,itemName(it),UDim2.fromOffset(60,5),UDim2.new(1,-205,0,25),Enum.Font.GothamBold,8,C.white);nm.TextTruncate=Enum.TextTruncate.AtEnd;label(row,priceText(it),UDim2.fromOffset(60,29),UDim2.new(1,-205,0,18),Enum.Font.GothamBold,8,C.yellow)
+  local buy=button(row,"BUY",UDim2.new(1,-130,.5,-13),UDim2.fromOffset(54,26),C.green);buy.TextColor3=Color3.new(0,0,0);buy.TextSize=7;local rm=button(row,"HAPUS",UDim2.new(1,-71,.5,-13),UDim2.fromOffset(64,26),C.red);rm.TextSize=7
+  buy.Activated:Connect(function()promptBuy(it)end);rm.Activated:Connect(function()local k=itemKey(it);for i=#cart,1,-1 do if itemKey(cart[i])==k then table.remove(cart,i);break end end;renderCart()end)
+ end
+ cartMeta.Text=#cart==0 and"Keranjang kosong."or string.format("%d item • R$ %d • BUY via Roblox",#cart,total)
 end
-local function loadNextPage()
- if loadingPage or exhausted or not catalogPages then return end;loadingPage=true;local token=searchToken;status.Text="Memuat produk berikutnya…";status.TextColor3=C.yellow
- task.spawn(function()local ok=pcall(function()catalogPages:AdvanceToNextPageAsync()end);if token==searchToken then if not ok then status.Text="Gagal memuat. Scroll lagi.";status.TextColor3=C.red else renderPage(token,catalogPages)end end;loadingPage=false end)
+renderSaved=function()clearDynamic(savedList);for _,it in ipairs(saved)do makeProductCard(savedList,it)end;savedMeta.Text=#saved==0 and"Belum ada item tersimpan."or(tostring(#saved).." item tersimpan")end
+
+local function renderPage(token,p)
+ if token~=searchToken or not p then return 0 end;local ok,items=pcall(function()return p:GetCurrentPage()end);if not ok or type(items)~="table"then return 0 end;local added=0
+ for _,it in ipairs(items)do local k=itemKey(it);if not loaded[k]then loaded[k]=true;makeProductCard(productList,it);loadedCount=loadedCount+1;added=added+1 end end
+ exhausted=p.IsFinished;status.Text=string.format("%d produk live%s",loadedCount,exhausted and""or" • scroll untuk lanjut");status.TextColor3=loadedCount>0 and C.green or C.muted;return added
 end
+local function queryPages(spec,q)local p=CatalogSearchParams.new();p.IncludeOffSale=false;p.Limit=30;p.AssetTypes=spec.types;if q and q~=""then p.SearchKeyword=q end;return AvatarEditorService:SearchCatalogAsync(p)end
 local function doSearch()
- searchToken+=1;local token=searchToken;catalogPages=nil;loadingPage=false;exhausted=false;loadedCount=0;loadedKeys={};retry.Visible=false;status.Text="Memuat katalog tenant…";status.TextColor3=C.yellow;clearGui(productList,{[grid]=true});productList.CanvasPosition=Vector2.zero
- local spec=querySpec();local typed=search.Text:match("^%s*(.-)%s*$")or"";local q=typed~=""and typed or spec.keyword
- task.delay(7,function()if token==searchToken and loadedCount==0 then status.Text="Marketplace lambat. Tap RETRY.";status.TextColor3=C.red;retry.Visible=true end end)
+ searchToken=searchToken+1;local token=searchToken;pages=nil;loadingPage=false;exhausted=false;loaded={};loadedCount=0;retry.Visible=false;clearDynamic(productList);productList.CanvasPosition=Vector2.zero;status.Text="Memuat Roblox Marketplace…";status.TextColor3=C.yellow
+ local spec=STORE[currentStore]or STORE.FASHION;local typed=search.Text:match("^%s*(.-)%s*$")or"";local q=typed~=""and typed or spec.keyword
  task.spawn(function()
-  local ok,pages=pcall(function()return searchPages(spec,q)end);if token~=searchToken then return end
-  if ok and pages then catalogPages=pages;local added=renderPage(token,pages);if added==0 and typed==""and spec.fallback~=""and spec.fallback~=q then
-    loadedKeys={};loadedCount=0;clearGui(productList,{[grid]=true});local ok2,pages2=pcall(function()return searchPages(spec,spec.fallback)end);if token~=searchToken then return end;if ok2 and pages2 then catalogPages=pages2;added=renderPage(token,pages2)end
-   end
-   retry.Visible=false;if loadedCount==0 then status.Text="Tidak ada hasil. Coba kata lain.";status.TextColor3=C.muted end
+  local ok,p=pcall(function()return queryPages(spec,q)end);if token~=searchToken then return end
+  if ok and p then pages=p;local added=renderPage(token,p);if added==0 and typed==""and spec.fallback~=""and spec.fallback~=q then loaded={};loadedCount=0;clearDynamic(productList);local ok2,p2=pcall(function()return queryPages(spec,spec.fallback)end);if token~=searchToken then return end;if ok2 and p2 then pages=p2;renderPage(token,p2)end end
+   retry.Visible=loadedCount==0;if loadedCount==0 then status.Text="Tidak ada hasil. Coba kata lain.";status.TextColor3=C.muted end
   else status.Text="Marketplace belum merespons. Tap RETRY.";status.TextColor3=C.red;retry.Visible=true end
  end)
 end
-local function openProducts()local d=STORE[activeStore]or STORE.FASHION;productTitle.Text=d.short or d.catalog;search.Text="";search.PlaceholderText="Cari di "..d.title.."..";showModule("PRODUCTS");doSearch()end
-
-local function setToolMode(room)
- homeTool.Visible=not room;cartTool.Visible=not room;saveTool.Visible=not room;resetTool.Visible=not room;rotateLeft.Visible=room;rotateRight.Visible=room;zoomOut.Visible=room;zoomIn.Visible=room;orbitHint.Visible=room;roomTitle.Visible=room;roomBack.Visible=room;catBtn.Visible=not room;storeBtn.Visible=not room
+local function loadNext()
+ if loadingPage or exhausted or not pages then return end;loadingPage=true;local token=searchToken;status.Text="Memuat produk berikutnya…";status.TextColor3=C.yellow
+ task.spawn(function()local ok=pcall(function()pages:AdvanceToNextPageAsync()end);if token==searchToken then if ok then renderPage(token,pages)else status.Text="Gagal memuat halaman. Scroll/retry.";status.TextColor3=C.red end end;loadingPage=false end)
 end
-local function safeInsets()local ok,a,b=pcall(function()return GuiService:GetGuiInset()end);if ok and a then return a,b or Vector2.zero end;return Vector2.zero,Vector2.zero end
+local function openProducts(key)if key and STORE[key]then currentStore=key end;local spec=STORE[currentStore]or STORE.FASHION;shopTitle.Text=spec.title.." • "..spec.short;search.Text="";search.PlaceholderText="Cari di "..spec.title.."..";show("PRODUCTS");doSearch()end
+for i,key in ipairs(STORE_ORDER)do local s=STORE[key];local b=button(storeList,string.format("%s\n%s",s.title,s.short),UDim2.new(),UDim2.new(),s.accent);b.LayoutOrder=i;b.TextWrapped=true;b.Activated:Connect(function()openProducts(key)end)end
+
+local camera=workspace.CurrentCamera
 local function responsive()
- camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720);local insetTL,insetBR=safeInsets();local outer=math.clamp(math.floor(math.min(vp.X,vp.Y)*.018),8,16)
- local rawX=outer+insetTL.X;local rawY=outer+insetTL.Y;local rawW=math.max(560,vp.X-rawX-outer-insetBR.X);local rawH=math.max(300,vp.Y-rawY-outer-insetBR.Y)
- local targetW=math.max(620,math.floor(vp.X*.82));local targetH=math.max(330,math.floor(vp.Y*.78));local baseH=math.min(rawH,targetH);local availW=math.min(rawW,targetW);local compactBottom=(UserInputService.TouchEnabled and vp.X>vp.Y)and 92 or 50;local availH=math.max(300,baseH-compactBottom)
- local x0=rawX+math.max(0,math.floor((rawW-availW)/2));local y0=rawY+math.max(0,math.floor((rawH-baseH)/2));shell.Position=UDim2.fromOffset(x0,y0);shell.Size=UDim2.fromOffset(availW,availH)
- local topH=40;top.Position=UDim2.fromOffset(0,0);top.Size=UDim2.fromOffset(availW,topH)
- if dressingMode then
-  roomBack.Position=UDim2.fromOffset(4,1);roomBack.Size=UDim2.fromOffset(104,36);closeBtn.Position=UDim2.fromOffset(availW-40,1);closeBtn.Size=UDim2.fromOffset(36,36);roomTitle.Position=UDim2.fromOffset(114,0);roomTitle.Size=UDim2.fromOffset(math.max(110,availW-160),38)
-  local gap=12;local bodyY=topH+6;local bodyH=availH-bodyY;local avatarW=math.floor((availW-gap)*.55);local hostW=availW-avatarW-gap
-  avatar.Position=UDim2.fromOffset(0,bodyY);avatar.Size=UDim2.fromOffset(avatarW,bodyH);host.Position=UDim2.fromOffset(avatarW+gap,bodyY);host.Size=UDim2.fromOffset(hostW,bodyH)
-  viewport.Position=UDim2.fromOffset(6,6);viewport.Size=UDim2.new(1,-12,1,-76);selectedLabel.Position=UDim2.new(0,10,1,-68);selectedLabel.Size=UDim2.new(1,-20,0,19);selectedPrice.Position=UDim2.new(0,10,1,-49);selectedPrice.Size=UDim2.new(1,-20,0,16);orbitHint.Position=UDim2.new(0,10,1,-32);orbitHint.Size=UDim2.new(1,-20,0,14);avatarTools.Position=UDim2.new(.5,-94,1,-27);avatarTools.Size=UDim2.fromOffset(188,24);for _,b in ipairs({rotateLeft,rotateRight,zoomOut,zoomIn})do b.Size=UDim2.fromOffset(44,24)end
- else
-  local closeW=36;local gapTop=8;local catW=math.clamp(math.floor(availW*.30),170,320);local storeW=math.max(180,availW-catW-closeW-gapTop*3)
-  catBtn.Position=UDim2.fromOffset(4,1);catBtn.Size=UDim2.fromOffset(catW,36);storeBtn.Position=UDim2.fromOffset(4+catW+gapTop,1);storeBtn.Size=UDim2.fromOffset(storeW,36);closeBtn.Position=UDim2.fromOffset(availW-closeW-4,1);closeBtn.Size=UDim2.fromOffset(closeW,36)
-  local gap=12;local bodyY=topH+6;local bodyH=availH-bodyY;local avatarW=math.clamp(math.floor((availW-gap)*.26),200,290);local hostW=availW-avatarW-gap
-  avatar.Position=UDim2.fromOffset(0,bodyY);avatar.Size=UDim2.fromOffset(avatarW,bodyH);host.Position=UDim2.fromOffset(avatarW+gap,bodyY);host.Size=UDim2.fromOffset(hostW,bodyH)
-  viewport.Position=UDim2.fromOffset(6,6);viewport.Size=UDim2.new(1,-12,1,-72);selectedLabel.Position=UDim2.new(0,8,1,-64);selectedLabel.Size=UDim2.new(1,-16,0,18);selectedPrice.Position=UDim2.new(0,8,1,-46);selectedPrice.Size=UDim2.new(1,-16,0,15);avatarTools.Position=UDim2.new(0,6,1,-27);avatarTools.Size=UDim2.new(1,-12,0,23);for _,b in ipairs({homeTool,cartTool,saveTool,resetTool})do b.Size=UDim2.new(.24,-3,1,0)end
- end
- local hostW=math.max(240,host.Size.X.Offset-16);local rightPad=8;local goW=48;local searchW=math.clamp(math.floor(hostW*.28),118,190);local goX=hostW-goW-rightPad;local searchX=goX-searchW-8;local backW=96;local titleX=dressingMode and 0 or(backW+8);local titleW=math.max(60,searchX-titleX-8)
- backProducts.Position=UDim2.fromOffset(0,0);backProducts.Size=UDim2.fromOffset(dressingMode and 0 or backW,30);backProducts.Visible=not dressingMode;productTitle.Position=UDim2.fromOffset(titleX,0);productTitle.Size=UDim2.fromOffset(titleW,30);productTitle.TextSize=hostW<480 and 11 or 13
- search.Position=UDim2.fromOffset(searchX,0);search.Size=UDim2.fromOffset(searchW,30);go.Position=UDim2.fromOffset(goX,0);go.Size=UDim2.fromOffset(goW,30);status.Position=UDim2.fromOffset(0,38);status.Size=UDim2.new(1,-78,0,18);retry.Position=UDim2.fromOffset(hostW-76,36);retry.Size=UDim2.fromOffset(68,22);productList.Position=UDim2.fromOffset(0,66);productList.Size=UDim2.new(1,0,1,-66)
- local columns=hostW<360 and 2 or(hostW<560 and 3 or 4);grid.CellSize=UDim2.new(1/columns,-6,0,174);sl.CellSize=UDim2.new(1/columns,-6,0,174);storeTitle.Position=UDim2.fromOffset(0,0);storeTitle.Size=UDim2.new(1,0,0,32);storeGrid.Position=UDim2.fromOffset(0,38);storeGrid.Size=UDim2.new(1,0,1,-38);sg.CellSize=UDim2.new(hostW<460 and 1 or .49,-5,0,64)
- cartTitle.Position=UDim2.fromOffset(0,0);cartTitle.Size=UDim2.new(1,-42,0,32);cartClose.Position=UDim2.new(1,-36,0,0);cartClose.Size=UDim2.fromOffset(36,32);cartList.Position=UDim2.fromOffset(0,40);cartList.Size=UDim2.new(1,0,1,-90);cartStatus.Position=UDim2.new(0,0,1,-42);cartStatus.Size=UDim2.new(.52,0,0,34);checkout.Position=UDim2.new(1,-150,1,-42);checkout.Size=UDim2.fromOffset(150,34)
- savedTitle.Position=UDim2.fromOffset(0,0);savedTitle.Size=UDim2.new(1,-42,0,32);savedClose.Position=UDim2.new(1,-36,0,0);savedClose.Size=UDim2.fromOffset(36,32);saveCurrent.Position=UDim2.fromOffset(0,40);saveCurrent.Size=UDim2.fromOffset(172,32);savedNote.Position=UDim2.fromOffset(0,78);savedNote.Size=UDim2.new(1,0,0,22);savedList.Position=UDim2.fromOffset(0,104);savedList.Size=UDim2.new(1,0,1,-104)
- task.defer(function()local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m,true)end end)
+ camera=workspace.CurrentCamera or camera;local vp=camera and camera.ViewportSize or Vector2.new(1280,720)
+ local ok,tl,br=pcall(function()local a,b=GuiService:GetGuiInset();return a,b end);if not ok then tl,br=Vector2.zero,Vector2.zero end;tl=tl or Vector2.zero;br=br or Vector2.zero
+ local usableW=math.max(300,vp.X-tl.X-br.X-16);local usableH=math.max(300,vp.Y-tl.Y-br.Y-18);local w=math.min(960,usableW);local h=math.min(620,usableH)
+ shell.Position=UDim2.new(.5,math.floor((tl.X-br.X)/2),.5,math.floor((tl.Y-br.Y)/2));shell.Size=UDim2.fromOffset(w,h);top.Position=UDim2.fromOffset(7,7);top.Size=UDim2.new(1,-14,0,38)
+ local topW=w-14;local closeW=34;local gap=5;local tabW=math.floor((topW-closeW-gap*5)/4);for index,name in ipairs({"PRODUCTS","STORES","CART","SAVED"})do local b=tabs[name];b.Position=UDim2.fromOffset(gap+(index-1)*(tabW+gap),4);b.Size=UDim2.fromOffset(tabW,30)end;close.Position=UDim2.new(1,-closeW-4,0,4);close.Size=UDim2.fromOffset(closeW,30)
+ local bodyY=52;local bodyH=h-bodyY-7;local previewW=math.clamp(math.floor(w*.27),w<520 and 118 or 170,260);local contentX=7+previewW+8
+ preview.Position=UDim2.fromOffset(7,bodyY);preview.Size=UDim2.fromOffset(previewW,bodyH);content.Position=UDim2.fromOffset(contentX,bodyY);content.Size=UDim2.fromOffset(w-contentX-7,bodyH)
+ viewport.Position=UDim2.fromOffset(6,6);viewport.Size=UDim2.new(1,-12,1,-78);previewName.Position=UDim2.new(0,6,1,-69);previewName.Size=UDim2.new(1,-12,0,17);previewPrice.Position=UDim2.new(0,6,1,-52);previewPrice.Size=UDim2.new(1,-12,0,14)
+ reset.Position=UDim2.new(0,6,1,-31);reset.Size=UDim2.new(.38,-5,0,25);saveLook.Position=UDim2.new(.38,4,1,-31);saveLook.Size=UDim2.new(.62,-10,0,25)
+ local cw=math.max(150,content.Size.X.Offset);local pad=7;shopTitle.Position=UDim2.fromOffset(pad,4);shopTitle.Size=UDim2.new(1,-pad*2,0,24);local goW=42;local searchW=math.max(88,math.floor(cw*.45));local actualSearch=math.min(searchW,cw-goW-pad*3)
+ search.Position=UDim2.fromOffset(pad,32);search.Size=UDim2.fromOffset(actualSearch,28);go.Position=UDim2.fromOffset(actualSearch+pad*2,32);go.Size=UDim2.fromOffset(goW,28);status.Position=UDim2.fromOffset(pad,62);status.Size=UDim2.new(1,-86,0,18);retry.Position=UDim2.new(1,-72,0,61);retry.Size=UDim2.fromOffset(64,20);productList.Position=UDim2.fromOffset(pad,84);productList.Size=UDim2.new(1,-pad*2,1,-91)
+ local cols=cw<300 and 1 or(cw<520 and 2 or 3);productGrid.CellSize=UDim2.new(1/cols,-6,0,158);savedGrid.CellSize=productGrid.CellSize;storesTitle.Position=UDim2.fromOffset(pad,6);storesTitle.Size=UDim2.new(1,-pad*2,0,26);storeList.Position=UDim2.fromOffset(pad,38);storeList.Size=UDim2.new(1,-pad*2,1,-45);storeGrid.CellSize=UDim2.new(cw<390 and 1 or .5,-5,0,54)
+ cartTitle.Position=UDim2.fromOffset(pad,5);cartTitle.Size=UDim2.new(1,-pad*2,0,24);cartMeta.Position=UDim2.fromOffset(pad,29);cartMeta.Size=UDim2.new(1,-pad*2,0,22);cartList.Position=UDim2.fromOffset(pad,56);cartList.Size=UDim2.new(1,-pad*2,1,-63);savedTitle.Position=cartTitle.Position;savedTitle.Size=cartTitle.Size;savedMeta.Position=cartMeta.Position;savedMeta.Size=cartMeta.Size;savedList.Position=cartList.Position;savedList.Size=cartList.Size
 end
-setDressing=function(on)dressingMode=on and true or false;setToolMode(dressingMode);if dressingMode then showModule("PRODUCTS")end;responsive();local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m,true)end end
+local function closePanel()root.Visible=false;player:SetAttribute("BBYAMallCatalogFocusMode",false)end
+local function openStore(key)
+ key=REMOTE_ALIAS[key]or key;if not STORE[key]then key="FASHION"end;currentStore=key
+ root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);responsive();show("PRODUCTS");status.Text="Membuka "..STORE[key].title.."…";status.TextColor3=C.cyan
+ task.defer(resetPreview);task.defer(function()openProducts(key)end)
+end
 
-local function closeCatalog()setDressing(false);root.Visible=false;restoreUI();player:SetAttribute("BBYAMallCatalogFocusMode",false)end
-local function openStore(key)if not STORE[key]then return end;activeStore=key;local d=STORE[key];storeBtn.Text=d.title;setDressing(false);resetPreview();hideOtherUI();root.Visible=true;player:SetAttribute("BBYAMallCatalogFocusMode",true);openProducts();responsive()end
-
-for index,t in ipairs(TENANTS)do local accent=t.key and(STORE[t.key]and STORE[t.key].accent or C.blue)or C.panel2;local b=btn(storeGrid,string.format("L%d • %s\n%s\nTELEPORT →",t.floor,t.name,t.cat),UDim2.new(),UDim2.new(),accent);b.LayoutOrder=index;b.TextWrapped=true;b.TextSize=10;b.Activated:Connect(function()mallAction:FireServer("guide",t.id);closeCatalog()end)end
-
+tabs.PRODUCTS.Activated:Connect(function()openProducts(currentStore)end)
+tabs.STORES.Activated:Connect(function()show("STORES")end)
+tabs.CART.Activated:Connect(function()renderCart();show("CART")end)
+tabs.SAVED.Activated:Connect(function()renderSaved();show("SAVED")end)
+close.Activated:Connect(closePanel);reset.Activated:Connect(resetPreview)
+saveLook.Activated:Connect(function()if not previewDescription then previewDescription=getDescription()end;if previewDescription then pcall(function()AvatarEditorService:PromptSaveAvatar(previewDescription,Enum.HumanoidRigType.R15)end)end end)
 go.Activated:Connect(doSearch);retry.Activated:Connect(doSearch);search.FocusLost:Connect(function(enter)if enter then doSearch()end end)
-productList:GetPropertyChangedSignal("CanvasPosition"):Connect(function()if not products.Visible or loadingPage or exhausted or not catalogPages then return end;if productList.CanvasPosition.Y+productList.AbsoluteWindowSize.Y>=productList.AbsoluteCanvasSize.Y-240 then loadNextPage()end end)
-catBtn.Activated:Connect(openProducts);storeBtn.Activated:Connect(function()showModule("STORES")end);homeTool.Activated:Connect(openProducts)
-backProducts.Activated:Connect(closeCatalog);cartTool.Activated:Connect(function()renderCart();showModule("CART")end);saveTool.Activated:Connect(function()renderSaved();showModule("SAVED")end);resetTool.Activated:Connect(resetPreview)
-cartClose.Activated:Connect(openProducts);savedClose.Activated:Connect(openProducts);checkout.Activated:Connect(function()if cart[1]then promptBuy(cart[1])end end)
-saveCurrent.Activated:Connect(function()if previewDescription then pcall(function()AvatarEditorService:PromptSaveAvatar(previewDescription,Enum.HumanoidRigType.R15)end)end end)
-closeBtn.Activated:Connect(closeCatalog);roomBack.Activated:Connect(function()setDressing(false)end)
-rotateLeft.Activated:Connect(function()orbitYaw-=math.rad(20);updateOrbitCamera()end);rotateRight.Activated:Connect(function()orbitYaw+=math.rad(20);updateOrbitCamera()end);zoomOut.Activated:Connect(function()orbitDistance=math.clamp(orbitDistance*1.12,4,28);updateOrbitCamera()end);zoomIn.Activated:Connect(function()orbitDistance=math.clamp(orbitDistance*.88,4,28);updateOrbitCamera()end)
-viewport.InputBegan:Connect(function(input)if not dressingMode then return end;if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then dragInput=input;lastDrag=Vector2.new(input.Position.X,input.Position.Y)elseif input.UserInputType==Enum.UserInputType.MouseWheel then orbitDistance=math.clamp(orbitDistance-input.Position.Z*.8,4,28);updateOrbitCamera()end end)
-UserInputService.InputChanged:Connect(function(input)if not dressingMode then return end;if input.UserInputType==Enum.UserInputType.MouseWheel then orbitDistance=math.clamp(orbitDistance-input.Position.Z*.8,4,28);updateOrbitCamera();return end;if not dragInput then return end;if input.UserInputType==Enum.UserInputType.MouseMovement or input==dragInput then local now=Vector2.new(input.Position.X,input.Position.Y);local d=now-(lastDrag or now);lastDrag=now;orbitYaw-=d.X*.009;orbitPitch=math.clamp(orbitPitch-d.Y*.006,math.rad(-35),math.rad(35));updateOrbitCamera()end end)
-UserInputService.InputEnded:Connect(function(input)if input==dragInput or input.UserInputType==Enum.UserInputType.MouseButton1 then dragInput=nil;lastDrag=nil end end)
-
+productList:GetPropertyChangedSignal("CanvasPosition"):Connect(function()if products.Visible and not loadingPage and not exhausted and pages and productList.CanvasPosition.Y+productList.AbsoluteWindowSize.Y>=productList.AbsoluteCanvasSize.Y-180 then loadNext()end end)
+remote.OnClientEvent:Connect(function(kind,data)if kind~="open"then return end;local key=typeof(data)=="table"and tostring(data.key or"FASHION")or"FASHION";openStore(key)end)
+MarketplaceService.PromptPurchaseFinished:Connect(function(who,_,purchased)if who==player and root.Visible then status.Text=purchased and"Purchase selesai."or"Purchase dibatalkan.";status.TextColor3=purchased and C.green or C.muted end end)
 if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(responsive)end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()camera=workspace.CurrentCamera;task.defer(responsive)end)
-viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()task.defer(function()local m=world:FindFirstChildOfClass("Model");if m then framePreviewModel(m,true)end end)end)
-remote.OnClientEvent:Connect(function(kind,data)if kind~="open"or typeof(data)~="table"then return end;local key=tostring(data.key or"FASHION");key=REMOTE_ALIAS[key]or key;if STORE[key]then openStore(key)end end)
-player.CharacterAdded:Connect(function()task.delay(.8,function()if root.Visible then resetPreview()end end)end)
+player.CharacterAdded:Connect(function()if root.Visible then task.delay(.8,resetPreview)end end)
 task.defer(responsive)
-print("[BBYA] Mall Catalog V13 online: visible TRY/CART/SAVE/BUY + deduped live Marketplace + compact header")
+print("[BBYA] Mall Catalog V14 online: reliable kiosk open + compact KATALOG/TOKO/CART/SAVE")
