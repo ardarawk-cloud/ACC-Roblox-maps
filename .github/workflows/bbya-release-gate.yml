@@ -33,6 +33,8 @@ on:
           - dance
           - entrance-cars
           - mall
+          - message
+          - venue-playlists
           - staff-tower
       confirmation:
         description: 'Type PUBLISH_BBYA_MAIN to publish directly to the live BBYA place'
@@ -116,7 +118,7 @@ jobs:
             scope="$MANUAL_SCOPE"
           else
             pass=()
-            for candidate in baseline-recovery identity main-club underground funkot travel dance entrance-cars mall staff-tower; do
+            for candidate in baseline-recovery identity main-club underground funkot travel dance entrance-cars mall message venue-playlists staff-tower; do
               if python3 scripts/bbya-scope-guard.py \
                 --scope "$candidate" \
                 --baseline-ref origin/bbya-golden-baseline \
@@ -126,7 +128,7 @@ jobs:
             done
             if [[ ${#pass[@]} -ne 1 ]]; then
               echo "DENIED: expected exactly one BBYA scope to pass; got ${#pass[@]}: ${pass[*]:-none}"
-              for candidate in baseline-recovery identity main-club underground funkot travel dance entrance-cars mall staff-tower; do
+              for candidate in baseline-recovery identity main-club underground funkot travel dance entrance-cars mall message venue-playlists staff-tower; do
                 echo "----- $candidate -----"
                 cat "/tmp/bbya-guard-${candidate}.log" || true
               done
