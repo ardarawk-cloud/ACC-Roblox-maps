@@ -64,7 +64,6 @@ if currentIndex<1 or currentIndex>#PLAYLIST then currentIndex=1 end
 local preparedIndex=nil
 local preparing=false
 local transitioning=false
-local generation=0
 local lastControl={}
 
 local function track(i)return PLAYLIST[((tonumber(i)or 1)-1)%#PLAYLIST+1]end
@@ -90,7 +89,7 @@ end
 local function broadcastState()publishState();vipRemote:FireAllClients("state",currentData())end
 local function prepare(i)
  i=((tonumber(i)or 1)-1)%#PLAYLIST+1
- if transitioning or preparing then return false end
+ if preparing then return false end
  if preparedIndex==i and standby.IsLoaded then return true end
  preparing=true;preparedIndex=i;configure(standby,i,0);standby:SetAttribute("DeckRole","STANDBY");group:SetAttribute("StandbyIndex",i)
  task.spawn(function()pcall(function()ContentProvider:PreloadAsync({standby})end)end)
@@ -99,17 +98,17 @@ local function prepare(i)
  return true
 end
 local function hardStart(i,reason)
- i=((tonumber(i)or 1)-1)%#PLAYLIST+1;generation+=1;currentIndex=i;preparedIndex=nil;configure(sound,i,LIVE_VOLUME);sound:SetAttribute("DeckRole","LIVE");standby:Stop();standby.Volume=0;standby:SetAttribute("DeckRole","STANDBY");publishState();pcall(function()sound:Play()end);task.defer(function()prepare(nextIndex())end);group:SetAttribute("LastTransitionReason",reason or"hard-start");broadcastState()
+ i=((tonumber(i)or 1)-1)%#PLAYLIST+1;currentIndex=i;preparedIndex=nil;configure(sound,i,LIVE_VOLUME);sound:SetAttribute("DeckRole","LIVE");standby:Stop();standby.Volume=0;standby:SetAttribute("DeckRole","STANDBY");publishState();pcall(function()sound:Play()end);group:SetAttribute("LastTransitionReason",reason or"hard-start");broadcastState();task.defer(function()prepare(nextIndex())end)
 end
 local function mixTo(i,reason)
  i=((tonumber(i)or 1)-1)%#PLAYLIST+1
  if transitioning then return end
- transitioning=true
  if preparedIndex~=i or not standby.IsLoaded then
-  preparing=false
-  if not prepare(i)then transitioning=false;hardStart(i,"preload-fallback");return end
+  if not prepare(i)then hardStart(i,"preload-fallback");return end
  end
- local t=track(i);standby.Volume=0;standby.TimePosition=0;standby:SetAttribute("DeckRole","MIX_IN");sound:SetAttribute("DeckRole","MIX_OUT");local ok=pcall(function()standby:Play()end)
+ transitioning=true
+ local t=track(i);standby.Volume=0;standby.TimePosition=0;standby:SetAttribute("DeckRole","MIX_IN");sound:SetAttribute("DeckRole","MIX_OUT")
+ local ok=pcall(function()standby:Play()end)
  if not ok then transitioning=false;hardStart(i,"standby-play-fallback");return end
  local up=TweenService:Create(standby,TweenInfo.new(MIX_SECONDS,Enum.EasingStyle.Linear),{Volume=LIVE_VOLUME});local down=TweenService:Create(sound,TweenInfo.new(MIX_SECONDS,Enum.EasingStyle.Linear),{Volume=0});up:Play();down:Play();group:SetAttribute("LastTransitionReason",reason or"automix")
  task.wait(MIX_SECONDS)
@@ -131,7 +130,7 @@ Players.PlayerRemoving:Connect(function(p)lastControl[p]=nil end)
 hardStart(currentIndex,"startup")
 -- Resolve display titles from Roblox metadata without inventing names.
 task.spawn(function()
- for index,t in ipairs(PLAYLIST)do task.spawn(function()local id=tonumber(t.assetId);if not id then return end;local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end);if ok and type(info)=="table"and type(info.Name)=="string"and info.Name~=""then t.title=info.Name;publishState();vipRemote:FireAllClients("playlist",PLAYLIST);vipRemote:FireAllClients("state",currentData())end end)end
+ for _,t in ipairs(PLAYLIST)do task.spawn(function()local id=tonumber(t.assetId);if not id then return end;local ok,info=pcall(function()return MarketplaceService:GetProductInfo(id,Enum.InfoType.Asset)end);if ok and type(info)=="table"and type(info.Name)=="string"and info.Name~=""then t.title=info.Name;publishState();vipRemote:FireAllClients("playlist",PLAYLIST);vipRemote:FireAllClients("state",currentData())end end)end
 end)
 task.spawn(function()
  while task.wait(.25)do
@@ -140,7 +139,7 @@ task.spawn(function()
    if not sound.IsPlaying then hardStart(nextIndex(),"watchdog-stop")
    elseif sound.TimeLength>1 then
     local speed=math.max(.1,sound.PlaybackSpeed);local remaining=sound.TimeLength-sound.TimePosition
-    if remaining<=PRELOAD_SECONDS*speed and not preparedIndex then prepare(nextIndex())end
+    if remaining<=PRELOAD_SECONDS*speed and not preparedIndex and not preparing then task.spawn(function()prepare(nextIndex())end)end
     if remaining<=MIX_SECONDS*speed+.12 then task.spawn(function()mixTo(preparedIndex or nextIndex(),"auto-end")end)end
    end
   end
