@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -71,6 +71,17 @@
       "maps/bbya-social-hub/133-mall-robux-commerce.client.lua",
       "maps/bbya-social-hub/136-mall-cinema-lift-v12.server.lua",
       "maps/bbya-social-hub/149-mall-music.server.lua"
+    ],
+    "message": [
+      "maps/bbya-social-hub/150-message.server.lua",
+      "maps/bbya-social-hub/51-menu-message-scroll.client.lua"
+    ],
+    "venue-playlists": [
+      "maps/bbya-social-hub/104-venue-audio-groups.server.lua",
+      "maps/bbya-social-hub/110-vip-track01.server.lua",
+      "maps/bbya-social-hub/134-rooftop-playlist.server.lua",
+      "maps/bbya-social-hub/149-mall-music.server.lua",
+      "maps/bbya-social-hub/148-music-player.client.lua"
     ],
     "staff-tower": [
       "maps/bbya-social-hub/148-staff-tower.server.lua",
