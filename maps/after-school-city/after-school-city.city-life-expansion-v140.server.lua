@@ -411,18 +411,21 @@ parkStart.Triggered:Connect(function(player)
 end)
 
 for i, prompt in ipairs(cafeSteps) do
+    local stepIndex = i
     prompt.Triggered:Connect(function(player)
-        handleStep(player, "CAFE_RUSH", i)
+        handleStep(player, "CAFE_RUSH", stepIndex)
     end)
 end
 for i, prompt in ipairs(arcadeSteps) do
+    local stepIndex = i
     prompt.Triggered:Connect(function(player)
-        handleStep(player, "ARCADE_CIRCUIT", i)
+        handleStep(player, "ARCADE_CIRCUIT", stepIndex)
     end)
 end
 for i, prompt in ipairs(parkSteps) do
+    local stepIndex = i
     prompt.Triggered:Connect(function(player)
-        handleStep(player, "PARK_CLEANUP", i)
+        handleStep(player, "PARK_CLEANUP", stepIndex)
     end)
 end
 
