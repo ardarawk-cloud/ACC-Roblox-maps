@@ -64,7 +64,8 @@
       "ASC_SportsAssetsV134": {"$path": "after-school-city.sports-assets-v134.server.lua"},
       "ASC_RuntimeCleanupV137": {"$path": "after-school-city.runtime-cleanup-v137.server.lua"},
       "ASC_RuntimeCorrectionV138": {"$path": "after-school-city.runtime-correction-v138.server.lua"},
-      "ASC_RuntimeQCCleanupV139": {"$path": "after-school-city.runtime-qc-cleanup-v139.server.lua"}
+      "ASC_RuntimeQCCleanupV139": {"$path": "after-school-city.runtime-qc-cleanup-v139.server.lua"},
+      "ASC_CityLifeExpansionV140": {"$path": "after-school-city.city-life-expansion-v140.server.lua"}
     },
     "StarterGui": {
       "$className": "StarterGui",
