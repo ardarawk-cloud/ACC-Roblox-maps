@@ -1,0 +1,26 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V140_CITY_LIFE_EXPANSION_BATCH1",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "4338c3576ebfb3a0ff93d42fa284b9a0c9113b3a",
+    "baseLiveCommit":  "ece625d1bac0ce851829e1ad08e93d95466e1a75",
+    "qcRunId":  "35321584400",
+    "qcArtifactId":  10537521499,
+    "qcArtifactDigest":  "a5a03876eb51f32a1908a1a700067cf33127cfbf6b173ff9c57065078490edf2",
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  64,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  225978,
+    "placeSha256":  "3ab2dfd0e786db43ff7c05cf9f5de4c059ad8d34c19e734485a9309c71b5ce00",
+    "runId":  "35366395258",
+    "publishedAt":  "2026-09-18T16:06:18Z",
+    "runtimeStatus":  "PENDING",
+    "features":  [
+                     "Cafe Rush three-step repeatable activity",
+                     "Arcade Circuit three-step repeatable activity",
+                     "Park Cleanup three-step repeatable activity"
+                 ],
+    "note":  "Exact V1.4 City Life Expansion Batch 1 QC artifact published without rebuild. Existing GameplayService reward/cooldown authority reused. DataStore schema, economy/BAG, music, quest chain, sports, dedication, monetization, and unrelated map systems unchanged."
+}
