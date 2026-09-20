@@ -1,7 +1,7 @@
--- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v2 PRIVACY REBUILD
--- Owner-authorized replacement of the miniature/blockout tower.
--- WORLD / BUILD authority only. Preserves StaffTowerV1 model identity and Travel arrival threshold path.
--- No audio, monetization, role persistence, DJ, Music, Message, Mall, or Funkot geometry changes.
+-- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v3 COMPACT SIGN-LIFT
+-- Owner-authorized circulation polish: stairs and lift cabin geometry retired.
+-- WORLD / BUILD authority only. Preserves StaffTowerV1 identity and Travel arrival threshold path.
+-- Vertical circulation uses compact functional LIFT signs only. No audio, monetization, role persistence, DJ, Music, Message, Mall, or Funkot geometry changes.
 
 local Workspace=game:GetService("Workspace")
 
@@ -35,7 +35,7 @@ local tower=Instance.new("Model")
 tower.Name="StaffTowerV1"
 tower.Parent=funkot
 tower:SetAttribute("Pass","STAFF_TOWER_V1")
-tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V2_PRIVACY_REBUILD")
+tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V3_COMPACT_SIGN_LIFT")
 tower:SetAttribute("Location","ABOVE_FUNKOT")
 tower:SetAttribute("RoleIntent","OWNER_ADMIN_MODERATOR")
 tower:SetAttribute("AudioUntouched",true)
@@ -43,10 +43,14 @@ tower:SetAttribute("GameplayUntouched",true)
 tower:SetAttribute("MonetizationUntouched",true)
 tower:SetAttribute("NoRuntimeLoops",true)
 tower:SetAttribute("StaticEnvironment",true)
-tower:SetAttribute("DesignLanguage","FULL_SCALE_PRIVATE_EXECUTIVE_RESIDENCE")
-tower:SetAttribute("PrivacySequence","STAIR_CORE>VESTIBULE>HALL>PRIVATE_ROOM")
-tower:SetAttribute("BedDirectlyVisibleFromStairs",false)
+tower:SetAttribute("DesignLanguage","FULL_SCALE_PRIVATE_EXECUTIVE_RESIDENCE_COMPACT_LIFT")
+tower:SetAttribute("PrivacySequence","LIFT_MARKER>VESTIBULE>HALL>PRIVATE_ROOM")
+tower:SetAttribute("BedDirectlyVisibleFromLift",false)
 tower:SetAttribute("MiniatureBlockoutRetired",true)
+tower:SetAttribute("StairsRetired",true)
+tower:SetAttribute("LiftCabinGeometry",false)
+tower:SetAttribute("LiftMarkersOnly",true)
+tower:SetAttribute("LiftFunctional",true)
 
 local ceiling=funkot:FindFirstChild("Ceiling")
 local cx=ceiling.Position.X
@@ -56,10 +60,9 @@ local roofTop=ceiling.Position.Y+ceiling.Size.Y/2
 -- Full-scale replacement. Avatar-scale circulation and privacy take priority over compact massing.
 local PODIUM_W,PODIUM_D=104,76
 local TOWER_W,TOWER_D=84,60
-local CORE_W,CORE_D=14,20
 local FLOOR_H=16
 local coreX=cx+32
-local coreZ=cz+11
+local coreZ=cz+2
 local level1Y=roofTop+3.0
 local floorSurface={level1Y,level1Y+FLOOR_H,level1Y+FLOOR_H*2,level1Y+FLOOR_H*3}
 
@@ -241,10 +244,6 @@ local towerLeft=cx-TOWER_W/2
 local towerRight=cx+TOWER_W/2
 local towerSouth=cz-TOWER_D/2
 local towerNorth=cz+TOWER_D/2
-local coreLeft=coreX-CORE_W/2
-local coreRight=coreX+CORE_W/2
-local coreSouth=coreZ-CORE_D/2
-local coreNorth=coreZ+CORE_D/2
 
 -- =============================================================================
 -- 1) TRANSFER PODIUM / FULL-SCALE ARRIVAL TERRACE
@@ -276,20 +275,13 @@ shell:SetAttribute("MainFootprint","84x60")
 shell:SetAttribute("FloorToFloor",FLOOR_H)
 shell:SetAttribute("Floors",3)
 
-local function slabWithCoreOpening(name,surfaceY,parent)
+local function fullSlab(name,surfaceY,parent)
  local y=surfaceY-.45
- local westW=coreLeft-towerLeft
- local eastW=towerRight-coreRight
- local southD=coreSouth-towerSouth
- local northD=towerNorth-coreNorth
- part(name.."West",Vector3.new(westW,.9,TOWER_D),CFrame.new(towerLeft+westW/2,y,cz),C.concrete,Enum.Material.Concrete,true,parent)
- part(name.."East",Vector3.new(eastW,.9,TOWER_D),CFrame.new(coreRight+eastW/2,y,cz),C.concrete,Enum.Material.Concrete,true,parent)
- part(name.."South",Vector3.new(CORE_W,.9,southD),CFrame.new(coreX,y,towerSouth+southD/2),C.concrete,Enum.Material.Concrete,true,parent)
- part(name.."North",Vector3.new(CORE_W,.9,northD),CFrame.new(coreX,y,coreNorth+northD/2),C.concrete,Enum.Material.Concrete,true,parent)
+ return part(name,Vector3.new(TOWER_W,.9,TOWER_D),CFrame.new(cx,y,cz),C.concrete,Enum.Material.Concrete,true,parent)
 end
-slabWithCoreOpening("Level2Slab",floorSurface[2],shell)
-slabWithCoreOpening("Level3Slab",floorSurface[3],shell)
-slabWithCoreOpening("RoofSlab",floorSurface[4],shell)
+fullSlab("Level2Slab",floorSurface[2],shell)
+fullSlab("Level3Slab",floorSurface[3],shell)
+fullSlab("RoofSlab",floorSurface[4],shell)
 
 local function facadeLevel(name,floorY,nextSurfaceY,isGround,parent)
  local m=model(name,parent)
@@ -298,9 +290,8 @@ local function facadeLevel(name,floorY,nextSurfaceY,isGround,parent)
  -- West / north facade are continuous premium glass bands with structural piers.
  glass("WestGlass",Vector3.new(.36,h,TOWER_D),CFrame.new(towerLeft,cy,cz),m,.40,true)
  glass("NorthGlass",Vector3.new(TOWER_W,h,.36),CFrame.new(cx,cy,towerNorth),m,.40,true)
- -- East facade is partly solid around the private core.
- glass("EastSouthGlass",Vector3.new(.36,h,coreSouth-towerSouth-2),CFrame.new(towerRight,cy,towerSouth+(coreSouth-towerSouth-2)/2),m,.40,true)
- glass("EastNorthGlass",Vector3.new(.36,h,towerNorth-coreNorth-2),CFrame.new(towerRight,cy,coreNorth+2+(towerNorth-coreNorth-2)/2),m,.40,true)
+ -- East facade is continuous glass now that the bulky stair/lift core is retired.
+ glass("EastGlass",Vector3.new(.36,h,TOWER_D),CFrame.new(towerRight,cy,cz),m,.40,true)
  -- South facade: ground floor keeps a true 8-stud arrival opening; upper floors are continuous glazing.
  if isGround then
   local entryX=cx+25
@@ -332,41 +323,101 @@ facadeLevel("AdminFacade",floorSurface[2],floorSurface[3],false,shell)
 facadeLevel("OwnerFacade",floorSurface[3],floorSurface[4],false,shell)
 
 -- =============================================================================
--- 3) ENCLOSED PRIVATE STAIR CORE / VESTIBULE LANDINGS
+-- 3) COMPACT FUNCTIONAL LIFT MARKERS — NO STAIRS / NO CABIN BOX
 -- =============================================================================
-local core=model("PrivateAccessCore")
-core:SetAttribute("PrivacyCore",true)
-core:SetAttribute("OpenBedroomSightline",false)
-core:SetAttribute("RoleAccessAuthority","TRAVEL_SERVER_AND_ROLE_SYSTEM")
+local lift=model("CompactLiftMarkers")
+lift:SetAttribute("Mode","SIGN_ONLY_TELEPORT_LIFT")
+lift:SetAttribute("CabinGeometry",false)
+lift:SetAttribute("Stairs",false)
+lift:SetAttribute("Functional",true)
+lift:SetAttribute("RoleAccessAuthority","TRAVEL_SERVER_AND_ROLE_SYSTEM")
 
-wallAlongZ("CoreEast",coreRight-.2,coreZ,floorSurface[1],CORE_D,FLOOR_H*3,core,C.charcoal)
-wallAlongX("CoreNorth",coreX,coreNorth-.2,floorSurface[1],CORE_W,FLOOR_H*3,core,C.charcoal)
-wallAlongZ("CoreWest",coreLeft+.2,coreZ+3.5,floorSurface[1],CORE_D-7,FLOOR_H*3,core,C.charcoal)
-
-local function stairRun(name,lowerSurface,upperSurface,reverse,parent)
- local m=model(name,parent)
- local steps=15
- local slabBottom=upperSurface-.9
- local availableRise=slabBottom-lowerSurface
- local rise=availableRise/steps
- local runDepth=(CORE_D-2.4)/steps
- for i=0,steps-1 do
-  local zIndex=reverse and (steps-1-i) or i
-  local z=coreSouth+1.2+runDepth*(zIndex+.5)
-  local y=lowerSurface+rise*(i+.5)
-  part("Step"..i,Vector3.new(5.4,rise,runDepth+.05),CFrame.new(coreX-.5,y,z),C.stone,Enum.Material.Concrete,true,m)
- end
- local startZ=reverse and coreNorth-1.2 or coreSouth+1.2
- local endZ=reverse and coreSouth+1.2 or coreNorth-1.2
- beamBetween("Handrail",Vector3.new(coreX-3.5,lowerSurface+2.8,startZ),Vector3.new(coreX-3.5,slabBottom+2.3,endZ),.20,C.metal,m,false)
- return m
+local STAFF_ROLES={COOWNER=true,ADMIN=true,MODERATOR=true,DJ=true,LEAD=true,MEDIA=true,CREW=true}
+local liftBusy={}
+local function hasTowerRole(player)
+ if not player then return false end
+ if player:GetAttribute("BBYAOwner")==true or player:GetAttribute("BBYACoOwner")==true or player:GetAttribute("BBYAAdmin")==true or player:GetAttribute("BBYAModerator")==true then return true end
+ local role=player:GetAttribute("BBYAManagedRole")
+ return type(role)=="string" and STAFF_ROLES[role]==true
 end
-stairRun("StaffToAdmin",floorSurface[1],floorSurface[2],false,core)
-stairRun("AdminToOwner",floorSurface[2],floorSurface[3],true,core)
-stairRun("OwnerToRoof",floorSurface[3],floorSurface[4],false,core)
 
-for i,y in ipairs(floorSurface) do
- part("CoreLanding"..i,Vector3.new(6.6,.35,3.0),CFrame.new(coreX-3.0,y+.18,coreNorth-1.8),C.stone,Enum.Material.Concrete,true,core)
+local liftStops={
+ {label="STAFF",surfaceY=floorSurface[1]},
+ {label="ADMIN",surfaceY=floorSurface[2]},
+ {label="OWNER",surfaceY=floorSurface[3]},
+ {label="ROOF",surfaceY=floorSurface[4]},
+}
+local LIFT_SIGN_X=towerRight-.62
+local LIFT_SIGN_Z=coreZ
+
+local function makeTextFace(partObj,textValue,textSize,color)
+ local sg=Instance.new("SurfaceGui")
+ sg.Name="LiftSignUI"
+ sg.Face=Enum.NormalId.Left
+ sg.AlwaysOnTop=false
+ sg.LightInfluence=0
+ sg.PixelsPerStud=50
+ sg.Parent=partObj
+ local bg=Instance.new("Frame")
+ bg.Size=UDim2.fromScale(1,1)
+ bg.BackgroundColor3=C.black
+ bg.BackgroundTransparency=.10
+ bg.BorderSizePixel=0
+ bg.Parent=sg
+ local label=Instance.new("TextLabel")
+ label.Size=UDim2.fromScale(1,1)
+ label.BackgroundTransparency=1
+ label.Text=textValue
+ label.TextColor3=color or C.white
+ label.Font=Enum.Font.GothamBold
+ label.TextSize=textSize or 20
+ label.TextWrapped=true
+ label.TextXAlignment=Enum.TextXAlignment.Center
+ label.TextYAlignment=Enum.TextYAlignment.Center
+ label.Parent=bg
+end
+
+local function moveByLift(player,targetIndex)
+ if not hasTowerRole(player) or liftBusy[player] then return end
+ local stop=liftStops[targetIndex]
+ if not stop then return end
+ local character=player.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local hrp=character and character:FindFirstChild("HumanoidRootPart")
+ if not humanoid or humanoid.Health<=0 or not hrp then return end
+ liftBusy[player]=true
+ local pos=Vector3.new(LIFT_SIGN_X-4.2,stop.surfaceY+3.1,LIFT_SIGN_Z)
+ local look=Vector3.new(LIFT_SIGN_X,pos.Y,LIFT_SIGN_Z)
+ hrp.AssemblyLinearVelocity=Vector3.zero
+ hrp.AssemblyAngularVelocity=Vector3.zero
+ hrp.CFrame=CFrame.lookAt(pos,look)
+ task.delay(.65,function()liftBusy[player]=nil end)
+end
+
+local function makeLiftArrow(name,index,targetIndex,yOffset,glyph,targetLabel)
+ local stop=liftStops[index]
+ local plate=part(name,Vector3.new(.18,.92,2.75),CFrame.new(LIFT_SIGN_X-.11,stop.surfaceY+yOffset,LIFT_SIGN_Z),C.graphite,Enum.Material.Metal,false,lift)
+ plate.CanQuery=true
+ makeTextFace(plate,glyph.."  "..targetLabel,17,C.brass)
+ local prompt=Instance.new("ProximityPrompt")
+ prompt.Name="LiftTo"..targetLabel
+ prompt.ActionText="GO "..targetLabel
+ prompt.ObjectText="STAFF TOWER LIFT"
+ prompt.KeyboardKeyCode=Enum.KeyCode.E
+ prompt.GamepadKeyCode=Enum.KeyCode.ButtonX
+ prompt.HoldDuration=0
+ prompt.MaxActivationDistance=8
+ prompt.RequiresLineOfSight=false
+ prompt.Parent=plate
+ prompt.Triggered:Connect(function(player)moveByLift(player,targetIndex)end)
+end
+
+for i,stop in ipairs(liftStops) do
+ local sign=part("LiftSign"..stop.label,Vector3.new(.16,2.35,4.8),CFrame.new(LIFT_SIGN_X,stop.surfaceY+3.65,LIFT_SIGN_Z),C.black,Enum.Material.Metal,false,lift)
+ sign.CanQuery=true
+ makeTextFace(sign,"LIFT\n"..stop.label,22,C.white)
+ if i<#liftStops then makeLiftArrow("LiftUp"..stop.label,i,i+1,2.02,"UP",liftStops[i+1].label) end
+ if i>1 then makeLiftArrow("LiftDown"..stop.label,i,i-1,1.02,"DN",liftStops[i-1].label) end
 end
 
 -- =============================================================================
@@ -417,11 +468,11 @@ part("RestroomVanity",Vector3.new(5.5,2.2,1.6),CFrame.new(restX-2,y1+1.1,restZ+5
 -- =============================================================================
 local admin=model("AdminApartments")
 admin:SetAttribute("UnitCount",4)
-admin:SetAttribute("PrivacyLayout","STAIR>LANDING>COMMON_CORRIDOR>PRIVATE_DOOR>SUITE")
-admin:SetAttribute("BedDirectSightlineFromStairs",false)
+admin:SetAttribute("PrivacyLayout","LIFT>LANDING>COMMON_CORRIDOR>PRIVATE_DOOR>SUITE")
+admin:SetAttribute("BedDirectSightlineFromLift",false)
 local y2=floorSurface[2]
 
--- Corridor is a real neutral zone. Stair lands at east end; all beds sit behind suite doors and internal partitions.
+-- Corridor is a real neutral zone. Lift marker lands at the east side; all beds sit behind suite doors and internal partitions.
 rug("AdminCorridorRunner",CFrame.new(cx-8,y2,cz),60,6,admin,C.fabric)
 wallAlongXWithDoor("SouthSuiteWallA",cx-27,cz-4,y2,30,10,cx-23,5,admin,C.charcoal)
 wallAlongXWithDoor("SouthSuiteWallB",cx+3,cz-4,y2,30,10,cx+7,5,admin,C.charcoal)
@@ -429,7 +480,7 @@ wallAlongXWithDoor("NorthSuiteWallA",cx-27,cz+4,y2,30,10,cx-23,5,admin,C.charcoa
 wallAlongXWithDoor("NorthSuiteWallB",cx+3,cz+4,y2,30,10,cx+7,5,admin,C.charcoal)
 wallAlongZ("SouthUnitDivider",cx-12,cz-17,y2,26,10,admin,C.charcoal)
 wallAlongZ("NorthUnitDivider",cx-12,cz+17,y2,26,10,admin,C.charcoal)
--- Screen the stair landing from the suite corridor so no room is visible immediately after climbing.
+-- Screen the lift-side arrival from the suite corridor so no room is visible immediately after arrival.
 wallAlongZWithDoor("AdminVestibuleScreen",cx+20,cz,y2,18,10,cz,6,admin,C.graphite)
 
 local unitSpecs={
@@ -461,12 +512,12 @@ end
 -- =============================================================================
 local owner=model("OwnerPenthouse")
 owner:SetAttribute("Program","PRIVATE_FOYER_LIVING_OFFICE_DRESSING_BATH_BEDROOM")
-owner:SetAttribute("PrivacySequence","STAIR>OWNER_VESTIBULE>FOYER>PRIVATE_HALL>BEDROOM")
+owner:SetAttribute("PrivacySequence","LIFT>OWNER_VESTIBULE>FOYER>PRIVATE_HALL>BEDROOM")
 owner:SetAttribute("BedroomDoorRequired",true)
-owner:SetAttribute("BedDirectSightlineFromStairs",false)
+owner:SetAttribute("BedDirectSightlineFromLift",false)
 local y3=floorSurface[3]
 
--- Stair lands into an enclosed owner vestibule, never into the bedroom.
+-- Lift marker arrives beside the owner vestibule, never into the bedroom.
 wallAlongZ("OwnerVestibuleEast",cx+22,cz,y3,20,10,owner,C.graphite)
 wallAlongXWithDoor("OwnerVestibuleWest",cx+14,cz-9,y3,16,10,cx+10,6,owner,C.graphite)
 wallAlongX("OwnerVestibuleNorth",cx+14,cz+9,y3,16,10,owner,C.graphite)
@@ -496,7 +547,7 @@ wardrobe("OwnerWardrobeA",CFrame.new(cx-8,y3,cz+21),6.5,owner)
 wardrobe("OwnerWardrobeB",CFrame.new(cx-8,y3,cz+13),6.5,owner)
 lowTable("BedroomBench",CFrame.new(cx-25,y3,cz+10),7.0,2.8,owner)
 
--- Dressing + bath occupy north-east, separated from both stair and bed.
+-- Dressing + bath occupy north-east, separated from both lift arrival and bed.
 wallAlongZWithDoor("DressingWest",cx+8,cz+18,y3,20,10,cz+12,5,owner,C.graphite)
 wallAlongXWithDoor("BathSouth",cx+16,cz+8,y3,16,10,cx+14,5,owner,C.graphite)
 part("BathVanity",Vector3.new(8,2.4,1.8),CFrame.new(cx+15,y3+1.2,cz+21),C.stone,Enum.Material.Marble,true,owner)
@@ -508,16 +559,14 @@ part("DressingBench",Vector3.new(6.2,.85,2.4),CFrame.new(cx+6,y3+.48,cz+14),C.fa
 -- =============================================================================
 local roof=model("PrivateRoofTerrace")
 roof:SetAttribute("HelipadVisualOnly",true)
-roof:SetAttribute("StairExitPrivacyLobby",true)
+roof:SetAttribute("LiftMarkerArrival",true)
+roof:SetAttribute("LiftCabinGeometry",false)
 local yr=floorSurface[4]
 
 for _,z in ipairs({towerSouth,towerNorth}) do glass("RoofGlassZ"..z,Vector3.new(TOWER_W,4.0,.3),CFrame.new(cx,yr+2,z),roof,.46,true) end
 for _,x in ipairs({towerLeft,towerRight}) do glass("RoofGlassX"..x,Vector3.new(.3,4.0,TOWER_D),CFrame.new(x,yr+2,cz),roof,.46,true) end
 
--- Roof stair exits into a small screen lobby before the social terrace.
-wallAlongZ("RoofLobbyEast",coreRight+2,coreZ,yr,CORE_D+4,8,roof,C.graphite)
-wallAlongXWithDoor("RoofLobbySouth",coreX+1,coreSouth-2,yr,CORE_W+8,8,coreX-2,5,roof,C.graphite)
-wallAlongX("RoofLobbyNorth",coreX+1,coreNorth+2,yr,CORE_W+8,8,roof,C.graphite)
+-- Roof arrival stays open and compact; only the functional LIFT sign marks vertical circulation.
 
 -- Low-profile helipad visual, scaled for the larger roof.
 local helipad=model("HelipadVisual",roof)
@@ -567,4 +616,4 @@ tower:SetAttribute("OwnerFloorY",floorSurface[3])
 tower:SetAttribute("RoofTerraceY",floorSurface[4])
 tower:SetAttribute("InstalledDescendants",#tower:GetDescendants())
 
-print("[BBYA] Staff Tower v2 privacy rebuild: full scale / enclosed stair / admin corridor / owner private foyer + bedroom")
+print("[BBYA] Staff Tower v3 compact lift: stairs retired / no cabin box / functional sign-only vertical travel")
