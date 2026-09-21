@@ -1,0 +1,236 @@
+name: After School City V1.4 Batch 2 QC
+
+on:
+  push:
+    branches:
+      - after-school-city/v141-city-life-expansion-batch2
+    paths:
+      - '.github/workflows/after-school-city-v141-city-life-expansion-batch2-qc.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: after-school-city-v141-city-life-expansion-batch2-qc
+  cancel-in-progress: false
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      LIVE_SOURCE: '4338c3576ebfb3a0ff93d42fa284b9a0c9113b3a'
+      LIVE_VERSION: '64'
+      EXPECTED_SOURCE: 'de2ceab63c4893dff0f5bbc14152961e21a3f140'
+      PLACE_ID: '121603385909425'
+
+    steps:
+      - name: Checkout QC branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exact source and fresh LIVE gate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git cat-file -e "$env:EXPECTED_SOURCE^{commit}"
+          if($LASTEXITCODE -ne 0){ throw 'Expected V1.4 Batch 2 source unavailable' }
+
+          $mergeBase=(git merge-base $env:EXPECTED_SOURCE HEAD).Trim()
+          if($mergeBase -ne $env:EXPECTED_SOURCE){ throw "QC head not descended from exact candidate: $mergeBase" }
+
+          $after=@(git diff --name-only $env:EXPECTED_SOURCE HEAD -- 'maps/after-school-city')
+          if($after.Count -ne 0){ throw "Production maps changed after candidate: $($after -join ', ')" }
+
+          git fetch origin main
+          $paths=@(git ls-tree -r --name-only origin/main -- deploy-status | Where-Object { $_ -like 'deploy-status/after-school-city-*.json' })
+          $maxVersion=-1
+          $maxSource=''
+          $maxPath=''
+
+          foreach($p in $paths){
+            try {
+              $j=((git show "origin/main:$p" | Out-String) | ConvertFrom-Json)
+              if($j.project -eq 'AFTER SCHOOL CITY' -and $j.status -eq 'LIVE_PUBLISHED' -and [string]$j.placeId -eq $env:PLACE_ID){
+                $v=[int]$j.versionNumber
+                if($v -gt $maxVersion){
+                  $maxVersion=$v
+                  $maxSource=[string]$j.sourceCommit
+                  $maxPath=$p
+                }
+              }
+            } catch {}
+          }
+
+          if($maxVersion -ne [int]$env:LIVE_VERSION){ throw "LIVE changed: v$maxVersion path=$maxPath" }
+          if($maxSource -ne $env:LIVE_SOURCE){ throw "LIVE source changed: $maxSource" }
+
+          Write-Host "LIVE + EXACT SOURCE PASS live=v$maxVersion candidate=$env:EXPECTED_SOURCE"
+
+      - name: Verify isolated production scope
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+
+          $prod=@(git diff --name-only $env:LIVE_SOURCE $env:EXPECTED_SOURCE -- 'maps/after-school-city')
+          $expected=@(
+            'maps/after-school-city/after-school-city.city-life-expansion-v141.server.lua',
+            'maps/after-school-city/default.project.json'
+          )
+
+          $a=@($prod | Sort-Object)
+          $b=@($expected | Sort-Object)
+          if(($a -join '|') -ne ($b -join '|')){ throw "Unexpected production delta: $($prod -join ', ')" }
+
+          $protected=@(
+            'maps/after-school-city/after-school-city.gameplay-service.lua',
+            'maps/after-school-city/after-school-city.gameplay-config.lua',
+            'maps/after-school-city/after-school-city.economy-config.lua',
+            'maps/after-school-city/after-school-city.economy-first-shop-v130.server.lua',
+            'maps/after-school-city/after-school-city.activity-config.lua',
+            'maps/after-school-city/after-school-city.activities.server.lua',
+            'maps/after-school-city/after-school-city.school-life-gameplay-v120.server.lua',
+            'maps/after-school-city/after-school-city.city-life-expansion-v140.server.lua',
+            'maps/after-school-city/after-school-city.music-config.lua',
+            'maps/after-school-city/after-school-city.music-player.client.lua',
+            'maps/after-school-city/after-school-city.intro.client.lua',
+            'maps/after-school-city/after-school-city.sports-assets-v134.server.lua',
+            'maps/after-school-city/after-school-city.runtime-cleanup-v137.server.lua',
+            'maps/after-school-city/after-school-city.runtime-correction-v138.server.lua',
+            'maps/after-school-city/after-school-city.runtime-qc-cleanup-v139.server.lua'
+          )
+
+          foreach($p in $protected){
+            git diff --quiet $env:LIVE_SOURCE $env:EXPECTED_SOURCE -- $p
+            if($LASTEXITCODE -ne 0){ throw "Protected authority changed: $p" }
+          }
+
+          Write-Host 'SCOPE + PROTECTED AUTHORITIES PASS'
+
+      - name: Verify V1.4 Batch 2 contract
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $fix=(git show "$($env:EXPECTED_SOURCE):maps/after-school-city/after-school-city.city-life-expansion-v141.server.lua" | Out-String)
+          $project=(git show "$($env:EXPECTED_SOURCE):maps/after-school-city/default.project.json" | Out-String)
+
+          foreach($token in @(
+            '1.4.1-city-life-expansion-batch2',
+            'STYLE_CHECK',
+            'MUSIC_SESSION',
+            'HOBBY_BUILD',
+            'NEIGHBORHOOD_RUN',
+            'GameplayService.Award',
+            'GameplayService.CanUseCooldown',
+            'ASC_V140_ActiveActivity',
+            'AlwaysOnTop = false',
+            'MaxDistance = 34',
+            'ASC_CityLifeExpansionV141'
+          )){
+            if($fix -notmatch [regex]::Escape($token)){ throw "V141 contract missing: $token" }
+          }
+
+          if($project -notmatch [regex]::Escape('"ASC_CityLifeExpansionV141": {"$path": "after-school-city.city-life-expansion-v141.server.lua"}')){
+            throw 'V141 project mapping missing'
+          }
+
+          foreach($bad in @(
+            'DataStoreService',
+            'MarketplaceService',
+            'PromptProductPurchase',
+            'PromptGamePassPurchase',
+            'PurchaseItem('
+          )){
+            if($fix -match [regex]::Escape($bad)){ throw "Forbidden authority token in V141: $bad" }
+          }
+
+          Write-Host 'V141 CONTRACT PASS style + music + hobby + neighborhood'
+
+      - name: Checkout exact candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          git checkout --detach $env:EXPECTED_SOURCE
+          if($LASTEXITCODE -ne 0 -or (git rev-parse HEAD).Trim() -ne $env:EXPECTED_SOURCE){
+            throw 'Exact candidate checkout failed'
+          }
+
+      - name: Prepare Rojo 7.7.0
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $cmd=Get-Command rojo -ErrorAction SilentlyContinue
+          if($cmd){
+            $rojoExe=$cmd.Source
+          } else {
+            $dir=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0'
+            $zip=Join-Path $env:RUNNER_TEMP 'asc-rojo-7.7.0.zip'
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+            Expand-Archive -Path $zip -DestinationPath $dir -Force
+            $exe=Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1
+            if(-not $exe){ throw 'rojo.exe not found' }
+            $rojoExe=$exe.FullName
+          }
+
+          $version=(& $rojoExe --version | Out-String).Trim()
+          if($version -notmatch '7\.7\.0'){ throw "Unexpected Rojo version: $version" }
+          "ROJO_EXE=$rojoExe" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build exact V1.4 Batch 2 candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $outDir=Join-Path $env:RUNNER_TEMP 'asc-v141-qc'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+
+          $place=Join-Path $outDir 'after-school-city-v141-city-life-expansion-batch2.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path $place)){ throw 'Rojo build failed' }
+
+          $bytes=(Get-Item $place).Length
+          $hash=(Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+
+          @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'SCOPE=V141_CITY_LIFE_EXPANSION_BATCH2',
+            "LIVE_ROBLOX_VERSION=$env:LIVE_VERSION",
+            "LIVE_SOURCE=$env:LIVE_SOURCE",
+            "SOURCE_COMMIT=$env:EXPECTED_SOURCE",
+            'ROJO_VERSION=7.7.0',
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'STYLE_CHECK=YES',
+            'MUSIC_SESSION=YES',
+            'HOBBY_BUILD=YES',
+            'NEIGHBORHOOD_RUN=YES',
+            'EXISTING_REWARD_COOLDOWN_AUTHORITY_REUSED=YES',
+            'BATCH1_AUTHORITY_UNCHANGED=YES',
+            'DATASTORE_SCHEMA_UNCHANGED=YES',
+            'ECONOMY_BAG_MUSIC_QUEST_SPORTS_UNCHANGED=YES',
+            'PROTECTED_AUTHORITIES=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          ) | Set-Content (Join-Path $outDir 'qc-receipt.txt') -Encoding utf8
+
+          "ARTIFACT_DIR=$outDir" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_BYTES=$bytes" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "RBXL_SHA256=$hash" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+          Write-Host "BUILD PASS source=$env:EXPECTED_SOURCE bytes=$bytes sha256=$hash"
+
+      - name: Upload exact V1.4 Batch 2 QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v141-city-life-expansion-batch2-qc-${{ env.EXPECTED_SOURCE }}
+          path: ${{ env.ARTIFACT_DIR }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Final QC summary
+        shell: powershell
+        run: |
+          Write-Host "V141 QC PASS source=$env:EXPECTED_SOURCE bytes=$env:RBXL_BYTES sha256=$env:RBXL_SHA256 publish=NO runtime=PENDING"
