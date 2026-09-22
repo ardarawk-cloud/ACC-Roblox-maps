@@ -55,6 +55,7 @@ local PLAYLIST={
  {title="Rumah",id="90011355891550",style="progressive"},
  {title="Puter",id="71303652287437",style="progressive"},
 -- MAIN_APPROVED_MODERATION_20260911_END
+ {title="6.Sebastian Ingrosso, Tommy Trash & John Martin - Reload (Reid Stefan Remix) RedMusic.pl",id="125816915646645",style="progressive"},
 -- MAIN_PROGRESSIVE_UPLOAD_END
 }
 
