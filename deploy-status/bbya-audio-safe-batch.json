@@ -3609,15 +3609,42 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-09-22T12:50:16.699336+00:00",
+      "updatedAt": "2026-09-22T16:57:36.777518+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
-      "uploadHttp": 429,
+      "uploadHttp": 200,
       "uploadResponse": {
-        "code": "RESOURCE_EXHAUSTED",
-        "message": "User does not have available quota for Audio asset upload. The limit of 100 has been reached. Please try again at 2026-09-22 15:21:02Z."
+        "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
+        "operationId": "ca0d8010-b12d-45e1-b26a-9347d852c508",
+        "done": false
       },
-      "uploadedAt": "2026-09-22T12:50:17.630343+00:00",
-      "status": "UPLOAD_QUOTA_BLOCKED"
+      "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
+      "status": "PENDING_MODERATION",
+      "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
+      "operationResult": {
+        "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
+        "operationId": "ca0d8010-b12d-45e1-b26a-9347d852c508",
+        "done": true,
+        "response": {
+          "path": "assets/125816915646645",
+          "revisionId": "1",
+          "revisionCreateTime": "2026-09-22T16:57:46.334863300Z",
+          "assetId": "125816915646645",
+          "displayName": "6.Sebastian Ingrosso, Tommy Trash & John Martin - ",
+          "description": "BBYA Social Hub Main Club — sequential safety upload",
+          "assetType": "Audio",
+          "creationContext": {
+            "creator": {
+              "userId": "9296030038"
+            }
+          },
+          "moderationResult": {
+            "moderationState": "Reviewing"
+          },
+          "state": "Active"
+        }
+      },
+      "assetId": "125816915646645",
+      "initialModerationState": "Reviewing"
     }
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
