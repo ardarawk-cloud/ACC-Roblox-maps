@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "ok": true,
+  "httpStatus": 200,
+  "universeId": "10745349805",
+  "placeId": "79748872921213",
+  "trackVersion": "4.2.3",
+  "sourceCommit": "c83e29b4a88596915a4f564f0c48935a1e9a41eb",
+  "mode": "PLATFORM01_CAR01_BOARDING_V13",
+  "robloxVersion": 35,
+  "placeBytes": 306272,
+  "sha256": "1ec945abeab21c4859a6a00c3a89ec5b6c996219ee583ec0f95f73ea3082fd7a",
+  "publishRun": 36032800183,
+  "publishedAt": "2026-09-24T17:13:43.962Z",
+  "previewUrl": "https://www.roblox.com/games/79748872921213",
+  "payload": {
+    "versionNumber": 35
+  }
+}
