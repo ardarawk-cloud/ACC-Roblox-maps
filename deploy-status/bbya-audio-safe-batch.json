@@ -3609,7 +3609,7 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-09-24T04:39:46.683685+00:00",
+      "updatedAt": "2026-09-24T06:46:45.731730+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3618,7 +3618,7 @@
         "done": false
       },
       "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
-      "status": "PUBLISH_FAILED",
+      "status": "APPROVED_PENDING_PUBLISH",
       "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
       "operationResult": {
         "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
@@ -3653,7 +3653,7 @@
         "response": {
           "path": "assets/125816915646645",
           "revisionId": "1",
-          "revisionCreateTime": "2026-09-22T16:57:46.334863300Z",
+          "revisionCreateTime": "2026-09-22T16:57:46.334Z",
           "assetId": "125816915646645",
           "displayName": "6.Sebastian Ingrosso, Tommy Trash & John Martin - ",
           "description": "BBYA Social Hub Main Club — sequential safety upload",
@@ -3669,8 +3669,8 @@
           "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-09-24T04:39:46.397195+00:00",
-      "approvedAt": "2026-09-24T04:39:46.397211+00:00",
+      "moderationCheckedAt": "2026-09-24T06:46:45.465549+00:00",
+      "approvedAt": "2026-09-24T06:46:45.465559+00:00",
       "permission": {
         "ok": true,
         "http": 200,
