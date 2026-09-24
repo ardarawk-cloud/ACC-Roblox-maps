@@ -9,12 +9,6 @@
       "$className": "ServerScriptService",
       "HangarClubServer": {
         "$path": "club.server.lua"
-      },
-      "HangarV7EnclosedInterior": {
-        "$path": "visual-rescue-v7.server.lua"
-      },
-      "HangarStaticFullMeshV9": {
-        "$path": "static-mesh-v9.server.lua"
       }
     },
     "StarterPlayer": {
