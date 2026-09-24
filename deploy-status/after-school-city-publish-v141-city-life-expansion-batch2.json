@@ -1,0 +1,27 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V141_CITY_LIFE_EXPANSION_BATCH2",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "de2ceab63c4893dff0f5bbc14152961e21a3f140",
+    "baseLiveCommit":  "4338c3576ebfb3a0ff93d42fa284b9a0c9113b3a",
+    "qcRunId":  "35572990050",
+    "qcArtifactId":  10626374663,
+    "qcArtifactDigest":  "8295dc50463bee5f4f366ce55364de629d2446ca49feda07b3cc60c701d0c618",
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  65,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  229647,
+    "placeSha256":  "2ec0314753c53327ffa0014270a81847c8dd340d27e40c2dd71ee14a188f80b0",
+    "runId":  "36031901406",
+    "publishedAt":  "2026-09-24T17:06:18Z",
+    "runtimeStatus":  "PENDING",
+    "features":  [
+                     "Style Check three-step repeatable activity",
+                     "Music Session three-step repeatable activity",
+                     "Hobby Build three-step repeatable activity",
+                     "Neighborhood Run three-stop repeatable activity"
+                 ],
+    "note":  "Exact V1.4 City Life Expansion Batch 2 QC artifact published without rebuild. Batch 1 remains unchanged. Existing GameplayService reward/cooldown authority reused. DataStore schema, economy/BAG, music player, quest chain, sports, dedication, monetization, and unrelated map systems unchanged."
+}
