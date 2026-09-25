@@ -3,13 +3,20 @@ local Workspace=game:GetService("Workspace")
 -- TRACK 01 v4.2.4 — Car 01 interior -> Car 02 transition flow
 -- Scope: clear Car 01 aisle, keep seating, de-neon first vestibule, make Car 02 identity immediate.
 local deadline=os.clock()+90
+local function dependenciesReady()
+    return
+        Workspace:GetAttribute("ACC_TRACK01_CAR01_BOARDING_FLOW_READY") and
+        Workspace:GetAttribute("ACC_TRACK01_SOCIAL_READY") and
+        Workspace:GetAttribute("ACC_TRACK01_VESTIBULES_READY") and
+        Workspace:GetAttribute("ACC_TRACK01_INTERIOR_READY")
+end
 repeat
     task.wait(0.15)
-until (
-    Workspace:GetAttribute("ACC_TRACK01_CAR01_BOARDING_FLOW_READY") and
-    Workspace:GetAttribute("ACC_TRACK01_SOCIAL_READY") and
-    Workspace:GetAttribute("ACC_TRACK01_VESTIBULES_READY")
-) or os.clock()>deadline
+until dependenciesReady() or os.clock()>deadline
+if not dependenciesReady() then
+    warn("[TRACK 01] Car 01 -> Car 02 flow v1.4 skipped: dependency timeout")
+    return
+end
 
 local root=Workspace:FindFirstChild("ACC_TRACK01")
 local world=root and root:FindFirstChild("World")
@@ -34,7 +41,7 @@ local function destroyDirectNamed(parent,name)
 end
 
 -- CAR 01: the original three center-aisle tables narrow the walking lane.
--- Keep both seating zones and all social prompts; remove only the duplicate center table geometry.
+-- Keep both seating zones and all social prompts; remove only duplicate center-table geometry.
 local train=world:FindFirstChild("TrainCars")
 local car1=train and train:FindFirstChild("CAR_01_SOCIAL")
 local removedTables=0
@@ -45,7 +52,7 @@ local interior=world:FindFirstChild("TRACK01_Interior_v25")
 local car1Detail=interior and interior:FindFirstChild("Car01SocialDetail")
 removedTables+=destroyDirectNamed(car1Detail,"TableRim")
 
--- First vestibule: preserve the enclosed railway gangway and collision geometry,
+-- First vestibule: preserve enclosed railway gangway and all functional collision,
 -- but remove the arcade-like neon threshold treatment.
 local ticketSystem=world:FindFirstChild("TRACK01_TicketAccessVestibule_v37")
 local vestibules=ticketSystem and ticketSystem:FindFirstChild("EnclosedInterCarVestibules")
@@ -66,7 +73,6 @@ end
 
 local C={
     black=Color3.fromRGB(17,18,18),
-    cream=Color3.fromRGB(176,157,119),
     amber=Color3.fromRGB(235,153,72),
 }
 local function part(parent,name,size,frame,color,material)
@@ -118,6 +124,7 @@ local plaque=part(
 )
 surfaceText(plaque,"BAR CAR  /  02",C.amber)
 
+-- Invisible runtime-QC reference only; never blocks or touches the player.
 local qc=part(
     flow,
     "Car01ToCar02QCZone",
