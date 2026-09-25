@@ -11,6 +11,7 @@ const ticketFlow=cdata(fs.readFileSync(path.join(root,'maps/track-01/ticket-flow
 const boardingFlow=cdata(fs.readFileSync(path.join(root,'maps/track-01/car01-boarding-flow-v13.server.lua'),'utf8'));
 const car01Car02Flow=cdata(fs.readFileSync(path.join(root,'maps/track-01/car01-car02-flow-v14.server.lua'),'utf8'));
 const car02Car03Flow=cdata(fs.readFileSync(path.join(root,'maps/track-01/car02-car03-flow-v15.server.lua'),'utf8'));
+const car03Car04Flow=cdata(fs.readFileSync(path.join(root,'maps/track-01/car03-car04-flow-v16.server.lua'),'utf8'));
 let xml=fs.readFileSync(place,'utf8');
 const marker='</Item><Item class="StarterPlayer" referent="P">';
 if(!xml.includes(marker)) throw new Error('TRACK 01 ServerScriptService insertion marker missing');
@@ -20,6 +21,7 @@ const ticketItem=`<Item class="Script" referent="TTF11"><Properties><string name
 const boardingItem=`<Item class="Script" referent="TCB13"><Properties><string name="Name">TRACK01_Car01BoardingFlowV13</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${boardingFlow}]]></ProtectedString></Properties></Item>`;
 const car01Car02Item=`<Item class="Script" referent="TC12F14"><Properties><string name="Name">TRACK01_Car01Car02FlowV14</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${car01Car02Flow}]]></ProtectedString></Properties></Item>`;
 const car02Car03Item=`<Item class="Script" referent="TC23F15"><Properties><string name="Name">TRACK01_Car02Car03FlowV15</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${car02Car03Flow}]]></ProtectedString></Properties></Item>`;
-xml=xml.replace(marker,musicItem+lobbyItem+ticketItem+boardingItem+car01Car02Item+car02Car03Item+marker);
+const car03Car04Item=`<Item class="Script" referent="TC34F16"><Properties><string name="Name">TRACK01_Car03Car04FlowV16</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[${car03Car04Flow}]]></ProtectedString></Properties></Item>`;
+xml=xml.replace(marker,musicItem+lobbyItem+ticketItem+boardingItem+car01Car02Item+car02Car03Item+car03Car04Item+marker);
 fs.writeFileSync(place,xml);
-console.log('[TRACK 01] built v4.2.5: v4.2.4 preserved + Car 02 Bar to Car 03 Dance flow v1.5',Buffer.byteLength(xml),'bytes',place);
+console.log('[TRACK 01] built v4.2.6: v4.2.5 preserved + Car 03 Dance to Car 04 END OF LINE flow v1.6',Buffer.byteLength(xml),'bytes',place);
