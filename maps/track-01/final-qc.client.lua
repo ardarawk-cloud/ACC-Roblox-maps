@@ -27,13 +27,16 @@ local function routeToast(kicker,text,duration)
     frame.BackgroundTransparency=0.13
     frame.BorderSizePixel=0
     frame.Parent=gui
+
     local size=Instance.new("UISizeConstraint")
     size.MinSize=Vector2.new(260,56)
     size.MaxSize=Vector2.new(700,76)
     size.Parent=frame
+
     local corner=Instance.new("UICorner")
     corner.CornerRadius=UDim.new(0,5)
     corner.Parent=frame
+
     local stroke=Instance.new("UIStroke")
     stroke.Color=Color3.fromRGB(118,86,53)
     stroke.Thickness=1
@@ -62,6 +65,7 @@ local function routeToast(kicker,text,duration)
     body.TextWrapped=true
     body.TextXAlignment=Enum.TextXAlignment.Left
     body.Parent=frame
+
     local t=Instance.new("UITextSizeConstraint")
     t.MinTextSize=10
     t.MaxTextSize=16
@@ -114,4 +118,22 @@ player:GetAttributeChangedSignal("TRACK01_BOARDED"):Connect(function()
     lastBoard=boarded
 end)
 
-print("[TRACK 01] final QC client ready v3.9.0")
+local lastEnd=player:GetAttribute("TRACK01_REACHED_ENDLINE")==true
+player:GetAttributeChangedSignal("TRACK01_REACHED_ENDLINE"):Connect(function()
+    local reached=player:GetAttribute("TRACK01_REACHED_ENDLINE")==true
+    if reached and not lastEnd then
+        routeToast("END OF LINE","CAR 04 COMPLETE • EXIT TO THE YARD",4.8)
+    end
+    lastEnd=reached
+end)
+
+local lastFinal=player:GetAttribute("TRACK01_FINAL_ROUTE_COMPLETE")==true
+player:GetAttributeChangedSignal("TRACK01_FINAL_ROUTE_COMPLETE"):Connect(function()
+    local complete=player:GetAttribute("TRACK01_FINAL_ROUTE_COMPLETE")==true
+    if complete and not lastFinal then
+        routeToast("TRACK 01 • ROUTE COMPLETE","THE YARD REACHED • END-TO-END RUNTIME PASS RECORDED",5.8)
+    end
+    lastFinal=complete
+end)
+
+print("[TRACK 01] final QC client ready v3.9.1 + route completion feedback")

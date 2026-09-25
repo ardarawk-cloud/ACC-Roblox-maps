@@ -5,9 +5,9 @@
   "enabled": true,
   "universeId": "10745349805",
   "placeId": "79748872921213",
-  "version": "4.2.7",
-  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub. v4.2.7 preserves v4.2.6 Car 03 to Car 04 flow, v4.2.5 Car 02 to Car 03 flow, v4.2.4 Car 01 to Car 02 flow, v4.2.3 boarding, v4.2.2 stable AutoDJ, and forward Night Ticket flow while adding one restrained THE YARD exit cue inside Car 04 plus runtime checkpoints for END OF LINE then YARD so the full route can be verified end-to-end without changing core geometry.",
-  "publishAttempt": 39,
+  "version": "4.2.8",
+  "artDirection": "Final end-to-end audit build. v4.2.8 preserves v4.2.7 Car 04 to The Yard final route, all carriage transition fixes, v4.2.2 stable AutoDJ, and forward Night Ticket flow. Adds a dedicated static route audit that validates the full cleanup chain and records a true runtime PASS only when a player reaches END OF LINE and then The Yard. Final QC client now shows temporary END OF LINE and ROUTE COMPLETE confirmations.",
+  "publishAttempt": 40,
   "file": "maps/track-01/place.rbxlx",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
