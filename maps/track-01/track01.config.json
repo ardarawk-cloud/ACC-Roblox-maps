@@ -5,9 +5,9 @@
   "enabled": true,
   "universeId": "10745349805",
   "placeId": "79748872921213",
-  "version": "4.2.4",
-  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub. v4.2.4 preserves the v4.2.3 Platform 01 to Car 01 boarding flow, v4.2.2 stable AutoDJ, and forward Night Ticket flow while clearing duplicate center-aisle table geometry in Car 01, toning the first vestibule threshold back to railway metal, and making BAR CAR / 02 identity immediate on entry to Car 02.",
-  "publishAttempt": 36,
+  "version": "4.2.5",
+  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub. v4.2.5 preserves the v4.2.4 Car 01 to Car 02 flow, v4.2.3 boarding, v4.2.2 stable AutoDJ, and forward Night Ticket flow while pulling the Car 02 service bar fully out of the central aisle, toning vestibule 02 threshold accents back to railway metal, and making DANCE CAR / 03 identity immediate on entry to Car 03.",
+  "publishAttempt": 37,
   "file": "maps/track-01/place.rbxlx",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
