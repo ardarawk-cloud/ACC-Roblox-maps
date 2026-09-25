@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "ok": true,
+  "httpStatus": 200,
+  "universeId": "10745349805",
+  "placeId": "79748872921213",
+  "trackVersion": "4.2.8",
+  "sourceCommit": "9715906d6b096c6d66c8e33f004e96700dac22e2",
+  "mode": "FINAL_END_TO_END_ROUTE_AUDIT_V18",
+  "robloxVersion": 40,
+  "placeBytes": 331930,
+  "sha256": "29c05eeb96388cd60e945ed84d1cde84250293cce938538ebc22bc798e6920c9",
+  "publishRun": 36109971302,
+  "publishedAt": "2026-09-25T07:53:40.259Z",
+  "previewUrl": "https://www.roblox.com/games/79748872921213",
+  "payload": {
+    "versionNumber": 40
+  }
+}
