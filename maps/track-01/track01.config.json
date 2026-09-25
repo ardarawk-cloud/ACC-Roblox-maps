@@ -5,9 +5,9 @@
   "enabled": true,
   "universeId": "10745349805",
   "placeId": "79748872921213",
-  "version": "4.2.3",
-  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub with lobby-first arrival, forward Night Ticket flow, and a restrained Platform 01 to Car 01 boarding sequence using one blinking amber arrow plus a functional aged-steel threshold bridge. Audio remains v4.2.2 stable: 62 permissioned tracks, equal-power 7-second automix, Car 01-04 only, one centered phase-safe emitter per car, stronger default level, follower recovery, and Skatepark hard-excluded.",
-  "publishAttempt": 35,
+  "version": "4.2.4",
+  "artDirection": "Feature-complete premium faded dark-red retired railway nightclub. v4.2.4 preserves the v4.2.3 Platform 01 to Car 01 boarding flow, v4.2.2 stable AutoDJ, and forward Night Ticket flow while clearing duplicate center-aisle table geometry in Car 01, toning the first vestibule threshold back to railway metal, and making BAR CAR / 02 identity immediate on entry to Car 02.",
+  "publishAttempt": 36,
   "file": "maps/track-01/place.rbxlx",
   "previewUrl": "https://www.roblox.com/games/79748872921213"
 }
