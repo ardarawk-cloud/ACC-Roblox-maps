@@ -1,0 +1,19 @@
+{
+  "status": "LIVE_PUBLISHED",
+  "ok": true,
+  "httpStatus": 200,
+  "universeId": "10745349805",
+  "placeId": "79748872921213",
+  "trackVersion": "4.2.5",
+  "sourceCommit": "a6db967f2b3363885e6d6b218c5cee27ece05158",
+  "mode": "CAR02_BAR_CAR03_DANCE_TRANSITION_V15",
+  "robloxVersion": 37,
+  "placeBytes": 316255,
+  "sha256": "c361e0829c512892677dc770328bafb8f3a633372c9921a217485b9e5694f958",
+  "publishRun": 36104327653,
+  "publishedAt": "2026-09-25T06:45:53.227Z",
+  "previewUrl": "https://www.roblox.com/games/79748872921213",
+  "payload": {
+    "versionNumber": 37
+  }
+}
