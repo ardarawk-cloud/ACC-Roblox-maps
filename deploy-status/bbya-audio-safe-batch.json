@@ -3609,7 +3609,7 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-09-26T06:36:07.539093+00:00",
+      "updatedAt": "2026-09-26T09:52:47.857571+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3618,7 +3618,7 @@
         "done": false
       },
       "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
-      "status": "PUBLISH_FAILED",
+      "status": "APPROVED_PENDING_PUBLISH",
       "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
       "operationResult": {
         "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
@@ -3669,8 +3669,8 @@
           "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-09-26T06:36:07.334693+00:00",
-      "approvedAt": "2026-09-26T06:36:07.334709+00:00",
+      "moderationCheckedAt": "2026-09-26T09:52:47.619587+00:00",
+      "approvedAt": "2026-09-26T09:52:47.619599+00:00",
       "permission": {
         "ok": true,
         "http": 200,
