@@ -1,4 +1,4 @@
-name: BBYA TalonTheAngel Single Upload
+name: BBYA TalonTheAngel BBYA Moderation Recheck
 
 on:
   issues:
@@ -8,123 +8,29 @@ permissions:
   contents: read
 
 jobs:
-  upload:
-    if: github.event.issue.title == 'BBYA TALONTHEANGEL SINGLE BBYA DIRECT RUN'
+  check:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL BBYA MODERATION RECHECK'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     env:
       AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
     steps:
-      - name: Checkout staged audio branch
-        uses: actions/checkout@v4
-        with:
-          ref: temp-bbya-audio-20260927
-
-      - name: Upload prepared 1.75x audio
+      - name: Read moderation
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${AUDIO_KEY:-}" || { echo "AUDIO_KEY_MISSING"; exit 10; }
           python3 - <<'PY'
-          import json, os, pathlib, subprocess, time, urllib.request, urllib.error
-
-          key = os.environ["AUDIO_KEY"].strip()
-          audio = pathlib.Path("temp-audio/BBYA_175.mp3")
-          result_path = pathlib.Path("bbya-direct-result.json")
-
-          def req(url, method="GET", payload=None, headers=None):
-              data = None if payload is None else json.dumps(payload).encode()
-              h = dict(headers or {})
-              if payload is not None:
-                  h.setdefault("Content-Type", "application/json")
-              r = urllib.request.Request(url, data=data, headers=h, method=method)
-              try:
-                  with urllib.request.urlopen(r, timeout=45) as x:
-                      raw = x.read().decode("utf-8", "replace")
-                      return x.status, json.loads(raw) if raw.strip() else {}
-              except urllib.error.HTTPError as e:
-                  raw = e.read().decode("utf-8", "replace")
-                  try: body = json.loads(raw) if raw.strip() else {}
-                  except Exception: body = {"raw": raw[-2000:]}
-                  return e.code, body
-
-          if not audio.exists() or audio.stat().st_size < 1000:
-              raise SystemExit("STAGED_AUDIO_MISSING")
-
-          code, info = req("https://apis.roblox.com/api-keys/v1/introspect", "POST", {"apiKey": key})
-          if code != 200:
-              raise SystemExit(f"INTROSPECT_HTTP_{code}")
-          owner = str(info.get("authorizedUserId") or "")
-          if not owner:
-              raise SystemExit("OWNER_MISSING")
-
-          create = {
-              "assetType": "Audio",
-              "displayName": "BBYA",
-              "description": "BBYA upload 1.75x",
-              "creationContext": {"creator": {"userId": owner}},
-          }
-          p = subprocess.run([
-              "curl","-sS","--location","https://apis.roblox.com/assets/v1/assets",
-              "--header",f"x-api-key: {key}",
-              "--form-string","request="+json.dumps(create,separators=(",",":")),
-              "--form",f"fileContent=@{audio};type=audio/mpeg",
-              "--write-out","\n%{http_code}"
-          ], text=True, capture_output=True)
-          body, _, hs = p.stdout.rpartition("\n")
-          http = int(hs or 0)
-          try: data = json.loads(body) if body.strip() else {}
-          except Exception: data = {"raw": body[-2000:]}
-          if http not in (200,201,202):
-              raise SystemExit(f"UPLOAD_HTTP_{http}:{json.dumps(data)[:1200]}")
-          op = data.get("path")
-          if not op:
-              raise SystemExit("OPERATION_PATH_MISSING")
-
-          asset_id = ""
-          op_state = ""
-          for _ in range(100):
-              q, b = req("https://apis.roblox.com/assets/v1/"+op.lstrip("/"), headers={"x-api-key":key})
-              if q == 200 and b.get("done"):
-                  if b.get("error"):
-                      raise SystemExit("OPERATION_REJECTED:"+json.dumps(b.get("error"))[:1200])
-                  resp = b.get("response") or {}
-                  asset_id = str(resp.get("assetId") or "")
-                  op_state = str((resp.get("moderationResult") or {}).get("moderationState") or "")
-                  break
-              time.sleep(3)
-          if not asset_id:
-              raise SystemExit("ASSET_ID_MISSING")
-
-          state = op_state
-          for url in [
-              f"https://apis.roblox.com/assets/v1/assets/{asset_id}?readMask=moderationResult,state,displayName",
-              f"https://apis.roblox.com/assets/v1/assets/{asset_id}"
-          ]:
-              q, b = req(url, headers={"x-api-key":key})
-              s = str((b.get("moderationResult") or {}).get("moderationState") or "")
-              if s:
-                  state = s
-                  break
-
-          out = {
-              "title":"BBYA",
-              "assetId":asset_id,
-              "moderationState":state,
-              "speedFactor":1.75,
-              "playbackSpeed":0.5714285714,
-              "permissionGranted":False,
-              "bankInjected":False,
-              "mapPublished":False
-          }
-          result_path.write_text(json.dumps(out, indent=2)+"\n")
-          print(json.dumps(out), flush=True)
+          import json, os, urllib.request
+          key=os.environ["AUDIO_KEY"]
+          aid="121061545685176"
+          r=urllib.request.Request(
+              f"https://apis.roblox.com/assets/v1/assets/{aid}?readMask=moderationResult,state,displayName",
+              headers={"x-api-key":key}
+          )
+          with urllib.request.urlopen(r,timeout=30) as x:
+              b=json.loads(x.read().decode() or "{}")
+          print(json.dumps({
+              "assetId":aid,
+              "displayName":b.get("displayName"),
+              "moderationState":(b.get("moderationResult") or {}).get("moderationState","")
+          }),flush=True)
           PY
-
-      - name: Preserve result
-        if: always() && hashFiles('bbya-direct-result.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: bbya-direct-${{ github.run_id }}
-          path: bbya-direct-result.json
-          retention-days: 30
