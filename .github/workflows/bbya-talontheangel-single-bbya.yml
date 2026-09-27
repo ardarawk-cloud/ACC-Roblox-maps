@@ -1,0 +1,44 @@
+name: BBYA TalonTheAngel Single Upload
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    if: github.event.issue.title == 'BBYA TALONTHEANGEL SINGLE BBYA RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AUDIO_KEY: ${{ secrets.TALONTHEANGEL_AUDIO_PUBLISHER }}
+      MAX_MODERATION_WAIT_SECONDS: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg curl
+          python3 -m pip install --quiet 'gdown==6.1.0'
+      - name: Prepare batch
+        run: |
+          cat > "$RUNNER_TEMP/bbya-single.json" <<'JSON'
+          [
+            {"drive_file_id":"1xckgU_TDsCTngh-Brx9seNsHSAfkFRLE","title":"BBYA"}
+          ]
+          JSON
+      - name: Upload BBYA at 1.75x
+        run: |
+          python3 scripts/bbya-music-simple-upload-v13.py \
+            --batch "$RUNNER_TEMP/bbya-single.json" \
+            --result bbya-single-result.json \
+            --moderation-wait-seconds 0
+      - name: Preserve result
+        if: always() && hashFiles('bbya-single-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-single-${{ github.run_id }}
+          path: bbya-single-result.json
+          retention-days: 30
