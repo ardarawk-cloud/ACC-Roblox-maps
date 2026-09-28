@@ -1,0 +1,125 @@
+name: BBYA Underground Audio Permission 121061545685176
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bbya-underground-audio-permission-121061545685176.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      UNIVERSE_ID: '8116636513'
+      ASSET_ID: '121061545685176'
+      UPLOADER_KEY: ${{ secrets.AMSTUDIO_AUDIO_UPLOADER_01 }}
+      AM_STUDIO_KEY: ${{ secrets.AM_STUDIO }}
+      AUDIO_KEY: ${{ secrets.ROBLOX_AUDIO_API_KEY }}
+    steps:
+      - name: Grant Underground audio use permission
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error, pathlib
+
+          universe=os.environ['UNIVERSE_ID']
+          asset=os.environ['ASSET_ID']
+          keys=[
+            ('AMSTUDIO_AUDIO_UPLOADER_01',os.environ.get('UPLOADER_KEY','').strip()),
+            ('AM_STUDIO',os.environ.get('AM_STUDIO_KEY','').strip()),
+            ('ROBLOX_AUDIO_API_KEY',os.environ.get('AUDIO_KEY','').strip()),
+          ]
+
+          def req(url,method='GET',payload=None,headers=None):
+              data=None if payload is None else json.dumps(payload).encode('utf-8')
+              h=dict(headers or {})
+              if payload is not None and 'Content-Type' not in h:
+                  h['Content-Type']='application/json'
+              r=urllib.request.Request(url,data=data,headers=h,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=30) as q:
+                      raw=q.read().decode('utf-8','replace')
+                      return q.status,json.loads(raw) if raw.strip() else {}
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  try: body=json.loads(raw) if raw.strip() else {}
+                  except Exception: body={'raw':raw[-1500:]}
+                  return e.code,body
+
+          def inspect(key):
+              if not key:return {'present':False}
+              code,data=req('https://apis.roblox.com/api-keys/v1/introspect','POST',{'apiKey':key})
+              scopes=[]
+              if isinstance(data,dict):
+                  for s in data.get('scopes') or []:
+                      scopes.append({'name':s.get('name'),'operations':s.get('operations') or []})
+              return {
+                  'present':True,'http':code,
+                  'name':data.get('name') if isinstance(data,dict) else None,
+                  'authorizedUserId':str(data.get('authorizedUserId')) if isinstance(data,dict) and data.get('authorizedUserId') is not None else None,
+                  'enabled':data.get('enabled') if isinstance(data,dict) else None,
+                  'expired':data.get('expired') if isinstance(data,dict) else None,
+                  'scopes':scopes,
+              }
+
+          def can_write(info):
+              if not info.get('present') or info.get('http')!=200 or info.get('enabled') is False or info.get('expired') is True:
+                  return False
+              for s in info.get('scopes') or []:
+                  if s.get('name')=='asset-permissions' and 'write' in (s.get('operations') or []):
+                      return True
+                  if s.get('name')=='asset-permissions:write':
+                      return True
+              return False
+
+          report={'universeId':universe,'assetId':asset,'attempts':[],'granted':False}
+          for label,key in keys:
+              info=inspect(key)
+              attempt={'key':label,'keyInfo':info,'attempted':False}
+              if not can_write(info):
+                  attempt['result']='NO_PERMISSION_SCOPE_OR_KEY_UNAVAILABLE'
+                  report['attempts'].append(attempt)
+                  continue
+              payload={
+                  'subjectType':'Universe',
+                  'subjectId':universe,
+                  'action':'Use',
+                  'requests':[{'assetId':int(asset)}],
+              }
+              code,data=req(
+                  'https://apis.roblox.com/asset-permissions-api/v1/assets/permissions',
+                  'PATCH',payload,
+                  {'x-api-key':key,'Content-Type':'application/json-patch+json'}
+              )
+              success=[str(x) for x in (data.get('successAssetIds') or [])] if isinstance(data,dict) else []
+              attempt.update({'attempted':True,'http':code,'successAssetIds':success,'response':data})
+              if asset in success:
+                  attempt['result']='GRANTED'
+                  report['granted']=True
+                  report['grantedBy']=label
+                  report['attempts'].append(attempt)
+                  break
+              attempt['result']='FAILED'
+              report['attempts'].append(attempt)
+
+          report['status']='GRANTED' if report['granted'] else 'FAILED'
+          pathlib.Path('bbya-underground-audio-permission-result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps({'status':report['status'],'assetId':asset,'grantedBy':report.get('grantedBy')}))
+          if not report['granted']:
+              raise SystemExit(7)
+          PY
+
+      - name: Upload permission diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbya-underground-audio-permission-121061545685176
+          path: bbya-underground-audio-permission-result.json
+          if-no-files-found: error
+          retention-days: 14
