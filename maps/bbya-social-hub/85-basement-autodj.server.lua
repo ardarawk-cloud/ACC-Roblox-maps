@@ -59,7 +59,8 @@ local PLAYLIST={
  {title="Kapal tenggelam",id="124813032756402",style="underground",playbackSpeed=NORMALIZED_175X},
  {title="Pegangan",id="131317518484469",style="underground",playbackSpeed=NORMALIZED_175X},
  {title="Dalu dalu",id="112530372468543",style="underground",playbackSpeed=NORMALIZED_175X},
- {title="Anak kampung",id="128982389712711",style="underground",playbackSpeed=NORMALIZED_175X}
+ {title="Anak kampung",id="128982389712711",style="underground",playbackSpeed=NORMALIZED_175X},
+ {title="Owner Upload 121061545685176",id="121061545685176",style="underground"}
 }
 
 local MIX_SECONDS=4.0
