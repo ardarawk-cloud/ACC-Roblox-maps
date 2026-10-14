@@ -79,7 +79,8 @@
         "ASC_GameplayHUD": {"$path": "after-school-city.gameplay-hud.client.lua"},
         "ASC_UIGlassV102": {"$path": "after-school-city.ui-glass-v102.client.lua"},
         "ASC_ActivitiesClientV110": {"$path": "after-school-city.activities.client.lua"},
-        "ASC_SchoolLifeClientV120": {"$path": "after-school-city.school-life-v120.client.lua"}
+        "ASC_SchoolLifeClientV120": {"$path": "after-school-city.school-life-v120.client.lua"},
+        "ASC_CityGuideV150": {"$path": "after-school-city.city-guide-v150.client.lua"}
       }
     },
     "Workspace": {"$className": "Workspace"},
