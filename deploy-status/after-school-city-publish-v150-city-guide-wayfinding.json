@@ -1,0 +1,27 @@
+﻿{
+    "status":  "LIVE_PUBLISHED",
+    "project":  "AFTER SCHOOL CITY",
+    "mode":  "V150_CITY_GUIDE_WAYFINDING",
+    "sourceRepo":  "ardarawk-cloud/ACC-Roblox-maps",
+    "sourceCommit":  "5c9490248ddbd8148f190cd7e9f2e0f99f34f5b1",
+    "baseLiveCommit":  "de2ceab63c4893dff0f5bbc14152961e21a3f140",
+    "qcRunId":  "38555540234",
+    "qcArtifactId":  11889841224,
+    "qcArtifactDigest":  "71bda779bb83114df6a7731b8d50209957daa30616585dbc7b9f71176ed9a7d5",
+    "universeId":  "10745359869",
+    "placeId":  "121603385909425",
+    "versionNumber":  66,
+    "rojoVersion":  "7.7.0",
+    "placeBytes":  235674,
+    "placeSha256":  "22c9d05eba1c8fd8a3e034671ec3f538a7df330a5e156dc376f087bc31f4e215",
+    "runId":  "39107135782",
+    "publishedAt":  "2026-10-18T07:18:46Z",
+    "runtimeStatus":  "PENDING",
+    "features":  [
+                     "City activity directory covering 10 activities",
+                     "Client-only selectable waypoint with live distance",
+                     "Responsive mobile/desktop guide UI",
+                     "Automatic Indonesian/English localization"
+                 ],
+    "note":  "Exact V1.5 City Guide + Wayfinding QC artifact published without rebuild. Client-only guide/waypoint added. DataStore schema, reward authority, BAG/economy, music, quest chain, sports, dedication, monetization, V1.4 activities, and unrelated map systems unchanged."
+}
