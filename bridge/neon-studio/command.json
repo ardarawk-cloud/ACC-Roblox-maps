@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "revision": 1,
+  "targetPlaceId": 76001567401911,
+  "note": "NEON Studio Bridge v1 idle",
+  "ops": [
+    {
+      "type": "ping",
+      "message": "bridge-ready"
+    }
+  ]
+}
