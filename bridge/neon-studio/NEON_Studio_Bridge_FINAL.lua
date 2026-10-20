@@ -112,11 +112,28 @@ local function loadAsset(op)
 	wrapped:SetAttribute("SourceAssetId", assetId)
 	wrapped.Parent = root()
 
-	local scale = tonumber(op.scale)
-	if scale and scale > 0 and scale ~= 1 then
-		pcall(function() wrapped:ScaleTo(scale) end)
+	local targetHeight = tonumber(op.targetHeight)
+	if targetHeight and targetHeight > 0 then
+		local _, size = wrapped:GetBoundingBox()
+		if size.Y > 0 then
+			local currentScale = wrapped:GetScale()
+			pcall(function() wrapped:ScaleTo(currentScale * (targetHeight / size.Y)) end)
+		end
+	else
+		local scale = tonumber(op.scale)
+		if scale and scale > 0 and scale ~= 1 then
+			pcall(function() wrapped:ScaleTo(scale) end)
+		end
 	end
+
 	wrapped:PivotTo(cfFrom(op))
+
+	local groundY = tonumber(op.groundY)
+	if groundY then
+		local boxCF, boxSize = wrapped:GetBoundingBox()
+		local bottomY = boxCF.Position.Y - (boxSize.Y / 2)
+		wrapped:PivotTo(wrapped:GetPivot() + Vector3.new(0, groundY - bottomY, 0))
+	end
 	return wrapped
 end
 
