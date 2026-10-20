@@ -1,12 +1,29 @@
 {
   "schema": 1,
-  "revision": 1,
+  "revision": 2,
   "targetPlaceId": 76001567401911,
-  "note": "NEON Studio Bridge v1 idle",
+  "note": "Bridge connectivity test",
   "ops": [
     {
-      "type": "ping",
-      "message": "bridge-ready"
+      "type": "createPart",
+      "id": "bridge_test_cube",
+      "name": "BridgeTestCube",
+      "size": [
+        6,
+        6,
+        6
+      ],
+      "position": [
+        0,
+        8,
+        0
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
     }
   ]
 }
