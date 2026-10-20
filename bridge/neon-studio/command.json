@@ -1,2398 +1,781 @@
 {
   "schema": 1,
-  "revision": 4,
+  "revision": 5,
   "targetPlaceId": 76001567401911,
-  "note": "Proof scene r4 moved directly into spawn/map area",
+  "note": "Hero street r5: dense cyberpunk street authored via live Studio bridge",
   "ops": [
     {
       "type": "clearTest"
     },
     {
       "type": "createPart",
-      "id": "Proof_Road",
-      "name": "Proof_Road",
-      "size": [
-        42,
-        1,
-        120
-      ],
-      "position": [
-        0,
-        0,
-        120
-      ],
-      "color": [
-        18,
-        22,
-        30
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Proof_Sidewalk_L",
-      "name": "Proof_Sidewalk_L",
-      "size": [
-        10,
-        1.5,
-        120
-      ],
-      "position": [
-        -26,
-        1,
-        120
-      ],
-      "color": [
-        62,
-        68,
-        78
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Proof_Sidewalk_R",
-      "name": "Proof_Sidewalk_R",
-      "size": [
-        10,
-        1.5,
-        120
-      ],
-      "position": [
-        26,
-        1,
-        120
-      ],
-      "color": [
-        62,
-        68,
-        78
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_0",
-      "name": "CurbL_0",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        70
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_0",
-      "name": "CurbR_0",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        70
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_0",
-      "name": "Lane_0",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        70
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_1",
-      "name": "CurbL_1",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        90
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_1",
-      "name": "CurbR_1",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        90
-      ],
-      "color": [
-        255,
-        20,
-        120
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_1",
-      "name": "Lane_1",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        90
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_2",
-      "name": "CurbL_2",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        110
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_2",
-      "name": "CurbR_2",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        110
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_2",
-      "name": "Lane_2",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        110
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_3",
-      "name": "CurbL_3",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        130
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_3",
-      "name": "CurbR_3",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        130
-      ],
-      "color": [
-        255,
-        20,
-        120
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_3",
-      "name": "Lane_3",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        130
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_4",
-      "name": "CurbL_4",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        150
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_4",
-      "name": "CurbR_4",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        150
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_4",
-      "name": "Lane_4",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        150
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbL_5",
-      "name": "CurbL_5",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        -20.5,
-        1.4,
-        170
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "CurbR_5",
-      "name": "CurbR_5",
-      "size": [
-        1,
-        0.4,
-        13
-      ],
-      "position": [
-        20.5,
-        1.4,
-        170
-      ],
-      "color": [
-        255,
-        20,
-        120
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Lane_5",
-      "name": "Lane_5",
-      "size": [
-        1,
-        0.2,
-        9
-      ],
-      "position": [
-        0,
-        0.7,
-        170
-      ],
-      "color": [
-        170,
-        180,
-        195
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Bld_L1",
-      "name": "Bld_L1",
+      "id": "R5_Road",
+      "name": "R5_Road",
       "size": [
         34,
-        28,
-        34
+        1,
+        140
       ],
       "position": [
-        -48,
-        14,
-        80
-      ],
-      "color": [
-        48,
-        55,
-        68
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Awning_L1",
-      "name": "Awning_L1",
-      "size": [
-        6,
-        2,
-        24.48
-      ],
-      "position": [
-        -28,
-        9,
-        80
-      ],
-      "color": [
-        24,
-        28,
-        36
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Strip_L1",
-      "name": "Strip_L1",
-      "size": [
-        1.2,
-        16.8,
-        2
-      ],
-      "position": [
-        -30.2,
-        13.44,
-        80
-      ],
-      "color": [
         0,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Bld_L2",
-      "name": "Bld_L2",
-      "size": [
-        40,
-        42,
-        40
-      ],
-      "position": [
-        -51,
-        21,
-        120
+        0.2,
+        115
       ],
       "color": [
-        38,
-        45,
-        60
+        15,
+        18,
+        24
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "Awning_L2",
-      "name": "Awning_L2",
+      "id": "R5_SidewalkL",
+      "name": "R5_SidewalkL",
       "size": [
-        6,
-        2,
-        28.799999999999997
+        11,
+        1.5,
+        140
       ],
       "position": [
-        -28,
-        9,
-        120
+        -22.5,
+        0.8,
+        115
       ],
       "color": [
-        24,
-        28,
-        36
+        58,
+        64,
+        74
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "Strip_L2",
-      "name": "Strip_L2",
+      "id": "R5_SidewalkR",
+      "name": "R5_SidewalkR",
       "size": [
-        1.2,
-        25.2,
-        2
+        11,
+        1.5,
+        140
       ],
       "position": [
-        -30.2,
-        20.16,
-        120
+        22.5,
+        0.8,
+        115
+      ],
+      "color": [
+        58,
+        64,
+        74
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_0",
+      "name": "R5_Lane_0",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        55
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_0",
+      "name": "R5_CurbL_0",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        55
       ],
       "color": [
         255,
         25,
-        120
+        135
       ],
       "material": "Neon"
     },
     {
       "type": "createPart",
-      "id": "Bld_L3",
-      "name": "Bld_L3",
+      "id": "R5_CurbR_0",
+      "name": "R5_CurbR_0",
       "size": [
-        32,
-        34,
-        34
+        0.7,
+        0.35,
+        14
       ],
       "position": [
-        -47,
-        17,
-        163
-      ],
-      "color": [
-        54,
-        60,
-        72
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Awning_L3",
-      "name": "Awning_L3",
-      "size": [
-        6,
-        2,
-        24.48
-      ],
-      "position": [
-        -28,
-        9,
-        163
-      ],
-      "color": [
-        24,
-        28,
-        36
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Strip_L3",
-      "name": "Strip_L3",
-      "size": [
-        1.2,
-        20.4,
-        2
-      ],
-      "position": [
-        -30.2,
-        16.32,
-        163
+        17.5,
+        1.5,
+        55
       ],
       "color": [
         0,
-        220,
+        230,
         255
       ],
       "material": "Neon"
     },
     {
       "type": "createPart",
-      "id": "Bld_R1",
-      "name": "Bld_R1",
+      "id": "R5_Lane_1",
+      "name": "R5_Lane_1",
       "size": [
-        34,
-        36,
-        36
+        1,
+        0.2,
+        9
       ],
       "position": [
-        48,
-        18,
-        78
+        0,
+        0.8,
+        75
       ],
       "color": [
-        42,
-        48,
-        62
+        180,
+        210,
+        235
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "Awning_R1",
-      "name": "Awning_R1",
+      "id": "R5_CurbL_1",
+      "name": "R5_CurbL_1",
       "size": [
-        6,
-        2,
-        25.919999999999998
+        0.7,
+        0.35,
+        14
       ],
       "position": [
-        28,
-        9,
-        78
+        -17.5,
+        1.5,
+        75
       ],
       "color": [
-        24,
-        28,
-        36
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Strip_R1",
-      "name": "Strip_R1",
-      "size": [
-        1.2,
-        21.599999999999998,
-        2
-      ],
-      "position": [
-        30.2,
-        17.28,
-        78
-      ],
-      "color": [
-        255,
-        25,
-        120
+        0,
+        230,
+        255
       ],
       "material": "Neon"
     },
     {
       "type": "createPart",
-      "id": "Bld_R2",
-      "name": "Bld_R2",
+      "id": "R5_CurbR_1",
+      "name": "R5_CurbR_1",
       "size": [
-        42,
-        48,
-        40
+        0.7,
+        0.35,
+        14
       ],
       "position": [
+        17.5,
+        1.5,
+        75
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_2",
+      "name": "R5_Lane_2",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        95
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_2",
+      "name": "R5_CurbL_2",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        95
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbR_2",
+      "name": "R5_CurbR_2",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        17.5,
+        1.5,
+        95
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_3",
+      "name": "R5_Lane_3",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        115
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_3",
+      "name": "R5_CurbL_3",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        115
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbR_3",
+      "name": "R5_CurbR_3",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        17.5,
+        1.5,
+        115
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_4",
+      "name": "R5_Lane_4",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        135
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_4",
+      "name": "R5_CurbL_4",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        135
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbR_4",
+      "name": "R5_CurbR_4",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        17.5,
+        1.5,
+        135
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_5",
+      "name": "R5_Lane_5",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        155
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_5",
+      "name": "R5_CurbL_5",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        155
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbR_5",
+      "name": "R5_CurbR_5",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        17.5,
+        1.5,
+        155
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Lane_6",
+      "name": "R5_Lane_6",
+      "size": [
+        1,
+        0.2,
+        9
+      ],
+      "position": [
+        0,
+        0.8,
+        175
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbL_6",
+      "name": "R5_CurbL_6",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        -17.5,
+        1.5,
+        175
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_CurbR_6",
+      "name": "R5_CurbR_6",
+      "size": [
+        0.7,
+        0.35,
+        14
+      ],
+      "position": [
+        17.5,
+        1.5,
+        175
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_0",
+      "name": "R5_Cross_0",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        -9,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_1",
+      "name": "R5_Cross_1",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        -6,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_2",
+      "name": "R5_Cross_2",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        -3,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_3",
+      "name": "R5_Cross_3",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        0,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_4",
+      "name": "R5_Cross_4",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        3,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_5",
+      "name": "R5_Cross_5",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        6,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cross_6",
+      "name": "R5_Cross_6",
+      "size": [
+        2.2,
+        0.22,
+        15
+      ],
+      "position": [
+        9,
+        0.85,
+        168
+      ],
+      "color": [
+        175,
+        180,
+        190
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Bld_A",
+      "name": "R5_Bld_A",
+      "size": [
+        25,
+        24,
+        28
+      ],
+      "position": [
+        -42,
+        12,
+        150
+      ],
+      "color": [
         52,
-        24,
-        120
-      ],
-      "color": [
-        48,
-        54,
-        68
+        58,
+        70
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "Awning_R2",
-      "name": "Awning_R2",
+      "id": "R5_Bld_B",
+      "name": "R5_Bld_B",
       "size": [
-        6,
-        2,
-        28.799999999999997
-      ],
-      "position": [
-        28,
-        9,
-        120
-      ],
-      "color": [
-        24,
-        28,
-        36
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Strip_R2",
-      "name": "Strip_R2",
-      "size": [
-        1.2,
-        28.799999999999997,
-        2
-      ],
-      "position": [
-        30.2,
-        23.04,
-        120
-      ],
-      "color": [
-        0,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Bld_R3",
-      "name": "Bld_R3",
-      "size": [
-        32,
+        30,
         38,
         34
       ],
       "position": [
-        47,
+        -45,
         19,
-        164
+        116
       ],
       "color": [
-        38,
-        44,
+        40,
+        46,
         58
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "Awning_R3",
-      "name": "Awning_R3",
+      "id": "R5_Bld_C",
+      "name": "R5_Bld_C",
       "size": [
-        6,
-        2,
-        24.48
-      ],
-      "position": [
-        28,
-        9,
-        164
-      ],
-      "color": [
-        24,
-        28,
-        36
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Strip_R3",
-      "name": "Strip_R3",
-      "size": [
-        1.2,
-        22.8,
-        2
-      ],
-      "position": [
-        30.2,
-        18.24,
-        164
-      ],
-      "color": [
-        0,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_L1",
-      "name": "Storefront_L1",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        -30,
-        6,
-        80
-      ],
-      "color": [
-        255,
+        26,
         30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_L1",
-      "name": "Door_L1",
-      "size": [
-        2,
-        8,
-        6
+        30
       ],
       "position": [
-        -30,
-        5,
-        92
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_L1",
-      "name": "Sign_L1",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        -30,
-        14,
-        80
-      ],
-      "color": [
-        255,
-        30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_L2",
-      "name": "Storefront_L2",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        -30,
-        6,
-        120
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_L2",
-      "name": "Door_L2",
-      "size": [
-        2,
-        8,
-        6
-      ],
-      "position": [
-        -30,
-        5,
-        132
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_L2",
-      "name": "Sign_L2",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        -30,
-        14,
-        120
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_L3",
-      "name": "Storefront_L3",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        -30,
-        6,
-        163
-      ],
-      "color": [
-        255,
-        70,
-        20
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_L3",
-      "name": "Door_L3",
-      "size": [
-        2,
-        8,
-        6
-      ],
-      "position": [
-        -30,
-        5,
-        175
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_L3",
-      "name": "Sign_L3",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        -30,
-        14,
-        163
-      ],
-      "color": [
-        255,
-        70,
-        20
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_R1",
-      "name": "Storefront_R1",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        30,
-        6,
+        -43,
+        15,
         78
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_R1",
-      "name": "Door_R1",
-      "size": [
-        2,
-        8,
-        6
-      ],
-      "position": [
-        30,
-        5,
-        90
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_R1",
-      "name": "Sign_R1",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        30,
-        14,
-        78
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_R2",
-      "name": "Storefront_R2",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        30,
-        6,
-        120
-      ],
-      "color": [
-        255,
-        30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_R2",
-      "name": "Door_R2",
-      "size": [
-        2,
-        8,
-        6
-      ],
-      "position": [
-        30,
-        5,
-        132
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_R2",
-      "name": "Sign_R2",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        30,
-        14,
-        120
-      ],
-      "color": [
-        255,
-        30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Storefront_R3",
-      "name": "Storefront_R3",
-      "size": [
-        2,
-        10,
-        16
-      ],
-      "position": [
-        30,
-        6,
-        164
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Door_R3",
-      "name": "Door_R3",
-      "size": [
-        2,
-        8,
-        6
-      ],
-      "position": [
-        30,
-        5,
-        176
-      ],
-      "color": [
-        18,
-        40,
-        52
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "Sign_R3",
-      "name": "Sign_R3",
-      "size": [
-        2,
-        3,
-        20
-      ],
-      "position": [
-        30,
-        14,
-        164
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_0_-10",
-      "name": "Win_L1_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        70
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_0_0",
-      "name": "Win_L1_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        80
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_0_10",
-      "name": "Win_L1_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        90
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_1_-10",
-      "name": "Win_L1_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        70
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_1_0",
-      "name": "Win_L1_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        80
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L1_1_10",
-      "name": "Win_L1_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        90
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_0_-10",
-      "name": "Win_L2_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        110
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_0_0",
-      "name": "Win_L2_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        120
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_0_10",
-      "name": "Win_L2_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        130
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_1_-10",
-      "name": "Win_L2_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        110
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_1_0",
-      "name": "Win_L2_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        120
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L2_1_10",
-      "name": "Win_L2_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        130
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_0_-10",
-      "name": "Win_L3_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        153
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_0_0",
-      "name": "Win_L3_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        163
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_0_10",
-      "name": "Win_L3_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        20,
-        173
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_1_-10",
-      "name": "Win_L3_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        153
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_1_0",
-      "name": "Win_L3_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        163
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_L3_1_10",
-      "name": "Win_L3_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        -30.1,
-        29,
-        173
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_0_-10",
-      "name": "Win_R1_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        68
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_0_0",
-      "name": "Win_R1_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        78
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_0_10",
-      "name": "Win_R1_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        88
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_1_-10",
-      "name": "Win_R1_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        68
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_1_0",
-      "name": "Win_R1_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        78
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R1_1_10",
-      "name": "Win_R1_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        88
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_0_-10",
-      "name": "Win_R2_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        110
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_0_0",
-      "name": "Win_R2_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        120
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_0_10",
-      "name": "Win_R2_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        130
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_1_-10",
-      "name": "Win_R2_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        110
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_1_0",
-      "name": "Win_R2_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        120
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R2_1_10",
-      "name": "Win_R2_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        130
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_0_-10",
-      "name": "Win_R3_0_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        154
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_0_0",
-      "name": "Win_R3_0_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        164
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_0_10",
-      "name": "Win_R3_0_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        20,
-        174
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_1_-10",
-      "name": "Win_R3_1_-10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        154
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_1_0",
-      "name": "Win_R3_1_0",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        164
-      ],
-      "color": [
-        255,
-        150,
-        60
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Win_R3_1_10",
-      "name": "Win_R3_1_10",
-      "size": [
-        1.2,
-        5,
-        5
-      ],
-      "position": [
-        30.1,
-        29,
-        174
-      ],
-      "color": [
-        30,
-        150,
-        210
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "GatePole_L",
-      "name": "GatePole_L",
-      "size": [
-        3,
-        20,
-        3
-      ],
-      "position": [
-        -18,
-        10,
-        108
       ],
       "color": [
         55,
-        62,
+        61,
         72
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "GatePole_R",
-      "name": "GatePole_R",
+      "id": "R5_Bld_D",
+      "name": "R5_Bld_D",
       "size": [
-        3,
-        20,
-        3
+        34,
+        46,
+        34
       ],
       "position": [
-        18,
-        10,
-        108
+        -47,
+        23,
+        43
       ],
       "color": [
-        55,
-        62,
-        72
+        38,
+        44,
+        56
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "GateBeam",
-      "name": "GateBeam",
+      "id": "R5_Bld_E",
+      "name": "R5_Bld_E",
       "size": [
-        39,
-        3,
-        3
+        25,
+        28,
+        28
       ],
       "position": [
-        0,
-        18,
-        108
-      ],
-      "color": [
-        35,
         42,
-        55
+        14,
+        150
+      ],
+      "color": [
+        48,
+        54,
+        66
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "GateGlow",
-      "name": "GateGlow",
+      "id": "R5_Bld_F",
+      "name": "R5_Bld_F",
       "size": [
-        30,
-        1.3,
-        1.3
-      ],
-      "position": [
-        0,
-        17,
-        109.8
-      ],
-      "color": [
-        0,
-        230,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleL_0",
-      "name": "LampPoleL_0",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        -32,
-        7,
-        75
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadL_0",
-      "name": "LampHeadL_0",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        -29.5,
-        13.5,
-        75
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleR_0",
-      "name": "LampPoleR_0",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
         32,
-        7,
-        75
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadR_0",
-      "name": "LampHeadR_0",
-      "size": [
-        5,
-        1,
-        2
+        42,
+        34
       ],
       "position": [
-        29.5,
-        13.5,
-        75
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleL_1",
-      "name": "LampPoleL_1",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        -32,
-        7,
-        105
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadL_1",
-      "name": "LampHeadL_1",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        -29.5,
-        13.5,
-        105
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleR_1",
-      "name": "LampPoleR_1",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        32,
-        7,
-        105
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadR_1",
-      "name": "LampHeadR_1",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        29.5,
-        13.5,
-        105
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleL_2",
-      "name": "LampPoleL_2",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        -32,
-        7,
-        135
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadL_2",
-      "name": "LampHeadL_2",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        -29.5,
-        13.5,
-        135
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleR_2",
-      "name": "LampPoleR_2",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        32,
-        7,
-        135
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadR_2",
-      "name": "LampHeadR_2",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        29.5,
-        13.5,
-        135
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleL_3",
-      "name": "LampPoleL_3",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        -32,
-        7,
-        165
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadL_3",
-      "name": "LampHeadL_3",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        -29.5,
-        13.5,
-        165
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "LampPoleR_3",
-      "name": "LampPoleR_3",
-      "size": [
-        1.2,
-        14,
-        1.2
-      ],
-      "position": [
-        32,
-        7,
-        165
-      ],
-      "color": [
-        58,
-        65,
-        76
-      ],
-      "material": "SmoothPlastic"
-    },
-    {
-      "type": "createPart",
-      "id": "LampHeadR_3",
-      "name": "LampHeadR_3",
-      "size": [
-        5,
-        1,
-        2
-      ],
-      "position": [
-        29.5,
-        13.5,
-        165
-      ],
-      "color": [
-        190,
-        220,
-        255
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Vending",
-      "name": "Vending",
-      "size": [
-        5,
-        10,
-        4
-      ],
-      "position": [
-        -35,
-        5,
-        170
+        46,
+        21,
+        116
       ],
       "color": [
         42,
@@ -2403,59 +786,227 @@
     },
     {
       "type": "createPart",
-      "id": "VendingGlow",
-      "name": "VendingGlow",
+      "id": "R5_Bld_G",
+      "name": "R5_Bld_G",
       "size": [
-        1,
-        6,
-        3.2
-      ],
-      "position": [
-        -32.3,
-        5,
-        170
-      ],
-      "color": [
-        255,
-        30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "HeroSignBack",
-      "name": "HeroSignBack",
-      "size": [
-        3,
-        24,
+        26,
+        34,
         30
       ],
       "position": [
-        71,
-        18,
-        115
+        43,
+        17,
+        78
       ],
       "color": [
-        22,
-        26,
-        34
+        52,
+        58,
+        70
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "HeroSignCyan",
-      "name": "HeroSignCyan",
+      "id": "R5_Bld_H",
+      "name": "R5_Bld_H",
       "size": [
-        1.2,
-        18,
-        22
+        34,
+        50,
+        34
       ],
       "position": [
-        69.8,
-        18,
-        115
+        48,
+        25,
+        43
+      ],
+      "color": [
+        36,
+        42,
+        54
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_A",
+      "name": "R5_Awning_A",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        -29.2,
+        9.2,
+        150
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_A",
+      "name": "R5_SignBox_A",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        -29.2,
+        14,
+        150
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_A",
+      "name": "R5_SignGlow_A",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        -27.9,
+        14,
+        150
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_A",
+      "name": "R5_Door_A",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        -28.8,
+        4.6,
+        159
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_A_1",
+      "name": "R5_Window_A_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        144
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_A_2",
+      "name": "R5_Window_A_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        150
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_B",
+      "name": "R5_Awning_B",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        -29.2,
+        9.2,
+        116
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_B",
+      "name": "R5_SignBox_B",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        -29.2,
+        14,
+        116
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_B",
+      "name": "R5_SignGlow_B",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        -27.9,
+        14,
+        116
       ],
       "color": [
         0,
@@ -2466,59 +1017,4553 @@
     },
     {
       "type": "createPart",
-      "id": "HeroSignMagenta",
-      "name": "HeroSignMagenta",
+      "id": "R5_Door_B",
+      "name": "R5_Door_B",
       "size": [
-        1,
-        4,
-        26
+        1.4,
+        8,
+        6
       ],
       "position": [
-        69.2,
+        -28.8,
+        4.6,
+        125
+      ],
+      "color": [
         25,
-        115
-      ],
-      "color": [
-        255,
-        30,
-        130
-      ],
-      "material": "Neon"
-    },
-    {
-      "type": "createPart",
-      "id": "Skybridge",
-      "name": "Skybridge",
-      "size": [
-        36,
-        2,
-        7
-      ],
-      "position": [
-        20,
-        31,
-        120
-      ],
-      "color": [
-        58,
-        66,
-        78
+        55,
+        75
       ],
       "material": "SmoothPlastic"
     },
     {
       "type": "createPart",
-      "id": "SkybridgeGlow",
-      "name": "SkybridgeGlow",
+      "id": "R5_Window_B_1",
+      "name": "R5_Window_B_1",
       "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        110
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_B_2",
+      "name": "R5_Window_B_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        116
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_C",
+      "name": "R5_Awning_C",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        -29.2,
+        9.2,
+        78
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_C",
+      "name": "R5_SignBox_C",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        -29.2,
+        14,
+        78
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_C",
+      "name": "R5_SignGlow_C",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        -27.9,
+        14,
+        78
+      ],
+      "color": [
+        255,
+        110,
+        20
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_C",
+      "name": "R5_Door_C",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        -28.8,
+        4.6,
+        87
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_C_1",
+      "name": "R5_Window_C_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        72
+      ],
+      "color": [
+        255,
+        110,
+        20
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_C_2",
+      "name": "R5_Window_C_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        78
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_D",
+      "name": "R5_Awning_D",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        -29.2,
+        9.2,
+        43
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_D",
+      "name": "R5_SignBox_D",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        -29.2,
+        14,
+        43
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_D",
+      "name": "R5_SignGlow_D",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        -27.9,
+        14,
+        43
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_D",
+      "name": "R5_Door_D",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        -28.8,
+        4.6,
+        52
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_D_1",
+      "name": "R5_Window_D_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        37
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_D_2",
+      "name": "R5_Window_D_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        -28.599999999999998,
+        5.4,
+        43
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_E",
+      "name": "R5_Awning_E",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        29.2,
+        9.2,
+        150
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_E",
+      "name": "R5_SignBox_E",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        29.2,
+        14,
+        150
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_E",
+      "name": "R5_SignGlow_E",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        27.9,
+        14,
+        150
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_E",
+      "name": "R5_Door_E",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        28.8,
+        4.6,
+        159
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_E_1",
+      "name": "R5_Window_E_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        144
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_E_2",
+      "name": "R5_Window_E_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        150
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_F",
+      "name": "R5_Awning_F",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        29.2,
+        9.2,
+        116
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_F",
+      "name": "R5_SignBox_F",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        29.2,
+        14,
+        116
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_F",
+      "name": "R5_SignGlow_F",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        27.9,
+        14,
+        116
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_F",
+      "name": "R5_Door_F",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        28.8,
+        4.6,
+        125
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_F_1",
+      "name": "R5_Window_F_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        110
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_F_2",
+      "name": "R5_Window_F_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        116
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_G",
+      "name": "R5_Awning_G",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        29.2,
+        9.2,
+        78
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_G",
+      "name": "R5_SignBox_G",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        29.2,
+        14,
+        78
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_G",
+      "name": "R5_SignGlow_G",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        27.9,
+        14,
+        78
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_G",
+      "name": "R5_Door_G",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        28.8,
+        4.6,
+        87
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_G_1",
+      "name": "R5_Window_G_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        72
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_G_2",
+      "name": "R5_Window_G_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        78
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Awning_H",
+      "name": "R5_Awning_H",
+      "size": [
+        5.5,
+        1.3,
+        18
+      ],
+      "position": [
+        29.2,
+        9.2,
+        43
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignBox_H",
+      "name": "R5_SignBox_H",
+      "size": [
+        2.2,
+        4,
+        20
+      ],
+      "position": [
+        29.2,
+        14,
+        43
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_SignGlow_H",
+      "name": "R5_SignGlow_H",
+      "size": [
+        1.2,
+        1.1,
+        16
+      ],
+      "position": [
+        27.9,
+        14,
+        43
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Door_H",
+      "name": "R5_Door_H",
+      "size": [
+        1.4,
+        8,
+        6
+      ],
+      "position": [
+        28.8,
+        4.6,
+        52
+      ],
+      "color": [
+        25,
+        55,
+        75
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_H_1",
+      "name": "R5_Window_H_1",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        37
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Window_H_2",
+      "name": "R5_Window_H_2",
+      "size": [
+        1.2,
+        6,
+        6
+      ],
+      "position": [
+        28.599999999999998,
+        5.4,
+        43
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_A_0_-8",
+      "name": "R5_LWin_A_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        142
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_A_0_0",
+      "name": "R5_LWin_A_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        150
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_A_0_8",
+      "name": "R5_LWin_A_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        158
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_0_-8",
+      "name": "R5_LWin_B_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        108
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_0_0",
+      "name": "R5_LWin_B_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        116
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_0_8",
+      "name": "R5_LWin_B_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        124
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_1_-8",
+      "name": "R5_LWin_B_1_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        108
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_1_0",
+      "name": "R5_LWin_B_1_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        116
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_B_1_8",
+      "name": "R5_LWin_B_1_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        124
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_C_0_-8",
+      "name": "R5_LWin_C_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        70
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_C_0_0",
+      "name": "R5_LWin_C_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        78
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_C_0_8",
+      "name": "R5_LWin_C_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        86
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_0_-8",
+      "name": "R5_LWin_D_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        35
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_0_0",
+      "name": "R5_LWin_D_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        43
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_0_8",
+      "name": "R5_LWin_D_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        20,
+        51
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_1_-8",
+      "name": "R5_LWin_D_1_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        35
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_1_0",
+      "name": "R5_LWin_D_1_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        43
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_1_8",
+      "name": "R5_LWin_D_1_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        28,
+        51
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_2_-8",
+      "name": "R5_LWin_D_2_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        36,
+        35
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_2_0",
+      "name": "R5_LWin_D_2_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        36,
+        43
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LWin_D_2_8",
+      "name": "R5_LWin_D_2_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        -29.2,
+        36,
+        51
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_E_0_-8",
+      "name": "R5_RWin_E_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        142
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_E_0_0",
+      "name": "R5_RWin_E_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        150
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_E_0_8",
+      "name": "R5_RWin_E_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        158
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_0_-8",
+      "name": "R5_RWin_F_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        108
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_0_0",
+      "name": "R5_RWin_F_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        116
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_0_8",
+      "name": "R5_RWin_F_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        124
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_1_-8",
+      "name": "R5_RWin_F_1_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        108
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_1_0",
+      "name": "R5_RWin_F_1_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        116
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_1_8",
+      "name": "R5_RWin_F_1_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        124
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_2_-8",
+      "name": "R5_RWin_F_2_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        108
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_2_0",
+      "name": "R5_RWin_F_2_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        116
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_F_2_8",
+      "name": "R5_RWin_F_2_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        124
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_0_-8",
+      "name": "R5_RWin_G_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        70
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_0_0",
+      "name": "R5_RWin_G_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        78
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_0_8",
+      "name": "R5_RWin_G_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        86
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_1_-8",
+      "name": "R5_RWin_G_1_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        70
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_1_0",
+      "name": "R5_RWin_G_1_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        78
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_G_1_8",
+      "name": "R5_RWin_G_1_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        86
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_0_-8",
+      "name": "R5_RWin_H_0_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        35
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_0_0",
+      "name": "R5_RWin_H_0_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        43
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_0_8",
+      "name": "R5_RWin_H_0_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        20,
+        51
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_1_-8",
+      "name": "R5_RWin_H_1_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        35
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_1_0",
+      "name": "R5_RWin_H_1_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        43
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_1_8",
+      "name": "R5_RWin_H_1_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        28,
+        51
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_2_-8",
+      "name": "R5_RWin_H_2_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        35
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_2_0",
+      "name": "R5_RWin_H_2_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        43
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_2_8",
+      "name": "R5_RWin_H_2_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        36,
+        51
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_3_-8",
+      "name": "R5_RWin_H_3_-8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        44,
+        35
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_3_0",
+      "name": "R5_RWin_H_3_0",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        44,
+        43
+      ],
+      "color": [
+        255,
+        150,
+        70
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RWin_H_3_8",
+      "name": "R5_RWin_H_3_8",
+      "size": [
+        1.1,
+        4.3,
+        4.2
+      ],
+      "position": [
+        29.2,
+        44,
+        51
+      ],
+      "color": [
+        45,
+        130,
+        220
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS1_Back",
+      "name": "R5_VS1_Back",
+      "size": [
+        2.4,
+        18,
+        7
+      ],
+      "position": [
+        -30,
+        18,
+        132
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS1_Dot_0",
+      "name": "R5_VS1_Dot_0",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        10,
+        132
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS1_Dot_1",
+      "name": "R5_VS1_Dot_1",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        14,
+        132
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS1_Dot_2",
+      "name": "R5_VS1_Dot_2",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        18,
+        132
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS1_Dot_3",
+      "name": "R5_VS1_Dot_3",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        22,
+        132
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Back",
+      "name": "R5_VS2_Back",
+      "size": [
+        2.4,
+        22,
+        7
+      ],
+      "position": [
+        -30,
+        18,
+        62
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Dot_0",
+      "name": "R5_VS2_Dot_0",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        10,
+        62
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Dot_1",
+      "name": "R5_VS2_Dot_1",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        14,
+        62
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Dot_2",
+      "name": "R5_VS2_Dot_2",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        18,
+        62
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Dot_3",
+      "name": "R5_VS2_Dot_3",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        22,
+        62
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS2_Dot_4",
+      "name": "R5_VS2_Dot_4",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        -28.5,
+        26,
+        62
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Back",
+      "name": "R5_VS3_Back",
+      "size": [
+        2.4,
+        20,
+        7
+      ],
+      "position": [
         30,
+        18,
+        138
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Dot_0",
+      "name": "R5_VS3_Dot_0",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        10,
+        138
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Dot_1",
+      "name": "R5_VS3_Dot_1",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        14,
+        138
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Dot_2",
+      "name": "R5_VS3_Dot_2",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        18,
+        138
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Dot_3",
+      "name": "R5_VS3_Dot_3",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        22,
+        138
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS3_Dot_4",
+      "name": "R5_VS3_Dot_4",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        26,
+        138
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS4_Back",
+      "name": "R5_VS4_Back",
+      "size": [
+        2.4,
+        18,
+        7
+      ],
+      "position": [
+        30,
+        18,
+        92
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS4_Dot_0",
+      "name": "R5_VS4_Dot_0",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        10,
+        92
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS4_Dot_1",
+      "name": "R5_VS4_Dot_1",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        14,
+        92
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS4_Dot_2",
+      "name": "R5_VS4_Dot_2",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        18,
+        92
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS4_Dot_3",
+      "name": "R5_VS4_Dot_3",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        22,
+        92
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Back",
+      "name": "R5_VS5_Back",
+      "size": [
+        2.4,
+        24,
+        7
+      ],
+      "position": [
+        30,
+        18,
+        50
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_0",
+      "name": "R5_VS5_Dot_0",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        10,
+        50
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_1",
+      "name": "R5_VS5_Dot_1",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        14,
+        50
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_2",
+      "name": "R5_VS5_Dot_2",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        18,
+        50
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_3",
+      "name": "R5_VS5_Dot_3",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        22,
+        50
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_4",
+      "name": "R5_VS5_Dot_4",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        26,
+        50
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VS5_Dot_5",
+      "name": "R5_VS5_Dot_5",
+      "size": [
+        1,
+        2.3,
+        5.2
+      ],
+      "position": [
+        28.5,
+        30,
+        50
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_0_-1",
+      "name": "R5_LampPole_0_-1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        -26.5,
+        6.5,
+        58
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_0_-1",
+      "name": "R5_LampHead_0_-1",
+      "size": [
+        4.5,
         0.8,
+        1.8
+      ],
+      "position": [
+        -24.7,
+        12.6,
+        58
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_0_1",
+      "name": "R5_LampPole_0_1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        26.5,
+        6.5,
+        58
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_0_1",
+      "name": "R5_LampHead_0_1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        24.7,
+        12.6,
+        58
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_1_-1",
+      "name": "R5_LampPole_1_-1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        -26.5,
+        6.5,
+        85
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_1_-1",
+      "name": "R5_LampHead_1_-1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        -24.7,
+        12.6,
+        85
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_1_1",
+      "name": "R5_LampPole_1_1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        26.5,
+        6.5,
+        85
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_1_1",
+      "name": "R5_LampHead_1_1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        24.7,
+        12.6,
+        85
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_2_-1",
+      "name": "R5_LampPole_2_-1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        -26.5,
+        6.5,
+        112
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_2_-1",
+      "name": "R5_LampHead_2_-1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        -24.7,
+        12.6,
+        112
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_2_1",
+      "name": "R5_LampPole_2_1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        26.5,
+        6.5,
+        112
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_2_1",
+      "name": "R5_LampHead_2_1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        24.7,
+        12.6,
+        112
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_3_-1",
+      "name": "R5_LampPole_3_-1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        -26.5,
+        6.5,
+        139
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_3_-1",
+      "name": "R5_LampHead_3_-1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        -24.7,
+        12.6,
+        139
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_3_1",
+      "name": "R5_LampPole_3_1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        26.5,
+        6.5,
+        139
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_3_1",
+      "name": "R5_LampHead_3_1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        24.7,
+        12.6,
+        139
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_4_-1",
+      "name": "R5_LampPole_4_-1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        -26.5,
+        6.5,
+        166
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_4_-1",
+      "name": "R5_LampHead_4_-1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        -24.7,
+        12.6,
+        166
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampPole_4_1",
+      "name": "R5_LampPole_4_1",
+      "size": [
+        1.1,
+        13,
+        1.1
+      ],
+      "position": [
+        26.5,
+        6.5,
+        166
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_LampHead_4_1",
+      "name": "R5_LampHead_4_1",
+      "size": [
+        4.5,
+        0.8,
+        1.8
+      ],
+      "position": [
+        24.7,
+        12.6,
+        166
+      ],
+      "color": [
+        180,
+        210,
+        235
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Utility_0",
+      "name": "R5_Utility_0",
+      "size": [
+        4,
+        6,
+        3
+      ],
+      "position": [
+        -27,
+        3,
+        158
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_UtilityGlow_0",
+      "name": "R5_UtilityGlow_0",
+      "size": [
+        1,
+        3.5,
+        2.2
+      ],
+      "position": [
+        -24.4,
+        3,
+        158
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Utility_1",
+      "name": "R5_Utility_1",
+      "size": [
+        4,
+        6,
+        3
+      ],
+      "position": [
+        27,
+        3,
+        144
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_UtilityGlow_1",
+      "name": "R5_UtilityGlow_1",
+      "size": [
+        1,
+        3.5,
+        2.2
+      ],
+      "position": [
+        24.4,
+        3,
+        144
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Utility_2",
+      "name": "R5_Utility_2",
+      "size": [
+        4,
+        6,
+        3
+      ],
+      "position": [
+        -27,
+        3,
+        96
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_UtilityGlow_2",
+      "name": "R5_UtilityGlow_2",
+      "size": [
+        1,
+        3.5,
+        2.2
+      ],
+      "position": [
+        -24.4,
+        3,
+        96
+      ],
+      "color": [
+        255,
+        110,
+        20
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Utility_3",
+      "name": "R5_Utility_3",
+      "size": [
+        4,
+        6,
+        3
+      ],
+      "position": [
+        27,
+        3,
+        70
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_UtilityGlow_3",
+      "name": "R5_UtilityGlow_3",
+      "size": [
+        1,
+        3.5,
+        2.2
+      ],
+      "position": [
+        24.4,
+        3,
+        70
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Vending_0",
+      "name": "R5_Vending_0",
+      "size": [
+        5,
+        10,
+        4
+      ],
+      "position": [
+        -25,
+        5,
+        126
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VendingGlow_0",
+      "name": "R5_VendingGlow_0",
+      "size": [
+        1.1,
+        6.5,
+        3.2
+      ],
+      "position": [
+        -22.1,
+        5,
+        126
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Vending_1",
+      "name": "R5_Vending_1",
+      "size": [
+        5,
+        10,
+        4
+      ],
+      "position": [
+        25,
+        5,
+        104
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_VendingGlow_1",
+      "name": "R5_VendingGlow_1",
+      "size": [
+        1.1,
+        6.5,
+        3.2
+      ],
+      "position": [
+        22.1,
+        5,
+        104
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_0",
+      "name": "R5_BollardL_0",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        170
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_0",
+      "name": "R5_BollardR_0",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        170
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_1",
+      "name": "R5_BollardL_1",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        148
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_1",
+      "name": "R5_BollardR_1",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        148
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_2",
+      "name": "R5_BollardL_2",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        126
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_2",
+      "name": "R5_BollardR_2",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        126
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_3",
+      "name": "R5_BollardL_3",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        104
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_3",
+      "name": "R5_BollardR_3",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        104
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_4",
+      "name": "R5_BollardL_4",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        82
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_4",
+      "name": "R5_BollardR_4",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        82
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardL_5",
+      "name": "R5_BollardL_5",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        -18.5,
+        1.8,
+        60
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BollardR_5",
+      "name": "R5_BollardR_5",
+      "size": [
+        1.3,
+        3.5,
+        1.3
+      ],
+      "position": [
+        18.5,
+        1.8,
+        60
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeL_0",
+      "name": "R5_PipeL_0",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        -32,
+        18,
+        142
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeR_0",
+      "name": "R5_PipeR_0",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        32,
+        18,
+        150
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACL_0",
+      "name": "R5_ACL_0",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        -30.5,
+        24,
+        137
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACR_0",
+      "name": "R5_ACR_0",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        30.5,
+        26,
+        145
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeL_1",
+      "name": "R5_PipeL_1",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        -32,
+        18,
+        112
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeR_1",
+      "name": "R5_PipeR_1",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        32,
+        18,
+        120
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACL_1",
+      "name": "R5_ACL_1",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        -30.5,
+        24,
+        107
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACR_1",
+      "name": "R5_ACR_1",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        30.5,
+        26,
+        115
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeL_2",
+      "name": "R5_PipeL_2",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        -32,
+        18,
+        82
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeR_2",
+      "name": "R5_PipeR_2",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        32,
+        18,
+        90
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACL_2",
+      "name": "R5_ACL_2",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        -30.5,
+        24,
+        77
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACR_2",
+      "name": "R5_ACR_2",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        30.5,
+        26,
+        85
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeL_3",
+      "name": "R5_PipeL_3",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        -32,
+        18,
+        52
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_PipeR_3",
+      "name": "R5_PipeR_3",
+      "size": [
+        1.4,
+        12,
+        1.4
+      ],
+      "position": [
+        32,
+        18,
+        60
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACL_3",
+      "name": "R5_ACL_3",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        -30.5,
+        24,
+        47
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_ACR_3",
+      "name": "R5_ACR_3",
+      "size": [
+        3,
+        3,
+        5
+      ],
+      "position": [
+        30.5,
+        26,
+        55
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_A",
+      "name": "R5_RoofTrim_A",
+      "size": [
+        1.2,
+        1,
+        21
+      ],
+      "position": [
+        -29.2,
+        22,
+        150
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_B",
+      "name": "R5_RoofTrim_B",
+      "size": [
+        1.2,
+        1,
+        25.5
+      ],
+      "position": [
+        -29.2,
+        36,
+        116
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_C",
+      "name": "R5_RoofTrim_C",
+      "size": [
+        1.2,
+        1,
+        22.5
+      ],
+      "position": [
+        -29.2,
+        28,
+        78
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_D",
+      "name": "R5_RoofTrim_D",
+      "size": [
+        1.2,
+        1,
+        25.5
+      ],
+      "position": [
+        -29.2,
+        44,
+        43
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_E",
+      "name": "R5_RoofTrim_E",
+      "size": [
+        1.2,
+        1,
+        21
+      ],
+      "position": [
+        29.2,
+        26,
+        150
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_F",
+      "name": "R5_RoofTrim_F",
+      "size": [
+        1.2,
+        1,
+        25.5
+      ],
+      "position": [
+        29.2,
+        40,
+        116
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_G",
+      "name": "R5_RoofTrim_G",
+      "size": [
+        1.2,
+        1,
+        22.5
+      ],
+      "position": [
+        29.2,
+        32,
+        78
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_RoofTrim_H",
+      "name": "R5_RoofTrim_H",
+      "size": [
+        1.2,
+        1,
+        25.5
+      ],
+      "position": [
+        29.2,
+        48,
+        43
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_GateL",
+      "name": "R5_GateL",
+      "size": [
+        4,
+        24,
+        4
+      ],
+      "position": [
+        -18,
+        12,
+        154
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_GateR",
+      "name": "R5_GateR",
+      "size": [
+        4,
+        24,
+        4
+      ],
+      "position": [
+        18,
+        12,
+        154
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_GateTop",
+      "name": "R5_GateTop",
+      "size": [
+        40,
+        4,
+        5
+      ],
+      "position": [
+        0,
+        22,
+        154
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_GateCyan",
+      "name": "R5_GateCyan",
+      "size": [
+        32,
+        1.2,
         1
       ],
       "position": [
+        0,
+        19.5,
+        151.2
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_GateMag",
+      "name": "R5_GateMag",
+      "size": [
+        18,
+        0.8,
+        0.8
+      ],
+      "position": [
+        0,
+        16.5,
+        151
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cable_0",
+      "name": "R5_Cable_0",
+      "size": [
+        58,
+        0.35,
+        0.35
+      ],
+      "position": [
+        0,
+        18,
+        132
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Hang_0",
+      "name": "R5_Hang_0",
+      "size": [
+        6,
+        4,
+        1
+      ],
+      "position": [
+        -8,
+        15.5,
+        132
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cable_1",
+      "name": "R5_Cable_1",
+      "size": [
+        58,
+        0.35,
+        0.35
+      ],
+      "position": [
+        0,
+        19.8,
+        109
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Hang_1",
+      "name": "R5_Hang_1",
+      "size": [
+        6,
+        4,
+        1
+      ],
+      "position": [
+        9,
+        16.5,
+        109
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cable_2",
+      "name": "R5_Cable_2",
+      "size": [
+        58,
+        0.35,
+        0.35
+      ],
+      "position": [
+        0,
+        21.6,
+        86
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Hang_2",
+      "name": "R5_Hang_2",
+      "size": [
+        6,
+        4,
+        1
+      ],
+      "position": [
+        -8,
+        17.5,
+        86
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Cable_3",
+      "name": "R5_Cable_3",
+      "size": [
+        58,
+        0.35,
+        0.35
+      ],
+      "position": [
+        0,
+        23.4,
+        63
+      ],
+      "color": [
+        24,
+        28,
+        38
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Hang_3",
+      "name": "R5_Hang_3",
+      "size": [
+        6,
+        4,
+        1
+      ],
+      "position": [
+        9,
+        18.5,
+        63
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyFloor",
+      "name": "R5_AlleyFloor",
+      "size": [
+        24,
+        0.8,
+        40
+      ],
+      "position": [
+        -44,
+        0.4,
+        88
+      ],
+      "color": [
+        15,
+        18,
+        24
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyWall",
+      "name": "R5_AlleyWall",
+      "size": [
+        2,
         20,
-        30.5,
-        116.5
+        40
+      ],
+      "position": [
+        -56,
+        10,
+        88
+      ],
+      "color": [
+        45,
+        50,
+        62
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyGlow",
+      "name": "R5_AlleyGlow",
+      "size": [
+        1,
+        14,
+        1
+      ],
+      "position": [
+        -55,
+        10,
+        88
+      ],
+      "color": [
+        255,
+        45,
+        45
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyCrate_0",
+      "name": "R5_AlleyCrate_0",
+      "size": [
+        5,
+        4,
+        5
+      ],
+      "position": [
+        -48,
+        2,
+        76
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyCrate_1",
+      "name": "R5_AlleyCrate_1",
+      "size": [
+        5,
+        5,
+        5
+      ],
+      "position": [
+        -48,
+        2.5,
+        84
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_AlleyCrate_2",
+      "name": "R5_AlleyCrate_2",
+      "size": [
+        5,
+        6,
+        5
+      ],
+      "position": [
+        -48,
+        3,
+        92
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BridgeDeck",
+      "name": "R5_BridgeDeck",
+      "size": [
+        28,
+        2,
+        7
+      ],
+      "position": [
+        17,
+        31,
+        43
+      ],
+      "color": [
+        70,
+        78,
+        92
+      ],
+      "material": "SmoothPlastic"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BridgeGlowL",
+      "name": "R5_BridgeGlowL",
+      "size": [
+        25,
+        0.8,
+        0.8
+      ],
+      "position": [
+        17,
+        30.8,
+        39.6
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_BridgeGlowR",
+      "name": "R5_BridgeGlowR",
+      "size": [
+        25,
+        0.8,
+        0.8
+      ],
+      "position": [
+        17,
+        30.8,
+        46.4
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_0",
+      "name": "R5_Puddle_0",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        -7,
+        0.75,
+        60
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_1",
+      "name": "R5_Puddle_1",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        7,
+        0.75,
+        74
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_2",
+      "name": "R5_Puddle_2",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        -7,
+        0.75,
+        88
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_3",
+      "name": "R5_Puddle_3",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        7,
+        0.75,
+        102
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_4",
+      "name": "R5_Puddle_4",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        -7,
+        0.75,
+        116
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_5",
+      "name": "R5_Puddle_5",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        7,
+        0.75,
+        130
+      ],
+      "color": [
+        0,
+        230,
+        255
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_6",
+      "name": "R5_Puddle_6",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        -7,
+        0.75,
+        144
+      ],
+      "color": [
+        255,
+        25,
+        135
+      ],
+      "material": "Neon"
+    },
+    {
+      "type": "createPart",
+      "id": "R5_Puddle_7",
+      "name": "R5_Puddle_7",
+      "size": [
+        5,
+        0.08,
+        2.4
+      ],
+      "position": [
+        7,
+        0.75,
+        158
       ],
       "color": [
         0,
