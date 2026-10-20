@@ -219,6 +219,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "GateLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 2.4,
+                "Range": 55,
+                "Shadows": false
+              }
             }
           },
           "Terminal_Left": {
@@ -563,6 +576,19 @@
                 0.55
               ],
               "Material": "Neon"
+            },
+            "AvenueLightL1": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.55
+                ],
+                "Brightness": 2,
+                "Range": 36,
+                "Shadows": false
+              }
             }
           },
           "Strip_R1": {
@@ -586,6 +612,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "AvenueLightR1": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 2,
+                "Range": 36,
+                "Shadows": false
+              }
             }
           },
           "Strip_L2": {
@@ -609,6 +648,19 @@
                 0.08
               ],
               "Material": "Neon"
+            },
+            "AvenueLightL2": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.1
+                ],
+                "Brightness": 1.7,
+                "Range": 32,
+                "Shadows": false
+              }
             }
           },
           "Strip_R2": {
@@ -632,6 +684,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "AvenueLightR2": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 1.7,
+                "Range": 32,
+                "Shadows": false
+              }
             }
           }
         },
@@ -819,6 +884,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "MarketMastLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 2.2,
+                "Range": 45,
+                "Shadows": false
+              }
             }
           },
           "Market_Sign_Warm": {
@@ -842,6 +920,19 @@
                 0.26
               ],
               "Material": "Neon"
+            },
+            "MarketWarmLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.55,
+                  0.22
+                ],
+                "Brightness": 2.2,
+                "Range": 38,
+                "Shadows": false
+              }
             }
           },
           "Lane_Light_A": {
@@ -865,6 +956,19 @@
                 0.55
               ],
               "Material": "Neon"
+            },
+            "MarketLaneLightA": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.55
+                ],
+                "Brightness": 1.8,
+                "Range": 30,
+                "Shadows": false
+              }
             }
           },
           "Lane_Light_B": {
@@ -888,6 +992,19 @@
                 0.08
               ],
               "Material": "Neon"
+            },
+            "MarketLaneLightB": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.1
+                ],
+                "Brightness": 1.7,
+                "Range": 28,
+                "Shadows": false
+              }
             }
           }
         },
@@ -1029,6 +1146,19 @@
                 0.08
               ],
               "Material": "Neon"
+            },
+            "AlleyRedLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.1
+                ],
+                "Brightness": 1.6,
+                "Range": 28,
+                "Shadows": false
+              }
             }
           },
           "Alley_CyanStrip": {
@@ -1052,6 +1182,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "AlleyCyanLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 1.5,
+                "Range": 26,
+                "Shadows": false
+              }
             }
           },
           "RoofAccess": {
@@ -1170,6 +1313,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "OmegaCrownLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 3,
+                "Range": 70,
+                "Shadows": false
+              }
             }
           },
           "Omega_Entrance_Cyan": {
@@ -1193,6 +1349,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "OmegaEntranceLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 3,
+                "Range": 60,
+                "Shadows": false
+              }
             }
           },
           "Omega_Entrance_Red": {
@@ -1216,6 +1385,19 @@
                 0.08
               ],
               "Material": "Neon"
+            },
+            "OmegaRedLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.1
+                ],
+                "Brightness": 1.6,
+                "Range": 30,
+                "Shadows": false
+              }
             }
           },
           "Omega_SidePlatform": {
@@ -1380,6 +1562,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "Grid04CoreLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 2.6,
+                "Range": 50,
+                "Shadows": false
+              }
             }
           },
           "PowerAmber": {
@@ -1403,6 +1598,19 @@
                 0.05
               ],
               "Material": "Neon"
+            },
+            "Grid04AmberLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.42,
+                  0.08
+                ],
+                "Brightness": 1.8,
+                "Range": 28,
+                "Shadows": false
+              }
             }
           },
           "PipeBridge": {
@@ -1590,6 +1798,19 @@
                 0.26
               ],
               "Material": "Neon"
+            },
+            "ResidenceWarmA": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.55,
+                  0.22
+                ],
+                "Brightness": 1.1,
+                "Range": 22,
+                "Shadows": false
+              }
             }
           },
           "Window_B1": {
@@ -1613,6 +1834,19 @@
                 0.26
               ],
               "Material": "Neon"
+            },
+            "ResidenceWarmB": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.55,
+                  0.22
+                ],
+                "Brightness": 1.1,
+                "Range": 22,
+                "Shadows": false
+              }
             }
           },
           "Window_C1": {
@@ -1636,6 +1870,19 @@
                 0.26
               ],
               "Material": "Neon"
+            },
+            "ResidenceWarmC": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.55,
+                  0.22
+                ],
+                "Brightness": 1.2,
+                "Range": 24,
+                "Shadows": false
+              }
             }
           },
           "Window_D1": {
@@ -1659,6 +1906,19 @@
                 0.26
               ],
               "Material": "Neon"
+            },
+            "ResidenceWarmD": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.55,
+                  0.22
+                ],
+                "Brightness": 1.1,
+                "Range": 22,
+                "Shadows": false
+              }
             }
           }
         },
@@ -1800,6 +2060,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "SkybridgeLight": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 1.6,
+                "Range": 30,
+                "Shadows": false
+              }
             }
           }
         },
@@ -1918,6 +2191,19 @@
                 0.08
               ],
               "Material": "Neon"
+            },
+            "TunnelRedPoint": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  1,
+                  0.08,
+                  0.1
+                ],
+                "Brightness": 1.8,
+                "Range": 25,
+                "Shadows": false
+              }
             }
           },
           "Tunnel_CyanLight": {
@@ -1941,6 +2227,19 @@
                 1
               ],
               "Material": "Neon"
+            },
+            "TunnelCyanPoint": {
+              "$className": "PointLight",
+              "$properties": {
+                "Color": [
+                  0.05,
+                  0.88,
+                  1
+                ],
+                "Brightness": 1.8,
+                "Range": 25,
+                "Shadows": false
+              }
             }
           }
         },
@@ -2044,23 +2343,51 @@
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
-        "ClockTime": 0.5,
-        "Brightness": 1.8,
-        "ExposureCompensation": -0.15,
+        "ClockTime": 20.8,
+        "Brightness": 3,
+        "ExposureCompensation": 0.55,
         "GlobalShadows": true,
-        "ShadowSoftness": 0.35,
-        "EnvironmentDiffuseScale": 0.35,
-        "EnvironmentSpecularScale": 0.9,
+        "ShadowSoftness": 0.45,
+        "EnvironmentDiffuseScale": 0.65,
+        "EnvironmentSpecularScale": 1,
         "Ambient": [
-          0.035,
-          0.045,
-          0.075
+          0.18,
+          0.22,
+          0.3
         ],
         "OutdoorAmbient": [
-          0.055,
-          0.065,
-          0.1
-        ]
+          0.12,
+          0.16,
+          0.25
+        ],
+        "FogColor": [
+          0.035,
+          0.05,
+          0.085
+        ],
+        "FogStart": 180,
+        "FogEnd": 1000
+      },
+      "NeonColorGrade": {
+        "$className": "ColorCorrectionEffect",
+        "$properties": {
+          "Brightness": 0.08,
+          "Contrast": 0.1,
+          "Saturation": -0.05,
+          "TintColor": [
+            0.82,
+            0.9,
+            1
+          ]
+        }
+      },
+      "NeonBloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.35,
+          "Size": 20,
+          "Threshold": 1.2
+        }
       }
     }
   }
