@@ -12,8 +12,8 @@ local EXPECTED_PLACE_ID = 76001567401911
 local POLL_SECONDS = 3
 local ROOT_NAME = "NEON_BRIDGE_LIVE"
 
-local toolbar = plugin:CreateToolbar("NEON Bridge")
-local button = toolbar:CreateButton("NEON Bridge", "Start / Stop NEON Bridge FINAL", "")
+local toolbar = plugin:CreateToolbar("NEON Remote")
+local button = toolbar:CreateButton("NEON Remote", "Start / Stop NEON Remote", "")
 button.ClickableWhenViewportHidden = true
 
 local running = false
@@ -268,4 +268,4 @@ button.Click:Connect(function()
 	if running then stop() else start() end
 end)
 
-print("[NEON Bridge] FINAL loaded; click toolbar button to start")
+print("[NEON Bridge] FINAL loaded; click NEON Remote to start")
