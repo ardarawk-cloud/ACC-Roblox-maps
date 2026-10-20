@@ -3,12 +3,12 @@
   "ok": true,
   "universeId": "10745364913",
   "placeId": "76001567401911",
-  "sourceCommit": "02ed2ac07bf958778efefd97b1a03a70b1b6a213",
+  "sourceCommit": "5b256d515a51b40e33ca2f033c7b554744f1c5ac",
   "mode": "NEON_DISTRICT_STATIC_V01",
-  "robloxVersion": 35,
-  "placeBytes": 175008,
-  "sha256": "4b3e0b40315fdad2a0da3e8ec770b6e8dd3ba8b97c551b1024505ae655c252ae",
-  "publishRun": 39417877815,
-  "publishedAt": "2026-10-20T11:50:58Z",
+  "robloxVersion": 36,
+  "placeBytes": 699638,
+  "sha256": "b2268807d5f464d62b02de567ab84e2c1e55f57fd08da16d0cad32fb0be3e629",
+  "publishRun": 39420513452,
+  "publishedAt": "2026-10-20T12:12:38Z",
   "previewUrl": "https://www.roblox.com/games/76001567401911"
 }
