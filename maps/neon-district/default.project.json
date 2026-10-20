@@ -6122,6 +6122,21 @@
             "Transparency": 1,
             "CanCollide": false
           }
+        },
+        "03_ChromeMarket": {
+          "$className": "Folder"
+        },
+        "05_ClubOmega": {
+          "$className": "Folder"
+        },
+        "06_PowerSector": {
+          "$className": "Folder"
+        },
+        "07_StackResidence": {
+          "$className": "Folder"
+        },
+        "08_RooftopNetwork": {
+          "$className": "Folder"
         }
       }
     },
