@@ -1,0 +1,2067 @@
+{
+  "name": "NeonDistrict",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true
+      },
+      "NEON_DISTRICT": {
+        "$className": "Folder",
+        "00_Blockout": {
+          "$className": "Folder",
+          "Ground_Base": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                520,
+                4,
+                620
+              ],
+              "Position": [
+                0,
+                -2,
+                0
+              ],
+              "Color": [
+                0.055,
+                0.06,
+                0.075
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Boundary_Back": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                520,
+                40,
+                4
+              ],
+              "Position": [
+                0,
+                20,
+                -310
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Boundary_Left": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                4,
+                40,
+                620
+              ],
+              "Position": [
+                -260,
+                20,
+                0
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Boundary_Right": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                4,
+                40,
+                620
+              ],
+              "Position": [
+                260,
+                20,
+                0
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Concrete"
+            }
+          }
+        },
+        "01_TransitPlaza": {
+          "$className": "Folder",
+          "PlazaFloor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                150,
+                2,
+                90
+              ],
+              "Position": [
+                0,
+                0,
+                235
+              ],
+              "Color": [
+                0.16,
+                0.17,
+                0.19
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Gate_Left": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                10,
+                28,
+                12
+              ],
+              "Position": [
+                -48,
+                14,
+                205
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Gate_Right": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                10,
+                28,
+                12
+              ],
+              "Position": [
+                48,
+                14,
+                205
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Gate_Beam": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                106,
+                8,
+                12
+              ],
+              "Position": [
+                0,
+                26,
+                205
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Gate_CyanStrip": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                92,
+                1,
+                1
+              ],
+              "Position": [
+                0,
+                22,
+                198
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Terminal_Left": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                4,
+                8,
+                3
+              ],
+              "Position": [
+                -30,
+                4,
+                245
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Terminal_Right": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                4,
+                8,
+                3
+              ],
+              "Position": [
+                30,
+                4,
+                245
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Bollard_A": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                2,
+                4,
+                2
+              ],
+              "Position": [
+                -20,
+                2,
+                215
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Bollard_B": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                2,
+                4,
+                2
+              ],
+              "Position": [
+                20,
+                2,
+                215
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Spawn": {
+            "$className": "SpawnLocation",
+            "$properties": {
+              "Anchored": true,
+              "Neutral": true,
+              "Size": [
+                12,
+                1,
+                12
+              ],
+              "Position": [
+                0,
+                2,
+                260
+              ],
+              "Transparency": 1,
+              "CanCollide": false
+            }
+          }
+        },
+        "02_NeonAvenue": {
+          "$className": "Folder",
+          "AvenueRoad": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                42,
+                1,
+                345
+              ],
+              "Position": [
+                0,
+                0.5,
+                17
+              ],
+              "Color": [
+                0.025,
+                0.03,
+                0.04
+              ],
+              "Material": "Asphalt"
+            }
+          },
+          "Sidewalk_L": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                16,
+                1.5,
+                345
+              ],
+              "Position": [
+                -29,
+                0.75,
+                17
+              ],
+              "Color": [
+                0.12,
+                0.13,
+                0.16
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Sidewalk_R": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                16,
+                1.5,
+                345
+              ],
+              "Position": [
+                29,
+                0.75,
+                17
+              ],
+              "Color": [
+                0.12,
+                0.13,
+                0.16
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Store_L1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                42,
+                36,
+                58
+              ],
+              "Position": [
+                -65,
+                18,
+                135
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Store_L2": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                52,
+                48,
+                68
+              ],
+              "Position": [
+                -72,
+                24,
+                65
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Store_L3": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                44,
+                42,
+                62
+              ],
+              "Position": [
+                -66,
+                21,
+                -5
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Store_R1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                40,
+                60
+              ],
+              "Position": [
+                68,
+                20,
+                135
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Store_R2": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                55,
+                52,
+                72
+              ],
+              "Position": [
+                75,
+                26,
+                62
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Store_R3": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                44,
+                62
+              ],
+              "Position": [
+                69,
+                22,
+                -12
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Strip_L1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                22,
+                1
+              ],
+              "Position": [
+                -43,
+                15,
+                135
+              ],
+              "Color": [
+                1,
+                0.05,
+                0.55
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Strip_R1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                24,
+                1
+              ],
+              "Position": [
+                45,
+                16,
+                135
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Strip_L2": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                18,
+                1
+              ],
+              "Position": [
+                -45,
+                14,
+                48
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Strip_R2": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                20,
+                1
+              ],
+              "Position": [
+                47,
+                14,
+                40
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          }
+        },
+        "03_ChromeMarket": {
+          "$className": "Folder",
+          "MarketFloor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                165,
+                1,
+                190
+              ],
+              "Position": [
+                -152,
+                0.5,
+                25
+              ],
+              "Color": [
+                0.025,
+                0.03,
+                0.04
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Market_Block_A": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                55,
+                35,
+                65
+              ],
+              "Position": [
+                -115,
+                17.5,
+                70
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Market_Block_B": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                42,
+                60
+              ],
+              "Position": [
+                -185,
+                21,
+                65
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Market_Block_C": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                60,
+                30,
+                55
+              ],
+              "Position": [
+                -120,
+                15,
+                -10
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Market_Block_D": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                50,
+                60
+              ],
+              "Position": [
+                -195,
+                25,
+                -20
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Market_Courtyard": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                1,
+                40
+              ],
+              "Position": [
+                -150,
+                1,
+                20
+              ],
+              "Color": [
+                0.12,
+                0.13,
+                0.16
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Market_Mast": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                6,
+                24,
+                6
+              ],
+              "Position": [
+                -150,
+                12,
+                20
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Market_Mast_Cyan": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                8,
+                2,
+                8
+              ],
+              "Position": [
+                -150,
+                24,
+                20
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Market_Sign_Warm": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                28,
+                2,
+                1
+              ],
+              "Position": [
+                -150,
+                16,
+                -1
+              ],
+              "Color": [
+                1,
+                0.62,
+                0.26
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Lane_Light_A": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                1,
+                1,
+                18
+              ],
+              "Position": [
+                -135,
+                9,
+                42
+              ],
+              "Color": [
+                1,
+                0.05,
+                0.55
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Lane_Light_B": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                1,
+                1,
+                18
+              ],
+              "Position": [
+                -175,
+                10,
+                40
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          }
+        },
+        "04_BackwireAlley": {
+          "$className": "Folder",
+          "AlleyFloor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                58,
+                1,
+                125
+              ],
+              "Position": [
+                -105,
+                0.5,
+                -130
+              ],
+              "Color": [
+                0.025,
+                0.03,
+                0.04
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Alley_LeftMass": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                35,
+                60,
+                110
+              ],
+              "Position": [
+                -130,
+                30,
+                -130
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Alley_RightMass": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                30,
+                70,
+                100
+              ],
+              "Position": [
+                -82,
+                35,
+                -135
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "ServicePocket": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                24,
+                1,
+                28
+              ],
+              "Position": [
+                -104,
+                1,
+                -190
+              ],
+              "Color": [
+                0.12,
+                0.13,
+                0.16
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "OmegaServiceDoor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                12,
+                18,
+                2
+              ],
+              "Position": [
+                -75,
+                9,
+                -190
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Alley_RedStrip": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                1,
+                16,
+                1
+              ],
+              "Position": [
+                -96,
+                12,
+                -175
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Alley_CyanStrip": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                1,
+                12,
+                1
+              ],
+              "Position": [
+                -116,
+                10,
+                -95
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "RoofAccess": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                8,
+                28,
+                8
+              ],
+              "Position": [
+                -105,
+                14,
+                -125
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          }
+        },
+        "05_ClubOmega": {
+          "$className": "Folder",
+          "Omega_MainMass": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                180,
+                70,
+                120
+              ],
+              "Position": [
+                0,
+                35,
+                -225
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Omega_EntranceMass": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                70,
+                35,
+                22
+              ],
+              "Position": [
+                0,
+                17.5,
+                -158
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Omega_Crown": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                100,
+                28,
+                20
+              ],
+              "Position": [
+                0,
+                84,
+                -225
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Omega_Crown_Cyan": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                74,
+                3,
+                2
+              ],
+              "Position": [
+                0,
+                84,
+                -214
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Omega_Entrance_Cyan": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                56,
+                2,
+                2
+              ],
+              "Position": [
+                0,
+                24,
+                -146
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Omega_Entrance_Red": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                28,
+                1,
+                2
+              ],
+              "Position": [
+                0,
+                16,
+                -146
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Omega_SidePlatform": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                12,
+                1,
+                50
+              ],
+              "Position": [
+                -55,
+                45,
+                -205
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          }
+        },
+        "06_PowerSector": {
+          "$className": "Folder",
+          "Power_GeneratorBlock": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                65,
+                30,
+                65
+              ],
+              "Position": [
+                135,
+                15,
+                45
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Power_ControlBlock": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                40,
+                55
+              ],
+              "Position": [
+                190,
+                20,
+                -20
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Power_UtilityBlock": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                50,
+                25,
+                45
+              ],
+              "Position": [
+                115,
+                12.5,
+                -55
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "PowerCore_Base": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                34,
+                3,
+                34
+              ],
+              "Position": [
+                155,
+                2,
+                10
+              ],
+              "Color": [
+                0.16,
+                0.17,
+                0.19
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "PowerCore": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                26,
+                28,
+                26
+              ],
+              "Position": [
+                155,
+                16,
+                10
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "PowerCoreGlow": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                20,
+                18,
+                2
+              ],
+              "Position": [
+                155,
+                17,
+                -4
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          },
+          "PowerAmber": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                8,
+                2,
+                2
+              ],
+              "Position": [
+                155,
+                8,
+                -5
+              ],
+              "Color": [
+                1,
+                0.45,
+                0.05
+              ],
+              "Material": "Neon"
+            }
+          },
+          "PipeBridge": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                80,
+                6,
+                8
+              ],
+              "Position": [
+                155,
+                22,
+                78
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          }
+        },
+        "07_StackResidence": {
+          "$className": "Folder",
+          "Tower_A": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                42,
+                85,
+                38
+              ],
+              "Position": [
+                125,
+                42.5,
+                -145
+              ],
+              "Color": [
+                0.16,
+                0.17,
+                0.19
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Tower_B": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                34,
+                68,
+                48
+              ],
+              "Position": [
+                190,
+                34,
+                -135
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Tower_C": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                102,
+                45
+              ],
+              "Position": [
+                155,
+                51,
+                -205
+              ],
+              "Color": [
+                0.16,
+                0.17,
+                0.19
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Tower_D": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                30,
+                55,
+                35
+              ],
+              "Position": [
+                215,
+                27.5,
+                -215
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "TowerC_Crown": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                30,
+                16,
+                30
+              ],
+              "Position": [
+                155,
+                110,
+                -205
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "TowerC_Beacon": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                3,
+                5,
+                3
+              ],
+              "Position": [
+                155,
+                120,
+                -205
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Window_A1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                10,
+                1
+              ],
+              "Position": [
+                103.5,
+                30,
+                -145
+              ],
+              "Color": [
+                1,
+                0.62,
+                0.26
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Window_B1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                8,
+                1
+              ],
+              "Position": [
+                172.5,
+                24,
+                -135
+              ],
+              "Color": [
+                1,
+                0.62,
+                0.26
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Window_C1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                12,
+                1
+              ],
+              "Position": [
+                132.5,
+                46,
+                -205
+              ],
+              "Color": [
+                1,
+                0.62,
+                0.26
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Window_D1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                2,
+                8,
+                1
+              ],
+              "Position": [
+                199.5,
+                20,
+                -215
+              ],
+              "Color": [
+                1,
+                0.62,
+                0.26
+              ],
+              "Material": "Neon"
+            }
+          }
+        },
+        "08_RooftopNetwork": {
+          "$className": "Folder",
+          "Market_RoofRoute": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                8,
+                1,
+                55
+              ],
+              "Position": [
+                -145,
+                36,
+                -45
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Alley_RoofRoute": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                8,
+                1,
+                65
+              ],
+              "Position": [
+                -105,
+                40,
+                -115
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "HeroSkybridge": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                82,
+                1,
+                8
+              ],
+              "Position": [
+                88,
+                48,
+                -205
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "SkybridgeRail_L": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                82,
+                5,
+                1
+              ],
+              "Position": [
+                88,
+                50.5,
+                -201.5
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "SkybridgeRail_R": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                82,
+                5,
+                1
+              ],
+              "Position": [
+                88,
+                50.5,
+                -208.5
+              ],
+              "Color": [
+                0.09,
+                0.1,
+                0.13
+              ],
+              "Material": "Metal"
+            }
+          },
+          "SkybridgeStrip": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                72,
+                0.5,
+                0.5
+              ],
+              "Position": [
+                88,
+                47.4,
+                -201.7
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          }
+        },
+        "09_ServiceTunnel": {
+          "$className": "Folder",
+          "Tunnel_Floor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                14,
+                1,
+                165
+              ],
+              "Position": [
+                -100,
+                -24,
+                -112
+              ],
+              "Color": [
+                0.16,
+                0.17,
+                0.19
+              ],
+              "Material": "Concrete"
+            }
+          },
+          "Tunnel_LeftWall": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                2,
+                16,
+                165
+              ],
+              "Position": [
+                -108,
+                -16,
+                -112
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Tunnel_RightWall": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                2,
+                16,
+                165
+              ],
+              "Position": [
+                -92,
+                -16,
+                -112
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Tunnel_Ceiling": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                14,
+                2,
+                165
+              ],
+              "Position": [
+                -100,
+                -8,
+                -112
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "Tunnel_RedLight": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                6,
+                1,
+                1
+              ],
+              "Position": [
+                -100,
+                -10,
+                -155
+              ],
+              "Color": [
+                1,
+                0.04,
+                0.08
+              ],
+              "Material": "Neon"
+            }
+          },
+          "Tunnel_CyanLight": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "Size": [
+                6,
+                1,
+                1
+              ],
+              "Position": [
+                -100,
+                -10,
+                -65
+              ],
+              "Color": [
+                0,
+                0.9,
+                1
+              ],
+              "Material": "Neon"
+            }
+          }
+        },
+        "10_BackgroundCity": {
+          "$className": "Folder",
+          "BG_Tower_A": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                70,
+                170,
+                70
+              ],
+              "Position": [
+                -210,
+                85,
+                -255
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "BG_Tower_B": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                55,
+                140,
+                55
+              ],
+              "Position": [
+                220,
+                70,
+                -270
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "BG_Tower_C": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                45,
+                120,
+                45
+              ],
+              "Position": [
+                -235,
+                60,
+                160
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          },
+          "BG_Tower_D": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": true,
+              "Size": [
+                60,
+                155,
+                60
+              ],
+              "Position": [
+                235,
+                77.5,
+                150
+              ],
+              "Color": [
+                0.035,
+                0.04,
+                0.055
+              ],
+              "Material": "Metal"
+            }
+          }
+        }
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 0.5,
+        "Brightness": 1.8,
+        "ExposureCompensation": -0.15,
+        "GlobalShadows": true,
+        "ShadowSoftness": 0.35,
+        "EnvironmentDiffuseScale": 0.35,
+        "EnvironmentSpecularScale": 0.9,
+        "Ambient": [
+          0.035,
+          0.045,
+          0.075
+        ],
+        "OutdoorAmbient": [
+          0.055,
+          0.065,
+          0.1
+        ]
+      }
+    }
+  }
+}
