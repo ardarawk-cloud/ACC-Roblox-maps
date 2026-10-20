@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: neon-district-live-publish
+  group: neon-district-live-publish-v2
   cancel-in-progress: false
 
 permissions:
@@ -89,19 +89,13 @@ jobs:
           test -n "${ROBLOX_API_KEY:-}"
           url="https://apis.roblox.com/universes/v1/$NEON_UNIVERSE_ID/places/$NEON_PLACE_ID/versions?versionType=Published"
           response="$RUNNER_TEMP/neon-publish.json"
-          code="$(curl -sS -o "$response" -w '%{http_code}' -X POST             -H "x-api-key: $ROBLOX_API_KEY"             -H 'Content-Type: application/xml'             --data-binary @"$NEON_PLACE_FILE"             "$url")"
+          code="$(curl -sS -o "$response" -w '%{http_code}' -X POST -H "x-api-key: $ROBLOX_API_KEY" -H 'Content-Type: application/xml' --data-binary @"$NEON_PLACE_FILE" "$url")"
           if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
             cat "$response"
             echo "Roblox publish HTTP $code"
             exit 1
           fi
-          version="$(python3 - "$response" <<'PY'
-import json,sys
-with open(sys.argv[1], encoding='utf-8') as f:
-    data=json.load(f)
-print(int(data.get('versionNumber', 0)))
-PY
-)"
+          version="$(python3 -c 'import json,sys; print(int(json.load(open(sys.argv[1], encoding="utf-8")).get("versionNumber", 0)))' "$response")"
           if [ "$version" -le 0 ]; then
             cat "$response"
             echo "Invalid Roblox version: $version"
@@ -117,28 +111,7 @@ PY
         run: |
           set -euo pipefail
           receipt="$RUNNER_TEMP/neon-receipt.json"
-          python3 - "$receipt" <<'PY'
-import json, os, sys
-from datetime import datetime, timezone
-
-payload = {
-    "status": "LIVE_PUBLISHED",
-    "ok": True,
-    "universeId": os.environ["NEON_UNIVERSE_ID"],
-    "placeId": os.environ["NEON_PLACE_ID"],
-    "sourceCommit": os.environ["GITHUB_SHA"],
-    "mode": os.environ["NEON_MODE"],
-    "robloxVersion": int(os.environ["NEON_ROBLOX_VERSION"]),
-    "placeBytes": int(os.environ["NEON_PLACE_BYTES"]),
-    "sha256": os.environ["NEON_PLACE_SHA256"],
-    "publishRun": int(os.environ["GITHUB_RUN_ID"]),
-    "publishedAt": datetime.now(timezone.utc).isoformat(),
-    "previewUrl": "https://www.roblox.com/games/76001567401911"
-}
-with open(sys.argv[1], "w", encoding="utf-8") as f:
-    json.dump(payload, f, indent=2)
-    f.write("\n")
-PY
+          jq -n             --arg status 'LIVE_PUBLISHED'             --arg universeId "$NEON_UNIVERSE_ID"             --arg placeId "$NEON_PLACE_ID"             --arg sourceCommit "$GITHUB_SHA"             --arg mode "$NEON_MODE"             --arg previewUrl 'https://www.roblox.com/games/76001567401911'             --arg publishedAt "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"             --argjson robloxVersion "$NEON_ROBLOX_VERSION"             --argjson placeBytes "$NEON_PLACE_BYTES"             --arg sha256 "$NEON_PLACE_SHA256"             --argjson publishRun "$GITHUB_RUN_ID"             '{status:$status,ok:true,universeId:$universeId,placeId:$placeId,sourceCommit:$sourceCommit,mode:$mode,robloxVersion:$robloxVersion,placeBytes:$placeBytes,sha256:$sha256,publishRun:$publishRun,publishedAt:$publishedAt,previewUrl:$previewUrl}' > "$receipt"
           b64="$(base64 -w0 "$receipt")"
           api="repos/$GITHUB_REPOSITORY/contents/deploy-status/neon-district.json"
           sha="$(gh api "$api?ref=main" --jq .sha 2>/dev/null || true)"
