@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "revision": 7,
+  "revision": 8,
   "targetPlaceId": 76001567401911,
-  "note": "FINAL bridge retry r7: load real Creator Store cyberpunk assets, sanitize, ground, and publish",
+  "note": "FINAL static plugin proof r8: load one real Cyberpunk Shop Building and publish",
   "ops": [
     {
       "type": "clear"
@@ -13,35 +13,17 @@
       "name": "Cyberpunk Shop Building",
       "assetId": 5601255277,
       "position": [
-        -22,
         0,
-        145
+        0,
+        170
       ],
       "rotation": [
         0,
         90,
         0
       ],
-      "targetHeight": 28,
+      "targetHeight": 26,
       "groundY": 1
-    },
-    {
-      "type": "loadAsset",
-      "id": "neon_sign_01",
-      "name": "Neon Sign",
-      "assetId": 12847240616,
-      "position": [
-        20,
-        0,
-        145
-      ],
-      "rotation": [
-        0,
-        -90,
-        0
-      ],
-      "targetHeight": 10,
-      "groundY": 2
     },
     {
       "type": "savePlace",
