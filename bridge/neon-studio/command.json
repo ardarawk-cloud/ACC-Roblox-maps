@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "revision": 6,
+  "revision": 7,
   "targetPlaceId": 76001567401911,
-  "note": "FINAL bridge proof: load real Creator Store cyberpunk assets, sanitize, ground, and publish",
+  "note": "FINAL bridge retry r7: load real Creator Store cyberpunk assets, sanitize, ground, and publish",
   "ops": [
     {
       "type": "clear"
