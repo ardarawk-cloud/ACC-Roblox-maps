@@ -1,0 +1,74 @@
+name: NEON Open Cloud Luau Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/neon-opencloud-luau-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe Luau Execution API
+        shell: bash
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_OPEN_CLOUD_MASTER_V2 }}
+          UNIVERSE_ID: '10745364913'
+          PLACE_ID: '76001567401911'
+        run: |
+          set -euo pipefail
+          test -n "${ROBLOX_API_KEY:-}"
+          cat > /tmp/probe.py <<'PY'
+          import json, os, time, urllib.request, urllib.error, sys
+
+          key=os.environ["ROBLOX_API_KEY"]
+          universe=os.environ["UNIVERSE_ID"]
+          place=os.environ["PLACE_ID"]
+          base=f"https://apis.roblox.com/cloud/v2/universes/{universe}/places/{place}"
+          payload=json.dumps({"script": 'print("NEON_LUAU_EXEC_OK")\nreturn "NEON_LUAU_EXEC_OK"'}).encode()
+          req=urllib.request.Request(
+              base+"/luau-execution-session-tasks",
+              data=payload,
+              headers={"Content-Type":"application/json","x-api-key":key},
+              method="POST"
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  task=json.load(r)
+          except urllib.error.HTTPError as e:
+              print("CREATE_HTTP", e.code)
+              print(e.read().decode(errors="replace"))
+              sys.exit(2)
+
+          print("CREATE_OK", json.dumps(task))
+          path=task.get("path")
+          if not path:
+              print("NO_TASK_PATH")
+              sys.exit(3)
+
+          url="https://apis.roblox.com/cloud/v2/"+path
+          for _ in range(60):
+              req=urllib.request.Request(url, headers={"x-api-key":key})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      state=json.load(r)
+              except urllib.error.HTTPError as e:
+                  print("POLL_HTTP", e.code)
+                  print(e.read().decode(errors="replace"))
+                  sys.exit(4)
+              print("STATE", state.get("state"), json.dumps(state))
+              if state.get("state") != "PROCESSING":
+                  if state.get("state") == "COMPLETE":
+                      print("NEON_LUAU_PROBE_PASS")
+                      sys.exit(0)
+                  sys.exit(5)
+              time.sleep(3)
+          print("TIMEOUT")
+          sys.exit(6)
+          PY
+          python3 /tmp/probe.py
