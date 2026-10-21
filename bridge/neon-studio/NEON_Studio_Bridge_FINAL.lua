@@ -268,4 +268,4 @@ button.Click:Connect(function()
 	if running then stop() else start() end
 end)
 
-print("[NEON Bridge] FINAL loaded; click NEON Remote to start")
+print("[NEON Bridge] FINAL loaded; auto-starting")\ntask.defer(start)
