@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "RUNNING_SEQUENTIAL",
+  "status": "STOPPED_PUBLISH_FAILURE",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3618,7 +3618,7 @@
         "done": false
       },
       "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
-      "status": "APPROVED_PENDING_PUBLISH",
+      "status": "PUBLISH_FAILED",
       "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
       "operationResult": {
         "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
@@ -3684,7 +3684,7 @@
           "errors": []
         }
       },
-      "stagedCommit": "7fbd78934217b6f2e33e42ae21174ec7428920cc",
+      "stagedCommit": "8c2ef346fd48299fd46d834cf128ce6a220fb62a",
       "publishError": "RuntimeError('command failed (1): node scripts/publish-map.js a-club')"
     }
   },
