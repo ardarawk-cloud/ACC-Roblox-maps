@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v4 ZEPETO-READY INTERIOR
--- Owner-authorized interior re-layout + tall-avatar clearance pass.
+-- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v5 SPACIOUS TALL-RIG POLISH
+-- Owner-authorized interior refinement + dynamic tall-avatar lift clearance.
 -- WORLD / BUILD authority only. Preserves StaffTowerV1 identity, compact sign-lift, and Travel arrival threshold path.
 -- No audio, monetization, role persistence, DJ, Music, Message, Mall, or Funkot geometry changes.
 
@@ -35,7 +35,7 @@ local tower=Instance.new("Model")
 tower.Name="StaffTowerV1"
 tower.Parent=funkot
 tower:SetAttribute("Pass","STAFF_TOWER_V1")
-tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V4_ZEPETO_READY_INTERIOR")
+tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V5_SPACIOUS_TALL_RIG_POLISH")
 tower:SetAttribute("Location","ABOVE_FUNKOT")
 tower:SetAttribute("RoleIntent","OWNER_ADMIN_MODERATOR")
 tower:SetAttribute("AudioUntouched",true)
@@ -45,9 +45,11 @@ tower:SetAttribute("NoRuntimeLoops",true)
 tower:SetAttribute("StaticEnvironment",true)
 tower:SetAttribute("DesignLanguage","FULL_SCALE_PRIVATE_EXECUTIVE_RESIDENCE_COMPACT_LIFT_ZEPETO_READY")
 tower:SetAttribute("TallAvatarClearance","ZEPETO_READY")
-tower:SetAttribute("InteriorLayout","WIDE_CIRCULATION_LOW_CLUTTER")
-tower:SetAttribute("MinimumDoorClearHeight",13)
-tower:SetAttribute("MinimumPrimaryAisleWidth",10)
+tower:SetAttribute("InteriorLayout","OPEN_PLAN_WIDE_CIRCULATION_LOW_CLUTTER")
+tower:SetAttribute("MinimumDoorClearHeight",16)
+tower:SetAttribute("MinimumPrimaryAisleWidth",14)
+tower:SetAttribute("DynamicLiftRigClearance",true)
+tower:SetAttribute("StaffFloorOpenPlan",true)
 tower:SetAttribute("PrivacySequence","LIFT_MARKER>VESTIBULE>HALL>PRIVATE_ROOM")
 tower:SetAttribute("BedDirectlyVisibleFromLift",false)
 tower:SetAttribute("MiniatureBlockoutRetired",true)
@@ -64,9 +66,9 @@ local roofTop=ceiling.Position.Y+ceiling.Size.Y/2
 -- Full-scale replacement. Avatar-scale circulation and privacy take priority over compact massing.
 local PODIUM_W,PODIUM_D=104,76
 local TOWER_W,TOWER_D=84,60
-local FLOOR_H=22
-local PARTITION_H=15
-local DOOR_H=13
+local FLOOR_H=26
+local PARTITION_H=18
+local DOOR_H=16
 local coreX=cx+32
 local coreZ=cz+2
 local level1Y=roofTop+3.0
@@ -395,7 +397,8 @@ local function moveByLift(player,targetIndex)
  local hrp=character and character:FindFirstChild("HumanoidRootPart")
  if not humanoid or humanoid.Health<=0 or not hrp then return end
  liftBusy[player]=true
- local pos=Vector3.new(LIFT_SIGN_X-4.8,stop.surfaceY+4.4,LIFT_SIGN_Z)
+ local safeRootHeight=math.max(4.8,(tonumber(humanoid.HipHeight) or 2)+hrp.Size.Y/2+1.75)
+ local pos=Vector3.new(LIFT_SIGN_X-5.6,stop.surfaceY+safeRootHeight,LIFT_SIGN_Z)
  local look=Vector3.new(LIFT_SIGN_X,pos.Y,LIFT_SIGN_Z)
  hrp.AssemblyLinearVelocity=Vector3.zero
  hrp.AssemblyAngularVelocity=Vector3.zero
@@ -430,54 +433,65 @@ for i,stop in ipairs(liftStops) do
 end
 
 -- =============================================================================
--- 4) LEVEL 1 — STAFF FLOOR / WIDE-CIRCULATION RE-LAYOUT
+-- 4) LEVEL 1 — STAFF FLOOR / OPEN-PLAN SPACIOUS RE-LAYOUT
 -- =============================================================================
 local staff=model("ModeratorStaffFloor")
-staff:SetAttribute("Program","OPEN_RECEPTION_SOCIAL_LOUNGE_MEETING_OFFICE_PANTRY_RESTROOM")
+staff:SetAttribute("Program","OPEN_RECEPTION_MEETING_LOUNGE_OFFICE_PANTRY_RESTROOM")
 staff:SetAttribute("PrivacyFromArrival","PUBLIC_STAFF_LOBBY_ONLY")
 staff:SetAttribute("TallAvatarClearance",true)
-staff:SetAttribute("PrimaryAisleWidth",12)
-staff:SetAttribute("FurnitureEdgeClearance",5)
-staff:SetAttribute("LayoutPass","ZEPETO_READY_LOW_CLUTTER_V1")
+staff:SetAttribute("PrimaryAisleWidth",14)
+staff:SetAttribute("FurnitureEdgeClearance",6)
+staff:SetAttribute("LayoutPass","SPACIOUS_ZEPETO_READY_V2")
+staff:SetAttribute("MainSpine","SOUTH_ENTRY_TO_EAST_LIFT")
 local y1=floorSurface[1]
 
--- Keep a broad arrival lane from the south entrance toward the east-side lift marker.
--- Furniture stays grouped into zones rather than scattered through circulation.
-rug("ArrivalRunner",CFrame.new(cx+18,y1,cz-10),18,8,staff,C.fabric)
-part("ReceptionDesk",Vector3.new(11,3.0,2.8),CFrame.new(cx+12,y1+1.5,cz-21),C.wood,Enum.Material.WoodPlanks,true,staff)
-part("ReceptionTop",Vector3.new(11.4,.24,3.0),CFrame.new(cx+12,y1+3.1,cz-21),C.stone,Enum.Material.Marble,true,staff)
+-- Main circulation spine stays deliberately empty from the south entrance to the east lift marker.
+local spine=part("MainCirculationSpine",Vector3.new(13,.05,38),CFrame.new(cx+25,y1+.04,cz-9),C.graphite,Enum.Material.SmoothPlastic,false,staff,.82)
+spine.CanQuery=false
 
--- Meeting zone: west/front, enclosed enough for focus but with a tall, wide doorway.
-wallAlongZ("MeetingDivider",cx-10,cz-15,y1,26,PARTITION_H,staff,C.charcoal)
-wallAlongXWithDoor("MeetingEntry",cx-27,cz-2.5,y1,30,PARTITION_H,cx-20,8.5,staff,C.charcoal)
-part("MeetingTable",Vector3.new(13,.75,4.8),CFrame.new(cx-27,y1+1.9,cz-16),C.wood,Enum.Material.WoodPlanks,true,staff)
-for i,x in ipairs({cx-32,cx-27,cx-22}) do
- loungeChair("MeetingChairN"..i,CFrame.new(x,y1,cz-19.5)*CFrame.Angles(0,math.rad(180),0),staff)
- loungeChair("MeetingChairS"..i,CFrame.new(x,y1,cz-12.5),staff)
+-- Reception sits beside, not inside, the main path.
+rug("ReceptionRug",CFrame.new(cx+9,y1,cz-20),16,8,staff,C.fabric)
+part("ReceptionDesk",Vector3.new(10,3.0,2.8),CFrame.new(cx+7,y1+1.5,cz-21),C.wood,Enum.Material.WoodPlanks,true,staff)
+part("ReceptionTop",Vector3.new(10.4,.24,3.0),CFrame.new(cx+7,y1+3.1,cz-21),C.stone,Enum.Material.Marble,true,staff)
+planter("ReceptionPlanter",CFrame.new(cx-1,y1,cz-23),staff)
+
+-- Meeting zone stays on the west/front edge with no enclosing box around it.
+local meeting=model("OpenMeetingZone",staff)
+rug("MeetingRug",CFrame.new(cx-26,y1,cz-15),26,18,meeting,C.fabric)
+part("MeetingTable",Vector3.new(14,.75,5.0),CFrame.new(cx-26,y1+1.9,cz-15),C.wood,Enum.Material.WoodPlanks,true,meeting)
+for i,x in ipairs({cx-32,cx-26,cx-20}) do
+ loungeChair("MeetingChairN"..i,CFrame.new(x,y1,cz-19)*CFrame.Angles(0,math.rad(180),0),meeting)
+ loungeChair("MeetingChairS"..i,CFrame.new(x,y1,cz-11),meeting)
 end
+wallAlongZ("MeetingPrivacyFin",cx-11,cz-15,y1,22,PARTITION_H,meeting,C.charcoal)
 
--- Social lounge: central-left, leaving the east half open as the primary vertical-circulation aisle.
-rug("StaffLoungeRug",CFrame.new(cx-9,y1,cz+7),24,16,staff,C.fabric)
-sofa("StaffSofaA",CFrame.new(cx-15,y1,cz+12),10,staff)
-sofa("StaffSofaB",CFrame.new(cx-2,y1,cz+4)*CFrame.Angles(0,math.rad(-90),0),9,staff)
-lowTable("StaffCoffeeTable",CFrame.new(cx-9,y1,cz+8),5.4,3.6,staff)
-planter("StaffLoungePlanter",CFrame.new(cx-21,y1,cz+22),staff)
+-- Lounge moves to the west/rear so the center and east side stay clear.
+local lounge=model("StaffSocialLounge",staff)
+rug("StaffLoungeRug",CFrame.new(cx-22,y1,cz+15),28,18,lounge,C.fabric)
+sofa("StaffSofaA",CFrame.new(cx-28,y1,cz+20),10,lounge)
+sofa("StaffSofaB",CFrame.new(cx-13,y1,cz+11)*CFrame.Angles(0,math.rad(-90),0),9,lounge)
+lowTable("StaffCoffeeTable",CFrame.new(cx-21,y1,cz+15),5.4,3.6,lounge)
+planter("StaffLoungePlanter",CFrame.new(cx-35,y1,cz+23),lounge)
 
--- Office zone: north-east, behind one clean partition with a generous tall-avatar opening.
-wallAlongXWithDoor("OfficeFront",cx+14,cz+4,y1,30,PARTITION_H,cx+5,8.5,staff,C.charcoal)
-wallAlongZ("OfficeWest",cx-1,cz+16,y1,24,PARTITION_H,staff,C.charcoal)
-desk("StaffDeskA",CFrame.new(cx+8,y1,cz+13),8,staff)
-desk("StaffDeskB",CFrame.new(cx+20,y1,cz+13),8,staff)
-part("PantryCounter",Vector3.new(16,2.8,2.5),CFrame.new(cx+8,y1+1.4,cz+25),C.wood,Enum.Material.WoodPlanks,true,staff)
-part("PantryTop",Vector3.new(16.4,.24,2.8),CFrame.new(cx+8,y1+2.9,cz+25),C.stone,Enum.Material.Marble,true,staff)
+-- Office stays north-east, compact against the outer wall and away from the lift landing.
+local office=model("StaffOfficeZone",staff)
+wallAlongXWithDoor("OfficeFront",cx+11,cz+8,y1,28,PARTITION_H,cx+2,10,office,C.charcoal)
+desk("StaffDeskA",CFrame.new(cx+5,y1,cz+16),8,office)
+desk("StaffDeskB",CFrame.new(cx+17,y1,cz+16),8,office)
+part("PantryCounter",Vector3.new(15,2.8,2.5),CFrame.new(cx+9,y1+1.4,cz+26),C.wood,Enum.Material.WoodPlanks,true,office)
+part("PantryTop",Vector3.new(15.4,.24,2.8),CFrame.new(cx+9,y1+2.9,cz+26),C.stone,Enum.Material.Marble,true,office)
 
--- Compact restroom at the far north-east corner, clear of the lift marker and main aisle.
-local restX,restZ=cx+26,cz+21
-wallAlongX("RestroomNorth",restX,restZ+6,y1,12,PARTITION_H,staff,C.graphite)
-wallAlongZ("RestroomEast",restX+6,restZ,y1,12,PARTITION_H,staff,C.graphite)
-wallAlongZ("RestroomWest",restX-6,restZ,y1,12,PARTITION_H,staff,C.graphite)
-wallAlongXWithDoor("RestroomSouth",restX,restZ-6,y1,12,PARTITION_H,restX-2.5,7,staff,C.graphite)
-part("RestroomVanity",Vector3.new(5,2.2,1.6),CFrame.new(restX-1.5,y1+1.1,restZ+4.7),C.stone,Enum.Material.Marble,true,staff)
+-- Restroom remains in the far corner; doorway is tall and wide enough for scaled rigs.
+local restX,restZ=cx+27,cz+22
+wallAlongX("RestroomNorth",restX,restZ+5.5,y1,11,PARTITION_H,staff,C.graphite)
+wallAlongZ("RestroomEast",restX+5.5,restZ,y1,11,PARTITION_H,staff,C.graphite)
+wallAlongZ("RestroomWest",restX-5.5,restZ,y1,11,PARTITION_H,staff,C.graphite)
+wallAlongXWithDoor("RestroomSouth",restX,restZ-5.5,y1,11,PARTITION_H,restX-2.0,8,staff,C.graphite)
+part("RestroomVanity",Vector3.new(4.6,2.2,1.6),CFrame.new(restX-1.2,y1+1.1,restZ+4.2),C.stone,Enum.Material.Marble,true,staff)
+
+-- Explicit clear landing marker around the lift; visual-only and non-colliding.
+local liftClear=part("LiftClearZone",Vector3.new(13,.04,13),CFrame.new(LIFT_SIGN_X-5.6,y1+.03,LIFT_SIGN_Z),C.brass,Enum.Material.SmoothPlastic,false,staff,.88)
+liftClear.CanQuery=false
 
 -- =============================================================================
 -- 5) LEVEL 2 — FOUR REAL ADMIN SUITES + CENTRAL CORRIDOR
@@ -490,14 +504,14 @@ local y2=floorSurface[2]
 
 -- Corridor is a real neutral zone. Lift marker lands at the east side; all beds sit behind suite doors and internal partitions.
 rug("AdminCorridorRunner",CFrame.new(cx-8,y2,cz),60,6,admin,C.fabric)
-wallAlongXWithDoor("SouthSuiteWallA",cx-27,cz-4,y2,30,PARTITION_H,cx-23,7.5,admin,C.charcoal)
-wallAlongXWithDoor("SouthSuiteWallB",cx+3,cz-4,y2,30,PARTITION_H,cx+7,7.5,admin,C.charcoal)
-wallAlongXWithDoor("NorthSuiteWallA",cx-27,cz+4,y2,30,PARTITION_H,cx-23,7.5,admin,C.charcoal)
-wallAlongXWithDoor("NorthSuiteWallB",cx+3,cz+4,y2,30,PARTITION_H,cx+7,7.5,admin,C.charcoal)
+wallAlongXWithDoor("SouthSuiteWallA",cx-27,cz-4,y2,30,PARTITION_H,cx-23,9,admin,C.charcoal)
+wallAlongXWithDoor("SouthSuiteWallB",cx+3,cz-4,y2,30,PARTITION_H,cx+7,9,admin,C.charcoal)
+wallAlongXWithDoor("NorthSuiteWallA",cx-27,cz+4,y2,30,PARTITION_H,cx-23,9,admin,C.charcoal)
+wallAlongXWithDoor("NorthSuiteWallB",cx+3,cz+4,y2,30,PARTITION_H,cx+7,9,admin,C.charcoal)
 wallAlongZ("SouthUnitDivider",cx-12,cz-17,y2,26,PARTITION_H,admin,C.charcoal)
 wallAlongZ("NorthUnitDivider",cx-12,cz+17,y2,26,PARTITION_H,admin,C.charcoal)
 -- Screen the lift-side arrival from the suite corridor so no room is visible immediately after arrival.
-wallAlongZWithDoor("AdminVestibuleScreen",cx+20,cz,y2,18,PARTITION_H,cz,8,admin,C.graphite)
+wallAlongZWithDoor("AdminVestibuleScreen",cx+20,cz,y2,18,PARTITION_H,cz,10,admin,C.graphite)
 
 local unitSpecs={
  {name="AdminSuiteA",x=cx-27,z=cz-17,yaw=0,doorX=cx-23},
@@ -512,13 +526,13 @@ for _,u in ipairs(unitSpecs) do
  unit:SetAttribute("BedVisibleFromCorridor",false)
  local base=CFrame.new(u.x,y2,u.z)*CFrame.Angles(0,math.rad(u.yaw),0)
  -- Internal privacy wall creates a bedroom zone at the exterior side of each suite.
- wallAlongXWithDoor("BedroomPrivacyWall",u.x,u.z+(u.yaw==0 and -4.5 or 4.5),y2,26,PARTITION_H,u.x-6,7,unit,C.graphite)
+ wallAlongXWithDoor("BedroomPrivacyWall",u.x,u.z+(u.yaw==0 and -4.5 or 4.5),y2,26,PARTITION_H,u.x-6,9,unit,C.graphite)
  bed("Bed",base*CFrame.new(-5.5,0,4.5),7.4,9.0,unit)
  wardrobe("Wardrobe",base*CFrame.new(7.5,0,6.2),5.2,unit)
  desk("Desk",base*CFrame.new(6.5,0,-4.0),6.8,unit)
  lowTable("SideTable",base*CFrame.new(0.8,0,5.5),2.6,2.2,unit)
  -- Compact private bath is screened, not exposed beside the bed.
- wallAlongZWithDoor("BathPrivacy",u.x+10,u.z,y2,12,PARTITION_H,u.z+(u.yaw==0 and -2.5 or 2.5),6.5,unit,C.graphite)
+ wallAlongZWithDoor("BathPrivacy",u.x+10,u.z,y2,12,PARTITION_H,u.z+(u.yaw==0 and -2.5 or 2.5),8,unit,C.graphite)
  part("BathVanity",Vector3.new(4.6,2.2,1.5),base*CFrame.new(9.2,1.1,1.5),C.stone,Enum.Material.Marble,true,unit)
  glass("ShowerScreen",Vector3.new(4.4,6.7,.26),base*CFrame.new(9.2,3.35,5.8),unit,.46,true)
 end
@@ -535,13 +549,13 @@ local y3=floorSurface[3]
 
 -- Lift marker arrives beside the owner vestibule, never into the bedroom.
 wallAlongZ("OwnerVestibuleEast",cx+22,cz,y3,20,PARTITION_H,owner,C.graphite)
-wallAlongXWithDoor("OwnerVestibuleWest",cx+14,cz-9,y3,16,PARTITION_H,cx+10,8,owner,C.graphite)
+wallAlongXWithDoor("OwnerVestibuleWest",cx+14,cz-9,y3,16,PARTITION_H,cx+10,10,owner,C.graphite)
 wallAlongX("OwnerVestibuleNorth",cx+14,cz+9,y3,16,PARTITION_H,owner,C.graphite)
 rug("OwnerFoyerRug",CFrame.new(cx+10,y3,cz-13),16,9,owner,C.fabric)
 part("OwnerFoyerConsole",Vector3.new(8,2.5,1.8),CFrame.new(cx+9,y3+1.25,cz-18),C.woodDark,Enum.Material.WoodPlanks,true,owner)
 
 -- Living room occupies the south-west, separated from private bedroom hall.
-wallAlongXWithDoor("PrivateHallScreen",cx-16,cz+5,y3,44,PARTITION_H,cx-3,8,owner,C.charcoal)
+wallAlongXWithDoor("PrivateHallScreen",cx-16,cz+5,y3,44,PARTITION_H,cx-3,10,owner,C.charcoal)
 rug("OwnerLivingRug",CFrame.new(cx-18,y3,cz-12),30,18,owner,C.fabric)
 sofa("OwnerSofa",CFrame.new(cx-25,y3,cz-14),11,owner)
 loungeChair("OwnerChairA",CFrame.new(cx-10,y3,cz-17)*CFrame.Angles(0,math.rad(-35),0),owner)
@@ -550,12 +564,12 @@ lowTable("OwnerCoffeeTable",CFrame.new(cx-17,y3,cz-11),6.4,4.4,owner)
 part("OwnerMediaConsole",Vector3.new(12,2.4,1.9),CFrame.new(cx-19,y3+1.2,cz-2),C.woodDark,Enum.Material.WoodPlanks,true,owner)
 
 -- Owner office remains accessible from living/foyer without passing through bedroom.
-wallAlongZWithDoor("OwnerOfficeWall",cx+1,cz-14,y3,24,PARTITION_H,cz-13,8,owner,C.charcoal)
+wallAlongZWithDoor("OwnerOfficeWall",cx+1,cz-14,y3,24,PARTITION_H,cz-13,10,owner,C.charcoal)
 desk("OwnerDesk",CFrame.new(cx+9,y3,cz-14),9.5,owner)
 part("OwnerCredenza",Vector3.new(10,2.5,1.9),CFrame.new(cx+9,y3+1.25,cz-23),C.wood,Enum.Material.WoodPlanks,true,owner)
 
 -- Private bedroom is north-west and behind two boundaries from the stair core.
-wallAlongZWithDoor("BedroomEastWall",cx-2,cz+17,y3,24,PARTITION_H,cz+12,8,owner,C.charcoal)
+wallAlongZWithDoor("BedroomEastWall",cx-2,cz+17,y3,24,PARTITION_H,cz+12,10,owner,C.charcoal)
 wallAlongX("BedroomSouthWall",cx-22,cz+5,y3,40,PARTITION_H,owner,C.charcoal)
 rug("BedroomRug",CFrame.new(cx-23,y3,cz+18),28,17,owner,C.fabric)
 bed("OwnerBed",CFrame.new(cx-25,y3,cz+19)*CFrame.Angles(0,math.rad(180),0),9.2,11.0,owner)
@@ -564,8 +578,8 @@ wardrobe("OwnerWardrobeB",CFrame.new(cx-8,y3,cz+13),6.5,owner)
 lowTable("BedroomBench",CFrame.new(cx-25,y3,cz+10),7.0,2.8,owner)
 
 -- Dressing + bath occupy north-east, separated from both lift arrival and bed.
-wallAlongZWithDoor("DressingWest",cx+8,cz+18,y3,20,PARTITION_H,cz+12,7,owner,C.graphite)
-wallAlongXWithDoor("BathSouth",cx+16,cz+8,y3,16,PARTITION_H,cx+14,7,owner,C.graphite)
+wallAlongZWithDoor("DressingWest",cx+8,cz+18,y3,20,PARTITION_H,cz+12,9,owner,C.graphite)
+wallAlongXWithDoor("BathSouth",cx+16,cz+8,y3,16,PARTITION_H,cx+14,9,owner,C.graphite)
 part("BathVanity",Vector3.new(8,2.4,1.8),CFrame.new(cx+15,y3+1.2,cz+21),C.stone,Enum.Material.Marble,true,owner)
 glass("OwnerShowerGlass",Vector3.new(6.0,7.2,.28),CFrame.new(cx+19,y3+3.6,cz+16),owner,.45,true)
 part("DressingBench",Vector3.new(6.2,.85,2.4),CFrame.new(cx+6,y3+.48,cz+14),C.fabric,Enum.Material.Fabric,true,owner)
@@ -628,10 +642,12 @@ tower:SetAttribute("TowerDepth",TOWER_D)
 tower:SetAttribute("FloorHeight",FLOOR_H)
 tower:SetAttribute("PartitionHeight",PARTITION_H)
 tower:SetAttribute("DoorClearHeight",DOOR_H)
+tower:SetAttribute("LiftLandingDynamicRigClearance",true)
+tower:SetAttribute("StaffMainSpineWidth",14)
 tower:SetAttribute("ModeratorFloorY",floorSurface[1])
 tower:SetAttribute("AdminFloorY",floorSurface[2])
 tower:SetAttribute("OwnerFloorY",floorSurface[3])
 tower:SetAttribute("RoofTerraceY",floorSurface[4])
 tower:SetAttribute("InstalledDescendants",#tower:GetDescendants())
 
-print("[BBYA] Staff Tower v4 Zepeto-ready: 22-stud floors / 13-stud doors / wide staff circulation / compact sign lift")
+print("[BBYA] Staff Tower v5 spacious: 26-stud floors / 16-stud doors / open staff plan / dynamic tall-rig lift clearance")
