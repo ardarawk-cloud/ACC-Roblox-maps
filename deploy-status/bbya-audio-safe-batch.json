@@ -3609,7 +3609,7 @@
         "size": 6002261,
         "sha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6"
       },
-      "updatedAt": "2026-10-27T19:41:50.488639+00:00",
+      "updatedAt": "2026-10-27T23:13:13.564979+00:00",
       "normalizedSha256": "b349a35700a5a6754f01ce51908b83a9fe1a6f045ace3e087e618f171079dee6",
       "uploadHttp": 200,
       "uploadResponse": {
@@ -3618,7 +3618,7 @@
         "done": false
       },
       "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
-      "status": "PERMISSION_FAILED",
+      "status": "APPROVED_PENDING_PUBLISH",
       "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
       "operationResult": {
         "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
@@ -3669,19 +3669,19 @@
           "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-10-27T20:02:40.278685+00:00",
-      "approvedAt": "2026-10-27T20:02:40.278706+00:00",
+      "moderationCheckedAt": "2026-10-27T23:13:13.237262+00:00",
+      "approvedAt": "2026-10-27T23:13:13.237281+00:00",
       "permission": {
-        "ok": false,
-        "http": 504,
-        "successAssetIds": [],
+        "ok": true,
+        "http": 200,
+        "successAssetIds": [
+          "125816915646645"
+        ],
         "response": {
-          "errors": [
-            {
-              "code": 0,
-              "message": "upstream request timeout"
-            }
-          ]
+          "successAssetIds": [
+            125816915646645
+          ],
+          "errors": []
         }
       },
       "stagedCommit": "17e910a7a0504f1ece19420d1546ab19df26d31a",
