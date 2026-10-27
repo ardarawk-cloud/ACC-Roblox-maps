@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "RUNNING_SEQUENTIAL",
+  "status": "STOPPED_PERMISSION_FAILURE",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3618,7 +3618,7 @@
         "done": false
       },
       "uploadedAt": "2026-09-22T16:57:37.607483+00:00",
-      "status": "PUBLISH_FAILED",
+      "status": "PERMISSION_FAILED",
       "operationPath": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
       "operationResult": {
         "path": "operations/ca0d8010-b12d-45e1-b26a-9347d852c508",
@@ -3669,19 +3669,19 @@
           "state": "Active"
         }
       },
-      "moderationCheckedAt": "2026-10-27T19:41:50.006821+00:00",
-      "approvedAt": "2026-10-27T19:41:50.006838+00:00",
+      "moderationCheckedAt": "2026-10-27T20:02:40.278685+00:00",
+      "approvedAt": "2026-10-27T20:02:40.278706+00:00",
       "permission": {
-        "ok": true,
-        "http": 200,
-        "successAssetIds": [
-          "125816915646645"
-        ],
+        "ok": false,
+        "http": 504,
+        "successAssetIds": [],
         "response": {
-          "successAssetIds": [
-            125816915646645
-          ],
-          "errors": []
+          "errors": [
+            {
+              "code": 0,
+              "message": "upstream request timeout"
+            }
+          ]
         }
       },
       "stagedCommit": "17e910a7a0504f1ece19420d1546ab19df26d31a",
