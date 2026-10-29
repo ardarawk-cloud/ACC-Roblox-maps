@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "STOPPED_PUBLISH_FAILURE",
+  "status": "BLOCKED_KEY_CHECK",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3690,33 +3690,15 @@
   },
   "folderUrl": "https://drive.google.com/drive/folders/1WdYH8ICus8WHPuVDvX0b4LOa9LbbBSCd",
   "keyCheck": {
-    "ok": true,
-    "http": 200,
-    "keyName": "AMSTUDIO_AUDIO_UPLOADER_01",
-    "authorizedUserId": "9296030038",
-    "enabled": true,
-    "expired": false,
-    "assetReadWrite": true,
-    "assetPermissionsWrite": true,
-    "scopes": [
-      {
-        "name": "asset-permissions",
-        "operations": [
-          "write"
-        ],
-        "userIds": []
-      },
-      {
-        "name": "asset",
-        "operations": [
-          "read",
-          "write"
-        ],
-        "userIds": [
-          "*"
-        ]
-      }
-    ]
+    "ok": false,
+    "http": 0,
+    "keyName": null,
+    "authorizedUserId": "",
+    "enabled": null,
+    "expired": null,
+    "assetReadWrite": false,
+    "assetPermissionsWrite": false,
+    "scopes": []
   },
   "accountCheck": {
     "ok": true,
@@ -3728,7 +3710,7 @@
     "displayName": "GudangPet88"
   },
   "folderItemCount": 68,
-  "updatedAt": "2026-10-28T21:53:40.999401+00:00",
+  "updatedAt": "2026-10-29T00:25:25.159743+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
   "lastLiveSequence": 41,
