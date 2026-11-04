@@ -50,7 +50,7 @@ local ACTIVITIES = {
         Area = {en = "Cafe", id = "Kafe"},
         Coins = 130,
         Rep = 40,
-        Path = {"V140_CityLifeExpansion", "CafeRush", "CAFE_RUSH_Start", "PromptPost"},
+        Path = {"V140_CityLifeExpansion", "CafeRush", "CAFE_RUSH_Start", "Post"},
     },
     {
         Id = "ARCADE_CIRCUIT",
@@ -58,7 +58,7 @@ local ACTIVITIES = {
         Area = {en = "Arcade", id = "Arcade"},
         Coins = 120,
         Rep = 35,
-        Path = {"V140_CityLifeExpansion", "ArcadeCircuit", "ARCADE_CIRCUIT_Start", "PromptPost"},
+        Path = {"V140_CityLifeExpansion", "ArcadeCircuit", "ARCADE_CIRCUIT_Start", "Post"},
     },
     {
         Id = "PARK_CLEANUP",
@@ -66,7 +66,7 @@ local ACTIVITIES = {
         Area = {en = "City Park", id = "Taman Kota"},
         Coins = 150,
         Rep = 45,
-        Path = {"V140_CityLifeExpansion", "ParkCleanup", "PARK_CLEANUP_Start", "PromptPost"},
+        Path = {"V140_CityLifeExpansion", "ParkCleanup", "PARK_CLEANUP_Start", "Post"},
     },
     {
         Id = "STYLE_CHECK",
