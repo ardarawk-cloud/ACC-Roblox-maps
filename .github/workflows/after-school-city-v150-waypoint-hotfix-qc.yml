@@ -43,7 +43,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           git fetch origin main
           if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch live receipt' }
-          $receipt = git show 'origin/main:deploy-status/after-school-city-publish-v150-city-guide-wayfinding.json' | Out-String | ConvertFrom-Json
+          $receipt = ((git show 'origin/main:deploy-status/after-school-city-publish-v150-city-guide-wayfinding.json' | Out-String).TrimStart([char]0xFEFF)) | ConvertFrom-Json
           if ($receipt.status -ne 'LIVE_PUBLISHED' -or [string]$receipt.placeId -ne $env:PLACE_ID -or [int]$receipt.versionNumber -ne [int]$env:LIVE_VERSION -or $receipt.sourceCommit -ne $env:LIVE_SOURCE) {
             throw 'LIVE receipt changed; fresh release assessment required'
           }
