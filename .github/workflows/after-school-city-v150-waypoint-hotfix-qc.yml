@@ -1,0 +1,148 @@
+name: After School City V1.5 Waypoint Hotfix QC
+
+on:
+  push:
+    branches:
+      - fix/asc-v150-v140-waypoint-targets
+    paths:
+      - 'maps/after-school-city/after-school-city.city-guide-v150.client.lua'
+      - '.github/workflows/after-school-city-v150-waypoint-hotfix-qc.yml'
+  pull_request:
+    branches:
+      - after-school-city/v150-city-guide-wayfinding
+    paths:
+      - 'maps/after-school-city/after-school-city.city-guide-v150.client.lua'
+      - '.github/workflows/after-school-city-v150-waypoint-hotfix-qc.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asc-v150-waypoint-hotfix-qc-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  qc:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      BASE: '58c0b8ea349fe8acfb8207a95e67ca82b8a989a4'
+      LIVE_SOURCE: '5c9490248ddbd8148f190cd7e9f2e0f99f34f5b1'
+      LIVE_VERSION: '66'
+      PLACE_ID: '121603385909425'
+      GUIDE: 'maps/after-school-city/after-school-city.city-guide-v150.client.lua'
+    steps:
+      - name: Checkout hotfix source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Confirm LIVE v66 receipt and isolated patch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin main
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch live receipt' }
+          $receipt = git show 'origin/main:deploy-status/after-school-city-publish-v150-city-guide-wayfinding.json' | Out-String | ConvertFrom-Json
+          if ($receipt.status -ne 'LIVE_PUBLISHED' -or [string]$receipt.placeId -ne $env:PLACE_ID -or [int]$receipt.versionNumber -ne [int]$env:LIVE_VERSION -or $receipt.sourceCommit -ne $env:LIVE_SOURCE) {
+            throw 'LIVE receipt changed; fresh release assessment required'
+          }
+          $prod = @(git diff --name-only $env:BASE HEAD -- 'maps/after-school-city')
+          if ($LASTEXITCODE -ne 0 -or $prod.Count -ne 1 -or $prod[0] -ne $env:GUIDE) {
+            throw "Unexpected production changes: $($prod -join ', ')"
+          }
+          Write-Host 'LIVE RECEIPT AND ONE-FILE PRODUCTION SCOPE PASS'
+
+      - name: Verify exact 3-line patch and all waypoint targets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $before = (git show "$($env:BASE):$($env:GUIDE)" | Out-String).TrimEnd()
+          if ($LASTEXITCODE -ne 0) { throw 'Base source unavailable' }
+          $after = (Get-Content $env:GUIDE -Raw).TrimEnd()
+          $v140 = @(
+            @('CafeRush', 'CAFE_RUSH'),
+            @('ArcadeCircuit', 'ARCADE_CIRCUIT'),
+            @('ParkCleanup', 'PARK_CLEANUP')
+          )
+          foreach ($item in $v140) {
+            $prefix = 'Path = {"V140_CityLifeExpansion", "' + $item[0] + '", "' + $item[1] + '_Start", '
+            $old = $prefix + '"PromptPost"}'
+            $new = $prefix + '"Post"}'
+            if (-not $before.Contains($old) -or -not $after.Contains($new)) {
+              throw "V140 waypoint path missing: $($item[1])"
+            }
+            $before = $before.Replace($old, $new)
+          }
+          if ($before -cne $after) { throw 'Unapproved changes beyond the three waypoint paths' }
+          $v141 = @(
+            @('StyleCheck', 'STYLE_CHECK'),
+            @('MusicSession', 'MUSIC_SESSION'),
+            @('HobbyBuild', 'HOBBY_BUILD'),
+            @('NeighborhoodRun', 'NEIGHBORHOOD_RUN')
+          )
+          foreach ($item in $v141) {
+            $target = 'Path = {"V141_CityLifeExpansionBatch2", "' + $item[0] + '", "' + $item[1] + '_Start", "PromptPost"}'
+            if (-not $after.Contains($target)) { throw "V141 waypoint changed: $($item[1])" }
+          }
+          $v110 = @('SkateActivityStart', 'PoolActivityStart', 'DeliveryActivityStart')
+          foreach ($name in $v110) {
+            if (-not $after.Contains('Path = {"V110_FirstPlayableLoop", "' + $name + '"}')) {
+              throw "V110 waypoint missing: $name"
+            }
+          }
+          if (([regex]::Matches($after, 'Id = "')).Count -ne 10) { throw 'Expected exactly 10 activity entries' }
+          foreach ($forbidden in @('DataStoreService', 'MarketplaceService', 'GameplayService.Award', 'PromptProductPurchase')) {
+            if ($after.Contains($forbidden)) { throw "Unexpected authority token: $forbidden" }
+          }
+          Write-Host 'EXACT THREE-LINE PATCH + TEN WAYPOINTS + AUTHORITY PASS'
+
+      - name: Prepare Rojo 7.7.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'rojo-7.7.0'
+          $zip = Join-Path $env:RUNNER_TEMP 'rojo-7.7.0.zip'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $rojo = (Get-ChildItem $dir -Filter rojo.exe -File -Recurse | Select-Object -First 1).FullName
+          if (-not $rojo) { throw 'rojo executable missing' }
+          if ((& $rojo --version | Out-String) -notmatch '7\.7\.0') { throw 'Unexpected Rojo version' }
+          "ROJO_EXE=$rojo" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Fresh source build only (NO PUBLISH)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'asc-v150-waypoint-hotfix-qc'
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          $place = Join-Path $out 'after-school-city-v150-waypoint-hotfix.rbxl'
+          & $env:ROJO_EXE build 'maps/after-school-city/default.project.json' -o $place
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $place)) { throw 'Rojo build failed' }
+          $bytes = (Get-Item $place).Length
+          $hash = (Get-FileHash $place -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            'STATUS=SOURCE_BUILD_QC_PASSED',
+            'PROJECT=AFTER_SCHOOL_CITY',
+            'LIVE_VERSION_BASE=66',
+            "SOURCE_COMMIT=$env:GITHUB_SHA",
+            "RBXL_BYTES=$bytes",
+            "SHA256=$hash",
+            'ACTIVITY_DIRECTORY=10',
+            'WAYPOINT_TARGETS=10_MATCHED',
+            'PRODUCTION_FILES_CHANGED=1',
+            'PROTECTED_AUTHORITIES=UNCHANGED',
+            'PUBLISH=NOT_PERFORMED',
+            'RUNTIME_STATUS=PENDING'
+          ) | Set-Content (Join-Path $out 'qc-receipt.txt') -Encoding utf8
+          "ARTIFACT_DIR=$out" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SOURCE BUILD PASS bytes=$bytes sha256=$hash publish=NO runtime=PENDING"
+
+      - name: Upload source QC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-school-city-v150-waypoint-hotfix-qc
+          path: ${{ env.ARTIFACT_DIR }}
+          if-no-files-found: error
+          retention-days: 14
