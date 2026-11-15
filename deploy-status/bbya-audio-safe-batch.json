@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "STOPPED_PUBLISH_FAILURE",
+  "status": "BLOCKED_ACCOUNT_MISMATCH_OR_BANNED",
   "items": {
     "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN": {
       "driveId": "1ce-OqYJlTlGriD6I3-o6AI-6MTds6YRN",
@@ -3720,16 +3720,16 @@
     ]
   },
   "accountCheck": {
-    "ok": true,
-    "http": 200,
+    "ok": false,
+    "http": 503,
     "expectedUsername": "gudangpet88",
-    "resolvedUsername": "GudangPet88",
+    "resolvedUsername": "",
     "userId": "9296030038",
     "isBanned": false,
-    "displayName": "GudangPet88"
+    "displayName": null
   },
   "folderItemCount": 68,
-  "updatedAt": "2026-11-15T09:55:56.466830+00:00",
+  "updatedAt": "2026-11-15T17:00:36.025377+00:00",
   "legacyMainCleared": true,
   "legacyMainClearedAt": "2026-08-24T14:52:42.611260+00:00",
   "lastLiveSequence": 41,
