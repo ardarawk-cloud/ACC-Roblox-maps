@@ -1,5 +1,5 @@
--- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v6 EXECUTIVE POLISH
--- Owner-authorized visual polish + wayfinding + consistent lift landing treatment.
+-- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v7 ARCHITECTURAL IDENTITY
+-- Owner-authorized architectural finishing: premium entrance identity, facade rhythm, and crown treatment.
 -- WORLD / BUILD authority only. Preserves StaffTowerV1 identity, compact sign-lift, tall-rig clearance, and Travel arrival path.
 -- No audio, monetization, role persistence, DJ, Music, Message, Mall, or Funkot geometry changes.
 
@@ -35,7 +35,7 @@ local tower=Instance.new("Model")
 tower.Name="StaffTowerV1"
 tower.Parent=funkot
 tower:SetAttribute("Pass","STAFF_TOWER_V1")
-tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V6_EXECUTIVE_POLISH")
+tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V7_ARCHITECTURAL_IDENTITY")
 tower:SetAttribute("Location","ABOVE_FUNKOT")
 tower:SetAttribute("RoleIntent","OWNER_ADMIN_MODERATOR")
 tower:SetAttribute("AudioUntouched",true)
@@ -54,6 +54,10 @@ tower:SetAttribute("ExecutiveWayfinding",true)
 tower:SetAttribute("ConsistentLiftLanding",true)
 tower:SetAttribute("LightingPolish","BALANCED_TWO_ROW_GRID")
 tower:SetAttribute("VisualClutterPolicy","LOW")
+tower:SetAttribute("ArchitecturalIdentity","PREMIUM_ENTRY_FACADE_BANDS_CROWN")
+tower:SetAttribute("EntranceCanopyClearHeight",17.5)
+tower:SetAttribute("ExteriorSignage","BBYA_STAFF_TOWER")
+tower:SetAttribute("DecorCollisionPolicy","NON_COLLIDING")
 tower:SetAttribute("PrivacySequence","LIFT_MARKER>VESTIBULE>HALL>PRIVATE_ROOM")
 tower:SetAttribute("BedDirectlyVisibleFromLift",false)
 tower:SetAttribute("MiniatureBlockoutRetired",true)
@@ -338,6 +342,44 @@ facadeLevel("AdminFacade",floorSurface[2],floorSurface[3],false,shell)
 facadeLevel("OwnerFacade",floorSurface[3],floorSurface[4],false,shell)
 
 -- =============================================================================
+-- 2B) ARCHITECTURAL IDENTITY — ENTRY / FACADE BANDS / ROOF CROWN
+-- =============================================================================
+local identity=model("ArchitecturalIdentity")
+identity:SetAttribute("Mode","LOW_CLUTTER_PREMIUM")
+identity:SetAttribute("Collision","NONE")
+identity:SetAttribute("TallRigClearancePreserved",true)
+
+-- Thin horizontal bands give the taller facade readable floor rhythm without adding bulk.
+for i,y in ipairs({floorSurface[2],floorSurface[3],floorSurface[4]}) do
+ part("SouthBand"..i,Vector3.new(TOWER_W,.20,.64),CFrame.new(cx,y+.12,towerSouth-.08),C.brass,Enum.Material.Metal,false,identity)
+ part("NorthBand"..i,Vector3.new(TOWER_W,.20,.64),CFrame.new(cx,y+.12,towerNorth+.08),C.brass,Enum.Material.Metal,false,identity)
+ part("WestBand"..i,Vector3.new(.64,.20,TOWER_D),CFrame.new(towerLeft-.08,y+.12,cz),C.brass,Enum.Material.Metal,false,identity)
+ part("EastBand"..i,Vector3.new(.64,.20,TOWER_D),CFrame.new(towerRight+.08,y+.12,cz),C.brass,Enum.Material.Metal,false,identity)
+end
+
+-- Entry canopy is deliberately thin and mounted above the 16-stud clear doorway.
+local entryX=cx+25
+part("EntryCanopy",Vector3.new(17,.32,5.4),CFrame.new(entryX,floorSurface[1]+17.65,towerSouth-2.45),C.graphite,Enum.Material.Metal,false,identity)
+part("EntryCanopyAccent",Vector3.new(16.2,.09,4.8),CFrame.new(entryX,floorSurface[1]+17.45,towerSouth-2.45),C.brass,Enum.Material.Neon,false,identity)
+local entryLampL=part("EntryLampL",Vector3.new(.28,.28,.28),CFrame.new(entryX-6.4,floorSurface[1]+17.28,towerSouth-3.75),C.brass,Enum.Material.Neon,false,identity)
+local entryLampR=part("EntryLampR",Vector3.new(.28,.28,.28),CFrame.new(entryX+6.4,floorSurface[1]+17.28,towerSouth-3.75),C.brass,Enum.Material.Neon,false,identity)
+localLight(entryLampL,.20,9)
+localLight(entryLampR,.20,9)
+
+-- Main identity plaque sits in the facade header zone, never in the player path.
+local towerSign=part("TowerIdentitySign",Vector3.new(17,4.2,.16),CFrame.new(entryX,floorSurface[1]+21.25,towerSouth-.22),C.black,Enum.Material.Metal,false,identity)
+towerSign.CanQuery=false
+makeExteriorSign(towerSign,"BBYA STAFF TOWER","PRIVATE STAFF • ADMIN • OWNER")
+
+-- Roof crown: low profile, visually closes the building without creating another room or box.
+local crownY=floorSurface[4]+4.65
+part("CrownSouth",Vector3.new(TOWER_W,.42,.78),CFrame.new(cx,crownY,towerSouth),C.graphite,Enum.Material.Metal,false,identity)
+part("CrownNorth",Vector3.new(TOWER_W,.42,.78),CFrame.new(cx,crownY,towerNorth),C.graphite,Enum.Material.Metal,false,identity)
+part("CrownWest",Vector3.new(.78,.42,TOWER_D),CFrame.new(towerLeft,crownY,cz),C.graphite,Enum.Material.Metal,false,identity)
+part("CrownEast",Vector3.new(.78,.42,TOWER_D),CFrame.new(towerRight,crownY,cz),C.graphite,Enum.Material.Metal,false,identity)
+part("CrownAccentSouth",Vector3.new(TOWER_W-.8,.10,.84),CFrame.new(cx,crownY+.28,towerSouth),C.brass,Enum.Material.Neon,false,identity)
+
+-- =============================================================================
 -- 3) COMPACT FUNCTIONAL LIFT MARKERS — NO STAIRS / NO CABIN BOX
 -- =============================================================================
 local lift=model("CompactLiftMarkers")
@@ -439,6 +481,47 @@ local function makeWayfindingPlate(name,stopIndex,title,subtitle)
  subLabel.TextSize=13
  subLabel.TextXAlignment=Enum.TextXAlignment.Left
  subLabel.Parent=frame
+end
+
+local function makeExteriorSign(partObj,title,subtitle)
+ local sg=Instance.new("SurfaceGui")
+ sg.Name="ExteriorSignUI"
+ sg.Face=Enum.NormalId.Front
+ sg.AlwaysOnTop=false
+ sg.LightInfluence=0
+ sg.PixelsPerStud=50
+ sg.Parent=partObj
+ local frame=Instance.new("Frame")
+ frame.Size=UDim2.fromScale(1,1)
+ frame.BackgroundColor3=C.black
+ frame.BackgroundTransparency=.06
+ frame.BorderSizePixel=0
+ frame.Parent=sg
+ local top=Instance.new("TextLabel")
+ top.Position=UDim2.new(0,14,0,5)
+ top.Size=UDim2.new(1,-28,.58,-4)
+ top.BackgroundTransparency=1
+ top.Text=title
+ top.TextColor3=C.white
+ top.Font=Enum.Font.GothamBlack
+ top.TextSize=25
+ top.TextXAlignment=Enum.TextXAlignment.Center
+ top.Parent=frame
+ local sub=Instance.new("TextLabel")
+ sub.Position=UDim2.new(0,14,.58,0)
+ sub.Size=UDim2.new(1,-28,.42,-7)
+ sub.BackgroundTransparency=1
+ sub.Text=subtitle
+ sub.TextColor3=C.brass
+ sub.Font=Enum.Font.GothamBold
+ sub.TextSize=12
+ sub.TextXAlignment=Enum.TextXAlignment.Center
+ sub.Parent=frame
+ local stroke=Instance.new("UIStroke")
+ stroke.Color=C.brass
+ stroke.Thickness=1
+ stroke.Transparency=.48
+ stroke.Parent=frame
 end
 
 local function moveByLift(player,targetIndex)
@@ -631,7 +714,7 @@ wallAlongZWithDoor("OwnerOfficeWall",cx+1,cz-14,y3,24,PARTITION_H,cz-13,10,owner
 desk("OwnerDesk",CFrame.new(cx+9,y3,cz-14),9.5,owner)
 part("OwnerCredenza",Vector3.new(10,2.5,1.9),CFrame.new(cx+9,y3+1.25,cz-23),C.wood,Enum.Material.WoodPlanks,true,owner)
 
--- Private bedroom is north-west and behind two boundaries from the stair core.
+-- Private bedroom is north-west and behind two boundaries from the lift arrival.
 wallAlongZWithDoor("BedroomEastWall",cx-2,cz+17,y3,24,PARTITION_H,cz+12,10,owner,C.charcoal)
 wallAlongX("BedroomSouthWall",cx-22,cz+5,y3,40,PARTITION_H,owner,C.charcoal)
 rug("BedroomRug",CFrame.new(cx-23,y3,cz+18),28,17,owner,C.fabric)
@@ -713,10 +796,14 @@ tower:SetAttribute("StaffMainSpineWidth",14)
 tower:SetAttribute("LiftClearZoneSize",13)
 tower:SetAttribute("WayfindingVersion","V6_EXECUTIVE")
 tower:SetAttribute("LightingGridRows",2)
+tower:SetAttribute("FacadeBandCount",3)
+tower:SetAttribute("EntranceIdentityVersion","V7")
+tower:SetAttribute("RoofCrown","LOW_PROFILE")
+tower:SetAttribute("ArchitecturalDecorCollides",false)
 tower:SetAttribute("ModeratorFloorY",floorSurface[1])
 tower:SetAttribute("AdminFloorY",floorSurface[2])
 tower:SetAttribute("OwnerFloorY",floorSurface[3])
 tower:SetAttribute("RoofTerraceY",floorSurface[4])
 tower:SetAttribute("InstalledDescendants",#tower:GetDescendants())
 
-print("[BBYA] Staff Tower v6 executive polish: premium sign-lift / floor wayfinding / consistent clear landings / balanced lighting")
+print("[BBYA] Staff Tower v7 architectural identity: premium entrance / facade bands / low-profile crown / tall-rig clearance preserved")
