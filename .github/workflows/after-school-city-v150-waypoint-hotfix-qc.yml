@@ -145,4 +145,4 @@ jobs:
           name: after-school-city-v150-waypoint-hotfix-qc
           path: ${{ env.ARTIFACT_DIR }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
