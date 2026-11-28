@@ -1,5 +1,5 @@
 {
-  "version": 12,
+  "version": 13,
   "goldenBaselineBranch": "bbya-golden-baseline",
   "releaseMode": "DIRECT_MAIN_WITH_SCOPE_FIREWALL",
   "autoPublishOnMain": true,
@@ -86,6 +86,11 @@
     "staff-tower": [
       "maps/bbya-social-hub/148-staff-tower.server.lua",
       "maps/bbya-social-hub/156-staff-tower-role-travel.client.lua"
+    ],
+    "fishing": [
+      "maps/bbya-social-hub/158-fishing-satisfaction-v8.server.lua",
+      "maps/bbya-social-hub/158-fishing-satisfaction-v8.client.lua",
+      "maps/bbya-social-hub/default.project.json"
     ]
   },
   "invariants": {
