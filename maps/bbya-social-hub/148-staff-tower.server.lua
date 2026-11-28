@@ -1,6 +1,6 @@
--- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v5 SPACIOUS TALL-RIG POLISH
--- Owner-authorized interior refinement + dynamic tall-avatar lift clearance.
--- WORLD / BUILD authority only. Preserves StaffTowerV1 identity, compact sign-lift, and Travel arrival threshold path.
+-- BBYA SOCIAL HUB — STAFF TOWER ABOVE FUNKOT v6 EXECUTIVE POLISH
+-- Owner-authorized visual polish + wayfinding + consistent lift landing treatment.
+-- WORLD / BUILD authority only. Preserves StaffTowerV1 identity, compact sign-lift, tall-rig clearance, and Travel arrival path.
 -- No audio, monetization, role persistence, DJ, Music, Message, Mall, or Funkot geometry changes.
 
 local Workspace=game:GetService("Workspace")
@@ -35,7 +35,7 @@ local tower=Instance.new("Model")
 tower.Name="StaffTowerV1"
 tower.Parent=funkot
 tower:SetAttribute("Pass","STAFF_TOWER_V1")
-tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V5_SPACIOUS_TALL_RIG_POLISH")
+tower:SetAttribute("WorldBuildAuthority","148_STAFF_TOWER_V6_EXECUTIVE_POLISH")
 tower:SetAttribute("Location","ABOVE_FUNKOT")
 tower:SetAttribute("RoleIntent","OWNER_ADMIN_MODERATOR")
 tower:SetAttribute("AudioUntouched",true)
@@ -50,6 +50,10 @@ tower:SetAttribute("MinimumDoorClearHeight",16)
 tower:SetAttribute("MinimumPrimaryAisleWidth",14)
 tower:SetAttribute("DynamicLiftRigClearance",true)
 tower:SetAttribute("StaffFloorOpenPlan",true)
+tower:SetAttribute("ExecutiveWayfinding",true)
+tower:SetAttribute("ConsistentLiftLanding",true)
+tower:SetAttribute("LightingPolish","BALANCED_TWO_ROW_GRID")
+tower:SetAttribute("VisualClutterPolicy","LOW")
 tower:SetAttribute("PrivacySequence","LIFT_MARKER>VESTIBULE>HALL>PRIVATE_ROOM")
 tower:SetAttribute("BedDirectlyVisibleFromLift",false)
 tower:SetAttribute("MiniatureBlockoutRetired",true)
@@ -386,6 +390,55 @@ local function makeTextFace(partObj,textValue,textSize,color)
  label.TextXAlignment=Enum.TextXAlignment.Center
  label.TextYAlignment=Enum.TextYAlignment.Center
  label.Parent=bg
+ local stroke=Instance.new("UIStroke")
+ stroke.Color=C.brass
+ stroke.Thickness=1
+ stroke.Transparency=.62
+ stroke.Parent=bg
+end
+
+local function makeWayfindingPlate(name,stopIndex,title,subtitle)
+ local stop=liftStops[stopIndex]
+ local plate=part(name,Vector3.new(.14,3.8,8.4),CFrame.new(LIFT_SIGN_X-.08,stop.surfaceY+8.25,LIFT_SIGN_Z-7.2),C.black,Enum.Material.Metal,false,lift)
+ plate.CanQuery=false
+ local sg=Instance.new("SurfaceGui")
+ sg.Face=Enum.NormalId.Left
+ sg.AlwaysOnTop=false
+ sg.LightInfluence=0
+ sg.PixelsPerStud=48
+ sg.Parent=plate
+ local frame=Instance.new("Frame")
+ frame.Size=UDim2.fromScale(1,1)
+ frame.BackgroundColor3=C.black
+ frame.BackgroundTransparency=.08
+ frame.BorderSizePixel=0
+ frame.Parent=sg
+ local accent=Instance.new("Frame")
+ accent.Size=UDim2.new(0,5,1,-16)
+ accent.Position=UDim2.fromOffset(8,8)
+ accent.BackgroundColor3=C.brass
+ accent.BorderSizePixel=0
+ accent.Parent=frame
+ local titleLabel=Instance.new("TextLabel")
+ titleLabel.Position=UDim2.fromOffset(22,6)
+ titleLabel.Size=UDim2.new(1,-30,.55,-4)
+ titleLabel.BackgroundTransparency=1
+ titleLabel.Text=title
+ titleLabel.TextColor3=C.white
+ titleLabel.Font=Enum.Font.GothamBlack
+ titleLabel.TextSize=22
+ titleLabel.TextXAlignment=Enum.TextXAlignment.Left
+ titleLabel.Parent=frame
+ local subLabel=Instance.new("TextLabel")
+ subLabel.Position=UDim2.new(0,22,.55,0)
+ subLabel.Size=UDim2.new(1,-30,.45,-8)
+ subLabel.BackgroundTransparency=1
+ subLabel.Text=subtitle
+ subLabel.TextColor3=C.fabricLight
+ subLabel.Font=Enum.Font.GothamMedium
+ subLabel.TextSize=13
+ subLabel.TextXAlignment=Enum.TextXAlignment.Left
+ subLabel.Parent=frame
 end
 
 local function moveByLift(player,targetIndex)
@@ -428,9 +481,21 @@ for i,stop in ipairs(liftStops) do
  local sign=part("LiftSign"..stop.label,Vector3.new(.16,2.35,4.8),CFrame.new(LIFT_SIGN_X,stop.surfaceY+3.65,LIFT_SIGN_Z),C.black,Enum.Material.Metal,false,lift)
  sign.CanQuery=true
  makeTextFace(sign,"LIFT\n"..stop.label,22,C.white)
+ -- Thin trim only: keeps the lift readable without creating a cabin/box.
+ part("LiftTrimTop"..stop.label,Vector3.new(.18,.14,5.15),CFrame.new(LIFT_SIGN_X-.08,stop.surfaceY+4.92,LIFT_SIGN_Z),C.brass,Enum.Material.Metal,false,lift)
+ part("LiftTrimBottom"..stop.label,Vector3.new(.18,.14,5.15),CFrame.new(LIFT_SIGN_X-.08,stop.surfaceY+2.40,LIFT_SIGN_Z),C.brass,Enum.Material.Metal,false,lift)
  if i<#liftStops then makeLiftArrow("LiftUp"..stop.label,i,i+1,2.02,"UP",liftStops[i+1].label) end
  if i>1 then makeLiftArrow("LiftDown"..stop.label,i,i-1,1.02,"DN",liftStops[i-1].label) end
+ local clear=part("LiftClearZone"..stop.label,Vector3.new(13,.04,13),CFrame.new(LIFT_SIGN_X-5.6,stop.surfaceY+.03,LIFT_SIGN_Z),C.brass,Enum.Material.SmoothPlastic,false,lift,.92)
+ clear.CanQuery=false
+ local lamp=part("LiftLandingLamp"..stop.label,Vector3.new(.35,.35,.35),CFrame.new(LIFT_SIGN_X-1.0,stop.surfaceY+8.7,LIFT_SIGN_Z),C.brass,Enum.Material.Neon,false,lift)
+ localLight(lamp,.28,11)
 end
+
+makeWayfindingPlate("WayfindingStaff",1,"STAFF FLOOR","RECEPTION • MEETING • LOUNGE • OFFICE")
+makeWayfindingPlate("WayfindingAdmin",2,"ADMIN FLOOR","PRIVATE SUITES • CENTRAL CORRIDOR")
+makeWayfindingPlate("WayfindingOwner",3,"OWNER PENTHOUSE","FOYER • LIVING • OFFICE • PRIVATE SUITE")
+makeWayfindingPlate("WayfindingRoof",4,"ROOFTOP","PRIVATE TERRACE • HELIPAD VISUAL")
 
 -- =============================================================================
 -- 4) LEVEL 1 — STAFF FLOOR / OPEN-PLAN SPACIOUS RE-LAYOUT
@@ -489,9 +554,7 @@ wallAlongZ("RestroomWest",restX-5.5,restZ,y1,11,PARTITION_H,staff,C.graphite)
 wallAlongXWithDoor("RestroomSouth",restX,restZ-5.5,y1,11,PARTITION_H,restX-2.0,8,staff,C.graphite)
 part("RestroomVanity",Vector3.new(4.6,2.2,1.6),CFrame.new(restX-1.2,y1+1.1,restZ+4.2),C.stone,Enum.Material.Marble,true,staff)
 
--- Explicit clear landing marker around the lift; visual-only and non-colliding.
-local liftClear=part("LiftClearZone",Vector3.new(13,.04,13),CFrame.new(LIFT_SIGN_X-5.6,y1+.03,LIFT_SIGN_Z),C.brass,Enum.Material.SmoothPlastic,false,staff,.88)
-liftClear.CanQuery=false
+-- Lift landing clear-zone is generated consistently for every floor in the lift authority above.
 
 -- =============================================================================
 -- 5) LEVEL 2 — FOUR REAL ADMIN SUITES + CENTRAL CORRIDOR
@@ -619,11 +682,14 @@ planter("RoofPlanterNW",CFrame.new(cx-36,yr,cz+23),roof)
 -- 8) RESTRAINED ARCHITECTURAL LIGHTING
 -- =============================================================================
 local lighting=model("TowerArchitecturalLighting")
+lighting:SetAttribute("Layout","BALANCED_TWO_ROW_GRID")
 for levelIndex=1,3 do
  local y=floorSurface[levelIndex+1]-1.05
- for i,x in ipairs({cx-28,cx-10,cx+8,cx+24}) do
-  local fixture=part("CeilingFixture"..levelIndex.."_"..i,Vector3.new(1.3,.18,1.3),CFrame.new(x,y,cz),C.brass,Enum.Material.Metal,false,lighting)
-  localLight(fixture,.40,14)
+ for row,z in ipairs({cz-12,cz+12}) do
+  for i,x in ipairs({cx-26,cx-8,cx+10,cx+26}) do
+   local fixture=part("CeilingFixture"..levelIndex.."_"..row.."_"..i,Vector3.new(1.15,.16,1.15),CFrame.new(x,y,z),C.brass,Enum.Material.Metal,false,lighting)
+   localLight(fixture,.27,15)
+  end
  end
 end
 for i,x in ipairs({cx-34,cx+34}) do
@@ -644,10 +710,13 @@ tower:SetAttribute("PartitionHeight",PARTITION_H)
 tower:SetAttribute("DoorClearHeight",DOOR_H)
 tower:SetAttribute("LiftLandingDynamicRigClearance",true)
 tower:SetAttribute("StaffMainSpineWidth",14)
+tower:SetAttribute("LiftClearZoneSize",13)
+tower:SetAttribute("WayfindingVersion","V6_EXECUTIVE")
+tower:SetAttribute("LightingGridRows",2)
 tower:SetAttribute("ModeratorFloorY",floorSurface[1])
 tower:SetAttribute("AdminFloorY",floorSurface[2])
 tower:SetAttribute("OwnerFloorY",floorSurface[3])
 tower:SetAttribute("RoofTerraceY",floorSurface[4])
 tower:SetAttribute("InstalledDescendants",#tower:GetDescendants())
 
-print("[BBYA] Staff Tower v5 spacious: 26-stud floors / 16-stud doors / open staff plan / dynamic tall-rig lift clearance")
+print("[BBYA] Staff Tower v6 executive polish: premium sign-lift / floor wayfinding / consistent clear landings / balanced lighting")
