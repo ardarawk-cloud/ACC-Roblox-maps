@@ -341,6 +341,48 @@ facadeLevel("StaffFacade",floorSurface[1],floorSurface[2],true,shell)
 facadeLevel("AdminFacade",floorSurface[2],floorSurface[3],false,shell)
 facadeLevel("OwnerFacade",floorSurface[3],floorSurface[4],false,shell)
 
+local function makeExteriorSign(partObj,title,subtitle)
+ local sg=Instance.new("SurfaceGui")
+ sg.Name="ExteriorSignUI"
+ sg.Face=Enum.NormalId.Front
+ sg.AlwaysOnTop=false
+ sg.LightInfluence=0
+ sg.PixelsPerStud=50
+ sg.Parent=partObj
+ local frame=Instance.new("Frame")
+ frame.Size=UDim2.fromScale(1,1)
+ frame.BackgroundColor3=C.black
+ frame.BackgroundTransparency=.06
+ frame.BorderSizePixel=0
+ frame.Parent=sg
+ local top=Instance.new("TextLabel")
+ top.Position=UDim2.new(0,14,0,5)
+ top.Size=UDim2.new(1,-28,.58,-4)
+ top.BackgroundTransparency=1
+ top.Text=title
+ top.TextColor3=C.white
+ top.Font=Enum.Font.GothamBlack
+ top.TextSize=25
+ top.TextXAlignment=Enum.TextXAlignment.Center
+ top.Parent=frame
+ local sub=Instance.new("TextLabel")
+ sub.Position=UDim2.new(0,14,.58,0)
+ sub.Size=UDim2.new(1,-28,.42,-7)
+ sub.BackgroundTransparency=1
+ sub.Text=subtitle
+ sub.TextColor3=C.brass
+ sub.Font=Enum.Font.GothamBold
+ sub.TextSize=12
+ sub.TextXAlignment=Enum.TextXAlignment.Center
+ sub.Parent=frame
+ local stroke=Instance.new("UIStroke")
+ stroke.Color=C.brass
+ stroke.Thickness=1
+ stroke.Transparency=.48
+ stroke.Parent=frame
+end
+
+
 -- =============================================================================
 -- 2B) ARCHITECTURAL IDENTITY — ENTRY / FACADE BANDS / ROOF CROWN
 -- =============================================================================
@@ -483,46 +525,6 @@ local function makeWayfindingPlate(name,stopIndex,title,subtitle)
  subLabel.Parent=frame
 end
 
-local function makeExteriorSign(partObj,title,subtitle)
- local sg=Instance.new("SurfaceGui")
- sg.Name="ExteriorSignUI"
- sg.Face=Enum.NormalId.Front
- sg.AlwaysOnTop=false
- sg.LightInfluence=0
- sg.PixelsPerStud=50
- sg.Parent=partObj
- local frame=Instance.new("Frame")
- frame.Size=UDim2.fromScale(1,1)
- frame.BackgroundColor3=C.black
- frame.BackgroundTransparency=.06
- frame.BorderSizePixel=0
- frame.Parent=sg
- local top=Instance.new("TextLabel")
- top.Position=UDim2.new(0,14,0,5)
- top.Size=UDim2.new(1,-28,.58,-4)
- top.BackgroundTransparency=1
- top.Text=title
- top.TextColor3=C.white
- top.Font=Enum.Font.GothamBlack
- top.TextSize=25
- top.TextXAlignment=Enum.TextXAlignment.Center
- top.Parent=frame
- local sub=Instance.new("TextLabel")
- sub.Position=UDim2.new(0,14,.58,0)
- sub.Size=UDim2.new(1,-28,.42,-7)
- sub.BackgroundTransparency=1
- sub.Text=subtitle
- sub.TextColor3=C.brass
- sub.Font=Enum.Font.GothamBold
- sub.TextSize=12
- sub.TextXAlignment=Enum.TextXAlignment.Center
- sub.Parent=frame
- local stroke=Instance.new("UIStroke")
- stroke.Color=C.brass
- stroke.Thickness=1
- stroke.Transparency=.48
- stroke.Parent=frame
-end
 
 local function moveByLift(player,targetIndex)
  if not hasTowerRole(player) or liftBusy[player] then return end
